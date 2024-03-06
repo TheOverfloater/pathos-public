@@ -15,6 +15,9 @@ Starting in early 2024, I decided that a release was not just possible, but it w
 be of great benefit to the entire hobbyist gamedev community, and the Half-Life 
 community.
 
+The development progress can be seen here:
+https://www.youtube.com/playlist?list=PLQnXkjA1l7uamgh8_ZnrFPSQxm1Kr91oA
+
 To run Pathos, you need the Visual Studio 2010 runtime libraries installed. These can
 be located under "Pathos Engine/vsruntime". Although Pathos supports 32-bit, I don't
 recommend using it, as it's antiquated and slow.
