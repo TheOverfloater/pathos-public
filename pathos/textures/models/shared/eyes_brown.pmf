@@ -1,0 +1,7 @@
+$texture
+{
+	$nodecal
+	$eyeglint
+	$nodecal
+	$texture diffuse models/shared/eyes_brown.dds
+}

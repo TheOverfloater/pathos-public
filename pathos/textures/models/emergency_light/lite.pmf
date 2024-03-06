@@ -1,0 +1,4 @@
+$texture
+{
+	$texture diffuse models/emergency_light/lite.tga
+}

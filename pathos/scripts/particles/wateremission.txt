@@ -1,0 +1,32 @@
+$particlescript
+{
+	$shape point
+	$system_size 500.000000
+	$min_velocity 120.000000
+	$max_velocity 150.000000
+	$max_offset 0.100000
+	$fade_in_time 0.200000
+	$fade_out_delay 2.800000
+	$velocity_damping -0.400000
+	$velocity_damping_delay 2.000000
+	$lifetime 4.000000
+	$lifetime_variation 1.000000
+	$primary_color 60 70 80
+	$scale 4.000000
+	$scale_variation 1.000000
+	$scale_damping_delay 0.001000
+	$scale_damping -40.000000
+	$max_particles -1
+	$particle_frequency 30.000000
+	$particle_frequency_variation 10
+	$collision create_system
+	$collision_flags collide_water
+	$gravity 1.000000
+	$impact_velocity_dampening 0.900000
+	$create fountain_splashes1.txt
+	$rendermode additive
+	$alpha 1.000000
+	$alignment tiled
+	$texture particle_smoke
+	$rotate_z_speed 30.000000
+}

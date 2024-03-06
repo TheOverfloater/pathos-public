@@ -1,0 +1,240 @@
+{
+	{
+		name mouth_open
+		{
+			time 0.000000
+			strength 0.000000
+		}
+		{
+			time 1.200000
+			strength 0.000000
+		}
+		{
+			time 2.000000
+			strength 0.090000
+		}
+		{
+			time 3.400000
+			strength 0.000000
+		}
+		{
+			time 7.200000
+			strength 0.090000
+		}
+		{
+			time 9.599999
+			strength 0.090000
+		}
+		{
+			time 10.200000
+			strength 0.250000
+		}
+		{
+			time 11.000000
+			strength 0.000000
+		}
+		{
+			time 12.000000
+			strength 0.060000
+		}
+		{
+			time 13.000000
+			strength 0.000000
+		}
+		{
+			time 18.000000
+			strength 0.000000
+		}
+		{
+			time 18.400000
+			strength 0.150000
+		}
+		{
+			time 18.799999
+			strength 0.150000
+		}
+		{
+			time 19.199999
+			strength 0.000000
+		}
+	}
+	{
+		name eyes_squint
+		{
+			time 0.000000
+			strength 0.000000
+		}
+		{
+			time 3.200000
+			strength 0.000000
+		}
+		{
+			time 5.400000
+			strength 0.510000
+		}
+		{
+			time 7.200000
+			strength 0.350000
+		}
+		{
+			time 8.200000
+			strength 0.910000
+		}
+		{
+			time 10.400000
+			strength 0.610000
+		}
+		{
+			time 11.200000
+			strength 0.350000
+		}
+		{
+			time 12.600000
+			strength 0.350000
+		}
+		{
+			time 14.800000
+			strength 0.400000
+		}
+		{
+			time 16.200001
+			strength 0.250000
+		}
+		{
+			time 17.200001
+			strength 0.000000
+		}
+		{
+			time 18.000000
+			strength 0.480000
+		}
+		{
+			time 18.799999
+			strength 0.440000
+		}
+		{
+			time 20.000000
+			strength 0.000000
+		}
+	}
+	{
+		name brow_raiser
+		{
+			time 3.200000
+			strength 0.000000
+		}
+		{
+			time 4.000000
+			strength 0.000000
+		}
+		{
+			time 4.400000
+			strength 0.280000
+		}
+		{
+			time 5.400000
+			strength 0.400000
+		}
+		{
+			time 6.200000
+			strength 0.630000
+		}
+		{
+			time 8.200000
+			strength 0.630000
+		}
+		{
+			time 9.200000
+			strength 0.340000
+		}
+		{
+			time 10.400000
+			strength 0.030000
+		}
+		{
+			time 15.000000
+			strength 0.000000
+		}
+		{
+			time 17.400000
+			strength 0.000000
+		}
+	}
+	{
+		name inner_brow_raiser
+		{
+			time 15.000000
+			strength 0.000000
+		}
+		{
+			time 16.200001
+			strength 0.400000
+		}
+		{
+			time 16.799999
+			strength 0.210000
+		}
+		{
+			time 17.400000
+			strength 0.000000
+		}
+	}
+	{
+		name frown
+		{
+			time 2.600000
+			strength 0.000000
+		}
+		{
+			time 3.200000
+			strength 0.200000
+		}
+		{
+			time 4.200000
+			strength 0.140000
+		}
+		{
+			time 5.000000
+			strength 0.060000
+		}
+		{
+			time 8.400000
+			strength 0.000000
+		}
+		{
+			time 9.000000
+			strength 0.180000
+		}
+		{
+			time 9.800000
+			strength 0.320000
+		}
+		{
+			time 11.000000
+			strength 0.320000
+		}
+		{
+			time 11.799999
+			strength 0.000000
+		}
+		{
+			time 14.200000
+			strength 0.000000
+		}
+		{
+			time 14.600000
+			strength 0.370000
+		}
+		{
+			time 15.599999
+			strength 0.370000
+		}
+		{
+			time 16.200001
+			strength 0.000000
+		}
+	}
+	{
+		name smile
+	}
+}

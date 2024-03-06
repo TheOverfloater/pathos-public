@@ -1,0 +1,11 @@
+$texture
+{
+	$int_width 128
+	$int_height 128
+	$dt_scalex 6.000000
+	$dt_scaley 6.000000
+	$container pathos.wad
+	$material gravel
+	$texture diffuse po_roofgravel
+	$texture detail detail/dt_ground3.dds
+}

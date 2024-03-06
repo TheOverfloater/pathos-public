@@ -1,0 +1,4 @@
+$alias
+{
+	$scriptfile models/shared/knife.pmf
+}

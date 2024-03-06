@@ -1,0 +1,8 @@
+$texture
+{
+	$int_width 16
+	$int_height 16
+	$container pathos.wad
+	$material concrete
+	$texture diffuse +a~rnlight4a
+}

@@ -1,0 +1,8 @@
+CheckBoxOutline
+{
+	$default	"checkBoxOutline.tga"
+}
+CheckBoxFlag
+{
+	$default	"checkBoxFlag.tga"
+}

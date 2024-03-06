@@ -1,0 +1,9 @@
+$texture
+{
+	$int_width 48
+	$int_height 32
+	$alphatest
+	$container pathos.wad
+	$material concrete
+	$texture diffuse {rn_rail2
+}

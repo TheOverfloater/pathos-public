@@ -1,0 +1,11 @@
+$texture
+{
+	$int_width 240
+	$int_height 160
+	$dt_scalex 11.250000
+	$dt_scaley 7.500000
+	$container pathos.wad
+	$material metal
+	$texture diffuse pipe_red_01
+	$texture detail detail/dt_metal1.dds
+}

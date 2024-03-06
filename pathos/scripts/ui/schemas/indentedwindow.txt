@@ -1,0 +1,47 @@
+Bottom
+{
+	$default	"textTabBottom.tga"
+}
+BottomLeft
+{
+	$default	"textTabBottomLeft.tga"
+}
+BottomRight
+{
+	$default	"textTabBottomRight.tga"
+}
+Left
+{
+	$default	"textTabRight.tga"
+}
+Right
+{
+	$default	"textTabLeft.tga"
+}
+Top
+{
+	$default	"textTabTop.tga"
+}
+TopLeft
+{
+	$default	"textTabTopLeft.tga"
+}
+TopRight
+{
+	$default	"textTabTopRight.tga"
+}
+Body
+{
+	$default	"textTabBody.tga"
+}
+CloseIcon
+{
+	$default	"win32_win_close_default.tga"
+	$focus		"win32_win_close_hover.tga"
+}
+ArrowDown
+{
+	$default	"arrowDownStd.tga"
+	$focus		"arrowDownFocus.tga"
+}
+

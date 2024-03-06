@@ -1,0 +1,196 @@
+"r_bumpmaps"
+{
+	"Normal mapping"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_specular"
+{
+	"Specular highlights"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_nofbo"
+{
+	"Disable framebuffer objects"
+	{
+		UIDropDownList
+		"No" "0"
+		"Yes" "1"
+	}
+	{ "0.000000" }
+}
+
+"r_vertex_textures"
+{
+	"Vertex Textures"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_postprocess"
+{
+	"Post-process effects"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_shadows"
+{
+	"Shadows"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_glowaura"
+{
+	"Glow auras"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_glsl_ondemand"
+{
+	"On-demand shader loading"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_detail"
+{
+	"Detail textures"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_detail_scale"
+{
+	"Detail texture scale"
+	{
+		UIDropDownList
+		"1x" "1.0"
+		"1.5x" "1.5"
+		"2x" "2.0"
+	}
+	{ "1.500000" }
+}
+
+"r_weather_density"
+{
+	"Weather density"
+	{ UIInputTab 0.250000 1.000000 }
+	{ "1.000000" }
+}
+
+"r_filmgrain"
+{
+	"Film grain"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_drawmodeldecals"
+{
+	"Model decals"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_traceglow"
+{
+	"Traceline glow occlusion"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "0.000000" }
+}
+
+"r_glowocclusion"
+{
+	"Sample pass glow occlusion"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "0.000000" }
+}
+
+"r_water_caustics"
+{
+	"Water caustics effects"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_water_quality"
+{
+	"Water quality"
+	{
+		UIDropDownList
+		"Low" "0"
+		"No reflections" "1"
+		"High" "2"
+	}
+	{ "2.000000" }
+}
+
+"r_water_reflection_quality"
+{
+	"Water reflection quality"
+	{
+		UIDropDownList
+		"World only" "0"
+		"World and models" "1"
+		"World, models and particles" "2"
+	}
+	{ "2.000000" }
+}

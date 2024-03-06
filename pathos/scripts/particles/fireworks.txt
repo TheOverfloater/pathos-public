@@ -1,0 +1,34 @@
+$particlescript
+{
+	$shape point
+	$system_size 50.000000
+	$min_velocity 80.000000
+	$max_velocity 90.000000
+	$max_offset 10.000000
+	$fade_in_time 0.200000
+	$velocity_damping_delay 7.000000
+	$lifetime 2.000000
+	$lifetime_variation 0.500000
+	$primary_color 255 0 0
+	$secondary_color 255 128 92
+	$color_transition_delay 0.300000
+	$color_transition_duration 0.400000
+	$color_transition_variance 0.300000
+	$scale 6.000000
+	$scale_variation 5.000000
+	$scale_damping_delay 1.300000
+	$scale_damping -2.000000
+	$max_particles -1
+	$particle_frequency 10.000000
+	$collision bounce
+	$gravity 0.010000
+	$impact_velocity_dampening 0.800000
+	$create_on_death particlepuff.txt
+	$rendermode additive
+	$alpha 1.000000
+	$alignment tiled
+	$texture yellowflare
+	$rotate_z_speed 120.000000
+	$rotate_z_dampening 0.800000
+	$rotate_z_dampening_delay 1.000000
+}

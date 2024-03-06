@@ -1,0 +1,4 @@
+$texture
+{
+	$texture diffuse models/tree3/tree_bark_02_ns.tga
+}

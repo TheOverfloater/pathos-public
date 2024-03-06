@@ -1,0 +1,8 @@
+$texture
+{
+	$nomipmaps
+	$texture diffuse models/v_glock/glock_slide.dds
+	$texture normal models/v_glock/glock_slide_normal.dds
+	$texture specular models/v_glock/glock_slide_specular.dds
+	$texture luminance models/v_glock/glock_slide_luminance.dds
+}

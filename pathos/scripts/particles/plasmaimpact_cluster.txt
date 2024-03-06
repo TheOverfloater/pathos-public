@@ -1,0 +1,7 @@
+$clusterscript
+{
+	$script engine_plasma_core.txt
+	$script engine_plasma_sparks.txt
+	$script engine_plasma_billows.txt
+	$script engine_plasma_heat.txt
+}

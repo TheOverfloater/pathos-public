@@ -1,0 +1,7 @@
+$clusterscript
+{
+	$script engine_blood_drops1.txt
+	$script engine_blood_drops2.txt
+	$script engine_blood_drops3.txt
+	$script engine_blood_core.txt
+}

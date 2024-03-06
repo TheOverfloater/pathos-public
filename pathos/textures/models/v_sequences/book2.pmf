@@ -1,0 +1,4 @@
+$texture
+{
+	$texture diffuse models/v_sequences/book2.dds
+}

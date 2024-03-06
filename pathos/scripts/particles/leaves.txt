@@ -1,0 +1,37 @@
+$particlescript
+{
+	$shape box
+	$system_size 16.000000
+	$min_velocity 25.000000
+	$max_velocity 35.000000
+	$max_offset 1.000000
+	$fade_out_delay 6.000000
+	$lifetime 10.500000
+	$lifetime_variation 3.000000
+	$flags random_direction
+	$scale 5.000000
+	$scale_variation 1.000000
+	$max_particles -1
+	$particle_frequency 3.000000
+	$lighting normal
+	$collision create_system
+	$collision_flags collide_water
+	$gravity 0.037000
+	$impact_velocity_dampening 0.200000
+	$create groundleaf.txt
+	$create_on_water_impact ripples.txt
+	$rendermode alphablend
+	$alpha 1.000000
+	$alignment tiled
+	$texture leaf06
+	$render_flags nocull
+	$rotate_x_speed 25.000000
+	$rotate_x_variation 20.000000
+	$rotate_y_speed 30.000000
+	$rotate_y_variation 15.000000
+	$wind_x_velocity 25.000000
+	$wind_y_velocity 25.000000
+	$wind_velocity_variance 70.000000
+	$wind_type sine
+	$wind_sine_variance_speed_multiplier 0.500000
+}

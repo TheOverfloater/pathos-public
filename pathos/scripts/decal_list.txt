@@ -1,0 +1,174 @@
+scorch
+{
+ scorch1 96 96
+ scorch2 88 88
+ scorch3 84 84
+}
+
+shot
+{
+ shot1  10 10
+ shot2  10 10
+ shot3  10 10
+ shot4  10 10
+ shot5  10 10
+}
+
+shot_metal
+{
+ metal_shot1  10 10
+ metal_shot2  10 10
+ metal_shot3  10 10
+ metal_shot4  10 10
+ metal_shot5  10 10
+}
+
+shot_wood
+{
+ wood_shot1  10 10
+ wood_shot2  10 10
+ wood_shot3  10 10
+ wood_shot4  10 10
+ wood_shot5  10 10
+}
+shot_glass
+{
+ glass_shot1  12 12
+ glass_shot2  12 12
+ glass_shot3  12 12
+ glass_shot4  12 12
+ glass_shot5  12 12
+}
+shot_alien
+{
+ alienshot1  10 10
+ alienshot2  10 10
+ alienshot3  10 10
+ alienshot4  10 10
+ alienshot5  10 10
+ alienshot6  10 10
+}
+
+shot_human
+{
+ hblood1  10 10
+ hblood2  10 10
+ hblood3  10 10
+ hblood4  10 10
+ hblood5  10 10
+}
+
+blood_drops
+{
+ bloodsplat1 4 4
+ bloodsplat2 6 6
+ bloodsplat1 8 8
+ bloodsplat2 2 2
+ bloodsplat1 10 10
+}
+
+brains
+{
+ brains  100 80
+}
+
+
+yellowblood
+{
+ yblood1  40 40
+ yblood2  40 40
+ yblood3  40 40
+ yblood4  40 40
+ yblood6  40 40
+
+ yblood1  28 28
+ yblood2  28 28
+ yblood3  28 28
+ yblood4  28 28
+ yblood6  28 28
+}
+
+redblood
+{
+ blood1  40 40
+ blood2  40 40
+ blood3  40 40
+ blood4  40 40
+ blood5  40 40
+ blood6  40 40
+ blood7  40 40
+
+ blood1  28 28
+ blood2  28 28
+ blood3  28 28
+ blood4  28 28
+ blood5  28 28
+ blood6  28 28
+ blood7  28 28
+}
+
+redblood_sm
+{
+ hblood1  10 10
+ hblood2  10 10
+ hblood3  10 10
+ hblood4  10 10
+ hblood5  10 10
+}
+
+// ENVIRONMENT DECALS
+env_decals
+{
+ bigcup  64 91
+ pingas  100 80
+ dt05acode 32 32
+ 
+ scorch1  100 100
+ scorch2  100 100
+ shot  10 10
+
+ graffitidecal1 220 120
+ graffitidecal2 180 80
+ graffitidecal3 230 130
+ graffitidecal4 100 50
+ graffitidecal5 100 50
+ graffitidecal6 200 100
+ graffitidecal7 200 100
+ graffitidecal8 200 100
+ graffitidecal9 200 100
+ graffitidecal10 220 110
+ graffitidecal11 150 75
+ graffitidecal12 125 56
+
+ graffitidecal13 100 100
+ graffitidecal14 150 150
+ graffitidecal15 120 120
+ graffitidecal16 90 90
+ graffitidecal17 50 50
+ graffitidecal18 130 130
+
+ graffitidecal19 100 50
+ graffitidecal20 120 35
+ graffitidecal21 100 25
+ graffitidecal22 110 25
+ graffitidecal23 140 35
+ graffitidecal24 100 25
+
+ podtek  40 40
+ num4  128 128
+ num3  128 128
+ num2  128 128
+ num1  128 128
+
+ bloodbigsplat 128 128
+ bloodbigsplat2 164 164
+ bloodbigsplatold 128 128
+ bloodbigsplat2old 164 164
+
+ hands  24 24
+ bloodhands 24 24
+ bloodstains 76 76
+ 
+ theking 40 30
+ tylerdurden 50 70
+}

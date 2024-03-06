@@ -1,0 +1,28 @@
+$particlescript
+{
+	$shape point
+	$min_velocity 1.000000
+	$max_velocity 2.000000
+	$max_offset 15.000000
+	$fade_out_delay 1.000000
+	$velocity_damping 2.300000
+	$velocity_damping_delay 0.010000
+	$lifetime 2.200000
+	$lifetime_variation 0.800000
+	$primary_color 255 255 255
+	$secondary_color 255 0 0
+	$color_transition_delay 0.800000
+	$color_transition_duration 1.000000
+	$color_transition_variance 0.200000
+	$scale 2.000000
+	$scale_variation 1.000000
+	$scale_damping_delay 0.200000
+	$scale_damping 6.000000
+	$particles_on_spawn 2
+	$collision stuck
+	$rendermode additive
+	$alpha 0.400000
+	$alignment tiled
+	$texture muzzleflash2
+	$render_flags nocull
+}

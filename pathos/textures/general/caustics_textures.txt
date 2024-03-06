@@ -1,0 +1,10 @@
+{
+	"caustics/caustics0.dds"
+	"caustics/caustics1.dds"
+	"caustics/caustics2.dds"
+	"caustics/caustics3.dds"
+	"caustics/caustics4.dds"
+	"caustics/caustics5.dds"
+	"caustics/caustics6.dds"
+	"caustics/caustics7.dds"
+}

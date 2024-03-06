@@ -1,0 +1,13 @@
+fogend 1000
+fogstart 1
+fresnel 1.0
+colr 77
+colg 95
+colb 52
+causticscale 2
+causticstrength 1.0
+strength 0.8
+timescale 0.7
+lightstrength 0.2
+specularstrength 1
+phongexponent 32

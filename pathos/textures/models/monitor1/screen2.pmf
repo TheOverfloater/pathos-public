@@ -1,0 +1,5 @@
+$texture
+{
+	$fullbright
+	$texture diffuse models/monitor1/screen2.tga
+}

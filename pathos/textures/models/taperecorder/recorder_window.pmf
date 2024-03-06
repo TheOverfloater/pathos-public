@@ -1,0 +1,6 @@
+$texture
+{
+	$alphablend
+	$alpha 1.0
+	$texture diffuse models/taperecorder/recorder_window.tga
+}

@@ -1,0 +1,6 @@
+$texture
+{
+	$alphatest
+	$nodecal
+	$texture diffuse models/bush1/grass2.dds
+}

@@ -1,0 +1,49 @@
+Bottom
+{
+	$default	"tabStdBottom.tga"
+}
+BottomLeft
+{
+	$default	"tabStdBottomLeft.tga"
+}
+BottomRight
+{
+	$default	"tabStdBottomRight.tga"
+}
+Left
+{
+	$default	"tabStdRight.tga"
+}
+Right
+{
+	$default	"tabStdLeft.tga"
+}
+Top
+{
+	$default	"tabStdTop.tga"
+}
+TopLeft
+{
+	$default	"tabStdTopLeft.tga"
+}
+TopRight
+{
+	$default	"tabStdTopRight.tga"
+}
+TopInnerLeft
+{
+	$default	"tabStdTopInnerLeft.tga"
+}
+TopInnerRight
+{
+	$default	"tabStdTopInnerRight.tga"
+}
+Body
+{
+	$default	"tabStdBody.tga"
+}
+CloseIcon
+{
+	$default	"window_close_default.tga"
+	$focus		"window_close_hover.tga"
+}

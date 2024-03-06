@@ -1,0 +1,25 @@
+$particlescript
+{
+	$shape point
+	$fade_out_delay 0.100000
+	$lifetime 1.000000
+	$lifetime_variation 0.200000
+	$primary_color 128 128 128
+	$scale 0.200000
+	$scale_variation 0.100000
+	$scale_damping_delay 0.010000
+	$scale_damping -0.800000
+	$max_particles 10
+	$particle_frequency 15.000000
+	$particles_on_spawn 2
+	$lighting normal
+	$gravity -0.005000
+	$rendermode alphablend
+	$alpha 0.050000
+	$alignment tiled
+	$texture smoke02
+	$render_flags nocull
+	$rotate_z_speed 80.000000
+	$rotate_z_dampening 0.020000
+	$attachment_flags to_parent to_attachment
+}

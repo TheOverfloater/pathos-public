@@ -1,0 +1,11 @@
+$texture
+{
+	$int_width 64
+	$int_height 64
+	$dt_scalex 3.000000
+	$dt_scaley 3.000000
+	$container pathos.wad
+	$material metal
+	$texture diffuse prxlabcomp2
+	$texture detail detail/swe_cement2.dds
+}

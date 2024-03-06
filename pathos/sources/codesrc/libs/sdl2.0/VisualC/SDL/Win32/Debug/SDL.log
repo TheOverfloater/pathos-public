@@ -1,0 +1,9 @@
+﻿Build started 3/6/2024 1:26:52 PM.
+     1>Project "D:\Games\Pathos Engine\pathos\sources\codesrc\libs\sdl2.0\VisualC\SDL\SDL.vcxproj" on node 2 (clean target(s)).
+     1>_PrepareForClean:
+         Deleting file "Win32\Debug\SDL2.lastbuildstate".
+     1>Done Building Project "D:\Games\Pathos Engine\pathos\sources\codesrc\libs\sdl2.0\VisualC\SDL\SDL.vcxproj" (clean target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.34

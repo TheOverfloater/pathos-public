@@ -1,0 +1,5 @@
+$texture
+{
+	$chrome
+	$texture diffuse models/motorbike/gold_chrome.dds
+}

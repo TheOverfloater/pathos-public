@@ -1,0 +1,4 @@
+$title "Dummy Document 5"
+{
+This is a generic text document for testing the Game UI text window.
+}

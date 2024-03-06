@@ -1,0 +1,6 @@
+$texture
+{
+	$additive
+	$chrome
+	$texture diffuse models/frame/chrome.tga
+}

@@ -1,0 +1,5 @@
+$clusterscript
+{
+	$script engine_dirt_flecks.txt
+	$script engine_dirt_cloud.txt
+}

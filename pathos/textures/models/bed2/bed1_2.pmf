@@ -1,0 +1,5 @@
+$texture
+{
+	$alphatest
+	$texture diffuse models/bed2/bed1_2.tga
+}

@@ -1,0 +1,63 @@
+$shader_vertex $begin
+#version 130
+
+uniform mat4 projection;
+uniform mat4 modelview;
+
+uniform vec2 origin;
+uniform vec2 size;
+uniform float indent;
+uniform vec4 alphamod;
+
+in vec4 in_position;
+in vec2 in_texcoord;
+in vec2 in_sizemod;
+in vec4 in_alphamod;
+in float in_indent;
+in float in_alpha;
+
+out vec2 ps_texcoord;
+out float ps_alpha;
+
+void main()
+{
+	ps_texcoord = in_texcoord;
+	ps_alpha = in_alpha * (alphamod.x * in_alphamod.x + alphamod.y * in_alphamod.y + alphamod.z * in_alphamod.z + alphamod.w * in_alphamod.w);
+
+	vec4 screen_pos;
+	screen_pos.x = in_position.x + origin.x + in_sizemod.x*size.x - in_indent * indent;
+	screen_pos.y = in_position.y + origin.y + in_sizemod.y*size.y;
+	screen_pos.z = -1;
+	screen_pos.w = 1;
+
+	vec4 position = screen_pos*modelview;
+	gl_Position = position*projection;
+}
+$end
+$shader_fragment
+$determinator solid 0 1
+$begin
+#version 130
+
+uniform sampler2D texture0;
+uniform vec4 color;
+
+in vec2 ps_texcoord;
+in float ps_alpha;
+
+out vec4 oColor;
+
+void main()
+{
+	$branch solid == 0
+	$begin
+	oColor.xyz = texture(texture0, ps_texcoord).xyz*color.xyz;
+	oColor.a = color.a*ps_alpha;
+	$end
+	$branch solid == 1
+	$begin
+	oColor.xyz = color.xyz;
+	oColor.a = color.a*ps_alpha;
+	$end
+}
+$end

@@ -1,0 +1,11 @@
+$texture
+{
+	$int_width 32
+	$int_height 32
+	$dt_scalex 1.500000
+	$dt_scaley 1.500000
+	$container pathos.wad
+	$material computer
+	$texture diffuse prxlight1agreen
+	$texture detail detail/swe_metal2.dds
+}

@@ -1,0 +1,30 @@
+$particlescript
+{
+	$shape playerplane
+	$system_size 400.000000
+	$playerplane_max_height 350.000000
+	$fade_in_time 1.000000
+	$lifetime -1.000000
+	$primary_color 25 25 25
+	$scale 1.200000
+	$scale_variation 0.500000
+	$max_particles -1
+	$particle_frequency 1800.000000
+	$collision create_system
+	$collision_flags precise
+	$gravity 0.050000
+	$create snow_ground.txt
+	$chance_to_create 1
+	$rendermode additive
+	$alpha 0.600000
+	$alignment tiled
+	$texture snowflake
+	$render_flags overbright
+	$wind_x_velocity 200.000000
+	$wind_y_velocity -300.000000
+	$wind_velocity_variance 160.000000
+	$wind_type sine
+	$wind_sine_variance_speed_multiplier 2.000000
+	$wind_sine_min_variance 1.000000
+	$wind_sine_variance 1.000000
+}

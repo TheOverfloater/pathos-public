@@ -1,0 +1,24 @@
+﻿Build started 7/9/2023 11:28:53 AM.
+     1>Project "D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\zlib.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating ".\Win32_DLL_Debug\zlib.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         All outputs are up-to-date.
+       ResourceCompile:
+         All outputs are up-to-date.
+       ManifestResourceCompile:
+         All outputs are up-to-date.
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\.\Win32_DLL_Debug\zlib.dll) does not match the Linker's OutputFile property value (D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\Win32_DLL_Debug\zlib1d.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(992,5): warning MSB8012: TargetName(zlib) does not match the Linker's OutputFile property value (zlib1d). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+       Link:
+         All outputs are up-to-date.
+       Manifest:
+         All outputs are up-to-date.
+       FinalizeBuildStatus:
+         Deleting file ".\Win32_DLL_Debug\zlib.unsuccessfulbuild".
+         Touching ".\Win32_DLL_Debug\zlib.lastbuildstate".
+     1>Done Building Project "D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\zlib.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.04

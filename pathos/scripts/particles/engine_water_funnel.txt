@@ -1,0 +1,15 @@
+$particlescript
+{
+	$shape point
+	$fade_out_delay 0.400000
+	$lifetime 0.500000
+	$primary_color 100 100 148
+	$scale 90.000000
+	$scale_damping 180.000000
+	$particles_on_spawn 1
+	$rendermode additive
+	$alpha 0.800000
+	$alignment parallel
+	$texture splash3
+	$render_flags nocull
+}

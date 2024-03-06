@@ -1,0 +1,6 @@
+$texture
+{
+	$nodecal
+	$nomipmaps
+	$texture diffuse models/v_sequences/radio.dds
+}

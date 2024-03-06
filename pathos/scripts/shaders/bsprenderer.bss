@@ -1,0 +1,822 @@
+$global_determinator shadertype 0 21
+$global_determinator fogtype 0 2
+$global_determinator alphatest 0 2
+$global_determinator bumpmapping 0 1
+$global_determinator specular 0 1
+$global_determinator cubemaps 0 2
+$global_determinator luminance 0 1
+$invalid_state 2 fogtype 1 2 shadertype 5 19
+$invalid_state 2 alphatest 1 2 shadertype 5 9
+$invalid_state 2 alphatest 1 2 shadertype 11 19
+$invalid_state 2 bumpmapping 1 1 shadertype 3 4
+$invalid_state 2 bumpmapping 1 1 shadertype 9 9
+$invalid_state 2 bumpmapping 1 1 shadertype 11 15
+$invalid_state 2 specular 1 1 shadertype 9 15
+$invalid_state 2 specular 1 1 shadertype 20 21
+$invalid_state 2 bumpmapping 1 1 shadertype 17 17
+$invalid_state 2 bumpmapping 1 1 shadertype 20 21
+$invalid_state 2 specular 1 1 shadertype 17 17
+$invalid_state 2 specular 1 1 shadertype 19 21
+$invalid_state 2 specular 1 1 bumpmapping 0 0
+$invalid_state 2 cubemaps 1 2 shadertype 3 18
+$invalid_state 2 cubemaps 1 2 shadertype 20 21
+$invalid_state 2 luminance 1 1 shadertype 3 9
+$invalid_state 2 luminance 1 1 shadertype 11 15
+$invalid_state 2 luminance 1 1 shadertype 17 21
+$shader_vertex $begin
+#version 130
+
+uniform mat4 projection;
+uniform mat4 modelview;
+
+// Cubemaps
+uniform mat4 modelmatrix;
+uniform mat4 inv_modelmatrix;
+
+// lighting
+uniform mat4 lightmatrix;
+uniform mat4 normalmatrix;
+
+// caustics
+uniform vec4 caustics_m1;
+uniform vec4 caustics_m2;
+
+// chrome
+uniform vec3 v_origin;
+uniform vec3 v_right;
+
+// Scrolling
+uniform vec2 uvoffset;
+
+// Decals
+uniform float decalscale;
+
+in vec4 in_position;
+in vec3 in_normal;
+in vec3 in_binormal;
+in vec3 in_tangent;
+in vec2 in_lmapcoord;
+in vec2 in_texcoord;
+in vec2 in_dtexcoord;
+in float in_fogcoord;
+
+out vec2 ps_lmapcoord;
+out vec2 ps_texcoord;
+out vec2 ps_dtexcoord;
+out vec2 ps_chromecoord;
+
+out vec3 ps_tangent;
+out vec3 ps_binormal;
+out vec3 ps_normal;
+out vec4 ps_vertexcoord; // projection space
+
+out float ps_fogcoord; // static fogcoord
+out vec3 ps_vertexpos;
+
+$branch cubemaps >= 1
+$begin
+out vec3 ps_cubenormal;
+out vec3 ps_cubetangent;
+out vec3 ps_cubebinormal;
+out vec3 ps_cubevertexpos;
+$end
+
+void main()
+{
+	vec4 position = in_position*modelview;
+	ps_vertexpos = position.xyz;
+	
+	$branch fogtype == 2 || shadertype == 15
+	$begin
+		ps_fogcoord = in_fogcoord;
+	$end
+	
+	$branch shadertype == 0 || shadertype == 1 || shadertype == 2 || shadertype == 3 || shadertype == 10 || shadertype == 16 || shadertype == 18
+	$begin
+		ps_lmapcoord = in_lmapcoord;
+	$end
+	
+	$branch shadertype == 0 || shadertype == 1 || shadertype == 2 || shadertype == 4 || shadertype == 5 || shadertype == 6 || shadertype == 7 || shadertype == 8 || shadertype == 10 || shadertype == 13 || shadertype == 16 || shadertype == 17 || shadertype == 18 || shadertype == 19 || luminance == 1
+	$begin
+		ps_texcoord = in_texcoord+uvoffset;
+	$end
+	
+	$branch shadertype == 20 || shadertype == 21
+	$begin
+		vec2 centered_texcoord = in_texcoord - vec2(0.5, 0.5);
+		ps_texcoord = (centered_texcoord * decalscale) + vec2(0.5, 0.5);
+	$end	
+	
+	$branch specular == 1 || shadertype == 5 || shadertype == 6 || shadertype == 7 || shadertype == 8 || shadertype == 18
+	$begin
+		$branch bumpmapping == 1
+		$begin
+			ps_tangent = (normalmatrix*vec4(in_tangent, 0.0)).xyz;
+			ps_binormal = (normalmatrix*vec4(in_binormal, 0.0)).xyz;
+		$end
+		
+		ps_normal = (normalmatrix*vec4(in_normal, 0.0)).xyz;
+	$end
+	
+	$branch cubemaps >= 1
+	$begin
+		$branch bumpmapping == 1
+		$begin
+			ps_cubetangent = (inv_modelmatrix*vec4(in_tangent, 0.0)).xyz;
+			ps_cubebinormal = (inv_modelmatrix*vec4(in_binormal, 0.0)).xyz;
+		$end
+		
+		ps_cubenormal = (inv_modelmatrix*vec4(in_normal, 0.0)).xyz;
+		ps_cubevertexpos = (in_position * modelmatrix).xyz;
+	$end
+	
+	$branch shadertype == 0 || shadertype == 17 || shadertype == 20 || shadertype == 21
+	$begin
+		ps_dtexcoord = in_dtexcoord;
+	$end
+
+	$branch shadertype == 2
+	$begin
+		vec3 chromeup, chromeright, tmp;
+		tmp = v_origin * -1;
+		tmp += in_position.xyz;
+
+		tmp = normalize(tmp);
+		chromeup = cross(tmp, v_right);
+		chromeup = normalize(chromeup);
+
+		chromeright = cross(tmp, chromeup);
+		chromeright = normalize(chromeright);
+
+		float n = dot(in_normal, chromeright);
+		ps_chromecoord.x = (n*0.5) + 0.5;
+
+		n = dot(in_normal, chromeup);
+		ps_chromecoord.y = (n*0.5) + 0.5;
+	$end
+
+	$branch shadertype == 6
+	$begin
+		ps_vertexcoord = lightmatrix * in_position;
+	$end
+	$branch shadertype == 7 || shadertype == 8
+	$begin
+		ps_vertexcoord = lightmatrix * position;
+	$end
+	
+	$branch shadertype == 9
+	$begin
+		ps_texcoord.x = dot(in_position, caustics_m1);
+		ps_texcoord.y = dot(in_position, caustics_m2);
+	$end
+	
+	gl_Position = position*projection;
+}
+$end
+$shader_fragment $begin
+#version 130
+
+uniform samplerCube cubemap;
+uniform samplerCube cubemap_prev;
+uniform sampler2D baselightmap;
+uniform sampler2D maintexture;
+uniform sampler2D detailtex;
+uniform sampler2D chrometex;
+uniform sampler2D normalmap;
+uniform sampler2D difflightmap;
+uniform sampler2D lightvecstex;
+uniform sampler2D speculartex;
+uniform sampler2D shadowmap;
+$branch luminance == 1
+$begin
+uniform sampler2D luminance;
+$end
+uniform vec3 light_origin;
+uniform float light_radius;
+uniform float phong_exponent;
+uniform float specfactor;
+uniform float interpolant;
+uniform float cubemapstrength;
+uniform float decalalpha;
+
+uniform vec3 fogcolor;
+uniform vec2 fogparams;// end, 1/(end-start)
+
+uniform vec4 color;
+
+in vec2 ps_lmapcoord;
+in vec2 ps_texcoord;
+in vec2 ps_dtexcoord;
+in vec2 ps_chromecoord;
+in vec3 ps_normal;
+in vec3 ps_tangent;
+in vec3 ps_binormal;
+in vec4 ps_vertexcoord; // projection space
+in float ps_fogcoord; // static fogcoord
+in vec3 ps_vertexpos; // for radial fog
+
+$branch cubemaps >= 1
+$begin
+in vec3 ps_cubenormal;
+in vec3 ps_cubetangent;
+in vec3 ps_cubebinormal;
+in vec3 ps_cubevertexpos;
+$end
+
+out vec4 oColor;
+
+float CalcShininess( vec3 v_origin, vec3 v_normal, vec3 l_origin )
+{
+$branch bumpmapping == 1
+$begin
+	vec3 halfVec = normalize(l_origin - v_origin);
+	return max(dot(halfVec, v_normal), 0.0);
+$end
+$branch bumpmapping == 0
+$begin
+	return 1.0;
+$end
+}
+
+float LinearStep(float in1, float in2, float pmax)  
+{  
+	float value = (pmax-in1)/(in2-in1);
+	return clamp(value, 0.0, 1.0);
+}
+
+float ReduceLightBleeding(float p_max, float Amount)  
+{    
+	return LinearStep(Amount, 1, p_max);  
+}
+
+float DepthTestCube( float depthcoord, samplerCube shadowmap, vec3 coord )
+{
+	vec4 momments = texture(shadowmap, coord);
+	momments.xy = momments.xy+momments.zw/32;
+
+	float diff = depthcoord-momments.x;
+	float sgn = max(sign(diff), 0);
+
+	float variance = momments.y-(momments.x*momments.x);
+	variance = max(variance, 0.00005);
+	
+	float d = depthcoord-momments.x;
+	float p_max = variance/(variance+d*d);
+	return p_max*sgn+(1.0-sgn);
+}
+
+float DepthTestProj( float depthcoord, sampler2D shadowmap, vec4 coord )
+{
+	vec4 momments = textureProj(shadowmap, coord);
+	momments.xy = momments.xy+momments.zw/32;
+
+	float diff = depthcoord-momments.x;
+	float sgn = max(sign(diff), 0);
+
+	float variance = momments.y-(momments.x*momments.x);
+	variance = max(variance, 0.00005);
+	
+	float d = depthcoord-momments.x;
+	float p_max = variance/(variance+d*d);
+	return p_max*sgn+(1.0-sgn);
+}
+
+float CalcSpecular( vec3 v_origin, vec3 v_normal, vec3 lightDir, float specularStrength )
+{
+	// Eye vector (towards the camera)
+	// All coordinates are in eye space
+	vec3 eyeVec = normalize( -v_origin );
+	
+	// Direction in which the triangle reflects the light
+	vec3 reflectVec = reflect( lightDir, v_normal );
+	
+	// Cosine of the angle between the Eye vector and the Reflect vector,
+	// clamped to 0
+	//  - Looking into the reflection -> 1
+	//  - Looking elsewhere -> < 1
+	float cosAlpha = clamp( dot( eyeVec, reflectVec ), 0,1 );	
+	
+	// Currently specular color is light color times two
+	return specfactor * pow( cosAlpha, phong_exponent ) * specularStrength;
+}
+
+vec4 AddPointLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, vec4 v_coord, vec3 v_normal, samplerCube l_shadowmap, float specularStrength )
+{
+	// Inverse squared radius
+	float rad = l_radius * l_radius;
+	vec3 dir = l_origin - v_origin;
+	
+	float dist = dot(dir, dir);
+	float attn = (dist/rad-1)*-1;
+	
+	dir = normalize(dir);
+	attn = clamp(attn, 0.0, 1.0);
+	float dp = dot(dir, v_normal);
+
+	$branch shadertype == 6
+	$begin
+		float fldistance = clamp((length(v_coord.xyz)/l_radius), 0.0, 1.0);
+		float flresult = DepthTestCube(fldistance, l_shadowmap, normalize(v_coord.xyz));
+		attn = attn*ReduceLightBleeding(flresult, 0.4);
+	$end
+
+	attn = max(dp, 0)*attn;
+	vec4 outColor;
+	outColor.xyz = attn*l_color;
+	
+	$branch specular == 1
+	$begin
+		// Add specular if any
+		float shineFactor = CalcShininess(normalize(v_origin), v_normal, dir);
+		outColor.w = CalcSpecular(v_origin, v_normal, -dir, specularStrength * shineFactor) * attn;	
+	$end
+	$branch specular == 0
+	$begin
+		outColor.w = 0.0;
+	$end
+	
+	return outColor;
+}
+
+vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, vec4 v_coord, vec3 v_normal, sampler2D l_shadowmap, sampler2D l_texture, float specularStrength )
+{
+	float rad = l_radius*l_radius;
+	vec3 dir = l_origin-v_origin;
+	
+	float dist = dot(dir, dir);
+	float attn = (dist/rad-1)*-1;
+	attn = clamp(attn, 0.0, 1.0);
+	
+	dir = normalize(dir);
+	float dp = max(dot(dir, v_normal), 0);
+	vec4 texclamp = max(v_coord, 0);
+	
+	$branch shadertype == 8
+	$begin
+		float fldistance = clamp((length(l_origin-v_origin)/l_radius), 0.0, 1.0);
+		float flresult = DepthTestProj(fldistance, l_shadowmap, texclamp);
+		attn = attn * ReduceLightBleeding(flresult, 0.4);
+	$end
+
+	vec4 texColor = textureProj(l_texture, texclamp);
+	
+	vec4 outColor;
+	outColor.xyz = attn*texColor.xyz*l_color*dp;
+	
+	$branch specular == 1
+	$begin
+		// Add specular if any
+		float lightStrength = (texColor.x + texColor.y + texColor.z) / 3.0f;
+		float shineFactor = CalcShininess(normalize(v_origin), v_normal, dir);
+		outColor.w = CalcSpecular(v_origin, v_normal, -dir, specularStrength * shineFactor) * attn * dp * lightStrength;
+	$end
+	
+	return outColor;
+}
+
+vec3 AddDiffuseLight ( vec3 colorIn1, vec3 colorIn2 )
+{
+	vec3 outValue = colorIn1;
+	outValue += colorIn2;
+
+	return outValue;
+}
+
+vec3 AddDiffuseDynamicLight ( vec3 colorIn1, vec3 colorIn2 )
+{
+	vec3 outValue = colorIn1;
+	$branch specular == 0
+	$begin
+		outValue += colorIn2;
+	$end
+
+	return outValue;
+}
+
+vec3 AddSpecularLight ( vec3 colorIn1, float specularStrength, vec3 colorIn2 )
+{
+	vec3 outValue = colorIn1;
+	$branch specular == 1
+	$begin
+		outValue += colorIn2 * specularStrength;
+	$end
+
+	return outValue;
+}
+
+vec4 EncodeDepth( vec3 v_origin, float l_radius )
+{
+	float depth = length(v_origin);
+	depth = clamp((depth/l_radius), 0.0, 1.0);
+
+	vec2 momments = vec2(depth, depth*depth);
+	float dx = dFdx(depth);
+	float dy = dFdy(depth);
+	momments.y += 0.25*(dx*dx+dy*dy);
+
+	vec2 fracval = fract(momments*32);
+
+	vec4 finalColor;
+	finalColor.x = momments.x-(fracval.x/32);
+	finalColor.y = momments.y-(fracval.y/32);
+	finalColor.zw = fracval;
+	
+	return finalColor;
+}
+
+vec3 GetLightDir( sampler2D vecsLightmap )
+{
+	vec3 lightVec;
+$branch bumpmapping == 1
+$begin
+		lightVec = (2.0 * texture2D(vecsLightmap, ps_lmapcoord).xyz) - 1.0;
+		return normalize(lightVec);
+$end
+$branch bumpmapping == 0
+$begin
+		return vec3(0, 0, 0);
+$end
+}
+
+vec4 GetDiffuseLight( sampler2D diffuseTexture )
+{
+$branch bumpmapping == 1
+$begin
+	return texture2D(diffuseTexture, ps_lmapcoord);
+$end
+$branch bumpmapping == 0
+$begin
+	return vec4(0, 0, 0, 0);
+$end
+}
+
+vec4 AddBaseLight( sampler2D ambLightmap, vec4 diffuseColor, vec3 lightDir, vec3 v_normal )
+{
+$branch bumpmapping == 0
+$begin
+	vec4 lightmapColor = texture2D(ambLightmap, ps_lmapcoord);
+	$branch luminance == 1
+	$begin
+		lightmapColor.xyz += texture(luminance, ps_texcoord).xyz;
+	$end
+	return lightmapColor;
+$end
+$branch bumpmapping == 1
+$begin
+	// Lightmap is always on unit 0
+	vec4 ambientColor = texture2D(ambLightmap, ps_lmapcoord);
+	vec4 finalColor = ambientColor + diffuseColor * dot(lightDir, v_normal);
+	
+	$branch luminance == 1
+	$begin
+		finalColor.xyz += texture(luminance, ps_texcoord).xyz;
+	$end	
+	
+	return finalColor;
+$end
+}
+
+float SplineFraction( float value, float scale )
+{
+	float valueSquared;
+
+	value = scale * value;
+	valueSquared = value * value;
+
+	// Nice little ease-in, ease-out spline-like curve
+	return 3 * valueSquared - 2 * valueSquared * value;
+}
+
+float CalcFogFactor_Radial( vec3 v_origin, float fogcoord, vec2 f_params )
+{
+	float fp_fogcoord = length(v_origin);
+	float fp_fogfactor = (f_params.x - fp_fogcoord)*f_params.y;
+	fp_fogfactor = SplineFraction(clamp(fp_fogfactor, 0.0, 1.0), 1.0);
+	
+	return 1.0-fp_fogfactor;
+}
+
+float CalcFogFactor_FogCoord( vec3 v_origin, float fogcoord, vec2 f_params )
+{
+	float fp_fogfactor = (f_params.x - fogcoord)*f_params.y;
+	return 1.0-clamp(fp_fogfactor, 0.0, 1.0);
+}
+
+float CalcFogFactor( vec3 v_origin, float fogcoord, vec2 f_params )
+{
+$branch fogtype == 1
+$begin
+	return CalcFogFactor_Radial( v_origin, fogcoord, f_params );
+$end
+$branch fogtype == 2
+$begin
+	return CalcFogFactor_FogCoord( v_origin, fogcoord, f_params );
+$end
+$branch fogtype == 0
+$begin
+	return 0;
+$end
+}
+
+vec3 GetTangentSpaceNormal( vec2 texcoord, sampler2D normalmap, vec3 v_normal )
+{
+$branch bumpmapping == 0
+$begin
+	return v_normal;
+$end
+$branch bumpmapping == 1
+$begin
+	vec3 out_normal = (2.0 * texture2D (normalmap, texcoord).xyz) - 1.0;
+	return normalize(out_normal);
+$end
+}
+
+vec3 GetEyeSpaceNormal( vec2 texcoord, sampler2D normalmap, vec3 v_normal, mat3 tbnMatrix )
+{
+$branch bumpmapping == 0
+$begin
+	return v_normal;
+$end
+$branch bumpmapping == 1
+$begin
+	vec3 out_normal = (2.0 * texture2D (normalmap, texcoord).xyz) - 1.0;
+	return normalize(tbnMatrix * out_normal);
+$end
+}
+
+vec4 CombineTextureLayers( vec3 v_origin, vec3 v_normal, float specularStrength )
+{
+	vec3 lightDir = GetLightDir( lightvecstex );
+	vec4 lightDiffuse = GetDiffuseLight( difflightmap );
+	vec4 finalColor = AddBaseLight(baselightmap, lightDiffuse, lightDir, v_normal);
+
+	$branch shadertype == 0
+	$begin
+		vec4 texColor = texture2D(maintexture, ps_texcoord);
+		vec4 detailTexColor = texture2D(detailtex, ps_dtexcoord);
+		
+		finalColor = finalColor*texColor*detailTexColor;
+		finalColor.xyz = finalColor.xyz*4;
+	$end
+	$branch shadertype == 1
+	$begin
+		vec4 texColor = texture2D(maintexture, ps_texcoord);
+		finalColor = finalColor*texColor;
+		finalColor.xyz = finalColor.xyz*2;
+	$end
+	$branch shadertype == 2
+	$begin
+		// Store light color
+		vec4 lightColor = finalColor;
+	
+		vec4 texColor = texture2D(maintexture, ps_texcoord);
+		finalColor = lightColor*texColor;
+		finalColor.xyz = finalColor.xyz*2;
+
+		vec4 chromeTex = texture2D(chrometex, ps_chromecoord);
+		finalColor.xyz += chromeTex.xyz*lightColor.xyz*2*color.w;
+	$end
+	
+	$branch specular == 1
+	$begin
+		// Add specular if any
+		mat3 tbnMatrix = mat3(ps_tangent, ps_binormal, ps_normal);
+		vec3 eyeSpaceDir = normalize(tbnMatrix * vec3(lightDir[0], -lightDir[1], lightDir[2]));
+		vec3 eyeSpaceNormal = normalize(tbnMatrix * v_normal);
+		
+		float shineFactor = CalcShininess(normalize(v_origin), eyeSpaceNormal, eyeSpaceDir);
+		float specularValue = CalcSpecular(v_origin, eyeSpaceNormal, -eyeSpaceDir, specularStrength);
+		
+		finalColor += specularValue * lightDiffuse * shineFactor;
+	$end	
+	
+	return finalColor;
+}
+
+vec4 GetLightmappedSpecular( vec3 v_origin, vec3 v_normal, float specularStrength )
+{
+	vec3 lightDir = GetLightDir( lightvecstex );
+	vec4 lightDiffuse = GetDiffuseLight( difflightmap );
+	
+	// Add specular if any
+	mat3 tbnMatrix = mat3(ps_tangent, ps_binormal, ps_normal);
+	vec3 eyeSpaceDir = normalize(tbnMatrix * vec3(lightDir[0], -lightDir[1], lightDir[2]));
+	vec3 eyeSpaceNormal = normalize(tbnMatrix * v_normal);
+	
+	float shineFactor = CalcShininess(normalize(v_origin), eyeSpaceNormal, eyeSpaceDir);
+	float specularValue = CalcSpecular(v_origin, eyeSpaceNormal, -eyeSpaceDir, specularStrength);
+	
+	vec4 finalColor = specularValue * lightDiffuse * shineFactor;
+	return finalColor;
+}
+
+$branch cubemaps >= 1
+$begin
+vec4 GetCubemapPixel ( vec3 reflectvec )
+{
+	vec4 outColor;
+	$branch cubemaps != 2
+	$begin
+		outColor = texture(cubemap, reflectvec);
+	$end
+	$branch cubemaps == 2
+	$begin
+		vec4 color1 = texture(cubemap_prev, reflectvec);
+		vec4 color2 = texture(cubemap, reflectvec);
+		
+		outColor = (1.0 - interpolant) * color1 + color2 * interpolant;
+	$end
+	
+	return outColor * cubemapstrength;
+}
+$end
+
+vec4 AddCubemaps( float reflectivity )
+{ 
+	$branch cubemaps == 0
+	$begin
+		return vec4(0, 0, 0, 0);
+	$end
+	$branch cubemaps >= 1
+	$begin
+		vec3 v_normal;
+		$branch bumpmapping == 1
+		$begin
+			mat3 tbnMatrix = mat3(ps_cubetangent, ps_cubebinormal, ps_cubenormal);
+			vec3 tex_normal = (2.0 * texture2D (normalmap, ps_texcoord).xyz) - 1.0;
+			vec3 eye_texnormal = normalize(tbnMatrix * tex_normal);
+			
+			float normalstrength = 0.025;
+			v_normal = ps_cubenormal * (1.0 - normalstrength) + eye_texnormal * normalstrength;
+		$end
+		$branch bumpmapping == 0
+		$begin
+			v_normal = ps_cubenormal;
+		$end
+
+		vec3 reflectvector = normalize(-reflect(normalize(ps_cubevertexpos), normalize(v_normal)));
+		return GetCubemapPixel(reflectvector) * pow(reflectivity, 16);
+	$end
+}
+
+void main()
+{
+	float specularFactor = 0.0;
+	vec4 specularColor = vec4(0, 0, 0, 0);
+	vec4 finalColor = vec4(0, 0, 0, 0);
+
+	$branch specular == 1 || cubemaps >= 1
+	$begin
+		vec4 specTexture = texture2D(speculartex, ps_texcoord);
+		specularFactor = (specTexture.x + specTexture.y + specTexture.z) / 3.0;
+	$end
+	
+	$branch shadertype == 0 || shadertype == 1 || shadertype == 2
+	$begin
+		vec3 v_normal = GetTangentSpaceNormal(ps_texcoord, normalmap, ps_normal);
+		finalColor = CombineTextureLayers(ps_vertexpos, v_normal, specularFactor);
+		finalColor = finalColor*color;
+		
+		$branch cubemaps >= 1
+		$begin
+			finalColor += AddCubemaps(specularFactor);
+		$end
+	$end
+	$branch shadertype == 3
+	$begin
+		finalColor = texture2D(baselightmap, ps_lmapcoord);
+	$end
+	$branch shadertype == 4
+	$begin
+		finalColor = texture2D(maintexture, ps_texcoord);
+	$end
+	$branch shadertype == 5 || shadertype == 6
+	$begin
+		// Build the TBN matrix and get the vertex normal
+		mat3 tbnMatrix = mat3(ps_tangent, ps_binormal, ps_normal);
+		vec3 v_normal = GetEyeSpaceNormal(ps_texcoord, normalmap, ps_normal, tbnMatrix);
+		
+		vec4 lightColor = AddPointLight(light_radius, light_origin, color.xyz, ps_vertexpos, ps_vertexcoord, v_normal, cubemap, specularFactor);
+		
+		// Add in the diffuse light
+		finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
+		
+		// Add to specular
+		finalColor.xyz += AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
+	$end
+	$branch shadertype == 7 || shadertype == 8
+	$begin
+		// Build the TBN matrix and get the vertex normal
+		mat3 tbnMatrix = mat3(ps_tangent, ps_binormal, ps_normal);
+		vec3 v_normal = GetEyeSpaceNormal(ps_texcoord, normalmap, ps_normal, tbnMatrix);
+		
+		vec4 lightColor = AddProjLight(light_radius, light_origin, color.xyz, ps_vertexpos.xyz, ps_vertexcoord, v_normal, shadowmap, maintexture, specularFactor);
+		
+		// Add in the diffuse light
+		finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
+		
+		// Add to specular
+		finalColor.xyz += AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
+	$end
+	$branch shadertype == 9
+	$begin
+		vec4 caustics1 = texture2D(maintexture, ps_texcoord);
+		vec4 caustics2 = texture2D(detailtex, ps_texcoord);
+		
+		finalColor = caustics1*(1.0 - interpolant) + caustics2*interpolant;
+	$end
+	$branch shadertype == 10
+	$begin
+		vec3 lightDir = GetLightDir( lightvecstex );
+		vec3 v_normal = GetTangentSpaceNormal(ps_texcoord, normalmap, ps_normal);
+		vec4 diffuseLight = GetDiffuseLight( difflightmap );
+		
+		finalColor = AddBaseLight(baselightmap, diffuseLight, lightDir, v_normal);
+		finalColor.w = finalColor.w * texture2D(maintexture, ps_texcoord).w;
+	$end
+	$branch shadertype == 11
+	$begin
+		finalColor = vec4(1.0, 1.0, 1.0, 1.0)*color;
+	$end
+	
+	$branch shadertype == 12 || shadertype == 13
+	$begin
+		finalColor = EncodeDepth(ps_vertexpos, light_radius);
+		
+		$branch shadertype == 13
+		$begin
+			if(texture2D(maintexture, ps_texcoord).w < 0.5)
+				discard;
+		$end
+	$end
+	
+	$branch shadertype == 14
+	$begin
+		float fp_fogfactor = CalcFogFactor_Radial( ps_vertexpos.xyz, ps_fogcoord, fogparams );
+		finalColor.xyz = fogcolor.xyz;
+		finalColor.w = fp_fogfactor;
+	$end
+	$branch shadertype == 15
+	$begin
+		float fp_fogfactor = CalcFogFactor_FogCoord( ps_vertexpos.xyz, ps_fogcoord, fogparams );
+		finalColor.xyz = fogcolor.xyz;
+		finalColor.w = fp_fogfactor;
+	$end
+	
+	$branch shadertype == 16
+	$begin
+		vec3 lightDir = GetLightDir( lightvecstex );
+		vec3 v_normal = GetTangentSpaceNormal(ps_texcoord, normalmap, ps_normal);
+		vec4 diffuseLight = GetDiffuseLight( difflightmap );
+		
+		finalColor = AddBaseLight(baselightmap, diffuseLight, lightDir, v_normal);
+	$end
+	$branch shadertype == 17
+	$begin
+		vec4 tex0 = texture2D(maintexture, ps_texcoord);
+		vec4 tex1 = texture2D(detailtex, ps_dtexcoord);
+		finalColor = tex0*tex1;
+		finalColor.xyz = finalColor.xyz*2;
+		finalColor = finalColor*color;
+	$end
+	$branch shadertype == 18
+	$begin
+		vec3 v_normal = GetTangentSpaceNormal(ps_texcoord, normalmap, ps_normal);
+		finalColor = GetLightmappedSpecular( ps_vertexpos, v_normal, specularFactor );
+	$end
+	$branch shadertype == 19
+	$begin
+		finalColor = AddCubemaps(specularFactor);
+	$end
+	$branch shadertype == 20
+	$begin
+		finalColor = texture2D(maintexture, ps_texcoord);
+		vec4 tex1 = texture2D(detailtex, ps_dtexcoord);
+		finalColor.a = finalColor.a*tex1.a;
+		finalColor.xyz = (decalalpha * finalColor.xyz) + (1.0 - decalalpha) * vec3(0.5, 0.5, 0.5);
+	$end
+	$branch shadertype == 21
+	$begin
+		finalColor = texture2D(maintexture, ps_texcoord);
+		finalColor.xyz = (decalalpha * finalColor.xyz) + (1.0 - decalalpha) * vec3(0.5, 0.5, 0.5);
+	$end
+	
+	$branch fogtype != 0
+	$begin
+		float fp_fogfactor = CalcFogFactor( ps_vertexpos.xyz, ps_fogcoord, fogparams );
+		finalColor.xyz = mix(finalColor.xyz, fogcolor, fp_fogfactor);
+	$end
+
+	$branch alphatest == 1
+	$begin
+		if(finalColor.a < 0.5)
+			discard;
+	$end
+	$branch alphatest == 2
+	$begin
+		finalColor.a = (finalColor.a - 0.5) / max(fwidth(finalColor.a), 0.0001) + 0.5;
+	$end
+
+	oColor = finalColor;
+}
+$end

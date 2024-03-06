@@ -1,0 +1,24 @@
+$particlescript
+{
+	$shape box
+	$system_size 600.000000
+	$playerplane_max_height 500.000000
+	$fade_in_time 1.000000
+	$lifetime 5.000000
+	$primary_color 255 255 255
+	$scale 0.600000
+	$scale_variation 0.400000
+	$max_particles -1
+	$particle_frequency 500.000000
+	$lighting use_intensity
+	$collision create_system
+	$collision_flags precise
+	$gravity 0.010000
+	$create snow_ground.txt
+	$chance_to_create 3
+	$rendermode additive
+	$alpha 1.000000
+	$alignment tiled
+	$texture snowflake
+	$render_flags overbright skybox
+}

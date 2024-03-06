@@ -1,0 +1,7 @@
+$clusterscript
+{
+	$script engine_explosion_clouds.txt
+	$script engine_explosion_flecks.txt
+	$script engine_explosion_flames.txt
+	$script engine_explosion_wave.txt
+}

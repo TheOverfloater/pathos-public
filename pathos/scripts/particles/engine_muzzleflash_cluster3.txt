@@ -1,0 +1,6 @@
+$clusterscript
+{
+	$script engine_muzzleflash2.txt
+	$script engine_muzzleflash3.txt
+	$script engine_muzzleflash_smoke.txt
+}

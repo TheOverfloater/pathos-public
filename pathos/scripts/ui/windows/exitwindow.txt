@@ -1,0 +1,49 @@
+window "ExitWindow"
+{
+	$schema "defaultwindow.txt"
+	$title "Quit Game"
+	$width 400
+	$height 160
+	$insetx 10
+	$insety 10
+	$alpha 230
+	$dragger true
+	$resizable false
+	$flags fixed_height
+}
+button "CancelButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Cancel"
+	$width 96
+	$height 32
+	$flags align_bottom
+}
+button "SaveAndQuitButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Save and Quit"
+	$width 128
+	$height 32
+	$flags align_bottom align_center_horizontal
+}
+button "QuitButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Quit"
+	$width 96
+	$height 32
+	$flags align_bottom align_right
+}
+text "QuitText"
+{
+	$text "Are you sure you want to quit?"
+	$flags align_center_horizontal
+	$originy 42
+}
+text "InGameQuitText"
+{
+	$text "Quit without saving?"
+	$flags align_center_horizontal
+	$originy 42
+}

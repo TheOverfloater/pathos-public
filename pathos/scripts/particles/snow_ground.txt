@@ -1,0 +1,17 @@
+$particlescript
+{
+	$shape point
+	$fade_out_delay 1.000000
+	$lifetime 2.000000
+	$primary_color 128 128 128
+	$scale 0.800000
+	$scale_variation 0.300000
+	$particles_on_spawn 1
+	$lighting use_intensity
+	$rendermode additive
+	$alpha 0.600000
+	$alignment to_normal
+	$texture snowflake
+	$render_flags overbright
+	$min_light_value 0.400000
+}

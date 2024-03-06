@@ -1,0 +1,4 @@
+$texture
+{
+	$texture diffuse models/tv1/reflect1.tga
+}

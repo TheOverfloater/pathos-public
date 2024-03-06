@@ -1,0 +1,6 @@
+$texture
+{
+	$alphatest
+	$nodecal
+	$texture diffuse models/tree3/tree_03_ns.tga
+}

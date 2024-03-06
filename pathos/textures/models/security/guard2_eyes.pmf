@@ -1,0 +1,7 @@
+$texture
+{
+	$nodecal
+	$eyeglint
+	$nomipmaps
+	$texture diffuse models/security/guard2_eyes.dds
+}

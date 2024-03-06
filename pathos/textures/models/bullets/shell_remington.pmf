@@ -1,0 +1,4 @@
+$alias
+{
+	$scriptfile models/shellcasings/shell_remington.pmf
+}

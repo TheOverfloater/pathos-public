@@ -1,0 +1,378 @@
+$global_determinator shadertype 0 4
+$global_determinator bumpmapping 0 1
+$shader_vertex 
+$determinator chrome 0 1
+$determinator flex 0 1
+$begin
+#version 130
+
+uniform mat4 projection;
+uniform mat4 modelview;
+
+uniform mat4 normalmatrix;
+uniform mat4 lightmatrix;
+
+uniform vec4 bones[96];
+
+uniform vec3 v_origin;
+uniform vec3 v_right;
+
+uniform vec2 scroll;
+
+$branch flex == 1
+$begin
+uniform sampler2D flextexture;
+uniform float flextexture_size;
+$end
+
+in vec3 in_position;
+in vec3 in_tangent;
+in vec3 in_normal;
+in vec2 in_texcoord;
+in vec4 in_boneindexes;
+in vec4 in_boneweights;
+in vec2 in_flexcoord;
+
+out vec3 ps_vertexpos;
+out vec3 ps_tangent;
+out vec3 ps_binormal;
+out vec3 ps_normal;
+out vec2 ps_texcoord;
+out vec4 ps_vertexcoord;
+
+vec3 TransformVectorByBone( vec3 vin, int boneindex, float weight )
+{
+	vec3 tmp;
+	tmp[0] = dot(vin, bones[boneindex].xyz)+bones[boneindex].w;
+	tmp[1] = dot(vin, bones[boneindex+1].xyz)+bones[boneindex+1].w;
+	tmp[2] = dot(vin, bones[boneindex+2].xyz)+bones[boneindex+2].w;
+	
+	return tmp*weight;
+}
+
+vec3 RotateVectorByBone( vec3 vin, int boneindex, float weight )
+{
+	vec3 tmp;
+	tmp[0] = dot(vin, bones[boneindex].xyz);
+	tmp[1] = dot(vin, bones[boneindex+1].xyz);
+	tmp[2] = dot(vin, bones[boneindex+2].xyz);
+	
+	return tmp*weight;
+}
+
+void main()
+{
+	int boneindex1 = int(in_boneindexes.x);
+	int boneindex2 = int(in_boneindexes.y);
+	int boneindex3 = int(in_boneindexes.z);
+	int boneindex4 = int(in_boneindexes.w);
+	
+	vec3 vert_origin = in_position;
+	vec3 vert_normal = in_normal;
+	
+	$branch flex == 1
+	$begin
+		vert_origin = vert_origin + textureLod(flextexture, in_flexcoord, 0.0).xyz;
+		
+		vec2 texcoord_normal = vec2(in_flexcoord.x + 1.0/flextexture_size, in_flexcoord.y);
+		vert_normal = normalize(vert_normal + textureLod(flextexture, texcoord_normal, 0.0).xyz);
+	$end
+	
+	vec3 trans_origin;
+	trans_origin = TransformVectorByBone( vert_origin, boneindex1, in_boneweights.x );
+	trans_origin += TransformVectorByBone( vert_origin, boneindex2, in_boneweights.y );
+	trans_origin += TransformVectorByBone( vert_origin, boneindex3, in_boneweights.z );
+	trans_origin += TransformVectorByBone( vert_origin, boneindex4, in_boneweights.w );
+	
+	vec3 trans_normal;
+	trans_normal = RotateVectorByBone( vert_normal, boneindex1, in_boneweights.x );
+	trans_normal += RotateVectorByBone( vert_normal, boneindex2, in_boneweights.y );
+	trans_normal += RotateVectorByBone( vert_normal, boneindex3, in_boneweights.z );
+	trans_normal += RotateVectorByBone( vert_normal, boneindex4, in_boneweights.w );		
+	
+	vec3 trans_tangent;
+	vec3 trans_binormal;
+	$branch bumpmapping == 1
+	$begin
+		trans_tangent = RotateVectorByBone( in_tangent, boneindex1, in_boneweights.x );
+		trans_tangent += RotateVectorByBone( in_tangent, boneindex2, in_boneweights.y );
+		trans_tangent += RotateVectorByBone( in_tangent, boneindex3, in_boneweights.z );
+		trans_tangent += RotateVectorByBone( in_tangent, boneindex4, in_boneweights.w );	
+		ps_tangent = (normalmatrix*vec4(trans_tangent, 0.0)).xyz;
+		
+		trans_binormal = cross(trans_normal, trans_tangent);
+		ps_binormal = (normalmatrix*vec4(trans_binormal, 0.0)).xyz;
+	$end
+	
+	vec4 position = vec4(trans_origin, 1.0)*modelview;
+
+	ps_vertexpos = position.xyz;
+	ps_normal = (normalmatrix*vec4(trans_normal, 0.0)).xyz;
+	
+	$branch shadertype == 0 || shadertype == 1 || shadertype == 4
+	$begin
+		ps_texcoord = in_texcoord + scroll;
+	$end
+	
+	$branch chrome == 1
+	$begin
+		vec3 chromeup, chromeright, tmp;
+		tmp = v_origin * -1;
+		tmp += trans_origin;
+
+		tmp = normalize(tmp);
+		chromeup = cross(tmp, v_right);
+		chromeup = normalize(chromeup);
+
+		chromeright = cross(tmp, chromeup);
+		chromeright = normalize(chromeright);
+
+		// This is adding 0.5 only and not dividing by 2 because eye glint looks better this way
+		float n = dot(trans_normal, chromeright);
+		ps_texcoord.x = n + 0.5;
+
+		n = dot(trans_normal, chromeup);
+		ps_texcoord.y = n + 0.5;
+	$end
+
+	gl_Position = position*projection;
+}
+$end
+$shader_fragment 
+$determinator alphatest 0 1
+$determinator specular 0 1
+$determinator luminance 0 1
+$invalid_state 2 chrome 1 1 shadertype 2 3
+$invalid_state 2 alphatest 1 1 shadertype 2 3
+$invalid_state 2 alphatest 1 1 chrome 1 1
+$invalid_state 2 specular 1 1 shadertype 2 4
+$invalid_state 2 luminance 1 1 shadertype 2 4
+$invalid_state 2 bumpmapping 1 1 shadertype 2 4
+$begin
+#version 130
+
+uniform sampler2D texture0;
+uniform sampler2DRect rectangle;
+
+uniform vec3 skylight_ambient;
+uniform vec3 skylight_diffuse;
+uniform vec3 skylight_dir;
+
+$branch specular == 1
+$begin
+uniform sampler2D spectexture;
+$end
+
+$branch luminance == 1
+$begin
+uniform sampler2D lumtexture;
+$end
+
+uniform sampler2D normalmap;
+
+uniform vec4 color;
+
+uniform float phong_exponent;
+uniform float specfactor;
+
+uniform float scope_scale;
+uniform vec2 scope_scrsize;
+
+in vec3 ps_vertexpos;
+in vec3 ps_tangent;
+in vec3 ps_binormal;
+in vec3 ps_normal;
+in vec2 ps_texcoord;
+in vec4 ps_vertexcoord;
+
+out vec4 oColor;
+
+float CalcShininess( vec3 v_dir, vec3 v_normal, vec3 l_dir )
+{
+$branch bumpmapping == 1
+$begin
+	vec3 halfVec = normalize(l_dir - v_dir);
+	return max(dot(halfVec, v_normal), 0.0);
+$end
+$branch bumpmapping == 0
+$begin
+	return 1.0;
+$end
+}
+
+float CalcSpecular( vec3 v_origin, vec3 v_normal, vec3 lightDir, float specularStrength )
+{
+	// Eye vector (towards the camera)
+	// All coordinates are in eye space
+	vec3 eyeVec = normalize( -v_origin );
+	
+	// Direction in which the triangle reflects the light
+	vec3 reflectVec = reflect( lightDir, v_normal );
+	
+	// Cosine of the angle between the Eye vector and the Reflect vector,
+	// clamped to 0
+	//  - Looking into the reflection -> 1
+	//  - Looking elsewhere -> < 1
+	float cosAlpha = clamp( dot( eyeVec, reflectVec ), 0, 1 );	
+	
+	// Currently specular color is light color times two
+	return specfactor * pow( cosAlpha, phong_exponent ) * specularStrength;
+}
+
+vec4 AddBaseLight( vec3 s_lightdir, vec3 s_ambient, vec3 s_diffuse, vec3 v_normal, vec3 v_origin, float specularStrength )
+{
+	float fldot = -dot(s_lightdir, v_normal);
+	
+	vec4 outColor;
+	outColor.xyz = s_ambient+fldot*s_diffuse;
+	
+	$branch specular == 1
+	$begin
+		// Use basic specular as it looks better with the base lighting
+		outColor.w = CalcSpecular(v_origin, v_normal, s_lightdir, specularStrength);
+	$end
+	
+	return outColor;
+}
+
+vec3 AddDiffuseLight ( vec3 colorIn1, vec3 colorIn2 )
+{
+	vec3 outValue = colorIn1;
+	$branch shadertype != 15
+	$begin
+		outValue += colorIn2;
+	$end
+
+	return outValue;
+}
+
+vec3 AddSpecularLight ( vec3 colorIn1, float specularStrength, vec3 colorIn2 )
+{
+	vec3 outValue = colorIn1;
+	$branch specular == 1
+	$begin
+		outValue += colorIn2 * specularStrength;
+	$end
+
+	return outValue;
+}
+
+vec3 GetNormal( vec2 texcoord, sampler2D normalmap, vec3 v_normal, mat3 tbnMatrix )
+{
+$branch bumpmapping == 0
+$begin
+	return v_normal;
+$end
+$branch bumpmapping == 1
+$begin
+	vec3 out_normal = (2.0 * texture2D (normalmap, texcoord).xyz) - 1.0;
+	return normalize(tbnMatrix * out_normal);
+$end
+}
+
+void main()
+{
+	mat3 tbnMatrix;
+	float specularFactor = 0.0;
+	vec4 specularColor = vec4(0.0, 0.0, 0.0, 0.0);
+	vec4 finalColor = vec4(0.0, 0.0, 0.0, 1.0);
+	
+	// Add luminance of any
+	$branch luminance == 1
+	$begin
+		finalColor.xyz += texture(lumtexture, ps_texcoord).xyz;
+	$end
+	
+	// Get the specular texture if needed
+	$branch specular == 1
+	$begin
+		vec4 specTexture = texture(spectexture, ps_texcoord);
+		specularFactor = (specTexture.x + specTexture.y + specTexture.z) / 3.0;
+	$end
+	
+	// Build the TBN matrix if required
+	$branch bumpmapping == 1
+	$begin
+		tbnMatrix = mat3(ps_tangent, ps_binormal, ps_normal);
+	$end
+	$branch bumpmapping == 0
+	$begin
+		// Shut up compiler warnings
+		tbnMatrix = mat3(vec3(0, 0, 0), vec3(0, 0, 0), vec3(0, 0, 0));
+	$end
+	
+	// Normal depends on rendering type
+	vec3 v_normal = GetNormal(ps_texcoord, normalmap, ps_normal, tbnMatrix);
+	
+	// Base lighting
+	vec4 lightColor;
+	$branch shadertype == 0 || shadertype == 1
+	$begin
+		lightColor = AddBaseLight(skylight_dir, skylight_ambient, skylight_diffuse, v_normal, ps_vertexpos, specularFactor);
+		
+		$branch shadertype != 15
+		$begin
+			// Add in the diffuse light
+			finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
+		$end
+		
+		// Add to specular
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, skylight_diffuse);
+	$end
+	
+	// Normal single pass rendering
+	$branch shadertype == 0
+	$begin
+		finalColor = finalColor*texture(texture0, ps_texcoord) + specularColor;
+		finalColor.xyz *= 2;
+		finalColor = finalColor*color;
+	$end
+	// Lighting without textures but with alpha
+	$branch shadertype == 1
+	$begin
+		finalColor += specularColor;
+		finalColor.w = texture(texture0, ps_texcoord).w;
+	$end
+	// Solid color
+	$branch shadertype == 2
+	$begin
+		finalColor = color;
+	$end
+	// Scope
+	$branch shadertype == 3
+	$begin
+		float fldot = -dot(skylight_dir, ps_normal);
+		finalColor.xyz += skylight_ambient+fldot*skylight_diffuse;
+
+		vec2 texcoord;
+		texcoord = ps_texcoord - 0.5;
+		texcoord *= scope_scale;
+
+		texcoord = texcoord + 0.5;
+		texcoord.x = 1.0-texcoord.x;
+		texcoord.y = 1.0-texcoord.y;
+		
+		texcoord.x *= scope_scrsize.x;
+		texcoord.y *= scope_scrsize.y;
+
+		vec4 texcolor = texture(texture0, ps_texcoord);
+		vec4 rectcolor = texture(rectangle, texcoord);
+
+		finalColor = mix(rectcolor, texcolor*finalColor, texcolor.w);
+	$end
+	// Texture with no lighting
+	$branch shadertype == 4
+	$begin
+		finalColor = texture(texture0, ps_texcoord);	
+	$end
+	
+	oColor = finalColor;
+	
+	$branch alphatest == 1
+	$begin
+		float alpha = (finalColor.a - 0.5) / max(fwidth(finalColor.a), 0.0001) + 0.5;
+		if(alpha < 0.5)
+			discard;
+	$end
+}
+$end

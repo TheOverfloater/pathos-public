@@ -1,0 +1,11 @@
+$texture
+{
+	$int_width 128
+	$int_height 128
+	$dt_scalex 6.000000
+	$dt_scaley 6.000000
+	$container pathos.wad
+	$material concrete
+	$texture diffuse wall_stone8
+	$texture detail detail/swe_cracked2.dds
+}

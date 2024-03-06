@@ -1,0 +1,4 @@
+$alias
+{
+	$scriptfile models/v_m79/shell.pmf
+}

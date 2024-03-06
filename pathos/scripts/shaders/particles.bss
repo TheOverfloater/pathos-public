@@ -1,0 +1,203 @@
+$global_determinator fog 0 1
+$global_determinator num_point_lights 0 2
+$global_determinator num_proj_lights 0 2
+$global_determinator type 0 1
+$global_determinator alphatest 0 2
+$invalid_state 2 type 1 1 num_point_lights 1 2
+$invalid_state 2 type 1 1 num_proj_lights 1 2
+$invalid_state 2 alphatest 1 2 type 1 1
+$shader_vertex $begin
+#version 130
+
+uniform mat4 projection;
+uniform mat4 modelview;
+
+uniform mat4 proj_lights_0_matrix;
+uniform mat4 proj_lights_1_matrix;
+
+in vec4 in_position;
+in vec2 in_texcoord;
+in vec4 in_color;
+
+out vec4 ps_color;
+out vec2 ps_texcoord;
+out vec3 ps_vertexpos;
+out vec4 ps_fragcoord;
+
+out vec4 ps_proj_l0vertexcoord;
+out vec4 ps_proj_l1vertexcoord;
+
+void main()
+{
+	vec4 position = in_position*modelview;
+
+	$branch num_point_lights >= 1
+	$begin
+		ps_vertexpos = position.xyz;
+	$end
+
+	$branch num_proj_lights >= 1
+	$begin
+		ps_proj_l0vertexcoord = proj_lights_0_matrix * position;
+		ps_vertexpos = position.xyz;
+	$end
+
+	$branch num_proj_lights == 2
+	$begin
+		ps_proj_l1vertexcoord = proj_lights_1_matrix * position;
+	$end
+
+	vec4 fragcoord = position*projection;
+	ps_fragcoord = fragcoord;
+	gl_Position = fragcoord;	
+	
+	ps_texcoord = in_texcoord;
+	ps_vertexpos = position.xyz;
+	
+	ps_color = in_color;
+}
+$end
+$shader_fragment $begin
+#version 130
+#extension GL_ARB_texture_rectangle : enable
+
+uniform sampler2D texture0;
+uniform sampler2D proj_lights_0_texture;
+uniform sampler2D proj_lights_1_texture;
+
+uniform sampler2DRect rtexture0;
+uniform sampler2DRect rtexture1;
+
+uniform vec3 point_lights_0_origin;
+uniform vec3 point_lights_0_color;
+uniform float point_lights_0_radius;
+
+uniform vec3 point_lights_1_origin;
+uniform vec3 point_lights_1_color;
+uniform float point_lights_1_radius;
+
+uniform vec3 proj_lights_0_origin;
+uniform vec3 proj_lights_0_color;
+uniform float proj_lights_0_radius;
+
+uniform vec3 proj_lights_1_origin;
+uniform vec3 proj_lights_1_color;
+uniform float proj_lights_1_radius;
+
+uniform vec2 fogparams;
+uniform vec3 fogcolor;
+uniform float overbright;
+uniform vec2 scrsize;
+
+in vec4 ps_color;
+in vec2 ps_texcoord;
+in vec3 ps_vertexpos;
+in vec4 ps_fragcoord;
+
+in vec4 ps_proj_l0vertexcoord;
+in vec4 ps_proj_l1vertexcoord;
+
+out vec4 oColor;
+
+vec3 AddPointLight( vec3 light_origin, vec3 light_color, float light_radius, vec3 v_origin )
+{
+	float rad = light_radius*light_radius;
+	vec3 dir = light_origin-v_origin;
+	float dist = dot(dir, dir);
+	float attn = (dist/rad-1)*-1;
+	attn = clamp(attn, 0.0, 1.0);
+	return light_color*attn;
+}
+
+vec3 AddProjLight( vec3 light_origin, vec3 light_color, float light_radius, vec3 v_origin, vec4 vertexCoord, sampler2D texture )
+{
+	float rad = light_radius*light_radius;
+	vec3 dir = light_origin-v_origin;
+	float dist = dot(dir, dir);
+	float attn = (dist/rad-1)*-1;
+	attn = clamp(attn, 0.0, 1.0);
+
+	vec4 texclamp = max(vertexCoord, 0);
+	vec4 sample = textureProj(texture, texclamp);
+
+	return light_color*attn*sample.xyz;
+}
+
+float SplineFraction( float value, float scale )
+{
+	float valueSquared;
+
+	value = scale * value;
+	valueSquared = value * value;
+
+	// Nice little ease-in, ease-out spline-like curve
+	return 3 * valueSquared - 2 * valueSquared * value;
+}
+
+void main()
+{
+	$branch type == 0
+	$begin
+		vec4 finalColor = ps_color;
+	$end
+	
+	$branch num_point_lights >= 1
+	$begin
+		finalColor.xyz += AddPointLight(point_lights_0_origin, point_lights_0_color, point_lights_0_radius, ps_vertexpos);
+	$end
+
+	$branch num_point_lights == 2
+	$begin
+		finalColor.xyz += AddPointLight(point_lights_1_origin, point_lights_1_color, point_lights_1_radius, ps_vertexpos);
+	$end
+
+	$branch num_proj_lights >= 1
+	$begin
+		finalColor.xyz += AddProjLight(proj_lights_0_origin, proj_lights_0_color, proj_lights_0_radius, ps_vertexpos, ps_proj_l0vertexcoord, proj_lights_0_texture);
+	$end
+
+	$branch num_proj_lights == 2
+	$begin
+		finalColor.xyz += AddProjLight(proj_lights_1_origin, proj_lights_1_color, proj_lights_1_radius, ps_vertexpos, ps_proj_l1vertexcoord, proj_lights_1_texture);
+	$end
+	
+	$branch type == 0
+	$begin
+		finalColor.xyz = clamp(finalColor.xyz, 0.0, 1.0);
+		vec4 texturecolor = texture(texture0, ps_texcoord.xy);
+		
+		finalColor.xyz = finalColor.xyz*texturecolor.xyz*(1.0+overbright);
+		finalColor.w = ps_color.w*texturecolor.w;
+	$end	
+	$branch type == 1
+	$begin
+		float DIST_POWER = -0.02;
+		vec3 dudvcolor = (2.0 * texture (rtexture0, ps_texcoord).xyz) - 1.0;
+		vec2 fetch_tc = vec2(ps_texcoord.x + dudvcolor.x*DIST_POWER*scrsize.x, ps_texcoord.y + dudvcolor.y*DIST_POWER*scrsize.y);
+		vec4 finalColor = texture(rtexture1, fetch_tc);
+	$end
+	
+	$branch fog == 1
+	$begin
+		float fogcoord = length(ps_vertexpos);
+		
+		float fogfactor = (fogparams.x - fogcoord)*fogparams.y;
+		fogfactor = 1.0-SplineFraction(clamp(fogfactor, 0.0, 1.0), 1.0);
+		
+		finalColor.xyz = mix(finalColor.xyz, fogcolor, fogfactor);
+	$end	
+	
+	$branch alphatest == 1
+	$begin
+		if(finalColor.a < 0.5)
+			discard;
+	$end
+	$branch alphatest == 2
+	$begin
+		finalColor.a = (finalColor.a - 0.5) / max(fwidth(finalColor.a), 0.0001) + 0.5;
+	$end
+	
+	oColor = finalColor;
+
+}
+$end

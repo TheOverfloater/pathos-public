@@ -1,0 +1,20 @@
+$particlescript
+{
+	$shape point
+	$fade_out_delay 0.500000
+	$lifetime 1.000000
+	$lifetime_variation 0.100000
+	$primary_color 150 0 0
+	$scale 1.000000
+	$scale_variation 1.000000
+	$scale_damping -40.000000
+	$particles_on_spawn 1
+	$lighting mix_primary_color
+	$rendermode refractive
+	$alpha 0.800000
+	$alignment tiled
+	$texture distort_clouds
+	$frame_width 128
+	$frame_height 128
+	$num_frames 16
+}

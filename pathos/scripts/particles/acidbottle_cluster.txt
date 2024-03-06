@@ -1,0 +1,10 @@
+$clusterscript
+{
+	$script acidbottle_clouds.txt
+	$script acidbottle_glass_flecks1.txt
+	$script acidbottle_glass_flecks2.txt
+	$script acidbottle_glass_flecks3.txt
+	$script acidbottle_splashes1.txt
+	$script acidbottle_splashes2.txt
+	$script acidbottle_droplets.txt
+}

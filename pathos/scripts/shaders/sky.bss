@@ -1,0 +1,48 @@
+$global_determinator mode 0 1
+$shader_vertex $begin
+#version 130
+
+uniform mat4 projection;
+uniform mat4 modelview;
+uniform vec4 color;
+
+in vec4 in_position;
+in vec2 in_texcoord;
+
+out vec2 ps_texcoord;
+out vec4 ps_color;
+
+void main()
+{
+	$branch mode == 0
+	$begin
+		ps_texcoord = in_texcoord;
+	$end
+	
+	vec4 position = in_position*modelview;
+	gl_Position = position*projection;
+}
+$end
+$shader_fragment 
+$begin
+#version 130
+
+uniform sampler2D texture0;
+uniform vec4 color;
+
+in vec2 ps_texcoord;
+
+out vec4 oColor;
+
+void main()
+{
+	$branch mode == 0
+	$begin
+		oColor = texture(texture0, ps_texcoord)*color;
+	$end
+	$branch mode == 1
+	$begin
+		oColor = color;
+	$end
+}
+$end

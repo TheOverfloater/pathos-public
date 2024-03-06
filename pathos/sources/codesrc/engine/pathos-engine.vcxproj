@@ -1,0 +1,497 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{9919AF58-E9C3-4694-8688-8048B97C6AC1}</ProjectGuid>
+    <RootNamespace>pathosengine</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v100</PlatformToolset>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pathos_x64</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">pathos_x86</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pathos_x86</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pathos_x64</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.\;..\shared\renderer;..\libs\sdl2.0\include\;.\renderer\;..\common\;..\libs\;..\libs\freetype\include\;.\ui\;.\server\;.\client\;..\shared\;..\libs\enet\include;..\libs\openal\include;..\libs\libogg\include;..\libs\detours\include;..\libs\libvorbis\include;.\windows;.\rygsdxtc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NETWORKING;DONT_USE_VAO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;4018;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>user32.lib;opengl32.lib;glu32.lib;shell32.lib;gdi32.lib;..\Win32\Debug\SDL2.lib;..\Win32\Debug\SDL2Main.lib;..\Win32\Debug\freetype253_D.lib;..\libs\enet\enet.lib;..\libs\openal\libs\Win32\openal32.lib;..\libs\detours\lib.X86\detours.lib;..\libs\libogg\lib\Win32\Debug\ogg.lib;..\libs\libvorbis\lib\Win32\Debug\libvorbis.lib;winmm.lib;ws2_32.lib;gdiplus.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\Visual Leak Detector\lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <DelayLoadDLLs>OpenAL32.dll;SDL2.dll;soft_oal.dll</DelayLoadDLLs>
+      <AdditionalOptions>/DELAYLOAD:"OpenAL32.dll" %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
+      <Message>Copy $(TargetName)$(TargetExt) to working directory</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.\;..\shared\renderer;..\libs\sdl2.0\include\;.\renderer\;..\common\;..\libs\;..\libs\freetype\include\;.\ui\;.\server\;.\client\;..\shared\;..\libs\enet\include;..\libs\openal\include;..\libs\libogg\include;..\libs\detours\include;..\libs\libvorbis\include;.\windows;.\rygsdxtc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_64BUILD;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NETWORKING;DONT_USE_VAO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>user32.lib;opengl32.lib;glu32.lib;shell32.lib;gdi32.lib;..\x64\Debug\SDL2.lib;..\x64\Debug\SDL2Main.lib;..\libs\freetype\objs\win64\vc2010\freetype253_D.lib;gdiplus.lib;comctl32.lib;..\libs\enet\enet64.lib;winmm.lib;ws2_32.lib;..\libs\openal\libs\Win64\openal32.lib;..\libs\detours\lib.X64\detours.lib;..\libs\libogg\lib\x64\Debug\ogg.lib;..\libs\libvorbis\lib\x64\Debug\libvorbisfile_static.lib;..\libs\libvorbis\lib\x64\Debug\libvorbis_static.lib;..\libs\vld.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <AdditionalLibraryDirectories>x64\Debug</AdditionalLibraryDirectories>
+      <GenerateMapFile>true</GenerateMapFile>
+      <DelayLoadDLLs>OpenAL32.dll;SDL2.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy $(TargetName)$(TargetExt) to working directory</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>.\;..\shared\renderer;..\libs\sdl2.0\include\;.\renderer\;..\common\;..\libs\;..\libs\freetype\include\;.\ui\;.\server\;.\client\;..\shared\;..\libs\enet\include;..\libs\openal\include;..\libs\libogg\include;..\libs\detours\include;..\libs\libvorbis\include;.\windows;.\rygsdxtc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>user32.lib;opengl32.lib;glu32.lib;shell32.lib;gdi32.lib;..\Win32\Release\SDL2.lib;..\Win32\Release\SDL2Main.lib;..\Win32\Release\freetype253.lib;..\libs\enet\enet.lib;..\libs\openal\libs\Win32\openal32.lib;..\libs\detours\lib.X86\detours.lib;..\libs\libogg\lib\Win32\Release\ogg.lib;..\libs\libvorbis\lib\Win32\Release\libvorbis.lib;winmm.lib;ws2_32.lib;gdiplus.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <DelayLoadDLLs>OpenAL32.dll;SDL2.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalOptions>/NODEFAULTLIB:msvcrtd %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
+      <Message>Copy $(TargetName)$(TargetExt) to working directory</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_64BUILD;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>.\;..\libs\sdl2.0\include\;.\renderer\;..\common\;..\libs\;..\libs\freetype\include\;.\ui\;.\server\;.\client\;..\shared\;..\libs\enet\include;..\libs\openal\include;..\libs\detours\include;..\libs\libogg\include;..\libs\libvorbis\include;..\shared\renderer;.\windows;.\rygsdxtc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>x64\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>user32.lib;opengl32.lib;glu32.lib;shell32.lib;gdi32.lib;..\x64\Release\SDL2.lib;..\x64\Release\SDL2Main.lib;..\x64\Release\freetype253.lib;..\libs\enet\enet64.lib;..\libs\openal\libs\Win64\openal32.lib;..\libs\detours\lib.X64\detours.lib;..\libs\libogg\lib\x64\Release\ogg.lib;..\libs\libvorbis\lib\x64\Release\libvorbisfile_static.lib;..\libs\libvorbis\lib\x64\Release\libvorbis_static.lib;winmm.lib;ws2_32.lib;gdiplus.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateMapFile>true</GenerateMapFile>
+      <DelayLoadDLLs>OpenAL32.dll;SDL2.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <AssemblyDebug>true</AssemblyDebug>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy $(TargetName)$(TargetExt) to working directory</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\common\cbitset.cpp" />
+    <ClCompile Include="..\common\cbuffer.cpp" />
+    <ClCompile Include="..\common\common.cpp" />
+    <ClCompile Include="..\common\cstring.cpp" />
+    <ClCompile Include="..\common\dds.cpp" />
+    <ClCompile Include="..\common\logfile.cpp" />
+    <ClCompile Include="..\common\matrix.cpp" />
+    <ClCompile Include="..\common\md5.cpp" />
+    <ClCompile Include="..\common\ogg_common.cpp" />
+    <ClCompile Include="..\common\r_common.cpp" />
+    <ClCompile Include="..\common\tga.cpp" />
+    <ClCompile Include="..\shared\r_basicdraw.cpp" />
+    <ClCompile Include="..\shared\sentencesfile.cpp" />
+    <ClCompile Include="..\shared\stepsound.cpp" />
+    <ClCompile Include="..\shared\texturemanager.cpp" />
+    <ClCompile Include="ald.cpp" />
+    <ClCompile Include="brushmodel.cpp" />
+    <ClCompile Include="bspv30.cpp" />
+    <ClCompile Include="client\cl_cmd.cpp" />
+    <ClCompile Include="client\cl_efx.cpp" />
+    <ClCompile Include="client\cl_main.cpp" />
+    <ClCompile Include="client\cl_msg.cpp" />
+    <ClCompile Include="client\cl_pmove.cpp" />
+    <ClCompile Include="client\cl_predict.cpp" />
+    <ClCompile Include="client\cl_resource.cpp" />
+    <ClCompile Include="client\cl_snd.cpp" />
+    <ClCompile Include="client\cl_tempentities.cpp" />
+    <ClCompile Include="client\cl_utils.cpp" />
+    <ClCompile Include="console.cpp" />
+    <ClCompile Include="dllexports.cpp" />
+    <ClCompile Include="edictmanager.cpp" />
+    <ClCompile Include="enginefuncs.cpp" />
+    <ClCompile Include="file.cpp" />
+    <ClCompile Include="filewriterthread.cpp" />
+    <ClCompile Include="modelcache.cpp" />
+    <ClCompile Include="networking.cpp" />
+    <ClCompile Include="net_mp.cpp" />
+    <ClCompile Include="net_sp.cpp" />
+    <ClCompile Include="pbspv1.cpp" />
+    <ClCompile Include="renderer\r_beams.cpp" />
+    <ClCompile Include="renderer\r_blackhole.cpp" />
+    <ClCompile Include="renderer\r_cables.cpp" />
+    <ClCompile Include="renderer\r_cubemaps.cpp" />
+    <ClCompile Include="renderer\r_decals.cpp" />
+    <ClCompile Include="renderer\r_dlights.cpp" />
+    <ClCompile Include="renderer\r_glowaura.cpp" />
+    <ClCompile Include="renderer\r_glqueries.cpp" />
+    <ClCompile Include="renderer\r_interfacefuncs.cpp" />
+    <ClCompile Include="renderer\r_lensflare.cpp" />
+    <ClCompile Include="renderer\r_menuparticles.cpp" />
+    <ClCompile Include="renderer\r_nsmoothing.cpp" />
+    <ClCompile Include="renderer\r_portals.cpp" />
+    <ClCompile Include="renderer\r_sky.cpp" />
+    <ClCompile Include="renderer\r_wadtextures.cpp" />
+    <ClCompile Include="renderer\r_mirror.cpp" />
+    <ClCompile Include="renderer\r_monitor.cpp" />
+    <ClCompile Include="renderer\r_particles.cpp" />
+    <ClCompile Include="renderer\r_postprocess.cpp" />
+    <ClCompile Include="renderer\r_legacyparticles.cpp" />
+    <ClCompile Include="renderer\r_rttcache.cpp" />
+    <ClCompile Include="renderer\r_sprites.cpp" />
+    <ClCompile Include="renderer\r_vbm.cpp" />
+    <ClCompile Include="renderer\r_water.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+    </ClCompile>
+    <ClCompile Include="rygsdxtc\stb_dxt.cpp" />
+    <ClCompile Include="server\sv_entities.cpp" />
+    <ClCompile Include="server\sv_main.cpp" />
+    <ClCompile Include="server\sv_world.cpp" />
+    <ClCompile Include="server\sv_msg.cpp" />
+    <ClCompile Include="server\sv_physics.cpp" />
+    <ClCompile Include="sprite.cpp" />
+    <ClCompile Include="sv_move.cpp" />
+    <ClCompile Include="usermsg.cpp" />
+    <ClCompile Include="vbmtrace.cpp" />
+    <ClCompile Include="saverestore.cpp" />
+    <ClCompile Include="trace_shared.cpp" />
+    <ClCompile Include="renderer\r_bsp.cpp" />
+    <ClCompile Include="renderer\r_menu.cpp" />
+    <ClCompile Include="sys_cmd.cpp" />
+    <ClCompile Include="sys_misc.cpp" />
+    <ClCompile Include="commands.cpp" />
+    <ClCompile Include="config.cpp" />
+    <ClCompile Include="input.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="renderer\r_main.cpp" />
+    <ClCompile Include="renderer\r_text.cpp" />
+    <ClCompile Include="system.cpp" />
+    <ClCompile Include="uimanager.cpp" />
+    <ClCompile Include="vid.cpp" />
+    <ClCompile Include="window.cpp" />
+    <ClCompile Include=".\ui\uielements.cpp" />
+    <ClCompile Include="..\shared\cvar.cpp" />
+    <ClCompile Include="..\shared\decallist.cpp" />
+    <ClCompile Include="..\shared\flexmanager.cpp" />
+    <ClCompile Include="..\shared\frustum.cpp" />
+    <ClCompile Include="..\shared\r_glextf.cpp" />
+    <ClCompile Include="..\shared\r_glsl.cpp" />
+    <ClCompile Include="..\shared\r_vbo.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+    </ClCompile>
+    <ClCompile Include="..\shared\vbm_shared.cpp" />
+    <ClCompile Include="windows\uiconsolewindow.cpp" />
+    <ClCompile Include="windows\uidownloadwindow.cpp" />
+    <ClCompile Include="windows\uiexitwindow.cpp" />
+    <ClCompile Include="windows\uinewgamewindow.cpp" />
+    <ClCompile Include="windows\uisaveloadwindow.cpp" />
+    <ClCompile Include="windows\uisettingswindow.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common\aldformat.h" />
+    <ClInclude Include="..\common\bspv30file.h" />
+    <ClInclude Include="..\common\cache_model.h" />
+    <ClInclude Include="..\common\carray.h" />
+    <ClInclude Include="..\common\carray_inline.hpp" />
+    <ClInclude Include="..\common\cbitset.h" />
+    <ClInclude Include="..\common\cbitset_inline.hpp" />
+    <ClInclude Include="..\common\cbuffer.h" />
+    <ClInclude Include="..\common\cbuffer_inline.hpp" />
+    <ClInclude Include="..\common\clinkedlist.h" />
+    <ClInclude Include="..\common\clinkedlist_inline.hpp" />
+    <ClInclude Include="..\common\cl_entity.h" />
+    <ClInclude Include="..\common\common.h" />
+    <ClInclude Include="..\common\common_inline.hpp" />
+    <ClInclude Include="..\common\constants.h" />
+    <ClInclude Include="..\common\cstring.h" />
+    <ClInclude Include="..\common\cstring_inline.hpp" />
+    <ClInclude Include="..\common\com_math.h" />
+    <ClInclude Include="..\common\com_math_inline.hpp" />
+    <ClInclude Include="..\common\datatypes.h" />
+    <ClInclude Include="..\common\filechunk.h" />
+    <ClInclude Include="..\common\file_interface.h" />
+    <ClInclude Include="..\common\matrix.h" />
+    <ClInclude Include="..\common\md5.h" />
+    <ClInclude Include="..\common\miptex.h" />
+    <ClInclude Include="..\common\movevars.h" />
+    <ClInclude Include="..\common\ogg_common.h" />
+    <ClInclude Include="..\common\pbspv1file.h" />
+    <ClInclude Include="..\common\plane.h" />
+    <ClInclude Include="..\common\plane_inline.hpp" />
+    <ClInclude Include="..\common\r_common.h" />
+    <ClInclude Include="..\common\sprformat.h" />
+    <ClInclude Include="..\common\tempentity.h" />
+    <ClInclude Include="..\common\tgaformat.h" />
+    <ClInclude Include="..\common\vector.h" />
+    <ClInclude Include="..\common\dds.h" />
+    <ClInclude Include="..\common\logfile.h" />
+    <ClInclude Include="..\common\tga.h" />
+    <ClInclude Include="..\common\vector_inline.hpp" />
+    <ClInclude Include="..\common\wad3file.h" />
+    <ClInclude Include="..\shared\beam_shared.h" />
+    <ClInclude Include="..\shared\r_basicdraw.h" />
+    <ClInclude Include="..\shared\sentencesfile.h" />
+    <ClInclude Include="..\shared\texturemanager.h" />
+    <ClInclude Include=".\ui\ui_shared.h" />
+    <ClInclude Include="..\shared\animinfo.h" />
+    <ClInclude Include="..\shared\flex_shared.h" />
+    <ClInclude Include="..\shared\fontset.h" />
+    <ClInclude Include="ald.h" />
+    <ClInclude Include="bspv30.h" />
+    <ClInclude Include="buildcounter.h" />
+    <ClInclude Include="client\cl_efx.h" />
+    <ClInclude Include="client\cl_main.h" />
+    <ClInclude Include="client\cl_msg.h" />
+    <ClInclude Include="client\cl_pmove.h" />
+    <ClInclude Include="client\cl_predict.h" />
+    <ClInclude Include="client\cl_resource.h" />
+    <ClInclude Include="client\cl_snd.h" />
+    <ClInclude Include="client\cl_tempentities.h" />
+    <ClInclude Include="client\cl_utils.h" />
+    <ClInclude Include="config.h" />
+    <ClInclude Include="console.h" />
+    <ClInclude Include="dllexports.h" />
+    <ClInclude Include="edictmanager.h" />
+    <ClInclude Include="enginefuncs.h" />
+    <ClInclude Include="enginestate.h" />
+    <ClInclude Include="commands.h" />
+    <ClInclude Include="file.h" />
+    <ClInclude Include="filewriterthread.h" />
+    <ClInclude Include="input.h" />
+    <ClInclude Include="modelcache.h" />
+    <ClInclude Include="networking.h" />
+    <ClInclude Include="net_mp.h" />
+    <ClInclude Include="net_sp.h" />
+    <ClInclude Include="pbspv1.h" />
+    <ClInclude Include="renderer\r_beams.h" />
+    <ClInclude Include="renderer\r_blackhole.h" />
+    <ClInclude Include="renderer\r_cables.h" />
+    <ClInclude Include="renderer\r_cubemaps.h" />
+    <ClInclude Include="renderer\r_decals.h" />
+    <ClInclude Include="renderer\r_dlights.h" />
+    <ClInclude Include="renderer\r_glowaura.h" />
+    <ClInclude Include="renderer\r_glqueries.h" />
+    <ClInclude Include="renderer\r_interfacefuncs.h" />
+    <ClInclude Include="renderer\r_lensflare.h" />
+    <ClInclude Include="renderer\r_menuparticles.h" />
+    <ClInclude Include="renderer\r_nsmoothing.h" />
+    <ClInclude Include="renderer\r_portals.h" />
+    <ClInclude Include="renderer\r_sky.h" />
+    <ClInclude Include="renderer\r_wadtextures.h" />
+    <ClInclude Include="renderer\r_mirror.h" />
+    <ClInclude Include="renderer\r_monitor.h" />
+    <ClInclude Include="renderer\r_particles.h" />
+    <ClInclude Include="renderer\r_postprocess.h" />
+    <ClInclude Include="renderer\r_legacyparticles.h" />
+    <ClInclude Include="renderer\r_rttcache.h" />
+    <ClInclude Include="renderer\r_sprites.h" />
+    <ClInclude Include="renderer\r_vbm.h" />
+    <ClInclude Include="renderer\r_water.h" />
+    <ClInclude Include="rygsdxtc\stb_dxt.h" />
+    <ClInclude Include="server\sv_entities.h" />
+    <ClInclude Include="server\sv_main.h" />
+    <ClInclude Include="server\sv_world.h" />
+    <ClInclude Include="server\sv_msg.h" />
+    <ClInclude Include="server\sv_physics.h" />
+    <ClInclude Include="server\sv_shared.h" />
+    <ClInclude Include="sprite.h" />
+    <ClInclude Include="sv_move.h" />
+    <ClInclude Include="usermsg.h" />
+    <ClInclude Include="vbmtrace.h" />
+    <ClInclude Include="saverestore.h" />
+    <ClInclude Include="trace_shared.h" />
+    <ClInclude Include="renderer\r_bsp.h" />
+    <ClInclude Include="renderer\r_menu.h" />
+    <ClInclude Include="renderer\r_main.h" />
+    <ClInclude Include="renderer\r_text.h" />
+    <ClInclude Include="savefile.h" />
+    <ClInclude Include="system.h" />
+    <ClInclude Include="uimanager.h" />
+    <ClInclude Include="vid.h" />
+    <ClInclude Include="window.h" />
+    <ClInclude Include=".\ui\uielements.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="..\shared\cmd_shared.h" />
+    <ClInclude Include="..\shared\cvar.h" />
+    <ClInclude Include="..\shared\decallist.h" />
+    <ClInclude Include="..\shared\dlight.h" />
+    <ClInclude Include="..\shared\edict.h" />
+    <ClInclude Include="..\shared\entity_state.h" />
+    <ClInclude Include="..\shared\frustum.h" />
+    <ClInclude Include="..\shared\frustum_inline.hpp" />
+    <ClInclude Include="..\shared\gamevars.h" />
+    <ClInclude Include="..\shared\includes.h" />
+    <ClInclude Include="..\shared\monitor_shared.h" />
+    <ClInclude Include="..\shared\net_shared.h" />
+    <ClInclude Include="..\shared\pm_shared.h" />
+    <ClInclude Include="..\shared\ref_params.h" />
+    <ClInclude Include="..\shared\r_interface.h" />
+    <ClInclude Include="..\shared\r_basic_vertex.h" />
+    <ClInclude Include="..\shared\r_fbo.h" />
+    <ClInclude Include="..\shared\r_glextf.h" />
+    <ClInclude Include="..\shared\r_glsl.h" />
+    <ClInclude Include="..\shared\r_glsl_inline.hpp" />
+    <ClInclude Include="..\shared\r_vbo.h" />
+    <ClInclude Include="..\shared\save_shared.h" />
+    <ClInclude Include="..\shared\screenfade.h" />
+    <ClInclude Include="..\shared\snd_shared.h" />
+    <ClInclude Include="..\shared\studio.h" />
+    <ClInclude Include="..\shared\textures_shared.h" />
+    <ClInclude Include="..\shared\trace.h" />
+    <ClInclude Include="..\shared\usercmd.h" />
+    <ClInclude Include="..\shared\vbmformat.h" />
+    <ClInclude Include="..\shared\vbm_shared.h" />
+    <ClInclude Include="windows\uiconsolewindow.h" />
+    <ClInclude Include="windows\uidownloadwindow.h" />
+    <ClInclude Include="windows\uiexitwindow.h" />
+    <ClInclude Include="windows\uinewgamewindow.h" />
+    <ClInclude Include="windows\uisaveloadwindow.h" />
+    <ClInclude Include="windows\uisettingswindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="icon1.ico" />
+    <None Include="resource\reckoning.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="pathos-engine.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

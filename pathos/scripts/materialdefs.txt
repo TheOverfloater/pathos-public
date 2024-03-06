@@ -1,0 +1,404 @@
+// Material definitions depend on the types specified in pmf files
+// The first token is the material's name, then the following can be
+// specified:
+// sounds - List of sounds enclosed by { } brackets. These are relative
+// to the sound folder of your game directory
+// decalgroup - Decal group to use for decalling
+// particlescript - Particle script to spawn on shots/melee attacks
+// scripttype - Can be cluster or system script
+// penetration - Defines penetration information for bullets. Bullet
+// types are denoted based on definitions in the game dll, and the list
+// is enclosed in { } brackets.
+// A bullet type is defined as such for penetration:
+// *bullet type name* *max penetration depth* *max number of penetrations* *1 out of n chance to penetrate* *damage falloff from penetration* *decrease in penetration chance*
+
+"default"
+{
+	sounds {
+		"impact/concrete_impact_bullet1.wav"
+		"impact/concrete_impact_bullet2.wav"
+		"impact/concrete_impact_bullet3.wav"
+		"impact/concrete_impact_bullet4.wav"
+	}
+	decalgroup "shot"
+	particlescript "concrete_impact_cluster.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 0 0 0 0 0
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 0 0 0 0 0
+		BULLET_NPC_BUCKSHOT 0 0 0 0 0
+		BULLET_NPC_SIG552 24 1 2 0.5 1
+		BULLET_NPC_M249 24 1 2 0.5 1
+		BULLET_NPC_TRG42 32 3 1 0.7 1
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 15 4 3 1 0.5
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 15 4 3 1 0.5
+		BULLET_NPC_BUCKSHOT 5 4 4 1 0.7
+		BULLET_NPC_SIG552 10 3 2 2 0.2
+		BULLET_NPC_M249 10 3 2 2 0.2 
+		BULLET_NPC_TRG42 15 2 2 2 0.3
+	}
+}
+"metal"
+{
+	sounds {
+		"impact/metal_impact_bullet1.wav"
+		"impact/metal_impact_bullet2.wav"
+		"impact/metal_impact_bullet3.wav"
+		"impact/metal_impact_bullet4.wav"
+	}
+	decalgroup "shot_metal"
+	particlescript "cluster_impact_metal.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 0 0 0 0 0
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 0 0 0 0 0
+		BULLET_NPC_BUCKSHOT 0 0 0 0 0
+		BULLET_NPC_SIG552 8 1 2 0.4 2
+		BULLET_NPC_M249 8 1 2 0.4 2
+		BULLET_NPC_TRG42 24 1 1 0.6 1
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 20 2 2 1 0.3
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 20 2 2 1 0.3
+		BULLET_NPC_BUCKSHOT 10 2 3 1 0.4
+		BULLET_NPC_SIG552 15 1.5 2 2 0.2
+		BULLET_NPC_M249 15 1.5 2 2 0.2
+		BULLET_NPC_TRG42 20 1 1 2 0.1
+	}
+}
+"dirt"
+{
+	sounds {
+		"impact/sand_impact_bullet1.wav"
+		"impact/sand_impact_bullet2.wav"
+		"impact/sand_impact_bullet3.wav"
+		"impact/sand_impact_bullet4.wav"
+	}
+	decalgroup "shot"
+	particlescript "dirt_impact_cluster.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 0 0 0 0 0
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 0 0 0 0 0
+		BULLET_NPC_BUCKSHOT 0 0 0 0 0
+		BULLET_NPC_SIG552 24 1 2 0.5 1
+		BULLET_NPC_M249 24 1 2 0.5 1
+		BULLET_NPC_TRG42 32 3 1 0.7 1
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 0 0 0 0 0
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 0 0 0 0 0
+		BULLET_NPC_BUCKSHOT 0 0 0 0 0
+		BULLET_NPC_SIG552 0 0 0 0 0
+		BULLET_NPC_M249 0 0 0 0 0
+		BULLET_NPC_TRG42 0 0 0 0 0
+	}
+}
+"vent"
+{
+	sounds {
+		"impact/vent_impact_bullet1.wav"
+		"impact/vent_impact_bullet2.wav"
+		"impact/vent_impact_bullet3.wav"
+		"impact/vent_impact_bullet4.wav"
+	}
+	decalgroup "shot_metal"
+	particlescript "cluster_impact_metal.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 16 1 2 0.6 2
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 16 1 2 0.6 2
+		BULLET_NPC_BUCKSHOT 8 1 2 0.4 2
+		BULLET_NPC_SIG552 24 2 1 0.6 1
+		BULLET_NPC_M249 24 2 1 0.6 1
+		BULLET_NPC_TRG42 32 2 1 0.7 0
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 20 2 2 1 0.3
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 20 2 2 1 0.3
+		BULLET_NPC_BUCKSHOT 10 2 3 1 0.4
+		BULLET_NPC_SIG552 15 1.5 2 2 0.2
+		BULLET_NPC_M249 15 1.5 2 2 0.2
+		BULLET_NPC_TRG42 20 1 1 2 0.1
+	}
+}
+"grate"
+{
+	sounds {
+		"impact/metal_impact_bullet1.wav"
+		"impact/metal_impact_bullet2.wav"
+		"impact/metal_impact_bullet3.wav"
+		"impact/metal_impact_bullet4.wav"
+	}
+	decalgroup "shot_metal"
+	particlescript "cluster_impact_metal.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 24 1 2 0.6 2
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 24 1 2 0.6 2
+		BULLET_NPC_BUCKSHOT 24 1 2 0.4 2
+		BULLET_NPC_SIG552 24 2 1 0.6 1
+		BULLET_NPC_M249 24 2 1 0.6 1
+		BULLET_NPC_TRG42 32 2 1 0.7 0
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 20 2 2 1 0.3
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 20 2 2 1 0.3
+		BULLET_NPC_BUCKSHOT 10 2 3 1 0.4
+		BULLET_NPC_SIG552 15 1.5 2 2 0.2
+		BULLET_NPC_M249 15 1.5 2 2 0.2
+		BULLET_NPC_TRG42 20 1 1 2 0.1
+	}
+}
+"tile"
+{
+	sounds {
+		"impact/tile_impact_bullet1.wav"
+		"impact/tile_impact_bullet2.wav"
+		"impact/tile_impact_bullet3.wav"
+		"impact/tile_impact_bullet4.wav"
+	}
+	decalgroup "shot"
+	particlescript "concrete_impact_cluster.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 0 0 0 0 0
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 0 0 0 0 0
+		BULLET_NPC_BUCKSHOT 0 0 0 0 0
+		BULLET_NPC_SIG552 24 1 2 0.5 1
+		BULLET_NPC_M249 24 1 2 0.5 1
+		BULLET_NPC_TRG42 32 3 1 0.7 1
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 15 4 3 1 0.5
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 15 4 3 1 0.5
+		BULLET_NPC_BUCKSHOT 5 4 4 1 0.7
+		BULLET_NPC_SIG552 10 3 2 2 0.2
+		BULLET_NPC_M249 10 3 2 2 0.2 
+		BULLET_NPC_TRG42 15 2 2 2 0.3
+	}
+}
+"snow"
+{
+	sounds {
+		"impact/sand_impact_bullet1.wav"
+		"impact/sand_impact_bullet2.wav"
+		"impact/sand_impact_bullet3.wav"
+		"impact/sand_impact_bullet4.wav"
+	}
+	decalgroup "shot"
+	particlescript "snow_impact_cluster.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 16 2 1 1.0 0
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 16 1 1 1.0 0
+		BULLET_NPC_BUCKSHOT 8 1 1 1.0 0
+		BULLET_NPC_SIG552 24 2 1 1.0 0
+		BULLET_NPC_M249 24 2 1 1.0 0
+		BULLET_NPC_TRG42 32 3 1 1.0 0
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 0 0 0 0 0
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 0 0 0 0 0
+		BULLET_NPC_BUCKSHOT 0 0 0 0 0
+		BULLET_NPC_SIG552 0 0 0 0 0
+		BULLET_NPC_M249 0 0 0 0 0
+		BULLET_NPC_TRG42 0 0 0 0 0
+	}
+}
+"wood"
+{
+	sounds {
+		"impact/wood_impact_bullet1.wav"
+		"impact/wood_impact_bullet2.wav"
+		"impact/wood_impact_bullet3.wav"
+		"impact/wood_impact_bullet4.wav"
+	}
+	decalgroup "shot_wood"
+	particlescript "wood_impact_cluster.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 16 1 2 0.6 2
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 16 1 2 0.6 2
+		BULLET_NPC_BUCKSHOT 8 1 2 0.4 2
+		BULLET_NPC_SIG552 24 2 1 0.6 1
+		BULLET_NPC_M249 24 2 1 0.6 1
+		BULLET_NPC_TRG42 32 2 1 0.7 0
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 15 4 3 1 0.5
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 15 4 3 1 0.5
+		BULLET_NPC_BUCKSHOT 5 4 4 1 0.7
+		BULLET_NPC_SIG552 10 3 2 2 0.2
+		BULLET_NPC_M249 10 3 2 2 0.2 
+		BULLET_NPC_TRG42 15 2 2 2 0.3
+	}
+}
+"organic"
+{
+	sounds {
+		"impact/bullet_hit_flesh1.wav"
+		"impact/bullet_hit_flesh2.wav"
+	}
+	decalgroup "shot_alien"
+	particlescript "blood_effects_cluster.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 16 1 2 0.6 2
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 16 1 2 0.6 2
+		BULLET_NPC_BUCKSHOT 8 1 2 0.4 2
+		BULLET_NPC_SIG552 24 2 1 0.6 1
+		BULLET_NPC_M249 24 2 1 0.6 1
+		BULLET_NPC_TRG42 32 2 1 0.7 0
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 0 0 0 0 0
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 0 0 0 0 0
+		BULLET_NPC_BUCKSHOT 0 0 0 0 0
+		BULLET_NPC_SIG552 0 0 0 0 0
+		BULLET_NPC_M249 0 0 0 0 0
+		BULLET_NPC_TRG42 0 0 0 0 0
+	}
+}
+"rug"
+{
+	sounds {
+		"impact/sand_impact_bullet1.wav"
+		"impact/sand_impact_bullet2.wav"
+		"impact/sand_impact_bullet3.wav"
+		"impact/sand_impact_bullet4.wav"
+	}
+	decalgroup "shot"
+	particlescript "carpet_impact_cluster.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 16 1 2 0.6 2
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 16 1 2 0.6 2
+		BULLET_NPC_BUCKSHOT 8 1 2 0.4 2
+		BULLET_NPC_SIG552 24 2 1 0.6 1
+		BULLET_NPC_M249 24 2 1 0.6 1
+		BULLET_NPC_TRG42 32 2 1 0.7 0
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 0 0 0 0 0
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 0 0 0 0 0
+		BULLET_NPC_BUCKSHOT 0 0 0 0 0
+		BULLET_NPC_SIG552 0 0 0 0 0
+		BULLET_NPC_M249 0 0 0 0 0
+		BULLET_NPC_TRG42 0 0 0 0 0
+	}
+}
+"gravel"
+{
+	sounds {
+		"impact/sand_impact_bullet1.wav"
+		"impact/sand_impact_bullet2.wav"
+		"impact/sand_impact_bullet3.wav"
+		"impact/sand_impact_bullet4.wav"
+	}
+	decalgroup "shot"
+	particlescript "gravel_impact_cluster.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 0 0 0 0 0
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 0 0 0 0 0
+		BULLET_NPC_BUCKSHOT 0 0 0 0 0
+		BULLET_NPC_SIG552 24 1 2 0.5 1
+		BULLET_NPC_M249 24 1 2 0.5 1
+		BULLET_NPC_TRG42 32 3 1 0.7 1
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 15 4 3 1 0.5
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 15 4 3 1 0.5
+		BULLET_NPC_BUCKSHOT 5 4 4 1 0.7
+		BULLET_NPC_SIG552 10 3 2 2 0.2
+		BULLET_NPC_M249 10 3 2 2 0.2 
+		BULLET_NPC_TRG42 15 2 2 2 0.3
+	}
+}
+"computer"
+{
+	sounds {
+		"misc/spark1.wav"
+		"misc/spark2.wav"
+		"misc/spark3.wav"
+		"misc/spark4.wav"
+		"misc/spark5.wav"
+		"misc/spark6.wav"
+	}
+	decalgroup "shot"
+	particlescript "cluster_impact_metal.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 16 1 2 0.6 2
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 16 1 2 0.6 2
+		BULLET_NPC_BUCKSHOT 8 1 2 0.4 2
+		BULLET_NPC_SIG552 24 2 1 0.6 1
+		BULLET_NPC_M249 24 2 1 0.6 1
+		BULLET_NPC_TRG42 32 2 1 0.7 0
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 20 2 2 1 0.3
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 20 2 2 1 0.3
+		BULLET_NPC_BUCKSHOT 10 2 3 1 0.4
+		BULLET_NPC_SIG552 15 1.5 2 2 0.2
+		BULLET_NPC_M249 15 1.5 2 2 0.2
+		BULLET_NPC_TRG42 20 1 1 2 0.1
+	}
+}
+"glass"
+{
+	sounds {
+		"impact/glass_impact_bullet1.wav"
+		"impact/glass_impact_bullet2.wav"
+		"impact/glass_impact_bullet3.wav"
+		"impact/glass_impact_bullet4.wav"
+	}
+	decalgroup "shot_glass"
+	particlescript "glass_impact_cluster.txt"
+	scripttype cluster
+	penetration {
+		BULLET_PLAYER_GLOCK 16 2 1 1.0 0
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 16 1 1 1.0 0
+		BULLET_NPC_BUCKSHOT 16 1 1 1.0 0
+		BULLET_NPC_SIG552 24 2 1 1.0 0
+		BULLET_NPC_M249 24 2 1 1.0 0
+		BULLET_NPC_TRG42 32 3 1 1.0 0
+	}
+	ricochet {
+		BULLET_PLAYER_GLOCK 15 4 3 1 0.5
+		BULLET_PLAYER_KNIFE 0 0 0 0 0
+		BULLET_NPC_9MM 15 4 3 1 0.5
+		BULLET_NPC_BUCKSHOT 5 4 4 1 0.7
+		BULLET_NPC_SIG552 10 3 2 2 0.2
+		BULLET_NPC_M249 10 3 2 2 0.2 
+		BULLET_NPC_TRG42 15 2 2 2 0.3
+	}
+}

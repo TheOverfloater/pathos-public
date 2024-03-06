@@ -1,0 +1,6 @@
+$clusterscript
+{
+	$script spark_core.txt
+	$script spark_tracers.txt
+	$script spark_cloud.txt
+}

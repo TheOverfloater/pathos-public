@@ -1,0 +1,35 @@
+$particlescript
+{
+	$shape box
+	$system_size 16.000000
+	$fade_in_time 0.500000
+	$fade_out_delay 16.000000
+	$lifetime 20.000000
+	$flags globs
+	$primary_color 222 184 147
+	$scale 16.000000
+	$scale_variation 4.000000
+	$scale_damping -10.000000
+	$max_particles -1
+	$particle_frequency 0.700000
+	$particles_on_spawn 4
+	$collision stuck
+	$gravity 0.001000
+	$glob_size 4
+	$num_glob_particles 2
+	$rendermode additive
+	$alpha 0.050000
+	$alignment tiled
+	$texture clouds
+	$render_flags skybox nofog
+	$max_light_value 1.000000
+	$rotate_z_speed 0.400000
+	$rotate_z_dampening 0.001000
+	$wind_x_velocity -0.030000
+	$wind_velocity_variance 0.020000
+	$wind_type sine
+	$wind_sine_variance_speed_multiplier 1.000000
+	$frame_width 128
+	$frame_height 128
+	$num_frames 16
+}

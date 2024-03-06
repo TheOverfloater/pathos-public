@@ -1,0 +1,77 @@
+$shader_vertex $begin
+#version 130
+
+uniform mat4 projection;
+uniform mat4 modelview;
+
+uniform mat4 mirror_matrix;
+
+in vec4 in_position;
+
+out vec4 ps_texcoord;
+out vec3 ps_vertexpos;
+
+void main()
+{
+	vec4 texcoord = in_position*mirror_matrix;
+	ps_texcoord = texcoord*projection;
+
+	vec4 position = in_position*modelview;
+	ps_vertexpos = position.xyz;
+	gl_Position = position*projection;
+	
+}
+$end
+$shader_fragment 
+$determinator fog 0 1
+$begin
+#version 130
+
+uniform sampler2D texture0;
+
+uniform float dt_x;
+uniform float dt_y;
+
+uniform vec3 fogcolor;
+uniform vec2 fogparams;
+
+in vec4 ps_texcoord;
+in vec3 ps_vertexpos;
+
+out vec4 oColor;
+
+float SplineFraction( float value, float scale )
+{
+	float valueSquared;
+
+	value = scale * value;
+	valueSquared = value * value;
+
+	// Nice little ease-in, ease-out spline-like curve
+	return 3 * valueSquared - 2 * valueSquared * value;
+}
+
+void main()
+{
+	vec2 mirror_tc = ps_texcoord.xy;
+	mirror_tc.x *= dt_x;
+	mirror_tc.y *= dt_y;
+
+	mirror_tc = mirror_tc/(ps_texcoord.w*2);
+	mirror_tc = mirror_tc + 0.5;
+
+	vec4 finalColor = texture2D(texture0, mirror_tc);
+
+	$branch fog == 1
+	$begin
+		float fogcoord = length(ps_vertexpos);
+		
+		float fogfactor = (fogparams.x - fogcoord)*fogparams.y;
+		fogfactor = 1.0-SplineFraction(clamp(fogfactor, 0.0, 1.0), 1.0);
+		
+		finalColor.xyz = mix(finalColor.xyz, fogcolor, fogfactor);
+	$end
+
+	oColor = finalColor;
+}
+$end

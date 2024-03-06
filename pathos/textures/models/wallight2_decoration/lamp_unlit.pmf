@@ -1,0 +1,4 @@
+$texture
+{
+	$texture diffuse models/wallight2_decoration/lamp_unlit.tga
+}

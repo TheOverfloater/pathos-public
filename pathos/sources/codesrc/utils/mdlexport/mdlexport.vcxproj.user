@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LocalDebuggerCommandArguments>D:\crapcasket\old D:\crapkasket\new</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerWorkingDirectory>D:\Games\Reckoning\reckon\sources\codesrc\utils\mdlexport\Release</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerCommand>D:\Games\Reckoning\reckon\sources\codesrc\utils\mdlexport\Release\mdlexport.exe</LocalDebuggerCommand>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>D:\crapcasket\old D:\crapkasket\new</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerWorkingDirectory>D:\Games\Reckoning\reckon\sources\codesrc\utils\mdlexport\Release</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerCommand>D:\Games\Reckoning\reckon\sources\codesrc\utils\mdlexport\Release\mdlexport.exe</LocalDebuggerCommand>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LocalDebuggerCommandArguments>D:\test\models D:\test\out\models</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerAttach>false</LocalDebuggerAttach>
+    <LocalDebuggerCommand>D:\Games\Reckoning\reckon\sources\codesrc\utils\mdlexport\Debug\mdlexport.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>D:\Games\Reckoning\</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommandArguments>D:\Documents\Stuff\props D:\testout</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerAttach>false</LocalDebuggerAttach>
+    <LocalDebuggerCommand>D:\Games\Reckoning\reckon\sources\codesrc\utils\mdlexport\Debug\mdlexport.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>D:\Games\Reckoning\x64</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,6 @@
+$texture
+{
+	$nodecal
+	$alphatest
+	$texture diffuse models/tree7/maple_s_01.tga
+}

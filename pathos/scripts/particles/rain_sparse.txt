@@ -1,0 +1,28 @@
+$particlescript
+{
+	$shape playerplane
+	$system_size 500.000000
+	$playerplane_max_height 300.000000
+	$fade_in_time 0.300000
+	$lifetime -1.000000
+	$primary_color 200 200 200
+	$scale 7.000000
+	$scale_variation 3.000000
+	$max_particles -1
+	$particle_frequency 60.000000
+	$particle_frequency_variation 70
+	$collision create_system
+	$collision_flags collide_water precise
+	$gravity 0.600000
+	$create rain_splashes1.txt
+	$create_on_water_impact ripples.txt
+	$rendermode additive
+	$alpha 0.500000
+	$alignment tracer
+	$texture rain
+	$wind_x_velocity 5.000000
+	$wind_y_velocity 125.000000
+	$wind_velocity_variance 30.000000
+	$wind_type sine
+	$wind_sine_variance_speed_multiplier 0.100000
+}

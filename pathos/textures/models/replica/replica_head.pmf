@@ -1,0 +1,4 @@
+$texture
+{
+	$texture diffuse models/replica/replica_head.dds
+}

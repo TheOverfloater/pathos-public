@@ -1,0 +1,38 @@
+$particlescript
+{
+	$shape playerplane
+	$system_size 1200.000000
+	$playerplane_max_height 500.000000
+	$fade_in_time 0.500000
+	$lifetime -1.000000
+	$flags random_direction
+	$primary_color 255 255 255
+	$scale 70.000000
+	$scale_variation 10.000000
+	$scale_damping -10.000000
+	$max_particles -1
+	$particle_frequency 120.000000
+	$particles_on_spawn 20
+	$lighting use_intensity only_once
+	$collision stuck
+	$gravity 0.010000
+	$rendermode additive
+	$alpha 0.600000
+	$alignment tiled
+	$texture clouds
+	$max_light_value 0.0500000
+	$rotate_z_dampening 0.001000
+	$wind_x_velocity -10.000000
+	$wind_y_velocity -15.000000
+	$wind_velocity_variance 5.000000
+	$wind_type sine
+	$wind_sine_variance_speed_multiplier 2.000000
+	$wind_sine_min_variance 1.000000
+	$wind_sine_variance 1.000000
+	$stuck_death_time 1.000000
+	$fade_near_distance 100
+	$fade_far_distance 256
+	$frame_width 128
+	$frame_height 128
+	$num_frames 16
+}

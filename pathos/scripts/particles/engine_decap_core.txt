@@ -1,0 +1,27 @@
+$particlescript
+{
+	$shape box
+	$system_size 2.000000
+	$min_velocity 30.000000
+	$max_velocity 40.000000
+	$fade_out_delay 0.400000
+	$lifetime 1.000000
+	$lifetime_variation 0.500000
+	$flags random_direction
+	$primary_color 150 50 5
+	$scale 10.000000
+	$scale_variation 1.000000
+	$scale_damping -10.000000
+	$max_particles 10
+	$particle_frequency 20.000000
+	$particles_on_spawn 30
+	$lighting mix_primary_color
+	$gravity 0.050000
+	$rendermode alphablend
+	$alpha 1.000000
+	$alignment tiled
+	$texture blood
+	$render_flags nocull
+	$rotate_z_speed 5.000000
+	$rotate_z_variation 5.000000
+}

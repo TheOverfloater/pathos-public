@@ -1,0 +1,20 @@
+$particlescript
+{
+	$shape playerplane
+	$system_size 400.000000
+	$playerplane_max_height 400.000000
+	$fade_in_time 1.000000
+	$lifetime 2.000000
+	$primary_color 255 255 255
+	$scale 6.000000
+	$scale_variation 2.000000
+	$max_particles -1
+	$particle_frequency 600.000000
+	$collision die
+	$collision_flags collide_water precise
+	$gravity 0.600000
+	$rendermode additive
+	$alpha 1.000000
+	$alignment parallel
+	$texture rain
+}

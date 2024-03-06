@@ -1,0 +1,33 @@
+﻿Build started 7/9/2023 11:50:31 AM.
+     1>Project "D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\zlib.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Touching ".\x64_LIB_Debug\zlib.unsuccessfulbuild".
+       ClCompile:
+         All outputs are up-to-date.
+       ResourceCompile:
+         All outputs are up-to-date.
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(1151,5): warning MSB8012: TargetPath(D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\.\x64_LIB_Debug\zlib.lib) does not match the Library's OutputFile property value (D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\x64_LIB_Debug\zlibd.lib). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Lib.OutputFile).
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(1153,5): warning MSB8012: TargetName(zlib) does not match the Library's OutputFile property value (zlibd). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Lib.OutputFile).
+       Lib:
+         E:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\x86_amd64\Lib.exe /OUT:".\x64_LIB_Debug\zlibd.lib" /NOLOGO /MACHINE:X64 .\x64_LIB_Debug\zlib1.res
+         .\x64_LIB_Debug\adler32.obj
+         .\x64_LIB_Debug\compress.obj
+         .\x64_LIB_Debug\crc32.obj
+         .\x64_LIB_Debug\deflate.obj
+         .\x64_LIB_Debug\gzio.obj
+         .\x64_LIB_Debug\infback.obj
+         .\x64_LIB_Debug\inffast.obj
+         .\x64_LIB_Debug\inflate.obj
+         .\x64_LIB_Debug\inftrees.obj
+         .\x64_LIB_Debug\trees.obj
+         .\x64_LIB_Debug\uncompr.obj
+         .\x64_LIB_Debug\zutil.obj
+         zlib.vcxproj -> D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\.\x64_LIB_Debug\zlib.lib
+       FinalizeBuildStatus:
+         Deleting file ".\x64_LIB_Debug\zlib.unsuccessfulbuild".
+         Touching ".\x64_LIB_Debug\zlib.lastbuildstate".
+     1>Done Building Project "D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\zlib.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.16

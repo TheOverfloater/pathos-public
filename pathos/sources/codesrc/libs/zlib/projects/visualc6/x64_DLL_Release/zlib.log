@@ -1,0 +1,63 @@
+﻿Build started 7/9/2023 11:33:22 AM.
+     1>Project "D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\zlib.vcxproj" on node 2 (rebuild target(s)).
+     1>_PrepareForClean:
+         Deleting file ".\x64_DLL_Release\zlib.lastbuildstate".
+       InitializeBuildStatus:
+         Creating ".\x64_DLL_Release\zlib.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         E:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Ob1 /D WIN32 /D NDEBUG /D _VC80_UPGRADE=0x0600 /D _WINDLL /GF /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\x64_DLL_Release\\" /Fd".\x64_DLL_Release\vc100.pdb" /Gd /TC /errorReport:prompt ..\..\adler32.c ..\..\compress.c ..\..\crc32.c ..\..\deflate.c ..\..\gzio.c ..\..\infback.c ..\..\inffast.c ..\..\inflate.c ..\..\inftrees.c ..\..\trees.c ..\..\uncompr.c ..\..\zutil.c
+         adler32.c
+         compress.c
+         crc32.c
+         deflate.c
+         gzio.c
+     1>..\..\gzio.c(131): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>..\..\gzio.c(181): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : see declaration of 'fopen'
+     1>..\..\gzio.c(226): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+     1>..\..\gzio.c(627): warning C4996: '_vsnprintf': This function or variable may be unsafe. Consider using _vsnprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(363) : see declaration of '_vsnprintf'
+     1>..\..\gzio.c(1001): warning C4996: 'strerror': This function or variable may be unsafe. Consider using strerror_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\string.h(157) : see declaration of 'strerror'
+     1>..\..\gzio.c(1008): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>..\..\gzio.c(1009): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>..\..\gzio.c(1010): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+         infback.c
+         inffast.c
+         inflate.c
+         inftrees.c
+         trees.c
+         uncompr.c
+         zutil.c
+         Generating Code...
+       ResourceCompile:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /D NDEBUG /D _VC80_UPGRADE=0x0600 /l"0x0409" /I\Games\Reckoning\reckon\sources\codesrc\libs\zlib\win32 /nologo /fo".\x64_DLL_Release\zlib1.res" ..\..\win32\zlib1.rc 
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\.\x64_DLL_Release\zlib.dll) does not match the Linker's OutputFile property value (D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\x64_DLL_Release\zlib1.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(992,5): warning MSB8012: TargetName(zlib) does not match the Linker's OutputFile property value (zlib1). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+       Link:
+         E:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:".\x64_DLL_Release\zlib1.dll" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /DEF:"..\..\win32\zlib.def" /MANIFEST /ManifestFile:".\x64_DLL_Release\zlib.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /PDB:"D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\x64_DLL_Release\zlib.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\x64_DLL_Release\zlib1.lib" /MACHINE:X64 /DLL .\x64_DLL_Release\zlib1.res
+         .\x64_DLL_Release\adler32.obj
+         .\x64_DLL_Release\compress.obj
+         .\x64_DLL_Release\crc32.obj
+         .\x64_DLL_Release\deflate.obj
+         .\x64_DLL_Release\gzio.obj
+         .\x64_DLL_Release\infback.obj
+         .\x64_DLL_Release\inffast.obj
+         .\x64_DLL_Release\inflate.obj
+         .\x64_DLL_Release\inftrees.obj
+         .\x64_DLL_Release\trees.obj
+         .\x64_DLL_Release\uncompr.obj
+         .\x64_DLL_Release\zutil.obj
+            Creating library .\x64_DLL_Release\zlib1.lib and object .\x64_DLL_Release\zlib1.exp
+         zlib.vcxproj -> D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\.\x64_DLL_Release\zlib.dll
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:".\x64_DLL_Release\zlib1.dll;#2" /manifest .\x64_DLL_Release\zlib.dll.intermediate.manifest
+       FinalizeBuildStatus:
+         Deleting file ".\x64_DLL_Release\zlib.unsuccessfulbuild".
+         Touching ".\x64_DLL_Release\zlib.lastbuildstate".
+     1>Done Building Project "D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\zlib.vcxproj" (rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.13

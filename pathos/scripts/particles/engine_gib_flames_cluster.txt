@@ -1,0 +1,5 @@
+$clusterscript
+{
+	$script engine_gib_flames_core.txt
+	$script engine_gib_flame_billows.txt
+}

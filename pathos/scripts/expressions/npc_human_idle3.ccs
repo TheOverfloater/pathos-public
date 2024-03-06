@@ -1,0 +1,312 @@
+{
+	{
+		name mouth_open
+		{
+			time 2.166623
+			strength 0.000000
+		}
+		{
+			time 2.752330
+			strength 0.140000
+		}
+		{
+			time 3.097034
+			strength 0.090000
+		}
+		{
+			time 3.264966
+			strength 0.000000
+		}
+		{
+			time 3.795280
+			strength 0.000000
+		}
+		{
+			time 4.133611
+			strength 0.290000
+		}
+		{
+			time 4.593554
+			strength 0.000000
+		}
+		{
+			time 5.748303
+			strength 0.000000
+		}
+		{
+			time 6.526398
+			strength 0.130000
+		}
+		{
+			time 6.888779
+			strength 0.180000
+		}
+		{
+			time 7.323851
+			strength 0.200000
+		}
+		{
+			time 7.569348
+			strength 0.030000
+		}
+		{
+			time 7.905214
+			strength 0.200000
+		}
+		{
+			time 8.152694
+			strength 0.160000
+		}
+		{
+			time 8.638815
+			strength 0.000000
+		}
+		{
+			time 8.939326
+			strength 0.140000
+		}
+		{
+			time 9.359343
+			strength 0.140000
+		}
+		{
+			time 9.887787
+			strength 0.240000
+		}
+		{
+			time 10.132533
+			strength 0.130000
+		}
+		{
+			time 10.609815
+			strength 0.000000
+		}
+		{
+			time 10.925104
+			strength 0.000000
+		}
+	}
+	{
+		name eyes_wide
+		{
+			time 0.000000
+			strength 0.000000
+		}
+		{
+			time 0.385569
+			strength 0.260000
+		}
+		{
+			time 1.843685
+			strength 0.329673
+		}
+		{
+			time 2.264483
+			strength 0.000000
+		}
+	}
+	{
+		name eyes_squint
+		{
+			time 1.882829
+			strength 0.000000
+		}
+		{
+			time 2.264483
+			strength 0.610000
+		}
+		{
+			time 4.153183
+			strength 0.610000
+		}
+		{
+			time 4.583768
+			strength 0.000000
+		}
+		{
+			time 11.248042
+			strength 0.000000
+		}
+		{
+			time 11.443763
+			strength 0.180000
+		}
+		{
+			time 11.893919
+			strength 0.180000
+		}
+		{
+			time 12.295146
+			strength 0.000000
+		}
+		{
+			time 12.676800
+			strength 0.000000
+		}
+		{
+			time 12.843163
+			strength 0.400000
+		}
+		{
+			time 13.097599
+			strength 0.400000
+		}
+		{
+			time 13.254175
+			strength 0.000000
+		}
+	}
+	{
+		name smile
+		{
+			time 1.011874
+			strength 0.000000
+		}
+		{
+			time 1.530532
+			strength 0.310000
+		}
+		{
+			time 2.215553
+			strength 0.310000
+		}
+		{
+			time 2.567849
+			strength 0.280000
+		}
+		{
+			time 3.654097
+			strength 0.000000
+		}
+		{
+			time 11.238256
+			strength 0.000000
+		}
+		{
+			time 11.473121
+			strength 0.330000
+		}
+		{
+			time 11.972207
+			strength 0.310000
+		}
+		{
+			time 12.353861
+			strength 0.170000
+		}
+		{
+			time 12.618084
+			strength 0.000000
+		}
+	}
+	{
+		name brow_raiser
+		{
+			time 2.177823
+			strength 0.032323
+		}
+		{
+			time 2.637428
+			strength 0.232551
+		}
+		{
+			time 3.751087
+			strength 0.232551
+		}
+		{
+			time 4.360949
+			strength 0.018021
+		}
+		{
+			time 5.386221
+			strength 0.000000
+		}
+		{
+			time 5.801635
+			strength 0.218249
+		}
+		{
+			time 6.712008
+			strength 0.261156
+		}
+		{
+			time 7.206967
+			strength 0.432780
+		}
+		{
+			time 7.701927
+			strength 0.375572
+		}
+		{
+			time 7.958246
+			strength 0.146739
+		}
+		{
+			time 8.647654
+			strength 0.275458
+		}
+		{
+			time 8.918972
+			strength 0.000000
+		}
+		{
+			time 11.325739
+			strength 0.003719
+		}
+		{
+			time 11.635089
+			strength 0.161041
+		}
+		{
+			time 11.882569
+			strength 0.304062
+		}
+		{
+			time 12.094694
+			strength 0.275458
+		}
+		{
+			time 12.253789
+			strength 0.032323
+		}
+	}
+	{
+		name nose_dilator
+		{
+			time 11.208899
+			strength 0.000000
+		}
+		{
+			time 11.414404
+			strength 0.330000
+		}
+		{
+			time 11.668841
+			strength 0.000000
+		}
+		{
+			time 12.079853
+			strength 0.000000
+		}
+		{
+			time 12.295146
+			strength 0.240000
+		}
+		{
+			time 12.422364
+			strength 0.000000
+		}
+		{
+			time 12.970381
+			strength 0.000000
+		}
+		{
+			time 13.156315
+			strength 0.540000
+		}
+		{
+			time 13.547755
+			strength 0.000000
+		}
+	}
+}

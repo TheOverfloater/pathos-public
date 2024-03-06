@@ -1,0 +1,75 @@
+{
+	{
+		name eyes_squint
+		{
+			time 0.000000
+			strength 1.000000
+		}
+		{
+			time 1.750000
+			strength 0.620000
+		}
+		{
+			time 3.010000
+			strength 0.450000
+		}
+		{
+			time 4.410000
+			strength 0.790000
+		}
+		{
+			time 7.000000
+			strength 0.990000
+		}
+	}
+	{
+		name inner_brow_lowerer
+		{
+			time 0.000000
+			strength 0.470000
+		}
+		{
+			time 1.400000
+			strength 0.650000
+		}
+		{
+			time 2.310000
+			strength 0.650000
+		}
+		{
+			time 3.150000
+			strength 0.230000
+		}
+		{
+			time 3.710000
+			strength 0.620000
+		}
+		{
+			time 7.000000
+			strength 0.470000
+		}
+	}
+	{
+		name frown
+		{
+			time 0.000000
+			strength 0.270000
+		}
+		{
+			time 1.400000
+			strength 0.460000
+		}
+		{
+			time 3.010000
+			strength 0.600000
+		}
+		{
+			time 4.480000
+			strength 0.420000
+		}
+		{
+			time 7.000000
+			strength 0.220000
+		}
+	}
+}

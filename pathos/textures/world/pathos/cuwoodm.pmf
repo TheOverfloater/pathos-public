@@ -1,0 +1,11 @@
+$texture
+{
+	$int_width 256
+	$int_height 256
+	$dt_scalex 12.000000
+	$dt_scaley 12.000000
+	$container pathos.wad
+	$material wood
+	$texture diffuse cuwoodm
+	$texture detail detail/swe_wood3.dds
+}

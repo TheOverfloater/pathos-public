@@ -1,0 +1,7 @@
+$clusterscript
+{
+	$script engine_glass_flecks1.txt
+	$script engine_glass_flecks2.txt
+	$script engine_glass_flecks3.txt
+	$script engine_glass_cloud.txt
+}

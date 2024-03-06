@@ -1,0 +1,36 @@
+$particlescript
+{
+	$shape point
+	$system_size 5.000000
+	$min_velocity 10.000000
+	$max_velocity 20.000000
+	$max_offset 11.000000
+	$fade_out_delay 0.600000
+	$lifetime 0.800000
+	$lifetime_variation 0.200000
+	$flags random_direction
+	$primary_color 255 255 255
+	$secondary_color 255 0 0
+	$color_transition_delay 0.400000
+	$color_transition_duration 0.200000
+	$color_transition_variance 0.100000
+	$scale 15.000000
+	$scale_variation 3.000000
+	$scale_damping_delay 0.010000
+	$scale_damping -7.000000
+	$max_particles 60
+	$particle_frequency 15.000000
+	$particles_on_spawn 85
+	$collision stuck
+	$gravity 0.010000
+	$rendermode additive
+	$alpha 0.600000
+	$alignment tiled
+	$texture muzzleflash3
+	$render_flags nocull
+	$rotate_z_speed 80.000000
+	$rotate_z_dampening 0.020000
+	$frame_width 256
+	$frame_height 256
+	$num_frames 2
+}

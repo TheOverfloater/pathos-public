@@ -1,0 +1,4 @@
+$clusterscript
+{
+	$script custer_hit_core.txt
+}

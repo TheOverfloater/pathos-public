@@ -1,0 +1,11 @@
+$texture
+{
+	$int_width 240
+	$int_height 224
+	$dt_scalex 11.250000
+	$dt_scaley 10.500000
+	$container pathos.wad
+	$material wood
+	$texture diffuse nw_trim01
+	$texture detail detail/dt_plaster1.dds
+}

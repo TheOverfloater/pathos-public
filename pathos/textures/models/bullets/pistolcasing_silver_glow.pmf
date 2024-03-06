@@ -1,0 +1,6 @@
+$texture
+{
+	$alphatest
+	$texture diffuse models/shellcasings/pistolcasing_silver.tga
+	$texture luminance models/bullets/pistolcasing_silver_glow.tga
+}

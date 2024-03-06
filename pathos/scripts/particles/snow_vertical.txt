@@ -1,0 +1,21 @@
+$particlescript
+{
+	$shape playerplane
+	$system_size 600.000000
+	$playerplane_max_height 600.000000
+	$fade_in_time 1.000000
+	$lifetime -1.000000
+	$primary_color 255 255 255
+	$scale 0.600000
+	$scale_variation 0.400000
+	$max_particles -1
+	$particle_frequency 1500.000000
+	$lighting use_intensity only_once
+	$collision die
+	$gravity 0.004000
+	$rendermode additive
+	$alpha 0.600000
+	$alignment tiled
+	$texture snowflake
+	$min_light_value 0.800000
+}

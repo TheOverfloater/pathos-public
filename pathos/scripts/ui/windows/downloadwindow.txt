@@ -1,0 +1,54 @@
+window "DownloadWindow"
+{
+	$schema "defaultwindow.txt"
+	$title "Download progress"
+	$width 600
+	$height 250
+	$insetx 10
+	$insety 10
+	$alpha 230
+	$dragger true
+	$resizable false
+	$flags fixed_height
+}
+button "CancelButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Cancel"
+	$width 96
+	$height 32
+	$flags align_bottom align_right
+}
+text "FileDownloadLabel"
+{
+	$text "Downloading: "
+	$originx 16
+	$originy 64
+	$flags align_left
+	$originy 42
+}
+tab "FileDownloadProgressBar"
+{
+	$schema "defaultprogressbar.txt"
+	$originx 16
+	$originy 64
+	$width 550
+	$height 32
+	$flags align_left
+}
+text "TotalProgressLabel"
+{
+	$text "Download progress"
+	$flags align_left
+	$originx 16
+	$originy 124
+}
+tab "TotalProgressBar"
+{
+	$schema "defaultprogressbar.txt"
+	$originx 16
+	$originy 146
+	$width 550
+	$height 32
+	$flags align_left
+}

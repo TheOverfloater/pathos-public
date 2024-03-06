@@ -1,0 +1,5 @@
+$texture
+{
+	$texture diffuse models/v_hands/mallard_arms.dds
+	$texture normalmap models/v_hands/mallard_arms_normal.dds
+}

@@ -1,0 +1,107 @@
+$icon 
+{
+	name health 
+	texture "hud/health_icon.tga"
+}
+$icon 
+{
+	name kevlar 
+	texture "hud/kevlar_icon.tga"
+}
+$icon 
+{
+	name tactical 
+	texture "hud/tactical_icon.tga"
+}
+$icon
+{
+	name medkit 
+	texture "hud/medkit_icon.tga"
+}
+$icon
+{
+	name stamina 
+	texture "hud/stamina_icon.tga"
+}
+$icon
+{
+	name radio 
+	texture "hud/radioicon.tga"
+}
+$icon
+{
+	name newobjectives 
+	texture "hud/objectives_icon.tga"
+}
+$icon
+{
+	name noise 
+	texture "hud/noise_icon.tga"
+}
+$icon
+{
+	name awareness 
+	texture "hud/npc_awareness_icon.tga"
+}
+$weapon
+{
+	name WEAPON_GLOCK
+	weaponicon_texture "hud/weaponicon_glock.tga"
+	ammoicon_texture "hud/bullet_9mm_icon.tga"
+	description "Glock 17"
+	description_ammo "9mm"
+}
+$weapon
+{
+	name WEAPON_HANDGRENADE
+	weaponicon_texture "hud/weaponicon_handgrenade.tga"
+	description "Mk2 Frag Grenade"
+}
+$weapon
+{
+	name WEAPON_KNIFE
+	weaponicon_texture "hud/weaponicon_knife.tga"
+	description "KA-BAR Knife"
+}
+$item
+{
+	name "ammo_glock_clip"
+	description "9mm Glock Ammo"
+}
+$item
+{
+	name "weapon_glock"
+	weaponid WEAPON_GLOCK
+	description "Glock 17"
+}
+$item
+{
+	name "weapon_handgrenade"
+	weaponid WEAPON_HANDGRENADE
+	description "Mk2 Frag Grenade"
+}
+$item
+{
+	name "item_kevlar"
+	description "Prodigy Kevlar Plate"
+}
+$item
+{
+	name "item_healthkit"
+	description "First Aid Kit"
+}
+$item
+{
+	name "item_shoulderlight"
+	description "Shoulder Flashlight"
+}
+$item
+{
+	name "item_glock_silencer"
+	description "Silencer for Glock"
+}
+$item
+{
+	name "item_glock_flashlight"
+	description "Tactical Flashlight for Glock"
+}

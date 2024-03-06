@@ -1,0 +1,177 @@
+// Replica soldier
+RP_MONSTER0 replica/enemy1
+RP_MONSTER1 replica/enemy2
+RP_MONSTER2 replica/enemy3
+RP_MONSTER3 replica/enemy4
+RP_MONSTER4 replica/enemy5
+RP_MONSTER5 replica/enemy6
+RP_MONSTER6 replica/enemy7
+
+RP_GOOF0 replica/goof_alert1
+RP_GOOF1 replica/goof_alert2
+RP_GOOF2 replica/goof_alert3
+RP_GOOF3 replica/goof_alert4
+RP_GOOF4 replica/goof_alert5
+
+RP_TAUNT0 replica/taunt1
+RP_TAUNT1 replica/taunt2
+RP_TAUNT2 replica/taunt3
+RP_TAUNT3 replica/taunt4
+RP_TAUNT4 replica/taunt5
+RP_TAUNT5 replica/taunt6
+RP_TAUNT6 replica/taunt7
+RP_TAUNT7 replica/taunt8
+
+RP_COVER0 replica/cover1
+RP_COVER1 replica/cover2
+RP_COVER2 replica/cover3
+RP_COVER3 replica/cover4
+
+RP_GRENADE0 replica/grenade1
+RP_GRENADE1 replica/grenade2
+RP_GRENADE2 replica/grenade3
+RP_GRENADE3 replica/grenade4
+RP_GRENADE4 replica/grenade5
+
+RP_THROW0 replica/throw1
+RP_THROW1 replica/throw2
+RP_THROW2 replica/throw3
+RP_THROW3 replica/throw4
+RP_THROW4 replica/throw5
+
+RP_CHARGE0 replica/charge1
+RP_CHARGE1 replica/charge2
+RP_CHARGE2 replica/charge3
+RP_CHARGE3 replica/charge4
+RP_CHARGE4 replica/charge5
+RP_CHARGE5 replica/charge6
+RP_CHARGE6 replica/charge7
+
+// Security guard
+SE_OK0 security/teamup2
+SE_OK1 security/dobettertogether
+SE_OK2 security/imwithyou
+SE_OK3 security/teamup1
+SE_OK4 security/gladtolendhand
+SE_OK5 security/letsgo
+SE_OK6 security/letsmoveit
+
+SE_WAIT0 security/helpothers
+SE_WAIT1 security/iwaithere
+SE_WAIT2 security/slowingyoudown
+SE_WAIT3 security/illwait
+SE_WAIT4 security/seeya
+SE_WAIT5 security/standguard
+
+SE_HELLO0 security/hellonicesuit
+SE_HELLO1 security/howyoudoing
+SE_HELLO2 security/hayfella
+SE_HELLO3 security/armedforces
+SE_HELLO4 security/soldier
+SE_HELLO4 security/sir
+
+SE_QUESTION0 security/beertopside
+SE_QUESTION1 security/getanyworse
+SE_QUESTION2 security/workingonstuff
+SE_QUESTION3 security/whatsgoingon
+SE_QUESTION4 security/aintscared
+SE_QUESTION5 security/nodrill
+SE_QUESTION6 security/crewdied
+SE_QUESTION7 security/somethingmoves
+SE_QUESTION8 security/thinking
+SE_QUESTION9 security/missingleg
+
+SE_ANSWER0 security/noway
+SE_ANSWER1 security/ireckon
+SE_ANSWER2 security/soundsright
+SE_ANSWER3 security/yessir
+SE_ANSWER4 security/youbet
+SE_ANSWER5 security/yougotit
+SE_ANSWER6 security/yup
+SE_ANSWER7 security/dontaskme
+SE_ANSWER8 security/dontbet
+SE_ANSWER9 security/dontbuyit
+SE_ANSWER10 security/dontfigure
+SE_ANSWER11 security/dontguess
+SE_ANSWER12 security/hardtosay
+SE_ANSWER13 security/justdontknow
+SE_ANSWER14 security/nope
+SE_ANSWER15 security/nosir
+SE_ANSWER16 security/cantfigure
+SE_ANSWER17 security/maybe
+SE_ANSWER18 security/notelling
+SE_ANSWER19 security/bequiet
+SE_ANSWER20 security/youtalkmuch
+SE_ANSWER21 security/alreadyasked
+
+SE_STARE0 security/yup
+SE_STARE1 security/yessir
+SE_STARE2 security/howyoudoing
+SE_STARE3 security/heyfella
+
+SE_IDLE0 security/whatisthat
+SE_IDLE1 security/coldone
+SE_IDLE2 security/guyresponsible
+SE_IDLE3 security/bigmess
+SE_IDLE4 security/luckwillturn
+SE_IDLE5 security/bigplace
+SE_IDLE6 security/targetpractice
+SE_IDLE7 security/badfeeling
+SE_IDLE8 security/ambush
+SE_IDLE9 security/survive
+SE_IDLE10 security/stophere
+
+SE_ATTACK0 security/standback
+SE_ATTACK1 security/whatisthat
+SE_ATTACK2 security/diebloodsucker
+SE_ATTACK3 security/aimforhead
+
+SE_HEAR0 security/hearsomething
+SE_HEAR1 security/icanhear
+SE_HEAR2 security/soundsbad
+
+SE_SMELL0 security/somethingdied
+SE_SMELL1 security/somethingstinky
+SE_SMELL2 security/stench
+
+SE_CUREA security/checkwounds
+SE_CUREB security/youneedmedic
+SE_CUREC security/realbadwound
+
+SE_SCARED0 security/donthurtem
+SE_SCARED1 security/leavealone
+
+SE_WOUND0 security/imhit
+SE_WOUND1 security/hitbad
+SE_MORTAL0 security/imdead
+
+SE_SHOT1 security/ba_dotoyou
+SE_SHOT2 security/ba_watchit
+SE_SHOT3 security/ba_whatyou
+SE_SHOT4 security/ba_friends
+
+SE_MAD0 security/ba_stepoff
+SE_MAD1 security/ba_iwish
+SE_MAD2 security/ba_uwish
+SE_MAD3 security/ba_somuch
+SE_MAD4 security/ba_endline
+SE_MAD5 security/ba_dontmake
+SE_MAD6 security/ba_tomb
+SE_MAD7 security/easily
+
+SE_KILL0 security/ba_gotone
+SE_KILL1 security/ba_another
+SE_KILL2 security/ba_buttugly
+SE_KILL3 security/ba_seethat
+SE_KILL4 security/ba_close
+SE_KILL5 security/ba_firepl
+SE_KILL6 security/ba_bring
+
+SE_STOP0 security/stop1
+SE_STOP1 security/stop2
+
+SE_POK0 security/ba_post
+SE_POK1 security/ba_duty
+SE_POK2 security/ba_raincheck
+SE_POK3 security/ba_later
+

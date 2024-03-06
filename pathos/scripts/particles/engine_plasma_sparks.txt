@@ -1,0 +1,28 @@
+$particlescript
+{
+	$shape point
+	$min_velocity 65.000000
+	$max_velocity 120.000000
+	$max_offset 160.000000
+	$fade_out_delay 0.400000
+	$lifetime 0.750000
+	$lifetime_variation 0.300000
+	$primary_color 255 255 255
+	$scale 3.500000
+	$scale_variation 2.000000
+	$max_particles 4
+	$particle_frequency 1.000000
+	$particles_on_spawn 12
+	$collision bounce
+	$gravity 0.300000
+	$impact_velocity_dampening 0.600000
+	$create engine_plasma_trails.txt
+	$rendermode additive
+	$alpha 1.000000
+	$alignment tiled
+	$texture yellowflare
+	$render_flags nocull
+	$rotate_z_speed 80.000000
+	$rotate_z_dampening 0.020000
+	$tracer_distance 0.900000
+}

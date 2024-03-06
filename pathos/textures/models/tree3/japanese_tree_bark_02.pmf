@@ -1,0 +1,4 @@
+$texture
+{
+	$texture diffuse models/tree3/japanese_tree_bark_02.tga
+}

@@ -1,0 +1,23 @@
+$particlescript
+{
+	$shape point
+	$min_velocity 75.000000
+	$max_velocity 150.000000
+	$max_offset 70.000000
+	$fade_out_delay 0.500000
+	$lifetime 1.500000
+	$lifetime_variation 0.800000
+	$primary_color 255 32 32
+	$scale 2.000000
+	$scale_variation 1.000000
+	$max_particles 25
+	$particle_frequency 100.000000
+	$collision bounce
+	$gravity 0.700000
+	$impact_velocity_dampening 0.600000
+	$rendermode additive
+	$alpha 1.000000
+	$alignment tracer
+	$texture spark1
+	$render_flags nocull
+}

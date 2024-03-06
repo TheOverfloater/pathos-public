@@ -1,0 +1,30 @@
+$shader_vertex $begin
+#version 130
+
+uniform mat4 projection;
+uniform mat4 modelview;
+
+in vec4 in_position;
+in vec4 in_color;
+
+out vec4 ps_color;
+
+void main()
+{
+	vec4 position = in_position*modelview;
+	gl_Position = position*projection;
+	ps_color = in_color;
+}
+$end
+$shader_fragment $begin
+#version 130
+
+in vec4 ps_color;
+
+out vec4 oColor;
+
+void main()
+{
+	oColor = ps_color;
+}
+$end

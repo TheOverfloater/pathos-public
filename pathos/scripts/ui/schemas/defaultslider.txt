@@ -1,0 +1,12 @@
+Left
+{
+	$default	"sliderLeft.tga"
+}
+Right
+{
+	$default	"sliderRight.tga"
+}
+Body
+{
+	$default	"sliderBody.tga"
+}

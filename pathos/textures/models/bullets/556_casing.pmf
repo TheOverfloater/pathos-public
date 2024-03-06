@@ -1,0 +1,4 @@
+$alias
+{
+	$scriptfile models/shellcasings/556_casing.pmf
+}

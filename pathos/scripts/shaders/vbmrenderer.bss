@@ -1,0 +1,782 @@
+$global_determinator shadertype 0 17
+$global_determinator bumpmapping 0 1
+$shader_vertex 
+$determinator chrome 0 1
+$determinator flex 0 1
+$begin
+#version 130
+
+uniform mat4 projection;
+uniform mat4 modelview;
+
+uniform mat4 normalmatrix;
+uniform mat4 lightmatrix;
+
+uniform vec4 bones[96];
+
+uniform vec3 v_origin;
+uniform vec3 v_right;
+
+uniform vec4 causticsm1;
+uniform vec4 causticsm2;
+
+uniform vec2 scroll;
+
+$branch flex == 1
+$begin
+uniform sampler2D flextexture;
+uniform float flextexture_size;
+$end
+
+in vec3 in_position;
+in vec3 in_tangent;
+in vec3 in_normal;
+in vec2 in_texcoord1;
+in vec2 in_texcoord2;
+in vec4 in_boneindexes;
+in vec4 in_boneweights;
+in vec2 in_flexcoord;
+
+out vec3 ps_vertexpos;
+out vec3 ps_tangent;
+out vec3 ps_binormal;
+out vec3 ps_normal;
+out vec2 ps_texcoord1;
+out vec2 ps_texcoord2;
+out vec4 ps_vertexcoord;
+
+vec3 TransformVectorByBone( vec3 vin, int boneindex, float weight )
+{
+	vec3 tmp;
+	tmp[0] = dot(vin, bones[boneindex].xyz)+bones[boneindex].w;
+	tmp[1] = dot(vin, bones[boneindex+1].xyz)+bones[boneindex+1].w;
+	tmp[2] = dot(vin, bones[boneindex+2].xyz)+bones[boneindex+2].w;
+	
+	return tmp*weight;
+}
+
+vec3 RotateVectorByBone( vec3 vin, int boneindex, float weight )
+{
+	vec3 tmp;
+	tmp[0] = dot(vin, bones[boneindex].xyz);
+	tmp[1] = dot(vin, bones[boneindex+1].xyz);
+	tmp[2] = dot(vin, bones[boneindex+2].xyz);
+	
+	return tmp*weight;
+}
+
+void main()
+{
+	int boneindex1 = int(in_boneindexes.x);
+	int boneindex2 = int(in_boneindexes.y);
+	int boneindex3 = int(in_boneindexes.z);
+	int boneindex4 = int(in_boneindexes.w);
+	
+	vec3 vert_origin = in_position;
+	vec3 vert_normal = in_normal;
+	
+	$branch flex == 1
+	$begin
+		vert_origin = vert_origin + textureLod(flextexture, in_flexcoord, 0.0).xyz;
+		
+		vec2 texcoord_normal = vec2(in_flexcoord.x + 1.0/flextexture_size, in_flexcoord.y);
+		vert_normal = normalize(vert_normal + textureLod(flextexture, texcoord_normal, 0.0).xyz);
+	$end
+	
+	vec3 trans_origin;
+	trans_origin = TransformVectorByBone( vert_origin, boneindex1, in_boneweights.x );
+	trans_origin += TransformVectorByBone( vert_origin, boneindex2, in_boneweights.y );
+	trans_origin += TransformVectorByBone( vert_origin, boneindex3, in_boneweights.z );
+	trans_origin += TransformVectorByBone( vert_origin, boneindex4, in_boneweights.w );
+	
+	vec3 trans_normal;
+	trans_normal = RotateVectorByBone( vert_normal, boneindex1, in_boneweights.x );
+	trans_normal += RotateVectorByBone( vert_normal, boneindex2, in_boneweights.y );
+	trans_normal += RotateVectorByBone( vert_normal, boneindex3, in_boneweights.z );
+	trans_normal += RotateVectorByBone( vert_normal, boneindex4, in_boneweights.w );		
+	
+	vec3 trans_tangent;
+	vec3 trans_binormal;
+	$branch bumpmapping == 1
+	$begin
+		trans_tangent = RotateVectorByBone( in_tangent, boneindex1, in_boneweights.x );
+		trans_tangent += RotateVectorByBone( in_tangent, boneindex2, in_boneweights.y );
+		trans_tangent += RotateVectorByBone( in_tangent, boneindex3, in_boneweights.z );
+		trans_tangent += RotateVectorByBone( in_tangent, boneindex4, in_boneweights.w );	
+		ps_tangent = (normalmatrix*vec4(trans_tangent, 0.0)).xyz;
+		
+		trans_binormal = cross(trans_normal, trans_tangent);
+		ps_binormal = (normalmatrix*vec4(trans_binormal, 0.0)).xyz;
+	$end
+	
+	vec4 position = vec4(trans_origin, 1.0)*modelview;
+
+	ps_vertexpos = position.xyz;
+	ps_normal = (normalmatrix*vec4(trans_normal, 0.0)).xyz;
+	
+	$branch shadertype == 0 || shadertype == 1 || shadertype == 2 || shadertype == 3 || shadertype == 5 || shadertype == 6 || shadertype == 4 || shadertype == 10 || shadertype == 12 || shadertype == 13 || shadertype == 14 || shadertype == 15 || shadertype == 16 || shadertype == 17
+	$begin
+		ps_texcoord1 = in_texcoord1 + scroll;
+	$end
+	
+	$branch shadertype == 17 || shadertype == 16
+	$begin
+		ps_texcoord2 = in_texcoord2;
+	$end
+	
+	$branch shadertype == 4
+	$begin
+		ps_vertexcoord = lightmatrix*vec4(trans_origin, 1.0);
+	$end
+	
+	$branch shadertype == 5 || shadertype == 6
+	$begin
+		ps_vertexcoord = lightmatrix*position;
+	$end
+	
+	$branch shadertype == 7
+	$begin
+		ps_texcoord1.x = in_position[0]*causticsm1[0]+in_position[1]*causticsm1[1]+in_position[2]*causticsm1[2]+causticsm1[3];
+		ps_texcoord1.y = in_position[0]*causticsm2[0]+in_position[1]*causticsm2[1]+in_position[2]*causticsm2[2]+causticsm2[3];
+	$end
+	
+	$branch chrome == 1
+	$begin
+		vec3 chromeup, chromeright, tmp;
+		tmp = v_origin * -1;
+		tmp += trans_origin;
+
+		tmp = normalize(tmp);
+		chromeup = cross(tmp, v_right);
+		chromeup = normalize(chromeup);
+
+		chromeright = cross(tmp, chromeup);
+		chromeright = normalize(chromeright);
+
+		// This is adding 0.5 only and not dividing by 2 because eye glint looks better this way
+		float n = dot(trans_normal, chromeright);
+		ps_texcoord1.x = n + 0.5;
+
+		n = dot(trans_normal, chromeup);
+		ps_texcoord1.y = n + 0.5;
+	$end
+
+	gl_Position = position*projection;
+}
+$end
+$shader_fragment 
+$determinator num_lights 0 6
+$determinator alphatest 0 2
+$determinator specular 0 1
+$determinator luminance 0 1
+$invalid_state 2 chrome 1 1 shadertype 2 11
+$invalid_state 2 chrome 1 1 shadertype 13 17
+$invalid_state 2 num_lights 1 6 shadertype 3 14
+$invalid_state 2 num_lights 1 6 shadertype 16 17
+$invalid_state 2 alphatest 1 2 shadertype 3 11
+$invalid_state 2 alphatest 1 2 shadertype 13 13
+$invalid_state 2 alphatest 1 2 shadertype 15 15
+$invalid_state 2 alphatest 1 2 chrome 1 1
+$invalid_state 2 specular 1 1 shadertype 7 12
+$invalid_state 2 specular 1 1 shadertype 14 14
+$invalid_state 2 specular 1 1 shadertype 16 17
+$invalid_state 2 specular 0 0 shadertype 15 15
+$invalid_state 2 luminance 1 1 shadertype 3 17
+$invalid_state 2 bumpmapping 1 1 shadertype 7 14
+$invalid_state 2 bumpmapping 1 1 shadertype 16 17
+$begin
+#version 130
+#extension GL_ARB_texture_rectangle : enable
+
+uniform sampler2D texture0;
+uniform sampler2D texture1;
+uniform sampler2DRect rectangle;
+
+uniform vec3 skylight_ambient;
+uniform vec3 skylight_diffuse;
+uniform vec3 skylight_dir;
+
+uniform vec3 light_origin;
+uniform float light_radius;
+
+uniform vec3 fogcolor;
+uniform vec2 fogparams;
+
+uniform sampler2D shadowmap;
+uniform samplerCube cubemap;
+
+$branch specular == 1
+$begin
+uniform sampler2D spectexture;
+$end
+
+$branch luminance == 1
+$begin
+uniform sampler2D lumtexture;
+$end
+
+uniform sampler2D normalmap;
+
+uniform vec4 color;
+
+uniform float phong_exponent;
+uniform float specfactor;
+uniform float caust_interp;
+
+uniform float scope_scale;
+uniform vec2 scope_scrsize;
+
+uniform vec3 lights_0_origin;
+uniform vec3 lights_0_color;
+uniform float lights_0_radius;
+
+uniform vec3 lights_1_origin;
+uniform vec3 lights_1_color;
+uniform float lights_1_radius;
+
+uniform vec3 lights_2_origin;
+uniform vec3 lights_2_color;
+uniform float lights_2_radius;
+
+uniform vec3 lights_3_origin;
+uniform vec3 lights_3_color;
+uniform float lights_3_radius;
+
+uniform vec3 lights_4_origin;
+uniform vec3 lights_4_color;
+uniform float lights_4_radius;
+
+uniform vec3 lights_5_origin;
+uniform vec3 lights_5_color;
+uniform float lights_5_radius;
+
+in vec3 ps_vertexpos;
+in vec3 ps_tangent;
+in vec3 ps_binormal;
+in vec3 ps_normal;
+in vec2 ps_texcoord1;
+in vec2 ps_texcoord2;
+in vec4 ps_vertexcoord;
+
+out vec4 oColor;
+
+float CalcShininess( vec3 v_dir, vec3 v_normal, vec3 l_dir )
+{
+$branch bumpmapping == 1
+$begin
+	vec3 halfVec = normalize(l_dir - v_dir);
+	return max(dot(halfVec, v_normal), 0.0);
+$end
+$branch bumpmapping == 0
+$begin
+	return 1.0;
+$end
+}
+
+float LinearStep(float in1, float in2, float pmax)  
+{  
+	float value = (pmax-in1)/(in2-in1);
+	return clamp(value, 0.0, 1.0);
+}
+
+float ReduceLightBleeding(float p_max, float Amount)  
+{    
+	return LinearStep(Amount, 1, p_max);  
+}
+
+float DepthTestCube( float depthcoord, samplerCube shadowmap, vec3 coord )
+{
+	vec4 momments = texture(shadowmap, coord);
+	momments.xy = momments.xy+momments.zw/32;
+
+	float diff = depthcoord-momments.x;
+	float sgn = max(sign(diff), 0);
+
+	float variance = momments.y-(momments.x*momments.x);
+	variance = max(variance, 0.00005);
+	
+	float d = depthcoord-momments.x;
+	float p_max = variance/(variance+d*d);
+	return p_max*sgn+(1.0-sgn);
+}
+
+float DepthTestProj( float depthcoord, sampler2D shadowmap, vec4 coord )
+{
+	vec4 momments = textureProj(shadowmap, coord);
+	momments.xy = momments.xy+momments.zw/32;
+
+	float diff = depthcoord-momments.x;
+	float sgn = max(sign(diff), 0);
+
+	float variance = momments.y-(momments.x*momments.x);
+	variance = max(variance, 0.00005);
+	
+	float d = depthcoord-momments.x;
+	float p_max = variance/(variance+d*d);
+	return p_max*sgn+(1.0-sgn);
+}
+
+float CalcSpecular( vec3 v_origin, vec3 v_normal, vec3 lightDir, float specularStrength )
+{
+	// Eye vector (towards the camera)
+	// All coordinates are in eye space
+	vec3 eyeVec = normalize( -v_origin );
+	
+	// Direction in which the triangle reflects the light
+	vec3 reflectVec = reflect( lightDir, v_normal );
+	
+	// Cosine of the angle between the Eye vector and the Reflect vector,
+	// clamped to 0
+	//  - Looking into the reflection -> 1
+	//  - Looking elsewhere -> < 1
+	float cosAlpha = clamp( dot( eyeVec, reflectVec ), 0, 1 );	
+	
+	// Currently specular color is light color times two
+	return specfactor * pow( cosAlpha, phong_exponent ) * specularStrength;
+}
+
+vec4 AddModelLight( vec3 l_origin, vec3 l_color, float l_radius, vec3 v_origin, vec3 v_normal, float specularStrength )
+{
+	// Inverse squared radius
+	float rad = l_radius * l_radius;
+	vec3 dir = l_origin - v_origin;
+
+	float dist = dot(dir, dir);
+	//float attn = rad / (dist * sqrt(dist));
+	float attn = ((dist/rad)-1)*-1;
+	
+	attn = clamp(attn, 0.0, 1.0);
+	dir = normalize(dir);
+	float dp = dot(dir, v_normal);
+	
+	vec4 outColor;
+	outColor.xyz = l_color*attn*max(dp, 0);
+	
+	$branch specular == 1
+	$begin
+		// Add specular if any
+		float shineFactor = CalcShininess(normalize(v_origin), v_normal, dir);
+		outColor.w = CalcSpecular(v_origin, v_normal, -dir, specularStrength * shineFactor) * attn * max(dp, 0);
+	$end
+	
+	return outColor;
+}
+
+vec4 AddPointLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, vec4 v_coord, vec3 v_normal, samplerCube l_shadowmap, float specularStrength )
+{
+	// Inverse squared radius
+	float rad = l_radius * l_radius;
+	vec3 dir = l_origin - v_origin;
+	
+	float dist = dot(dir, dir);
+	float attn = (dist/rad-1)*-1;
+	
+	dir = normalize(dir);
+	attn = clamp(attn, 0.0, 1.0);
+	float dp = dot(dir, v_normal);
+
+	$branch shadertype == 4
+	$begin
+		float fldistance = clamp((length(v_coord.xyz)/l_radius), 0.0, 1.0);
+		float flresult = DepthTestCube(fldistance, l_shadowmap, normalize(v_coord.xyz));
+		attn = attn*ReduceLightBleeding(flresult, 0.4);
+	$end
+
+	attn = max(dp, 0)*attn;
+	vec4 outColor;
+	outColor.xyz = attn*l_color;
+	
+	$branch specular == 1
+	$begin
+		// Add specular if any
+		float shineFactor = CalcShininess(normalize(v_origin), v_normal, dir) * 2;
+		outColor.w = CalcSpecular(v_origin, v_normal, -dir, specularStrength * shineFactor) * attn;	
+	$end
+	
+	return outColor;
+}
+
+vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, vec4 v_coord, vec3 v_normal, sampler2D l_shadowmap, sampler2D l_texture, float specularStrength )
+{
+	float rad = l_radius*l_radius;
+	vec3 dir = l_origin-v_origin;
+	float dist = dot(dir, dir);
+	float attn = (dist/rad-1)*-1;
+	attn = clamp(attn, 0.0, 1.0);
+	
+	dir = normalize(dir);
+	float dp = max(dot(dir, v_normal), 0);
+	vec4 texclamp = max(v_coord, 0);
+	
+	$branch shadertype == 6
+	$begin
+		float fldistance = clamp((length(l_origin-v_origin)/l_radius), 0.0, 1.0);
+		float flresult = DepthTestProj(fldistance, l_shadowmap, texclamp);
+		attn = attn * ReduceLightBleeding(flresult, 0.4);
+	$end
+
+	vec4 texColor = textureProj(l_texture, texclamp);
+	
+	vec4 outColor;
+	outColor.xyz = attn*texColor.xyz*l_color*dp;
+	
+	$branch specular == 1
+	$begin
+		// Add specular if any
+		float lightStrength = ((texColor.x + texColor.y + texColor.z) / 3.0f)*2;
+		float shineFactor = CalcShininess(normalize(v_origin), v_normal, dir);
+		outColor.w = CalcSpecular(v_origin, v_normal, -dir, specularStrength * shineFactor) * attn * dp * lightStrength;
+	$end
+	
+	return outColor;
+}
+
+vec4 AddBaseLight( vec3 s_lightdir, vec3 s_ambient, vec3 s_diffuse, vec3 v_normal, vec3 v_origin, float specularStrength )
+{
+	float fldot = -dot(s_lightdir, v_normal);
+	
+	vec4 outColor;
+	outColor.xyz = s_ambient+fldot*s_diffuse;
+	
+	$branch specular == 1
+	$begin
+		// Use basic specular as it looks better with the base lighting
+		outColor.w = CalcSpecular(v_origin, v_normal, s_lightdir, specularStrength);
+	$end
+	
+	return outColor;
+}
+
+vec3 AddDiffuseLight ( vec3 colorIn1, vec3 colorIn2 )
+{
+	vec3 outValue = colorIn1;
+	$branch shadertype != 15
+	$begin
+		outValue += colorIn2;
+	$end
+
+	return outValue;
+}
+
+vec3 AddDiffuseDynamicLight ( vec3 colorIn1, vec3 colorIn2 )
+{
+	vec3 outValue = colorIn1;
+	$branch specular == 0
+	$begin
+		outValue += colorIn2;
+	$end
+
+	return outValue;
+}
+
+vec3 AddSpecularLight ( vec3 colorIn1, float specularStrength, vec3 colorIn2 )
+{
+	vec3 outValue = colorIn1;
+	$branch specular == 1
+	$begin
+		outValue += colorIn2 * specularStrength;
+	$end
+
+	return outValue;
+}
+
+vec4 EncodeDepth( vec3 v_origin, float l_radius )
+{
+	float depth = length(v_origin);
+	depth = clamp((depth/l_radius), 0.0, 1.0);
+
+	vec2 momments = vec2(depth, depth*depth);
+	float dx = dFdx(depth);
+	float dy = dFdy(depth);
+	momments.y += 0.25*(dx*dx+dy*dy);
+
+	vec2 fracval = fract(momments*32);
+
+	vec4 finalColor;
+	finalColor.x = momments.x-(fracval.x/32);
+	finalColor.y = momments.y-(fracval.y/32);
+	finalColor.zw = fracval;
+	
+	return finalColor;
+}
+
+float SplineFraction( float value, float scale )
+{
+	float valueSquared;
+
+	value = scale * value;
+	valueSquared = value * value;
+
+	// Nice little ease-in, ease-out spline-like curve
+	return 3 * valueSquared - 2 * valueSquared * value;
+}
+
+float CalcFogFactor( vec3 v_origin, vec2 f_params )
+{
+	float fp_fogcoord = length(v_origin);
+	float fp_fogfactor = (f_params.x - fp_fogcoord)*f_params.y;
+	
+	return 1.0-SplineFraction(clamp(fp_fogfactor, 0.0, 1.0), 1.0);
+}
+
+vec3 GetNormal( vec2 texcoord, sampler2D normalmap, vec3 v_normal, mat3 tbnMatrix )
+{
+$branch bumpmapping == 0
+$begin
+	return v_normal;
+$end
+$branch bumpmapping == 1
+$begin
+	vec3 out_normal = (2.0 * texture2D (normalmap, texcoord).xyz) - 1.0;
+	return normalize(tbnMatrix * out_normal);
+$end
+}
+
+void main()
+{
+	mat3 tbnMatrix;
+	float specularFactor = 0.0;
+	vec4 specularColor = vec4(0.0, 0.0, 0.0, 0.0);
+	vec4 finalColor = vec4(0.0, 0.0, 0.0, 1.0);
+	
+	// Add luminance of any
+	$branch luminance == 1
+	$begin
+		finalColor.xyz += texture(lumtexture, ps_texcoord1).xyz;
+	$end
+	
+	// Get the specular texture if needed
+	$branch specular == 1
+	$begin
+		vec4 specTexture = texture(spectexture, ps_texcoord1);
+		specularFactor = (specTexture.x + specTexture.y + specTexture.z) / 3.0;
+	$end
+	
+	// Build the TBN matrix if required
+	$branch bumpmapping == 1
+	$begin
+		tbnMatrix = mat3(ps_tangent, ps_binormal, ps_normal);
+	$end
+	$branch bumpmapping == 0
+	$begin
+		// Shut up compiler warnings
+		tbnMatrix = mat3(vec3(0, 0, 0), vec3(0, 0, 0), vec3(0, 0, 0));
+	$end
+	
+	// Normal depends on rendering type
+	vec3 v_normal = GetNormal(ps_texcoord1, normalmap, ps_normal, tbnMatrix);
+	
+	// Base lighting
+	vec4 lightColor;
+	$branch shadertype == 0 || shadertype == 1 || shadertype == 2 || shadertype == 15
+	$begin
+		lightColor = AddBaseLight(skylight_dir, skylight_ambient, skylight_diffuse, v_normal, ps_vertexpos, specularFactor);
+		
+		$branch shadertype != 15
+		$begin
+			// Add in the diffuse light
+			finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
+		$end
+		
+		// Add to specular
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, skylight_diffuse);
+	$end
+	
+	// Elights
+	$branch num_lights >= 1
+	$begin
+		lightColor = AddModelLight(lights_0_origin, lights_0_color, lights_0_radius, ps_vertexpos, v_normal, specularFactor);
+		
+		// Add in the diffuse light
+		finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
+		
+		// Add to specular
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, lights_0_color);
+	$end
+	$branch num_lights >= 2
+	$begin
+		lightColor = AddModelLight(lights_1_origin, lights_1_color, lights_1_radius, ps_vertexpos, v_normal, specularFactor);
+		
+		// Add in the diffuse light
+		finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
+		
+		// Add to specular
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, lights_1_color);
+	$end
+	$branch num_lights >= 3
+	$begin
+		lightColor = AddModelLight(lights_2_origin, lights_2_color, lights_2_radius, ps_vertexpos, v_normal, specularFactor);
+		
+		// Add in the diffuse light
+		finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
+		
+		// Add to specular
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, lights_2_color);
+	$end
+	$branch num_lights >= 4
+	$begin
+		lightColor = AddModelLight(lights_3_origin, lights_3_color, lights_3_radius, ps_vertexpos, v_normal, specularFactor);
+		
+		// Add in the diffuse light
+		finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
+		
+		// Add to specular
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, lights_3_color);
+	$end
+	$branch num_lights >= 5
+	$begin
+		lightColor = AddModelLight(lights_4_origin, lights_4_color, lights_4_radius, ps_vertexpos, v_normal, specularFactor);
+		
+		// Add in the diffuse light
+		finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
+		
+		// Add to specular
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, lights_4_color);
+	$end
+	$branch num_lights == 6
+	$begin
+		lightColor = AddModelLight(lights_5_origin, lights_5_color, lights_5_radius, ps_vertexpos, v_normal, specularFactor);
+		
+		// Add in the diffuse light
+		finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
+		
+		// Add to specular
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, lights_5_color);
+	$end
+	
+	// Normal single pass rendering
+	$branch shadertype == 0 || shadertype == 1
+	$begin
+		finalColor = finalColor*texture(texture0, ps_texcoord1) + specularColor;
+		finalColor.xyz *= 2;
+		finalColor = finalColor*color;
+	$end
+	
+	// Lighting without textures but with alpha
+	$branch shadertype == 2
+	$begin
+		finalColor.w = texture(texture0, ps_texcoord1).w;
+	$end
+	
+	// Dynamic light passes
+	$branch shadertype == 3 || shadertype == 4
+	$begin
+		lightColor = AddPointLight(light_radius, light_origin, color.xyz, ps_vertexpos.xyz, ps_vertexcoord, v_normal, cubemap, specularFactor);
+		
+		// Add in the diffuse light
+		finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
+		
+		// Add to specular
+		finalColor.xyz += AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
+	$end
+	$branch shadertype == 5 || shadertype == 6
+	$begin
+		lightColor = AddProjLight(light_radius, light_origin, color.xyz, ps_vertexpos.xyz, ps_vertexcoord, v_normal, shadowmap, texture0, specularFactor);
+		
+		// Add in the diffuse light
+		finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
+		
+		// Add to specular
+		finalColor.xyz += AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
+	$end
+	
+	// Caustics
+	$branch shadertype == 7
+	$begin
+		vec4 caustics1 = texture2D(texture0, ps_texcoord1);
+		vec4 caustics2 = texture2D(texture1, ps_texcoord1);
+		
+		finalColor = caustics1*(1.0 - caust_interp) + caustics2*caust_interp;
+	$end
+	
+	// Solid color
+	$branch shadertype == 8
+	$begin
+		finalColor = color;
+	$end
+	
+	// VSM shadow encoding
+	$branch shadertype == 9 || shadertype == 10
+	$begin
+		finalColor = EncodeDepth( ps_vertexpos, light_radius );
+		
+		$branch shadertype == 10
+		$begin
+			if(texture(texture0, ps_texcoord1).w < 0.5)
+				discard;
+		$end
+	$end
+	
+	// Fog only with fog factor as alpha
+	$branch shadertype == 11
+	$begin
+		finalColor.xyz = fogcolor.xyz;
+		finalColor.w = CalcFogFactor( ps_vertexpos.xyz, fogparams );
+	$end
+	// Texture with no lighting
+	$branch shadertype == 12
+	$begin
+		finalColor = texture(texture0, ps_texcoord1);	
+	$end
+	// Scope
+	$branch shadertype == 13
+	$begin
+		float fldot = -dot(skylight_dir, ps_normal);
+		finalColor.xyz += skylight_ambient+fldot*skylight_diffuse;
+
+		vec2 texcoord;
+		texcoord = ps_texcoord1 - 0.5;
+		texcoord *= scope_scale;
+
+		texcoord = texcoord + 0.5;
+		texcoord.x = 1.0-texcoord.x;
+		texcoord.y = 1.0-texcoord.y;
+		
+		texcoord.x *= scope_scrsize.x;
+		texcoord.y *= scope_scrsize.y;
+
+		vec4 texcolor = texture(texture0, ps_texcoord1);
+		vec4 rectcolor = texture(rectangle, texcoord);
+
+		finalColor = mix(rectcolor, texcolor*finalColor, texcolor.w);
+	$end
+	// Texture only and with fog
+	$branch shadertype == 14
+	$begin
+		finalColor = texture(texture0, ps_texcoord1)*color;
+	$end
+	// Texture with alpha holes for decals
+	$branch shadertype == 16 || shadertype == 17
+	$begin
+		finalColor = texture(texture0, ps_texcoord1);
+		vec4 alphacolor = texture(texture1, ps_texcoord2);
+		finalColor.a = finalColor.a*alphacolor.a;
+	$end	
+	
+	// Fog calculations
+	$branch shadertype == 14 || shadertype == 1 || shadertype == 17
+	$begin
+		float fogfactor = CalcFogFactor( ps_vertexpos.xyz, fogparams );
+		finalColor.xyz = mix(finalColor.xyz, fogcolor, fogfactor);
+	$end
+	
+	// Specular only
+	$branch shadertype == 15
+	$begin
+		finalColor.xyz = specularColor.xyz * 2;
+		finalColor.w = 1.0;
+	$end	
+	
+	$branch alphatest == 1
+	$begin
+		if(finalColor.a < 0.5)
+			discard;
+	$end
+	$branch alphatest == 2
+	$begin
+		finalColor.a = (finalColor.a - 0.5) / max(fwidth(finalColor.a), 0.0001) + 0.5;
+	$end	
+	
+	oColor = finalColor;
+}
+$end

@@ -1,0 +1,8 @@
+$clusterscript
+{
+	$script engine_water_splashes1.txt
+	$script engine_water_splashes2.txt
+	$script engine_water_droplets.txt
+	$script engine_water_funnel.txt
+	$script ripples.txt
+}

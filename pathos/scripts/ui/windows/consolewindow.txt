@@ -1,0 +1,42 @@
+window "ConsoleWindow"
+{
+	$schema "defaultwindow.txt"
+	$title "Console"
+	$width 820
+	$height 610
+	$insetx 10
+	$insety 10
+	$titleinsetx 8
+	$titleinsety 8
+	$alpha 230
+	$dragger true
+	$resizable true
+}
+button "ExecuteButton"
+{
+	$schema "defaultbutton.txt"
+	$width 85
+	$height 32
+	$text "Execute"
+	$alpha 100
+	$flags align_bottom align_right
+}
+tab "InputTab"
+{
+	$schema "indentedwindow.txt"
+	$flags align_bottom fixed_height
+	$width 705
+	$height 32
+	$alpha 100
+	$textinset 4
+}
+tab "HistoryTab"
+{
+	$schema "indentedwindow.txt"
+	$flags fixed_ypos scroller_reverse
+	$width 800
+	$height 528
+	$alpha 100
+	$originy 20
+	$textinset 4
+}

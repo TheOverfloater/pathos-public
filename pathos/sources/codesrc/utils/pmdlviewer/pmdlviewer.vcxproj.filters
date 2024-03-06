@@ -1,0 +1,246 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include=".\compilerwindow.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include=".\config.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include=".\controlpanel.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include=".\fileassociation.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include=".\glwindow.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include=".\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include=".\mdlviewer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include=".\optionswindow.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include=".\r_vbmbasic.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\shared\texturemanager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include=".\viewerstate.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\common.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\cstring.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\dds.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\matrix.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\tga.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\shared\flexmanager.cpp">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\shared\r_basicdraw.cpp">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\shared\r_vbo.cpp">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\r_common.cpp">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\shared\r_glextf.cpp">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\shared\r_glsl.cpp">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\shared\vbm_shared.cpp">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="file.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="folderviewer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\shared\stepsound.cpp">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\cbuffer.cpp">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\md5.cpp">
+      <Filter>src\shared</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include=".\viewerstate.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include=".\compilerwindow.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include=".\controlpanel.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\file_interface.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include=".\fileassociation.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\flexmanager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include=".\glwindow.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\matrix.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include=".\mdlviewer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include=".\optionswindow.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include=".\resource.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\animevent.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\carray.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\clinkedlist.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\carray_inline.hpp">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\clinkedlist_inline.hpp">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\com_math.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\com_math_inline.hpp">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\common.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\common_inline.hpp">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\datatypes.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\vector.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\vector_inline.hpp">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\dds.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\tgaformat.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\vbmformat.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\texturemanager.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\textures_shared.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\r_vbo.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include=".\r_vbmbasic.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\r_glsl_inline.hpp">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\r_glsl.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\r_glextf.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\r_basicdraw.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\r_common.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\includes.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="file.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="folderviewer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\stepsound.h">
+      <Filter>include\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\constants.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\cbuffer.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\md5.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include=".\hlmviewer.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".\icon1.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{f9481876-c1bb-4d9e-a006-39d99dc9a31e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{be22b7ef-609e-4676-97c3-50da287e295c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\common">
+      <UniqueIdentifier>{e5b36d54-507e-4a4d-90d9-7df9308e9d1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\shared">
+      <UniqueIdentifier>{1b7c0fd0-980e-4c83-a60e-e0c93896f582}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common">
+      <UniqueIdentifier>{065c9dc6-5229-4f1f-8dab-f5537f0de1ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\shared">
+      <UniqueIdentifier>{703e9935-8cc6-40d2-bf34-6938d8dec4b5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

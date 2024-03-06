@@ -1,0 +1,5 @@
+$texture
+{
+	$alphatest
+	$texture diffuse models/shellcasings/pistolcasing_gold.tga
+}

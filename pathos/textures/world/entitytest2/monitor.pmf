@@ -1,0 +1,8 @@
+$texture
+{
+	$int_width 64
+	$int_height 64
+	$container entitytest2.bsp
+	$material computer
+	$texture diffuse monitor
+}

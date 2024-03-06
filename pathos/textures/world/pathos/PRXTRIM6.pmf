@@ -1,0 +1,11 @@
+$texture
+{
+	$int_width 256
+	$int_height 32
+	$dt_scalex 12.000000
+	$dt_scaley 1.500000
+	$container pathos.wad
+	$material metal
+	$texture diffuse prxtrim6
+	$texture detail detail/swe_metal2.dds
+}

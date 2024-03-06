@@ -1,0 +1,5 @@
+$texture
+{
+	$nomipmaps
+	$texture diffuse models/v_jericho/slide.dds
+}

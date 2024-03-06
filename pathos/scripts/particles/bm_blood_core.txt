@@ -1,0 +1,21 @@
+$particlescript
+{
+	$shape point
+	$min_velocity 100.000000
+	$max_velocity 200.000000
+	$max_offset 180.000000
+	$fade_out_delay 0.500000
+	$lifetime 1.000000
+	$lifetime_variation 0.100000
+	$primary_color 150 0 0
+	$scale 8.000000
+	$scale_variation 1.000000
+	$scale_damping -40.000000
+	$particles_on_spawn 16
+	$lighting mix_primary_color
+	$gravity 0.050000
+	$rendermode alphablend
+	$alpha 0.800000
+	$alignment tiled
+	$texture blood_core
+}

@@ -1,0 +1,4 @@
+$clusterscript
+{
+	$script fountain_splashes1.txt
+}

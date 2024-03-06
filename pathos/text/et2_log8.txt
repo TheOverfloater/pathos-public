@@ -1,0 +1,8 @@
+$title "Dummy Document 8"
+{
+This is a generic text document for testing the Game UI text window. 
+This will generate a password that can be used for a login:
+
+Username: tomballard45
+Password: %passcode%
+}

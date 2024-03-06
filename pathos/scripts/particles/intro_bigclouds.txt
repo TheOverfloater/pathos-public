@@ -1,0 +1,27 @@
+$particlescript
+{
+	$shape box
+	$system_size 350.000000
+	$fade_in_time 1.000000
+	$lifetime 25.000000
+	$fade_out_delay 24.000000
+	$flags random_direction
+	$primary_color 203 88 66
+	$scale 340.000000
+	$scale_variation 100.000000
+	$max_particles -1
+	$particle_frequency 2.000000
+	$particles_on_spawn 12
+	$rendermode additive
+	$alpha 0.600000
+	$alignment tiled
+	$texture intro_clouds
+	$render_flags skybox
+	$wind_x_velocity 15.000000
+	$wind_type linear
+	$fade_near_distance 128
+	$fade_far_distance 256
+	$frame_width 512
+	$frame_height 256
+	$num_frames 4
+}

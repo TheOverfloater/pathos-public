@@ -1,0 +1,27 @@
+$particlescript
+{
+	$shape box
+	$system_size 80.000000
+	$min_velocity 1.000000
+	$max_velocity 1.000000
+	$fade_in_time 2.000000
+	$fade_out_delay 6.000000
+	$lifetime 10.000000
+	$lifetime_variation 2.000000
+	$flags random_direction
+	$primary_color 255 255 255
+	$scale 23.000000
+	$scale_variation 7.000000
+	$scale_damping -2.000000
+	$max_particles -1
+	$particle_frequency 3.000000
+	$lighting use_intensity
+	$rendermode additive
+	$alpha 0.900000
+	$alignment tiled
+	$texture smoke02
+	$rotate_z_speed 8.000000
+	$rotate_z_dampening 0.001000
+	$fade_near_distance 40
+	$fade_far_distance 80
+}

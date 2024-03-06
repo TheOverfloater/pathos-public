@@ -1,0 +1,30 @@
+$particlescript
+{
+	$shape point
+	$min_velocity 100.000000
+	$max_velocity 200.000000
+	$max_offset 130.000000
+	$fade_in_time 0.100000
+	$fade_out_delay 1.200000
+	$lifetime 2.000000
+	$lifetime_variation 0.500000
+	$primary_color 150 0 0
+	$scale 8.000000
+	$scale_variation 6.000000
+	$max_particles 10
+	$particle_frequency 75.000000
+	$lighting mix_primary_color
+	$collision decal
+	$gravity 1.000000
+	$create blood_drops
+	$rendermode alphablend
+	$alpha 0.800000
+	$alignment tracer
+	$texture blood
+	$render_flags nocull
+	$rotate_z_speed 40.000000
+	$rotate_z_variation 5.000000
+	$decal_lifetime 30
+	$decal_fade_time 2
+	$decal_growth_time 1
+}

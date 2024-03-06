@@ -1,0 +1,5 @@
+$texture
+{
+	$nodecal
+	$texture diffuse models/shared/trg42w.dds
+}

@@ -1,0 +1,306 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D65D9642-32C0-470C-86D7-90FE7E8EFED0}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>client</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>client_x86</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>client_x64</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>client_x86</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>client_x64</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;CLIENT;_DEBUG;_WINDOWS;_USRDLL;CLIENT_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\common;..\libs\sdl2.0\include\;..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4244;4305;4127;4481;4100;4512;4018</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalDependencies>..\Win32\Debug\SDL2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../dlls/$(TargetName)$(TargetExt)"</Command>
+      <Message>Copy cl_dll to dlls dir</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_64BUILD;CLIENT;_DEBUG;_WINDOWS;_USRDLL;CLIENT_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\common;..\libs\sdl2.0\include\;..\shared;..\shared\renderer;..\gameui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4244;4305;4127;4481;4100;4512</DisableSpecificWarnings>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalDependencies>..\x64\Debug\SDL2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../dlls/$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy cl_dll to dlls dir</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;CLIENT_EXPORTS;_CRT_SECURE_NO_WARNINGS;CLIENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\common;..\libs\sdl2.0\include\;..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4244;4305;4127;4481;4100;4512;4018</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>..\Win32\Release\SDL2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../dlls/$(TargetName)$(TargetExt)"</Command>
+      <Message>Copy $(TargetName)$(TargetExt) to dlls dir</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_64BUILD;NDEBUG;_WINDOWS;_USRDLL;CLIENT_EXPORTS;_CRT_SECURE_NO_WARNINGS;CLIENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\common;..\libs\sdl2.0\include\;..\client;..\shared;..\shared\renderer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4244;4305</DisableSpecificWarnings>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalDependencies>..\x64\Release\SDL2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../dlls/$(TargetName)$(TargetExt)"</Command>
+      <Message>Copy $(TargetName)$(TargetExt) to dlls dir</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\common\cbuffer.cpp" />
+    <ClCompile Include="..\common\common.cpp" />
+    <ClCompile Include="..\common\crc32.cpp" />
+    <ClCompile Include="..\common\cstring.cpp" />
+    <ClCompile Include="..\common\matrix.cpp" />
+    <ClCompile Include="..\common\md5.cpp" />
+    <ClCompile Include="..\common\r_common.cpp" />
+    <ClCompile Include="..\shared\decallist.cpp" />
+    <ClCompile Include="..\shared\playermove.cpp" />
+    <ClCompile Include="..\shared\r_glextf.cpp" />
+    <ClCompile Include="..\shared\r_glsl.cpp" />
+    <ClCompile Include="..\shared\r_vbo.cpp" />
+    <ClCompile Include="..\shared\stepsound.cpp" />
+    <ClCompile Include="..\shared\vbm_shared.cpp" />
+    <ClCompile Include="..\shared\weapons_shared.cpp" />
+    <ClCompile Include="animevents.cpp" />
+    <ClCompile Include="clientdll.cpp" />
+    <ClCompile Include="clshared.cpp" />
+    <ClCompile Include="draw.cpp" />
+    <ClCompile Include="gameuikeypadwindow.cpp" />
+    <ClCompile Include="gameuiloginwindow.cpp" />
+    <ClCompile Include="gameuiobjectiveswindow.cpp" />
+    <ClCompile Include="gameuisubwaywindow.cpp" />
+    <ClCompile Include="gameuitextwindow.cpp" />
+    <ClCompile Include="gameuielements.cpp" />
+    <ClCompile Include="gameuimanager.cpp" />
+    <ClCompile Include="hud.cpp" />
+    <ClCompile Include="huddraw.cpp" />
+    <ClCompile Include="input.cpp" />
+    <ClCompile Include="cliententities.cpp" />
+    <ClCompile Include="ladder.cpp" />
+    <ClCompile Include="messages.cpp" />
+    <ClCompile Include="motorbike.cpp" />
+    <ClCompile Include="nodedebug.cpp" />
+    <ClCompile Include="saytext.cpp" />
+    <ClCompile Include="screentext.cpp" />
+    <ClCompile Include="shake.cpp" />
+    <ClCompile Include="entitymanager.cpp" />
+    <ClCompile Include="clientusermsgs.cpp" />
+    <ClCompile Include="view.cpp" />
+    <ClCompile Include="viewcontroller.cpp" />
+    <ClCompile Include="viewmodel.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common\buttonbits.h" />
+    <ClInclude Include="..\common\cache_model.h" />
+    <ClInclude Include="..\common\carray.h" />
+    <ClInclude Include="..\common\carray_inline.hpp" />
+    <ClInclude Include="..\common\cbuffer.h" />
+    <ClInclude Include="..\common\cbuffer_inline.hpp" />
+    <ClInclude Include="..\common\clinkedlist.h" />
+    <ClInclude Include="..\common\clinkedlist_inline.hpp" />
+    <ClInclude Include="..\common\common.h" />
+    <ClInclude Include="..\common\common_inline.hpp" />
+    <ClInclude Include="..\common\com_math.h" />
+    <ClInclude Include="..\common\com_math_inline.hpp" />
+    <ClInclude Include="..\common\constants.h" />
+    <ClInclude Include="..\common\crc32.h" />
+    <ClInclude Include="..\common\cstring.h" />
+    <ClInclude Include="..\common\cstring_inline.hpp" />
+    <ClInclude Include="..\common\entitydata.h" />
+    <ClInclude Include="..\common\hashlist.h" />
+    <ClInclude Include="..\common\hashlist_inline.hpp" />
+    <ClInclude Include="..\common\matrix.h" />
+    <ClInclude Include="..\common\md5.h" />
+    <ClInclude Include="..\common\msgreader.h" />
+    <ClInclude Include="..\common\msgreader_inline.hpp" />
+    <ClInclude Include="..\common\r_common.h" />
+    <ClInclude Include="..\common\vector.h" />
+    <ClInclude Include="..\common\vector_inline.hpp" />
+    <ClInclude Include="..\shared\bike_shared.h" />
+    <ClInclude Include="..\shared\blackhole_shared.h" />
+    <ClInclude Include="..\shared\brushmodel_shared.h" />
+    <ClInclude Include="..\shared\cldll_interface.h" />
+    <ClInclude Include="..\shared\decallist.h" />
+    <ClInclude Include="..\shared\entity_extrainfo.h" />
+    <ClInclude Include="..\shared\flexmanager.h" />
+    <ClInclude Include="..\shared\flex_shared.h" />
+    <ClInclude Include="..\shared\ladder_shared.h" />
+    <ClInclude Include="..\shared\mlight.h" />
+    <ClInclude Include="..\shared\playermove.h" />
+    <ClInclude Include="..\shared\efxapi.h" />
+    <ClInclude Include="..\shared\r_glextf.h" />
+    <ClInclude Include="..\shared\r_glsl.h" />
+    <ClInclude Include="..\shared\r_glsl_inline.hpp" />
+    <ClInclude Include="..\shared\r_interface.h" />
+    <ClInclude Include="..\shared\r_vbo.h" />
+    <ClInclude Include="..\shared\stepsound.h" />
+    <ClInclude Include="..\shared\gameui_shared.h" />
+    <ClInclude Include="..\shared\vbm_shared.h" />
+    <ClInclude Include="..\shared\vcontroller_shared.h" />
+    <ClInclude Include="animevents.h" />
+    <ClInclude Include="clientdll.h" />
+    <ClInclude Include="clshared.h" />
+    <ClInclude Include="gameuielements.h" />
+    <ClInclude Include="draw.h" />
+    <ClInclude Include="gameuikeypadwindow.h" />
+    <ClInclude Include="gameuiloginwindow.h" />
+    <ClInclude Include="gameuiobjectiveswindow.h" />
+    <ClInclude Include="gameuisubwaywindow.h" />
+    <ClInclude Include="gameuitextwindow.h" />
+    <ClInclude Include="gameuimanager.h" />
+    <ClInclude Include="gameuiwindows_shared.h" />
+    <ClInclude Include="hud.h" />
+    <ClInclude Include="huddraw.h" />
+    <ClInclude Include="input.h" />
+    <ClInclude Include="cliententities.h" />
+    <ClInclude Include="ladder.h" />
+    <ClInclude Include="messages.h" />
+    <ClInclude Include="motorbike.h" />
+    <ClInclude Include="nodedebug.h" />
+    <ClInclude Include="saytext.h" />
+    <ClInclude Include="screentext.h" />
+    <ClInclude Include="shake.h" />
+    <ClInclude Include="entitymanager.h" />
+    <ClInclude Include="clientusermsgs.h" />
+    <ClInclude Include="view.h" />
+    <ClInclude Include="viewcontroller.h" />
+    <ClInclude Include="viewmodel.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

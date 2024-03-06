@@ -1,0 +1,12 @@
+$texture
+{
+	$int_width 256
+	$int_height 192
+	$dt_scalex 12.000000
+	$dt_scaley 9.000000
+	$alphatest
+	$container pathos.wad
+	$material grate
+	$texture diffuse {cj_fence
+	$texture detail detail/swe_metal2.dds
+}

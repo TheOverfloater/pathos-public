@@ -1,0 +1,6 @@
+$texture
+{
+	$nodecal
+	$nomipmaps
+	$texture diffuse models/security/security2_face.dds
+}

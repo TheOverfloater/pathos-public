@@ -1,0 +1,5 @@
+$texture
+{
+	$alphatest
+	$texture diffuse models/fern2/outside.tga
+}

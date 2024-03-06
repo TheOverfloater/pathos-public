@@ -1,0 +1,8 @@
+$texture
+{
+	$int_width 256
+	$int_height 256
+	$container pathos.wad
+	$material concrete
+	$texture diffuse cxbricki
+}

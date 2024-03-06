@@ -1,0 +1,696 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0CC32B0E-3226-40E0-9E1E-D751EAE5239B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>gamedll</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>game_x86</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>game_x64</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>game_x86</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <TargetName>game_x64</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;GAMEDLL;_DEBUG;_WINDOWS;_USRDLL;GAMEDLL_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\common;..\libs\sdl2.0\include\;..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;4018;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalDependencies>..\Win32\Debug\SDL2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../dlls/$(TargetName)$(TargetExt)"</Command>
+      <Message>Copy $(TargetName)$(TargetExt) to dlls dir</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_64BUILD;GAMEDLL;_DEBUG;_WINDOWS;_USRDLL;GAMEDLL_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\common;..\libs\sdl2.0\include\;..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;4018;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalDependencies>..\x64\Debug\SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../dlls/$(TargetName)$(TargetExt)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy $(TargetName)$(TargetExt) to dlls dir</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;GAMEDLL_EXPORTS;_CRT_SECURE_NO_WARNINGS;GAMEDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\common;..\libs\sdl2.0\include\;..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;4018;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>..\Win32\Release\SDL2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../dlls/$(TargetName)$(TargetExt)"</Command>
+      <Message>Copy $(TargetName)$(TargetExt) to dlls dir</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_64BUILD;NDEBUG;_WINDOWS;_USRDLL;GAMEDLL_EXPORTS;_CRT_SECURE_NO_WARNINGS;GAMEDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\common;..\libs\sdl2.0\include\;..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;4018;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>..\x64\Release\SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../dlls/$(TargetName)$(TargetExt)"</Command>
+      <Message>Copy $(TargetName)$(TargetExt) to dlls dir</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\common\common.cpp" />
+    <ClCompile Include="..\common\crc32.cpp" />
+    <ClCompile Include="..\common\cstring.cpp" />
+    <ClCompile Include="..\common\logfile.cpp" />
+    <ClCompile Include="..\shared\decallist.cpp" />
+    <ClCompile Include="..\shared\flexmanager.cpp" />
+    <ClCompile Include="..\shared\playermove.cpp" />
+    <ClCompile Include="..\shared\sentencesfile.cpp" />
+    <ClCompile Include="..\shared\stepsound.cpp" />
+    <ClCompile Include="..\shared\vbm_shared.cpp" />
+    <ClCompile Include="..\shared\weapons_shared.cpp" />
+    <ClCompile Include="aisetenemy.cpp" />
+    <ClCompile Include="aisetfollowtarget.cpp" />
+    <ClCompile Include="aisettriggercondition.cpp" />
+    <ClCompile Include="aiflagtoggler.cpp" />
+    <ClCompile Include="aiwandercontroller.cpp" />
+    <ClCompile Include="ai_common.cpp" />
+    <ClCompile Include="ai_nodegraph.cpp" />
+    <ClCompile Include="ai_patrolnpc.cpp" />
+    <ClCompile Include="ai_schedule.cpp" />
+    <ClCompile Include="ai_schedules.cpp" />
+    <ClCompile Include="ai_sounds.cpp" />
+    <ClCompile Include="ai_squadnpc.cpp" />
+    <ClCompile Include="ai_talknpc.cpp" />
+    <ClCompile Include="ai_tasks.cpp" />
+    <ClCompile Include="ai_wandernpc.cpp" />
+    <ClCompile Include="ambientgeneric.cpp" />
+    <ClCompile Include="ambientoggstream.cpp" />
+    <ClCompile Include="ammoglockclip.cpp" />
+    <ClCompile Include="animatingentity.cpp" />
+    <ClCompile Include="ai_basenpc.cpp" />
+    <ClCompile Include="baseentity.cpp" />
+    <ClCompile Include="beam.cpp" />
+    <ClCompile Include="cplane.cpp" />
+    <ClCompile Include="doorstatestack.cpp" />
+    <ClCompile Include="envbeam.cpp" />
+    <ClCompile Include="envbeamfollow.cpp" />
+    <ClCompile Include="envblackhole.cpp" />
+    <ClCompile Include="envdlighttrain.cpp" />
+    <ClCompile Include="envearthquake.cpp" />
+    <ClCompile Include="envelighttrain.cpp" />
+    <ClCompile Include="envlaser.cpp" />
+    <ClCompile Include="envlensflare.cpp" />
+    <ClCompile Include="envlightning.cpp" />
+    <ClCompile Include="envmodelbreakable.cpp" />
+    <ClCompile Include="envmodeltrain.cpp" />
+    <ClCompile Include="envparticleeffect.cpp" />
+    <ClCompile Include="envposportal.cpp" />
+    <ClCompile Include="envposportalworld.cpp" />
+    <ClCompile Include="envsetbodygroup.cpp" />
+    <ClCompile Include="envsetsequence.cpp" />
+    <ClCompile Include="envsetskytexture.cpp" />
+    <ClCompile Include="envspecialfog.cpp" />
+    <ClCompile Include="envbeamfx.cpp" />
+    <ClCompile Include="envsun.cpp" />
+    <ClCompile Include="funcbreakable.cpp" />
+    <ClCompile Include="funcbutton.cpp" />
+    <ClCompile Include="funcdoor.cpp" />
+    <ClCompile Include="ehandle.cpp" />
+    <ClCompile Include="envbeverage.cpp" />
+    <ClCompile Include="envblood.cpp" />
+    <ClCompile Include="envbubbles.cpp" />
+    <ClCompile Include="envexplosion.cpp" />
+    <ClCompile Include="envfade.cpp" />
+    <ClCompile Include="envfunnel.cpp" />
+    <ClCompile Include="envglobal.cpp" />
+    <ClCompile Include="envglow.cpp" />
+    <ClCompile Include="envladder.cpp" />
+    <ClCompile Include="envmessage.cpp" />
+    <ClCompile Include="envpossky.cpp" />
+    <ClCompile Include="envrender.cpp" />
+    <ClCompile Include="envroomtype.cpp" />
+    <ClCompile Include="envrotlight.cpp" />
+    <ClCompile Include="envsetangles.cpp" />
+    <ClCompile Include="envsetbody.cpp" />
+    <ClCompile Include="envshake.cpp" />
+    <ClCompile Include="envshooter.cpp" />
+    <ClCompile Include="envspark.cpp" />
+    <ClCompile Include="envsprite.cpp" />
+    <ClCompile Include="envspritetrain.cpp" />
+    <ClCompile Include="envsetskin.cpp" />
+    <ClCompile Include="funcbikeblock.cpp" />
+    <ClCompile Include="funcdoorrotating.cpp" />
+    <ClCompile Include="funcladder.cpp" />
+    <ClCompile Include="funcmonitor.cpp" />
+    <ClCompile Include="funcnull.cpp" />
+    <ClCompile Include="funcplat.cpp" />
+    <ClCompile Include="funcplatrot.cpp" />
+    <ClCompile Include="funcportalsurface.cpp" />
+    <ClCompile Include="funcpushable.cpp" />
+    <ClCompile Include="funcrotbutton.cpp" />
+    <ClCompile Include="funcslippery.cpp" />
+    <ClCompile Include="functrackautochange.cpp" />
+    <ClCompile Include="functrackautochangerc.cpp" />
+    <ClCompile Include="functrackchange.cpp" />
+    <ClCompile Include="functracktrain.cpp" />
+    <ClCompile Include="functrain.cpp" />
+    <ClCompile Include="functraincontrols.cpp" />
+    <ClCompile Include="functraincopy.cpp" />
+    <ClCompile Include="funcwater.cpp" />
+    <ClCompile Include="funcfriction.cpp" />
+    <ClCompile Include="game.cpp" />
+    <ClCompile Include="gametimer.cpp" />
+    <ClCompile Include="gamedialouge.cpp" />
+    <ClCompile Include="gameobjective.cpp" />
+    <ClCompile Include="gamesetdaystage.cpp" />
+    <ClCompile Include="gametext.cpp" />
+    <ClCompile Include="gametitle.cpp" />
+    <ClCompile Include="gib.cpp" />
+    <ClCompile Include="gibshooter.cpp" />
+    <ClCompile Include="grenade.cpp" />
+    <ClCompile Include="materialdefs.cpp" />
+    <ClCompile Include="infomonitorcamera.cpp" />
+    <ClCompile Include="infonode.cpp" />
+    <ClCompile Include="infonodeair.cpp" />
+    <ClCompile Include="infonull.cpp" />
+    <ClCompile Include="infotarget.cpp" />
+    <ClCompile Include="infoteleportdestination.cpp" />
+    <ClCompile Include="itemdiary.cpp" />
+    <ClCompile Include="itemglockflashlight.cpp" />
+    <ClCompile Include="itemglocksilencer.cpp" />
+    <ClCompile Include="itemhealthkit.cpp" />
+    <ClCompile Include="itemkevlar.cpp" />
+    <ClCompile Include="itemmotorbike.cpp" />
+    <ClCompile Include="itemsecurity.cpp" />
+    <ClCompile Include="itemshoulderlight.cpp" />
+    <ClCompile Include="itemsodacan.cpp" />
+    <ClCompile Include="itemtaperecorder.cpp" />
+    <ClCompile Include="multidamage.cpp" />
+    <ClCompile Include="delayentity.cpp" />
+    <ClCompile Include="envblur.cpp" />
+    <ClCompile Include="envcable.cpp" />
+    <ClCompile Include="envcubemap.cpp" />
+    <ClCompile Include="envdecal.cpp" />
+    <ClCompile Include="envdlight.cpp" />
+    <ClCompile Include="envelight.cpp" />
+    <ClCompile Include="envfog.cpp" />
+    <ClCompile Include="envmodel.cpp" />
+    <ClCompile Include="entities.cpp" />
+    <ClCompile Include="envparticlesystem.cpp" />
+    <ClCompile Include="envposworld.cpp" />
+    <ClCompile Include="envspotlight.cpp" />
+    <ClCompile Include="funcconveyor.cpp" />
+    <ClCompile Include="funcdetail.cpp" />
+    <ClCompile Include="funcfade.cpp" />
+    <ClCompile Include="funcillusionary.cpp" />
+    <ClCompile Include="funcmirror.cpp" />
+    <ClCompile Include="funcnpcclip.cpp" />
+    <ClCompile Include="funcpendulum.cpp" />
+    <ClCompile Include="funcrotating.cpp" />
+    <ClCompile Include="funcwall.cpp" />
+    <ClCompile Include="funcwalltoggle.cpp" />
+    <ClCompile Include="gamedll.cpp" />
+    <ClCompile Include="gameradio.cpp" />
+    <ClCompile Include="globalstate.cpp" />
+    <ClCompile Include="infolandmark.cpp" />
+    <ClCompile Include="infoplayerdeathmatch.cpp" />
+    <ClCompile Include="infoplayerstart.cpp" />
+    <ClCompile Include="infolightorigin.cpp" />
+    <ClCompile Include="light.cpp" />
+    <ClCompile Include="lightenvironment.cpp" />
+    <ClCompile Include="lightspot.cpp" />
+    <ClCompile Include="multimanager.cpp" />
+    <ClCompile Include="multisource.cpp" />
+    <ClCompile Include="nightlight.cpp" />
+    <ClCompile Include="nightlightspot.cpp" />
+    <ClCompile Include="nodeignorelist.cpp" />
+    <ClCompile Include="nodestack.cpp" />
+    <ClCompile Include="nodeviewer.cpp" />
+    <ClCompile Include="npcclonesoldier.cpp" />
+    <ClCompile Include="npcgeneric.cpp" />
+    <ClCompile Include="npcmaker.cpp" />
+    <ClCompile Include="npcsecurity.cpp" />
+    <ClCompile Include="npcsecuritydead.cpp" />
+    <ClCompile Include="npctesthull.cpp" />
+    <ClCompile Include="nullentity.cpp" />
+    <ClCompile Include="pathcorner.cpp" />
+    <ClCompile Include="pathtrack.cpp" />
+    <ClCompile Include="plattrainentity.cpp" />
+    <ClCompile Include="plattrigger.cpp" />
+    <ClCompile Include="player.cpp" />
+    <ClCompile Include="playerammo.cpp" />
+    <ClCompile Include="playerdualweapon.cpp" />
+    <ClCompile Include="playeritem.cpp" />
+    <ClCompile Include="playerloadsaved.cpp" />
+    <ClCompile Include="playerweapon.cpp" />
+    <ClCompile Include="playerweaponstrip.cpp" />
+    <ClCompile Include="pointentity.cpp" />
+    <ClCompile Include="prioritynodequeue.cpp" />
+    <ClCompile Include="nodequeue.cpp" />
+    <ClCompile Include="scriptedsentence.cpp" />
+    <ClCompile Include="scriptedsequence.cpp" />
+    <ClCompile Include="skilldata.cpp" />
+    <ClCompile Include="skytexturesets.cpp" />
+    <ClCompile Include="sparkshower.cpp" />
+    <ClCompile Include="statestack.cpp" />
+    <ClCompile Include="timedamage.cpp" />
+    <ClCompile Include="toggleentity.cpp" />
+    <ClCompile Include="triggerauto.cpp" />
+    <ClCompile Include="triggerautosave.cpp" />
+    <ClCompile Include="triggercamera.cpp" />
+    <ClCompile Include="triggercameramodel.cpp" />
+    <ClCompile Include="triggerchance.cpp" />
+    <ClCompile Include="triggerchangelevel.cpp" />
+    <ClCompile Include="triggerchangetarget.cpp" />
+    <ClCompile Include="triggercoderegister.cpp" />
+    <ClCompile Include="triggercounter.cpp" />
+    <ClCompile Include="triggercounterp.cpp" />
+    <ClCompile Include="triggerendgame.cpp" />
+    <ClCompile Include="triggerentity.cpp" />
+    <ClCompile Include="triggerforceclose.cpp" />
+    <ClCompile Include="triggerforceholster.cpp" />
+    <ClCompile Include="triggerglobaldelayed.cpp" />
+    <ClCompile Include="triggergravity.cpp" />
+    <ClCompile Include="triggerhurt.cpp" />
+    <ClCompile Include="triggerkeypad.cpp" />
+    <ClCompile Include="triggerkillplayer.cpp" />
+    <ClCompile Include="triggerlogin.cpp" />
+    <ClCompile Include="triggerlookat.cpp" />
+    <ClCompile Include="triggermove.cpp" />
+    <ClCompile Include="triggermovetrain.cpp" />
+    <ClCompile Include="triggermultiple.cpp" />
+    <ClCompile Include="triggernpcpull.cpp" />
+    <ClCompile Include="triggeronce.cpp" />
+    <ClCompile Include="triggerparalyzeplayer.cpp" />
+    <ClCompile Include="triggerpush.cpp" />
+    <ClCompile Include="triggerrelay.cpp" />
+    <ClCompile Include="triggerrepeat.cpp" />
+    <ClCompile Include="triggersaveweapons.cpp" />
+    <ClCompile Include="triggersetsavetitle.cpp" />
+    <ClCompile Include="triggerslowmove.cpp" />
+    <ClCompile Include="triggersound.cpp" />
+    <ClCompile Include="triggerspeedup.cpp" />
+    <ClCompile Include="triggersubwaycontroller.cpp" />
+    <ClCompile Include="triggersubwayflagger.cpp" />
+    <ClCompile Include="triggerteleport.cpp" />
+    <ClCompile Include="triggertextwindow.cpp" />
+    <ClCompile Include="triggertoggletarget.cpp" />
+    <ClCompile Include="triggertransition.cpp" />
+    <ClCompile Include="triggervacuum.cpp" />
+    <ClCompile Include="triggerzoom.cpp" />
+    <ClCompile Include="usermsgs.cpp" />
+    <ClCompile Include="util.cpp" />
+    <ClCompile Include="vbmutils.cpp" />
+    <ClCompile Include="weaponglock.cpp" />
+    <ClCompile Include="weaponhandgrenade.cpp" />
+    <ClCompile Include="weaponknife.cpp" />
+    <ClCompile Include="worldspawn.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common\animevent.h" />
+    <ClInclude Include="..\common\cache_model.h" />
+    <ClInclude Include="..\common\carray.h" />
+    <ClInclude Include="..\common\carray_inline.hpp" />
+    <ClInclude Include="..\common\clinkedlist.h" />
+    <ClInclude Include="..\common\clinkedlist_inline.hpp" />
+    <ClInclude Include="..\common\common.h" />
+    <ClInclude Include="..\common\common_inline.hpp" />
+    <ClInclude Include="..\common\com_math.h" />
+    <ClInclude Include="..\common\com_math_inline.hpp" />
+    <ClInclude Include="..\common\constants.h" />
+    <ClInclude Include="..\common\contents.h" />
+    <ClInclude Include="..\common\crc32.h" />
+    <ClInclude Include="..\common\cstring.h" />
+    <ClInclude Include="..\common\cstring_inline.hpp" />
+    <ClInclude Include="..\common\logfile.h" />
+    <ClInclude Include="..\common\vector.h" />
+    <ClInclude Include="..\common\vector_inline.hpp" />
+    <ClInclude Include="..\engine\brushmodel.h" />
+    <ClInclude Include="..\shared\activity.h" />
+    <ClInclude Include="..\shared\activitymappings.h" />
+    <ClInclude Include="..\shared\blackhole_shared.h" />
+    <ClInclude Include="..\shared\brushmodel_shared.h" />
+    <ClInclude Include="..\shared\gdll_interface.h" />
+    <ClInclude Include="..\shared\globalstate_shared.h" />
+    <ClInclude Include="..\shared\net_shared.h" />
+    <ClInclude Include="..\shared\playermove.h" />
+    <ClInclude Include="..\shared\portal_shared.h" />
+    <ClInclude Include="..\shared\sentencesfile.h" />
+    <ClInclude Include="..\shared\stepsound.h" />
+    <ClInclude Include="..\shared\trace.h" />
+    <ClInclude Include="..\shared\weapons_shared.h" />
+    <ClInclude Include="aiflagtoggler.h" />
+    <ClInclude Include="aisetenemy.h" />
+    <ClInclude Include="aisetfollowtarget.h" />
+    <ClInclude Include="aisettriggercondition.h" />
+    <ClInclude Include="aiwandercontroller.h" />
+    <ClInclude Include="ai_common.h" />
+    <ClInclude Include="ai_nodegraph.h" />
+    <ClInclude Include="ai_patrolnpc.h" />
+    <ClInclude Include="ai_schedule.h" />
+    <ClInclude Include="ai_schedules.h" />
+    <ClInclude Include="ai_schedule_inline.hpp" />
+    <ClInclude Include="ai_squadnpc.h" />
+    <ClInclude Include="ai_talknpc.h" />
+    <ClInclude Include="ai_wandernpc.h" />
+    <ClInclude Include="beam.h" />
+    <ClInclude Include="beam_inline.hpp" />
+    <ClInclude Include="cplane.h" />
+    <ClInclude Include="doorstatestack.h" />
+    <ClInclude Include="envbeamfollow.h" />
+    <ClInclude Include="envbeamfx.h" />
+    <ClInclude Include="envblackhole.h" />
+    <ClInclude Include="envdlighttrain.h" />
+    <ClInclude Include="envearthquake.h" />
+    <ClInclude Include="envelighttrain.h" />
+    <ClInclude Include="envlaser.h" />
+    <ClInclude Include="envlensflare.h" />
+    <ClInclude Include="envlightning.h" />
+    <ClInclude Include="envparticleeffect.h" />
+    <ClInclude Include="envposportal.h" />
+    <ClInclude Include="envposportalworld.h" />
+    <ClInclude Include="envsetbodygroup.h" />
+    <ClInclude Include="envsetsequence.h" />
+    <ClInclude Include="envsetskytexture.h" />
+    <ClInclude Include="envsun.h" />
+    <ClInclude Include="funcportalsurface.h" />
+    <ClInclude Include="funcslippery.h" />
+    <ClInclude Include="gametimer.h" />
+    <ClInclude Include="gameobjective.h" />
+    <ClInclude Include="infonode.h" />
+    <ClInclude Include="infonodeair.h" />
+    <ClInclude Include="itemglockflashlight.h" />
+    <ClInclude Include="itemglocksilencer.h" />
+    <ClInclude Include="itemtaperecorder.h" />
+    <ClInclude Include="nodeviewer.h" />
+    <ClInclude Include="npcclonesoldier.h" />
+    <ClInclude Include="npcgeneric.h" />
+    <ClInclude Include="npcmaker.h" />
+    <ClInclude Include="npcsecurity.h" />
+    <ClInclude Include="npcsecuritydead.h" />
+    <ClInclude Include="npctesthull.h" />
+    <ClInclude Include="prioritynodequeue.h" />
+    <ClInclude Include="nodequeue.h" />
+    <ClInclude Include="scriptedsentence.h" />
+    <ClInclude Include="scriptedsequence.h" />
+    <ClInclude Include="ai_sentences.h" />
+    <ClInclude Include="ai_sounds.h" />
+    <ClInclude Include="ai_tasks.h" />
+    <ClInclude Include="ambientgeneric.h" />
+    <ClInclude Include="ambientoggstream.h" />
+    <ClInclude Include="ammoglockclip.h" />
+    <ClInclude Include="animatingentity.h" />
+    <ClInclude Include="baseentity.h" />
+    <ClInclude Include="baseentity_inline.hpp" />
+    <ClInclude Include="ai_basenpc.h" />
+    <ClInclude Include="envmodelbreakable.h" />
+    <ClInclude Include="envmodeltrain.h" />
+    <ClInclude Include="envspecialfog.h" />
+    <ClInclude Include="funcbreakable.h" />
+    <ClInclude Include="funcbutton.h" />
+    <ClInclude Include="funcdoor.h" />
+    <ClInclude Include="ehandle.h" />
+    <ClInclude Include="envbeverage.h" />
+    <ClInclude Include="envblood.h" />
+    <ClInclude Include="envbubbles.h" />
+    <ClInclude Include="envexplosion.h" />
+    <ClInclude Include="envfade.h" />
+    <ClInclude Include="envfunnel.h" />
+    <ClInclude Include="envglobal.h" />
+    <ClInclude Include="envglow.h" />
+    <ClInclude Include="envladder.h" />
+    <ClInclude Include="envmessage.h" />
+    <ClInclude Include="envpossky.h" />
+    <ClInclude Include="envroomtype.h" />
+    <ClInclude Include="envrotlight.h" />
+    <ClInclude Include="envsetangles.h" />
+    <ClInclude Include="envsetbody.h" />
+    <ClInclude Include="envsetskin.h" />
+    <ClInclude Include="envshake.h" />
+    <ClInclude Include="envshooter.h" />
+    <ClInclude Include="envspark.h" />
+    <ClInclude Include="envsprite.h" />
+    <ClInclude Include="envspritetrain.h" />
+    <ClInclude Include="envrender.h" />
+    <ClInclude Include="funcbikeblock.h" />
+    <ClInclude Include="funcdoorrotating.h" />
+    <ClInclude Include="funcladder.h" />
+    <ClInclude Include="funcmonitor.h" />
+    <ClInclude Include="funcplat.h" />
+    <ClInclude Include="funcplatrot.h" />
+    <ClInclude Include="funcpushable.h" />
+    <ClInclude Include="funcrotbutton.h" />
+    <ClInclude Include="functrackautochange.h" />
+    <ClInclude Include="functrackautochangerc.h" />
+    <ClInclude Include="functrackchange.h" />
+    <ClInclude Include="functracktrain.h" />
+    <ClInclude Include="functrain.h" />
+    <ClInclude Include="functraincontrols.h" />
+    <ClInclude Include="functraincopy.h" />
+    <ClInclude Include="funcwater.h" />
+    <ClInclude Include="funcfriction.h" />
+    <ClInclude Include="game.h" />
+    <ClInclude Include="gamedialouge.h" />
+    <ClInclude Include="gamesetdaystage.h" />
+    <ClInclude Include="gametext.h" />
+    <ClInclude Include="gametitle.h" />
+    <ClInclude Include="gib.h" />
+    <ClInclude Include="gibshooter.h" />
+    <ClInclude Include="grenade.h" />
+    <ClInclude Include="materialdefs.h" />
+    <ClInclude Include="infomonitorcamera.h" />
+    <ClInclude Include="itemdiary.h" />
+    <ClInclude Include="itemhealthkit.h" />
+    <ClInclude Include="itemkevlar.h" />
+    <ClInclude Include="itemmotorbike.h" />
+    <ClInclude Include="itemsecurity.h" />
+    <ClInclude Include="itemshoulderlight.h" />
+    <ClInclude Include="itemsodacan.h" />
+    <ClInclude Include="multidamage.h" />
+    <ClInclude Include="delayentity.h" />
+    <ClInclude Include="envblur.h" />
+    <ClInclude Include="envdecal.h" />
+    <ClInclude Include="envelight.h" />
+    <ClInclude Include="envfog.h" />
+    <ClInclude Include="envmodel.h" />
+    <ClInclude Include="entities.h" />
+    <ClInclude Include="envdlight.h" />
+    <ClInclude Include="envparticlesystem.h" />
+    <ClInclude Include="envposworld.h" />
+    <ClInclude Include="envspotlight.h" />
+    <ClInclude Include="funcconveyor.h" />
+    <ClInclude Include="funcdetail.h" />
+    <ClInclude Include="funcfade.h" />
+    <ClInclude Include="funcillusionary.h" />
+    <ClInclude Include="funcmirror.h" />
+    <ClInclude Include="funcnpcclip.h" />
+    <ClInclude Include="funcpendulum.h" />
+    <ClInclude Include="funcrotating.h" />
+    <ClInclude Include="funcwall.h" />
+    <ClInclude Include="funcwalltoggle.h" />
+    <ClInclude Include="gamedll.h" />
+    <ClInclude Include="gameradio.h" />
+    <ClInclude Include="gd_includes.h" />
+    <ClInclude Include="globalstate.h" />
+    <ClInclude Include="infoplayerdeathmatch.h" />
+    <ClInclude Include="lightenvironment.h" />
+    <ClInclude Include="multimanager.h" />
+    <ClInclude Include="multisource.h" />
+    <ClInclude Include="nodeignorelist.h" />
+    <ClInclude Include="nullentity.h" />
+    <ClInclude Include="pathcorner.h" />
+    <ClInclude Include="pathtrack.h" />
+    <ClInclude Include="plattrainentity.h" />
+    <ClInclude Include="plattrigger.h" />
+    <ClInclude Include="player.h" />
+    <ClInclude Include="playerammo.h" />
+    <ClInclude Include="playerdualweapon.h" />
+    <ClInclude Include="playeritem.h" />
+    <ClInclude Include="playerloadsaved.h" />
+    <ClInclude Include="playerweapon.h" />
+    <ClInclude Include="playerweaponstrip.h" />
+    <ClInclude Include="pointentity.h" />
+    <ClInclude Include="skilldata.h" />
+    <ClInclude Include="skytexturesets.h" />
+    <ClInclude Include="sparkshower.h" />
+    <ClInclude Include="nodestack.h" />
+    <ClInclude Include="statestack.h" />
+    <ClInclude Include="timedamage.h" />
+    <ClInclude Include="toggleentity.h" />
+    <ClInclude Include="triggerauto.h" />
+    <ClInclude Include="triggerautosave.h" />
+    <ClInclude Include="triggercamera.h" />
+    <ClInclude Include="triggercameramodel.h" />
+    <ClInclude Include="triggerchance.h" />
+    <ClInclude Include="triggerchangelevel.h" />
+    <ClInclude Include="triggerchangetarget.h" />
+    <ClInclude Include="triggercoderegister.h" />
+    <ClInclude Include="triggercounter.h" />
+    <ClInclude Include="triggercounterp.h" />
+    <ClInclude Include="triggerendgame.h" />
+    <ClInclude Include="triggerentity.h" />
+    <ClInclude Include="triggerforceclose.h" />
+    <ClInclude Include="triggerforceholster.h" />
+    <ClInclude Include="triggerglobaldelayed.h" />
+    <ClInclude Include="triggergravity.h" />
+    <ClInclude Include="triggerhurt.h" />
+    <ClInclude Include="triggerkeypad.h" />
+    <ClInclude Include="triggerkillplayer.h" />
+    <ClInclude Include="triggerlogin.h" />
+    <ClInclude Include="triggerlookat.h" />
+    <ClInclude Include="triggermove.h" />
+    <ClInclude Include="triggermovetrain.h" />
+    <ClInclude Include="triggermultiple.h" />
+    <ClInclude Include="triggernpcpull.h" />
+    <ClInclude Include="triggeronce.h" />
+    <ClInclude Include="triggerparalyzeplayer.h" />
+    <ClInclude Include="triggerpush.h" />
+    <ClInclude Include="triggerrelay.h" />
+    <ClInclude Include="triggerrepeat.h" />
+    <ClInclude Include="triggersaveweapons.h" />
+    <ClInclude Include="triggersetsavetitle.h" />
+    <ClInclude Include="triggerslowmove.h" />
+    <ClInclude Include="triggersound.h" />
+    <ClInclude Include="triggerspeedup.h" />
+    <ClInclude Include="triggersubwaycontroller.h" />
+    <ClInclude Include="triggersubwayflagger.h" />
+    <ClInclude Include="triggerteleport.h" />
+    <ClInclude Include="triggertextwindow.h" />
+    <ClInclude Include="triggertoggletarget.h" />
+    <ClInclude Include="triggertransition.h" />
+    <ClInclude Include="triggervacuum.h" />
+    <ClInclude Include="triggerzoom.h" />
+    <ClInclude Include="usermsgs.h" />
+    <ClInclude Include="vbmutils.h" />
+    <ClInclude Include="util.h" />
+    <ClInclude Include="weaponglock.h" />
+    <ClInclude Include="weaponhandgrenade.h" />
+    <ClInclude Include="weaponknife.h" />
+    <ClInclude Include="worldspawn.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

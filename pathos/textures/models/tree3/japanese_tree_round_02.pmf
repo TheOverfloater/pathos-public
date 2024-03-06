@@ -1,0 +1,5 @@
+$texture
+{
+	$alphatest
+	$texture diffuse models/tree3/japanese_tree_round_02.tga
+}

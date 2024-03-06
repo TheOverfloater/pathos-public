@@ -1,0 +1,17 @@
+$particlescript
+{
+	$shape point
+	$fade_out_delay 1.500000
+	$lifetime 10.000000
+	$lifetime_variation 4.000000
+	$flags random_direction
+	$scale 5.000000
+	$scale_variation 1.000000
+	$particles_on_spawn 1
+	$lighting normal
+	$impact_velocity_dampening 0.200000
+	$rendermode alphablend
+	$alpha 1.000000
+	$alignment to_normal
+	$texture leaf06
+}

@@ -1,0 +1,148 @@
+//TITLES FOR HALF-LIFE
+// Position command $position x y 
+// x & y are from 0 to 1 to be screen resolution independent
+// -1 means center in each dimension
+// Effect command $effect <effect number>
+// effect 0 is fade in/fade out
+// effect 1 is flickery credits
+// effect 2 is write out (training room)
+// Text color r g b command $color1
+// fadein time fadeout time / hold time
+// $fadein (message fade in time - per character in effect 2)
+// $fadeout (message fade out time)
+// $holdtime (stay on the screen for this long)
+
+// HINT MESSAGES, SHORT
+$position -1 0.8
+$effect 1
+// Final fade-in color
+$color1 255 255 255
+// This is the highlight/flash color
+$color2 0 0 0
+$fadein 0
+$fadeout 0
+$holdtime 1
+
+SLOT_FULL_MELEE
+{
+The melee weapon slot is full.
+}
+
+SLOT_FULL_SECONDARY
+{
+The secondary weapon slot is full.
+}
+
+SLOT_FULL_PRIMARY
+{
+The primary weapon slot is full
+}
+
+SLOT_FULL_HEAVY
+{
+The heavy weapon slot is full.
+}
+
+SLOT_FULL_EXPLOSIVE
+{
+The explosive weapon slot is full.
+}
+
+DROP_NO_SPACE
+{
+Not enough space to drop weapon.
+}
+
+// GAME OVER TITLES
+$position -1 -1
+$effect 2
+$color1 0 250 0
+$color2 100 100 100
+$fadein 1
+$fxtime 0.25
+$holdtime 3
+$fadeout 1.5
+$fadein 0.03
+$holdtime 9
+
+GAMEOVER02
+{
+Subject Postmortem.
+
+Date: 
+1998
+
+Name:
+REDACTED
+
+Status:
+Deceased.
+
+Details:
+Pressed a suspicious button.
+}
+
+// In-Game messages
+$position -1 0.65
+$effect 2
+// This is the final color
+$color1 255 255 255
+// This is the highlight color
+$color2 0 255 0
+// This is the time it takes to fade each character
+$fadein 0.01
+// This is the amount of time the highlight lags behind the leading edge of the text
+$fxtime 0.25
+// How long to hold the message on the screen (after it scans out)
+$holdtime 2.0
+// How long it takes to fade out the message after holding
+$fadeout 0.5
+
+GAMESAVED
+{
+Game saved
+}
+
+AUTOSAVED
+{
+Game autosaved
+}
+
+SAVEBLOCKED
+{
+Cannot save at this time
+}
+
+OBJECTIVES_UPDATED
+{
+Mission objectives updated
+}
+
+// Game title
+// This is a placeholder to hold the effects controls for the "Half-Life" title
+$position -1 -1
+// Only effect 0 is supported for game title
+$effect 0
+// This is the final color
+$color1 255 255 255
+// Not used color2
+$color2 0 0 0
+// This is the time it takes to fade in the title
+$fadein 1.0
+// How long to hold the message on the screen (after it scans out)
+$holdtime 5.0
+// How long it takes to fade out the message after holding
+$fadeout 4
+
+// Font set
+$fontset albertus.ttf
+// Font size
+$fontsize 72
+
+GAMETITLE
+{
+PATHOS ENGINE
+}
+
+// Font set
+$fontset default

@@ -1,0 +1,51 @@
+window "SaveLoadWindow"
+{
+	$schema "defaultwindow.txt"
+	$title "Save/Load Game"
+	$width 1100
+	$height 500
+	$insetx 10
+	$insety 10
+	$titleinsetx 8
+	$titleinsety 6
+	$alpha 230
+	$dragger true
+	$resizable true
+}
+button "CancelButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Cancel"
+	$width 112
+	$height 32
+	$flags align_bottom align_right
+}
+button "LoadGameButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Load Game"
+	$originx 122
+	$width 112
+	$height 32
+	$flags align_bottom align_right
+}
+button "SaveGameButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Save Game"
+	$originx 244
+	$width 112
+	$height 32
+	$flags align_bottom align_right
+}
+list "SaveList"
+{
+	$schema "indentedwindow.txt"
+	$font "calibri.ttf"
+	$fontsize 18
+	$originy 32
+	$width 1080
+	$height 408
+	$rowheight 32
+	$textinset 8
+}

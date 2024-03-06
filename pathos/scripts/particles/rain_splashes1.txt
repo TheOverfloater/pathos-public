@@ -1,0 +1,18 @@
+$particlescript
+{
+	$shape point
+	$fade_out_delay 0.400000
+	$lifetime 0.350000
+	$primary_color 200 200 200
+	$scale 7.000000
+	$scale_variation 0.500000
+	$particles_on_spawn 1
+	$rendermode additive
+	$alpha 0.400000
+	$alignment parallel
+	$texture rainsplash
+	$frame_width 64
+	$frame_height 64
+	$num_frames 14
+	$framerate 40
+}

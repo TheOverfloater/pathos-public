@@ -1,0 +1,12 @@
+$texture
+{
+	$int_width 128
+	$int_height 128
+	$dt_scalex 6.000000
+	$dt_scaley 6.000000
+	$alphatest
+	$container pathos.wad
+	$material grate
+	$texture diffuse {prxglass2b
+	$texture detail detail/swe_metal2.dds
+}

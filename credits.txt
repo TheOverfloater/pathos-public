@@ -1,0 +1,72 @@
+This is a list of credits to all who helped me during the
+development of this engine, and whose resources I have used
+during development.
+
+Thanks to freesound.org and those on the site whose samples I used
+from the site:
+JohnDelayniKIng
+casadalenha
+Rudmer_Rotteveel
+SpliceSound
+CGEffex
+Robotter112
+jodybruchon
+jonsept
+InspectorJ
+kevinkace
+urupin
+speedygonzo
+qubodup
+homejrande
+LucasDuff
+kyles
+TheLukasBanana
+DCSFX
+stevenmarky
+Pogotron
+NoahBangs
+PNMCarrierRailFan
+RoganMcDougald
+Sheyvan
+Taira-Komori
+lenayrossouw
+
+For a detailed list of people credited for the Pathos code, check:
+pathos/sources/codesrc/readme.txt
+
+Other content:
+ - The Nightwatch team for their WAD textues
+ - Vampire Slayer for some textures and models used
+ - 3D Mike for some models and textures used
+ - Vluzacn for the HL tools used for compiling levels
+ - Ben Golus for Alpha to Coverage fix
+ - The Firearms mod team for some of the weapon sounds and textures
+ - Twinkie Masta for the Glock model
+ - Mete Ciragan for the original HLMV
+ - Neil "Jed" Jedrzejewski for some coding help
+ - Ryokeen for helping me back in the day
+ - Hunk Guerrius for all the playtesting and feedback
+ - Hipshot for the violentdays skybox
+ 
+Other mentions:
+Iriy "BUzer" Sitnikov for Paranoia's source code and several
+instances of him helping me become a better coder. I relied on
+how Paranoia rendered the world to write my own, watered-down
+world renderer for what was back then Raven City.
+Some very small pieces might still exist inside Pathos, but
+the code is very different now. Still, what BUzer did with
+Paranoia was an amazing feat, so I feel I have to thank him
+for a lot.
+
+Twinkie Masta:
+I requested permission to use Twinkie Masta's Glock model as a
+placeholder model  on Gamebanana(then FPSBanana) back in the 
+early 2010s. I doubt they still remember this, but I am going
+to stick with using it here. It shouldn't be a problem.
+
+On other content:
+This list is not full, as I didn't record all instances
+where I downloaded samples. If you find your sample is
+used in this mod and not credited, please reach out to
+me at:
+doommusic666@hotmail.com

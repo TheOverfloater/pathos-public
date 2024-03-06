@@ -1,0 +1,511 @@
+window "SettingsWindow"
+{
+	$schema "defaultwindow.txt"
+	$title "Settings"
+	$width 630
+	$height 500
+	$insetx 10
+	$insety 10
+	$titleinsetx 8
+	$titleinsety 6
+	$alpha 230
+	$dragger true
+	$resizable true
+	$flags fixed_height
+}
+button "ApplyButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Apply"
+	$width 96
+	$height 32
+	$flags align_bottom align_right
+}
+button "CancelButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Cancel"
+	$originx 106
+	$width 96
+	$height 32
+	$flags align_bottom align_right
+}
+tab "SettingsTab"
+{
+	$schema "indentedwindow.txt"
+	$originy 30
+	$width 610
+	$height 408
+	$insetx 10
+	$insety 10
+}
+list "BindsTabList"
+{
+	$schema "indentedwindow.txt"
+	$width 585
+	$height 316
+	$rowheight 32
+}
+button "Bind_ClearButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Clear key"
+	$width 96
+	$height 32
+	$flags align_bottom align_right
+}
+button "Bind_BindButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Bind key"
+	$originx 106
+	$width 96
+	$height 32
+	$flags align_bottom align_right
+}
+button "Bind_RestoreDefaults"
+{
+	$schema "defaultbutton.txt"
+	$text "Restore defaults"
+	$originx 212
+	$width 150
+	$height 32
+	$flags align_bottom align_right
+}
+text "DisplayDeviceLabel"
+{
+	$text "Display Device"
+	$originx 32
+	$originy 32
+	$flags align_top align_left
+}
+list "DisplayDeviceList"
+{
+	$schema "indentedwindow.txt"
+	$width 225
+	$height 32
+	$originx 32
+	$originy 56
+	$rowheight 32
+	$flags align_top align_left
+}
+text "DisplayResolutionLabel"
+{
+	$text "Resolution"
+	$originx 32
+	$originy 118
+}
+list "DisplayResolutionList"
+{
+	$schema "indentedwindow.txt"
+	$width 225
+	$height 32
+	$originx 32
+	$originy 144
+	$rowheight 32
+	$flags align_top align_left
+}
+text "WindowModeLabel"
+{
+	$text "Window mode"
+	$originx 32
+	$originy 206
+}
+list "WindowModeList"
+{
+	$schema "indentedwindow.txt"
+	$width 225
+	$height 32
+	$originx 32
+	$originy 230
+	$rowheight 32
+	$flags align_top align_left
+}
+text "GammaLabel"
+{
+	$text "Gamma"
+	$flags align_bottom align_left
+	$originx 32
+	$originy 68
+}
+slider "GammaSlider"
+{
+	$schema "defaultslider.txt"
+	$flags align_bottom align_left
+	$width 225
+	$height 32
+	$originx 32
+	$originy 32
+	$minvalue 0.5
+	$maxvalue 4.0
+	$markerdistance 8.0
+}
+text "AnisotropyLabel"
+{
+	$text "Texture Filtering"
+	$originx 300
+	$originy 32
+	$flags align_top align_left
+}
+list "AnisotropyList"
+{
+	$schema "indentedwindow.txt"
+	$width 225
+	$height 32
+	$originx 300
+	$originy 56
+	$rowheight 32
+	$flags align_top align_left
+}
+text "AntiAliasLabel"
+{
+	$text "Anti-Aliasing"
+	$originx 300
+	$originy 118
+	$flags align_top align_left
+}
+list "AntiAliasList"
+{
+	$schema "indentedwindow.txt"
+	$width 225
+	$height 32
+	$originx 300
+	$originy 144
+	$rowheight 32
+	$flags align_top align_left
+}
+text "VerticalSyncLabel"
+{
+	$text "Vertical Sync"
+	$originx 300
+	$originy 206
+	$flags align_top align_left
+}
+list "VerticalSyncList"
+{
+	$schema "indentedwindow.txt"
+	$width 225
+	$height 32
+	$originx 300
+	$originy 230
+	$rowheight 32
+	$flags align_top align_left
+}
+list "AdvancedTabList"
+{
+	$schema "indentedwindow.txt"
+	$height 346
+	$width 585
+	$rowheight 32
+}
+text "ScrollSurfaceOptionLabel"
+{
+	$schema "indentedwindow.txt"
+	$flags align_center_vertical
+	$originx 8
+}
+list "ScrollSurfaceOptionList"
+{
+	$schema "indentedwindow.txt"
+	$flags align_center_vertical
+	$height 24
+	$width 256
+	$rowheight 28
+}
+tab "ScrollSurfaceOptionTab"
+{
+	$schema "indentedwindow.txt"
+	$flags align_center_vertical
+	$height 24
+	$width 256
+}
+tickbox "ReverseMouseTickBox"
+{
+	$schema "defaultcheckbox.txt"
+	$originx 8
+	$originy 8
+	$width 32
+	$height 32
+	$textinset 8
+	$text "Reverse mouse"
+}
+text "ReverseMouseLabel"
+{
+	$text "Reverse mouse input on up-down axis"
+	$originx 220
+	$originy 16
+}
+tickbox "FilterMouseTickBox"
+{
+	$schema "defaultcheckbox.txt"
+	$originx 8
+	$originy 40
+	$width 32
+	$height 32
+	$textinset 8
+	$text "Mouse filter"
+}
+text "FilterMouseLabel"
+{
+	$text "Smooth out mouse movement"
+	$originx 220
+	$originy 48
+}
+tickbox "AutoAimTickBox"
+{
+	$schema "defaultcheckbox.txt"
+	$originx 8
+	$originy 72
+	$width 32
+	$height 32
+	$textinset 8
+	$text "Auto-Aim"
+}
+text "AutoAimLabel"
+{
+	$text "Aim at enemies automatically"
+	$originx 220
+	$originy 80
+}
+text "MouseSensitivityLabel"
+{
+	$flags align_left align_bottom
+	$text "Mouse sensitivity"
+	$originx 16
+	$originy 80
+}
+tab "MouseSensitivityTab"
+{
+	$schema "indentedwindow.txt"
+	$flags align_right align_bottom
+	$width 48
+	$height 32
+	$originx 64
+	$originy 32
+}
+text "MouseSensitivityText"
+{
+	$originx 10
+	$originy 8
+}
+slider "MouseSensitivitySlider"
+{
+	$schema "defaultslider.txt"
+	$flags align_bottom align_left
+	$width 400
+	$height 32
+	$originx 16
+	$originy 32
+	$minvalue 0.1
+	$maxvalue 10
+	$markerdistance 2.0
+}
+text "MouseFilterFramesLabel"
+{
+	$flags align_left align_bottom
+	$text "Mouse filter frames"
+	$originx 16
+	$originy 180
+}
+tab "MouseFilterFramesTab"
+{
+	$schema "indentedwindow.txt"
+	$flags align_right align_bottom
+	$width 48
+	$height 32
+	$originx 64
+	$originy 132
+}
+text "MouseFilterFramesText"
+{
+	$originx 14
+	$originy 8
+}
+slider "MouseFilterFramesSlider"
+{
+	$schema "defaultslider.txt"
+	$flags align_bottom align_left
+	$width 400
+	$height 32
+	$originx 16
+	$originy 132
+	$minvalue 2
+	$maxvalue 8
+	$markerdistance 5
+}
+text "MasterVolumeLabel"
+{
+	$text "Master Volume"
+	$originx 10
+	$originy 18
+}
+slider "MasterVolumeSlider"
+{
+	$schema "defaultslider.txt"
+	$flags align_top align_left
+	$width 400
+	$height 32
+	$originx 16
+	$originy 32
+	$minvalue 0.0
+	$maxvalue 1.0
+	$markerdistance 20.0
+}
+text "GameVolumeLabel"
+{
+	$text "Game Volume"
+	$originx 10
+	$originy 84
+}
+slider "GameVolumeSlider"
+{
+	$schema "defaultslider.txt"
+	$flags align_top align_left
+	$width 400
+	$height 32
+	$originx 16
+	$originy 100
+	$minvalue 0.0
+	$maxvalue 1.0
+	$markerdistance 20.0
+}
+text "MusicVolumeLabel"
+{
+	$text "Music Volume"
+	$originx 10
+	$originy 152
+}
+slider "MusicVolumeSlider"
+{
+	$schema "defaultslider.txt"
+	$flags align_top align_left
+	$width 400
+	$height 32
+	$originx 16
+	$originy 166
+	$minvalue 0.0
+	$maxvalue 1.0
+	$markerdistance 20.0
+}
+tickbox "SoundOcclusionTickBox"
+{
+	$schema "defaultcheckbox.txt"
+	$originx 8
+	$originy 220
+	$width 32
+	$height 32
+	$textinset 8
+	$text "Occlusion"
+}
+text "SoundOcclusionLabel"
+{
+	$text "Toggle occlusion dimming on sounds"
+	$originx 220
+	$originy 228
+}
+tickbox "HRTFTickBox"
+{
+	$schema "defaultcheckbox.txt"
+	$originx 8
+	$originy 252
+	$width 32
+	$height 32
+	$textinset 8
+	$text "HRTF"
+}
+text "HRTFLabel"
+{
+	$text "Toggle Head-related transfer functions"
+	$originx 220
+	$originy 260
+}
+tickbox "SubtitlesTickBox"
+{
+	$schema "defaultcheckbox.txt"
+	$originx 8
+	$originy 284
+	$width 32
+	$height 32
+	$textinset 8
+	$text "Subtitles"
+}
+text "SubtitlesLabel"
+{
+	$text "Toggle subtitles"
+	$originx 220
+	$originy 292
+}
+text "ViewBobLabel"
+{
+	$flags align_left align_top
+	$text "View bob"
+	$originx 16
+	$originy 16
+}
+tab "ViewBobTab"
+{
+	$schema "indentedwindow.txt"
+	$flags align_right align_top
+	$width 48
+	$height 32
+	$originx 64
+	$originy 32
+}
+text "ViewBobText"
+{
+	$originx 10
+	$originy 8
+}
+slider "ViewBobSlider"
+{
+	$schema "defaultslider.txt"
+	$flags align_top align_left
+	$width 400
+	$height 32
+	$originx 16
+	$originy 32
+	$minvalue 0.01
+	$maxvalue 2
+	$markerdistance 10
+}
+text "ViewRollLabel"
+{
+	$flags align_left align_top
+	$text "View roll"
+	$originx 16
+	$originy 100
+}
+tab "ViewRollTab"
+{
+	$schema "indentedwindow.txt"
+	$flags align_right align_top
+	$width 48
+	$height 32
+	$originx 64
+	$originy 122
+}
+text "ViewRollText"
+{
+	$originx 10
+	$originy 8
+}
+slider "ViewRollSlider"
+{
+	$schema "defaultslider.txt"
+	$flags align_top align_left
+	$width 400
+	$height 32
+	$originx 16
+	$originy 122
+	$minvalue 0
+	$maxvalue 6
+	$markerdistance 5
+}
+list "GameplayTabList"
+{
+	$schema "indentedwindow.txt"
+	$originy 190
+	$height 165
+	$width 585
+	$rowheight 32
+}

@@ -1,0 +1,22 @@
+//
+// State-dependent expression scripts
+//
+COMBAT_EXPRESSIONS  npc_human_combat1
+IDLE_EXPRESSIONS npc_human_idle1 npc_human_idle2 npc_human_idle3 
+COMBAT_EXPRESSIONS  npc_human_combat1
+SCARED_EXPRESSIONS npc_human_scared1 npc_human_scared2
+DEAD_EXPRESSIONS npc_human_dead1 npc_human_dead2
+
+//
+// Expressions tied to sentence scripts
+//
+
+// Harrison
+SCRIPT_EXPRESSION HA_EG09BBAC1 harrison/hr_eg09bbbc_sent1
+SCRIPT_EXPRESSION HA_EG09BBAC2 harrison/hr_eg09bbbc_sent2
+SCRIPT_EXPRESSION HA_EG09BBAC3 harrison/hr_eg09bbbc_sent3
+SCRIPT_EXPRESSION HA_EG09BBAC7 harrison/hr_eg09bbbc_sent7
+SCRIPT_EXPRESSION HA_EG09BBAC8 harrison/hr_eg09bbbc_sent8
+SCRIPT_EXPRESSION HA_EG09BBAC9 harrison/hr_eg09bbbc_sent9
+SCRIPT_EXPRESSION HA_EG09BBAC10 harrison/hr_eg09bbbc_sent10
+

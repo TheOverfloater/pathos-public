@@ -1,0 +1,51 @@
+window "NewGameWindow"
+{
+	$schema "defaultwindow.txt"
+	$title "New Game"
+	$width 500
+	$height 260
+	$insetx 10
+	$insety 10
+	$alpha 230
+	$dragger true
+	$resizable false
+	$flags fixed_height
+}
+button "CancelButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Cancel"
+	$width 96
+	$height 32
+	$flags align_bottom align_right
+}
+button "NewGameEasyButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Easy"
+	$originx 16
+	$originy 64
+	$width 96
+	$height 32
+	$flags align_top align_left
+}
+button "NewGameNormalButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Normal"
+	$originx 16
+	$originy 112
+	$width 96
+	$height 32
+	$flags align_top align_left
+}
+button "NewGameHardButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Hard"
+	$originx 16
+	$originy 160
+	$width 96
+	$height 32
+	$flags align_top align_left
+}

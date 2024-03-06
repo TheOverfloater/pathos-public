@@ -1,0 +1,7 @@
+$texture
+{
+	$nodecal
+	$additive
+	$chrome
+	$texture diffuse models/shared/glass_chrome.dds
+}

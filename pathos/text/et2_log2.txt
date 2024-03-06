@@ -1,0 +1,10 @@
+$title "Dummy Document 2"
+$titlefontset "albertus.ttf"
+$fontset "timesnewroman.ttf"
+$titlefontsize 36
+$fontsize 18
+$color 255 255 255 200
+$titlecolor 255 255 255 255
+{
+This is a generic text document for testing the Game UI text window with a custom font set and font colors.
+}

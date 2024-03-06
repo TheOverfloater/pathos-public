@@ -1,0 +1,20 @@
+$particlescript
+{
+	$shape point
+	$fade_out_delay 0.050000
+	$lifetime 0.500000
+	$lifetime_variation 0.200000
+	$primary_color 255 255 255
+	$scale 1.000000
+	$scale_variation 0.500000
+	$scale_damping -20.000000
+	$particles_on_spawn 1
+	$rendermode additive
+	$alpha 1.000000
+	$alignment tiled
+	$texture yellowflare
+	$render_flags nocull
+	$rotate_z_speed 600.000000
+	$rotate_z_variation 20.000000
+	$rotate_z_dampening 1.000000
+}

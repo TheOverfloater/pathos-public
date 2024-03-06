@@ -1,0 +1,1677 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\common">
+      <UniqueIdentifier>{14ee42b8-aaff-46b2-8158-81e5180c1573}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\common">
+      <UniqueIdentifier>{8937c397-a11b-4a69-98ee-09dedf042315}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shared">
+      <UniqueIdentifier>{08e193d5-f636-472a-811e-5db0fd505b48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\shared">
+      <UniqueIdentifier>{b209b097-477f-4edc-b9b6-b315ce2d2634}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities">
+      <UniqueIdentifier>{fb3edda6-7402-426f-b42e-cc307abb3f38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities">
+      <UniqueIdentifier>{35eefa71-d2f9-4149-8037-520a4cb50079}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\base classes">
+      <UniqueIdentifier>{dc32d4da-a83d-4fe8-8d08-f2c7aeb877f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\env">
+      <UniqueIdentifier>{b9d8aaef-5cf5-4af1-8d6c-863de1c5fc02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\func">
+      <UniqueIdentifier>{59608c01-9420-4607-b75a-918a53b97b20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\game">
+      <UniqueIdentifier>{231f9294-1ddb-4934-a63b-df86683adbaf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\info">
+      <UniqueIdentifier>{ae220dd5-4bd4-4249-873b-fda8ee2db314}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\item">
+      <UniqueIdentifier>{5e2fbfe1-110f-4570-b256-6c24c4e3dd60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\light">
+      <UniqueIdentifier>{c9f1ca2a-47b5-4ecc-a9aa-61ed1a7f699d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\trigger">
+      <UniqueIdentifier>{dece7e70-868d-4cca-9a74-a15413e4b3be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\env">
+      <UniqueIdentifier>{4ac020e8-21bc-46b3-b70a-0438a5085b38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\func">
+      <UniqueIdentifier>{422afad0-3fa5-4d24-8c6f-74e98ce85b7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\game">
+      <UniqueIdentifier>{3f5abbec-53d2-4bc8-bee4-3bd347040be1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\info">
+      <UniqueIdentifier>{a3d5af90-ed56-4294-aee7-a74a17b80de8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\item">
+      <UniqueIdentifier>{f937fc8d-666f-4b77-a301-d4de53f251bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\light">
+      <UniqueIdentifier>{b1fe7e7d-4e2a-4b74-8e0f-fd9ead552ae5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\trigger">
+      <UniqueIdentifier>{d70a53fc-34e5-4a71-8076-563da4788141}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\ambient">
+      <UniqueIdentifier>{f67f2b04-224c-44b8-aaab-f897b99e6206}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\ambient">
+      <UniqueIdentifier>{5d54fc6c-7abe-4197-a422-ff20858bcbb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\other">
+      <UniqueIdentifier>{06cab82d-8502-4326-96bc-6e9fd63d41ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\other">
+      <UniqueIdentifier>{66fc8cdc-91a1-4896-a2aa-2b36cf07bbdd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\ai">
+      <UniqueIdentifier>{46a0a61f-d6d5-46c0-81b2-e16f3ed42833}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\ai">
+      <UniqueIdentifier>{f37eeb9b-4277-4044-b1d1-b9561effc160}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\weapon">
+      <UniqueIdentifier>{2f1fcd2c-1ce3-40ac-a47e-a0381896e357}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\weapon">
+      <UniqueIdentifier>{3b8dea75-43b7-4a5d-9c07-852c345803ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\weapon\slot1">
+      <UniqueIdentifier>{f044a601-7fe9-4efb-893e-a0d59d1986f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\weapon\slot2">
+      <UniqueIdentifier>{9faffe15-913b-4a98-b0be-8c2388ca9aa7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\weapon\slot5">
+      <UniqueIdentifier>{d2d334f5-5662-42ea-a9e4-a9b114e216e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\weapon\slot1">
+      <UniqueIdentifier>{1ef9b2b1-e506-41d2-8d3e-36de5cf4d992}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\weapon\slot2">
+      <UniqueIdentifier>{f7943ebb-1335-46f4-a369-96866f41a6fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\weapon\slot5">
+      <UniqueIdentifier>{69a38e69-7ce9-42c6-8b14-84109dbfedd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\ammo">
+      <UniqueIdentifier>{415d65c9-8618-435a-b9ef-6e1758d2a89d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\ammo">
+      <UniqueIdentifier>{60c98514-a0f2-48a8-be10-9cf09d5f73a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\scripted">
+      <UniqueIdentifier>{433cbc64-b54b-43c5-9a02-398c75d8e3af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\scripted">
+      <UniqueIdentifier>{dc4f35d3-9b13-4da8-8910-104d170342f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\entities\npc">
+      <UniqueIdentifier>{ae4602d8-0b5b-4aa4-a85c-f26b86f57f42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\entities\npc">
+      <UniqueIdentifier>{153fb502-2bc2-436c-9ff2-ca6b351275ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ai">
+      <UniqueIdentifier>{3348197a-e6bc-476a-b8e3-0cf45553ab8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ai">
+      <UniqueIdentifier>{fab45123-2c20-4edd-86d1-1ca0873817ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\baseclasses">
+      <UniqueIdentifier>{7ab7a899-3b5a-4953-ab3a-ed5180623ea7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="gamedll.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\cstring.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\common.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\stepsound.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\playermove.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="entities.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\vbm_shared.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="usermsgs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nullentity.cpp">
+      <Filter>Source Files\baseclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="pointentity.cpp">
+      <Filter>Source Files\baseclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="animatingentity.cpp">
+      <Filter>Source Files\baseclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="delayentity.cpp">
+      <Filter>Source Files\baseclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="vbmutils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="skilldata.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="globalstate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="playerweapon.cpp">
+      <Filter>Source Files\baseclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="multidamage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="game.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="envblur.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envparticlesystem.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envcable.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envcubemap.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envdecal.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envdlight.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envelight.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envfog.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envladder.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envmodel.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envposworld.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envspotlight.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="funcbikeblock.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcwalltoggle.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcconveyor.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcdetail.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcfade.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcillusionary.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcmirror.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcpendulum.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcrotating.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcwall.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="gamedialouge.cpp">
+      <Filter>Source Files\entities\game</Filter>
+    </ClCompile>
+    <ClCompile Include="gameradio.cpp">
+      <Filter>Source Files\entities\game</Filter>
+    </ClCompile>
+    <ClCompile Include="infolandmark.cpp">
+      <Filter>Source Files\entities\info</Filter>
+    </ClCompile>
+    <ClCompile Include="infotarget.cpp">
+      <Filter>Source Files\entities\info</Filter>
+    </ClCompile>
+    <ClCompile Include="infolightorigin.cpp">
+      <Filter>Source Files\entities\info</Filter>
+    </ClCompile>
+    <ClCompile Include="infoplayerdeathmatch.cpp">
+      <Filter>Source Files\entities\info</Filter>
+    </ClCompile>
+    <ClCompile Include="infoplayerstart.cpp">
+      <Filter>Source Files\entities\info</Filter>
+    </ClCompile>
+    <ClCompile Include="itemmotorbike.cpp">
+      <Filter>Source Files\entities\item</Filter>
+    </ClCompile>
+    <ClCompile Include="light.cpp">
+      <Filter>Source Files\entities\light</Filter>
+    </ClCompile>
+    <ClCompile Include="lightenvironment.cpp">
+      <Filter>Source Files\entities\light</Filter>
+    </ClCompile>
+    <ClCompile Include="lightspot.cpp">
+      <Filter>Source Files\entities\light</Filter>
+    </ClCompile>
+    <ClCompile Include="nightlight.cpp">
+      <Filter>Source Files\entities\light</Filter>
+    </ClCompile>
+    <ClCompile Include="nightlightspot.cpp">
+      <Filter>Source Files\entities\light</Filter>
+    </ClCompile>
+    <ClCompile Include="triggercameramodel.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggersubwayflagger.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerforceholster.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerkeypad.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerlogin.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerslowmove.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggersound.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggersubwaycontroller.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="ambientoggstream.cpp">
+      <Filter>Source Files\entities\ambient</Filter>
+    </ClCompile>
+    <ClCompile Include="triggertextwindow.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggertoggletarget.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="worldspawn.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="envpossky.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envspritetrain.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="triggermovetrain.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerspeedup.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerzoom.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="gametitle.cpp">
+      <Filter>Source Files\entities\game</Filter>
+    </ClCompile>
+    <ClCompile Include="envrotlight.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="itemdiary.cpp">
+      <Filter>Source Files\entities\item</Filter>
+    </ClCompile>
+    <ClCompile Include="triggermove.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="envroomtype.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="triggercoderegister.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="envsetskin.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envsetbody.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envsetangles.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="triggersaveweapons.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggersetsavetitle.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="aisettriggercondition.cpp">
+      <Filter>Source Files\entities\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="funcmonitor.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="infomonitorcamera.cpp">
+      <Filter>Source Files\entities\info</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerchance.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerlookat.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggercounterp.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="aisetenemy.cpp">
+      <Filter>Source Files\entities\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="aisetfollowtarget.cpp">
+      <Filter>Source Files\entities\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerrepeat.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggertransition.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerchangelevel.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\weapons_shared.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="playerdualweapon.cpp">
+      <Filter>Source Files\baseclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="weaponknife.cpp">
+      <Filter>Source Files\entities\weapon\slot1</Filter>
+    </ClCompile>
+    <ClCompile Include="weaponglock.cpp">
+      <Filter>Source Files\entities\weapon\slot2</Filter>
+    </ClCompile>
+    <ClCompile Include="weaponhandgrenade.cpp">
+      <Filter>Source Files\entities\weapon\slot5</Filter>
+    </ClCompile>
+    <ClCompile Include="playerammo.cpp">
+      <Filter>Source Files\baseclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="ammoglockclip.cpp">
+      <Filter>Source Files\entities\ammo</Filter>
+    </ClCompile>
+    <ClCompile Include="playeritem.cpp">
+      <Filter>Source Files\baseclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="itemhealthkit.cpp">
+      <Filter>Source Files\entities\item</Filter>
+    </ClCompile>
+    <ClCompile Include="itemkevlar.cpp">
+      <Filter>Source Files\entities\item</Filter>
+    </ClCompile>
+    <ClCompile Include="itemsecurity.cpp">
+      <Filter>Source Files\entities\item</Filter>
+    </ClCompile>
+    <ClCompile Include="itemshoulderlight.cpp">
+      <Filter>Source Files\entities\item</Filter>
+    </ClCompile>
+    <ClCompile Include="ambientgeneric.cpp">
+      <Filter>Source Files\entities\ambient</Filter>
+    </ClCompile>
+    <ClCompile Include="ehandle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="envbubbles.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envglow.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envsprite.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="gib.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="gibshooter.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="envshooter.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envblood.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envshake.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envfade.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envmessage.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envfunnel.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envbeverage.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="itemsodacan.cpp">
+      <Filter>Source Files\entities\item</Filter>
+    </ClCompile>
+    <ClCompile Include="sparkshower.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="envexplosion.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envglobal.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envspark.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="multisource.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="envrender.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="playerweaponstrip.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="playerloadsaved.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="gametext.cpp">
+      <Filter>Source Files\entities\game</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerrelay.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="multimanager.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerauto.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerchangetarget.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggercamera.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="infoteleportdestination.cpp">
+      <Filter>Source Files\entities\info</Filter>
+    </ClCompile>
+    <ClCompile Include="infonull.cpp">
+      <Filter>Source Files\entities\info</Filter>
+    </ClCompile>
+    <ClCompile Include="pathcorner.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="pathtrack.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="triggeronce.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggermultiple.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggercounter.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="funcladder.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerautosave.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerendgame.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerhurt.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggergravity.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerpush.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerteleport.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="toggleentity.cpp">
+      <Filter>Source Files\baseclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerentity.cpp">
+      <Filter>Source Files\baseclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="funcdoor.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcdoorrotating.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcwater.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcbutton.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcrotbutton.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcfriction.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcbreakable.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="funcpushable.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="functracktrain.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="plattrainentity.cpp">
+      <Filter>Source Files\baseclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="funcplat.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="plattrigger.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="funcplatrot.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="functrain.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="envmodelbreakable.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="functrackchange.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="functrackautochange.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="functrackautochangerc.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="functraincontrols.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerforceclose.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="envmodeltrain.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="grenade.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="envspecialfog.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\decallist.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\flexmanager.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="statestack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nodeignorelist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="npctesthull.cpp">
+      <Filter>Source Files\entities\npc</Filter>
+    </ClCompile>
+    <ClCompile Include="infonode.cpp">
+      <Filter>Source Files\entities\info</Filter>
+    </ClCompile>
+    <ClCompile Include="infonodeair.cpp">
+      <Filter>Source Files\entities\info</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\crc32.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="funcnpcclip.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="prioritynodequeue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nodequeue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nodestack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nodeviewer.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="scriptedsequence.cpp">
+      <Filter>Source Files\entities\scripted</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_basenpc.cpp">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_sounds.cpp">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_nodegraph.cpp">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_schedule.cpp">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_schedules.cpp">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_tasks.cpp">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="scriptedsentence.cpp">
+      <Filter>Source Files\entities\scripted</Filter>
+    </ClCompile>
+    <ClCompile Include="functraincopy.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_squadnpc.cpp">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="cplane.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_talknpc.cpp">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\sentencesfile.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="aiflagtoggler.cpp">
+      <Filter>Source Files\entities\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_patrolnpc.cpp">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_wandernpc.cpp">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="aiwandercontroller.cpp">
+      <Filter>Source Files\entities\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="npcsecurity.cpp">
+      <Filter>Source Files\entities\npc</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_common.cpp">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="npcsecuritydead.cpp">
+      <Filter>Source Files\entities\npc</Filter>
+    </ClCompile>
+    <ClCompile Include="npcgeneric.cpp">
+      <Filter>Source Files\entities\npc</Filter>
+    </ClCompile>
+    <ClCompile Include="npcclonesoldier.cpp">
+      <Filter>Source Files\entities\npc</Filter>
+    </ClCompile>
+    <ClCompile Include="npcmaker.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="envsetbodygroup.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="beam.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="envlaser.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envlightning.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envbeam.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envelighttrain.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envbeamfx.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envposportal.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="funcportalsurface.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="envposportalworld.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="triggervacuum.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="envblackhole.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envparticleeffect.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerkillplayer.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="envlensflare.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envsun.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envbeamfollow.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="itemtaperecorder.cpp">
+      <Filter>Source Files\entities\item</Filter>
+    </ClCompile>
+    <ClCompile Include="player.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="timedamage.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
+    <ClCompile Include="baseentity.cpp">
+      <Filter>Source Files\baseclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="funcnull.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="itemglocksilencer.cpp">
+      <Filter>Source Files\entities\item</Filter>
+    </ClCompile>
+    <ClCompile Include="itemglockflashlight.cpp">
+      <Filter>Source Files\entities\item</Filter>
+    </ClCompile>
+    <ClCompile Include="gamesetdaystage.cpp">
+      <Filter>Source Files\entities\game</Filter>
+    </ClCompile>
+    <ClCompile Include="envsetsequence.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerparalyzeplayer.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="materialdefs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="triggernpcpull.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="envearthquake.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envdlighttrain.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="doorstatestack.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gameobjective.cpp">
+      <Filter>Source Files\entities\game</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\logfile.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="gametimer.cpp">
+      <Filter>Source Files\entities\game</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerglobaldelayed.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="skytexturesets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="envsetskytexture.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="funcslippery.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="gamedll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\carray.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\carray_inline.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\clinkedlist.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\clinkedlist_inline.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\com_math.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\com_math_inline.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\common_inline.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\cstring.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\cstring_inline.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\vector.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\vector_inline.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="entities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\common.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\trace.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\cache_model.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\contents.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\stepsound.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\playermove.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\net_shared.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\gdll_interface.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gd_includes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="baseentity.h">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="baseentity_inline.hpp">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="pointentity.h">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="nullentity.h">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="animatingentity.h">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="delayentity.h">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="vbmutils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\animevent.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\activity.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\activitymappings.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="usermsgs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="skilldata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="globalstate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\globalstate_shared.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="playerweapon.h">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\weapons_shared.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="multidamage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="game.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\brushmodel_shared.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="..\engine\brushmodel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="envblur.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envspotlight.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envdecal.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envdlight.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envelight.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envfog.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envladder.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envmodel.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envparticlesystem.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envposworld.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="funcbikeblock.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcwalltoggle.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcconveyor.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcdetail.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcfade.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcillusionary.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcmirror.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcpendulum.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcrotating.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcwall.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="gamedialouge.h">
+      <Filter>Header Files\entities\game</Filter>
+    </ClInclude>
+    <ClInclude Include="gameradio.h">
+      <Filter>Header Files\entities\game</Filter>
+    </ClInclude>
+    <ClInclude Include="infoplayerdeathmatch.h">
+      <Filter>Header Files\entities\info</Filter>
+    </ClInclude>
+    <ClInclude Include="itemmotorbike.h">
+      <Filter>Header Files\entities\item</Filter>
+    </ClInclude>
+    <ClInclude Include="lightenvironment.h">
+      <Filter>Header Files\entities\light</Filter>
+    </ClInclude>
+    <ClInclude Include="triggercameramodel.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggersubwayflagger.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerforceholster.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerkeypad.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerlogin.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerslowmove.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggersound.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggersubwaycontroller.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="ambientoggstream.h">
+      <Filter>Header Files\entities\ambient</Filter>
+    </ClInclude>
+    <ClInclude Include="triggertextwindow.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="worldspawn.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="triggertoggletarget.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="envpossky.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envspritetrain.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="triggermovetrain.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerspeedup.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerzoom.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="gametitle.h">
+      <Filter>Header Files\entities\game</Filter>
+    </ClInclude>
+    <ClInclude Include="envrotlight.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="itemdiary.h">
+      <Filter>Header Files\entities\item</Filter>
+    </ClInclude>
+    <ClInclude Include="triggermove.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="envroomtype.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="triggercoderegister.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="envsetskin.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envsetbody.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envsetangles.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="triggersaveweapons.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggersetsavetitle.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="aisettriggercondition.h">
+      <Filter>Header Files\entities\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="funcmonitor.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="infomonitorcamera.h">
+      <Filter>Header Files\entities\info</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerchance.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerlookat.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggercounterp.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="aisetenemy.h">
+      <Filter>Header Files\entities\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="aisetfollowtarget.h">
+      <Filter>Header Files\entities\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerrepeat.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggertransition.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerchangelevel.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="playerdualweapon.h">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="weaponglock.h">
+      <Filter>Header Files\entities\weapon\slot2</Filter>
+    </ClInclude>
+    <ClInclude Include="weaponknife.h">
+      <Filter>Header Files\entities\weapon\slot1</Filter>
+    </ClInclude>
+    <ClInclude Include="weaponhandgrenade.h">
+      <Filter>Header Files\entities\weapon\slot5</Filter>
+    </ClInclude>
+    <ClInclude Include="playerammo.h">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="ammoglockclip.h">
+      <Filter>Header Files\entities\ammo</Filter>
+    </ClInclude>
+    <ClInclude Include="playeritem.h">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="itemhealthkit.h">
+      <Filter>Header Files\entities\item</Filter>
+    </ClInclude>
+    <ClInclude Include="itemkevlar.h">
+      <Filter>Header Files\entities\item</Filter>
+    </ClInclude>
+    <ClInclude Include="itemsecurity.h">
+      <Filter>Header Files\entities\item</Filter>
+    </ClInclude>
+    <ClInclude Include="itemshoulderlight.h">
+      <Filter>Header Files\entities\item</Filter>
+    </ClInclude>
+    <ClInclude Include="ambientgeneric.h">
+      <Filter>Header Files\entities\ambient</Filter>
+    </ClInclude>
+    <ClInclude Include="ehandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="envbubbles.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envglow.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envsprite.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="gib.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="gibshooter.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="envshooter.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envblood.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envshake.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envfade.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envmessage.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envfunnel.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envbeverage.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="itemsodacan.h">
+      <Filter>Header Files\entities\item</Filter>
+    </ClInclude>
+    <ClInclude Include="sparkshower.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="envexplosion.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envglobal.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envspark.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="multisource.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="envrender.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="playerweaponstrip.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="playerloadsaved.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="gametext.h">
+      <Filter>Header Files\entities\game</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerrelay.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="multimanager.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerauto.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerchangetarget.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggercamera.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="pathcorner.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="pathtrack.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerentity.h">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="triggeronce.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggermultiple.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggercounter.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="funcladder.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerautosave.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerendgame.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerhurt.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggergravity.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerpush.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerteleport.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="toggleentity.h">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="funcdoor.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcdoorrotating.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcwater.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcbutton.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcrotbutton.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcfriction.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcbreakable.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcpushable.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="functracktrain.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="plattrainentity.h">
+      <Filter>Header Files\base classes</Filter>
+    </ClInclude>
+    <ClInclude Include="funcplat.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="plattrigger.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="funcplatrot.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="functrain.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="functraincopy.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="envmodelbreakable.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="functrackchange.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="functrackautochange.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="functrackautochangerc.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="functraincontrols.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerforceclose.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="envmodeltrain.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="grenade.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="envspecialfog.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="statestack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nodeignorelist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="npctesthull.h">
+      <Filter>Header Files\entities\npc</Filter>
+    </ClInclude>
+    <ClInclude Include="infonode.h">
+      <Filter>Header Files\entities\info</Filter>
+    </ClInclude>
+    <ClInclude Include="infonodeair.h">
+      <Filter>Header Files\entities\info</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\crc32.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="funcnpcclip.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="nodequeue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="prioritynodequeue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nodestack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nodeviewer.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="scriptedsequence.h">
+      <Filter>Header Files\entities\scripted</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_basenpc.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_tasks.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_nodegraph.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_schedule.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_schedule_inline.hpp">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_schedules.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_sentences.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_sounds.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="scriptedsentence.h">
+      <Filter>Header Files\entities\scripted</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_squadnpc.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="cplane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_talknpc.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\sentencesfile.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="aiflagtoggler.h">
+      <Filter>Header Files\entities\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_patrolnpc.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_wandernpc.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="aiwandercontroller.h">
+      <Filter>Header Files\entities\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="npcsecurity.h">
+      <Filter>Header Files\entities\npc</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_common.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="npcsecuritydead.h">
+      <Filter>Header Files\entities\npc</Filter>
+    </ClInclude>
+    <ClInclude Include="npcgeneric.h">
+      <Filter>Header Files\entities\npc</Filter>
+    </ClInclude>
+    <ClInclude Include="npcclonesoldier.h">
+      <Filter>Header Files\entities\npc</Filter>
+    </ClInclude>
+    <ClInclude Include="npcmaker.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="envsetbodygroup.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="beam.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="beam_inline.hpp">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="envlaser.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envlightning.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envelighttrain.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envbeamfx.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envposportal.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\portal_shared.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="funcportalsurface.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="envposportalworld.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="triggervacuum.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="envblackhole.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\blackhole_shared.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="envparticleeffect.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerkillplayer.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="envlensflare.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envsun.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envbeamfollow.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="itemtaperecorder.h">
+      <Filter>Header Files\entities\item</Filter>
+    </ClInclude>
+    <ClInclude Include="player.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="timedamage.h">
+      <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="itemglocksilencer.h">
+      <Filter>Header Files\entities\item</Filter>
+    </ClInclude>
+    <ClInclude Include="itemglockflashlight.h">
+      <Filter>Header Files\entities\item</Filter>
+    </ClInclude>
+    <ClInclude Include="gamesetdaystage.h">
+      <Filter>Header Files\entities\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\constants.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="envsetsequence.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerparalyzeplayer.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="materialdefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="triggernpcpull.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="envearthquake.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envdlighttrain.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="doorstatestack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobjective.h">
+      <Filter>Header Files\entities\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\logfile.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="gametimer.h">
+      <Filter>Header Files\entities\game</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerglobaldelayed.h">
+      <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="skytexturesets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="envsetskytexture.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="funcslippery.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

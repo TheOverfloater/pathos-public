@@ -1,0 +1,76 @@
+"ui_borders"
+{
+	"Game UI borders"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"cl_bikeroll"
+{
+	"Bike view roll on turn"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"sv_weaponholster"
+{
+	"Weapon holster animations"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"sv_holdtozoom"
+{
+	"Weapon Zoom Mode"
+	{
+		UIDropDownList
+		"Toggle" "0"
+		"Hold to Zoom" "1"
+	}
+	{ "1.000000" }
+}
+
+"sv_holdtoduck"
+{
+	"Ducking Mode"
+	{
+		UIDropDownList
+		"Toggle" "0"
+		"Hold to Duck" "1"
+	}
+	{ "0.000000" }
+}
+
+"sv_keepoldaves"
+{
+	"Keep Older Auto/Quick Saves"
+	{
+		UIDropDownList
+		"No" "0"
+		"Yes" "1"
+	}
+	{ "1.000000" }
+}
+
+"hud_usereticle"
+{
+	"Use Reticle"
+	{
+		UIDropDownList
+		"No" "0"
+		"Yes" "1"
+	}
+	{ "1.000000" }
+}

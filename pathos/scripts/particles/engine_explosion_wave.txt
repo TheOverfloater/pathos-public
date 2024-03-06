@@ -1,0 +1,14 @@
+$particlescript
+{
+	$shape point
+	$fade_out_delay 0.050000
+	$lifetime 0.500000
+	$scale 7.000000
+	$scale_damping -2005.000000
+	$particles_on_spawn 1
+	$rendermode refractive
+	$alpha 0.600000
+	$alignment tiled
+	$texture shockwave
+	$render_flags nocull
+}

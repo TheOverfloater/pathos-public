@@ -1,0 +1,15 @@
+C concrete
+M metal
+D dirt
+V vent
+G grate
+T tile
+S slosh
+W wood
+P computer
+Y glass
+F flesh
+S snow
+R rug
+N organic
+A gravel

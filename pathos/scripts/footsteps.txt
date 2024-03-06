@@ -1,0 +1,195 @@
+"default"
+{
+	type default
+	right {
+		"player/pl_step1.wav"
+		"player/pl_step3.wav"
+	}
+	left
+	{
+		"player/pl_step2.wav"
+		"player/pl_step4.wav"
+	}
+}
+"default"
+{
+	type shoes
+	right {
+		"common/npc_step1.wav"
+		"common/npc_step3.wav"
+	}
+	left
+	{
+		"common/npc_step2.wav"
+		"common/npc_step4.wav"
+	}
+}
+"metal"
+{
+	right {
+		"player/pl_metal1.wav"
+		"player/pl_metal3.wav"
+	}
+	left
+	{
+		"player/pl_metal2.wav"
+		"player/pl_metal4.wav"
+	}
+}
+"dirt"
+{
+	right {
+		"player/pl_dirt1.wav"
+		"player/pl_dirt3.wav"
+	}
+	left
+	{
+		"player/pl_dirt2.wav"
+		"player/pl_dirt4.wav"
+	}
+}
+"vent"
+{
+	right {
+		"player/pl_duct1.wav"
+		"player/pl_duct3.wav"
+	}
+	left
+	{
+		"player/pl_duct2.wav"
+		"player/pl_duct4.wav"
+	}
+}
+"grate"
+{
+	right {
+		"player/pl_grate1.wav"
+		"player/pl_grate3.wav"
+	}
+	left
+	{
+		"player/pl_grate2.wav"
+		"player/pl_grate4.wav"
+	}
+}
+"tile"
+{
+	right {
+		"player/pl_tile1.wav"
+		"player/pl_tile3.wav"
+	}
+	left
+	{
+		"player/pl_tile2.wav"
+		"player/pl_tile4.wav"
+		"player/pl_tile5.wav"
+	}
+}
+"slosh"
+{
+	right {
+		"player/pl_slosh1.wav"
+		"player/pl_slosh3.wav"
+	}
+	left
+	{
+		"player/pl_slosh2.wav"
+		"player/pl_slosh4.wav"
+	}
+}
+"wade"
+{
+	right {
+		"player/pl_wade1.wav"
+		"player/pl_wade3.wav"
+	}
+	left
+	{
+		"player/pl_wade2.wav"
+		"player/pl_wade4.wav"
+	}
+}
+"ladder"
+{
+	right {
+		"player/pl_ladder1.wav"
+		"player/pl_ladder3.wav"
+	}
+	left
+	{
+		"player/pl_ladder2.wav"
+		"player/pl_ladder4.wav"
+	}
+}
+"snow"
+{
+	right {
+		"player/pl_snow1.wav"
+		"player/pl_snow3.wav"
+	}
+	left
+	{
+		"player/pl_snow2.wav"
+		"player/pl_snow4.wav"
+	}
+}
+"organic"
+{
+	right {
+		"player/pl_organic1.wav"
+		"player/pl_organic3.wav"
+	}
+	left
+	{
+		"player/pl_organic2.wav"
+		"player/pl_organic4.wav"
+	}
+}
+"rug"
+{
+	right {
+		"player/pl_rug1.wav"
+		"player/pl_rug3.wav"
+	}
+	left
+	{
+		"player/pl_rug2.wav"
+		"player/pl_rug4.wav"
+	}
+}
+"gravel"
+{
+	right {
+		"player/pl_gravel1.wav"
+		"player/pl_gravel3.wav"
+	}
+	left
+	{
+		"player/pl_gravel2.wav"
+		"player/pl_gravel4.wav"
+	}
+}
+"glass"
+{
+	right {
+		"player/pl_glass1.wav"
+		"player/pl_glass3.wav"
+	}
+	left
+	{
+		"player/pl_glass2.wav"
+		"player/pl_glass4.wav"
+	}
+}
+"wood"
+{
+	right {
+		"player/pl_wood1.wav"
+		"player/pl_wood1.wav"
+	}
+	left
+	{
+		"player/pl_wood2.wav"
+		"player/pl_wood4.wav"
+	}
+}

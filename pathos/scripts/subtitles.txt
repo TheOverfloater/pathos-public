@@ -1,0 +1,9 @@
+testradio1
+{
+Robotnik: Hello, you are listening to a radio message.
+}
+
+testdialouge1
+{
+Boss Nass: This is a piece of test dialouge.
+}

@@ -1,0 +1,169 @@
+{
+	{
+		name eyes_wide
+		{
+			time 0.000000
+			strength 1.000000
+		}
+		{
+			time 2.900000
+			strength 0.490000
+		}
+		{
+			time 5.100000
+			strength 0.910000
+		}
+		{
+			time 7.500000
+			strength 0.910000
+		}
+		{
+			time 8.400000
+			strength 0.510000
+		}
+		{
+			time 10.000000
+			strength 1.000000
+		}
+	}
+	{
+		name frown
+		{
+			time 0.000000
+			strength 0.590000
+		}
+		{
+			time 1.000000
+			strength 0.530000
+		}
+		{
+			time 3.800000
+			strength 0.830000
+		}
+		{
+			time 6.600000
+			strength 0.690000
+		}
+		{
+			time 10.000000
+			strength 0.450000
+		}
+	}
+	{
+		name lip_raiser
+		{
+			time 0.000000
+			strength 0.290000
+		}
+		{
+			time 4.500000
+			strength 0.000000
+		}
+		{
+			time 6.000000
+			strength 0.000000
+		}
+		{
+			time 10.000000
+			strength 0.290000
+		}
+	}
+	{
+		name mouth_open
+		{
+			time 0.000000
+			strength 0.160000
+		}
+		{
+			time 1.800000
+			strength 0.390000
+		}
+		{
+			time 2.300000
+			strength 0.000000
+		}
+		{
+			time 2.700000
+			strength 0.200000
+		}
+		{
+			time 2.800000
+			strength 0.000000
+		}
+		{
+			time 2.900000
+			strength 0.130000
+		}
+		{
+			time 4.900000
+			strength 0.100000
+		}
+		{
+			time 5.100000
+			strength 0.000000
+		}
+		{
+			time 5.200000
+			strength 0.170000
+		}
+		{
+			time 5.300000
+			strength 0.000000
+		}
+		{
+			time 5.800000
+			strength 0.130000
+		}
+		{
+			time 6.000000
+			strength 0.000000
+		}
+		{
+			time 7.600000
+			strength 0.000000
+		}
+		{
+			time 8.900000
+			strength 0.360000
+		}
+		{
+			time 10.000000
+			strength 0.180000
+		}
+	}
+	{
+		name inner_brow_raiser
+		{
+			time 0.000000
+			strength 0.140000
+		}
+		{
+			time 1.000000
+			strength 0.690000
+		}
+		{
+			time 3.200000
+			strength 0.870000
+		}
+		{
+			time 4.600000
+			strength 0.200000
+		}
+		{
+			time 6.800000
+			strength 0.400000
+		}
+		{
+			time 7.300000
+			strength 0.750000
+		}
+		{
+			time 9.300000
+			strength 0.750000
+		}
+		{
+			time 10.000000
+			strength 0.120000
+		}
+	}
+}

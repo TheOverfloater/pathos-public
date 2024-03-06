@@ -1,0 +1,5 @@
+$texture
+{
+	$chrome
+	$texture diffuse models/emergency_light/chrome1.tga
+}

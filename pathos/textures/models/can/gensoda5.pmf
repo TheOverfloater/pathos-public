@@ -1,0 +1,4 @@
+$texture
+{
+	$texture diffuse models/can/gensoda5.tga
+}

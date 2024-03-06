@@ -1,0 +1,69 @@
+Bottom
+{
+	$default	"btnStdBottom.tga"
+	$clicked	"btnClickedBottom.tga"
+}
+BottomLeft
+{
+	$default	"btnStdBottomLeft.tga"
+	$clicked	"btnClickedBottomLeft.tga"
+}
+BottomRight
+{
+	$default	"btnStdBottomRight.tga"
+	$clicked	"btnClickedBottomRight.tga"
+}
+Left
+{
+	$default	"btnStdLeft.tga"
+	$clicked	"btnClickedLeft.tga"
+}
+Right
+{
+	$default	"btnStdRight.tga"
+	$clicked	"btnClickedRight.tga"
+}
+Top
+{
+	$default	"btnStdTop.tga"
+	$clicked	"btnClickedTop.tga"
+}
+TopLeft
+{
+	$default	"btnStdTopLeft.tga"
+	$clicked	"btnClickedTopLeft.tga"
+}
+TopRight
+{
+	$default	"btnStdTopRight.tga"
+	$clicked	"btnClickedTopRight.tga"
+}
+Body
+{
+	$default	"btnStdBody.tga"
+	$clicked	"btnClickedBody.tga"
+}
+ScrollerBase
+{
+	$default	"textTabBody.tga"
+}
+ArrowDown
+{
+	$default	"arrowDownStd.tga"
+	$focus		"arrowDownFocus.tga"
+}
+ArrowUp
+{
+	$default	"arrowUpStd.tga"
+	$focus		"arrowUpFocus.tga"
+}
+ArrowRight
+{
+	$default	"arrowRightStd.tga"
+	$focus		"arrowRightFocus.tga"
+}
+ArrowLeft
+{
+	$default	"arrowLeftStd.tga"
+	$focus		"arrowLeftFocus.tga"
+}

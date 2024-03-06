@@ -1,0 +1,8 @@
+$texture
+{
+	$int_width 128
+	$int_height 128
+	$container pathos.wad
+	$material concrete
+	$texture diffuse mo_fan1
+}

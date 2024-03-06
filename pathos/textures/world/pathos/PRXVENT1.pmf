@@ -1,0 +1,8 @@
+$texture
+{
+	$int_width 32
+	$int_height 32
+	$container pathos.wad
+	$material concrete
+	$texture diffuse prxvent1
+}

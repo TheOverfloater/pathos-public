@@ -1,0 +1,31 @@
+$particlescript
+{
+	$shape box
+	$system_size 102.000000
+	$min_velocity 600.000000
+	$max_velocity 1000.000000
+	$max_offset 15.000000
+	$fade_in_time 0.200000
+	$fade_out_delay 2.000000
+	$lifetime 3.000000
+	$flags softoff
+	$primary_color 255 255 255
+	$scale 65.000000
+	$scale_variation 10.000000
+	$scale_damping 70.000000
+	$max_particles -1
+	$particle_frequency 300.000000
+	$soft_turnoff_duration 10.000000
+	$gravity 0.010000
+	$rendermode additive
+	$alpha 0.080000
+	$alignment tiled
+	$texture clouds
+	$rotate_z_speed 60.000000
+	$rotate_z_dampening 0.001000
+	$fade_near_distance 8
+	$fade_far_distance 64
+	$frame_width 128
+	$frame_height 128
+	$num_frames 16
+}

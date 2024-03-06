@@ -1,0 +1,24 @@
+{
+	{
+		name blink
+		{
+			time 0.000000
+			strength 1.000000
+		}
+		{
+			time 1.000000
+			strength 1.000000
+		}
+	}
+	{
+		name mouth_open
+		{
+			time 0.000000
+			strength 0.200000
+		}
+		{
+			time 1.000000
+			strength 0.200000
+		}
+	}
+}

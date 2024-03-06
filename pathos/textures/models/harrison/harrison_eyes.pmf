@@ -1,0 +1,7 @@
+$texture
+{
+	$nodecal
+	$nomipmaps
+	$eyeglint
+	$texture diffuse models/harrison/harrison_eyes.dds
+}

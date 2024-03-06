@@ -1,0 +1,37 @@
+Bottom
+{
+	$default	"progressTabBottom.tga"
+}
+BottomLeft
+{
+	$default	"progressTabBottomLeft.tga"
+}
+BottomRight
+{
+	$default	"progressTabBottomRight.tga"
+}
+Left
+{
+	$default	"progressTabRight.tga"
+}
+Right
+{
+	$default	"progressTabLeft.tga"
+}
+Top
+{
+	$default	"progressTabTop.tga"
+}
+TopLeft
+{
+	$default	"progressTabTopLeft.tga"
+}
+TopRight
+{
+	$default	"progressTabTopRight.tga"
+}
+Body
+{
+	$default	"progressTabBody.tga"
+}
+

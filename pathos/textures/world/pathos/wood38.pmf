@@ -1,0 +1,8 @@
+$texture
+{
+	$int_width 64
+	$int_height 128
+	$container pathos.wad
+	$material wood
+	$texture diffuse wood38
+}

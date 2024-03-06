@@ -1,0 +1,23 @@
+$particlescript
+{
+	$shape point
+	$min_velocity 130.000000
+	$max_velocity 320.000000
+	$max_offset 120.000000
+	$fade_out_delay 4.000000
+	$lifetime 5.000000
+	$lifetime_variation 1.000000
+	$scale 2.100000
+	$scale_variation 0.500000
+	$particles_on_spawn 3
+	$lighting normal
+	$collision bounce
+	$gravity 1.820000
+	$impact_velocity_dampening 0.300000
+	$rendermode alphablend
+	$alpha 1.000000
+	$alignment tiled
+	$texture fleck_cement2
+	$render_flags nocull
+	$rotate_z_speed 80.000000
+}

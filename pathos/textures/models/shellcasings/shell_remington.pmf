@@ -1,0 +1,5 @@
+$texture
+{
+	$alphatest
+	$texture diffuse models/shellcasings/shell_remington.tga
+}

@@ -1,0 +1,8 @@
+$clusterscript
+{
+	$script engine_blood_drops1.txt
+	$script engine_blood_drops2.txt
+	$script engine_gib_core_explode.txt
+	$script engine_gib_explode_heat.txt
+	$script engine_gib_clouds_explode.txt
+}

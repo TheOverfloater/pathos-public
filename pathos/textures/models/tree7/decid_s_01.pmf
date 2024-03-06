@@ -1,0 +1,6 @@
+$texture
+{
+	$alphatest
+	$nodecal
+	$texture diffuse models/tree7/decid_s_01.tga
+}

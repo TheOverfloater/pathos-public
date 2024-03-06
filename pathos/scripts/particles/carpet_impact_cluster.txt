@@ -1,0 +1,5 @@
+$clusterscript
+{
+	$script engine_carpet_flecks.txt
+	$script engine_carpet_cloud.txt
+}

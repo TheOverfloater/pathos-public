@@ -1,0 +1,21 @@
+$particlescript
+{
+	$shape box
+	$system_size 200.000000
+	$fade_in_time 1.000000
+	$lifetime -1.000000
+	$primary_color 255 255 255
+	$scale 4.000000
+	$scale_variation 2.000000
+	$max_particles -1
+	$particle_frequency 16.000000
+	$collision create_system
+	$collision_flags precise collide_water
+	$gravity 1.000000
+	$create rain_splashes1.txt
+	$create_on_water_impact ripples_box.txt
+	$rendermode additive
+	$alpha 1.000000
+	$alignment parallel
+	$texture rain
+}

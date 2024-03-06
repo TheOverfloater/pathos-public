@@ -1,0 +1,25 @@
+$particlescript
+{
+	$shape point
+	$min_velocity 20.000000
+	$max_velocity 40.000000
+	$max_offset 5.000000
+	$lifetime 6.000000
+	$lifetime_variation 3.000000
+	$primary_color 0 0 255
+	$scale 1.000000
+	$scale_variation 0.500000
+	$scale_damping -2.000000
+	$max_particles -1
+	$particle_frequency 0.500000
+	$create angel.txt
+	$create_on_death puff.txt
+	$rendermode additive
+	$alpha 1.000000
+	$alignment tiled
+	$texture redflare
+	$render_flags overbright
+	$rotate_z_speed 80.000000
+	$rotate_z_dampening 0.001000
+	$tracer_distance 0.100000
+}

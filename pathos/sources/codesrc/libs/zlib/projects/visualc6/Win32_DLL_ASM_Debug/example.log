@@ -1,0 +1,56 @@
+﻿Build started 7/9/2023 11:18:38 AM.
+     1>Project "D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\example.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating ".\Win32_DLL_ASM_Debug\example.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         E:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _VC80_UPGRADE=0x0600 /Gm /EHsc /RTC1 /MDd /GS /Gy- /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\Win32_DLL_ASM_Debug\\" /Fd".\Win32_DLL_ASM_Debug\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt ..\..\example.c
+         example.c
+     1>d:\games\reckoning\reckon\sources\codesrc\libs\zlib\example.c(69): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>d:\games\reckoning\reckon\sources\codesrc\libs\zlib\example.c(120): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>d:\games\reckoning\reckon\sources\codesrc\libs\zlib\example.c(214): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>d:\games\reckoning\reckon\sources\codesrc\libs\zlib\example.c(310): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>d:\games\reckoning\reckon\sources\codesrc\libs\zlib\example.c(389): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>d:\games\reckoning\reckon\sources\codesrc\libs\zlib\example.c(470): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 e:\program files (x86)\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+       ManifestResourceCompile:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /nologo /fo".\Win32_DLL_ASM_Debug\example.exe.embed.manifest.res" .\Win32_DLL_ASM_Debug\example_manifest.rc 
+       Link:
+         E:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\Win32_DLL_ASM_Debug\example.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:".\Win32_DLL_ASM_Debug\example.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\Win32_DLL_ASM_Debug\example.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\Win32_DLL_ASM_Debug\example.lib" /MACHINE:X86 .\Win32_DLL_ASM_Debug\example.exe.embed.manifest.res
+         .\Win32_DLL_ASM_Debug\example.obj
+     1>example.obj : error LNK2019: unresolved external symbol _uncompress referenced in function _test_compress
+     1>example.obj : error LNK2019: unresolved external symbol _compress referenced in function _test_compress
+     1>example.obj : error LNK2019: unresolved external symbol _gzgets referenced in function _test_gzio
+     1>example.obj : error LNK2019: unresolved external symbol _gzungetc referenced in function _test_gzio
+     1>example.obj : error LNK2019: unresolved external symbol _gzgetc referenced in function _test_gzio
+     1>example.obj : error LNK2019: unresolved external symbol _gztell referenced in function _test_gzio
+     1>example.obj : error LNK2019: unresolved external symbol _gzread referenced in function _test_gzio
+     1>example.obj : error LNK2019: unresolved external symbol _gzclose referenced in function _test_gzio
+     1>example.obj : error LNK2019: unresolved external symbol _gzseek referenced in function _test_gzio
+     1>example.obj : error LNK2019: unresolved external symbol _gzprintf referenced in function _test_gzio
+     1>example.obj : error LNK2019: unresolved external symbol _gzerror referenced in function _test_gzio
+     1>example.obj : error LNK2019: unresolved external symbol _gzputs referenced in function _test_gzio
+     1>example.obj : error LNK2019: unresolved external symbol _gzputc referenced in function _test_gzio
+     1>example.obj : error LNK2019: unresolved external symbol _gzopen referenced in function _test_gzio
+     1>example.obj : error LNK2019: unresolved external symbol _deflateEnd referenced in function _test_deflate
+     1>example.obj : error LNK2019: unresolved external symbol _deflate referenced in function _test_deflate
+     1>example.obj : error LNK2019: unresolved external symbol _deflateInit_ referenced in function _test_deflate
+     1>example.obj : error LNK2019: unresolved external symbol _inflateEnd referenced in function _test_inflate
+     1>example.obj : error LNK2019: unresolved external symbol _inflate referenced in function _test_inflate
+     1>example.obj : error LNK2019: unresolved external symbol _inflateInit_ referenced in function _test_inflate
+     1>example.obj : error LNK2019: unresolved external symbol _deflateParams referenced in function _test_large_deflate
+     1>example.obj : error LNK2019: unresolved external symbol _inflateSync referenced in function _test_sync
+     1>example.obj : error LNK2019: unresolved external symbol _deflateSetDictionary referenced in function _test_dict_deflate
+     1>example.obj : error LNK2019: unresolved external symbol _inflateSetDictionary referenced in function _test_dict_inflate
+     1>example.obj : error LNK2019: unresolved external symbol _zlibCompileFlags referenced in function _main
+     1>example.obj : error LNK2019: unresolved external symbol _zlibVersion referenced in function _main
+     1>.\Win32_DLL_ASM_Debug\example.exe : fatal error LNK1120: 26 unresolved externals
+     1>Done Building Project "D:\Games\Reckoning\reckon\sources\codesrc\libs\zlib\projects\visualc6\example.vcxproj" (build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:00.47

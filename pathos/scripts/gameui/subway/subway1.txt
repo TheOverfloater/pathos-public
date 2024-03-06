@@ -1,0 +1,60 @@
+$title "Select a subway destination"
+$defaultdescription
+{
+	Welcome to the Subway Operator System, Version: 4.2.
+	Please choose a destination.
+}
+$button destination1
+{
+	$buttontext "Bergen St."
+	$destinationid "bergen"
+	$description
+	{
+		Redacted.
+	}
+}
+$button destination2
+{
+	$buttontext "I. B. Mann St."
+	$destinationid "ibmann"
+	$description
+	{
+		Redacted.
+	}
+}
+$button destination3
+{
+	$buttontext "Marshall St."
+	$destinationid "marshall"
+	$description
+	{
+		Redacted.
+	}
+}
+$button destination4
+{
+	$buttontext "Eckhart St."
+	$destinationid "eckhart"
+	$description
+	{
+		Redacted.
+	}
+}
+$button unavailable
+{
+	$buttontext "MISSING PROTOCOL CARD"
+	$description
+	{
+		ERROR! Access card is missing!
+		Please insert the keycard with the correct protocols!
+	}
+}
+$button disabled
+{
+	$buttontext "DISABLED"
+	$description
+	{
+		This subway train was disabled using administrator access.
+		Please ask your administrator to re-enable it.
+	}
+}
