@@ -110,14 +110,14 @@
       <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;4018;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>user32.lib;opengl32.lib;glu32.lib;shell32.lib;gdi32.lib;..\Win32\Debug\SDL2.lib;..\Win32\Debug\SDL2Main.lib;..\Win32\Debug\freetype253_D.lib;..\libs\enet\enet.lib;..\libs\openal\libs\Win32\openal32.lib;..\libs\detours\lib.X86\detours.lib;..\libs\libogg\lib\Win32\Debug\ogg.lib;..\libs\libvorbis\lib\Win32\Debug\libvorbis.lib;winmm.lib;ws2_32.lib;gdiplus.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>user32.lib;opengl32.lib;glu32.lib;shell32.lib;gdi32.lib;..\Win32\Debug\SDL2.lib;..\Win32\Debug\SDL2Main.lib;..\libs\freetype\objs\Win32\vc2010\freetype253_D.lib;..\libs\enet\enet.lib;..\libs\openal\libs\Win32\openal32.lib;..\libs\detours\lib.X86\detours.lib;..\libs\libogg\lib\Win32\Debug\ogg.lib;..\libs\libvorbis\lib\Win32\Debug\libvorbis.lib;winmm.lib;ws2_32.lib;gdiplus.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalLibraryDirectories>C:\Program Files (x86)\Visual Leak Detector\lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
-      <DelayLoadDLLs>OpenAL32.dll;SDL2.dll;soft_oal.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>OpenAL32.dll;SDL2.dll;</DelayLoadDLLs>
       <AdditionalOptions>/DELAYLOAD:"OpenAL32.dll" %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
