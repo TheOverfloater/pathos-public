@@ -1,0 +1,600 @@
+Microsoft (R) Macro Assembler (x64) Version 10.00.30319.01  10/22/20 19:31:52
+x64.asm							     Page 1 - 1
+
+
+				;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+				;;
+				;;  Detours Test Program (x64.asm/disas.exe)
+				;;
+				;;  Microsoft Research Detours Package
+				;;
+				;;  Copyright (c) Microsoft Corporation.  All rights reserved.
+				;;
+				
+				.xlist
+				.list
+ 00000000			.code
+				
+				PUBLIC  TestCodes
+				
+ 00000000			_TEXT   SEGMENT
+				
+ 00000000			TestCodes   PROC
+				
+ 00000000			begin:
+ 00000000			faraway:
+ 00000000  CC			        int 3
+ 00000001  90			        nop
+ 00000002  CC			        int 3
+ 00000003  66 90		        db      066h,090h ; // 2-byte NOP.
+ 00000005  CC			        int 3
+ 00000006  0F 1F 00		        db      00fh, 01fh, 000h ; // 3-byte NOP.
+ 00000009  CC			        int 3
+ 0000000A  0F 1F 40 00		        db      00fh, 01fh, 040h, 000h ; // 4-byte NOP.
+ 0000000E  CC			        int 3
+ 0000000F  0F 1F 44 00 00	        db      00fh, 01fh, 044h, 000h, 000h ; // 5-byte NOP.
+ 00000014  CC			        int 3
+ 00000015  66 0F 1F 44 00	        db      066h, 00fh, 01fh, 044h, 000h, 000h ; // 6-byte NOP.
+	   00
+ 0000001B  CC			        int 3
+ 0000001C  0F 1F 80 00 00	        db      00fh, 01fh, 080h, 000h, 000h, 000h, 000h ; // 7-byte NOP.
+	   00 00
+ 00000023  CC			        int 3
+ 00000024  0F 1F 84 00 00	        db      00fh, 01fh, 084h, 000h, 000h, 000h, 000h, 000h ; // 8-byte NOP.
+	   00 00 00
+ 0000002C  CC			        int 3
+ 0000002D  66 0F 1F 84 00	        db      066h, 00fh, 01fh, 084h, 000h, 000h, 000h, 000h, 000h ; // 9-byte NOP.
+	   00 00 00 00
+ 00000036  CC			        int 3
+ 00000037  44/ 0F 20 C0		        mov     rax, cr8
+ 0000003B  CC			        int 3
+ 0000003C  44/ 0F 20 C1		        mov     rcx, cr8
+ 00000040  CC			        int 3
+ 00000041  44/ 0F 20 C2		        mov     rdx, cr8
+ 00000045  CC			        int 3
+ 00000046  44/ 0F 20 C3		        mov     rbx, cr8
+ 0000004A  CC			        int 3
+ 0000004B  44/ 0F 20 C4		        mov     rsp, cr8
+ 0000004F  CC			        int 3
+ 00000050  44/ 0F 20 C5		        mov     rbp, cr8
+ 00000054  CC			        int 3
+ 00000055  44/ 0F 20 C6		        mov     rsi, cr8
+ 00000059  CC			        int 3
+ 0000005A  44/ 0F 20 C7		        mov     rdi, cr8
+ 0000005E  CC			        int 3
+ 0000005F  45/ 0F 20 C0		        mov     r8, cr8
+ 00000063  CC			        int 3
+ 00000064  45/ 0F 20 C1		        mov     r9, cr8
+ 00000068  CC			        int 3
+ 00000069  45/ 0F 20 C2		        mov     r10, cr8
+ 0000006D  CC			        int 3
+ 0000006E  45/ 0F 20 C3		        mov     r11, cr8
+ 00000072  CC			        int 3
+ 00000073  45/ 0F 20 C4		        mov     r12, cr8
+ 00000077  CC			        int 3
+ 00000078  45/ 0F 20 C5		        mov     r13, cr8
+ 0000007C  CC			        int 3
+ 0000007D  45/ 0F 20 C6		        mov     r14, cr8
+ 00000081  CC			        int 3
+ 00000082  45/ 0F 20 C7		        mov     r15, cr8
+ 00000086  CC			        int 3
+ 00000087  44/ 0F 22 C0		        mov     cr8, rax
+ 0000008B  CC			        int 3
+ 0000008C  44/ 0F 22 C1		        mov     cr8, rcx
+ 00000090  CC			        int 3
+ 00000091  44/ 0F 22 C2		        mov     cr8, rdx
+ 00000095  CC			        int 3
+ 00000096  44/ 0F 22 C3		        mov     cr8, rbx
+ 0000009A  CC			        int 3
+ 0000009B  44/ 0F 22 C4		        mov     cr8, rsp
+ 0000009F  CC			        int 3
+ 000000A0  44/ 0F 22 C5		        mov     cr8, rbp
+ 000000A4  CC			        int 3
+ 000000A5  44/ 0F 22 C6		        mov     cr8, rsi
+ 000000A9  CC			        int 3
+ 000000AA  44/ 0F 22 C7		        mov     cr8, rdi
+ 000000AE  CC			        int 3
+ 000000AF  45/ 0F 22 C0		        mov     cr8, r8
+ 000000B3  CC			        int 3
+ 000000B4  45/ 0F 22 C1		        mov     cr8, r9
+ 000000B8  CC			        int 3
+ 000000B9  45/ 0F 22 C2		        mov     cr8, r10
+ 000000BD  CC			        int 3
+ 000000BE  45/ 0F 22 C3		        mov     cr8, r11
+ 000000C2  CC			        int 3
+ 000000C3  45/ 0F 22 C4		        mov     cr8, r12
+ 000000C7  CC			        int 3
+ 000000C8  45/ 0F 22 C5		        mov     cr8, r13
+ 000000CC  CC			        int 3
+ 000000CD  45/ 0F 22 C6		        mov     cr8, r14
+ 000000D1  CC			        int 3
+ 000000D2  45/ 0F 22 C7		        mov     cr8, r15
+ 000000D6  CC			        int 3
+ 000000D7  48/ 33 C0		        xor     rax, rax
+ 000000DA  CC			        int 3
+ 000000DB  48/ 33 C9		        xor     rcx, rcx
+ 000000DE  CC			        int 3
+ 000000DF  48/ 33 D2		        xor     rdx, rdx
+ 000000E2  CC			        int 3
+ 000000E3  48/ 33 DB		        xor     rbx, rbx
+ 000000E6  CC			        int 3
+ 000000E7  48/ 33 E4		        xor     rsp, rsp
+ 000000EA  CC			        int 3
+ 000000EB  48/ 33 ED		        xor     rbp, rbp
+ 000000EE  CC			        int 3
+ 000000EF  48/ 33 F6		        xor     rsi, rsi
+ 000000F2  CC			        int 3
+ 000000F3  48/ 33 FF		        xor     rdi, rdi
+ 000000F6  CC			        int 3
+ 000000F7  4D/ 33 C0		        xor     r8, r8
+ 000000FA  CC			        int 3
+ 000000FB  4D/ 33 C9		        xor     r9, r9
+ 000000FE  CC			        int 3
+ 000000FF  4D/ 33 D2		        xor     r10, r10
+ 00000102  CC			        int 3
+ 00000103  4D/ 33 DB		        xor     r11, r11
+ 00000106  CC			        int 3
+ 00000107  4D/ 33 E4		        xor     r12, r12
+ 0000010A  CC			        int 3
+ 0000010B  4D/ 33 ED		        xor     r13, r13
+ 0000010E  CC			        int 3
+ 0000010F  4D/ 33 F6		        xor     r14, r14
+ 00000112  CC			        int 3
+ 00000113  4D/ 33 FF		        xor     r15, r15
+ 00000116  CC			        int 3
+ 00000117  FF E0		        jmp     rax
+ 00000119  CC			        int 3
+ 0000011A  FF E3		        jmp     rbx
+ 0000011C  CC			        int 3
+ 0000011D  FF E1		        jmp     rcx
+ 0000011F  CC			        int 3
+ 00000120  FF E2		        jmp     rdx
+ 00000122  CC			        int 3
+ 00000123  50			        push    rax
+ 00000124  CC			        int 3
+ 00000125  53			        push    rbx
+ 00000126  CC			        int 3
+ 00000127  51			        push    rcx
+ 00000128  CC			        int 3
+ 00000129  52			        push    rdx
+ 0000012A  CC			        int 3
+ 0000012B  6A 00		        push    0
+ 0000012D  CC			        int 3
+ 0000012E  58			        pop     rax
+ 0000012F  CC			        int 3
+ 00000130  5B			        pop     rbx
+ 00000131  CC			        int 3
+ 00000132  59			        pop     rcx
+ 00000133  CC			        int 3
+ 00000134  5A			        pop     rdx
+ 00000135  CC			        int 3
+ 00000136  48/ 8B 05		        mov     rax,[value]
+	   000004DB R
+ 0000013D  CC			        int 3
+ 0000013E  48/ 81 EC		        sub     rsp,0418h
+	   00000418
+ 00000145  CC			        int 3
+ 00000146  48/ 89 9C 24		        mov     [rsp+0410h],rbx
+	   00000410
+ 0000014E  CC			        int 3
+ 0000014F  48/ 89 B4 24		        mov     [rsp+0408h],rsi
+	   00000408
+ 00000157  CC			        int 3
+ 00000158  48/ 89 BC 24		        mov     [rsp+0400h],rdi
+	   00000400
+ 00000160  CC			        int 3
+ 00000161  4C/ 89 A4 24		        mov     [rsp+03f8h],r12
+	   000003F8
+ 00000169  CC			        int 3
+ 0000016A  4C/ 89 AC 24		        mov     [rsp+03f0h],r13
+	   000003F0
+ 00000172  CC			        int 3
+ 00000173  4C/ 89 B4 24		        mov     [rsp+03e8h],r14
+	   000003E8
+ 0000017B  CC			        int 3
+ 0000017C  4C/ 89 BC 24		        mov     [rsp+03e0h],r15
+	   000003E0
+ 00000184  CC			        int 3
+ 00000185  00 00		        add     [rax],al                                ; 0000
+ 00000187  CC			        int 3
+ 00000188  00 01		        add     [rcx],al                                ; 0001
+ 0000018A  CC			        int 3
+ 0000018B  00 03		        add     [rbx],al                                ; 0003
+ 0000018D  CC			        int 3
+ 0000018E  00 04 00		        add     [rax+rax],al                            ; 000400
+ 00000191  CC			        int 3
+ 00000192  00 07		        add     [rdi],al                                ; 0007
+ 00000194  CC			        int 3
+ 00000195  00 08		        add     [rax],cl                                ; 0008
+ 00000197  CC			        int 3
+ 00000198  00 0F		        add     [rdi],cl                                ; 000f
+ 0000019A  CC			        int 3
+ 0000019B  00 10		        add     [rax],dl                                ; 0010
+ 0000019D  CC			        int 3
+ 0000019E  00 1F		        add     [rdi],bl                                ; 001f
+ 000001A0  CC			        int 3
+ 000001A1  00 20		        add     [rax],ah                                ; 0020
+ 000001A3  CC			        int 3
+ 000001A4  00 3F		        add     [rdi],bh                                ; 003f
+ 000001A6  CC			        int 3
+ 000001A7  00 48 3B		        add     [rax+03bh],cl                           ; 00483b
+ 000001AA  CC			        int 3
+ 000001AB  00 3F		        add     [rdi],bh                                ; 007f00
+ 000001AD  CC			        int 3
+ 000001AE  00 80 40000000	        add     [rax+040000000h],al                     ; 008000000040
+ 000001B4  CC			        int 3
+ 000001B5  02 FF		        add     bh,bh                                   ; 00ff
+ 000001B7  CC			        int 3
+ 000001B8  01 00		        add     [rax],eax                               ; 0100
+ 000001BA  CC			        int 3
+ 000001BB  02 00		        add     al,[rax]                                ; 0200
+ 000001BD  CC			        int 3
+ 000001BE  05 6603EBC3		        add     eax,06603ebc3h                          ; 05c3eb0366
+ 000001C3  CC			        int 3
+ 000001C4  0F 05		        syscall                                         ; 0f05
+ 000001C6  CC			        int 3
+ 000001C7  0F 0D 09		        prefetchw      byte ptr [rcx]                   ; 0f0d09
+ 000001CA  CC			        int 3
+ 000001CB  0F 18 01		        prefetchnta    byte ptr [rcx]                   ; 0f1801
+ 000001CE  CC			        int 3
+ 000001CF  0F 18 04 02		        prefetchnta    byte ptr [rax+rdx]               ; 0f180410
+ 000001D3  CC			        int 3
+ 000001D4  0F 82 000002FF	        jb             again                            ; 0f8247070000
+ 000001DA  CC			        int 3
+ 000001DB  0F 83 000002F8	        jnb            again                            ; 0f8306050000
+ 000001E1  CC			        int 3
+ 000001E2  0F 84 000002F1	        je             again                            ; 0f8432010000
+ 000001E8  CC			        int 3
+ 000001E9  0F 85 000002EA	        jne            again                            ; 0f8508010000
+ 000001EF  CC			        int 3
+ 000001F0  0F 87 000002E3	        jnbe           again                            ; 0f878a000000
+ 000001F6  CC			        int 3
+ 000001F7  0F AE 51 34		        ldmxcsr        dword ptr [rcx+034h]             ; 0fae5134
+ 000001FB  CC			        int 3
+ 000001FC  0F AE 59 34		        stmxcsr        dword ptr [rcx+034h]             ; 0fae5934
+ 00000200  CC			        int 3
+ 00000201  23 0C 9A		        and            ecx,[rdx+rbx*4]                  ; 230c9a
+ 00000204  CC			        int 3
+ 00000205  33 C0		        xor            eax,eax                          ; 33c0
+ 00000207  CC			        int 3
+ 00000208  33 C9		        xor            ecx,ecx                          ; 33c9
+ 0000020A  CC			        int 3
+ 0000020B  33 D1		        xor            edx,ecx                          ; 33d1
+ 0000020D  CC			        int 3
+ 0000020E  33 D2		        xor            edx,edx                          ; 33d2
+ 00000210  CC			        int 3
+ 00000211  41/ 81 C2		        add            r10d,010001h                     ; 4181c201000100
+	   00010001
+ 00000218  CC			        int 3
+ 00000219  41/ 81 E3		        and            r11d,0ffffh                      ; 4181e3ffff0000
+	   0000FFFF
+ 00000220  CC			        int 3
+ 00000221  41/ 8B C0		        mov            eax,r8d                          ; 418bc0
+ 00000224  CC			        int 3
+ 00000225  41/ C6 03 00		        mov            byte ptr [r11],00h               ; 41c60300
+ 00000229  CC			        int 3
+ 0000022A  41/ FF 51 30		        call           qword ptr [r9+030h]              ; 41ff5130
+ 0000022E  CC			        int 3
+ 0000022F  43/ FF 14 C1		        call           qword ptr [r9+r8*8]              ; 43ff14c1
+ 00000233  CC			        int 3
+ 00000234  44/ 89 41 34		        mov            [rcx+034h],r8d                   ; 44894134
+ 00000238  CC			        int 3
+ 00000239  44/ 89 4C 24		        mov            [rsp+030h],r9d                   ; 44894c2430
+	   30
+ 0000023E  CC			        int 3
+ 0000023F  44/ 8B 01		        mov            r8d,[rcx]                        ; 448b01
+ 00000242  CC			        int 3
+ 00000243  44/ 8B 09		        mov            r9d,[rcx]                        ; 448b09
+ 00000246  CC			        int 3
+ 00000247  44/ 8B 40 58		        mov            r8d,[rax+058h]                   ; 448b4058
+ 0000024B  CC			        int 3
+ 0000024C  44/ 8B 44 24		        mov            r8d,[rsp+02ch]                   ; 448b44242c
+	   2C
+ 00000251  CC			        int 3
+ 00000252  44/ 8B C0		        mov            r8d,eax                          ; 448bc0
+ 00000255  CC			        int 3
+ 00000256  44/ 8B C2		        mov            r8d,edx                          ; 448bc2
+ 00000259  CC			        int 3
+ 0000025A  45/ 32 C0		        xor            r8b,r8b                          ; 4532c0
+ 0000025D  CC			        int 3
+ 0000025E  45/ 8B C8		        mov            r9d,r8d                          ; 458bc8
+ 00000261  CC			        int 3
+ 00000262  46/ 8D 1C 08		        lea            r11d,[r9+rax]                    ; 458d1c01
+ 00000266  CC			        int 3
+ 00000267  48/ 03 D1		        add            rdx,rcx                          ; 4803d1
+ 0000026A  CC			        int 3
+ 0000026B  48/ 0B F2		        or             rsi,rdx                          ; 480bf2
+ 0000026E  CC			        int 3
+ 0000026F  48/ 0F C3 01		        movnti         [rcx],rax                        ; 480fc301
+ 00000273  CC			        int 3
+ 00000274  48/ 25		        and            rax,0fe000000h                   ; 4825000000fe
+	   FE000000
+ 0000027A  CC			        int 3
+ 0000027B  48/ 2B C1		        sub            rax,rcx                          ; 482bc1
+ 0000027E  CC			        int 3
+ 0000027F  48/ 2B D1		        sub            rdx,rcx                          ; 482bd1
+ 00000282  CC			        int 3
+ 00000283  48/ 3B FD		        cmp            rdi,rbp                          ; 483bfd
+ 00000286  CC			        int 3
+ 00000287  55			        push           rbp                              ; 4855
+ 00000288  CC			        int 3
+ 00000289  48/ 81 C1		        add            rcx,03d0h                        ; 4881c1d0030000
+	   000003D0
+ 00000290  CC			        int 3
+ 00000291  48/ 81 C4		        add            rsp,0c8h                         ; 4881c4c8000000
+	   000000C8
+ 00000298  CC			        int 3
+ 00000299  48/ 81 E2		        and            rdx,0fe000000h                   ; 4881e2000000fe
+	   FE000000
+ 000002A0  CC			        int 3
+ 000002A1  48/ 81 EC		        sub            rsp,0c8h                         ; 4881ecc8000000
+	   000000C8
+ 000002A8  CC			        int 3
+ 000002A9  48/ 81 EC		        sub            rsp,03d0h                        ; 4881ecd0030000
+	   000003D0
+ 000002B0  CC			        int 3
+ 000002B1  48/ 83 C0 40		        add            rax,040h                         ; 4883c040
+ 000002B5  CC			        int 3
+ 000002B6  48/ 83 C1 08		        add            rcx,08h                          ; 4883c108
+ 000002BA  CC			        int 3
+ 000002BB  48/ 83 C1 40		        add            rcx,040h                         ; 4883c140
+ 000002BF  CC			        int 3
+ 000002C0  48/ 83 C4 08		        add            rsp,08h                          ; 4883c408
+ 000002C4  CC			        int 3
+ 000002C5  48/ 83 C6 09		        add            rsi,09h                          ; 4883c609
+ 000002C9  CC			        int 3
+ 000002CA  48/ 83 C7 01		        add            rdi,01h                          ; 4883c701
+ 000002CE  CC			        int 3
+ 000002CF  48/ 81 E1		        and            rcx,0f8h                         ; 4883e1f8
+	   000000F8
+ 000002D6  CC			        int 3
+ 000002D7  48/ 83 E8 40		        sub            rax,040h                         ; 4883e840
+ 000002DB  CC			        int 3
+ 000002DC  48/ 83 EA 08		        sub            rdx,08h                          ; 4883ea08
+ 000002E0  CC			        int 3
+ 000002E1  48/ 83 EA 40		        sub            rdx,040h                         ; 4883ea40
+ 000002E5  CC			        int 3
+ 000002E6  48/ 83 EC 08		        sub            rsp,08h                          ; 4883ec08
+ 000002EA  CC			        int 3
+ 000002EB  48/ 83 EE 08		        sub            rsi,08h                          ; 4883ee08
+ 000002EF  CC			        int 3
+ 000002F0  48/ 83 EF 01		        sub            rdi,01h                          ; 4883ef01
+ 000002F4  CC			        int 3
+ 000002F5  48/ 85 C0		        test           rax,rax                          ; 4885c0
+ 000002F8  CC			        int 3
+ 000002F9  48/ 85 D2		        test           rdx,rdx                          ; 4885d2
+ 000002FC  CC			        int 3
+ 000002FD  48/ 89 04 24		        mov            [rsp],rax                        ; 48890424
+ 00000301  CC			        int 3
+ 00000302  48/ 89 2C 24		        mov            [rsp],rbp                        ; 48892c24
+ 00000306  CC			        int 3
+ 00000307  48/ 89 34 24		        mov            [rsp],rsi                        ; 48893424
+ 0000030B  CC			        int 3
+ 0000030C  48/ 89 3C 24		        mov            [rsp],rdi                        ; 48893c24
+ 00000310  CC			        int 3
+ 00000311  48/ 89 41 08		        mov            [rcx+08h],rax                    ; 48894108
+ 00000315  CC			        int 3
+ 00000316  48/ 89 41 78		        mov            [rcx+078h],rax                   ; 48894178
+ 0000031A  CC			        int 3
+ 0000031B  48/ 89 41 F8		        mov            [rcx-08h],rax                    ; 488941f8
+ 0000031F  CC			        int 3
+ 00000320  48/ 89 44 24		        mov            [rsp+018h],rax                   ; 4889442418
+	   18
+ 00000325  CC			        int 3
+ 00000326  48/ 89 51 10		        mov            [rcx+010h],rdx                   ; 48895110
+ 0000032A  CC			        int 3
+ 0000032B  48/ 89 5C 24		        mov            [rsp+08h],rbx                    ; 48895c2408
+	   08
+ 00000330  CC			        int 3
+ 00000331  48/ 89 74 24		        mov            [rsp+018h],rsi                   ; 4889742418
+	   18
+ 00000336  CC			        int 3
+ 00000337  48/ 89 7C 24		        mov            [rsp+08h],rdi                    ; 48897c2408
+	   08
+ 0000033C  CC			        int 3
+ 0000033D  48/ 89 7C 24		        mov            [rsp+010h],rdi                   ; 48897c2410
+	   10
+ 00000342  CC			        int 3
+ 00000343  48/ 89 81		        mov            [rcx+098h],rax                   ; 48898198000000
+	   00000098
+ 0000034A  CC			        int 3
+ 0000034B  48/ 89 89		        mov            [rcx+080h],rcx                   ; 48898980000000
+	   00000080
+ 00000352  CC			        int 3
+ 00000353  48/ 89 91		        mov            [rcx+088h],rdx                   ; 48899188000000
+	   00000088
+ 0000035A  CC			        int 3
+ 0000035B  48/ 89 99		        mov            [rcx+090h],rbx                   ; 48899990000000
+	   00000090
+ 00000362  CC			        int 3
+ 00000363  48/ 89 A9		        mov            [rcx+0a0h],rbp                   ; 4889a9a0000000
+	   000000A0
+ 0000036A  CC			        int 3
+ 0000036B  48/ 89 B1		        mov            [rcx+0a8h],rsi                   ; 4889b1a8000000
+	   000000A8
+ 00000372  CC			        int 3
+ 00000373  48/ 89 B9		        mov            [rcx+0b0h],rdi                   ; 4889b9b0000000
+	   000000B0
+ 0000037A  CC			        int 3
+ 0000037B  48/ 8B 01		        mov            rax,[rcx]                        ; 488b01
+ 0000037E  CC			        int 3
+ 0000037F  48/ 8B 04 0A		        mov            rax,[rcx+rdx]                    ; 488b0411
+ 00000383  CC			        int 3
+ 00000384  48/ 8B 05		        mov            rax,[value]                      ; 488b05318c0100
+	   000004DB R
+ 0000038B  CC			        int 3
+ 0000038C  48/ 8B 0C 24		        mov            rcx,[rsp]                        ; 488b0c24
+ 00000390  CC			        int 3
+ 00000391  48/ 8B 34 24		        mov            rsi,[rsp]                        ; 488b3424
+ 00000395  CC			        int 3
+ 00000396  48/ 8B 3C 24		        mov            rdi,[rsp]                        ; 488b3c24
+ 0000039A  CC			        int 3
+ 0000039B  48/ 8B 40 18		        mov            rax,[rax+018h]                   ; 488b4018
+ 0000039F  CC			        int 3
+ 000003A0  48/ 8B 41 78		        mov            rax,[rcx+078h]                   ; 488b4178
+ 000003A4  CC			        int 3
+ 000003A5  48/ 8B 42 20		        mov            rax,[rdx+020h]                   ; 488b4220
+ 000003A9  CC			        int 3
+ 000003AA  48/ 8B 44 24		        mov            rax,[rsp+08h]                    ; 488b442408
+	   08
+ 000003AF  CC			        int 3
+ 000003B0  48/ 8B 49 08		        mov            rcx,[rcx+08h]                    ; 488b4908
+ 000003B4  CC			        int 3
+ 000003B5  48/ 8B 4C 24		        mov            rcx,[rsp+020h]                   ; 488b4c2420
+	   20
+ 000003BA  CC			        int 3
+ 000003BB  48/ 8B 54 24		        mov            rdx,[rsp+08h]                    ; 488b542408
+	   08
+ 000003C0  CC			        int 3
+ 000003C1  48/ 8B 7C 24		        mov            rdi,[rsp+08h]                    ; 488b7c2408
+	   08
+ 000003C6  CC			        int 3
+ 000003C7  48/ 8B 81		        mov            rax,[rcx+098h]                   ; 488b8198000000
+	   00000098
+ 000003CE  CC			        int 3
+ 000003CF  48/ 8B 81		        mov            rax,[rcx+0f8h]                   ; 488b81f8000000
+	   000000F8
+ 000003D6  CC			        int 3
+ 000003D7  83 FB 00		        cmp            ebx,0                            ;
+ 000003DA  CC			        int 3
+ 000003DB  48/ 83 FB 00		        cmp            rbx,0                            ;
+ 000003DF  CC			        int 3
+ 000003E0  80 3D 000004DB R	        cmp            byte ptr [value],77h             ; 803d........77
+	   77
+ 000003E7  CC			        int 3
+ 000003E8  83 3D 000004DB R	        cmp            dword ptr [value],77h            ; 833d........77
+	   77
+ 000003EF  CC			        int 3
+ 000003F0  48/ 83 3D		        cmp            qword ptr [value],77h            ; 48833d........77
+	   000004DB R 77
+ 000003F8  CC			        int 3
+ 000003F9  81 3D 000004DB R	        cmp            dword ptr [value],77777777h      ; 813d........77777777
+	   77777777
+ 00000403  CC			        int 3
+ 00000404  48/ 81 3D		        cmp            qword ptr [value],77777777h      ; 48813d........77777777
+	   000004DB R
+	   77777777
+ 0000040F  CC			        int 3
+ 00000410			nearby:
+ 00000410  70 FE		        jo      nearby                                  ; 70xx
+ 00000412  CC			        int 3
+ 00000413  71 FB		        jno     nearby                                  ; 71xx
+ 00000415  CC			        int 3
+ 00000416  72 F8		        jb      nearby                                  ; 72xx
+ 00000418  CC			        int 3
+ 00000419  73 F5		        jae     nearby                                  ; 73xx
+ 0000041B  CC			        int 3
+ 0000041C  74 F2		        je      nearby                                  ; 74xx
+ 0000041E  CC			        int 3
+ 0000041F  75 EF		        jne     nearby                                  ; 75xx
+ 00000421  CC			        int 3
+ 00000422  76 EC		        jbe     nearby                                  ; 76xx
+ 00000424  CC			        int 3
+ 00000425  77 E9		        ja      nearby                                  ; 77xx
+ 00000427  CC			        int 3
+ 00000428  78 E6		        js      nearby                                  ; 78xx
+ 0000042A  CC			        int 3
+ 0000042B  79 E3		        jns     nearby                                  ; 79xx
+ 0000042D  CC			        int 3
+ 0000042E  7A E0		        jp      nearby                                  ; 7axx
+ 00000430  CC			        int 3
+ 00000431  7B DD		        jnp     nearby                                  ; 7bxx
+ 00000433  CC			        int 3
+ 00000434  7C DA		        jl      nearby                                  ; 7cxx
+ 00000436  CC			        int 3
+ 00000437  7D D7		        jge     nearby                                  ; 7dxx
+ 00000439  CC			        int 3
+ 0000043A  7E D4		        jle     nearby                                  ; 7exx
+ 0000043C  CC			        int 3
+ 0000043D  7F D1		        jg      nearby                                  ; 7fxx
+ 0000043F  CC			        int 3
+ 00000440  EB CE		        jmp     nearby                                  ; ebxx
+				
+ 00000442  CC			        int 3
+ 00000443  0F 80 FFFFFBB7	        jo      faraway                                 ; 0f80xxxxxxxx
+ 00000449  CC			        int 3
+ 0000044A  0F 81 FFFFFBB0	        jno     faraway                                 ; 0f81xxxxxxxx
+ 00000450  CC			        int 3
+ 00000451  0F 82 FFFFFBA9	        jb      faraway                                 ; 0f82xxxxxxxx
+ 00000457  CC			        int 3
+ 00000458  0F 83 FFFFFBA2	        jae     faraway                                 ; 0f83xxxxxxxx
+ 0000045E  CC			        int 3
+ 0000045F  0F 84 FFFFFB9B	        je      faraway                                 ; 0f84xxxxxxxx
+ 00000465  CC			        int 3
+ 00000466  0F 85 FFFFFB94	        jne     faraway                                 ; 0f85xxxxxxxx
+ 0000046C  CC			        int 3
+ 0000046D  0F 86 FFFFFB8D	        jbe     faraway                                 ; 0f86xxxxxxxx
+ 00000473  CC			        int 3
+ 00000474  0F 87 FFFFFB86	        ja      faraway                                 ; 0f87xxxxxxxx
+ 0000047A  CC			        int 3
+ 0000047B  0F 88 FFFFFB7F	        js      faraway                                 ; 0f88xxxxxxxx
+ 00000481  CC			        int 3
+ 00000482  0F 89 FFFFFB78	        jns     faraway                                 ; 0f89xxxxxxxx
+ 00000488  CC			        int 3
+ 00000489  0F 8A FFFFFB71	        jp      faraway                                 ; 0f8axxxxxxxx
+ 0000048F  CC			        int 3
+ 00000490  0F 8B FFFFFB6A	        jnp     faraway                                 ; 0f8bxxxxxxxx
+ 00000496  CC			        int 3
+ 00000497  0F 8C FFFFFB63	        jl      faraway                                 ; 0f8cxxxxxxxx
+ 0000049D  CC			        int 3
+ 0000049E  0F 8D FFFFFB5C	        jge     faraway                                 ; 0f8dxxxxxxxx
+ 000004A4  CC			        int 3
+ 000004A5  0F 8E FFFFFB55	        jle     faraway                                 ; 0f8exxxxxxxx
+ 000004AB  CC			        int 3
+ 000004AC  0F 8F FFFFFB4E	        jg      faraway                                 ; 0f8fxxxxxxxx
+ 000004B2  CC			        int 3
+ 000004B3  E9 FFFFFB48		        jmp     faraway                                 ; e9xxxxxxxx
+				
+ 000004B8  CC			        int 3
+ 000004B9  48/ 8D 04 24		        lea     rax,[rsp]                               ; 488d0424        
+ 000004BD  CC			        int 3
+ 000004BE  48/ B9		        mov rcx,0BADC0DEBA5Eh                           ;  48b95ebadec0ad0b0000 
+	   00000BADC0DEBA5E
+ 000004C8  CC			        int 3
+ 000004C9  48/ 3B C1		        cmp     rax,rcx                                 ;  483bc1
+				
+ 000004CC  CC			        int 3
+ 000004CD  48/ 83 EC 28		        sub rsp, 28h
+ 000004D1  CC			        int 3
+ 000004D2  48/ 83 C4 28		        add rsp,28h
+ 000004D6  CC			        int 3
+ 000004D7  C3			        ret
+ 000004D8  CC			        int 3
+				
+				
+				;; The list is terminated by two "int 3" in a row.
+ 000004D9			again:
+ 000004D9  CC			        int 3
+ 000004DA  CC			        int 3
+ 000004DB			TestCodes   ENDP
+				
+ 000004DB			value   QWORD   0
+	   0000000000000000
+				
+ 000004E3			_TEXT   ENDS
+				END
+Microsoft (R) Macro Assembler (x64) Version 10.00.30319.01  10/22/20 19:31:52
+x64.asm							     Symbols 2 - 1
+
+
+
+
+Procedures, parameters, and locals:
+
+                N a m e                 Type     Value    Attr
+
+TestCodes  . . . . . . . . . . .	P 	 00000000 _TEXT	Length= 000004DB Public
+  begin  . . . . . . . . . . . .	L 	 00000000 _TEXT	
+  faraway  . . . . . . . . . . .	L 	 00000000 _TEXT	
+  nearby . . . . . . . . . . . .	L 	 00000410 _TEXT	
+  again  . . . . . . . . . . . .	L 	 000004D9 _TEXT	
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+value  . . . . . . . . . . . . .	QWord	 000004DB _TEXT	
+
+	   0 Warnings
+	   0 Errors
