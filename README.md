@@ -1,6 +1,6 @@
 # pathos-public
 Pathos Engine - Public Release
-Copyright (c) 2021 Andras Istvan "Overfloater" Lukacs/Andrew Stephen Lucas
+Copyright (c) 2016 Andras Istvan "Overfloater" Lukacs/Andrew Stephen Lucas
 Released under the MIT license
 
 The Pathos Engine is a Quake-like engine developed as the basis for my own video 
