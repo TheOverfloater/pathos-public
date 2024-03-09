@@ -28,6 +28,7 @@ struct decalgroupentry_t;
 struct ui_schemeinfo_t;
 struct ui_windowdescription_t;
 struct cl_dlight_t;
+struct font_set_t;
 
 enum cmodel_type_t;
 enum snd_effects_t;
@@ -206,6 +207,9 @@ struct cldll_engfuncs_t
 	void					(*pfnSetCVarString)( const Char* pstrName, const Char* pstrValue );
 	Float					(*pfnGetCvarFloatValue)( const Char* pstrCvarName );
 	const Char*				(*pfnGetCvarStringValue)( const Char* pstrCvarName );
+
+	const font_set_t*		(*pfnGetSchemaFontSet)( const Char* schemaFileName );
+	const font_set_t*		(*pfnGetResolutionSchemaFontSet)( const Char* schemaFileName, Uint32 resolution );
 
 	void					(*pfnSetPaused)( bool isPaused, bool pauseOveride );
 };

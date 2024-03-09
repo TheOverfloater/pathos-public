@@ -46,6 +46,8 @@ public:
 	static const Char MENU_MUSIC_FILE_STARTUP[];
 	static const Char MENU_MUSIC_FILE_INGAME[];
 
+	static const Char MENU_BUTTON_TEXT_SCHEMA[];
+
 public:
 	// Menu button actions
 	enum mbutton_t

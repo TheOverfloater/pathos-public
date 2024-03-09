@@ -324,6 +324,13 @@ public:
 
 	// HUD description script path
 	static const Char HUD_DESCRIPTION_SCRIPT_PATH[];
+	
+	// Font set for HUD
+	static const Char HUD_FONT_SCHEMA_FILENAME[];
+	// Font set for counters
+	static const Char HUD_COUNTER_FONT_SCHEMA_FILENAME[];
+	// Font set for subtitles
+	static const Char HUD_SUBTITLE_FONT_SCHEMA_FILENAME[];
 
 public:
 	struct hud_iconinfo_t

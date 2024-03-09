@@ -31,7 +31,8 @@ struct ui_schemeobject_t
 		height(0),
 		defaultTexture(nullptr),
 		focusTexture(nullptr),
-		clickTexture(nullptr)
+		clickTexture(nullptr),
+		disabledTexture(nullptr)
 	{}
 
 	CString typeName;
@@ -42,6 +43,7 @@ struct ui_schemeobject_t
 	en_texture_t* defaultTexture;
 	en_texture_t* focusTexture;
 	en_texture_t* clickTexture;
+	en_texture_t* disabledTexture;
 };
 
 struct ui_schemeinfo_t

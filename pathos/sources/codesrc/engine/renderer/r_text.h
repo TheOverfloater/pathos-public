@@ -16,11 +16,13 @@ All Rights Reserved.
 #include FT_FREETYPE_H
 #include <ftglyph.h> // needed for bounding box bit
 #include "fontset.h"
+#include <ftstroke.h>
 
 struct fontsetglinfo_t
 {
 	fontsetglinfo_t():
-		gl_texture(0),
+		palloc(nullptr),
+		index_offset_outline(0),
 		pvbo(nullptr)
 		{}
 	~fontsetglinfo_t()
@@ -29,7 +31,9 @@ struct fontsetglinfo_t
 			delete pvbo;
 	}
 
-	Uint32 gl_texture;
+	struct en_texalloc_t* palloc;
+	Uint32 index_offset_outline;
+
 	class CVBO *pvbo;
 };
 
@@ -104,7 +108,7 @@ public:
 	const font_set_t* GetDefaultFont( void ) const { return m_pDefaultSet; }
 
 	// Loads a font set
-	const font_set_t *LoadFont( const Char *pstrFilename, Int32 fontSize );
+	const font_set_t *LoadFont( const Char *pstrFilename, Int32 fontSize, bool outline = false, const color32_t* poutlinecolor = nullptr, Uint32 outlineradius = 0 );
 	// Draws a single string on the screen
 	bool DrawString( const font_set_t *pFontSet, const Char *pstrString, Int32 x, Int32 y, bool reverse = false, Uint32 lineoffset = 0, Uint32 minlineheight = 0, Uint32 xoffset = 0 );
 	// Draws a string using faster routines
@@ -137,6 +141,10 @@ private:
 	static void GetIdealSizes( Uint32 fontsize, Uint32 *resx, Uint32 *resy, Uint32 *glyphsize, Uint32 *padding );
 	// Tells if the string should be newlined
 	bool ShouldNewline( Int32 offsx, Int32 x, const font_set_t *pFont, const Char *pString );
+	// Renders glyphs for a font set
+	bool RenderGlyphs( font_set_t* pset, fontsetglinfo_t* psetinfo, font_glyph_t* pglyphs, FT_Face pFace, Uint32 iResX, Uint32 yOffset, Uint32 baseResY, Uint32 iResY, Uint32 iGlyphSize, Uint32 iPadding, Uint32 bufferoffset, bool outline, byte* poutbuffer, Uint32 outlineradius );
+	// Draws simple string characters
+	void DrawSimpleStringChars( const Char* pstrString, const font_glyph_t* pglyphs, Int32 iX, Int32 iY, Int32 r, Int32 g, Int32 b, Int32 a, Int32 maxlenght, bool outline, Int32* padvancex = nullptr, Int32* padvancey = nullptr );
 
 private:
 	// Freetype library pointer

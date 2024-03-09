@@ -535,7 +535,7 @@ void CGameUIKeypadWindow::onRemove( void )
 //====================================
 //
 //====================================
-void CGameUIKeypadWindowButtonCallbackEvent::PerformAction( Int32 param )
+void CGameUIKeypadWindowButtonCallbackEvent::PerformAction( Float param )
 {
 	if(!m_pKeypadWindow)
 		return;
@@ -546,7 +546,7 @@ void CGameUIKeypadWindowButtonCallbackEvent::PerformAction( Int32 param )
 //====================================
 //
 //====================================
-void CGameUIKeypadWindowDigitCallbackEvent::PerformAction( Int32 param )
+void CGameUIKeypadWindowDigitCallbackEvent::PerformAction( Float param )
 {
 	if(!m_pKeypadWindow)
 		return;

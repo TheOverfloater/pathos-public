@@ -147,6 +147,8 @@ static cldll_engfuncs_t CLIENTDLL_ENGINE_FUNCTION_TABLE =
 	Engine_SetCVarString,			//pfnSetCVarString
 	Engine_GetCvarFloatValue,		//pfnGetCvarFloatValue
 	Engine_GetCvarStringValue,		//pfnGetCvarStringValue
+	CL_GetSchemaFontSet,			//pfnGetSchemaFontSet
+	CL_GetResolutionSchemaFontSet,	//pfnGetResolutionSchemaFontSet
 	CL_SetPaused,					//pfnSetPaused
 };
 

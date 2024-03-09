@@ -401,6 +401,12 @@ void ClientGameReset( void )
 //=============================================
 bool ClientGLInit( void )
 {
+	if(!gScreenText.InitGL())
+		return false;
+
+	if(!gSayText.InitGL())
+		return false;
+
 	if(!gMessages.InitGL())
 		return false;
 
@@ -422,6 +428,10 @@ bool ClientGLInit( void )
 //=============================================
 void ClientGLClear( void )
 {
+	// Clear GL states
+	gScreenText.ClearGL();
+	// Clear GL states
+	gSayText.ClearGL();
 	// Clear GL states
 	gMessages.ClearGL();
 	// Clear UI manager

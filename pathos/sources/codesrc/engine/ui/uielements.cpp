@@ -628,7 +628,8 @@ CUITexturedObject::CUITexturedObject( Int32 flags, Uint32 width, Uint32 height, 
 	CUIObject( flags, width, height, originx, originy ),
 	m_pDefaultTexture(nullptr),
 	m_pFocusTexture(nullptr),
-	m_pClickedTexture(nullptr)
+	m_pClickedTexture(nullptr),
+	m_pDisabledTexture(nullptr)
 {
 }
 
@@ -669,7 +670,11 @@ bool CUITexturedObject::draw( void )
 
 		// Determine texture to use
 		const en_texture_t* ptexture = nullptr;
-		if(m_pClickedTexture && (isClickedOn() || (m_pParent && m_pParent->isClickedOn())))
+		if(m_pDisabledTexture && (isDisabled() || (m_pParent && m_pParent->isDisabled())))
+		{
+			ptexture = m_pDisabledTexture;
+		}
+		else if(m_pClickedTexture && (isClickedOn() || (m_pParent && m_pParent->isClickedOn())))
 		{
 			ptexture = m_pClickedTexture;
 		}
@@ -832,6 +837,7 @@ CUITexturedObject* CUISurface::createObject( const ui_schemeinfo_t* pscheme, con
 	pNew->setDefaultTexture(pobj->defaultTexture);
 	pNew->setFocusTexture(pobj->focusTexture);
 	pNew->setClickedTexture(pobj->clickTexture);
+	pNew->setDisabledTexture(pobj->disabledTexture);
 	pNew->setParent(this);
 
 	return pNew;
@@ -1283,7 +1289,7 @@ bool CUIWindow::mouseWheelEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool 
 // @brief Performs the close action for the window
 //
 //=============================================
-void CUIWindow::CUIWindowCloseAction::PerformAction( Int32 param )
+void CUIWindow::CUIWindowCloseAction::PerformAction( Float param )
 {
 	if(m_pWindow)
 		m_pWindow->setWindowFlags(UIW_FL_KILLME);
@@ -1600,7 +1606,8 @@ CUIButton::CUIButton( Int32 flags, const Char* pstrText, const font_set_t* pFont
 	CUISurface( (flags|UIEL_FL_FIXED_H|UIEL_FL_FIXED_W), width, height, originx, originy ),
 	m_pDisplay(nullptr),
 	m_isClickedOn(false),
-	m_pAction(pAction)
+	m_pAction(pAction),
+	m_isDisabled(false)
 {
 	assert(pstrText && qstrlen(pstrText));
 
@@ -1617,7 +1624,8 @@ CUIButton::CUIButton( Int32 flags, const ui_schemeobject_t* pScheme, CUICallback
 	CUISurface( (flags|UIEL_FL_FIXED_H|UIEL_FL_FIXED_W), width, height, originx, originy ),
 	m_pDisplay(nullptr),
 	m_isClickedOn(false),
-	m_pAction(pAction)
+	m_pAction(pAction),
+	m_isDisabled(false)
 {
 	assert(pScheme);
 
@@ -1641,7 +1649,8 @@ CUIButton::CUIButton( Int32 flags, CUICallbackEvent* pAction, Uint32 width, Uint
 	CUISurface( (flags), width, height, originx, originy ),
 	m_pDisplay(nullptr),
 	m_isClickedOn(false),
-	m_pAction(pAction)
+	m_pAction(pAction),
+	m_isDisabled(false)
 {
 }
 
@@ -1661,6 +1670,9 @@ CUIButton::~CUIButton( void )
 //=============================================
 bool CUIButton::mouseButtonEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool keyDown )
 {
+	if(m_isDisabled)
+		return false;
+
 	// Only left mouse click affects draggers
 	if(button != SDL_BUTTON_LEFT)
 		return false;
@@ -2407,7 +2419,7 @@ void CUIDragButton::setPosition( Float position )
 // @brief Gets the position of the drag button
 //
 //=============================================
-Float CUIDragButton::getPosition( void )
+Double CUIDragButton::getPosition( void )
 {
 	return m_position;
 }
@@ -2452,7 +2464,7 @@ bool CUIDragButton::adjPosition( Int32 adjAmt, bool isMouseDrag, bool callEvent 
 		referenceRange = m_pParent->getFullRange();
 
 	// Make adjustments
-	Float adjFrac = (Float)adjAmt/(Float)(referenceRange);
+	Double adjFrac = (Double)adjAmt/(Double)(referenceRange);
 
 	m_position += adjFrac;
 	m_position = clamp(m_position, 0.0, 1.0);
@@ -2503,18 +2515,18 @@ void CUIDragButton::adjustPosition( void )
 			parentLength = m_pParent->getWidth();
 
 		// Determine previous full position
-		Uint32 prevRelativePosition = m_position*m_lastParentLength;
+		Double prevRelativePosition = m_position*m_lastParentLength;
 		m_lastParentLength = parentLength;
 
 		// Determine current position based on this
-		Float currentPosition = (Float)prevRelativePosition/(Float)parentLength;
+		Double currentPosition = (Double)prevRelativePosition/(Double)parentLength;
 		m_position = clamp(currentPosition, 0.0, 1.0);
 
 		// Determine my own range
 		Int32 myRange = parentLength-getLength()-m_startInset-m_endInset;
 
 		// Set appropriate position
-		Int32 offAdj = m_position*myRange;
+		Double offAdj = m_position*myRange;
 		if(!offAdj)
 			m_position = 0;
 
@@ -2533,7 +2545,7 @@ void CUIDragButton::adjustPosition( void )
 // @brief Performs the close action for the window
 //
 //=============================================
-void CUIScroller::CUIScrollerArrowBtnAction::PerformAction( Int32 param )
+void CUIScroller::CUIScrollerArrowBtnAction::PerformAction( Float param )
 {
 	assert(m_pScroller != nullptr);
 
@@ -2548,7 +2560,7 @@ void CUIScroller::CUIScrollerArrowBtnAction::PerformAction( Int32 param )
 // @brief Performs the close action for the window
 //
 //=============================================
-void CUIScroller::CUIScrollerDragBtnAction::PerformAction( Int32 param )
+void CUIScroller::CUIScrollerDragBtnAction::PerformAction( Float param )
 {
 	assert(m_pScroller != nullptr);
 
@@ -4327,7 +4339,7 @@ void CUIDropDownList::closeOtherTabs( CUIObject* pCaller )
 // @brief Performs the close action for the window
 //
 //=============================================
-void CUIDropDownList::CUIDropDownButtonEvent::PerformAction( Int32 param )
+void CUIDropDownList::CUIDropDownButtonEvent::PerformAction( Float param )
 {
 	if(m_pList)
 		m_pList->toggleList();
@@ -4699,13 +4711,13 @@ bool CUISlider::init( const Char* pstrSchemaName )
 // @brief Destructor
 //
 //=============================================
-void CUISlider::setValueFromPosition( Float position )
+void CUISlider::setValueFromPosition( Double position )
 {
 	m_value = (m_maxValue-m_minValue)*position + m_minValue;
 
 	// Call the event
 	if(m_pEvent)
-		m_pEvent->PerformAction(m_value*100);
+		m_pEvent->PerformAction(m_value);
 }
 
 //=============================================
@@ -4742,13 +4754,13 @@ void CUISlider::setValue( Float value )
 // @brief Performs the close action for the window
 //
 //=============================================
-void CUISlider::CUISliderDragBtnAction::PerformAction( Int32 param )
+void CUISlider::CUISliderDragBtnAction::PerformAction( Float param )
 {
 	assert(m_pSlider != nullptr);
 
 	// Get the dragger button
 	CUIDragButton* pButton = m_pSlider->getSliderButton();
-	Float position = pButton->getPosition();
+	Double position = pButton->getPosition();
 
 	// Get parent of the scroller button
 	m_pSlider->setValueFromPosition(position);

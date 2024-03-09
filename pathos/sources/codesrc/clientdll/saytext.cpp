@@ -17,6 +17,8 @@ All Rights Reserved.
 const Float CSayText::SAYTEXT_LIFETIME = 15;
 // Fade duration for each line
 const Float CSayText::SAYTEXT_FADETIME = 1.0;
+// Screen text text schema name
+const Char CSayText::TEXTSCHEME_FILENAME[] = "saytext";
 
 // Object definition
 CSayText gSayText;
@@ -76,13 +78,33 @@ void CSayText::Shutdown( void )
 //====================================
 //
 //====================================
-bool CSayText::InitGame( void )
+bool CSayText::InitGL( void )
 {
-	// Use default for now
-	m_pFont = cl_renderfuncs.pfnLoadFontSet("timesnewroman.ttf", 24);
+	Uint32 screenWidth, screenHeight;
+	cl_renderfuncs.pfnGetScreenSize(screenWidth, screenHeight);
+
+	m_pFont = cl_engfuncs.pfnGetResolutionSchemaFontSet(TEXTSCHEME_FILENAME, screenHeight);
+	if(!m_pFont)
+		m_pFont = cl_renderfuncs.pfnLoadFontSet("timesnewroman.ttf", 24);
+
 	if(!m_pFont)
 		return false;
 
+	return true;
+}
+
+//====================================
+//
+//====================================
+void CSayText::ClearGL( void )
+{
+}
+
+//====================================
+//
+//====================================
+bool CSayText::InitGame( void )
+{
 	return true;
 }
 

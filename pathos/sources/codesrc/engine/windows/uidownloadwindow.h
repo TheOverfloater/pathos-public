@@ -94,7 +94,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param ) override { m_pWindow->CancelDownload(); }
+	virtual void PerformAction( Float param ) override { m_pWindow->CancelDownload(); }
 
 protected:
 	// Window that created this

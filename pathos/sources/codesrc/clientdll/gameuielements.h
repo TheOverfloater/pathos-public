@@ -250,7 +250,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param ) = 0;
+	virtual void PerformAction( Float param ) = 0;
 	// Handles a special key event
 	virtual bool KeyEvent( Int32 button, Int16 mod, bool keyDown ) { return false; }
 	// Handles a mouse button event
@@ -553,7 +553,7 @@ public:
 			virtual ~CGameUIScrollerDragBtnAction( void ) { };
 			
 		public:
-			virtual void PerformAction( Int32 param ) override;
+			virtual void PerformAction( Float param ) override;
 
 		private:
 			// Window that created this

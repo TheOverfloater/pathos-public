@@ -21,13 +21,16 @@ static const Int32 MSG_BORDER_INSET = 10;
 
 // Filename of titles file
 const Char CScreenMessages::TITLES_FILENAME[] = "titles.txt";
+// Font set schema name for this clas
+const Char CScreenMessages::MESSAGES_FONT_SCHEMA_FILENAME[] = "titles";
 
 //====================================
 //
 //====================================
 CScreenMessages::CScreenMessages( void ):
 	m_screenWidth(0),
-	m_screenHeight(0)
+	m_screenHeight(0),
+	m_pFontSet(nullptr)
 {
 }
 
@@ -61,6 +64,9 @@ void CScreenMessages::Shutdown( void )
 //====================================
 bool CScreenMessages::InitGame( void )
 {
+	Uint32 screenWidth, screenHeight;
+	cl_renderfuncs.pfnGetScreenSize(screenWidth, screenHeight);
+
 	// Read titles file
 	ReadTitlesFile();
 
@@ -94,6 +100,11 @@ bool CScreenMessages::InitGL( void )
 {
 	// Get screen width/height
 	cl_renderfuncs.pfnGetScreenSize(m_screenWidth, m_screenHeight);
+
+	m_pFontSet = cl_engfuncs.pfnGetResolutionSchemaFontSet(MESSAGES_FONT_SCHEMA_FILENAME, m_screenHeight);
+	if(!m_pFontSet)
+		m_pFontSet = cl_renderfuncs.pfnGetDefaultFontSet();
+
 	return true;
 }
 
@@ -204,11 +215,8 @@ void CScreenMessages::ReadTitlesFile( void )
 			if(fontsize > 0 && !fontname.empty() && qstrcmp(fontname, "default"))
 				pnew->pfont = cl_renderfuncs.pfnLoadFontSet(fontname.c_str(), fontsize);
 
-			if(!pnew->pfont)
-				pnew->pfont = cl_renderfuncs.pfnGetDefaultFontSet();
-
 			// Process the msg text
-			ProcessMessageText(pnew->pfont, *pnew, msgtext.c_str());
+			ProcessMessageText(pnew->pfont ? pnew->pfont : m_pFontSet, *pnew, msgtext.c_str());
 
 			// Add to the list
 			m_messageDefinitonsArray.push_back(pnew);
@@ -556,17 +564,14 @@ void CScreenMessages::ShowMessage( const Char* pstrMessageText, Float fadein, Fl
 	m_customMessage.color1 = color1;
 	m_customMessage.color2 = color2;
 	m_customMessage.name.clear();
-	m_customMessage.pfont = cl_renderfuncs.pfnGetDefaultFontSet();
 
 	if(m_customMessage.xposition != -1)
 		m_customMessage.xposition = clamp(m_customMessage.xposition, 0.0, 1.0);
 	if(m_customMessage.xposition != -1)
 		m_customMessage.yposition = clamp(m_customMessage.xposition, 0.0, 1.0);
 
-	const font_set_t* pset = cl_renderfuncs.pfnGetDefaultFontSet();
-
 	// Process the text
-	ProcessMessageText(pset, m_customMessage, pstrMessageText);
+	ProcessMessageText(m_pFontSet, m_customMessage, pstrMessageText);
 
 	// Add it to the drawn list
 	displaymsg_t newmsg;
@@ -702,6 +707,8 @@ bool CScreenMessages::DrawMessage( displaymsg_t& msg )
 
 	// Get default font(only supported one rn)
 	const font_set_t* pset = pmsgdef->pfont;
+	if(!pset)
+		pset = m_pFontSet;
 
 	// Begin text rendering
 	if(!cl_renderfuncs.pfnBeginTextRendering(pset))

@@ -24,6 +24,10 @@ All Rights Reserved.
 #include "uielements.h"
 #include "uimanager.h"
 #include "config.h"
+#include "textschemas.h"
+
+// Default font schema name
+static const Char DEFAULT_FONT_SCHEMA_NAME[] = "DefaultFont";
 
 //=============================================
 // @brief Returns the optimal frame limit
@@ -32,10 +36,7 @@ All Rights Reserved.
 //=============================================
 bool Sys_LoadDefaultFont( const Char* pstr )
 {
-	const font_set_t* pDefaultSet = nullptr;
-	if(pstr && qstrlen(pstr))
-		pDefaultSet = gText.LoadFont(pstr, DEFAULT_FONT_SIZE);
-
+	const font_set_t* pDefaultSet = gTextSchemas.GetSchemaFontSet(DEFAULT_FONT_SCHEMA_NAME);
 	if(!pDefaultSet)
 		pDefaultSet = gText.LoadFont(DEFAULT_FONTSET_NAME, DEFAULT_FONT_SIZE);
 

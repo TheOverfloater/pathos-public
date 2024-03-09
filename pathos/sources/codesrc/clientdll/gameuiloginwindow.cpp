@@ -522,7 +522,7 @@ bool CGameUILoginWindow::keyEvent( Int32 button, Int16 mod, bool keyDown )
 //====================================
 //
 //====================================
-void CGameUILoginWindowCallbackEvent::PerformAction( Int32 param )
+void CGameUILoginWindowCallbackEvent::PerformAction( Float param )
 {
 	if(!m_pLoginWindow)
 		return;

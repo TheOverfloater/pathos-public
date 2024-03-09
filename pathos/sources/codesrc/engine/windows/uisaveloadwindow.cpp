@@ -49,6 +49,8 @@ const Char CUISaveLoadWindow::CANCEL_BUTTON_OBJ_NAME[] = "CancelButton";
 const Char CUISaveLoadWindow::LOAD_GAME_BUTTON_OBJ_NAME[] = "LoadGameButton";
 // Save game button object name
 const Char CUISaveLoadWindow::SAVE_GAME_BUTTON_OBJ_NAME[] = "SaveGameButton";
+// Delete save button object name
+const Char CUISaveLoadWindow::DELETE_SAVE_BUTTON_OBJ_NAME[] = "DeleteSaveButton";
 
 //=============================================
 // @brief Comparator function for save file ordering
@@ -75,7 +77,11 @@ CUISaveLoadWindow::CUISaveLoadWindow( Int32 flags, Uint32 width, Uint32 height, 
 	m_lastSelectedSave(-1),
 	m_bRecheckSaves(false),
 	m_rowTextInset(0),
-	m_pListObjectInfo(nullptr)
+	m_pListObjectInfo(nullptr),
+	m_bIsIngame(false),
+	m_pSaveButton(nullptr),
+	m_pLoadButton(nullptr),
+	m_pDeleteButton(nullptr)
 {
 }
 
@@ -331,6 +337,9 @@ bool CUISaveLoadWindow::init( const ui_windowdescription_t* pWinDesc, const ui_o
 	if(!CUIWindow::init(pWindowObject->getSchema().c_str()))
 		return false;
 
+	// Set this
+	m_bIsIngame = isIngame;
+
 	setTitle(pWindowObject->getTitle().c_str(), pWindowObject->getFont(), pWindowObject->getTitleXInset(), pWindowObject->getTitleYInset());
 	setAlpha(pWindowObject->getAlpha());
 
@@ -410,7 +419,7 @@ bool CUISaveLoadWindow::init( const ui_windowdescription_t* pWinDesc, const ui_o
 	}
 
 	CUISaveLoadWindowButtonEvent* pEventLoad = new CUISaveLoadWindowButtonEvent(this, SL_BUTTON_LOAD_GAME);
-	CUIButton* pLoadGameButton = new CUIButton(pLoadGameButtonObjectInfo->getFlags(), 
+	m_pLoadButton = new CUIButton(pLoadGameButtonObjectInfo->getFlags(), 
 		pLoadGameButtonObjectInfo->getText().c_str(), 
 		pLoadGameButtonObjectInfo->getFont(), 
 		pEventLoad, 
@@ -419,44 +428,94 @@ bool CUISaveLoadWindow::init( const ui_windowdescription_t* pWinDesc, const ui_o
 		pWindowObject->getXInset() + pLoadGameButtonObjectInfo->getXOrigin(), 
 		pWindowObject->getYInset() + pLoadGameButtonObjectInfo->getYOrigin());
 
-	pLoadGameButton->setParent(this);
+	m_pLoadButton->setParent(this);
 
-	if(!pLoadGameButton->init(pLoadGameButtonObjectInfo->getSchema().c_str()))
+	if(!m_pLoadButton->init(pLoadGameButtonObjectInfo->getSchema().c_str()))
+	{
+		Con_EPrintf("Failed to initialize button object for save/load UI window.\n");
+		return false;
+	}
+
+	// Add "Delete Save" button
+	const ui_objectinfo_t* pDeleteSaveButtonObjectInfo = pWinDesc->getObject(UI_OBJECT_BUTTON, DELETE_SAVE_BUTTON_OBJ_NAME);
+	if(!pDeleteSaveButtonObjectInfo)
+	{
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, DELETE_SAVE_BUTTON_OBJ_NAME);
+		return false;
+	}
+
+	CUISaveLoadWindowButtonEvent* pEventDelete = new CUISaveLoadWindowButtonEvent(this, SL_BUTTON_DELETE);
+	m_pDeleteButton = new CUIButton(pDeleteSaveButtonObjectInfo->getFlags(), 
+		pDeleteSaveButtonObjectInfo->getText().c_str(), 
+		pDeleteSaveButtonObjectInfo->getFont(), 
+		pEventDelete, 
+		pDeleteSaveButtonObjectInfo->getWidth(),
+		pDeleteSaveButtonObjectInfo->getHeight(), 
+		pWindowObject->getXInset() + pDeleteSaveButtonObjectInfo->getXOrigin(), 
+		pWindowObject->getYInset() + pDeleteSaveButtonObjectInfo->getYOrigin());
+
+	m_pDeleteButton->setParent(this);
+
+	if(!m_pDeleteButton->init(pDeleteSaveButtonObjectInfo->getSchema().c_str()))
 	{
 		Con_EPrintf("Failed to initialize button object for save/load UI window.\n");
 		return false;
 	}
 
 	// Add "Save game" button
-	if(isIngame)
+	const ui_objectinfo_t* pSaveGameButtonObjectInfo = pWinDesc->getObject(UI_OBJECT_BUTTON, SAVE_GAME_BUTTON_OBJ_NAME);
+	if(!pSaveGameButtonObjectInfo)
 	{
-		const ui_objectinfo_t* pSaveGameButtonObjectInfo = pWinDesc->getObject(UI_OBJECT_BUTTON, SAVE_GAME_BUTTON_OBJ_NAME);
-		if(!pSaveGameButtonObjectInfo)
-		{
-			Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, SAVE_GAME_BUTTON_OBJ_NAME);
-			return false;
-		}
-
-		CUISaveLoadWindowButtonEvent* pEventSave = new CUISaveLoadWindowButtonEvent(this, SL_BUTTON_SAVE_GAME);
-		CUIButton* pSaveGameButton = new CUIButton(pSaveGameButtonObjectInfo->getFlags(), 
-			pSaveGameButtonObjectInfo->getText().c_str(), 
-			pSaveGameButtonObjectInfo->getFont(), 
-			pEventSave, 
-			pSaveGameButtonObjectInfo->getWidth(),
-			pSaveGameButtonObjectInfo->getHeight(), 
-			pWindowObject->getXInset() + pSaveGameButtonObjectInfo->getXOrigin(), 
-			pWindowObject->getYInset() + pSaveGameButtonObjectInfo->getYOrigin());
-
-		pSaveGameButton->setParent(this);
-
-		if(!pSaveGameButton->init(pSaveGameButtonObjectInfo->getSchema().c_str()))
-		{
-			Con_EPrintf("Failed to initialize button object for save/load UI window.\n");
-			return false;
-		}
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, SAVE_GAME_BUTTON_OBJ_NAME);
+		return false;
 	}
 
+	CUISaveLoadWindowButtonEvent* pEventSave = new CUISaveLoadWindowButtonEvent(this, SL_BUTTON_SAVE_GAME);
+	m_pSaveButton = new CUIButton(pSaveGameButtonObjectInfo->getFlags(), 
+		pSaveGameButtonObjectInfo->getText().c_str(), 
+		pSaveGameButtonObjectInfo->getFont(), 
+		pEventSave, 
+		pSaveGameButtonObjectInfo->getWidth(),
+		pSaveGameButtonObjectInfo->getHeight(), 
+		pWindowObject->getXInset() + pSaveGameButtonObjectInfo->getXOrigin(), 
+		pWindowObject->getYInset() + pSaveGameButtonObjectInfo->getYOrigin());
+
+	m_pSaveButton->setParent(this);
+
+	if(!m_pSaveButton->init(pSaveGameButtonObjectInfo->getSchema().c_str()))
+	{
+		Con_EPrintf("Failed to initialize button object for save/load UI window.\n");
+		return false;
+	}
+
+	// Ensure these are updated
+	UpdateButtons();
+
 	return true;
+}
+
+//=============================================
+// @brief Updates buttons
+//
+//=============================================
+void CUISaveLoadWindow::UpdateButtons( void )
+{
+	if(m_bIsIngame)
+	{
+		// Set focus specifically on the new save
+		SetFocusOnRow(NEW_SAVE_INDEX, NEW_SAVE_INDEX);
+	}
+	else if(!m_saveFilesArray.empty())
+	{
+		// Set focus on the first row
+		SetFocusOnRow(0, 0);
+	}
+	else
+	{
+		m_pLoadButton->setDisabled(true);
+		m_pSaveButton->setDisabled(true);
+		m_pDeleteButton->setDisabled(true);
+	}
 }
 
 //=============================================
@@ -551,6 +610,8 @@ void CUISaveLoadWindow::postThink( void )
 	{
 		LoadSaves((ens.gamestate == GAME_RUNNING) ? true : false);
 		m_bRecheckSaves = false;
+
+		UpdateButtons();
 	}
 }
 
@@ -640,6 +701,9 @@ void CUISaveLoadWindow::SetFocusOnRow( Int32 rowIndex, Int32 fileIndex )
 	{
 		m_pSaveList->setHighlightOnRow(0, true);
 		m_lastSelectedSave = NEW_SAVE_INDEX;
+		m_pLoadButton->setDisabled(true);
+		m_pSaveButton->setDisabled(false);
+		m_pDeleteButton->setDisabled(true);
 		return;
 	}
 
@@ -662,6 +726,10 @@ void CUISaveLoadWindow::SetFocusOnRow( Int32 rowIndex, Int32 fileIndex )
 		// Set to save's screenshot
 		SetBackgroundTexture(psave);
 	}
+
+	m_pLoadButton->setDisabled(false);
+	m_pSaveButton->setDisabled(true);
+	m_pDeleteButton->setDisabled(false);
 }
 
 //=============================================
@@ -687,7 +755,7 @@ void CUISaveLoadWindow::RowDoubleClickEvent( Int32 rowIndex )
 }
 
 //=============================================
-// @brief Peforms the action of the button
+// @brief Loads a save
 //
 //=============================================
 void CUISaveLoadWindow::LoadSave( const Char* pstrSavePath )
@@ -697,6 +765,23 @@ void CUISaveLoadWindow::LoadSave( const Char* pstrSavePath )
 	command << "load " << pstrSavePath;
 
 	gCommands.AddCommand(command.c_str());
+}
+
+//=============================================
+// @brief Deletes a save
+//
+//=============================================
+void CUISaveLoadWindow::DeleteSave( const Char* pstrSavePath )
+{
+	// Load the mentioned save
+	if(!FL_DeleteFile(pstrSavePath))
+	{
+		Con_EPrintf("%s - Could not delete save file '%s'.\n", __FUNCTION__, pstrSavePath);
+		return;
+	}
+
+	// Force a re-check
+	m_bRecheckSaves = true;
 }
 
 //=============================================
@@ -738,6 +823,15 @@ void CUISaveLoadWindow::ButtonEvent( slwindow_btn_id btn )
 			m_bRecheckSaves = true;
 		}
 		break;
+	case SL_BUTTON_DELETE:
+		{
+			// If it's a double click, then check what we clicked on
+			assert(m_lastSelectedSave >= 0 && m_lastSelectedSave < (Int32)m_saveFilesArray.size());
+			save_file_t* psave = &m_saveFilesArray[m_lastSelectedSave];
+
+			DeleteSave(psave->filepath);
+		};
+		break;
 	case SL_BUTTON_CANCEL:
 		CUISaveLoadWindow::DestroyInstance();
 		break;
@@ -778,7 +872,7 @@ bool CUISaveLoadWindowRowEvent::MouseButtonEvent( Int32 mouseX, Int32 mouseY, In
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUISaveLoadWindowButtonEvent::PerformAction( Int32 param )
+void CUISaveLoadWindowButtonEvent::PerformAction( Float param )
 {
 	m_pWindow->ButtonEvent(m_buttonId);
 }

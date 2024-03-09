@@ -23,6 +23,8 @@ All Rights Reserved.
 #include "system.h"
 #include "enginestate.h"
 #include "r_common.h"
+#include "r_vbo.h"
+#include "texturemanager.h"
 
 // Font set base directory
 const Char CText::FONT_DIRECTORY[] = "fonts";
@@ -148,7 +150,7 @@ bool CText :: InitGL ( void )
 
 	for(Uint32 i = 0; i < m_fontSetsArray.size(); i++)
 	{
-		if(!LoadFont(m_fontSetsArray[i]->name.c_str(), m_fontSetsArray[i]->fontsize))
+		if(!LoadFont(m_fontSetsArray[i]->name.c_str(), m_fontSetsArray[i]->fontsize, m_fontSetsArray[i]->outline, &m_fontSetsArray[i]->outlinecolor, m_fontSetsArray[i]->outlineradius))
 			return false;
 	}
 
@@ -171,7 +173,7 @@ void CText :: ClearGL ( void )
 	if(!m_fontSetsArray.empty())
 	{
 		for(Uint32 i = 0; i < m_fontSetsArray.size(); i++)
-			m_fontSetsArray[i]->infoindex = -1;
+			m_fontSetsArray[i]->infoindex = NO_GL_INFO_INDEX;
 	}
 
 	if(m_pShader)
@@ -185,15 +187,23 @@ void CText :: ClearGL ( void )
 // CText :: LoadFont
 // Purpose:
 //=======================================
-const font_set_t *CText :: LoadFont ( const Char *pstrFilename, Int32 fontSize )
+const font_set_t *CText :: LoadFont ( const Char *pstrFilename, Int32 fontSize, bool outline, const color32_t* poutlinecolor, Uint32 outlineradius )
 {
+	// Always have this
+	color32_t outlinecolor;
+	if(poutlinecolor)
+		outlinecolor = (*poutlinecolor);
+
 	// Try to find an existing entry
 	font_set_t* pset = nullptr;
 	for(Uint32 i = 0; i < m_fontSetsArray.size(); i++)
 	{
 		// Make sure it's actually usable, if not, load the font in again
 		if(!qstrcmp(pstrFilename, m_fontSetsArray[i]->name) 
-			&& m_fontSetsArray[i]->fontsize == fontSize)
+			&& m_fontSetsArray[i]->fontsize == fontSize
+			&& m_fontSetsArray[i]->outline == outline
+			&& !memcmp(&m_fontSetsArray[i]->outlinecolor, &outlinecolor, sizeof(color32_t))
+			&& m_fontSetsArray[i]->outlineradius == outlineradius)
 		{
 			pset = m_fontSetsArray[i];
 			break;
@@ -201,7 +211,7 @@ const font_set_t *CText :: LoadFont ( const Char *pstrFilename, Int32 fontSize )
 	}
 
 	// Only return if it's loaded into GL
-	if(pset && pset->infoindex != -1)
+	if(pset && pset->infoindex != NO_GL_INFO_INDEX)
 		return pset;
 
 	CString filePath;
@@ -225,6 +235,11 @@ const font_set_t *CText :: LoadFont ( const Char *pstrFilename, Int32 fontSize )
 			pset = new font_set_t;
 			pset->name = pstrFilename;
 			pset->fontsize = fontSize;
+			pset->outline = outline;
+			pset->outlineradius = outlineradius;
+
+			if(poutlinecolor)
+				pset->outlinecolor = (*poutlinecolor);
 
 			m_fontSetsArray.push_back(pset);
 		}
@@ -253,10 +268,13 @@ const font_set_t *CText :: LoadFont ( const Char *pstrFilename, Int32 fontSize )
 	Uint32 iGlyphSize, iResX, iResY, iPadding;
 	GetIdealSizes(fontSize, &iResX, &iResY, &iGlyphSize, &iPadding); 
 
-	// Allocate data for the font set
-	Uint32 dataSize = iResX*iResY*4;
-	byte* pImageData = new byte[dataSize];
-	memset(pImageData, 0, sizeof(byte)*dataSize);
+	// Pack outline chars into same texture
+	Int32 baseResY = iResY;
+	if(outline)
+		iResY *= 2;
+
+	// Offset into height
+	Uint32 yOffset = 0;
 
 	// Allocate new slot
 	font_set_t* pnew = nullptr;
@@ -265,65 +283,164 @@ const font_set_t *CText :: LoadFont ( const Char *pstrFilename, Int32 fontSize )
 	else
 		pnew = pset;
 
-	// Allocate buffer to store data into
-	byte *pGlyphBuffer[NUM_GLYPHS] = { nullptr };
+	// Allocate buffer to store data into for outlines
+	// Allocate GL info struct
+	pnew->infoindex = m_fontInfoArray.size();
+	fontsetglinfo_t* pglinfo = new fontsetglinfo_t;
 
-	// Get data from the .ttf
-	for(Uint32 i = 32; i < NUM_GLYPHS; i++)
+	// Create VBO
+	pglinfo->pvbo = new CVBO(gGLExtF, true, false);
+
+	// Create texture buffer
+	Uint32 imagedatasize = iResX*iResY*4;
+	byte* ptexturedata = new byte[imagedatasize];
+	memset(ptexturedata, 0, sizeof(byte)*imagedatasize);
+
+	// Render normal glyph set
+	if(!RenderGlyphs(pnew, pglinfo, pnew->glyphs, pFace, iResX, yOffset, baseResY, iResY, iGlyphSize, iPadding, 0, false, ptexturedata, 0))
 	{
-		// See if it loads successfully
-		if(FT_Load_Char (pFace, i, FT_LOAD_RENDER)) 
+		if(!pset)
+			delete pnew;
+
+		if(pglinfo)
+			delete pglinfo;
+
+		Con_Printf("Could not load font set '%s'.\n", pstrFilename);
+		FT_Done_Face(pFace);
+		FL_FreeFile(pData);
+		return nullptr;
+	}
+
+	if(outline)
+	{
+		// Set offset
+		pglinfo->index_offset_outline = pglinfo->pvbo->GetVBODataSize() / sizeof(font_vertex_t);
+
+		yOffset += baseResY;
+		byte *poutlinedata = ptexturedata + (iResX*baseResY*4);
+
+		if(!RenderGlyphs(pnew, pglinfo, pnew->glyphs_outline, pFace, iResX, yOffset, baseResY, iResY, iGlyphSize, iPadding, pglinfo->index_offset_outline, true, poutlinedata, outlineradius))
 		{
 			if(!pset)
 				delete pnew;
 
-			// Clear anything that's been allocated
-			for(Uint32 j = 0; j < NUM_GLYPHS; j++)
-			{
-				if(pGlyphBuffer[j]) 
-					delete[] pGlyphBuffer[j];
-			}
+			if(pglinfo)
+				delete pglinfo;
 
-			Con_EPrintf("Could not load character %i\n", i);
+			Con_Printf("Could not load font set '%s'.\n", pstrFilename);
 			FT_Done_Face(pFace);
 			FL_FreeFile(pData);
 			return nullptr;
 		}
+	}
+
+	// Bind it into OGL
+	pglinfo->palloc = CTextureManager::GetInstance()->GenTextureIndex(RS_WINDOW_LEVEL);
+
+	glBindTexture(GL_TEXTURE_2D, pglinfo->palloc->gl_index);
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, iResX, iResY, 0, GL_RGBA, GL_UNSIGNED_BYTE, ptexturedata );
+	delete[] ptexturedata;
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	m_fontInfoArray.push_back(pglinfo);
+
+	pnew->name = pstrFilename;
+	pnew->fontsize = fontSize;
+	pnew->outline = outline;
+	pnew->outlineradius = outlineradius;
+
+	// If specified, use outline color.
+	// Otherwise it's black by default
+	if(poutlinecolor)
+		pnew->outlinecolor = (*poutlinecolor);
+
+	FT_Done_Face(pFace);
+	FL_FreeFile(pData);
+
+	if(!pset)
+		m_fontSetsArray.push_back(pnew);
+
+	return pnew;
+};
+
+//=======================================
+// CText :: RenderGlyphs
+// Purpose:
+//=======================================
+bool CText :: RenderGlyphs( font_set_t *pset, fontsetglinfo_t* psetinfo, font_glyph_t* pglyphs, FT_Face pFace, Uint32 iResX, Uint32 yOffset, Uint32 baseResY, Uint32 iResY, Uint32 iGlyphSize, Uint32 iPadding, Uint32 bufferoffset, bool outline, byte* poutbuffer, Uint32 outlineradius )
+{
+	// Allocate buffer to store data into
+	byte *pGlyphBuffer[NUM_GLYPHS] = { nullptr };
+
+	FT_Stroker pStroker = nullptr;
+	if(outline)
+	{
+		FT_Stroker_New(m_pLibrary, &pStroker);
+		FT_Stroker_Set(pStroker, outlineradius * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+	}
+
+	// Get data from the .ttf
+	bool result = true;
+	for(Uint32 i = 32; i < NUM_GLYPHS; i++)
+	{
+		FT_UInt glyphIndex = FT_Get_Char_Index(pFace, i);
+		if(FT_Load_Glyph(pFace, glyphIndex, FT_LOAD_DEFAULT))
+		{
+			result = false;
+			break;
+		}
+
+		FT_Glyph glyph;
+		if(FT_Get_Glyph(pFace->glyph, &glyph))
+		{
+			result = false;
+			break;
+		}
+
+		if(outline && pStroker)
+		{
+			if(FT_Glyph_StrokeBorder(&glyph, pStroker, false, true))
+			{
+				result = false;
+				break;
+			}
+		}
+
+		if(FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, nullptr, true))
+		{
+			result = false;
+			break;
+		}
+
+		FT_BitmapGlyph bitmapGlyph = reinterpret_cast<FT_BitmapGlyph>(glyph);
 
 		// Fill in data from the glyph
-		font_glyph_t *pGlyph = &pnew->glyphs[i];
-		pGlyph->width = pFace->glyph->bitmap.width;
-		pGlyph->height = pFace->glyph->bitmap.rows;
-		pGlyph->bitmap_left = pFace->glyph->bitmap_left;
-		pGlyph->bitmap_top = pFace->glyph->bitmap_top;
-		pGlyph->advancex = (pFace->glyph->advance.x >> 6);
-		pGlyph->advancey = (pFace->glyph->advance.y >> 6);
-		pGlyph->pitch = pFace->glyph->bitmap.pitch;
+		font_glyph_t *pGlyph = &pglyphs[i];
+		pGlyph->width = bitmapGlyph->bitmap.width;
+		pGlyph->height = bitmapGlyph->bitmap.rows;
+		pGlyph->bitmap_left = bitmapGlyph->left;
+		pGlyph->bitmap_top = bitmapGlyph->top;
+		pGlyph->advancex = (glyph->advance.x >> 16);
+		pGlyph->advancey = (glyph->advance.y >> 16);
+		pGlyph->pitch = bitmapGlyph->bitmap.pitch;
 
-		if(pGlyph->height > pnew->maxheight)
-			pnew->maxheight = pGlyph->height;
+		if(pGlyph->height > pset->maxheight)
+			pset->maxheight = pGlyph->height;
 
 		Uint32 gliphDataSize = pGlyph->height*pGlyph->pitch;
 		pGlyphBuffer[i] = new byte[gliphDataSize];
-		memcpy(pGlyphBuffer[i], pFace->glyph->bitmap.buffer, sizeof(byte)*gliphDataSize);
+		memcpy(pGlyphBuffer[i], bitmapGlyph->bitmap.buffer, sizeof(byte)*gliphDataSize);
 
 		FT_Glyph pFontGlyph = nullptr;
 		if(FT_Get_Glyph(pFace->glyph, &pFontGlyph))
 		{
-			if(!pset)
-				delete pnew;
-
-			// Clear anything that's been allocated
-			for(Uint32 j = 0; j < NUM_GLYPHS; j++)
-			{
-				if(pGlyphBuffer[j]) 
-					delete[] pGlyphBuffer[j];
-			}
-
-			Con_Printf("Could not load character %i\n", i);
-			FT_Done_Face(pFace);
-			FL_FreeFile(pData);
-			return nullptr;
+			result = false;
+			break;
 		}
 
 		FT_BBox pBBox;
@@ -336,19 +453,32 @@ const font_set_t *CText :: LoadFont ( const Char *pstrFilename, Int32 fontSize )
 
 		// Fill in texcoords
 		pGlyph->texcoords[0][0] = (iColumn*iGlyphSize+(iPadding/2.0f))/(Float)iResX;
-		pGlyph->texcoords[0][1] = (iRow*iGlyphSize+(iPadding/2.0f))/(Float)iResY;
+		pGlyph->texcoords[0][1] = (iRow*iGlyphSize+(iPadding/2.0f)+yOffset)/(Float)iResY;
 		pGlyph->texcoords[1][0] = (iColumn*iGlyphSize+pGlyph->width+(iPadding/2.0f))/(Float)iResX;
-		pGlyph->texcoords[1][1] = (iRow*iGlyphSize+(iPadding/2.0f))/(Float)iResY;
+		pGlyph->texcoords[1][1] = (iRow*iGlyphSize+(iPadding/2.0f)+yOffset)/(Float)iResY;
 		pGlyph->texcoords[2][0] = (iColumn*iGlyphSize+pGlyph->width+(iPadding/2.0f))/(Float)iResX;
-		pGlyph->texcoords[2][1] = (iRow*iGlyphSize+pGlyph->height+(iPadding/2.0f))/(Float)iResY;
+		pGlyph->texcoords[2][1] = (iRow*iGlyphSize+pGlyph->height+(iPadding/2.0f)+yOffset)/(Float)iResY;
 		pGlyph->texcoords[3][0] = (iColumn*iGlyphSize+(iPadding/2.0f))/(Float)iResX;
-		pGlyph->texcoords[3][1] = (iRow*iGlyphSize+pGlyph->height+(iPadding/2.0f))/(Float)iResY;
+		pGlyph->texcoords[3][1] = (iRow*iGlyphSize+pGlyph->height+(iPadding/2.0f)+yOffset)/(Float)iResY;
 
 		FT_Done_Glyph(pFontGlyph);
 	}
 
+	if(!result)
+	{
+		// Clear anything that's been allocated
+		for(Uint32 j = 0; j < NUM_GLYPHS; j++)
+		{
+			if(pGlyphBuffer[j]) 
+				delete[] pGlyphBuffer[j];
+		}
+	
+		return false;
+	}
+
+	// Fill into output
 	Uint32 iBufferIndex = 0;
-	for (Uint32 y = 0; y < iResY; y++) 
+	for (Uint32 y = 0; y < baseResY; y++) 
 	{
 		for (Uint32 x = 0; x < iResX; x++) 
 		{
@@ -362,51 +492,31 @@ const font_set_t *CText :: LoadFont ( const Char *pstrFilename, Int32 fontSize )
 				Uint32 x_loc = x % iGlyphSize - iPadding / 2;
 				Uint32 y_loc = y % iGlyphSize - iPadding / 2;
 
-				if (x_loc < 0 || y_loc < 0 || x_loc >= pnew->glyphs[glyph_index].width || y_loc >= pnew->glyphs[glyph_index].height) 
+				if (x_loc < 0 || y_loc < 0 || x_loc >= pglyphs[glyph_index].width || y_loc >= pglyphs[glyph_index].height) 
 				{
-					pImageData[iBufferIndex++] = 0;
-					pImageData[iBufferIndex++] = 0;
-					pImageData[iBufferIndex++] = 0;
-					pImageData[iBufferIndex++] = 0;
+					poutbuffer[iBufferIndex++] = 255;
+					poutbuffer[iBufferIndex++] = 255;
+					poutbuffer[iBufferIndex++] = 255;
+					poutbuffer[iBufferIndex++] = 0;
 				} 
 				else 
 				{
-					Int32 byte_order_in_glyph = y_loc * pnew->glyphs[glyph_index].width + x_loc;
-					pImageData[iBufferIndex++] = pGlyphBuffer[glyph_index][byte_order_in_glyph];
-					pImageData[iBufferIndex++] = pGlyphBuffer[glyph_index][byte_order_in_glyph];
-					pImageData[iBufferIndex++] = pGlyphBuffer[glyph_index][byte_order_in_glyph];
-					pImageData[iBufferIndex++] = pGlyphBuffer[glyph_index][byte_order_in_glyph];
+					Int32 byte_order_in_glyph = y_loc * pglyphs[glyph_index].width + x_loc;
+					poutbuffer[iBufferIndex++] = 255;
+					poutbuffer[iBufferIndex++] = 255;
+					poutbuffer[iBufferIndex++] = 255;
+					poutbuffer[iBufferIndex++] = pGlyphBuffer[glyph_index][byte_order_in_glyph];
 				}
-
-
 			} 
 			else 
 			{
-				pImageData[iBufferIndex++] = 0;
-				pImageData[iBufferIndex++] = 0;
-				pImageData[iBufferIndex++] = 0;
-				pImageData[iBufferIndex++] = 0;
+				poutbuffer[iBufferIndex++] = 255;
+				poutbuffer[iBufferIndex++] = 255;
+				poutbuffer[iBufferIndex++] = 255;
+				poutbuffer[iBufferIndex++] = 0;
 			}
 		}
 	}
-
-	// Allocate GL info struct
-	pnew->infoindex = m_fontInfoArray.size();
-	fontsetglinfo_t* pglinfo = new fontsetglinfo_t;
-	m_fontInfoArray.push_back(pglinfo);
-
-	// Bind it into OGL
-	en_texalloc_t* palloc = CTextureManager::GetInstance()->GenTextureIndex(RS_WINDOW_LEVEL);
-	pglinfo->gl_texture = palloc->gl_index;
-
-	glBindTexture(GL_TEXTURE_2D, pglinfo->gl_texture);
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, iResX, iResY, 0, GL_RGBA, GL_UNSIGNED_BYTE, pImageData );
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Delete the data we used
 	for(Uint32 i = 0; i < NUM_GLYPHS; i++)
@@ -415,22 +525,14 @@ const font_set_t *CText :: LoadFont ( const Char *pstrFilename, Int32 fontSize )
 			delete[] pGlyphBuffer[i];
 	}
 
-	pnew->name = pstrFilename;
-	pnew->fontsize = fontSize;
-
-	// Free the image
-	delete[] pImageData;
-	FT_Done_Face(pFace);
-	FL_FreeFile(pData);
-
 	// Now create the VBO
 	font_vertex_t *pbuffer = new font_vertex_t[NUM_GLYPHS*6];
 
 	Uint32 k = 0;
 	for(Uint32 j = 0; j < NUM_GLYPHS; j++)
 	{
-		font_glyph_t *pglyph = &pnew->glyphs[j];
-		pglyph->start_vertex = k;
+		font_glyph_t *pglyph = &pglyphs[j];
+		pglyph->start_vertex = bufferoffset + k;
 
 		Float flwidth = pglyph->width;
 		Float flheight = pglyph->height;
@@ -487,14 +589,11 @@ const font_set_t *CText :: LoadFont ( const Char *pstrFilename, Int32 fontSize )
 		k++;
 	}
 
-	pglinfo->pvbo = new CVBO(gGLExtF, pbuffer, NUM_GLYPHS*6*sizeof(font_vertex_t), nullptr, 0);
+	psetinfo->pvbo->Append(pbuffer, NUM_GLYPHS*6*sizeof(font_vertex_t), nullptr, 0);
 	delete[] pbuffer;
 
-	if(!pset)
-		m_fontSetsArray.push_back(pnew);
-
-	return pnew;
-};
+	return true;
+}
 
 //=======================================
 // CText :: GetIdealSizes
@@ -826,7 +925,7 @@ bool CText :: DrawSimpleString( const font_set_t *pFontSet, const Char *pstrStri
 	if(!pstrString || *pstrString == '\0')
 		return true;
 
-	if(pFontSet->infoindex == -1)
+	if(pFontSet->infoindex == NO_GL_INFO_INDEX)
 	{
 		Con_Printf("%s - Font set '%s' has no GL info allocated.\n", __FUNCTION__, pFontSet->name.c_str());
 		return true;
@@ -844,9 +943,34 @@ bool CText :: DrawSimpleString( const font_set_t *pFontSet, const Char *pstrStri
 	Int32 iX = x + m_iRectangle[0] + m_iInset[0];
 	Int32 iY = y + m_iRectangle[1] + m_iInset[1];
 
-	// bind texture
-	R_Bind2DTexture(GL_TEXTURE0, pglinfo->gl_texture);
-	m_pShader->SetUniform4f(m_uiUniformColor, m_iR/255.0f, m_iG/255.0f, m_iB/255.0f, m_iA/255.0f);
+	R_Bind2DTexture(GL_TEXTURE0, pglinfo->palloc->gl_index);
+
+	if(pFontSet->outline && pFontSet->outlinecolor.r != m_iR
+		&& pFontSet->outlinecolor.g != m_iG
+		&& pFontSet->outlinecolor.b != m_iB)
+	{
+		Int32 _a = m_iA;
+		if(pFontSet->outlinecolor.a != 0)
+			_a *= (Float)pFontSet->outlinecolor.a / 255.0f;
+
+		// Draw the outline characters
+		DrawSimpleStringChars(pstrString, pFontSet->glyphs_outline, iX, iY, pFontSet->outlinecolor.r, 
+			pFontSet->outlinecolor.b, pFontSet->outlinecolor.b, _a, maxlenght, true);
+	}
+
+	// Draw the normal characters
+	DrawSimpleStringChars(pstrString, pFontSet->glyphs, iX, iY, m_iR, m_iG, m_iB, m_iA, maxlenght, false);
+
+	return true;
+}
+
+//=======================================
+// CText :: DrawSimpleStringChars
+// Purpose:
+//=======================================
+void CText :: DrawSimpleStringChars( const Char* pstrString, const font_glyph_t* pglyphs, Int32 iX, Int32 iY, Int32 r, Int32 g, Int32 b, Int32 a, Int32 maxlenght, bool outline, Int32* padvancex, Int32* padvancey  )
+{
+	m_pShader->SetUniform4f(m_uiUniformColor, r/255.0f, g/255.0f, b/255.0f, a/255.0f);
 
 	R_ValidateShader(m_pShader);
 
@@ -860,17 +984,21 @@ bool CText :: DrawSimpleString( const font_set_t *pFontSet, const Char *pstrStri
 		if(glyphIndex > 254)
 			glyphIndex = 254;
 
-		const font_glyph_t *pGlyph = &pFontSet->glyphs[glyphIndex];
+		const font_glyph_t *pGlyph = &pglyphs[glyphIndex];
 
 		m_pShader->SetUniform2f(m_uiUniformOffset, (Float)iX, (Float)iY);
 		iX += pGlyph->advancex; 
 		iY += pGlyph->advancey;
 
+		if(padvancex)
+			(*padvancex) += pGlyph->advancex;
+
+		if(padvancey)
+			(*padvancey) += pGlyph->advancey;
+
 		glDrawArrays(GL_TRIANGLES, pGlyph->start_vertex, 6);
 		pstr++;
 	}
-
-	return true;
 }
 
 //=======================================
@@ -882,7 +1010,7 @@ bool CText :: DrawString( const font_set_t *pFontSet, const Char *pstrString, In
 	if(!pstrString || *pstrString == '\0')
 		return true;
 
-	if(pFontSet->infoindex == -1)
+	if(pFontSet->infoindex == NO_GL_INFO_INDEX)
 	{
 		Con_Printf("%s - Font set '%s' has no GL info allocated.\n", __FUNCTION__, pFontSet->name.c_str());
 		return true;
@@ -1127,20 +1255,18 @@ bool CText :: DrawString( const font_set_t *pFontSet, const Char *pstrString, In
 	// Get GL info
 	fontsetglinfo_t* pglinfo = m_fontInfoArray[pFontSet->infoindex];
 
-	// bind texture
-	R_Bind2DTexture(GL_TEXTURE0, pglinfo->gl_texture);
-	m_pShader->SetUniform4f(m_uiUniformColor, m_iR/255.0f, m_iG/255.0f, m_iB/255.0f, m_iA/255.0f);
-
 	// Cap the offset at the last line
 	if(lineoffset > m_linesList.size())
 		lineoffset = m_linesList.size()-1;
+
+	R_ValidateShader(m_pShader);
+
+	R_Bind2DTexture(GL_TEXTURE0, pglinfo->palloc->gl_index);
 
 	if(!reverse)
 		m_linesList.rbegin();
 	else
 		m_linesList.begin();
-
-	R_ValidateShader(m_pShader);
 
 	// Draw line by line
 	Uint32 lineIdx = 0;
@@ -1198,30 +1324,44 @@ bool CText :: DrawString( const font_set_t *pFontSet, const Char *pstrString, In
 		{
 			line_chunk_t& chunk = line.chunks.get();
 
+			// Set chunk color
+			Int32 _r, _g, _b;
 			if(chunk.color.r != 0 || chunk.color.g != 0 || chunk.color.b != 0)
-				m_pShader->SetUniform4f(m_uiUniformColor, chunk.color.r/255.0f, chunk.color.g/255.0f, chunk.color.b/255.0f, m_iA/255.0f);
-			else
-				m_pShader->SetUniform4f(m_uiUniformColor, m_iR/255.0f, m_iG/255.0f, m_iB/255.0f, m_iA/255.0f);
-
-			pstr = chunk.pstringbegin;
-			while((pstr - chunk.pstringbegin) < chunk.length)
 			{
-				Uint32 glyphIndex = (byte)(*pstr);
-				if(glyphIndex > 254)
-					glyphIndex = 254;
-
-				const font_glyph_t *pGlyph = &pFontSet->glyphs[glyphIndex];
-
-				if(!SDL_isspace(*pstr))
-				{
-					m_pShader->SetUniform2f(m_uiUniformOffset, (Float)iX, (Float)iY);
-					glDrawArrays(GL_TRIANGLES, pGlyph->start_vertex, 6);
-				}
-
-				iX += pGlyph->advancex; 
-				iY += pGlyph->advancey;
-				pstr++;
+				_r = chunk.color.r;
+				_g = chunk.color.g;
+				_b = chunk.color.b;
 			}
+			else
+			{
+				_r = m_iR;
+				_g = m_iG;
+				_b = m_iB;
+			}
+
+			if(pFontSet->outline && pFontSet->outlinecolor.r != _r
+				&& pFontSet->outlinecolor.g != _g
+				&& pFontSet->outlinecolor.b != _b)
+			{
+				Int32 _or = pFontSet->outlinecolor.r;
+				Int32 _og = pFontSet->outlinecolor.g;
+				Int32 _ob = pFontSet->outlinecolor.b;
+				Int32 _a = m_iA;
+				if(pFontSet->outlinecolor.a != 0)
+					_a *= (Float)pFontSet->outlinecolor.a / 255.0f;
+
+				// Draw the string
+				DrawSimpleStringChars(chunk.pstringbegin, pFontSet->glyphs_outline, iX, iY, _or, _og, _ob, _a, chunk.length, true);
+			}
+
+			// Draw chunk
+			Int32 advanceX = 0;
+			Int32 advanceY = 0;
+
+			DrawSimpleStringChars(chunk.pstringbegin, pFontSet->glyphs, iX, iY, _r, _g, _b, m_iA, chunk.length, false, &advanceX, &advanceY);
+
+			iX += advanceX;
+			iY += advanceY;
 
 			line.chunks.next();
 		}
@@ -1258,7 +1398,7 @@ bool CText :: DrawChar( const font_set_t *pFontSet, char character, Int32 x, Int
 	if(!pFontSet)
 		return true;
 
-	if(pFontSet->infoindex == -1)
+	if(pFontSet->infoindex == NO_GL_INFO_INDEX)
 	{
 		Con_Printf("%s - Font set '%s' has no GL info allocated.\n", __FUNCTION__, pFontSet->name.c_str());
 		return true;
@@ -1273,7 +1413,36 @@ bool CText :: DrawChar( const font_set_t *pFontSet, char character, Int32 x, Int
 	fontsetglinfo_t* pglinfo = m_fontInfoArray[pFontSet->infoindex];
 
 	// bind texture
-	R_Bind2DTexture(GL_TEXTURE0, pglinfo->gl_texture);
+	R_Bind2DTexture(GL_TEXTURE0, pglinfo->palloc->gl_index);
+
+	// Draw with the outline first
+	if(pFontSet->outline && pFontSet->outlinecolor.r != r
+		&& pFontSet->outlinecolor.g != g
+		&& pFontSet->outlinecolor.b != b)
+	{
+		Int32 _r = pFontSet->outlinecolor.r;
+		Int32 _g = pFontSet->outlinecolor.g;
+		Int32 _b = pFontSet->outlinecolor.b;
+
+		Int32 _a = a;
+		if(pFontSet->outlinecolor.a != 0)
+			_a *= (Float)pFontSet->outlinecolor.a / 255.0f;
+
+		m_pShader->SetUniform4f(m_uiUniformColor, (Float)_r/255.0f, (Float)_g/255.0f, (Float)_b/255.0f, (Float)_a/255.0f);
+
+		Uint32 glyphIndex = (byte)character;
+		if(glyphIndex > 254)
+			glyphIndex = 254;
+
+		const font_glyph_t *pGlyph = &pFontSet->glyphs_outline[glyphIndex];
+
+		R_ValidateShader(m_pShader);
+
+		m_pShader->SetUniform2f(m_uiUniformOffset, (Float)x, (Float)y);
+		glDrawArrays(GL_TRIANGLES, pGlyph->start_vertex, 6);
+	}
+
+	// Draw normal character
 	m_pShader->SetUniform4f(m_uiUniformColor, (Float)r/255.0f, (Float)g/255.0f, (Float)b/255.0f, (Float)a/255.0f);
 
 	Uint32 glyphIndex = (byte)character;
@@ -1343,7 +1512,7 @@ void CText :: SetColor( Uint32 r, Uint32 g, Uint32 b, Uint32 a )
 //=======================================
 bool CText :: BindSet( const font_set_t *pset )
 {
-	if(pset->infoindex == -1)
+	if(pset->infoindex == NO_GL_INFO_INDEX)
 	{
 		Con_Printf("%s - Font set '%s' has no GL info allocated.\n", __FUNCTION__, pset->name.c_str());
 		return true;
@@ -1379,7 +1548,7 @@ bool CText :: BindSet( const font_set_t *pset )
 //=======================================
 void CText :: UnBind( const font_set_t *pset )
 {
-	if(pset->infoindex == -1)
+	if(pset->infoindex == NO_GL_INFO_INDEX)
 	{
 		Con_Printf("%s - Font set '%s' has no GL info allocated.\n", __FUNCTION__, pset->name.c_str());
 		return;

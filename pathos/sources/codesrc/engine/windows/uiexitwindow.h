@@ -87,7 +87,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param ) { m_pWindow->buttonPressed( m_buttonId ); }
+	virtual void PerformAction( Float param ) { m_pWindow->buttonPressed( m_buttonId ); }
 
 protected:
 	// Button id

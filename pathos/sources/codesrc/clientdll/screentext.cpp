@@ -19,6 +19,8 @@ All Rights Reserved.
 
 // Screen text color
 const color32_t CScreenText::SCREENTEXT_COLOR = color32_t(255, 255, 255, 255);
+// Screen text text schema name
+const Char CScreenText::SCREENTEXT_TEXTSCHEME_FILENAME[] = "screentext";
 
 // Object definition
 CScreenText gScreenText;
@@ -46,7 +48,31 @@ CScreenText::~CScreenText( void )
 //=============================================
 bool CScreenText::Init( void )
 {
-	m_pFontSet = cl_renderfuncs.pfnGetDefaultFontSet();
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CScreenText::Shutdown( void )
+{
+	ClearGame();
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CScreenText::InitGL( void )
+{
+	Uint32 screenWidth, screenHeight;
+	cl_renderfuncs.pfnGetScreenSize(screenWidth, screenHeight);
+
+	m_pFontSet = cl_engfuncs.pfnGetResolutionSchemaFontSet(SCREENTEXT_TEXTSCHEME_FILENAME, screenHeight);
+	if(!m_pFontSet)
+		m_pFontSet = cl_renderfuncs.pfnGetDefaultFontSet();
+
 	if(!m_pFontSet)
 	{
 		cl_engfuncs.pfnCon_Printf("%s - Failed to get default font set.\n", __FUNCTION__);
@@ -60,9 +86,8 @@ bool CScreenText::Init( void )
 // @brief
 //
 //=============================================
-void CScreenText::Shutdown( void )
+void CScreenText::ClearGL( void )
 {
-	ClearGame();
 }
 
 //=============================================

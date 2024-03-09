@@ -19,6 +19,7 @@ struct cache_model_t;
 struct ui_schemeinfo_t;
 struct ui_windowdescription_t;
 struct cl_entity_t;
+struct font_set_t;
 
 enum snd_effects_t;
 
@@ -54,4 +55,6 @@ extern void CL_SetShouldHideMouse( bool shouldhide );
 extern const byte* CL_LeafPVS( const struct mleaf_t& leaf );
 extern void	CL_PrecacheDecal( const Char* pstrDecalName );
 extern void	CL_PrecacheDecalGroup( const Char* pstrDecalName );
+extern const font_set_t* CL_GetSchemaFontSet( const Char* schemaFileName );
+extern const font_set_t* CL_GetResolutionSchemaFontSet( const Char* schemaFileName, Uint32 resolution );
 #endif //CL_UTILS_H

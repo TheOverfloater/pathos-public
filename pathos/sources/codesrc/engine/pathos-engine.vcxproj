@@ -172,7 +172,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalDependencies>user32.lib;opengl32.lib;glu32.lib;shell32.lib;gdi32.lib;..\Win32\Release\SDL2.lib;..\Win32\Release\SDL2Main.lib;..\Win32\Release\freetype253.lib;..\libs\enet\enet.lib;..\libs\openal\libs\Win32\openal32.lib;..\libs\detours\lib.X86\detours.lib;..\libs\libogg\lib\Win32\Release\ogg.lib;..\libs\libvorbis\lib\Win32\Release\libvorbis.lib;winmm.lib;ws2_32.lib;gdiplus.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>user32.lib;opengl32.lib;glu32.lib;shell32.lib;gdi32.lib;..\Win32\Release\SDL2.lib;..\Win32\Release\SDL2Main.lib;..\libs\freetype\objs\Win32\vc2010\freetype253.lib;..\libs\enet\enet.lib;..\libs\openal\libs\Win32\openal32.lib;..\libs\detours\lib.X86\detours.lib;..\libs\libogg\lib\Win32\Release\ogg.lib;..\libs\libvorbis\lib\Win32\Release\libvorbis.lib;winmm.lib;ws2_32.lib;gdiplus.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
       <DelayLoadDLLs>OpenAL32.dll;SDL2.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <AdditionalOptions>/NODEFAULTLIB:msvcrtd %(AdditionalOptions)</AdditionalOptions>
@@ -287,6 +287,7 @@
     <ClCompile Include="server\sv_physics.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="sv_move.cpp" />
+    <ClCompile Include="textschemas.cpp" />
     <ClCompile Include="usermsg.cpp" />
     <ClCompile Include="vbmtrace.cpp" />
     <ClCompile Include="saverestore.cpp" />
@@ -432,6 +433,7 @@
     <ClInclude Include="server\sv_shared.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="sv_move.h" />
+    <ClInclude Include="textschemas.h" />
     <ClInclude Include="usermsg.h" />
     <ClInclude Include="vbmtrace.h" />
     <ClInclude Include="saverestore.h" />

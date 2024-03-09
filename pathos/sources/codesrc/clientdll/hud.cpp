@@ -150,6 +150,13 @@ const Float CGameHUD::SUBTITLE_INSET = 5;
 // HUD description script path
 const Char CGameHUD::HUD_DESCRIPTION_SCRIPT_PATH[] = "/scripts/hud.txt";
 
+// Font set for HUD
+const Char CGameHUD::HUD_FONT_SCHEMA_FILENAME[] = "hud_text";
+// Font set for counters
+const Char CGameHUD::HUD_COUNTER_FONT_SCHEMA_FILENAME[] = "hud_counter";
+// Font set for subtitles
+const Char CGameHUD::HUD_SUBTITLE_FONT_SCHEMA_FILENAME[] = "hud_subtitles";
+
 weapon_mapping_t WEAPONMAPPINGS[] = {
 	DEFINE_WEAPON_MAPPING(WEAPON_NONE),
 	DEFINE_WEAPON_MAPPING(WEAPON_GLOCK),
@@ -324,51 +331,28 @@ bool CGameHUD::InitGame( void )
 //=============================================
 bool CGameHUD::InitGL( void ) 
 {
-	if(gHUDDraw.ScaleY(TAB_GENERIC_SIZE_Y-CHUDDraw::HUD_EDGE_SIZE*2) < 26)
+	Uint32 screenWidth, screenHeight;
+	cl_renderfuncs.pfnGetScreenSize(screenWidth, screenHeight);
+
+	m_pFontSet = cl_engfuncs.pfnGetResolutionSchemaFontSet(HUD_FONT_SCHEMA_FILENAME, screenHeight);
+	if(!m_pFontSet)
 	{
-		m_pFontSet = cl_renderfuncs.pfnLoadFontSet("arial.ttf", 12);
-		if(!m_pFontSet)
-		{
-			cl_engfuncs.pfnCon_Printf("Failed to load arial.ttf");
-			return false;
-		}
-
-		m_pCounterFont = cl_renderfuncs.pfnLoadFontSet("arial.ttf", 18);
-		if(!m_pCounterFont)
-		{
-			cl_engfuncs.pfnCon_Printf("Failed to load arial.ttf");
-			return false;
-		}
-
-		m_pSubtitleSet = cl_renderfuncs.pfnLoadFontSet("arial.ttf", 18);
-		if(!m_pSubtitleSet)
-		{
-			cl_engfuncs.pfnCon_Printf("Failed to load arial.ttf");
-			return false;
-		}
+		cl_engfuncs.pfnCon_Printf("%s - Failed to load font schema '%s'.\n", __FUNCTION__, HUD_FONT_SCHEMA_FILENAME);
+		return false;
 	}
-	else
+
+	m_pCounterFont = cl_engfuncs.pfnGetResolutionSchemaFontSet(HUD_COUNTER_FONT_SCHEMA_FILENAME, screenHeight);
+	if(!m_pCounterFont)
 	{
-		m_pFontSet = cl_renderfuncs.pfnLoadFontSet("arial.ttf", 18);
-		if(!m_pFontSet)
-		{
-			cl_engfuncs.pfnCon_Printf("Failed to load arial.ttf");
-			return false;
-		}
+		cl_engfuncs.pfnCon_Printf("%s - Failed to load font schema '%s'.\n", __FUNCTION__, HUD_COUNTER_FONT_SCHEMA_FILENAME);
+		return false;
+	}
 
-		m_pCounterFont = cl_renderfuncs.pfnLoadFontSet("arial.ttf", 28);
-		if(!m_pCounterFont)
-		{
-			cl_engfuncs.pfnCon_Printf("Failed to load arial.ttf");
-			return false;
-		}
-
-		m_pSubtitleSet = cl_renderfuncs.pfnLoadFontSet("arial.ttf", 18);
-		if(!m_pSubtitleSet)
-		{
-			cl_engfuncs.pfnCon_Printf("Failed to load arial.ttf");
-			return false;
-		}
+	m_pSubtitleSet = cl_engfuncs.pfnGetResolutionSchemaFontSet(HUD_SUBTITLE_FONT_SCHEMA_FILENAME, screenHeight);
+	if(!m_pSubtitleSet)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Failed to load font schema '%s'.\n", __FUNCTION__, HUD_SUBTITLE_FONT_SCHEMA_FILENAME);
+		return false;
 	}
 
 	return true;

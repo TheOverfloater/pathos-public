@@ -21,6 +21,8 @@ class CScreenText
 public:
 	// Screen text color
 	static const color32_t SCREENTEXT_COLOR;
+	// Screen text text schema name
+	static const Char SCREENTEXT_TEXTSCHEME_FILENAME[];
 
 public:
 	struct textmsg_t
@@ -46,6 +48,9 @@ public:
 public:
 	bool Init( void );
 	void Shutdown( void );
+
+	bool InitGL( void );
+	void ClearGL( void );
 
 	bool InitGame( void );
 	void ClearGame( void );

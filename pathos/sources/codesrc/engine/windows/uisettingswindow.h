@@ -49,7 +49,7 @@ public:
 			
 public:
 	// Performs the action tied to this event
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 
 protected:
 	// CVar name that this toggles
@@ -75,7 +75,7 @@ public:
 			
 public:
 	// Performs the action tied to this event
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 
 protected:
 	// CVar name that this toggles
@@ -98,7 +98,7 @@ public:
 	virtual ~CUIScrollSurfaceDropListToggleEvent( void ) { };
 			
 public:
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 
 protected:
 	// Row index
@@ -121,7 +121,7 @@ public:
 	virtual ~CUIScrollSurfaceDropListSelectEvent( void ) { };
 			
 public:
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 
 protected:
 	// Row index
@@ -143,7 +143,7 @@ public:
 	virtual ~CUISettingsCancelEvent( void ) { };
 			
 public:
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 };
 
 /*
@@ -161,7 +161,7 @@ public:
 	virtual ~CUISettingsApplyEvent( void ) { };
 			
 public:
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 };
 
 /*
@@ -182,7 +182,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param ) { };
+	virtual void PerformAction( Float param ) { };
 	// Handles a mouse button event
 	virtual bool MouseButtonEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool keyDown );
 
@@ -212,7 +212,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 };
 
 /*
@@ -231,7 +231,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 };
 
 /*
@@ -250,7 +250,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 };
 
 /*
@@ -269,7 +269,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 };
 
 /*
@@ -288,7 +288,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 };
 
 /*
@@ -307,7 +307,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 };
 
 /*
@@ -326,7 +326,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 };
 
 /*
@@ -345,7 +345,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 };
 
 /*
@@ -364,7 +364,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 };
 
 /*
@@ -383,7 +383,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 };
 
 /*

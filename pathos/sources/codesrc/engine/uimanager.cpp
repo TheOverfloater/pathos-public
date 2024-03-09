@@ -738,7 +738,8 @@ ui_schemeinfo_t* CUIManager::LoadSchemaFile( const Char* pstrFilename )
 			CString textureName;
 			if(!qstrcmp(token, "$default") 
 				|| !qstrcmp(token, "$focus")
-				|| !qstrcmp(token, "$clicked"))
+				|| !qstrcmp(token, "$clicked")
+				|| !qstrcmp(token, "$disabled"))
 			{
 				// If it's a texture resource, load it in
 				CString texturePath;
@@ -756,6 +757,8 @@ ui_schemeinfo_t* CUIManager::LoadSchemaFile( const Char* pstrFilename )
 					newObject.focusTexture = ptexture;
 				else if(!qstrcmp(token, "$clicked"))
 					newObject.clickTexture = ptexture;
+				else if(!qstrcmp(token, "$disabled"))
+					newObject.disabledTexture = ptexture;
 
 				if(!newObject.width)
 					newObject.width = ptexture->width;

@@ -621,7 +621,7 @@ void CGameUIObjectivesWindow::ManageEvent( objectivesbuttonevent_t event )
 //====================================
 //
 //====================================
-void CGameUIObjectivesWindowCallbackEvent::PerformAction( Int32 param )
+void CGameUIObjectivesWindowCallbackEvent::PerformAction( Float param )
 {
 	if(!m_pObjectivesWindow)
 		return;

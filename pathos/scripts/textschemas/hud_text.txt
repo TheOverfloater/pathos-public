@@ -1,0 +1,17 @@
+$schema "HUDText"
+{
+	$fontcolor "255 255 255 255"
+	$outlinecolor "0 0 0 255"
+	$fontset "arial.ttf"
+
+	$resolution 1080
+	{
+		$fontsize 18
+		$outlineradius 2	
+	}
+	$resolution 1024
+	{
+		$fontsize 12
+		$outlineradius 1	
+	}
+}

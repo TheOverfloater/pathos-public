@@ -38,6 +38,15 @@ button "SaveGameButton"
 	$height 32
 	$flags align_bottom align_right
 }
+button "DeleteSaveButton"
+{
+	$schema "defaultbutton.txt"
+	$text "Delete Save"
+	$originx 488
+	$width 112
+	$height 32
+	$flags align_bottom align_right
+}
 list "SaveList"
 {
 	$schema "indentedwindow.txt"

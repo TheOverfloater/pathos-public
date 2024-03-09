@@ -28,7 +28,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 
 private:
 	// Console window pointer
@@ -52,7 +52,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param ) { };
+	virtual void PerformAction( Float param ) { };
 	// Handles a special key event
 	virtual bool KeyEvent( Int32 button, Int16 mod, bool keyDown );
 

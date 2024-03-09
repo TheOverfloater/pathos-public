@@ -45,7 +45,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param ) = 0;
+	virtual void PerformAction( Float param ) = 0;
 	// Handles a special key event
 	virtual bool KeyEvent( Int32 button, Int16 mod, bool keyDown ) { return false; }
 	// Handles a mouse button event
@@ -164,6 +164,11 @@ public:
 	virtual bool isMouseOver( Int32 xPos, Int32 yPos );
 	// Tells if the element is being clicked on
 	virtual bool isClickedOn( void ) { return false; }
+
+	// Tells if the element is disabled
+	virtual void setDisabled( bool disabled ) { }
+	// Tells if the element is disabled
+	virtual bool isDisabled( void ) { return false; }
 
 	// Moves the element by x and y amount
 	virtual void move( Int32 x, Int32 y ) { if(m_pParent) m_pParent->move(x, y); };
@@ -294,6 +299,8 @@ public:
 	virtual void setFocusTexture( const en_texture_t* ptexture ) { m_pFocusTexture = ptexture; }
 	// Sets the texture to use when the element is clicked
 	virtual void setClickedTexture( const en_texture_t* ptexture ) { m_pClickedTexture = ptexture; }
+	// Sets the texture to use when the element is disabled
+	virtual void setDisabledTexture( const en_texture_t* ptexture ) { m_pDisabledTexture = ptexture; }
 
 	// Draws the element and it's children
 	virtual bool draw( void ) override;
@@ -303,6 +310,7 @@ protected:
 	const en_texture_t* m_pDefaultTexture;
 	const en_texture_t* m_pFocusTexture;
 	const en_texture_t* m_pClickedTexture;
+	const en_texture_t* m_pDisabledTexture;
 };
 
 /*
@@ -406,7 +414,7 @@ public:
 			virtual ~CUIWindowCloseAction( void ) { };
 			
 		public:
-			virtual void PerformAction( Int32 param ) override;
+			virtual void PerformAction( Float param ) override;
 
 		private:
 			// Window that created this
@@ -598,6 +606,11 @@ public:
 	// For releasing pressed states on buttons
 	virtual void releaseClickStates( void ) override { m_isClickedOn = false; };
 
+	// Tells if the element is disabled
+	virtual void setDisabled( bool disabled ) override { m_isDisabled = disabled; }
+	// Tells if the element is disabled
+	virtual bool isDisabled( void ) { return m_isDisabled; }
+
 protected:
 	// Can be text or an icon
 	CUIObject* m_pDisplay;
@@ -605,6 +618,8 @@ protected:
 	bool m_isClickedOn;
 	// Button event class
 	CUICallbackEvent* m_pAction;
+	// TRUE if the button is disabled
+	bool m_isDisabled;
 };
 
 /*
@@ -732,7 +747,7 @@ public:
 	// Sets the position of the button
 	virtual void setPosition( Float position );
 	// Gets the position of the button
-	virtual Float getPosition( void );
+	virtual Double getPosition( void );
 	// Adjusts the position of the button
 	virtual bool adjPosition( Int32 adjAmt, bool isMouseDrag, bool callEvent = true );
 
@@ -759,7 +774,7 @@ protected:
 	Int32 m_endInset;
 
 	// Current position of the slider
-	Float m_position;
+	Double m_position;
 	// Last parent length the position was set on
 	Uint32 m_lastParentLength;
 };
@@ -785,7 +800,7 @@ public:
 			virtual ~CUIScrollerArrowBtnAction( void ) { };
 			
 		public:
-			virtual void PerformAction( Int32 param ) override;
+			virtual void PerformAction( Float param ) override;
 
 		private:
 			// Window that created this
@@ -805,7 +820,7 @@ public:
 			virtual ~CUIScrollerDragBtnAction( void ) { };
 			
 		public:
-			virtual void PerformAction( Int32 param ) override;
+			virtual void PerformAction( Float param ) override;
 
 		private:
 			// Window that created this
@@ -968,7 +983,7 @@ private:
 			virtual ~CUITabSelectCallback( void ) { };
 			
 		public:
-			virtual void PerformAction( Int32 param ) override { m_pTabListObject->showTab(m_tabIndex); }
+			virtual void PerformAction( Float param ) override { m_pTabListObject->showTab(m_tabIndex); }
 
 		private:
 			// Index of tab to activate
@@ -1256,7 +1271,7 @@ private:
 			virtual ~CUIDropDownButtonEvent( void ) { };
 			
 		public:
-			virtual void PerformAction( Int32 param ) override;
+			virtual void PerformAction( Float param ) override;
 
 		private:
 			// Window that created this
@@ -1274,7 +1289,7 @@ private:
 			virtual ~CUIDropDownRowClickEvent( void ) { };
 			
 		public:
-			virtual void PerformAction( Int32 param ) override { };
+			virtual void PerformAction( Float param ) override { };
 			virtual bool MouseButtonEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool keyDown ) override;
 
 		private:
@@ -1392,7 +1407,7 @@ public:
 			virtual ~CUISliderDragBtnAction( void ) { };
 			
 		public:
-			virtual void PerformAction( Int32 param ) override;
+			virtual void PerformAction( Float param ) override;
 
 		private:
 			// Window that created this
@@ -1414,7 +1429,7 @@ public:
 	// Retreives the drag button object
 	virtual CUIDragButton* getSliderButton( void ) { return m_pSliderButton; }
 	// Sets the value of the slider based on the position
-	virtual void setValueFromPosition( Float position );
+	virtual void setValueFromPosition( Double position );
 	// Sets position and value based on 0-1 range
 	virtual void setValue( Float value );
 

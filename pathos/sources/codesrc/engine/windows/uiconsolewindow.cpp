@@ -414,7 +414,7 @@ void CUIConsoleWindow::onGLInitialization( void )
 // @brief Destructor
 //
 //=============================================
-void CUIConsoleExecuteCallback::PerformAction( Int32 param )
+void CUIConsoleExecuteCallback::PerformAction( Float param )
 {
 	m_pWindow->Execute();
 }

@@ -441,7 +441,7 @@ void CGameUITextWindow::CloseWindow( void )
 //====================================
 //
 //====================================
-void CGameUITextWindowExitCallbackEvent::PerformAction( Int32 param )
+void CGameUITextWindowExitCallbackEvent::PerformAction( Float param )
 {
 	if(!m_pTextWindow)
 		return;

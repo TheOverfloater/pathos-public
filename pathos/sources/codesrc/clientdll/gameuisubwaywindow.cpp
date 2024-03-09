@@ -606,7 +606,7 @@ void CGameUISubwayWindow::ManageEvent( subwaybuttonevent_t event )
 //====================================
 //
 //====================================
-void CGameUISubwayWindowCallbackEvent::PerformAction( Int32 param )
+void CGameUISubwayWindowCallbackEvent::PerformAction( Float param )
 {
 	if(!m_pSubwayWindow)
 		return;

@@ -1,0 +1,8 @@
+$schema "SayText"
+{
+	$fontcolor "255 255 255 255"
+	$outlinecolor "0 0 0 255"
+	$fontset "timesnewroman.ttf"
+	$fontsize 24
+	$outlineradius 2
+}

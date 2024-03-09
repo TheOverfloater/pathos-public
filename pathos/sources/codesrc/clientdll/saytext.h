@@ -25,6 +25,8 @@ private:
 	static const Float SAYTEXT_LIFETIME;
 	// Fade duration for each line
 	static const Float SAYTEXT_FADETIME;
+	// Screen text text schema name
+	static const Char TEXTSCHEME_FILENAME[];
 
 private:
 	struct saytextinfo_t
@@ -43,6 +45,11 @@ public:
 	bool Init( void );
 	// Resets the class
 	void Shutdown( void );
+
+	// Initializes GL objects
+	bool InitGL( void );
+	// Resets GL objects
+	void ClearGL( void );
 
 	// Initializes game objects
 	bool InitGame( void );

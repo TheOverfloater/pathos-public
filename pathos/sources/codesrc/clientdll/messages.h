@@ -24,6 +24,8 @@ class CScreenMessages
 public:
 	// Filename of titles file
 	static const Char TITLES_FILENAME[];
+	// Font set schema name for this clas
+	static const Char MESSAGES_FONT_SCHEMA_FILENAME[];
 
 public:
 	enum effects_t
@@ -170,6 +172,9 @@ private:
 	Uint32 m_screenWidth;
 	// Screen height
 	Uint32 m_screenHeight;
+
+	// Font set used by engine
+	const font_set_t* m_pFontSet;
 };
 extern CScreenMessages gMessages;
 #endif //MESSAGES_H

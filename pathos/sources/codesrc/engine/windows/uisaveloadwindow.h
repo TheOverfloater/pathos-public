@@ -18,7 +18,8 @@ enum slwindow_btn_id
 {
 	SL_BUTTON_LOAD_GAME = 0,
 	SL_BUTTON_SAVE_GAME,
-	SL_BUTTON_CANCEL
+	SL_BUTTON_CANCEL,
+	SL_BUTTON_DELETE
 };
 
 /*
@@ -60,6 +61,8 @@ public:
 	static const Char LOAD_GAME_BUTTON_OBJ_NAME[];
 	// Save game button object name
 	static const Char SAVE_GAME_BUTTON_OBJ_NAME[];
+	// Delete save button object name
+	static const Char DELETE_SAVE_BUTTON_OBJ_NAME[];
 
 private:
 	CUISaveLoadWindow( Int32 flags, Uint32 width, Uint32 height, Int32 originx, Int32 originy );
@@ -86,6 +89,8 @@ public:
 	void SetFocusOnRow( Int32 rowIndex, Int32 fileIndex );
 	// Set focus on a specific row
 	void RowDoubleClickEvent( Int32 rowIndex );
+	// Called to delete a save file
+	void DeleteSave( const Char* pstrSavePath );
 
 	// Reacts to a button being pressed
 	void ButtonEvent( slwindow_btn_id btn );
@@ -103,6 +108,9 @@ private:
 	void SetBackgroundTexture( save_file_t* psave );
 	// Creates a save file row
 	void CreateSaveFileRow( save_file_t& saveFile, Uint32 fileindex );
+
+	// Updates buttons
+	void UpdateButtons( void );
 
 public:
 	// Loads the schema, and creates the sub-elements
@@ -124,6 +132,15 @@ private:
 	Uint32 m_rowTextInset;
 	// List info object
 	const ui_objectinfo_t* m_pListObjectInfo;
+	// TRUE if we're in an active game
+	bool m_bIsIngame;
+
+	// Save button
+	CUIButton* m_pSaveButton;
+	// Load button
+	CUIButton* m_pLoadButton;
+	// Delete button
+	CUIButton* m_pDeleteButton;
 
 public:
 	// Current instance
@@ -149,7 +166,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param ) { }
+	virtual void PerformAction( Float param ) { }
 	// Handles a mouse button event
 	virtual bool MouseButtonEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool keyDown );
 
@@ -166,7 +183,7 @@ protected:
 
 /*
 =================================
-CUIExitWindowEvent
+CUISaveLoadWindowButtonEvent
 
 =================================
 */
@@ -181,7 +198,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param );
+	virtual void PerformAction( Float param );
 
 protected:
 	// Row index
@@ -189,6 +206,4 @@ protected:
 	// Window that created this
 	CUISaveLoadWindow* m_pWindow;
 };
-
-
 #endif //UISAVELOADWINDOW_H

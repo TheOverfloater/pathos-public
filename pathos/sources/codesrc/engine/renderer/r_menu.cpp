@@ -41,6 +41,7 @@ All Rights Reserved.
 #include "cl_snd.h"
 #include "saverestore.h"
 #include "commands.h"
+#include "textschemas.h"
 
 // Brightness values for the menu button
 const Float CMenuButton::DEFAULT_BRIGHTNESS = 0.75;
@@ -66,12 +67,12 @@ const Int32 CMenu::MENU_BUTTONS_XPOS = 80;
 const Int32 CMenu::MENU_BUTTONS_YPOS = 270;
 const Int32 CMenu::MENU_BUTTONS_GAP = 30;
 
-// Menu font size relative to 1024x768 resolution
-const Int32 CMenu::MENU_BUTTON_FONTSIZE = 36;
-
 // Menu title position relative to 1024x768 resolution
 const Int32 CMenu::MENU_BASE_WIDTH = 1024;
 const Int32 CMenu::MENU_BASE_HEIGHT = 768;
+
+// Menu font size relative to 1024x768 resolution
+const Int32 CMenu::MENU_BUTTON_FONTSIZE = 36;
 
 // Blend time for background texture
 const Float CMenu::MENU_BLEND_TIME = 0.25f;
@@ -83,6 +84,9 @@ const Char CMenu::MENU_HOVER_SOUND[] = "menu/button_glow.wav";
 const Char CMenu::MENU_CLICK_SOUND[] = "menu/button_click.wav";
 const Char CMenu::MENU_MUSIC_FILE_STARTUP[] = "music/gamestartup.ogg";
 const Char CMenu::MENU_MUSIC_FILE_INGAME[] = "music/menumusic_game.ogg";
+
+// Menu button font schema
+const Char CMenu::MENU_BUTTON_TEXT_SCHEMA[] = "menubuttons";
 
 // Menu object
 CMenu gMenu;
@@ -206,8 +210,13 @@ bool CMenu::Init( void )
 	}
 
 	// Determine button font to use
-	Int32 idealFontSize = (Uint32)R_GetRelativeY(MENU_BUTTON_FONTSIZE, MENU_BASE_HEIGHT, gWindow.GetHeight());
-	m_pButtonFont = gText.LoadFont("albertus.ttf", idealFontSize);
+	m_pButtonFont = gTextSchemas.GetResolutionSchemaFontSet(MENU_BUTTON_TEXT_SCHEMA, gWindow.GetHeight());
+	if(!m_pButtonFont)
+	{
+		Int32 idealFontSize = (Uint32)R_GetRelativeY(MENU_BUTTON_FONTSIZE, MENU_BASE_HEIGHT, gWindow.GetHeight());
+		m_pButtonFont = gText.LoadFont("albertus.ttf", idealFontSize, true, nullptr, 2);
+	}
+
 	if(!m_pButtonFont)
 	{
 		Con_EPrintf("Failed to load menu button font.\n");

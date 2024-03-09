@@ -140,7 +140,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param ) override;
+	virtual void PerformAction( Float param ) override;
 	// Handles a special key event
 	virtual bool KeyEvent( Int32 button, Int16 mod, bool keyDown ) override { return false; }
 	// Handles a mouse button event
@@ -171,7 +171,7 @@ public:
 
 public:
 	// Performs the action
-	virtual void PerformAction( Int32 param ) override;
+	virtual void PerformAction( Float param ) override;
 	// Handles a special key event
 	virtual bool KeyEvent( Int32 button, Int16 mod, bool keyDown ) override { return false; }
 	// Handles a mouse button event

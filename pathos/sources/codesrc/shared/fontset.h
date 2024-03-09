@@ -20,6 +20,9 @@ static const Uint32 MAX_FONT_SIZE = 72;
 // Default font set name
 static const Char DEFAULT_FONTSET_NAME[] = "calibri.ttf";
 
+// No GL info index
+static const Int32 NO_GL_INFO_INDEX = -1;
+
 struct font_glyph_t
 {
 	font_glyph_t():
@@ -57,17 +60,25 @@ struct font_glyph_t
 struct font_set_t
 {
 	font_set_t():
-		infoindex(-1),
 		fontsize(0),
-		maxheight(0)
+		maxheight(0),
+		outlineradius(0),
+		outline(false),
+		infoindex(NO_GL_INFO_INDEX)
 	{}
 
-	Int32 infoindex;
 	CString name;
 	Int32 fontsize;
 	Int32 maxheight;
+	Uint32 outlineradius;
 
 	font_glyph_t glyphs[NUM_GLYPHS];
+	font_glyph_t glyphs_outline[NUM_GLYPHS];
+
+	bool outline;
+	color32_t outlinecolor;
+
+	Int32 infoindex;
 };
 
 #endif //FONTSET_H

@@ -2853,7 +2853,7 @@ void CUISettingsWindow::SetViewBobTabText( const Char* pstrText )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUISettingsCancelEvent::PerformAction( Int32 param )
+void CUISettingsCancelEvent::PerformAction( Float param )
 {
 	if(m_pWindow)
 		m_pWindow->setWindowFlags(CUIWindow::UIW_FL_KILLME);
@@ -2863,7 +2863,7 @@ void CUISettingsCancelEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUISettingsApplyEvent::PerformAction( Int32 param )
+void CUISettingsApplyEvent::PerformAction( Float param )
 {
 	if(m_pWindow)
 		m_pWindow->ApplyChanges();
@@ -2903,7 +2903,7 @@ bool CUIBindsRowEvent::MouseButtonEvent( Int32 mouseX, Int32 mouseY, Int32 butto
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUITabSelectEvent::PerformAction( Int32 param )
+void CUITabSelectEvent::PerformAction( Float param )
 {
 	if(m_pWindow)
 		m_pWindow->SetCurrentTabIndex(param);
@@ -2913,7 +2913,7 @@ void CUITabSelectEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUIBindsClearBtnEvent::PerformAction( Int32 param )
+void CUIBindsClearBtnEvent::PerformAction( Float param )
 {
 	if(m_pWindow)
 		m_pWindow->ClearSelectedKey();
@@ -2923,7 +2923,7 @@ void CUIBindsClearBtnEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUIBindsRestoreButtonEvent::PerformAction( Int32 param )
+void CUIBindsRestoreButtonEvent::PerformAction( Float param )
 {
 	if(m_pWindow)
 		m_pWindow->RestoreDefaultBinds();
@@ -2933,7 +2933,7 @@ void CUIBindsRestoreButtonEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUIBindsBindBtnEvent::PerformAction( Int32 param )
+void CUIBindsBindBtnEvent::PerformAction( Float param )
 {
 	if(m_pWindow)
 		m_pWindow->BindSelectedKey();
@@ -2943,7 +2943,7 @@ void CUIBindsBindBtnEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUIDeviceSelectEvent::PerformAction( Int32 param )
+void CUIDeviceSelectEvent::PerformAction( Float param )
 {
 	if(!m_pWindow)
 		return;
@@ -2955,7 +2955,7 @@ void CUIDeviceSelectEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUIResolutionSelectEvent::PerformAction( Int32 param )
+void CUIResolutionSelectEvent::PerformAction( Float param )
 {
 	if(!m_pWindow)
 		return;
@@ -2967,7 +2967,7 @@ void CUIResolutionSelectEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUIWindowModeSelectEvent::PerformAction( Int32 param )
+void CUIWindowModeSelectEvent::PerformAction( Float param )
 {
 	if(!m_pWindow)
 		return;
@@ -2979,7 +2979,7 @@ void CUIWindowModeSelectEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUIAnisotropySelectEvent::PerformAction( Int32 param )
+void CUIAnisotropySelectEvent::PerformAction( Float param )
 {
 	if(!m_pWindow)
 		return;
@@ -2991,7 +2991,7 @@ void CUIAnisotropySelectEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUIAntiAliasSelectEvent::PerformAction( Int32 param )
+void CUIAntiAliasSelectEvent::PerformAction( Float param )
 {
 	if(!m_pWindow)
 		return;
@@ -3003,7 +3003,7 @@ void CUIAntiAliasSelectEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUIVerticalSyncSelectEvent::PerformAction( Int32 param )
+void CUIVerticalSyncSelectEvent::PerformAction( Float param )
 {
 	if(!m_pWindow)
 		return;
@@ -3015,7 +3015,7 @@ void CUIVerticalSyncSelectEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUIScrollSurfaceDropListToggleEvent::PerformAction( Int32 param )
+void CUIScrollSurfaceDropListToggleEvent::PerformAction( Float param )
 {
 	if(!m_pWindow)
 		return;
@@ -3027,7 +3027,7 @@ void CUIScrollSurfaceDropListToggleEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUIScrollSurfaceDropListSelectEvent::PerformAction( Int32 param )
+void CUIScrollSurfaceDropListSelectEvent::PerformAction( Float param )
 {
 	if(!m_pWindow)
 		return;
@@ -3039,7 +3039,7 @@ void CUIScrollSurfaceDropListSelectEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUITickBoxEvent::PerformAction( Int32 param )
+void CUITickBoxEvent::PerformAction( Float param )
 {
 	if(!m_pWindow)
 		return;
@@ -3051,40 +3051,35 @@ void CUITickBoxEvent::PerformAction( Int32 param )
 // @brief Peforms the action of the button
 //
 //=============================================
-void CUISliderAdjustEvent::PerformAction( Int32 param )
+void CUISliderAdjustEvent::PerformAction( Float param )
 {
 	if(!m_pWindow)
 		return;
-	
-	Float value = (Float)param/100.0f;
-	if(m_isInteger)
-		value = (Int32)value;
 
-	m_pWindow->CVarChanged(m_cvarName.c_str(), value);
+	m_pWindow->CVarChanged(m_cvarName.c_str(), param);
 
-	// TODO: find a better solution to this shit
 	if(!qstrcmp(m_cvarName, MOUSE_SENSITIVITY_CVAR_NAME))
 	{
 		Char szValue[64];
-		sprintf(szValue, "%0.1f", value);
+		sprintf(szValue, "%0.1f", param);
 		m_pWindow->SetMouseSensitivityTabText(szValue);
 	}
 	else if(!qstrcmp(m_cvarName, MOUSE_FILTER_FRAMES_CVAR_NAME))
 	{
 		Char szValue[64];
-		sprintf(szValue, "%d", (Int32)value);
+		sprintf(szValue, "%d", (Int32)param);
 		m_pWindow->SetMouseFilterFramesTabText(szValue);
 	}
 	else if(!qstrcmp(m_cvarName, VIEW_ROLL_CVAR_NAME))
 	{
 		Char szValue[64];
-		sprintf(szValue, "%0.1f", value);
+		sprintf(szValue, "%0.1f", param);
 		m_pWindow->SetViewRollTabText(szValue);
 	}
 	else if(!qstrcmp(m_cvarName, VIEW_BOB_CVAR_NAME))
 	{
 		Char szValue[64];
-		sprintf(szValue, "%0.1f", value);
+		sprintf(szValue, "%0.1f", param);
 		m_pWindow->SetViewBobTabText(szValue);
 	}
 }

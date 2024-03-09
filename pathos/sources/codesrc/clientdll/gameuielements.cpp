@@ -1788,7 +1788,7 @@ void CGameUIDragButton::adjustPosition( void )
 // @brief Performs the close action for the window
 //
 //=============================================
-void CGameUIScroller::CGameUIScrollerDragBtnAction::PerformAction( Int32 param )
+void CGameUIScroller::CGameUIScrollerDragBtnAction::PerformAction( Float param )
 {
 	assert(m_pScroller != nullptr);
 

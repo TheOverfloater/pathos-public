@@ -31,6 +31,7 @@ All Rights Reserved.
 #include "r_vbm.h"
 #include "uimanager.h"
 #include "r_menu.h"
+#include "textschemas.h"
 
 //=============================================
 //
@@ -340,4 +341,20 @@ void CL_SetShouldHideMouse( bool shouldhide )
 const byte* CL_LeafPVS( const mleaf_t& leaf )
 {
 	return Mod_LeafPVS(rns.psecondaryvisbuffer, ens.visbuffersize, leaf, *ens.pworld);
+}
+
+//=============================================
+//
+//=============================================
+const font_set_t* CL_GetSchemaFontSet( const Char* schemaFileName )
+{
+	return gTextSchemas.GetSchemaFontSet(schemaFileName);
+}
+
+//=============================================
+//
+//=============================================
+const font_set_t* CL_GetResolutionSchemaFontSet( const Char* schemaFileName, Uint32 resolution )
+{
+	return gTextSchemas.GetResolutionSchemaFontSet(schemaFileName, resolution);
 }
