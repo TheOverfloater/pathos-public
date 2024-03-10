@@ -567,6 +567,12 @@ void SV_MaxPlayersCvarCallBack( CCVar* pCVar )
 //=============================================
 bool SV_SpawnGame( const Char* pstrLevelName, const Char* pstrSaveFile, const Char* pstrTransitionSave, bool clearLoadingScreen )
 {
+	if(!ens.isinitialized)
+	{
+		Con_EPrintf("%s - Attempted to spawn game before engine was initialized.\n", __FUNCTION__, pstrSaveFile);
+		return false;
+	}
+
 	if(!pstrLevelName && !pstrSaveFile)
 	{
 		Con_EPrintf("%s - No level or save file specified.\n", __FUNCTION__, pstrSaveFile);

@@ -546,7 +546,15 @@ bool CGLSLShader::LoadFromBSD( void )
 	if(!m_rootDirectory.empty())
 		bsdFilePath << m_rootDirectory << PATH_SLASH_CHAR;
 
-	bsdFilePath << "scripts/shaders/" << basename << ".bsd";
+	bsdFilePath << "scripts/shaders/";
+		
+#ifdef _64BUILD
+	bsdFilePath << "binary_x64/";
+#else
+	bsdFilePath << "binary_x86/";
+#endif
+
+	bsdFilePath << basename << ".bsd";
 
 	// Open the file for reading
 	Uint32 bsdFileSize = 0;
@@ -782,9 +790,23 @@ bool CGLSLShader::CompileCSDShaderData( void )
 		Common::Basename(m_shaderFile.c_str(), basename);
 
 		// Save binary data to disk
-		CString filePath;
-		filePath << "scripts/shaders/" << basename << ".bsd";
+		CString folderPath;
+		folderPath << "scripts/shaders/";
 
+#ifdef _64BUILD
+		folderPath << "binary_x64/";
+#else
+		folderPath << "binary_x86/";
+#endif
+		if(!m_fileInterface.pfnCreateDirectory(folderPath.c_str()))
+		{
+			m_errorString << "Failed to create directory " << folderPath;
+			delete[] pbsdheader;
+			return false;
+		}
+
+		CString filePath;
+		filePath << folderPath << basename << ".bsd";
 		if(!m_fileInterface.pfnWriteFile(reinterpret_cast<byte*>(pbsdheader), pbsdheader->size, filePath.c_str(), false))
 		{
 			m_errorString << "Failed to open " << filePath << " for writing";

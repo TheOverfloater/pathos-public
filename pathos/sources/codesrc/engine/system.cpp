@@ -232,6 +232,18 @@ bool Sys_Init( CArray<CString>* argsArray )
 	// Close the line
 	Con_Printf(strPrint.c_str());
 	Con_Printf("Engine build date: %s.\n", __DATE__);
+
+	// Mark initialized
+	ens.isinitialized = true;
+
+	if(!ens.scheduledmap.empty())
+	{
+		CString cmd;
+		cmd << "map " << ens.scheduledmap;
+		gCommands.AddCommand(cmd.c_str());
+		ens.scheduledmap.clear();
+	}
+
 	return true;
 }
 
@@ -700,27 +712,41 @@ bool Sys_ParseLaunchParams( const CArray<CString>* argsArray )
 		}
 		else if(strArg[0] == '+')
 		{
-			// Extract the full command
-			CString fullCmd;
-			fullCmd << strArg.c_str()+1;
-
-			// Add the cmd to the overwritten list
-			ens.overwrittencvars.push_back(fullCmd);
-
-			// Add everything until the next argument
-			for(i++; i < argsArray->size(); i++)
+			if(!qstrcmp(strArg.c_str()+1, "map"))
 			{
-				const CString& cmdArg = (*argsArray)[i];
-				if(cmdArg[0] == '-' || cmdArg[0] == '+')
+				if(i == (argsArray->size()-1))
 				{
-					i--;
-					break;
+					Con_Printf("Warning: Missing argument for %s.\n", strArg.c_str());
+					continue;
 				}
 
-				fullCmd << " " << cmdArg;
+				ens.scheduledmap = (*argsArray)[i+1];
+				i += 2;
 			}
+			else
+			{
+				// Extract the full command
+				CString fullCmd;
+				fullCmd << strArg.c_str()+1;
 
-			gCommands.AddCommand(fullCmd.c_str());
+				// Add the cmd to the overwritten list
+				ens.overwrittencvars.push_back(fullCmd);
+
+				// Add everything until the next argument
+				for(i++; i < argsArray->size(); i++)
+				{
+					const CString& cmdArg = (*argsArray)[i];
+					if(cmdArg[0] == '-' || cmdArg[0] == '+')
+					{
+						i--;
+						break;
+					}
+
+					fullCmd << " " << cmdArg;
+				}
+
+				gCommands.AddCommand(fullCmd.c_str());
+			}
 		}
 		else
 			Con_DPrintf("Argument %s not handled in %s.\n", argName.c_str(), __FUNCTION__);

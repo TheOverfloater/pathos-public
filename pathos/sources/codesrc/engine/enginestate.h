@@ -51,6 +51,7 @@ struct engine_state_t
 		spawnconsole(false),
 		isinprocesstringcommand(false),
 		isloading(false),
+		isinitialized(false),
 		gamestate(GAME_INACTIVE),
 		pworld(nullptr),
 		requestWMode(WM_NONE),
@@ -86,6 +87,8 @@ struct engine_state_t
 	bool isinprocesstringcommand;
 	// true if we're in the middle of a load
 	bool isloading;
+	// TRUE if engine is initialized
+	bool isinitialized;
 
 	// Game state
 	gamestate_t gamestate;
@@ -132,6 +135,9 @@ struct engine_state_t
 	CString startmap;
 	// Game directory
 	CString gamedir;
+
+	// Map scheduled to load on in command line
+	CString scheduledmap;
 
 	// Log file to log to
 	CLogFile *plogfile;

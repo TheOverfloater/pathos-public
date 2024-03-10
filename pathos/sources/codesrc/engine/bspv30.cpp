@@ -818,8 +818,8 @@ bool BSPV30_CalcSurfaceExtents( msurface_t* psurf, brushmodel_t& model )
 
 	for(Uint32 i = 0; i < 2; i++)
 	{
-		Int16 boundsmin = (Int16)floor(mins[i]/V30_LM_BASE_SAMPLE_SIZE);
-		Int16 boundsmax = (Int16)ceil(maxs[i]/V30_LM_BASE_SAMPLE_SIZE);
+		Int16 boundsmin = (Int16)SDL_floor(mins[i]/V30_LM_BASE_SAMPLE_SIZE);
+		Int16 boundsmax = (Int16)SDL_ceil(maxs[i]/V30_LM_BASE_SAMPLE_SIZE);
 
 		psurf->texturemins[i] = boundsmin*V30_LM_BASE_SAMPLE_SIZE;
 		psurf->extents[i] = (boundsmax - boundsmin) * V30_LM_BASE_SAMPLE_SIZE;
