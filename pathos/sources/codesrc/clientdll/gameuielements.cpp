@@ -922,7 +922,7 @@ CGameUIText::CGameUIText( Int32 flags, const color32_t& color, const font_set_t*
 	m_maxHeight(0)
 {
 	if(!m_pFontSet)
-		m_pFontSet = cl_renderfuncs.pfnGetDefaultFontSet();
+		m_pFontSet = gGameUIManager.GetDefaultFontSet();
 
 	// Call to adjust size
 	adjustSize();
@@ -940,7 +940,7 @@ CGameUIText::CGameUIText( Int32 flags, const color32_t& color, const font_set_t*
 	m_maxHeight(0)
 {
 	if(!m_pFontSet)
-		m_pFontSet = cl_renderfuncs.pfnGetDefaultFontSet();
+		m_pFontSet = gGameUIManager.GetDefaultFontSet();
 }
 
 //====================================
@@ -956,7 +956,7 @@ CGameUIText::CGameUIText( Int32 flags, const color32_t& color, const font_set_t*
 	m_maxHeight(maxheight)
 {
 	if(!m_pFontSet)
-		m_pFontSet = cl_renderfuncs.pfnGetDefaultFontSet();
+		m_pFontSet = gGameUIManager.GetDefaultFontSet();
 
 	// Call to adjust size
 	adjustSize();
@@ -1073,7 +1073,7 @@ CGameUITextTab::CGameUITextTab( Int32 flags, const font_set_t* pfontset, Uint32 
 	m_pScroller(nullptr)
 {
 	if(!m_pFontSet)
-		m_pFontSet = cl_renderfuncs.pfnGetDefaultFontSet();
+		m_pFontSet = gGameUIManager.GetDefaultFontSet();
 
 	m_pScroller = new CGameUIScroller(CGameUIObject::FL_NONE, CGameUIObject::FL_SCROLL_V, edgethickness, color, highlightcolor, highlightcolor, m_pFontSet->fontsize, 16, m_height - m_edgeThickness*2, 0, m_edgeThickness);
 	m_pScroller->setParent(this);

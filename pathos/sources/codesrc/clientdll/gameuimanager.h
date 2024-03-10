@@ -12,6 +12,7 @@ All Rights Reserved.
 
 class CGameUIWindow;
 class CCVar;
+struct font_set_t;
 
 #include "gameui_shared.h"
 
@@ -26,6 +27,8 @@ class CGameUIManager
 public:
 	// Blur time for background
 	static const Float BACKGROUND_BLUR_TIME;
+	// Default font schema of the game UI
+	static const Char DEFAULT_TEXT_SCHEMA[];
 
 public:
 	CGameUIManager( void );
@@ -64,7 +67,9 @@ public:
 
 	// Returns the server UI message id
 	Uint32 GetServerUIMessageId( void ) const { return m_uiServerUserMsgId; }
-	
+	// Returns the default font set
+	const font_set_t* GetDefaultFontSet( void ) const { return m_pFontSet; }
+
 	// Returns the active window
 	const CGameUIWindow* GetActiveWindow( void );
 
@@ -92,6 +97,9 @@ public:
 
 	// CVar to toggle borders
 	CCVar* m_pCvarBorders;
+
+	// Default font set used by game UI
+	const font_set_t* m_pFontSet;
 };
 extern CGameUIManager gGameUIManager;
 #endif //GAMEUIMANAGER_H

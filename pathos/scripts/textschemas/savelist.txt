@@ -1,0 +1,8 @@
+$schema "SaveList"
+{
+	$fontcolor "255 255 255 255"
+	$outlinecolor "0 0 0 255"
+	$fontset "calibri.ttf"
+	$fontsize 18
+	$outlineradius 1	
+}

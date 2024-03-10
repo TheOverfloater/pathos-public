@@ -1,8 +1,6 @@
 $title "Dummy Document 2"
-$titlefontset "albertus.ttf"
-$fontset "timesnewroman.ttf"
-$titlefontsize 36
-$fontsize 18
+$titletextschema "testdiarytitle"
+$textschema "testdiarytext"
 $color 255 255 255 200
 $titlecolor 255 255 255 255
 {

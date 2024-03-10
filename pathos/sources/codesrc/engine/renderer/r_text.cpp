@@ -986,7 +986,12 @@ void CText :: DrawSimpleStringChars( const Char* pstrString, const font_glyph_t*
 
 		const font_glyph_t *pGlyph = &pglyphs[glyphIndex];
 
-		m_pShader->SetUniform2f(m_uiUniformOffset, (Float)iX, (Float)iY);
+		if(!SDL_isspace(*pstr))
+		{
+			m_pShader->SetUniform2f(m_uiUniformOffset, (Float)iX, (Float)iY);
+			glDrawArrays(GL_TRIANGLES, pGlyph->start_vertex, 6);
+		}
+
 		iX += pGlyph->advancex; 
 		iY += pGlyph->advancey;
 
@@ -996,7 +1001,7 @@ void CText :: DrawSimpleStringChars( const Char* pstrString, const font_glyph_t*
 		if(padvancey)
 			(*padvancey) += pGlyph->advancey;
 
-		glDrawArrays(GL_TRIANGLES, pGlyph->start_vertex, 6);
+		
 		pstr++;
 	}
 }
@@ -1274,7 +1279,7 @@ bool CText :: DrawString( const font_set_t *pFontSet, const Char *pstrString, In
 	{	
 		line_t& line = m_linesList.get();
 
-		if(lineIdx < lineoffset || !pstr)
+		if(lineIdx < lineoffset)
 		{
 			if(!reverse)
 				m_linesList.prev();
@@ -1323,6 +1328,11 @@ bool CText :: DrawString( const font_set_t *pFontSet, const Char *pstrString, In
 		while(!line.chunks.end())
 		{
 			line_chunk_t& chunk = line.chunks.get();
+			if(!chunk.length)
+			{
+				line.chunks.next();
+				continue;
+			}
 
 			// Set chunk color
 			Int32 _r, _g, _b;

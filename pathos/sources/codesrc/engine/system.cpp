@@ -145,6 +145,10 @@ bool Sys_Init( CArray<CString>* argsArray )
 	// Initialize configuration
 	gConfig.Init();
 
+	// See if the default font exists
+	if(!Sys_LoadDefaultFont(nullptr))
+		return false;
+
 	// Initialize UI
 	gUIManager.Init();
 
@@ -175,10 +179,6 @@ bool Sys_Init( CArray<CString>* argsArray )
 
 	// Delete the array
 	delete argsArray;
-
-	// See if the default font exists
-	if(!Sys_LoadDefaultFont(nullptr))
-		return false;
 
 	// Initialize the server
 	if(!SV_Init())

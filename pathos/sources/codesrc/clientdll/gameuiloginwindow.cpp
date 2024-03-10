@@ -33,30 +33,22 @@ const Uint32 CGameUILoginWindow::LOGINWINDOW_INPUT_TAB_WIDTH = 300;
 const Uint32 CGameUILoginWindow::LOGINWINDOW_INPUT_TAB_HEIGHT = 100;
 // Input tab text inset
 const Uint32 CGameUILoginWindow::LOGINWINDOW_INPUT_TAB_TEXT_INSET = 15;
-// Title text default font set name
-const Char CGameUILoginWindow::LOGINWINDOW_TITLE_DEFAULT_FONT_SET_NAME[] = "timesnewroman.ttf";
-// Title text default font size
-const Uint32 CGameUILoginWindow::LOGINWINDOW_TITLE_DEFAULT_FONT_SIZE = 36;
-// Title text low res font size
-const Uint32 CGameUILoginWindow::LOGINWINDOW_TITLE_LOWRES_FONT_SIZE = 24;
 // Default text color
 const color32_t CGameUILoginWindow::LOGINWINDOW_TEXT_COLOR = color32_t(255, 255, 255, 255);
 // Default text color
 const color32_t CGameUILoginWindow::LOGINWINDOW_NOTES_INFO_TEXT_COLOR = color32_t(30, 30, 255, 255);
-// Text default font set name
-const Char CGameUILoginWindow::LOGINWINDOW_DEFAULT_FONT_SET_NAME[] = "calibri.ttf";
-// Text default font set size
-const Uint32 CGameUILoginWindow::LOGINWINDOW_DEFAULT_FONT_SIZE = 24;
-// Text default font set size
-const Uint32 CGameUILoginWindow::LOGINWINDOW_LOWRES_FONT_SIZE = 12;
-// Button y spacing for login window
-const Uint32 CGameUILoginWindow::LOGINWINDOW_BUTTON_X_SPACING = 20;
-// Prompt text lifetime
-const Double CGameUILoginWindow::LOGINWINDOW_PROMPT_LIFETIME = 3;
 // Default text color
 const color32_t CGameUILoginWindow::LOGINWINDOW_PROMPT_FAIL_TEXT_COLOR = color32_t(255, 30, 30, 255);
 // Default text color
 const color32_t CGameUILoginWindow::LOGINWINDOW_PROMPT_SUCCESS_TEXT_COLOR = color32_t(30, 255, 30, 255);
+// Button y spacing for login window
+const Uint32 CGameUILoginWindow::LOGINWINDOW_BUTTON_X_SPACING = 20;
+// Prompt text lifetime
+const Double CGameUILoginWindow::LOGINWINDOW_PROMPT_LIFETIME = 3;
+// Title text default schema set name
+const Char CGameUILoginWindow::LOGINWINDOW_TITLE_TEXTSCHEMA_NAME[] = "logintitle";
+// Text default font schema name
+const Char CGameUILoginWindow::LOGINWINDOW_TEXTSCHEMA_NAME[] = "logintext";
 
 //====================================
 //
@@ -112,13 +104,13 @@ void CGameUILoginWindow::init( void )
 	//
 	// Create the title text object
 	//
-	Uint32 titlefontsize;
-	if(gHUDDraw.ScaleY(LOGINWINDOW_TITLE_DEFAULT_FONT_SIZE) <= LOGINWINDOW_TITLE_LOWRES_FONT_SIZE)
-		titlefontsize = LOGINWINDOW_TITLE_LOWRES_FONT_SIZE;
-	else
-		titlefontsize = LOGINWINDOW_TITLE_DEFAULT_FONT_SIZE;
+	Uint32 screenWidth, screenHeight;
+	cl_renderfuncs.pfnGetScreenSize(screenWidth, screenHeight);
 
-	const font_set_t* pTitleFont = cl_renderfuncs.pfnLoadFontSet(LOGINWINDOW_TITLE_DEFAULT_FONT_SET_NAME, titlefontsize);
+	const font_set_t* pTitleFont = cl_engfuncs.pfnGetResolutionSchemaFontSet(LOGINWINDOW_TITLE_TEXTSCHEMA_NAME, screenHeight);
+	if(!pTitleFont)
+		pTitleFont = gGameUIManager.GetDefaultFontSet();
+
 	Uint32 textYOrigin = hBarYOrigin + tabTopInset/2.0f;
 	CGameUIText *pTitleText = new CGameUIText(CGameUIObject::FL_ALIGN_CH, GAMEUIWINDOW_DEFAULT_TEXT_COLOR, pTitleFont, 0, textYOrigin);
 	pTitleText->setParent(this);
@@ -169,21 +161,15 @@ void CGameUILoginWindow::init( void )
 	Int32 inputTabXOrigin = pMainTab->getWidth() / 2 - inputTabWidth / 2;
 	Int32 inputTabYOrigin = tabYInset;
 
-	Uint32 fontsize;
-	if(gHUDDraw.ScaleY(LOGINWINDOW_DEFAULT_FONT_SIZE) <= LOGINWINDOW_LOWRES_FONT_SIZE)
-		fontsize = LOGINWINDOW_LOWRES_FONT_SIZE;
-	else
-		fontsize = LOGINWINDOW_DEFAULT_FONT_SIZE;
+	const font_set_t* pFontSet = cl_engfuncs.pfnGetResolutionSchemaFontSet(LOGINWINDOW_TEXTSCHEMA_NAME, screenHeight);
+	if(!pFontSet)
+		pFontSet = gGameUIManager.GetDefaultFontSet();
 
-	const font_set_t* pfontset = cl_renderfuncs.pfnLoadFontSet(LOGINWINDOW_DEFAULT_FONT_SET_NAME, fontsize);
-	if(!pfontset)
-		pfontset = cl_renderfuncs.pfnGetDefaultFontSet();
-
-	CGameUIText* pUsernameText = new CGameUIText(CGameUIObject::FL_NONE, LOGINWINDOW_TEXT_COLOR, pfontset, inputTabXOrigin, inputTabYOrigin);
+	CGameUIText* pUsernameText = new CGameUIText(CGameUIObject::FL_NONE, LOGINWINDOW_TEXT_COLOR, pFontSet, inputTabXOrigin, inputTabYOrigin);
 	pUsernameText->setParent(pMainTab);
 	pUsernameText->setText("Username");
 
-	inputTabYOrigin += pfontset->fontsize;
+	inputTabYOrigin += pFontSet->fontsize;
 
 	//
 	// Create the username input tab
@@ -196,7 +182,7 @@ void CGameUILoginWindow::init( void )
 		GAMEUIWINDOW_MAIN_TAB_COLOR,
 		GAMEUIWINDOW_MAIN_TAB_BG_COLOR,
 		GAMEUIWINDOW_BUTTON_HIGHLIGHT_COLOR,
-		pfontset,
+		pFontSet,
 		inputTabXOrigin,
 		inputTabYOrigin,
 		inputTabWidth,
@@ -208,11 +194,11 @@ void CGameUILoginWindow::init( void )
 	//
 	// Create the password tab text
 	//
-	CGameUIText* pPasswordText = new CGameUIText(CGameUIObject::FL_NONE, LOGINWINDOW_TEXT_COLOR, pfontset, inputTabXOrigin, inputTabYOrigin);
+	CGameUIText* pPasswordText = new CGameUIText(CGameUIObject::FL_NONE, LOGINWINDOW_TEXT_COLOR, pFontSet, inputTabXOrigin, inputTabYOrigin);
 	pPasswordText->setParent(pMainTab);
 	pPasswordText->setText("Password");
 
-	inputTabYOrigin += pfontset->fontsize;
+	inputTabYOrigin += pFontSet->fontsize;
 
 	//
 	// Create the password input tab
@@ -225,7 +211,7 @@ void CGameUILoginWindow::init( void )
 		GAMEUIWINDOW_MAIN_TAB_COLOR,
 		GAMEUIWINDOW_MAIN_TAB_BG_COLOR,
 		GAMEUIWINDOW_BUTTON_HIGHLIGHT_COLOR,
-		pfontset,
+		pFontSet,
 		inputTabXOrigin,
 		inputTabYOrigin,
 		inputTabWidth,
@@ -235,7 +221,7 @@ void CGameUILoginWindow::init( void )
 	Int32 promptTextYPos = inputTabYOrigin + inputTabHeight + LOGINWINDOW_TAB_Y_SPACING;
 	m_pPromptText = new CGameUIText(CGameUIObject::FL_ALIGN_CH, 
 		LOGINWINDOW_NOTES_INFO_TEXT_COLOR,
-		pfontset,
+		pFontSet,
 		0,
 		promptTextYPos);
 	m_pPromptText->setParent(pMainTab);
@@ -305,7 +291,7 @@ void CGameUILoginWindow::init( void )
 
 	m_pInfoLabelUsername = new CGameUIText(CGameUIObject::FL_NONE, 
 		LOGINWINDOW_TEXT_COLOR,
-		pfontset, 
+		pFontSet, 
 		labelXPos,
 		labelYPos);
 	m_pInfoLabelUsername->setParent(pNotesTab);
@@ -317,7 +303,7 @@ void CGameUILoginWindow::init( void )
 	// Create "username" data field
 	m_pTextUsername = new CGameUIText(CGameUIObject::FL_NONE,
 		LOGINWINDOW_NOTES_INFO_TEXT_COLOR,
-		pfontset, fieldXPos, labelYPos);
+		pFontSet, fieldXPos, labelYPos);
 	m_pTextUsername->setParent(pNotesTab);
 	m_pTextUsername->setVisible(false);
 
@@ -327,7 +313,7 @@ void CGameUILoginWindow::init( void )
 
 	m_pInfoLabelPassword = new CGameUIText(CGameUIObject::FL_NONE, 
 		LOGINWINDOW_TEXT_COLOR,
-		pfontset, 
+		pFontSet, 
 		labelXPos,
 		labelYPos);
 	m_pInfoLabelPassword->setParent(pNotesTab);
@@ -339,7 +325,7 @@ void CGameUILoginWindow::init( void )
 	// Create "username" data field
 	m_pTextPassword = new CGameUIText(CGameUIObject::FL_NONE,
 		LOGINWINDOW_NOTES_INFO_TEXT_COLOR,
-		pfontset, fieldXPos, labelYPos);
+		pFontSet, fieldXPos, labelYPos);
 	m_pTextPassword->setParent(pNotesTab);
 	m_pTextPassword->setVisible(false);
 

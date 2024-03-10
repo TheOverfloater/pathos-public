@@ -13,6 +13,7 @@ All Rights Reserved.
 #include "textures_shared.h"
 #include "fontset.h"
 #include "matrix.h"
+#include "uimanager.h"
 
 // UI engine function pointers
 ui_engine_interface_t CUIObject::g_engineFuncs;
@@ -4672,21 +4673,21 @@ bool CUISlider::init( const Char* pstrSchemaName )
 		sprintf(valueStr, "%0.1f", m_minValue);
 
 		Uint32 width, height;
-		g_engineFuncs.pfnGetStringSize(g_engineFuncs.pfnGetDefaultFontSet(), valueStr, &width, &height, nullptr);
+		g_engineFuncs.pfnGetStringSize(gUIManager.GetDefaultFontSet(), valueStr, &width, &height, nullptr);
 
 		// Create the "minimum value" string object
 		Int32 originY = m_height - height + 4 + markerHeight;
 		Int32 originX = -(width*0.5);
-		CUIText* pMinValueText = new CUIText(UIEL_FL_NONE, g_engineFuncs.pfnGetDefaultFontSet(), valueStr, originX, originY, 0);
+		CUIText* pMinValueText = new CUIText(UIEL_FL_NONE, gUIManager.GetDefaultFontSet(), valueStr, originX, originY, 0);
 		pMinValueText->setParent(this);
 
 		sprintf(valueStr, "%0.1f", m_maxValue);
-		g_engineFuncs.pfnGetStringSize(g_engineFuncs.pfnGetDefaultFontSet(), valueStr, &width, &height, nullptr);
+		g_engineFuncs.pfnGetStringSize(gUIManager.GetDefaultFontSet(), valueStr, &width, &height, nullptr);
 
 		// Create the "maximum value" string object
 		originY = m_height - height + 4 + markerHeight;
 		originX = m_width - width * 0.5;
-		CUIText* pMaxValueText = new CUIText(UIEL_FL_NONE, g_engineFuncs.pfnGetDefaultFontSet(), valueStr, originX, originY, 0);
+		CUIText* pMaxValueText = new CUIText(UIEL_FL_NONE, gUIManager.GetDefaultFontSet(), valueStr, originX, originY, 0);
 		pMaxValueText->setParent(this);
 	}
 

@@ -29,6 +29,10 @@ All Rights Reserved.
 #include "system.h"
 #include "enginestate.h"
 #include "enginefuncs.h"
+#include "textschemas.h"
+
+// Default font schema of the game UI
+const Char CUIManager::DEFAULT_TEXT_SCHEMA[] = "uidefault";
 
 // Class definition
 CUIManager gUIManager;
@@ -40,7 +44,8 @@ CUIManager gUIManager;
 CUIManager::CUIManager( void ):
 	m_pFocusWindow(nullptr),
 	m_currentFocusIndex(0),
-	m_windowFilterFlags(CUIWindow::UIW_FL_NONE)
+	m_windowFilterFlags(CUIWindow::UIW_FL_NONE),
+	m_pFontSet(nullptr)
 {
 }
 
@@ -59,6 +64,11 @@ CUIManager::~CUIManager( void )
 //=============================================
 void CUIManager::Init( void )
 {
+	m_pFontSet = gTextSchemas.GetResolutionSchemaFontSet(DEFAULT_TEXT_SCHEMA, gWindow.GetHeight());
+	if(!m_pFontSet)
+		m_pFontSet = gText.GetDefaultFont();
+
+	// TODO: Get rid of this
 	ui_engine_interface_t uiFuncs;
 
 	// Set the interface
@@ -883,8 +893,7 @@ ui_windowdescription_t* CUIManager::LoadWindowDescriptionFile( const Char* pstrW
 		}
 		
 		// Create the new object
-		CString fontset;
-		Int32 fontsize = 16;
+		CString textschema;
 		ui_objectinfo_t newObject;
 		newObject.objectName = objName;
 		newObject.type = type;
@@ -972,10 +981,8 @@ ui_windowdescription_t* CUIManager::LoadWindowDescriptionFile( const Char* pstrW
 					newObject.dragger = (!qstrcmp(value.c_str(), "true") ? true : false);
 				else if(!qstrcmp(token, "$resizable"))
 					newObject.resizable = (!qstrcmp(value.c_str(), "true") ? true : false);
-				else if(!qstrcmp(token, "$font"))
-					fontset = value;
-				else if(!qstrcmp(token, "$fontsize"))
-					fontsize = SDL_atoi(value.c_str());
+				else if(!qstrcmp(token, "$textschema"))
+					textschema = value;
 				else if(!qstrcmp(token, "$minvalue"))
 					newObject.minvalue = SDL_atof(value.c_str());
 				else if(!qstrcmp(token, "$maxvalue"))
@@ -1077,27 +1084,20 @@ ui_windowdescription_t* CUIManager::LoadWindowDescriptionFile( const Char* pstrW
 			}
 		}
 
-		// Check font size if any
-		if(!fontsize || fontsize < 0)
-		{
-			Con_EPrintf("Object '%s' in '%s' has an invalid font size(%d).\n", newObject.objectName.c_str(), scriptPath.c_str(), fontsize);
-			fontsize = 16;
-		}
-
 		// Load any custom fonts
-		if(!fontset.empty())
+		if(!textschema.empty())
 		{
-			newObject.pfont = gText.LoadFont(fontset.c_str(), fontsize);
+			newObject.pfont = gTextSchemas.GetSchemaFontSet(textschema.c_str());
 			if(!newObject.pfont)
 			{
-				Con_EPrintf("Object '%s' in '%s' - Font '%s' not found.\n", newObject.objectName.c_str(), scriptPath.c_str(), fontset.c_str());
-				newObject.pfont = gText.GetDefaultFont();
+				Con_EPrintf("Object '%s' in '%s' - Schema '%s' not found.\n", newObject.objectName.c_str(), scriptPath.c_str(), textschema.c_str());
+				newObject.pfont = m_pFontSet;
 			}
 		}
 		else
 		{
 			// Set default
-			newObject.pfont = gText.GetDefaultFont();
+			newObject.pfont = m_pFontSet;
 		}
 
 		if(!newObject.alpha)

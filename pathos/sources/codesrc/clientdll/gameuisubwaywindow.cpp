@@ -28,20 +28,8 @@ const Uint32 CGameUISubwayWindow::SUBWAYWINDOW_TAB_Y_SPACING = 30;
 const Uint32 CGameUISubwayWindow::SUBWAYWINDOW_TAB_X_SPACING = 80;
 // Text inset for subway window
 const Uint32 CGameUISubwayWindow::SUBWAYWINDOW_TAB_TEXT_INSET = 10;
-// Title text default font set name
-const Char CGameUISubwayWindow::SUBWAYWINDOW_TITLE_DEFAULT_FONT_SET_NAME[] = "timesnewroman.ttf";
-// Title text default font size
-const Uint32 CGameUISubwayWindow::SUBWAYWINDOW_TITLE_DEFAULT_FONT_SIZE = 36;
-// Title text low res font size
-const Uint32 CGameUISubwayWindow::SUBWAYWINDOW_TITLE_LOWRES_FONT_SIZE = 24;
 // Default text color
 const color32_t CGameUISubwayWindow::SUBWAYWINDOW_TEXT_COLOR = color32_t(255, 255, 255, 255);
-// Text default font set name
-const Char CGameUISubwayWindow::SUBWAYWINDOW_DEFAULT_FONT_SET_NAME[] = "calibri.ttf";
-// Text default font set size
-const Uint32 CGameUISubwayWindow::SUBWAYWINDOW_DEFAULT_FONT_SIZE = 24;
-// Text lowres font set size
-const Uint32 CGameUISubwayWindow::SUBWAYWINDOW_LOWRES_FONT_SIZE = 12;
 // Height of the title surface
 const Uint32 CGameUISubwayWindow::SUBWAYWINDOW_TITLE_SURFACE_HEIGHT = 100;
 // Height of the button surface
@@ -52,6 +40,10 @@ const Uint32 CGameUISubwayWindow::SUBWAYWINDOW_INFO_SURFACE_HEIGHT = 200;
 const Uint32 CGameUISubwayWindow::SUBWAYWINDOW_EXIT_BUTTON_SURFACE_HEIGHT = 100;
 // Number of destination buttons
 const Uint32 CGameUISubwayWindow::NB_DESTINATION_BUTTONS = 4;
+// Title text default schema set name
+const Char CGameUISubwayWindow::SUBWAYWINDOW_TITLE_TEXTSCHEMA_NAME[] = "subwaytitle";
+// Text default font schema name
+const Char CGameUISubwayWindow::SUBWAYWINDOW_TEXTSCHEMA_NAME[] = "subwaytext";
 
 //====================================
 //
@@ -97,13 +89,13 @@ void CGameUISubwayWindow::init( void )
 	//
 	// Create the title text object
 	//
-	Uint32 titlefontsize;
-	if(gHUDDraw.ScaleY(SUBWAYWINDOW_TITLE_DEFAULT_FONT_SIZE) <= SUBWAYWINDOW_TITLE_LOWRES_FONT_SIZE)
-		titlefontsize = SUBWAYWINDOW_TITLE_LOWRES_FONT_SIZE;
-	else
-		titlefontsize = SUBWAYWINDOW_TITLE_DEFAULT_FONT_SIZE;
+	Uint32 screenWidth, screenHeight;
+	cl_renderfuncs.pfnGetScreenSize(screenWidth, screenHeight);
 
-	const font_set_t* pTitleFont = cl_renderfuncs.pfnLoadFontSet(SUBWAYWINDOW_TITLE_DEFAULT_FONT_SET_NAME, titlefontsize);
+	const font_set_t* pTitleFont = cl_engfuncs.pfnGetResolutionSchemaFontSet(SUBWAYWINDOW_TITLE_TEXTSCHEMA_NAME, screenHeight);
+	if(!pTitleFont)
+		pTitleFont = gGameUIManager.GetDefaultFontSet();
+
 	Uint32 textYOrigin = hBarYOrigin + tabTopInset/2.0f;
 	CGameUIText *pTitleText = new CGameUIText(CGameUIObject::FL_ALIGN_CH, GAMEUIWINDOW_DEFAULT_TEXT_COLOR, pTitleFont, 0, textYOrigin);
 	pTitleText->setParent(this);
@@ -166,19 +158,13 @@ void CGameUISubwayWindow::init( void )
 	pExitButtonTab->setParent(this);
 
 	// Add the title for the window
-	Uint32 fontsize;
-	if(gHUDDraw.ScaleY(SUBWAYWINDOW_DEFAULT_FONT_SIZE) <= SUBWAYWINDOW_LOWRES_FONT_SIZE)
-		fontsize = SUBWAYWINDOW_LOWRES_FONT_SIZE;
-	else
-		fontsize = SUBWAYWINDOW_DEFAULT_FONT_SIZE;
-
-	const font_set_t* pfontset = cl_renderfuncs.pfnLoadFontSet(SUBWAYWINDOW_DEFAULT_FONT_SET_NAME, fontsize);
-	if(!pfontset)
-		pfontset = cl_renderfuncs.pfnGetDefaultFontSet();
+	const font_set_t* pFontSet = cl_engfuncs.pfnGetResolutionSchemaFontSet(SUBWAYWINDOW_TEXTSCHEMA_NAME, screenHeight);
+	if(!pFontSet)
+		pFontSet = gGameUIManager.GetDefaultFontSet();
 
 	m_pWindowTitleText = new CGameUIText(CGameUIObject::FL_ALIGN_CH|CGameUIObject::FL_ALIGN_CV,
 		SUBWAYWINDOW_TEXT_COLOR,
-		pfontset,
+		pFontSet,
 		0,
 		0);
 	m_pWindowTitleText->setParent(pTitleTab);
@@ -210,7 +196,7 @@ void CGameUISubwayWindow::init( void )
 
 		m_buttonsArray[i].pDescription = new CGameUIText(CGameUIObject::FL_NONE,
 			SUBWAYWINDOW_TEXT_COLOR,
-			pfontset,
+			pFontSet,
 			"",
 			0,
 			0,
@@ -226,7 +212,7 @@ void CGameUISubwayWindow::init( void )
 	// Create default description
 	m_pDefaultDescription = new CGameUIText(CGameUIObject::FL_NONE,
 		SUBWAYWINDOW_TEXT_COLOR,
-		pfontset,
+		pFontSet,
 		"",
 		0,
 		0,

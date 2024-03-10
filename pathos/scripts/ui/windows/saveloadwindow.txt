@@ -50,8 +50,7 @@ button "DeleteSaveButton"
 list "SaveList"
 {
 	$schema "indentedwindow.txt"
-	$font "calibri.ttf"
-	$fontsize 18
+	$textschema "savelist.ttf"
 	$originy 32
 	$width 1080
 	$height 408

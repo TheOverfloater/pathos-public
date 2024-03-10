@@ -45,12 +45,6 @@ public:
 	static const Uint32 LOGINWINDOW_INPUT_TAB_HEIGHT;
 	// Input tab text inset
 	static const Uint32 LOGINWINDOW_INPUT_TAB_TEXT_INSET;
-	// Title text default font set name
-	static const Char LOGINWINDOW_TITLE_DEFAULT_FONT_SET_NAME[];
-	// Title text default font size
-	static const Uint32 LOGINWINDOW_TITLE_DEFAULT_FONT_SIZE;
-	// Title text low res font size
-	static const Uint32 LOGINWINDOW_TITLE_LOWRES_FONT_SIZE;
 	// Default text color
 	static const color32_t LOGINWINDOW_TEXT_COLOR;
 	// Default text color
@@ -59,16 +53,14 @@ public:
 	static const color32_t LOGINWINDOW_PROMPT_FAIL_TEXT_COLOR;
 	// Default text color
 	static const color32_t LOGINWINDOW_PROMPT_SUCCESS_TEXT_COLOR;
-	// Text default font set name
-	static const Char LOGINWINDOW_DEFAULT_FONT_SET_NAME[];
-	// Text default font set size
-	static const Uint32 LOGINWINDOW_DEFAULT_FONT_SIZE;
-	// Text default font set size
-	static const Uint32 LOGINWINDOW_LOWRES_FONT_SIZE;
 	// Button y spacing for login window
 	static const Uint32 LOGINWINDOW_BUTTON_X_SPACING;
 	// Prompt text lifetime
 	static const Double LOGINWINDOW_PROMPT_LIFETIME;
+	// Title text default schema set name
+	static const Char LOGINWINDOW_TITLE_TEXTSCHEMA_NAME[];
+	// Text default font schema name
+	static const Char LOGINWINDOW_TEXTSCHEMA_NAME[];
 
 public:
 	CGameUILoginWindow( Int32 flags, Int32 originX, Int32 originY, Uint32 width, Uint32 height );

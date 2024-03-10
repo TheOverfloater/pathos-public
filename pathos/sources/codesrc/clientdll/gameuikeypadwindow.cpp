@@ -29,22 +29,10 @@ const Uint32 CGameUIKeypadWindow::KEYPADWINDOW_TAB_DISPLAY_HEIGHT = 60;
 const Uint32 CGameUIKeypadWindow::KEYPADWINDOW_ELEMENT_SPACING = 10;
 // Height of the keypad window notes tab
 const Uint32 CGameUIKeypadWindow::KEYPADWINDOW_NOTES_TAB_HEIGHT = 100;
-// Title text default font set name
-const Char CGameUIKeypadWindow::KEYPADWINDOW_TITLE_DEFAULT_FONT_SET_NAME[] = "timesnewroman.ttf";
-// Title text default font size
-const Uint32 CGameUIKeypadWindow::KEYPADWINDOW_TITLE_DEFAULT_FONT_SIZE = 36;
-// Title text low res font size
-const Uint32 CGameUIKeypadWindow::KEYPADWINDOW_TITLE_LOWRES_FONT_SIZE = 24;
 // Default text color
 const color32_t CGameUIKeypadWindow::KEYPADWINDOW_TEXT_COLOR = color32_t(255, 255, 255, 255);
 // Default text color
 const color32_t CGameUIKeypadWindow::KEYPADWINDOW_NOTES_INFO_TEXT_COLOR = color32_t(30, 30, 255, 255);
-// Text default font set name
-const Char CGameUIKeypadWindow::KEYPADWINDOW_DEFAULT_FONT_SET_NAME[] = "calibri.ttf";
-// Text default font set size
-const Uint32 CGameUIKeypadWindow::KEYPADWINDOW_DEFAULT_FONT_SIZE = 24;
-// Text low res font set size
-const Uint32 CGameUIKeypadWindow::KEYPADWINDOW_LOWRES_FONT_SIZE = 12;
 // Button y spacing for login window
 const Uint32 CGameUIKeypadWindow::KEYPADWINDOW_BUTTON_Y_SPACING = 20;
 // Prompt text lifetime
@@ -55,6 +43,10 @@ const color32_t CGameUIKeypadWindow::KEYPADWINDOW_PROMPT_FAIL_TEXT_COLOR = color
 const color32_t CGameUIKeypadWindow::KEYPADWINDOW_PROMPT_SUCCESS_TEXT_COLOR = color32_t(30, 255, 30, 255);
 // Keypad window button height
 const Uint32 CGameUIKeypadWindow::KEYPADWINDOW_BUTTON_HEIGHT = 100;
+// Title text default schema set name
+const Char CGameUIKeypadWindow::KEYPADWINDOW_TITLE_TEXTSCHEMA_NAME[] = "keypadtitle";
+// Text default font schema name
+const Char CGameUIKeypadWindow::KEYPADWINDOW_TEXTSCHEMA_NAME[] = "keypadtext";
 
 //====================================
 //
@@ -103,13 +95,13 @@ void CGameUIKeypadWindow::init( void )
 	//
 	// Create the title text object
 	//
-	Uint32 titlefontsize;
-	if(gHUDDraw.ScaleY(KEYPADWINDOW_TITLE_DEFAULT_FONT_SIZE) <= KEYPADWINDOW_TITLE_LOWRES_FONT_SIZE)
-		titlefontsize = KEYPADWINDOW_TITLE_LOWRES_FONT_SIZE;
-	else
-		titlefontsize = KEYPADWINDOW_TITLE_DEFAULT_FONT_SIZE;
+	Uint32 screenWidth, screenHeight;
+	cl_renderfuncs.pfnGetScreenSize(screenWidth, screenHeight);
 
-	const font_set_t* pTitleFont = cl_renderfuncs.pfnLoadFontSet(KEYPADWINDOW_TITLE_DEFAULT_FONT_SET_NAME, titlefontsize);
+	const font_set_t* pTitleFont = cl_engfuncs.pfnGetResolutionSchemaFontSet(KEYPADWINDOW_TITLE_TEXTSCHEMA_NAME, screenHeight);
+	if(!pTitleFont)
+		pTitleFont = gGameUIManager.GetDefaultFontSet();
+
 	Uint32 textYOrigin = hBarYOrigin + tabTopInset/2.0f;
 	CGameUIText *pTitleText = new CGameUIText(CGameUIObject::FL_ALIGN_CH, GAMEUIWINDOW_DEFAULT_TEXT_COLOR, pTitleFont, 0, textYOrigin);
 	pTitleText->setParent(this);
@@ -157,19 +149,13 @@ void CGameUIKeypadWindow::init( void )
 	pDisplaySurface->setParent(pMainTab);
 
 	// Create the text object
-	Uint32 fontsize;
-	if(gHUDDraw.ScaleY(KEYPADWINDOW_DEFAULT_FONT_SIZE) <= KEYPADWINDOW_LOWRES_FONT_SIZE)
-		fontsize = KEYPADWINDOW_LOWRES_FONT_SIZE;
-	else
-		fontsize = KEYPADWINDOW_DEFAULT_FONT_SIZE;
-
-	const font_set_t* pfontset = cl_renderfuncs.pfnLoadFontSet(KEYPADWINDOW_DEFAULT_FONT_SET_NAME, fontsize);
-	if(!pfontset)
-		pfontset = cl_renderfuncs.pfnGetDefaultFontSet();
+	const font_set_t* pFontSet = cl_engfuncs.pfnGetResolutionSchemaFontSet(KEYPADWINDOW_TEXTSCHEMA_NAME, screenHeight);
+	if(!pFontSet)
+		pFontSet = gGameUIManager.GetDefaultFontSet();
 
 	m_pKeypadDisplayText = new CGameUIText(CGameUIObject::FL_ALIGN_CH|CGameUIObject::FL_ALIGN_CV,
 		KEYPADWINDOW_TEXT_COLOR,
-		pfontset,
+		pFontSet,
 		0,
 		0);
 	m_pKeypadDisplayText->setParent(pDisplaySurface);
@@ -320,19 +306,19 @@ void CGameUIKeypadWindow::init( void )
 	// Create notes title text
 	CGameUIText* pNotesText = new CGameUIText(CGameUIObject::FL_ALIGN_CH, 
 		KEYPADWINDOW_TEXT_COLOR, 
-		pfontset, 
+		pFontSet, 
 		0, 
-		pfontset->fontsize);
+		pFontSet->fontsize);
 	pNotesText->setParent(pNotesTab);
 	pNotesText->setText("Notes");
 
 	// Create the "username" field label
 	Int32 labelXPos = elementSpacing;
-	Int32 labelYPos = elementSpacing + pfontset->fontsize + pNotesText->getHeight();
+	Int32 labelYPos = elementSpacing + pFontSet->fontsize + pNotesText->getHeight();
 
 	m_pInfoLabelPasscode = new CGameUIText(CGameUIObject::FL_NONE, 
 		KEYPADWINDOW_TEXT_COLOR,
-		pfontset, 
+		pFontSet, 
 		labelXPos,
 		labelYPos);
 	m_pInfoLabelPasscode->setParent(pNotesTab);
@@ -344,7 +330,7 @@ void CGameUIKeypadWindow::init( void )
 	// Create "username" data field
 	m_pTextPasscode = new CGameUIText(CGameUIObject::FL_NONE,
 		KEYPADWINDOW_NOTES_INFO_TEXT_COLOR,
-		pfontset, fieldXPos, labelYPos);
+		pFontSet, fieldXPos, labelYPos);
 	m_pTextPasscode->setParent(pNotesTab);
 	m_pTextPasscode->setVisible(false);
 }

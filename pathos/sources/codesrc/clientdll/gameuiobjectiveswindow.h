@@ -64,20 +64,8 @@ public:
 	static const Uint32 OBJECTIVESWINDOW_TAB_Y_SPACING;
 	// Text inset for objectives window
 	static const Uint32 OBJECTIVESWINDOW_TAB_TEXT_INSET;
-	// Title text default font set name
-	static const Char OBJECTIVESWINDOW_TITLE_DEFAULT_FONT_SET_NAME[];
-	// Title text default font size
-	static const Uint32 OBJECTIVESWINDOW_TITLE_DEFAULT_FONT_SIZE;
-	// Title text low res font size
-	static const Uint32 OBJECTIVESWINDOW_TITLE_LOWRES_FONT_SIZE;
 	// Default text color
 	static const color32_t OBJECTIVESWINDOW_TEXT_COLOR;
-	// Text default font set name
-	static const Char OBJECTIVESWINDOW_DEFAULT_FONT_SET_NAME[];
-	// Text default font set size
-	static const Uint32 OBJECTIVESWINDOW_DEFAULT_FONT_SIZE;
-	// Text low res font set size
-	static const Uint32 OBJECTIVESWINDOW_LOWRES_FONT_SIZE;
 	// Height of the title surface
 	static const Uint32 OBJECTIVESWINDOW_TITLE_SURFACE_HEIGHT;
 	// Height of the button surface
@@ -92,6 +80,10 @@ public:
 	static const Char OBJECTIVESWINDOW_SCRIPT_NAME[];
 	// Color of highlighted buttons for this window
 	static const color32_t OBJECTIVESWINDOW_BUTTON_NEW_COLOR;
+	// Title text default schema set name
+	static const Char OBJECTIVESWINDOW_TITLE_TEXTSCHEMA_NAME[];
+	// Text default font schema name
+	static const Char OBJECTIVESWINDOW_TEXTSCHEMA_NAME[];
 
 public:
 	CGameUIObjectivesWindow( Int32 flags, Int32 originX, Int32 originY, Uint32 width, Uint32 height );

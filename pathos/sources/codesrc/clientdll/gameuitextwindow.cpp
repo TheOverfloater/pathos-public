@@ -15,17 +15,14 @@ All Rights Reserved.
 
 #include "gameuitextwindow.h"
 #include "gameuiwindows_shared.h"
+#include "gameuimanager.h"
 
 // Text inset for the text tab
 const Uint32 CGameUITextWindow::TEXTWINDOW_TEXT_TAB_TEXT_INSET = 15;
-// Title text default font set name
-const Char CGameUITextWindow::TEXTWINDOW_TITLE_DEFAULT_FONT_SET_NAME[] = "timesnewroman.ttf";
-// Title text default font size
-const Uint32 CGameUITextWindow::TEXTWINDOW_TITLE_DEFAULT_FONT_SIZE = 36;
-// Title text low-res font size
-const Uint32 CGameUITextWindow::TEXTWINDOW_TITLE_LOWRES_FONT_SIZE = 24;
-// Display text lowres font size
-const Uint32 CGameUITextWindow::TEXTWINDOW_LOWRES_FONT_SIZE = 12;
+// Title text default schema set name
+const Char CGameUITextWindow::TEXTWINDOW_TITLE_TEXTSCHEMA_NAME[] = "textwindowtitle";
+// Text default font schema name
+const Char CGameUITextWindow::TEXTWINDOW_TEXTSCHEMA_NAME[] = "textwindowtext";
 
 //====================================
 //
@@ -47,7 +44,7 @@ CGameUITextWindow::~CGameUITextWindow( void )
 //====================================
 //
 //====================================
-void CGameUITextWindow::init( void )
+void CGameUITextWindow::initWindow( const font_set_t* pTitleFont, const font_set_t* pFontSet )
 {
 	// Init basic window elements
 	Uint32 verticalbarheight, middlebarwidth, barThickness;
@@ -67,13 +64,6 @@ void CGameUITextWindow::init( void )
 	//
 	// Create the title text object
 	//
-	Uint32 titlefontsize;
-	if(gHUDDraw.ScaleY(TEXTWINDOW_TITLE_DEFAULT_FONT_SIZE) <= TEXTWINDOW_TITLE_LOWRES_FONT_SIZE)
-		titlefontsize = TEXTWINDOW_TITLE_LOWRES_FONT_SIZE;
-	else
-		titlefontsize = TEXTWINDOW_TITLE_DEFAULT_FONT_SIZE;
-
-	const font_set_t* pTitleFont = cl_renderfuncs.pfnLoadFontSet(TEXTWINDOW_TITLE_DEFAULT_FONT_SET_NAME, titlefontsize);
 	Uint32 textYOrigin = hBarYOrigin + tabTopInset/2.0f;
 	m_pTitleText = new CGameUIText(CGameUIObject::FL_ALIGN_CH, GAMEUIWINDOW_DEFAULT_TEXT_COLOR, pTitleFont, 0, textYOrigin);
 	m_pTitleText->setParent(this);
@@ -92,7 +82,7 @@ void CGameUITextWindow::init( void )
 		tabHeight = mainTabMaxHeight;
 
 	m_pTextTab = new CGameUITextTab(CGameUIObject::FL_NONE, 
-		nullptr,
+		pFontSet,
 		textInset,
 		edgeThickness, 
 		GAMEUIWINDOW_MAIN_TAB_COLOR,
@@ -145,31 +135,11 @@ bool CGameUITextWindow::initData( const Char* pstrtextfilepath, const Char* pstr
 	// Title text
 	CString titletext;
 	// Font set name
-	CString titlefontsetname = TEXTWINDOW_TITLE_DEFAULT_FONT_SET_NAME;
-	Uint32 titlefontsize;
-	if(gHUDDraw.ScaleY(TEXTWINDOW_TITLE_DEFAULT_FONT_SIZE) <= TEXTWINDOW_TITLE_LOWRES_FONT_SIZE)
-		titlefontsize = TEXTWINDOW_TITLE_LOWRES_FONT_SIZE;
-	else
-		titlefontsize = TEXTWINDOW_TITLE_DEFAULT_FONT_SIZE;
-
-	// Remember ideal size
-	Uint32 idealtitlefontsize = titlefontsize;
-
+	CString titletextschema = TEXTWINDOW_TITLE_TEXTSCHEMA_NAME;
 	// Text color
 	color32_t titletextcolor = GAMEUIWINDOW_DEFAULT_TEXT_COLOR;
-
 	// Font set name
-	CString fontsetname = "default";
-	// Font size
-	Uint32 fontsize;
-	if(gHUDDraw.ScaleY(DEFAULT_FONT_SIZE) <= TEXTWINDOW_LOWRES_FONT_SIZE)
-		fontsize = TEXTWINDOW_LOWRES_FONT_SIZE;
-	else
-		fontsize = DEFAULT_FONT_SIZE;
-
-	// Remember ideal font size
-	Uint32 idealfontsize = fontsize;
-
+	CString textschema = TEXTWINDOW_TEXTSCHEMA_NAME;
 	// Text color
 	color32_t textcolor = GAMEUIWINDOW_DEFAULT_TEXT_COLOR;
 
@@ -199,44 +169,15 @@ bool CGameUITextWindow::initData( const Char* pstrtextfilepath, const Char* pstr
 				// Set title
 				titletext = paramvalue;
 			}
-			else if(!qstrcmp(token, "$fontset"))
+			else if(!qstrcmp(token, "$textschema"))
 			{
 				// Set the font set name
-				fontsetname = paramvalue;
+				textschema = paramvalue;
 			}
-			else if(!qstrcmp(token, "$titlefontset"))
+			else if(!qstrcmp(token, "$titletextschema"))
 			{
 				// Set the font set name
-				titlefontsetname = paramvalue;
-			}
-			else if(!qstrcmp(token, "$fontsize") || !qstrcmp(token, "$titlefontsize"))
-			{
-				if(!Common::IsNumber(paramvalue.c_str()))
-				{
-					cl_engfuncs.pfnCon_Printf("%s - Expected a numerical value for '%s' in '%s', got '%s' instead.\n", __FUNCTION__, token.c_str(), pstrtextfilepath, paramvalue.c_str());
-					cl_filefuncs.pfnFreeFile(pfile);
-					return false;
-				}
-
-				// Set the font size
-				if(!qstrcmp(token, "$titlefontsize"))
-				{
-					titlefontsize = SDL_atoi(paramvalue.c_str());
-					if(titlefontsize > MAX_FONT_SIZE)
-					{
-						cl_engfuncs.pfnCon_DPrintf("%s - Invalid title font size %d specified in '%s'.\n", __FUNCTION__, fontsize, pstrtextfilepath);
-						titlefontsize = TEXTWINDOW_TITLE_DEFAULT_FONT_SIZE;
-					}
-				}
-				else
-				{
-					fontsize = SDL_atoi(paramvalue.c_str());
-					if(fontsize > MAX_FONT_SIZE)
-					{
-						cl_engfuncs.pfnCon_DPrintf("%s - Invalid font size %d specified in '%s'.\n", __FUNCTION__, fontsize, pstrtextfilepath);
-						fontsize = DEFAULT_FONT_SIZE;
-					}
-				}
+				titletextschema = paramvalue;
 			}
 			else if(!qstrcmp(token, "$color") || !qstrcmp(token, "$titlecolor"))
 			{
@@ -347,6 +288,27 @@ bool CGameUITextWindow::initData( const Char* pstrtextfilepath, const Char* pstr
 		return false;
 	}
 
+	Uint32 screenWidth, screenHeight;
+	cl_renderfuncs.pfnGetScreenSize(screenWidth, screenHeight);
+
+	// Load font if not default
+	const font_set_t* pfontset = nullptr;
+	if(!textschema.empty())
+		pfontset = cl_engfuncs.pfnGetResolutionSchemaFontSet(textschema.c_str(), screenHeight);
+
+	if(!pfontset)
+		pfontset = gGameUIManager.GetDefaultFontSet();
+
+	const font_set_t* ptitlefontset = nullptr;
+	if(!titletextschema.empty())
+		ptitlefontset = cl_engfuncs.pfnGetResolutionSchemaFontSet(titletextschema.c_str(), screenHeight);
+
+	if(!pfontset)
+		ptitlefontset = gGameUIManager.GetDefaultFontSet();
+
+	// Initialize it
+	initWindow(ptitlefontset, pfontset);
+
 	CString textcontents;
 	Uint32 datasize = (pstrend - pstr);
 	textcontents.assign(pstr, datasize);
@@ -367,38 +329,6 @@ bool CGameUITextWindow::initData( const Char* pstrtextfilepath, const Char* pstr
 
 	// Set color
 	m_pTextTab->setTextColor(textcolor);
-
-	// Load font if not default
-	const font_set_t* pfontset = nullptr;
-	if(qstrcmp(fontsetname, "default") || fontsize != idealfontsize)
-	{
-		// Make sure to replace the token if it's "default"
-		if(!qstrcmp(fontsetname, "default"))
-			fontsetname = DEFAULT_FONTSET_NAME;
-
-		if(gHUDDraw.ScaleY(fontsize) <= TEXTWINDOW_LOWRES_FONT_SIZE)
-			fontsize = TEXTWINDOW_LOWRES_FONT_SIZE;
-
-		pfontset = cl_renderfuncs.pfnLoadFontSet(fontsetname.c_str(), fontsize);
-	}
-
-	// Set font if not null
-	if(pfontset)
-		m_pTextTab->setFontSet(pfontset);
-
-	// Load font if not default
-	const font_set_t* ptitlefontset = nullptr;
-	if(qstrcmp(titlefontsetname, TEXTWINDOW_TITLE_DEFAULT_FONT_SET_NAME) || titlefontsize != idealtitlefontsize)
-	{
-		if(gHUDDraw.ScaleY(titlefontsize) <= TEXTWINDOW_TITLE_LOWRES_FONT_SIZE)
-			titlefontsize = TEXTWINDOW_TITLE_LOWRES_FONT_SIZE;
-
-		ptitlefontset = cl_renderfuncs.pfnLoadFontSet(titlefontsetname.c_str(), titlefontsize);
-	}
-
-	// Set font if not null
-	if(ptitlefontset)
-		m_pTitleText->setFontSet(ptitlefontset);
 
 	// Set color
 	m_pTitleText->setColor(titletextcolor);

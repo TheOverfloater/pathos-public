@@ -23,14 +23,10 @@ class CGameUITextWindow : public CGameUIWindow
 public:
 	// Text inset for the text tab
 	static const Uint32 TEXTWINDOW_TEXT_TAB_TEXT_INSET;
-	// Title text default font set name
-	static const Char TEXTWINDOW_TITLE_DEFAULT_FONT_SET_NAME[];
-	// Title text default font size
-	static const Uint32 TEXTWINDOW_TITLE_DEFAULT_FONT_SIZE;
-	// Title text default font size
-	static const Uint32 TEXTWINDOW_TITLE_LOWRES_FONT_SIZE;
-	// Display text lowres font size
-	static const Uint32 TEXTWINDOW_LOWRES_FONT_SIZE;
+	// Title text default schema set name
+	static const Char TEXTWINDOW_TITLE_TEXTSCHEMA_NAME[];
+	// Text default font schema name
+	static const Char TEXTWINDOW_TEXTSCHEMA_NAME[];
 
 public:
 	explicit CGameUITextWindow( Int32 flags, Int32 originX, Int32 originY, Uint32 width, Uint32 height );
@@ -38,7 +34,7 @@ public:
 
 public:
 	// Initializes the window
-	void init( void ) override;
+	void init( void ) override { };
 	// Initializes the data
 	bool initData( const Char* pstrtextfilepath, const Char* pstrPassCode );
 	// Returns the current window information
@@ -49,6 +45,10 @@ public:
 public:
 	// Closes the window
 	void CloseWindow( void );
+
+private:
+	// Initializes the window
+	void initWindow( const font_set_t* pTitleFont, const font_set_t* pFontSet );
 
 private:
 	// Title text object

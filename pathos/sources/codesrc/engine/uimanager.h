@@ -14,6 +14,7 @@ All Rights Reserved.
 
 class CUIObject;
 class CUIWindow;
+struct font_set_t;
 
 /*
 =================================
@@ -23,6 +24,10 @@ CUIManager
 */
 class CUIManager
 {
+public:
+	// Default font schema of the game UI
+	static const Char DEFAULT_TEXT_SCHEMA[];
+
 public:
 	CUIManager( void );
 	~CUIManager( void );
@@ -80,6 +85,9 @@ public:
 	// Loads in a schema file
 	ui_windowdescription_t* LoadWindowDescriptionFile( const Char* pstrWindowName, const Char* pstrFilename );
 
+	// Returns the default font set
+	const font_set_t* GetDefaultFontSet( void ) const { return m_pFontSet; }
+
 private:
 	// Sorts windows by focus index
 	void ReorderWindows( void );
@@ -100,6 +108,9 @@ private:
 	Uint32 m_currentFocusIndex;
 	// Window filter flags
 	Int32 m_windowFilterFlags;
+
+	// Default font set
+	const font_set_t* m_pFontSet;
 };
 extern CUIManager gUIManager;
 #endif //CUISCHEME_H

@@ -27,6 +27,8 @@ All Rights Reserved.
 
 // Blur time for background
 const Float CGameUIManager::BACKGROUND_BLUR_TIME = 2.0f;
+// Default font schema of the game UI
+const Char CGameUIManager::DEFAULT_TEXT_SCHEMA[] = "gameuidefault";
 
 // Object declaration
 CGameUIManager gGameUIManager;
@@ -40,7 +42,8 @@ CGameUIManager::CGameUIManager( void ):
 	m_blurFadeTime(0),
 	m_isBlurActive(false),
 	m_uiServerUserMsgId(0),
-	m_pCvarBorders(nullptr)
+	m_pCvarBorders(nullptr),
+	m_pFontSet(nullptr)
 {
 	CGameUIObject::SetGameUIManager(this);
 }
@@ -130,6 +133,13 @@ void CGameUIManager::ClearGame( void )
 //=============================================
 bool CGameUIManager::InitGL( void )
 {
+	Uint32 screenWidth, screenHeight;
+	cl_renderfuncs.pfnGetScreenSize(screenWidth, screenHeight);
+
+	m_pFontSet = cl_engfuncs.pfnGetResolutionSchemaFontSet(DEFAULT_TEXT_SCHEMA, screenHeight);
+	if(!m_pFontSet)
+		m_pFontSet = cl_renderfuncs.pfnGetDefaultFontSet();
+
 	// Destroy any active windows, because if we resize the screen,
 	// the size will no longer be valid
 	RespawnWindow();
@@ -185,7 +195,6 @@ CGameUIWindow* CGameUIManager::SpawnWindow( gameui_windows_t windowtype )
 
 	// Initialize it
 	pWindow->init();
-
 
 	if(m_pActiveWindow)
 	{

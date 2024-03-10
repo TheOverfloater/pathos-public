@@ -39,12 +39,6 @@ public:
 	static const Uint32 KEYPADWINDOW_ELEMENT_SPACING;
 	// Notes tab height
 	static const Uint32 KEYPADWINDOW_NOTES_TAB_HEIGHT;
-	// Title text default font set name
-	static const Char KEYPADWINDOW_TITLE_DEFAULT_FONT_SET_NAME[];
-	// Title text default font size
-	static const Uint32 KEYPADWINDOW_TITLE_DEFAULT_FONT_SIZE;
-	// Title text low res font size
-	static const Uint32 KEYPADWINDOW_TITLE_LOWRES_FONT_SIZE;
 	// Default text color
 	static const color32_t KEYPADWINDOW_TEXT_COLOR;
 	// Default text color
@@ -53,18 +47,16 @@ public:
 	static const color32_t KEYPADWINDOW_PROMPT_FAIL_TEXT_COLOR;
 	// Default text color
 	static const color32_t KEYPADWINDOW_PROMPT_SUCCESS_TEXT_COLOR;
-	// Text default font set name
-	static const Char KEYPADWINDOW_DEFAULT_FONT_SET_NAME[];
-	// Text default font set size
-	static const Uint32 KEYPADWINDOW_DEFAULT_FONT_SIZE;
-	// Text lowres font set size
-	static const Uint32 KEYPADWINDOW_LOWRES_FONT_SIZE;
 	// Button y spacing for login window
 	static const Uint32 KEYPADWINDOW_BUTTON_Y_SPACING;
 	// Prompt text lifetime
 	static const Double KEYPADWINDOW_PROMPT_LIFETIME;
 	// Keypad window button height
 	static const Uint32 KEYPADWINDOW_BUTTON_HEIGHT;
+	// Title text default schema set name
+	static const Char KEYPADWINDOW_TITLE_TEXTSCHEMA_NAME[];
+	// Text default font schema name
+	static const Char KEYPADWINDOW_TEXTSCHEMA_NAME[];
 
 public:
 	CGameUIKeypadWindow( Int32 flags, Int32 originX, Int32 originY, Uint32 width, Uint32 height );

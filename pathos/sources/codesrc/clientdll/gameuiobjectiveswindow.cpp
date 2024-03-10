@@ -29,20 +29,8 @@ const Uint32 CGameUIObjectivesWindow::OBJECTIVESWINDOW_TAB_Y_SPACING = 20;
 const Uint32 CGameUIObjectivesWindow::OBJECTIVESWINDOW_TAB_X_SPACING = 80;
 // Text inset for objectives window
 const Uint32 CGameUIObjectivesWindow::OBJECTIVESWINDOW_TAB_TEXT_INSET = 10;
-// Title text default font set name
-const Char CGameUIObjectivesWindow::OBJECTIVESWINDOW_TITLE_DEFAULT_FONT_SET_NAME[] = "timesnewroman.ttf";
-// Title text default font size
-const Uint32 CGameUIObjectivesWindow::OBJECTIVESWINDOW_TITLE_DEFAULT_FONT_SIZE = 36;
-// Title text low res font size
-const Uint32 CGameUIObjectivesWindow::OBJECTIVESWINDOW_TITLE_LOWRES_FONT_SIZE = 24;
 // Default text color
 const color32_t CGameUIObjectivesWindow::OBJECTIVESWINDOW_TEXT_COLOR = color32_t(255, 255, 255, 255);
-// Text default font set name
-const Char CGameUIObjectivesWindow::OBJECTIVESWINDOW_DEFAULT_FONT_SET_NAME[] = "calibri.ttf";
-// Text default font set size
-const Uint32 CGameUIObjectivesWindow::OBJECTIVESWINDOW_DEFAULT_FONT_SIZE = 24;
-// Text lowres font set size
-const Uint32 CGameUIObjectivesWindow::OBJECTIVESWINDOW_LOWRES_FONT_SIZE = 12;
 // Height of the title surface
 const Uint32 CGameUIObjectivesWindow::OBJECTIVESWINDOW_TITLE_SURFACE_HEIGHT = 50;
 // Height of the button surface
@@ -59,6 +47,10 @@ const Char CGameUIObjectivesWindow::OBJECTIVESWINDOW_SCRIPT_SUBFOLDER_NAME[] = "
 const Char CGameUIObjectivesWindow::OBJECTIVESWINDOW_SCRIPT_NAME[] = "defaults.txt";
 // Color of highlighted buttons for this window
 const color32_t CGameUIObjectivesWindow::OBJECTIVESWINDOW_BUTTON_NEW_COLOR = color32_t(0, 255, 0, 100);
+// Title text default schema set name
+const Char CGameUIObjectivesWindow::OBJECTIVESWINDOW_TITLE_TEXTSCHEMA_NAME[] = "objectivestitle";
+// Text default font schema name
+const Char CGameUIObjectivesWindow::OBJECTIVESWINDOW_TEXTSCHEMA_NAME[] = "objectivestext";
 
 //====================================
 //
@@ -105,13 +97,13 @@ void CGameUIObjectivesWindow::init( void )
 	//
 	// Create the title text object
 	//
-	Uint32 titlefontsize;
-	if(gHUDDraw.ScaleY(OBJECTIVESWINDOW_TITLE_DEFAULT_FONT_SIZE) <= OBJECTIVESWINDOW_TITLE_LOWRES_FONT_SIZE)
-		titlefontsize = OBJECTIVESWINDOW_TITLE_LOWRES_FONT_SIZE;
-	else
-		titlefontsize = OBJECTIVESWINDOW_TITLE_DEFAULT_FONT_SIZE;
+	Uint32 screenWidth, screenHeight;
+	cl_renderfuncs.pfnGetScreenSize(screenWidth, screenHeight);
 
-	const font_set_t* pTitleFont = cl_renderfuncs.pfnLoadFontSet(OBJECTIVESWINDOW_TITLE_DEFAULT_FONT_SET_NAME, titlefontsize);
+	const font_set_t* pTitleFont = cl_engfuncs.pfnGetResolutionSchemaFontSet(OBJECTIVESWINDOW_TITLE_TEXTSCHEMA_NAME, screenHeight);
+	if(!pTitleFont)
+		pTitleFont = gGameUIManager.GetDefaultFontSet();
+	
 	Uint32 textYOrigin = hBarYOrigin + tabTopInset/2.0f;
 	CGameUIText *pTitleText = new CGameUIText(CGameUIObject::FL_ALIGN_CH, GAMEUIWINDOW_DEFAULT_TEXT_COLOR, pTitleFont, 0, textYOrigin);
 	pTitleText->setParent(this);
@@ -174,19 +166,13 @@ void CGameUIObjectivesWindow::init( void )
 	pExitButtonTab->setParent(this);
 
 	// Add the title for the window
-	Uint32 fontsize;
-	if(gHUDDraw.ScaleY(OBJECTIVESWINDOW_DEFAULT_FONT_SIZE) <= OBJECTIVESWINDOW_LOWRES_FONT_SIZE)
-		fontsize = OBJECTIVESWINDOW_LOWRES_FONT_SIZE;
-	else
-		fontsize = OBJECTIVESWINDOW_DEFAULT_FONT_SIZE;
-
-	const font_set_t* pfontset = cl_renderfuncs.pfnLoadFontSet(OBJECTIVESWINDOW_DEFAULT_FONT_SET_NAME, fontsize);
-	if(!pfontset)
-		pfontset = cl_renderfuncs.pfnGetDefaultFontSet();
+	const font_set_t* pFontSet = cl_engfuncs.pfnGetResolutionSchemaFontSet(OBJECTIVESWINDOW_TEXTSCHEMA_NAME, screenHeight);
+	if(!pFontSet)
+		pFontSet = gGameUIManager.GetDefaultFontSet();
 
 	m_pWindowTitleText = new CGameUIText(CGameUIObject::FL_ALIGN_CH|CGameUIObject::FL_ALIGN_CV,
 		OBJECTIVESWINDOW_TEXT_COLOR,
-		pfontset,
+		pFontSet,
 		0,
 		0);
 	m_pWindowTitleText->setParent(pTitleTab);
@@ -218,7 +204,7 @@ void CGameUIObjectivesWindow::init( void )
 		m_buttonsArray[i].pButton->setVisible(false);
 
 		m_buttonsArray[i].pDescription = new CGameUITextTab(CGameUIObject::FL_NONE,
-			pfontset,
+			pFontSet,
 			textInset,
 			edgeThickness,
 			GAMEUIWINDOW_MAIN_TAB_COLOR,
@@ -239,7 +225,7 @@ void CGameUIObjectivesWindow::init( void )
 	// Create default description
 	m_pDefaultDescription = new CGameUIText(CGameUIObject::FL_NONE,
 		OBJECTIVESWINDOW_TEXT_COLOR,
-		pfontset,
+		pFontSet,
 		"",
 		0,
 		0,
