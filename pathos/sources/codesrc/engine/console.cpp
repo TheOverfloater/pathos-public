@@ -32,6 +32,7 @@ All Rights Reserved.
 #include "cl_main.h"
 #include "r_main.h"
 #include "filewriterthread.h"
+#include "textschemas.h"
 
 // Log file pointer
 extern CLogFile* g_pLogFile;
@@ -72,6 +73,9 @@ const color32_t CConsole::PRINT_BOX_BAR_COLOR = color32_t(150, 0, 0, 100);
 // Print box background color
 const color32_t CConsole::PRINT_BOX_BACKGROUND_COLOR = color32_t(0, 0, 0, 50);
 
+// Text schema name for console text box
+const Char CConsole::TEXTBOX_TEXTSCHEMA_NAME[] = "consolebox";
+
 // Class definition
 CConsole gConsole;
 
@@ -94,7 +98,8 @@ CConsole::CConsole( void ):
 	m_bufferPosition(0),
 	m_reachedHistoryEnd(false),
 	m_isHistoryUpdated(true),
-	m_pCvarDrawHistoryBox(nullptr)
+	m_pCvarDrawHistoryBox(nullptr),
+	m_pFontSet(nullptr)
 {
 	// Allocate the buffer
 	m_pConsoleBuffer = new Char[CONSOLE_BUFFER_CHUNKSIZE];
@@ -196,6 +201,19 @@ void CConsole::Init( void )
 	gCommands.CreateCommand("condump", Cmd_ConDump, "Dumps the console contents to a file");
 
 	m_pCvarDrawHistoryBox = CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "con_historybox", "0", "Draws recent console history box");
+}
+
+//=============================================
+// @brief Initializes OpenGL stuff
+//
+//=============================================
+bool CConsole::InitGL( void )
+{
+	m_pFontSet = gTextSchemas.GetResolutionSchemaFontSet(TEXTBOX_TEXTSCHEMA_NAME, gWindow.GetHeight());
+	if(!m_pFontSet)
+		m_pFontSet = gText.GetDefaultFont();
+
+	return true;
 }
 
 //=============================================
@@ -518,12 +536,10 @@ bool CConsole::Draw( void )
 	glDisable(GL_BLEND);
 
 	// Get default font set
-	const font_set_t* pfontset = gText.GetDefaultFont();
-	
 	if(!gText.Prepare())
 		return false;
 
-	if(!gText.BindSet(pfontset))
+	if(!gText.BindSet(m_pFontSet))
 		return false;
 
 	Int32 stringBoxXPos = boxXOrigin + barThickness;
@@ -538,13 +554,13 @@ bool CConsole::Draw( void )
 	while(!m_debugPrintList.end())
 	{
 		debug_print_t& dp = m_debugPrintList.get();
-		Int32 height = gText.EstimateHeight(pfontset, dp.text.c_str(), pfontset->fontsize);
+		Int32 height = gText.EstimateHeight(m_pFontSet, dp.text.c_str(), m_pFontSet->fontsize);
 
 		yoffset -= height;
 		if(yoffset < 0)
 			break;
 
-		result = gText.DrawString(pfontset, dp.text.c_str(), stringBoxXPos, stringBoxYPos+yoffset);
+		result = gText.DrawString(m_pFontSet, dp.text.c_str(), stringBoxXPos, stringBoxYPos+yoffset);
 		if(!result)
 			return false;
 
@@ -553,7 +569,7 @@ bool CConsole::Draw( void )
 
 	gText.SetRectangle(0, 0, 0, 0, 0, 0);
 
-	gText.UnBind(pfontset);
+	gText.UnBind(m_pFontSet);
 	gText.Reset();
 
 	glEnable(GL_DEPTH_TEST);

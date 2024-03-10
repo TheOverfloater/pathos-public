@@ -285,9 +285,6 @@
     <ClCompile Include="windows\uisettingswindow.cpp">
       <Filter>Source Files\ui\windows</Filter>
     </ClCompile>
-    <ClCompile Include="uimanager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="client\cl_tempentities.cpp">
       <Filter>Source Files\client</Filter>
     </ClCompile>
@@ -389,6 +386,9 @@
     </ClCompile>
     <ClCompile Include="textschemas.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="uimanager.cpp">
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -719,9 +719,6 @@
     <ClInclude Include="windows\uisettingswindow.h">
       <Filter>Header Files\ui\windows</Filter>
     </ClInclude>
-    <ClInclude Include="uimanager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\shared\fontset.h">
       <Filter>Header Files\shared</Filter>
     </ClInclude>
@@ -871,6 +868,9 @@
     </ClInclude>
     <ClInclude Include="textschemas.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="uimanager.h">
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

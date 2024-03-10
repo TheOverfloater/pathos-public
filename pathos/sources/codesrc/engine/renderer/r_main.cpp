@@ -466,6 +466,9 @@ bool R_InitGL( void )
 	// Create basic draw instance
 	CBasicDraw* pDraw = CBasicDraw::CreateInstance();
 
+	if(!gConsole.InitGL())
+		return false;
+
 	// Reload save textures
 	if(!gMenu.InitGL())
 		return false;

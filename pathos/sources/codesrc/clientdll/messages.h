@@ -67,7 +67,7 @@ public:
 			width(0),
 			height(0),
 			lifetime(0),
-			pfont(nullptr)
+			pfontset(nullptr)
 			{
 			}
 
@@ -94,7 +94,9 @@ public:
 		CArray<msgline_t> lines;
 
 		// Font set used
-		const font_set_t* pfont;
+		const font_set_t* pfontset;
+		// Name of text schema
+		CString textschemaname;
 	};
 
 	struct displaymsg_t
@@ -146,6 +148,10 @@ public:
 private:
 	// Reads the title file
 	void ReadTitlesFile( void );
+	// Re-adjusts message definitions after GL reload
+	void ReadjustMessageSizes( void );
+	// Re-adjusts message after GL reload
+	void ReadjustMessage( scrmessage_t* pmsg );
 
 	// Draws a single message
 	bool DrawMessage( displaymsg_t& msg );

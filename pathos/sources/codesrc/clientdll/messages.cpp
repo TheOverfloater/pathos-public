@@ -105,6 +105,9 @@ bool CScreenMessages::InitGL( void )
 	if(!m_pFontSet)
 		m_pFontSet = cl_renderfuncs.pfnGetDefaultFontSet();
 
+	// Re-adjust message definitions
+	ReadjustMessageSizes();
+
 	return true;
 }
 
@@ -113,6 +116,65 @@ bool CScreenMessages::InitGL( void )
 //====================================
 void CScreenMessages::ClearGL( void )
 {
+}
+
+//====================================
+//
+//====================================
+void CScreenMessages::ReadjustMessageSizes( void )
+{
+	if(m_messageDefinitonsArray.empty())
+		return;
+
+	for(Uint32 i = 0; i < m_messageDefinitonsArray.size(); i++)
+	{
+		scrmessage_t* pmsg = m_messageDefinitonsArray[i];
+		ReadjustMessage(pmsg);
+	}
+
+	if(!m_customMessage.lines.empty())
+		ReadjustMessage(&m_customMessage);
+}
+
+//====================================
+//
+//====================================
+void CScreenMessages::ReadjustMessage( scrmessage_t* pmsg )
+{
+	// Reset this
+	pmsg->pfontset = nullptr;
+
+	if(!pmsg->textschemaname.empty())
+		pmsg->pfontset = cl_engfuncs.pfnGetResolutionSchemaFontSet(pmsg->textschemaname.c_str(), m_screenHeight);
+
+	if(!pmsg->pfontset)
+		pmsg->pfontset = m_pFontSet;
+
+	pmsg->width = 0;
+	pmsg->height = 0;
+			
+	for(Uint32 j = 0; j < pmsg->lines.size(); j++)
+	{
+		msgline_t* pline = &pmsg->lines[j];
+
+		pline->width = 0;
+		pline->height = pmsg->pfontset->maxheight;
+		pline->yoffset = pmsg->height;
+
+		const Char* pstr = pline->text.c_str();
+		while(*pstr)
+		{
+			Uint32 charidx = clamp(*pstr, 0, 255);
+			pstr++;
+
+			pline->width += pmsg->pfontset->glyphs[charidx].advancex;
+		}
+
+		if(pline->width > pmsg->width)
+			pmsg->width = pline->width;
+
+		pmsg->height += pline->height;
+	}
 }
 
 //====================================
@@ -136,9 +198,7 @@ void CScreenMessages::ReadTitlesFile( void )
 	Float holdtime = 0;
 	Float fxtime = 0;
 	effects_t effect = EFFECT_UNDEFINED;
-
-	CString fontname;
-	Uint32 fontsize = 0;
+	CString schemaname;
 
 	static Char name[MAX_PARSE_LENGTH];
 	static Char line[MAX_LINE_LENGTH];
@@ -199,6 +259,16 @@ void CScreenMessages::ReadTitlesFile( void )
 			pnew->xposition = positionx;
 			pnew->yposition = positiony;
 			pnew->fxtime = fxtime;
+			
+			if(!schemaname.empty())
+			{
+				pnew->textschemaname = schemaname;
+				pnew->pfontset = cl_engfuncs.pfnGetResolutionSchemaFontSet(pnew->textschemaname.c_str(), m_screenHeight);
+				schemaname.clear();
+			}
+
+			if(!pnew->pfontset)
+				pnew->pfontset = m_pFontSet;
 
 			if(pnew->xposition != -1)
 				pnew->xposition = clamp(pnew->xposition, 0.0, 1.0);
@@ -210,13 +280,8 @@ void CScreenMessages::ReadTitlesFile( void )
 			Uint32 num = (pstrend - pstr);
 			msgtext.assign(pstr, num);
 
-			// Manage font
-			pnew->pfont = nullptr;
-			if(fontsize > 0 && !fontname.empty() && qstrcmp(fontname, "default"))
-				pnew->pfont = cl_renderfuncs.pfnLoadFontSet(fontname.c_str(), fontsize);
-
 			// Process the msg text
-			ProcessMessageText(pnew->pfont ? pnew->pfont : m_pFontSet, *pnew, msgtext.c_str());
+			ProcessMessageText(pnew->pfontset ? pnew->pfontset : m_pFontSet, *pnew, msgtext.c_str());
 
 			// Add to the list
 			m_messageDefinitonsArray.push_back(pnew);
@@ -342,15 +407,10 @@ void CScreenMessages::ReadTitlesFile( void )
 				// Set hold time
 				fxtime = SDL_atof(value);
 			}
-			else if(!qstrcmp(token, "$fontset"))
+			else if(!qstrcmp(token, "$schemaname"))
 			{
 				// Set the font set name
-				fontname = value;
-			}
-			else if(!qstrcmp(token, "$fontsize"))
-			{
-				// Set the font set name
-				fontsize = SDL_atoi(value);
+				schemaname = value;
 			}
 			else
 			{
@@ -706,7 +766,7 @@ bool CScreenMessages::DrawMessage( displaymsg_t& msg )
 	}
 
 	// Get default font(only supported one rn)
-	const font_set_t* pset = pmsgdef->pfont;
+	const font_set_t* pset = pmsgdef->pfontset;
 	if(!pset)
 		pset = m_pFontSet;
 

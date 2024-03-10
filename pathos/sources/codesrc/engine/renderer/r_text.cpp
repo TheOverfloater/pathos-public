@@ -945,9 +945,9 @@ bool CText :: DrawSimpleString( const font_set_t *pFontSet, const Char *pstrStri
 
 	R_Bind2DTexture(GL_TEXTURE0, pglinfo->palloc->gl_index);
 
-	if(pFontSet->outline && pFontSet->outlinecolor.r != m_iR
-		&& pFontSet->outlinecolor.g != m_iG
-		&& pFontSet->outlinecolor.b != m_iB)
+	if(pFontSet->outline && (pFontSet->outlinecolor.r != m_iR
+		|| pFontSet->outlinecolor.g != m_iG
+		|| pFontSet->outlinecolor.b != m_iB))
 	{
 		Int32 _a = m_iA;
 		if(pFontSet->outlinecolor.a != 0)
@@ -1349,9 +1349,9 @@ bool CText :: DrawString( const font_set_t *pFontSet, const Char *pstrString, In
 				_b = m_iB;
 			}
 
-			if(pFontSet->outline && pFontSet->outlinecolor.r != _r
-				&& pFontSet->outlinecolor.g != _g
-				&& pFontSet->outlinecolor.b != _b)
+			if(pFontSet->outline && (pFontSet->outlinecolor.r != _r
+				|| pFontSet->outlinecolor.g != _g
+				|| pFontSet->outlinecolor.b != _b))
 			{
 				Int32 _or = pFontSet->outlinecolor.r;
 				Int32 _og = pFontSet->outlinecolor.g;
@@ -1426,9 +1426,9 @@ bool CText :: DrawChar( const font_set_t *pFontSet, char character, Int32 x, Int
 	R_Bind2DTexture(GL_TEXTURE0, pglinfo->palloc->gl_index);
 
 	// Draw with the outline first
-	if(pFontSet->outline && pFontSet->outlinecolor.r != r
-		&& pFontSet->outlinecolor.g != g
-		&& pFontSet->outlinecolor.b != b)
+	if(pFontSet->outline && (pFontSet->outlinecolor.r != r
+		|| pFontSet->outlinecolor.g != g
+		|| pFontSet->outlinecolor.b != b))
 	{
 		Int32 _r = pFontSet->outlinecolor.r;
 		Int32 _g = pFontSet->outlinecolor.g;

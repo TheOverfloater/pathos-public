@@ -489,7 +489,7 @@ bool CUISaveLoadWindow::init( const ui_windowdescription_t* pWinDesc, const ui_o
 	}
 
 	// Ensure these are updated
-	UpdateButtons();
+	UpdateButtons(false);
 
 	return true;
 }
@@ -498,14 +498,14 @@ bool CUISaveLoadWindow::init( const ui_windowdescription_t* pWinDesc, const ui_o
 // @brief Updates buttons
 //
 //=============================================
-void CUISaveLoadWindow::UpdateButtons( void )
+void CUISaveLoadWindow::UpdateButtons( bool selectFirst )
 {
 	if(m_bIsIngame)
 	{
 		// Set focus specifically on the new save
 		SetFocusOnRow(NEW_SAVE_INDEX, NEW_SAVE_INDEX);
 	}
-	else if(!m_saveFilesArray.empty())
+	else if(selectFirst && !m_saveFilesArray.empty())
 	{
 		// Set focus on the first row
 		SetFocusOnRow(0, 0);
@@ -611,7 +611,7 @@ void CUISaveLoadWindow::postThink( void )
 		LoadSaves((ens.gamestate == GAME_RUNNING) ? true : false);
 		m_bRecheckSaves = false;
 
-		UpdateButtons();
+		UpdateButtons(true);
 	}
 }
 
@@ -621,6 +621,12 @@ void CUISaveLoadWindow::postThink( void )
 //=============================================
 void CUISaveLoadWindow::SetBackgroundTexture( save_file_t* psave )
 {
+	if(!psave)
+	{
+		gMenu.SetBlendTargetTexture(nullptr);
+		return;
+	}
+
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 	en_texture_t* ptexture = nullptr;
 	bool isCurrentBgTexture = false;
@@ -704,6 +710,7 @@ void CUISaveLoadWindow::SetFocusOnRow( Int32 rowIndex, Int32 fileIndex )
 		m_pLoadButton->setDisabled(true);
 		m_pSaveButton->setDisabled(false);
 		m_pDeleteButton->setDisabled(true);
+		SetBackgroundTexture(nullptr);
 		return;
 	}
 

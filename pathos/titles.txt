@@ -135,14 +135,9 @@ $holdtime 5.0
 $fadeout 4
 
 // Font set
-$fontset albertus.ttf
-// Font size
-$fontsize 72
+$schemaname gametitle
 
 GAMETITLE
 {
 PATHOS ENGINE
 }
-
-// Font set
-$fontset default

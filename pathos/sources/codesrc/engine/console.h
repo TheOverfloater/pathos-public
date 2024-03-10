@@ -70,6 +70,9 @@ public:
 	// Print box background color
 	static const color32_t PRINT_BOX_BACKGROUND_COLOR;
 
+	// Text schema name for console text box
+	static const Char TEXTBOX_TEXTSCHEMA_NAME[];
+
 public:
 	// Debug display prints
 	struct debug_print_t
@@ -90,6 +93,8 @@ private:
 public:
 	// Initializes the console
 	void Init( void );
+	// Initializes GL stuff
+	bool InitGL( void );
 
 	// Adds text to the history
 	void AddTextHistory( const Char* pstrText );
@@ -187,6 +192,9 @@ private:
 
 	// Saved commands for GL dependent cvars
 	CArray<CString> m_glDependentCVarCommandsArray;
+
+	// Font set used by console text
+	const struct font_set_t* m_pFontSet;
 };
 extern CConsole gConsole;
 #endif //CONSOLE_H

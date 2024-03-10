@@ -110,7 +110,7 @@ private:
 	void CreateSaveFileRow( save_file_t& saveFile, Uint32 fileindex );
 
 	// Updates buttons
-	void UpdateButtons( void );
+	void UpdateButtons( bool selectFirst );
 
 public:
 	// Loads the schema, and creates the sub-elements
