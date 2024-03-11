@@ -326,17 +326,27 @@ void CSkyRenderer::PreFrame( void )
 //====================================
 bool CSkyRenderer::DrawSky( void )
 {
-	if(!rns.sky.drawsky)
-		return true;
+	if(!rns.sky.drawsky || (m_pCvarDrawSky->GetValue() < 1)
+		|| (!rns.sky.drawsky && !rns.sky.skybox)
+		|| (rns.fog.settings.active && rns.fog.settings.affectsky 
+		&& !rns.fog.blendtime && !rns.sky.skybox))
+	{
+		// If skybox is set, the renderer expects us to 
+		// restore the leaves here
+		if(rns.sky.skybox)
+		{
+			// Restore VIS to what we want to render
+			Vector vieworigin;
+			if(rns.usevisorigin)
+				vieworigin = rns.view.v_visorigin;
+			else
+				vieworigin = rns.view.v_origin;
 
-	if(m_pCvarDrawSky->GetValue() < 1)
-		return true;
+			R_MarkLeaves(vieworigin);
+		}
 
-	if(!rns.sky.drawsky && !rns.sky.skybox)
 		return true;
-
-	if(rns.fog.settings.active && rns.fog.settings.affectsky && !rns.fog.blendtime && !rns.sky.skybox)
-		return true;
+	}
 
 	Vector vsavedorigin;
 	fog_settings_t savedfog;
