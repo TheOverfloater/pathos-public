@@ -1217,9 +1217,12 @@ void CL_LinkMapTextureMaterials( CArray<CString>& wadList )
 
 		filepath << WORLD_TEXTURES_PATH_BASE << basename << PATH_SLASH_CHAR << ens.pworld->ptextures[i].name << PMF_FORMAT_EXTENSION;
 		
+		CString fullpath;
+		fullpath << TEXTURE_BASE_DIRECTORY_PATH << filepath;
+
 		// Find the material script. Use FL_FileExists, as textures
 		// are not loaded at this point
-		if(!FL_FileExists(filepath.c_str()))
+		if(!FL_FileExists(fullpath.c_str()))
 		{
 			filepath.clear();
 
@@ -1228,7 +1231,7 @@ void CL_LinkMapTextureMaterials( CArray<CString>& wadList )
 				Common::Basename(wadList[j].c_str(), basename);
 
 				filepath << WORLD_TEXTURES_PATH_BASE << basename << PATH_SLASH_CHAR << ens.pworld->ptextures[i].name << PMF_FORMAT_EXTENSION;
-				CString fullpath;
+				fullpath.clear();
 				fullpath << TEXTURE_BASE_DIRECTORY_PATH << filepath;
 
 				if(FL_FileExists(fullpath.c_str()))

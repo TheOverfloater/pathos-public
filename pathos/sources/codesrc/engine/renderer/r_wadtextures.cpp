@@ -583,7 +583,7 @@ en_texture_t* CWADTextureResource::GetWADTexture( en_material_t* pmaterial, cons
 			CString texturename(pmiptex->name);
 			texturename.tolower();
 
-			if(!qstrcmp(texturename, texturename))
+			if(!qstrcmp(bsptexturename, texturename))
 			{
 				Uint32 texturesize = pmiptex->height*pmiptex->width;
 				Uint32 paletteoffs = texturesize + (texturesize/4) + (texturesize/16) + (texturesize/64);
