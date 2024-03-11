@@ -507,7 +507,7 @@ bool CSkyRenderer::DrawSky( void )
 
 		// Restore VIS to what we want to render
 		Vector vieworigin;
-		if(!rns.usevisorigin)
+		if(rns.usevisorigin)
 			vieworigin = rns.view.v_visorigin;
 		else
 			vieworigin = rns.view.v_origin;
