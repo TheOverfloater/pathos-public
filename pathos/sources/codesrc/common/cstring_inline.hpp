@@ -150,6 +150,16 @@ inline CString& CString::operator<<(Float f)
 	return *this;
 }
 
+//=============================================
+// @brief Byte shift operator
+//
+// @param pstr Pointer string
+//=============================================
+inline CString& CString::operator<<(Double d)
+{
+	Append(d);
+	return *this;
+}
 
 //=============================================
 // @brief Plus equal operator
@@ -281,6 +291,18 @@ inline CString CString::operator+(Float f)
 }
 
 //=============================================
+// @brief Plus operator
+//
+// @param pstr Pointer string
+//=============================================
+inline CString CString::operator+(Double d)
+{
+	CString temp(*this);
+	temp << d;
+	return temp;
+}
+
+//=============================================
 // @brief Appends a source string to the current string
 //
 // @param pstr Pointer string
@@ -381,6 +403,30 @@ inline void CString::Append(Float f)
 {
 	static Char convBuffer[64];
 	sprintf(convBuffer, "%f", f);
+
+	Int32 strlength = qstrlen(convBuffer);
+	Uint32 newlength = m_stringLength+strlength;
+
+	Char* pstrNew = new Char[newlength+1];
+	if(m_pString)
+		sprintf(pstrNew, "%s%s", m_pString, convBuffer);
+	else
+		sprintf(pstrNew, "%s", convBuffer);
+
+	delete[] m_pString;
+	m_pString = pstrNew;
+	m_stringLength = newlength;
+}
+
+//=============================================
+// @brief Appends a float value to the current string
+//
+// @param pstr Pointer string
+//=============================================
+inline void CString::Append(Double d)
+{
+	static Char convBuffer[64];
+	sprintf(convBuffer, "%9.9lf", d);
 
 	Int32 strlength = qstrlen(convBuffer);
 	Uint32 newlength = m_stringLength+strlength;

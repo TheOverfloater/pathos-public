@@ -1073,8 +1073,8 @@ void R_SetupView( const ref_params_t& params )
 	if(!rns.sky.skybox || rns.fog.settings.affectsky || rns.water_skydraw)
 	{
 		Vector vieworigin;
-		if(rns.usebaseviewforvis)
-			vieworigin = rns.view.params.v_origin;
+		if(rns.usevisorigin)
+			vieworigin = rns.view.v_visorigin;
 		else
 			vieworigin = rns.view.v_origin;
 

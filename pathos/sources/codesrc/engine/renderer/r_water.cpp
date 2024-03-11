@@ -1472,7 +1472,12 @@ void CWaterShader::SetupReflect( void )
 	glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ONE);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	rns.usebaseviewforvis = true;
+	if(m_pCurrentWater->pentity->curstate.rendertype == RT_SKYWATERENT)
+		rns.view.v_visorigin = GetViewOrigin();
+	else
+		rns.view.v_visorigin = rns.view.params.v_origin;
+
+	rns.usevisorigin = true;
 }
 
 //====================================
@@ -1490,7 +1495,7 @@ void CWaterShader::FinishReflect( void )
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, WATER_RTT_SIZE, WATER_RTT_SIZE, 0);
 	}
 
-	rns.usebaseviewforvis = false;
+	rns.usevisorigin = false;
 }
 
 //====================================

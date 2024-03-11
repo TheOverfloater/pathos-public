@@ -142,6 +142,8 @@ struct view_info_t
 	Vector v_right;
 	Vector v_up;
 
+	Vector v_visorigin;
+
 	// clipping plane distances
 	Float znear;
 	Float zfar;
@@ -271,7 +273,7 @@ struct renderer_state_t
 		fatalerror(false),
 		numskipframes(0),
 		basicsinitialized(false),
-		usebaseviewforvis(false),
+		usevisorigin(false),
 		validateshaders(false),
 		msaa(false),
 		pvisbuffer(nullptr),
@@ -356,8 +358,8 @@ struct renderer_state_t
 	int numskipframes;
 	// true if basic GL stuff was initialized
 	bool basicsinitialized;
-	// true if rns.view.params should be used for setting VIS
-	bool usebaseviewforvis;
+	// true if v_visorigin should be used for setting VIS
+	bool usevisorigin;
 	// true if we need to run validation checks for shaders
 	bool validateshaders;
 	// true if using MSAA

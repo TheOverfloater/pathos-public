@@ -819,7 +819,7 @@ void VID_ShaderCompileCallback( const Char* pstrShaderName, Uint32 totalCount, U
 
 	CString strProgressText;
 	strProgressText << "Loading shader '" << pstrShaderName << "' - " << (Int32)progressPercentage << "% ";
-	strProgressText << "(" << totalCount << "/" << completedCount << ")"; 
+	strProgressText << "(" << completedCount << "/" << totalCount << ")"; 
 
 	VID_DrawLoadingScreen(strProgressText.c_str());
 }

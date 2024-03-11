@@ -161,7 +161,10 @@ void CEnvExplosion::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usem
 
 	// Do damage if set
 	if(!HasSpawnFlag(FL_NO_DAMAGE))
-		RadiusDamage(explosionPosition, this, m_attacker, m_dmgAmount, m_dmgRadius, CLASS_UNDEFINED, DMG_EXPLOSION);
+	{
+		CBaseEntity* pInflictor = m_inflictor ? m_inflictor : this;
+		RadiusDamage(explosionPosition, pInflictor, m_attacker, m_dmgAmount, m_dmgRadius, CLASS_UNDEFINED, DMG_EXPLOSION);
+	}
 
 	// Spawn smoke if set
 	if(!HasSpawnFlag(FL_NO_SMOKE))
@@ -257,7 +260,16 @@ void CEnvExplosion::SetAttacker( CBaseEntity* pAttacker )
 // @brief
 //
 //=============================================
-void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angles, Int32 magnitude, bool dodamage, CBaseEntity* pAttacker )
+void CEnvExplosion::SetInflictor( CBaseEntity* pInflictor )
+{
+	m_inflictor = pInflictor;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angles, Int32 magnitude, bool dodamage, CBaseEntity* pAttacker, CBaseEntity* pInflictor )
 {
 	CEnvExplosion* pExplosion = reinterpret_cast<CEnvExplosion*>(CBaseEntity::CreateEntity("env_explosion", origin, angles, nullptr));
 	if(!pExplosion)
@@ -267,6 +279,8 @@ void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angl
 		pExplosion->SetSpawnFlag(FL_NO_DAMAGE);
 
 	pExplosion->SetMagnitude(magnitude);
+	pExplosion->SetAttacker(pAttacker);
+	pExplosion->SetInflictor(pInflictor);
 
 	if(!pExplosion->Spawn())
 	{
@@ -282,7 +296,7 @@ void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angl
 // @brief
 //
 //=============================================
-void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angles, Float radius, Float dmgamount, bool dodamage, CBaseEntity* pAttacker )
+void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angles, Float radius, Float dmgamount, bool dodamage, CBaseEntity* pAttacker, CBaseEntity* pInflictor )
 {
 	CEnvExplosion* pExplosion = reinterpret_cast<CEnvExplosion*>(CBaseEntity::CreateEntity("env_explosion", origin, angles, nullptr));
 	if(!pExplosion)
@@ -294,6 +308,7 @@ void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angl
 	pExplosion->SetDamageRadius(radius);
 	pExplosion->SetDamageAmount(dmgamount);
 	pExplosion->SetAttacker(pAttacker);
+	pExplosion->SetInflictor(pInflictor);
 
 	if(!pExplosion->Spawn())
 	{

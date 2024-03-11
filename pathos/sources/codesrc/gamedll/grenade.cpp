@@ -196,7 +196,7 @@ void CGrenade::Explode( void )
 {
 	// Create the explosion
 	CEnvExplosion::CreateEnvExplosion(m_pState->origin, m_pState->angles, 
-		m_damageRadius, m_damageAmount, true, m_attacker);
+		m_damageRadius, m_damageAmount, true, m_attacker, this);
 
 	// Disable visibility and collisions
 	m_pState->effects |= EF_NODRAW;

@@ -10,7 +10,7 @@ All Rights Reserved.
 #ifndef OGG_SHARED_H
 #define OGG_SHARED_H
 
-#include <vorbisfile.h>
+#include <vorbis/vorbisfile.h>
 
 #include "common.h"
 

@@ -44,13 +44,14 @@ public:
 	void SetDamageAmount( Float dmgamount );
 	void SetDamageRadius( Float radius );
 	void SetAttacker( CBaseEntity* pAttacker );
+	void SetInflictor( CBaseEntity* pInflictor );
 
 public:
 	void EXPORTFN SmokeThink( void );
 
 public:
-	static void CreateEnvExplosion( const Vector& origin, const Vector& angles, Int32 magnitude, bool dodamage, CBaseEntity* pAttacker = nullptr );
-	static void CreateEnvExplosion( const Vector& origin, const Vector& angles, Float radius, Float dmgamount, bool dodamage, CBaseEntity* pAttacker = nullptr );
+	static void CreateEnvExplosion( const Vector& origin, const Vector& angles, Int32 magnitude, bool dodamage, CBaseEntity* pAttacker = nullptr, CBaseEntity* pInflictor = nullptr );
+	static void CreateEnvExplosion( const Vector& origin, const Vector& angles, Float radius, Float dmgamount, bool dodamage, CBaseEntity* pAttacker = nullptr, CBaseEntity* pInflictor = nullptr );
 
 private:
 	Int32 m_magnitude;
@@ -58,5 +59,6 @@ private:
 	Float m_dmgAmount;
 
 	CEntityHandle m_attacker;
+	CEntityHandle m_inflictor;
 };
 #endif //ENVEXPLOSION_H

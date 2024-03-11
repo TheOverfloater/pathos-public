@@ -45,6 +45,8 @@ public:
 	inline CString& operator<<(Uint32 i);
 	// Byte shift operator
 	inline CString& operator<<(Float f);
+	// Byte shift operator
+	inline CString& operator<<(Double d);
 	// Plus equal operator
 	inline CString& operator+=(const Char* pstr);
 	// Plus equal operator
@@ -57,6 +59,8 @@ public:
 	inline CString& operator+=(Uint32 i);
 	// Plus equal operator
 	inline CString& operator+=(Float f);
+	// Plus equal operator
+	inline CString& operator+=(Double d);
 	// Plus operator
 	inline CString operator+(const Char* pstr);
 	// Plus operator
@@ -69,6 +73,8 @@ public:
 	inline CString operator+(Uint32 i);
 	// Plus operator
 	inline CString operator+(Float f);
+	// Plus operator
+	inline CString operator+(Double d);
 	// Indexing operator
 	inline Char operator[] (Uint32 n) const;
 
@@ -105,6 +111,8 @@ public:
 	inline void Append( Uint32 i );
 	// Appends a string to the current one
 	inline void Append( Float f );
+	// Appends a string to the current one
+	inline void Append( Double d );
 
 private:
 	// Pointer to string
