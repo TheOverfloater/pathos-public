@@ -593,25 +593,6 @@
   ]
 ]
 
-@PointClass base(Targetname) = ambient_fmodstream: "OGG Audio player (OBSOLETE, REPLACE WITH ambient_oggstream)"
-[
-     message(string) : "File Name"
-     fadeintime(integer) : "Fade In Time" : 0
-     fadetime(integer) : "Fade Out Time" : 0
-	  channel(Choices) : "Channel" : 0 =
-	  [ 
-		  0 : "Channel 1"
-		  1 : "Channel 2"
-		  2 : "Channel 3"
-		  3 : "Channel 4"
-	  ]
-     spawnflags(flags) =
-     [
-          1: "Remove on fire" : 0
-          2: "Loop music" : 0
-     ]
-]
-
 @PointClass base(Targetname) = ambient_oggstream: "OGG Audio player"
 [
      message(string) : "File Name"
