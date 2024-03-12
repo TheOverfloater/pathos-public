@@ -167,7 +167,7 @@ bool CWindow::Init( void )
 	if(m_bFullScreen)
 		windowFlags |= SDL_WINDOW_FULLSCREEN;
 
-	if(Sys_CheckLaunchArgs("-borderless"))
+	if(Sys_CheckLaunchArgs("-borderless") != -1)
 		windowFlags |= SDL_WINDOW_BORDERLESS;
 
 	Int32 xPos;
