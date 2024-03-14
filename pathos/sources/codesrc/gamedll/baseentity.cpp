@@ -1321,7 +1321,7 @@ void CBaseEntity::FadeBeginThink( void )
 	if(m_pState->rendermode == RENDER_NORMAL)
 	{
 		m_pState->renderamt = 255;
-		m_pState->rendermode = RENDER_TRANSTEXTURE;
+		m_pState->rendermode = RENDER_TRANSTEXTURE_LIT;
 	}
 
 	m_pState->solid = SOLID_NOT;

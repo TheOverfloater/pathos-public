@@ -45,10 +45,10 @@ bool CFuncWall::Spawn( void )
 	m_pState->effects |= EF_STATICENTITY;
 
 	if(m_pState->rendermode == RENDER_NORMAL
-		|| m_pState->rendermode == RENDER_TRANSALPHA)
+		|| (m_pState->rendermode & 255) == RENDER_TRANSALPHA)
 		m_pState->flags |= FL_WORLDBRUSH;
 
-	if(m_pState->renderamt == 0 && m_pState->rendermode == RENDER_TRANSCOLOR)
+	if(m_pState->renderamt == 0 && (m_pState->rendermode & 255) == RENDER_TRANSCOLOR)
 	{
 		m_pState->rendermode = RENDER_NORMAL;
 		m_pState->effects |= EF_COLLISION;

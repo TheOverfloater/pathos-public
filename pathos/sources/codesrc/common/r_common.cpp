@@ -198,6 +198,7 @@ bool R_IsEntityRotated( const cl_entity_t& entity )
 //=============================================
 bool R_IsEntityTransparent( const cl_entity_t& entity, bool ignoreVBMFlags )
 {
+	// Do not & with 255 since RENDER_TRANSALPHA_UNLIT needs to be rendered differently.
 	if(entity.curstate.rendermode != RENDER_NORMAL
 		&& entity.curstate.rendermode != RENDER_TRANSALPHA)
 		return true;

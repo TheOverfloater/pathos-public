@@ -93,7 +93,7 @@ bool CFuncTrain::Spawn( void )
 	if(!m_pState->speed)
 		m_pState->speed = DEFAULT_SPEED;
 
-	if(!m_pState->renderamt && m_pState->rendermode == RENDER_TRANSCOLOR)
+	if(!m_pState->renderamt && (m_pState->rendermode & 255) == RENDER_TRANSCOLOR)
 	{
 		m_pState->rendermode = RENDER_NORMAL;
 		m_pState->effects |= EF_COLLISION;

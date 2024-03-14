@@ -1608,6 +1608,8 @@ void CBSPRenderer::FlagIfDynamicLighted( const Vector& mins, const Vector& maxs 
 //=============================================
 bool CBSPRenderer::DrawFirst( void ) 
 {
+	//Int32 rendermode = m_pCurrentEntity->curstate.rendermode & 255;
+	Int32 rendermodeext = m_pCurrentEntity->curstate.rendermode;
 	// Flag for whether the view matrix was set
 	bool cubematrixSet = false;
 
@@ -1682,6 +1684,24 @@ bool CBSPRenderer::DrawFirst( void )
 			m_pShader->DisableSync(m_attribs.u_inv_modelmatrix);
 			cubematrixSet = false;
 		}
+
+		// rendermode overrides
+		if (rendermodeext == RENDER_TRANSADDITIVE || rendermodeext == RENDER_TRANSTEXTURE || rendermodeext == RENDER_TRANSALPHA_UNLIT)
+		{
+			if (!m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_texunit1))
+				return false;
+		}
+		else if(rendermodeext == RENDER_TRANSCOLOR)
+		{
+			if (!m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_solidcolor))
+				return false;
+		}
+		else if (rendermodeext == RENDER_TRANSCOLOR_LIT)
+		{
+			if (!m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_texunit0))
+				return false;
+		}
+
 
 		R_ValidateShader(m_pShader);
 
@@ -2243,7 +2263,10 @@ bool CBSPRenderer::BindTextures( bsp_texture_t* phandle, cubemapinfo_t* pcubemap
 //=============================================
 bool CBSPRenderer::DrawBrushModel( cl_entity_t& entity, bool isstatic )
 {
-	if(entity.curstate.rendermode != RENDER_NORMAL 
+	Int32 rendermode = entity.curstate.rendermode & 255;
+	Int32 rendermodeext = entity.curstate.rendermode;
+
+	if(rendermodeext != RENDER_NORMAL
 		&& entity.curstate.renderamt == 0)
 		return true;
 
@@ -2308,17 +2331,17 @@ bool CBSPRenderer::DrawBrushModel( cl_entity_t& entity, bool isstatic )
 		return true;
 
 	// Apply transparency if any
-	if(m_pCurrentEntity->curstate.rendermode == RENDER_TRANSADDITIVE)
+	if(rendermode == RENDER_TRANSADDITIVE)
 	{
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
 		Float flalpha = R_RenderFxBlend(m_pCurrentEntity)/255.0f;
 		m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, flalpha);
 		m_pShader->SetUniform3f(m_attribs.u_fogcolor, 0, 0, 0);
 	}
-	else if(m_pCurrentEntity->curstate.rendermode == RENDER_TRANSTEXTURE)
+	else if(rendermode == RENDER_TRANSTEXTURE)
 	{
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
@@ -2327,7 +2350,7 @@ bool CBSPRenderer::DrawBrushModel( cl_entity_t& entity, bool isstatic )
 		Float flalpha = R_RenderFxBlend(m_pCurrentEntity)/255.0f;
 		m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, flalpha);
 	}
-	else if(m_pCurrentEntity->curstate.rendermode == RENDER_TRANSCOLOR)
+	else if(rendermode == RENDER_TRANSCOLOR)
 	{
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
@@ -2370,9 +2393,10 @@ bool CBSPRenderer::DrawBrushModel( cl_entity_t& entity, bool isstatic )
 	}
 
 	// Disable blending
-	if(m_pCurrentEntity->curstate.rendermode == RENDER_TRANSADDITIVE
-		||m_pCurrentEntity->curstate.rendermode == RENDER_TRANSTEXTURE 
-		||m_pCurrentEntity->curstate.rendermode == RENDER_TRANSCOLOR)
+	
+	if(rendermode == RENDER_TRANSADDITIVE
+		|| rendermode == RENDER_TRANSTEXTURE
+		|| rendermode == RENDER_TRANSCOLOR)
 	{
 		glDepthMask(GL_TRUE);
 		glDisable(GL_BLEND);

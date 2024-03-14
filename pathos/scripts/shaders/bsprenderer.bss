@@ -684,11 +684,11 @@ void main()
 	$end
 	$branch shadertype == 3
 	$begin
-		finalColor = texture2D(baselightmap, ps_lmapcoord);
+		finalColor = texture2D(baselightmap, ps_lmapcoord) * color;
 	$end
 	$branch shadertype == 4
 	$begin
-		finalColor = texture2D(maintexture, ps_texcoord);
+		finalColor = texture2D(maintexture, ps_texcoord) * color;
 	$end
 	$branch shadertype == 5 || shadertype == 6
 	$begin

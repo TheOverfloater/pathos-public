@@ -557,8 +557,8 @@ void CreateGunshotDecal( const Vector& decalPosition,
 		return;
 
 	CString materialname;
-	if(pEntity->GetRenderMode() == RENDER_TRANSADDITIVE
-		|| pEntity->GetRenderMode() == RENDER_TRANSTEXTURE)
+	if((pEntity->GetRenderMode() & 255) == RENDER_TRANSADDITIVE
+		|| (pEntity->GetRenderMode() & 255) == RENDER_TRANSTEXTURE)
 	{
 		// Default to glass when rendermode is transparent
 		materialname = GLASS_MATERIAL_TYPE_NAME;
@@ -862,7 +862,7 @@ void FireBullets( Uint32 nbshots,
 						break;
 					}
 
-					if(pHitEntity->GetRenderMode() == RENDER_TRANSTEXTURE)
+					if((pHitEntity->GetRenderMode() & 255) == RENDER_TRANSTEXTURE)
 					{
 						// All transparents are glass
 						materialname = GLASS_MATERIAL_TYPE_NAME;

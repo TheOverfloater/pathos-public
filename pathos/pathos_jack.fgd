@@ -155,6 +155,10 @@
     3: "Glow"
     4: "Solid"
     5: "Additive"
+	257: "Lit Color"
+	258: "Lit Texture"
+    261: "Lit Additive"  
+	516: "Unlit Solid"
   ]
   renderamt(integer) : "FX Amount (1 - 255)"
   rendercolor(color255) : "FX Color (R G B)" : "0 0 0"

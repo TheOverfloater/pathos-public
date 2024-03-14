@@ -44,7 +44,7 @@ bool CFuncFade::Spawn( void )
 	if(!CFuncWall::Spawn())
 		return false;
 
-	m_pState->rendermode = RENDER_TRANSTEXTURE;
+	m_pState->rendermode = RENDER_TRANSTEXTURE_LIT;
 	m_startAlpha = m_pState->renderamt;
 
 	return true;
