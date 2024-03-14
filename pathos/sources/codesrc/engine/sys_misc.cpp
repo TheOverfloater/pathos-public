@@ -193,7 +193,7 @@ const Char* Sys_LaunchArgv( Uint32 index )
 Int32 Sys_CheckLaunchArgs( const Char* pstrArg )
 {
 	if(ens.launchargs.empty())
-		return -1;
+		return NO_POSITION;
 
 	for(Uint32 i = 0; i < ens.launchargs.size(); i++)
 	{
@@ -201,7 +201,7 @@ Int32 Sys_CheckLaunchArgs( const Char* pstrArg )
 			return i;
 	}
 
-	return -1;
+	return NO_POSITION;
 }
 
 //=============================================

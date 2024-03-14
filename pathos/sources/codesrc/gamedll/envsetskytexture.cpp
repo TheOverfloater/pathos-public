@@ -20,7 +20,8 @@ LINK_ENTITY_TO_CLASS(env_setskytexture, CEnvSetSkyTexture);
 //
 //=============================================
 CEnvSetSkyTexture::CEnvSetSkyTexture( edict_t* pedict ):
-	CPointEntity(pedict)
+	CPointEntity(pedict),
+	m_isActive(false)
 {
 }
 

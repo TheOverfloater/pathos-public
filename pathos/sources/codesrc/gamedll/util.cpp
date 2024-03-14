@@ -1073,7 +1073,7 @@ namespace Util
 			return;
 
 		CString materialname;
-		if((pHitEntity->GetRenderMode() & 255) == RENDER_TRANSTEXTURE)
+		if((pHitEntity->GetRenderMode() & RENDERMODE_BITMASK) == RENDER_TRANSTEXTURE)
 		{
 			// All transparents are glass
 			materialname = GLASS_MATERIAL_TYPE_NAME;

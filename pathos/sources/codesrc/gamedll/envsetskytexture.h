@@ -36,7 +36,6 @@ public:
 	virtual void SendInitMessage( const CBaseEntity* pPlayer ) override;
 
 private:
-	Int32 m_skyTextureIndex;
 	bool m_isActive;
 };
 

@@ -12,6 +12,9 @@ All Rights Reserved.
 
 #include "constants.h"
 
+// Used for custom rendermode types
+static const Uint32 RENDERMODE_BITMASK = 255;
+
 enum movetype_t
 {
 	MOVETYPE_NONE = 0,
@@ -35,7 +38,7 @@ enum rendermode_t
 	RENDER_TRANSALPHA,
 	RENDER_TRANSADDITIVE,
 
-	// Pathos Extensions, use (rendermode & 255) if you want to check a mode with any flags
+	// Pathos Extensions, use (rendermode & RENDERMODE_BITMASK) if you want to check a mode with any flags
 	RENDER_TRANSCOLOR_LIT = 257,
 	RENDER_TRANSTEXTURE_LIT,
 	RENDER_TRANSADDITIVE_LIT = 261,

@@ -1927,7 +1927,13 @@ bool R_DrawNormal( void )
 		// Draw the sky first
 		if(!gSkyRenderer.DrawSky())
 			return false;		
+	}
 
+	// Create cached decals
+	gDecals.CreateCached();
+
+	if(!rns.view.params.nodraw)
+	{
 		// Draw the world first
 		if(!gBSPRenderer.DrawNormal())
 			return false;
@@ -2095,9 +2101,6 @@ bool R_Draw( const ref_params_t& params )
 		// Set view params
 		R_SetupView(params);
 	}
-
-	// Create cached decals
-	gDecals.CreateCached();
 
 	if(!rns.view.params.nodraw)
 	{

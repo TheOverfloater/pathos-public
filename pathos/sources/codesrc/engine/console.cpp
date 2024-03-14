@@ -875,7 +875,8 @@ bool CConsole::ProcessCommand( void )
 				return true;
 			}
 
-			if(!CVarSetFloatValue(pstrName, atof(pstrValue)*sgn))
+			Float value = atof(pstrValue)*sgn;
+			if(!CVarSetFloatValue(pstrName, value))
 				return false;
 		}
 		else if(!CVarSetStringValue(pstrName, pstrValue))

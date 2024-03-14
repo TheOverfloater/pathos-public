@@ -554,6 +554,7 @@ private:
 	CCVar* m_pCvarDrawWorld;
 	CCVar* m_pCvarNormalBlendAngle;
 	CCVar* m_pCvarDrawBatches;
+	CCVar* m_pLegacyTransparents;
 
 private:
 	// Shader object

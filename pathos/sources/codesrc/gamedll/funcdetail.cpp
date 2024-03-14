@@ -44,11 +44,12 @@ bool CFuncDetail::Spawn( void )
 	m_pState->solid = SOLID_BSP;
 	m_pState->effects |= EF_STATICENTITY;
 
-	if (m_pState->rendermode == RENDER_NORMAL
-		|| (m_pState->rendermode & 255) == RENDER_TRANSALPHA)
+	if(m_pState->rendermode == RENDER_NORMAL
+		|| (m_pState->rendermode & RENDERMODE_BITMASK) == RENDER_TRANSALPHA)
 		m_pState->flags |= FL_WORLDBRUSH;
 
-	if(m_pState->renderamt == 0 && (m_pState->rendermode & 255) == RENDER_TRANSCOLOR)
+	if(m_pState->renderamt == 0 
+		&& (m_pState->rendermode & RENDERMODE_BITMASK) == RENDER_TRANSCOLOR)
 	{
 		m_pState->rendermode = RENDER_NORMAL;
 		m_pState->effects |= EF_COLLISION;

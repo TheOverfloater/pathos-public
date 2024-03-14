@@ -85,6 +85,7 @@ CBSPRenderer::CBSPRenderer( void ):
 	m_pCvarDrawWorld(nullptr),
 	m_pCvarNormalBlendAngle(nullptr),
 	m_pCvarDrawBatches(nullptr),
+	m_pLegacyTransparents(nullptr),
 	m_pShader(nullptr),
 	m_pVBO(nullptr),
 	m_isCubemappingSupported(false)
@@ -113,6 +114,7 @@ bool CBSPRenderer::Init( void )
 	m_pCvarDetailScale = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_detail_scale", "1", "Adjusts detail texture scaling." );
 	m_pCvarNormalBlendAngle = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_smooth_angle", "60", "Controls normal blending for brushes." );
 	m_pCvarDrawBatches = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_bsp_drawbatches", "1", "Controls whether BSP rendering uses batching." );
+	m_pLegacyTransparents = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_bsp_legacytransparents", "0", "Controls whether BSP rendering uses legacy(HL1 style unlit) rendering for transparent entities." );
 
 	return true;
 }
@@ -1608,8 +1610,12 @@ void CBSPRenderer::FlagIfDynamicLighted( const Vector& mins, const Vector& maxs 
 //=============================================
 bool CBSPRenderer::DrawFirst( void ) 
 {
-	//Int32 rendermode = m_pCurrentEntity->curstate.rendermode & 255;
-	Int32 rendermodeext = m_pCurrentEntity->curstate.rendermode;
+	Int32 rendermodeext;
+	if(m_pLegacyTransparents->GetValue() >= 1)
+		rendermodeext = m_pCurrentEntity->curstate.rendermode;
+	else
+		rendermodeext = m_pCurrentEntity->curstate.rendermode & RENDERMODE_BITMASK;
+
 	// Flag for whether the view matrix was set
 	bool cubematrixSet = false;
 
@@ -1636,9 +1642,87 @@ bool CBSPRenderer::DrawFirst( void )
 		if(m_pCurrentEntity->curstate.effects & EF_CONVEYOR)
 			m_pShader->SetUniform2f(m_attribs.u_uvoffset, -rns.time*m_pCurrentEntity->curstate.scale*0.02, 0);
 
-		// Find any cubemaps
+		GLuint cubemapUnit = 0;
 		cubemapinfo_t* pcubemapinfo = nullptr;
 		cubemapinfo_t* pprevcubemapinfo = nullptr;
+
+		// rendermode overrides
+		if(m_pLegacyTransparents->GetValue() >= 1 && !m_multiPass 
+			&& (rendermodeext == RENDER_TRANSADDITIVE || rendermodeext == RENDER_TRANSTEXTURE 
+			|| rendermodeext == RENDER_TRANSALPHA_UNLIT || rendermodeext == RENDER_TRANSCOLOR 
+			|| rendermodeext == RENDER_TRANSCOLOR_LIT))
+		{
+			m_pShader->DisableAttribute(m_attribs.a_normal);
+			m_pShader->DisableAttribute(m_attribs.a_tangent);
+			m_pShader->DisableAttribute(m_attribs.a_binormal);
+
+			// Make sure these are disabled
+			if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
+				!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
+				!m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_chrome, false) ||
+				!m_pShader->SetDeterminator(m_attribs.d_cubemaps, CUBEMAPS_OFF, false) ||
+				!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false))
+				return false;
+
+			bool result = true;
+			switch(rendermodeext)
+			{
+			case RENDER_TRANSADDITIVE:
+			case RENDER_TRANSTEXTURE:
+			case RENDER_TRANSALPHA_UNLIT:
+				{
+					// Only texture
+					m_pShader->SetUniform1i(m_attribs.u_maintexture, 0);
+					R_Bind2DTexture(GL_TEXTURE0, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
+
+					result = m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_texunit1);
+				}
+				break;
+			case RENDER_TRANSCOLOR:
+				{
+					// Only color
+					result = m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_solidcolor);
+				}
+				break;
+			case RENDER_TRANSCOLOR_LIT:
+				{
+					// Only lightmap
+					m_pShader->SetUniform1i(m_attribs.u_baselightmap, 0);
+					R_Bind2DTexture(GL_TEXTURE0, m_ambientLightmapIndex);
+
+					result = m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_texunit0);
+				}
+				break;
+			}
+
+			if(!result)
+				return false;
+
+			if(pmaterial->flags & TX_FL_ALPHATEST)
+			{
+				if(!rns.msaa || !rns.mainframe)
+				{
+					if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_LESSTHAN, false))
+						return false;
+				}
+				else
+				{
+					if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_COVERAGE, false))
+						return false;
+
+					glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+					gGLExtF.glSampleCoverage(0.5, GL_FALSE);
+				}
+			}
+			else
+			{
+				if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false))
+					return false;
+			}
+		}
+		else
+		{
+			// Find any cubemaps
 		if(m_isCubemappingSupported && g_pCvarCubemaps->GetValue() > 0 && pmaterial->flags & TX_FL_CUBEMAPS)
 		{
 			pcubemapinfo = gCubemaps.GetIdealCubemap();
@@ -1647,7 +1731,6 @@ bool CBSPRenderer::DrawFirst( void )
 		}
 
 		// Set up binds
-		GLuint cubemapUnit = 0;
 		if(!BindTextures(ptexturehandle, pcubemapinfo, pprevcubemapinfo, cubemapUnit))
 			return false;
 		
@@ -1684,24 +1767,7 @@ bool CBSPRenderer::DrawFirst( void )
 			m_pShader->DisableSync(m_attribs.u_inv_modelmatrix);
 			cubematrixSet = false;
 		}
-
-		// rendermode overrides
-		if (rendermodeext == RENDER_TRANSADDITIVE || rendermodeext == RENDER_TRANSTEXTURE || rendermodeext == RENDER_TRANSALPHA_UNLIT)
-		{
-			if (!m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_texunit1))
-				return false;
 		}
-		else if(rendermodeext == RENDER_TRANSCOLOR)
-		{
-			if (!m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_solidcolor))
-				return false;
-		}
-		else if (rendermodeext == RENDER_TRANSCOLOR_LIT)
-		{
-			if (!m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_texunit0))
-				return false;
-		}
-
 
 		R_ValidateShader(m_pShader);
 
@@ -2263,7 +2329,7 @@ bool CBSPRenderer::BindTextures( bsp_texture_t* phandle, cubemapinfo_t* pcubemap
 //=============================================
 bool CBSPRenderer::DrawBrushModel( cl_entity_t& entity, bool isstatic )
 {
-	Int32 rendermode = entity.curstate.rendermode & 255;
+	Int32 rendermode = entity.curstate.rendermode & RENDERMODE_BITMASK;
 	Int32 rendermodeext = entity.curstate.rendermode;
 
 	if(rendermodeext != RENDER_NORMAL
@@ -2393,7 +2459,6 @@ bool CBSPRenderer::DrawBrushModel( cl_entity_t& entity, bool isstatic )
 	}
 
 	// Disable blending
-	
 	if(rendermode == RENDER_TRANSADDITIVE
 		|| rendermode == RENDER_TRANSTEXTURE
 		|| rendermode == RENDER_TRANSCOLOR)

@@ -3267,7 +3267,7 @@ Uint64 CBaseNPC::GetNPCVisibilityBits( CBaseEntity* pEntity, bool checkGlass )
 			CBaseEntity* pHitEntity = CBaseEntity::GetClass(pedict);
 
 			rendermode_t renderMode = pHitEntity->GetRenderMode();
-			if(renderMode != RENDER_NORMAL && (renderMode & 255) != RENDER_TRANSCOLOR)
+			if(renderMode != RENDER_NORMAL && (renderMode & RENDERMODE_BITMASK) != RENDER_TRANSCOLOR)
 				Util::TraceLine(tr.endpos, otherEyePosition, true, false, true, false, pedict, tr);
 		}
 
@@ -3309,7 +3309,7 @@ Uint64 CBaseNPC::GetNPCVisibilityBits( CBaseEntity* pEntity, bool checkGlass )
 				CBaseEntity* pHitEntity = CBaseEntity::GetClass(pedict);
 
 				rendermode_t renderMode = pHitEntity->GetRenderMode();
-				if(renderMode != RENDER_NORMAL && (renderMode & 255) != RENDER_TRANSCOLOR)
+				if(renderMode != RENDER_NORMAL && (renderMode & RENDERMODE_BITMASK) != RENDER_TRANSCOLOR)
 					Util::TraceLine(tr.endpos, otherEyePosition, true, false, true, false, pedict, tr);
 			}
 
@@ -4959,7 +4959,7 @@ bool CBaseNPC::CheckMaterialPenetration( CBaseEntity* pHitEntity, const Vector& 
 
 	CString materialName;
 	if(pHitEntity->GetRenderMode() != RENDER_NORMAL
-		&& (pHitEntity->GetRenderMode() & 255) != RENDER_TRANSALPHA)
+		&& (pHitEntity->GetRenderMode() & RENDERMODE_BITMASK) != RENDER_TRANSALPHA)
 	{
 		// All transparents are glass
 		materialName = GLASS_MATERIAL_TYPE_NAME;
@@ -5035,7 +5035,7 @@ bool CBaseNPC::IsEnemyBodyTargetShootable( CBaseEntity& enemy, bool ignoreGlass,
 
 			// Check separately for penetrable glass
 			if(!ignoreGlass && pEntity->GetRenderMode() != RENDER_NORMAL
-				&& (pEntity->GetRenderMode() & 255) != RENDER_TRANSALPHA
+				&& (pEntity->GetRenderMode() & RENDERMODE_BITMASK) != RENDER_TRANSALPHA
 				&& pEntity->GetRenderAmount() > 0)
 			{
 				Vector startPosition;
