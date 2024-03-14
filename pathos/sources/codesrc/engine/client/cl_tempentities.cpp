@@ -263,7 +263,7 @@ void CTempEntityManager::UpdateTempEntities( void )
 			if(pnext->flags & TE_FL_FADEOUT)
 			{
 				if(pnext->entity.curstate.rendermode == RENDER_NORMAL)
-					pnext->entity.curstate.rendermode = RENDER_TRANSTEXTURE;
+					pnext->entity.curstate.rendermode = RENDER_TRANSTEXTURE_LIT;
 
 				// Calculate alpha value
 				Float life = pnext->die - cls.cl_time;
@@ -701,7 +701,7 @@ void CTempEntityManager::CreateBreakModel( const Vector& origin, const Vector& s
 
 		if(sound == TE_BOUNCE_GLASS)
 		{
-			ptemp->entity.curstate.rendermode = RENDER_TRANSTEXTURE;
+			ptemp->entity.curstate.rendermode = RENDER_TRANSTEXTURE_LIT;
 			ptemp->entity.curstate.renderamt = Common::RandomFloat(120, 160);
 		}
 		else
@@ -1012,7 +1012,7 @@ void CTempEntityManager::CreateSphereModel( const Vector& origin, Float speed, F
 
 		if(sound == TE_BOUNCE_GLASS)
 		{
-			ptemp->entity.curstate.rendermode = RENDER_TRANSTEXTURE;
+			ptemp->entity.curstate.rendermode = RENDER_TRANSTEXTURE_LIT;
 			ptemp->entity.curstate.renderamt = Common::RandomFloat(120, 160);
 			ptemp->startrenderamt = ptemp->entity.curstate.renderamt;
 		}

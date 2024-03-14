@@ -1423,7 +1423,7 @@ void CVBMRenderer::SetupLighting ( void )
 				m_pCurrentEntity->curstate.groundent != WORLDSPAWN_ENTITY_INDEX
 				&& !(m_pCurrentEntity->curstate.effects & EF_ALTLIGHTORIGIN)
 				&& (m_pCurrentEntity->curstate.rendermode == RENDER_NORMAL
-				|| m_pCurrentEntity->curstate.rendermode == RENDER_TRANSALPHA
+				|| (m_pCurrentEntity->curstate.rendermode & 255) == RENDER_TRANSALPHA
 				|| m_pCurrentEntity->curstate.renderamt > 0))
 			{
 				cl_entity_t* pentity = CL_GetEntityByIndex(m_pCurrentEntity->curstate.groundent);
@@ -2161,7 +2161,7 @@ bool CVBMRenderer::Render( void )
 		m_useBlending = true;
 	}
 
-	if ( m_pCurrentEntity->curstate.rendermode == RENDER_TRANSALPHA || m_pCurrentEntity->curstate.rendermode == RENDER_TRANSTEXTURE )
+	if ( (m_pCurrentEntity->curstate.rendermode & 255) == RENDER_TRANSALPHA || (m_pCurrentEntity->curstate.rendermode & 255) == RENDER_TRANSTEXTURE )
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -5759,8 +5759,8 @@ bool CVBMRenderer::DrawLightVectors( void )
 			if(m_pCurrentEntity->curstate.groundent != NO_ENTITY_INDEX && 
 				m_pCurrentEntity->curstate.groundent != WORLDSPAWN_ENTITY_INDEX
 				&& !(m_pCurrentEntity->curstate.effects & EF_ALTLIGHTORIGIN)
-				&& (m_pCurrentEntity->curstate.rendermode == RENDER_NORMAL
-				|| m_pCurrentEntity->curstate.rendermode == RENDER_TRANSALPHA
+				&& ((m_pCurrentEntity->curstate.rendermode & 255) == RENDER_NORMAL
+				|| (m_pCurrentEntity->curstate.rendermode & 255) == RENDER_TRANSALPHA
 				|| m_pCurrentEntity->curstate.renderamt > 0))
 			{
 				cl_entity_t* pentity = CL_GetEntityByIndex(m_pCurrentEntity->curstate.groundent);

@@ -40,7 +40,7 @@ bool CFuncWallToggle::Spawn( void )
 	m_pState->movetype = MOVETYPE_PUSH;
 	m_pState->effects |= EF_STATICENTITY;
 
-	if(m_pState->renderamt == 0 && m_pState->rendermode == RENDER_TRANSCOLOR)
+	if(m_pState->renderamt == 0 && (m_pState->rendermode & 255) == RENDER_TRANSCOLOR)
 	{
 		m_pState->rendermode = RENDER_NORMAL;
 		m_pState->effects |= EF_COLLISION;
