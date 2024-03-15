@@ -905,6 +905,9 @@ void CBaseNPC::PerformMovement( Double animInterval )
 	distanceToPoint = moveDirection.Length2D();
 	moveDirection.Normalize();
 
+	// We need to set this again
+	SetIdealYaw(currentPoint.position);
+
 	// Actually move the NPC
 	ExecuteMovement(m_movementGoalEntity, moveDirection, animInterval, distanceToPoint);
 
@@ -1070,13 +1073,18 @@ void CBaseNPC::ExecuteMovement( CBaseEntity* pTargetEntity, const Vector& direct
 
 	// Get reference to current point
 	Vector endPosition = m_pState->origin + direction * totalDistance;
+	// According to ReHLDS, the old MoveToOrigin relied on idealyaw
+	// to calculate movement vectors... why? This caused issues when
+	// AdvanceRoute changed the destination node in another direction
+	// but calculate it here just in case
+	Float moveYaw = Util::VectorToYaw(direction);
 
 	// Do the movement
 	while(totalDistance > 0.001)
 	{
 		// Clamp step distance to the max step size
 		Float stepDistance = clamp(totalDistance, 0, NPC_STEP_SIZE);
-		gd_engfuncs.pfnMoveToOrigin(m_pEdict, endPosition, stepDistance, MOVE_NORMAL);
+		gd_engfuncs.pfnMoveToOrigin(m_pEdict, endPosition, moveYaw, stepDistance, MOVE_NORMAL);
 		totalDistance -= stepDistance;
 	}
 }

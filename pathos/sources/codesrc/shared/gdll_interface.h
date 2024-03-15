@@ -248,7 +248,7 @@ struct gdll_engfuncs_t
 	void					(*pfnAddSavedDecal)( const Vector& origin, const Vector& normal, entindex_t entityindex, const Char* pstrDecalTexture, Int32 decalflags );
 
 	bool					(*pfnWalkMove)( edict_t* pentity, Float yaw, Float dist, enum walkmove_t movemode );
-	void					(*pfnMoveToOrigin)( edict_t* pedict, const Vector& goalPosition, Float dist, npc_movetype_t movetype );
+	void					(*pfnMoveToOrigin)( edict_t* pedict, const Vector& goalPosition, Float moveyaw, Float dist, npc_movetype_t movetype );
 	bool					(*pfnCheckBottom)( edict_t* pedict );
 	edict_t*				(*pfnFindClientInPVS)( const edict_t* pedict );
 

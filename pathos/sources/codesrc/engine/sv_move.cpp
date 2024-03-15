@@ -467,13 +467,14 @@ void SV_NPC_NewChaseDir( edict_t* pedict, const Vector& goalPosition, Float dist
 //=============================================
 //
 //=============================================
-void SV_NPC_MoveToOrigin( edict_t* pedict, const Vector& goalPosition, Float dist, npc_movetype_t movetype )
+void SV_NPC_MoveToOrigin( edict_t* pedict, const Vector& goalPosition, Float moveyaw, Float dist, npc_movetype_t movetype )
 {
 	if(pedict->state.flags & (FL_FLY|FL_SWIM|FL_ONGROUND))
 	{
 		if(movetype == MOVE_NORMAL)
 		{
-			if(!SV_NPC_StepDirection(pedict, pedict->state.idealyaw, dist))
+			// Why the hell did this rely on idealyaw to begin with?
+			if(!SV_NPC_StepDirection(pedict, moveyaw, dist))
 				SV_NPC_NewChaseDir(pedict, goalPosition, dist);
 		}
 		else
