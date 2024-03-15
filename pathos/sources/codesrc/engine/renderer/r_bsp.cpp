@@ -1751,50 +1751,50 @@ bool CBSPRenderer::DrawFirst( void )
 		else
 		{
 			// Find any cubemaps
-		if(m_isCubemappingSupported && g_pCvarCubemaps->GetValue() > 0 && pmaterial->flags & TX_FL_CUBEMAPS)
-		{
-			pcubemapinfo = gCubemaps.GetIdealCubemap();
-			if(gCubemaps.GetInterpolant() != 1.0)
-				pprevcubemapinfo = gCubemaps.GetPrevCubemap();
-		}
+			if(m_isCubemappingSupported && g_pCvarCubemaps->GetValue() > 0 && pmaterial->flags & TX_FL_CUBEMAPS)
+			{
+				pcubemapinfo = gCubemaps.GetIdealCubemap();
+				if(gCubemaps.GetInterpolant() != 1.0)
+					pprevcubemapinfo = gCubemaps.GetPrevCubemap();
+			}
 
-		// Set up binds
-		if(!BindTextures(ptexturehandle, pcubemapinfo, pprevcubemapinfo, cubemapUnit))
-			return false;
-		
-		// Set specular and phong if it's needed
-		if(pmaterial->ptextures[MT_TX_SPECULAR])
-		{
-			m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
-			m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
-		}
+			// Set up binds
+			if(!BindTextures(ptexturehandle, pcubemapinfo, pprevcubemapinfo, cubemapUnit))
+				return false;
+			
+			// Set specular and phong if it's needed
+			if(pmaterial->ptextures[MT_TX_SPECULAR])
+			{
+				m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
+				m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
+			}
 
-		// Reset cubemap bind
-		if(m_isCubemappingSupported && pcubemapinfo && g_pCvarCubemaps->GetValue() > 0 && !cubematrixSet)
-		{
-			// So it gets synced between drawcalls
-			m_pShader->EnableSync(m_attribs.u_modelmatrix);
-			m_pShader->EnableSync(m_attribs.u_inv_modelmatrix);
-			cubematrixSet = true;
+			// Reset cubemap bind
+			if(m_isCubemappingSupported && pcubemapinfo && g_pCvarCubemaps->GetValue() > 0 && !cubematrixSet)
+			{
+				// So it gets synced between drawcalls
+				m_pShader->EnableSync(m_attribs.u_modelmatrix);
+				m_pShader->EnableSync(m_attribs.u_inv_modelmatrix);
+				cubematrixSet = true;
 
-			CMatrix modelMatrix;
-			modelMatrix.LoadIdentity();
-			modelMatrix.Rotate(90,  1, 0, 0);// put X going down
-			modelMatrix.Rotate(-90,  0, 0, 1); // put Z going up
-			modelMatrix.Scale(-1.0, 1.0, 1.0);
-			modelMatrix.Translate(-rns.view.v_origin[0], -rns.view.v_origin[1], -rns.view.v_origin[2]);
+				CMatrix modelMatrix;
+				modelMatrix.LoadIdentity();
+				modelMatrix.Rotate(90,  1, 0, 0);// put X going down
+				modelMatrix.Rotate(-90,  0, 0, 1); // put Z going up
+				modelMatrix.Scale(-1.0, 1.0, 1.0);
+				modelMatrix.Translate(-rns.view.v_origin[0], -rns.view.v_origin[1], -rns.view.v_origin[2]);
 
-			// We need to multiply normals with the inverse
-			m_pShader->SetUniformMatrix4fv(m_attribs.u_modelmatrix, modelMatrix.GetMatrix());
-			m_pShader->SetUniformMatrix4fv(m_attribs.u_inv_modelmatrix, modelMatrix.GetInverse());
-			m_pShader->SetUniform1f(m_attribs.u_cubemapstrength, pmaterial->cubemapstrength);
-		}
-		else if(cubematrixSet)
-		{
-			m_pShader->DisableSync(m_attribs.u_modelmatrix);
-			m_pShader->DisableSync(m_attribs.u_inv_modelmatrix);
-			cubematrixSet = false;
-		}
+				// We need to multiply normals with the inverse
+				m_pShader->SetUniformMatrix4fv(m_attribs.u_modelmatrix, modelMatrix.GetMatrix());
+				m_pShader->SetUniformMatrix4fv(m_attribs.u_inv_modelmatrix, modelMatrix.GetInverse());
+				m_pShader->SetUniform1f(m_attribs.u_cubemapstrength, pmaterial->cubemapstrength);
+			}
+			else if(cubematrixSet)
+			{
+				m_pShader->DisableSync(m_attribs.u_modelmatrix);
+				m_pShader->DisableSync(m_attribs.u_inv_modelmatrix);
+				cubematrixSet = false;
+			}
 		}
 
 		R_ValidateShader(m_pShader);
