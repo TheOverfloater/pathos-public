@@ -1,4 +1,4 @@
-$global_determinator shadertype 0 21
+$global_determinator shadertype 0 22
 $global_determinator fogtype 0 2
 $global_determinator alphatest 0 2
 $global_determinator bumpmapping 0 1
@@ -12,18 +12,19 @@ $invalid_state 2 alphatest 1 2 shadertype 18 19
 $invalid_state 2 bumpmapping 1 1 shadertype 3 4
 $invalid_state 2 bumpmapping 1 1 shadertype 9 9
 $invalid_state 2 bumpmapping 1 1 shadertype 11 15
+$invalid_state 2 bumpmapping 1 1 shadertype 22 22
 $invalid_state 2 specular 1 1 shadertype 9 15
 $invalid_state 2 specular 1 1 shadertype 20 21
 $invalid_state 2 bumpmapping 1 1 shadertype 17 17
-$invalid_state 2 bumpmapping 1 1 shadertype 20 21
+$invalid_state 2 bumpmapping 1 1 shadertype 20 22
 $invalid_state 2 specular 1 1 shadertype 17 17
-$invalid_state 2 specular 1 1 shadertype 19 21
+$invalid_state 2 specular 1 1 shadertype 19 22
 $invalid_state 2 specular 1 1 bumpmapping 0 0
 $invalid_state 2 cubemaps 1 2 shadertype 3 18
-$invalid_state 2 cubemaps 1 2 shadertype 20 21
+$invalid_state 2 cubemaps 1 2 shadertype 20 22
 $invalid_state 2 luminance 1 1 shadertype 3 9
 $invalid_state 2 luminance 1 1 shadertype 11 15
-$invalid_state 2 luminance 1 1 shadertype 17 21
+$invalid_state 2 luminance 1 1 shadertype 17 22
 $shader_vertex $begin
 #version 130
 
@@ -92,7 +93,7 @@ void main()
 		ps_fogcoord = in_fogcoord;
 	$end
 	
-	$branch shadertype == 0 || shadertype == 1 || shadertype == 2 || shadertype == 3 || shadertype == 10 || shadertype == 16 || shadertype == 18
+	$branch shadertype == 0 || shadertype == 1 || shadertype == 2 || shadertype == 3 || shadertype == 10 || shadertype == 16 || shadertype == 18 || shadertype == 22
 	$begin
 		ps_lmapcoord = in_lmapcoord;
 	$end
@@ -683,9 +684,13 @@ void main()
 			finalColor += AddCubemaps(specularFactor);
 		$end
 	$end
-	$branch shadertype == 3
+	$branch shadertype == 3 || shadertype == 22
 	$begin
 		finalColor = texture2D(baselightmap, ps_lmapcoord) * color;
+		$branch shadertype == 22
+		$begin
+			finalColor.xyz *= 4;
+		$end
 	$end
 	$branch shadertype == 4
 	$begin

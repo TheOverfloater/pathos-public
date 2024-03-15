@@ -1717,7 +1717,7 @@ bool CBSPRenderer::DrawFirst( void )
 					// Enable lightmap coord sends
 					m_pShader->EnableAttribute(m_attribs.a_lmapcoord);
 
-					result = m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_texunit0, false);
+					result = m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_texunit0_x4, false);
 				}
 				break;
 			}

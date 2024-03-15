@@ -51,7 +51,8 @@ enum bsp_shaders_t
 	shader_speconly,
 	shader_cubeonly,
 	shader_decal_holes,
-	shader_decal
+	shader_decal,
+	shader_texunit0_x4
 };
 
 enum bsp_fog_settings_t

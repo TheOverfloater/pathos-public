@@ -1002,12 +1002,11 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 
 	if(flags & VBM_RENDER)
 	{
-		if(m_pCurrentEntity->curstate.renderfx != RenderFx_SkyEnt)
-		{
-			// Try and cull this entity if it's not part of the sky
+		// Also cull skybox entities now with frustum culling - the exception for 
+		// sky ents was an ancient remnant from the Paranoia-type skybox rendering, 
+		// and was never removed after that got replaced
 			if (CheckBBox())
 				return true;
-		}
 
 		// See if we're using any scope textures
 		if(!(flags & VBM_SETUPBONES) && m_pCvarDrawModels->GetValue() >= 1)
