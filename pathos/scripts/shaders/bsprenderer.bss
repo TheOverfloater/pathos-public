@@ -7,7 +7,8 @@ $global_determinator cubemaps 0 2
 $global_determinator luminance 0 1
 $invalid_state 2 fogtype 1 2 shadertype 5 19
 $invalid_state 2 alphatest 1 2 shadertype 5 9
-$invalid_state 2 alphatest 1 2 shadertype 11 19
+$invalid_state 2 alphatest 1 2 shadertype 11 16
+$invalid_state 2 alphatest 1 2 shadertype 18 19
 $invalid_state 2 bumpmapping 1 1 shadertype 3 4
 $invalid_state 2 bumpmapping 1 1 shadertype 9 9
 $invalid_state 2 bumpmapping 1 1 shadertype 11 15
@@ -806,7 +807,7 @@ void main()
 		float fp_fogfactor = CalcFogFactor( ps_vertexpos.xyz, ps_fogcoord, fogparams );
 		finalColor.xyz = mix(finalColor.xyz, fogcolor, fp_fogfactor);
 	$end
-
+	
 	$branch alphatest == 1
 	$begin
 		if(finalColor.a < 0.5)

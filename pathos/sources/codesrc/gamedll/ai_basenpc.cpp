@@ -855,7 +855,7 @@ void CBaseNPC::PerformMovement( Double animInterval )
 		return;
 
 	// Get current point and get direction
-	const route_point_t& currentPoint = m_routePointsArray[m_routePointIndex];
+	route_point_t& currentPoint = m_routePointsArray[m_routePointIndex];
 	Vector moveDirection = (currentPoint.position - m_pState->origin);
 	Float distanceToPoint = moveDirection.Length2D();
 	moveDirection.Normalize();
@@ -898,6 +898,12 @@ void CBaseNPC::PerformMovement( Double animInterval )
 		StopMovement();
 		return;
 	}
+
+	// Recalculate distanceToPoint and moveDirection, as it might've changed since the last check
+	currentPoint = m_routePointsArray[m_routePointIndex];
+	moveDirection = (currentPoint.position - m_pState->origin);
+	distanceToPoint = moveDirection.Length2D();
+	moveDirection.Normalize();
 
 	// Actually move the NPC
 	ExecuteMovement(m_movementGoalEntity, moveDirection, animInterval, distanceToPoint);
@@ -1053,7 +1059,7 @@ bool CBaseNPC::CheckAdvanceRoute( Float distanceToPoint, CBaseEntity* pTargetEnt
 // @brief
 //
 //=============================================
-void CBaseNPC::ExecuteMovement( CBaseEntity* pTargetEntity, const Vector direction, Double animInterval, Float checkDistance )
+void CBaseNPC::ExecuteMovement( CBaseEntity* pTargetEntity, const Vector& direction, Double animInterval, Float checkDistance )
 {
 	if(GetIdealActivity() != m_movementActivity)
 		SetIdealActivity(m_movementActivity);
@@ -1063,14 +1069,14 @@ void CBaseNPC::ExecuteMovement( CBaseEntity* pTargetEntity, const Vector directi
 	totalDistance *= m_pState->framerate;
 
 	// Get reference to current point
-	route_point_t& currentPoint = m_routePointsArray[m_routePointIndex];
+	Vector endPosition = m_pState->origin + direction * totalDistance;
 
 	// Do the movement
 	while(totalDistance > 0.001)
 	{
 		// Clamp step distance to the max step size
 		Float stepDistance = clamp(totalDistance, 0, NPC_STEP_SIZE);
-		gd_engfuncs.pfnMoveToOrigin(m_pEdict, currentPoint.position, stepDistance, MOVE_NORMAL);
+		gd_engfuncs.pfnMoveToOrigin(m_pEdict, endPosition, stepDistance, MOVE_NORMAL);
 		totalDistance -= stepDistance;
 	}
 }

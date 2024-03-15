@@ -1675,13 +1675,37 @@ bool CBSPRenderer::DrawFirst( void )
 					m_pShader->SetUniform1i(m_attribs.u_maintexture, 0);
 					R_Bind2DTexture(GL_TEXTURE0, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
 
-					result = m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_texunit1);
+					m_pShader->EnableAttribute(m_attribs.a_lmapcoord);
+					m_pShader->EnableAttribute(m_attribs.a_texcoord);
+
+					if(pmaterial->ptextures[MT_TX_DETAIL] && m_pCvarDetailTextures->GetValue() > 0)
+					{
+						// Base texture AND detail texture
+						result = m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_main_detail, false);
+
+						m_pShader->SetUniform1i(m_attribs.u_detailtex, 1);
+						R_Bind2DTexture(GL_TEXTURE1, pmaterial->ptextures[MT_TX_DETAIL]->palloc->gl_index);
+
+						// Enable detail texcoord
+						m_pShader->EnableAttribute(m_attribs.a_dtexcoord);
+					}
+					else
+					{
+						// Only main texture
+						result = m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_texunit1, false);
+						m_pShader->DisableAttribute(m_attribs.a_dtexcoord);
+					}
 				}
 				break;
 			case RENDER_TRANSCOLOR:
 				{
 					// Only color
-					result = m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_solidcolor);
+					result = m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_solidcolor, false);
+
+					// Disable both of these
+					m_pShader->DisableAttribute(m_attribs.a_texcoord);
+					m_pShader->DisableAttribute(m_attribs.a_dtexcoord);
+					m_pShader->DisableAttribute(m_attribs.a_lmapcoord);
 				}
 				break;
 			case RENDER_TRANSCOLOR_LIT:
@@ -1690,7 +1714,10 @@ bool CBSPRenderer::DrawFirst( void )
 					m_pShader->SetUniform1i(m_attribs.u_baselightmap, 0);
 					R_Bind2DTexture(GL_TEXTURE0, m_ambientLightmapIndex);
 
-					result = m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_texunit0);
+					// Enable lightmap coord sends
+					m_pShader->EnableAttribute(m_attribs.a_lmapcoord);
+
+					result = m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_texunit0, false);
 				}
 				break;
 			}
@@ -1698,16 +1725,17 @@ bool CBSPRenderer::DrawFirst( void )
 			if(!result)
 				return false;
 
-			if(pmaterial->flags & TX_FL_ALPHATEST)
+			if((pmaterial->flags & TX_FL_ALPHATEST)
+				&& (rendermodeext == RENDER_TRANSALPHA_UNLIT || RENDER_TRANSALPHA))
 			{
 				if(!rns.msaa || !rns.mainframe)
 				{
-					if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_LESSTHAN, false))
+					if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_LESSTHAN))
 						return false;
 				}
 				else
 				{
-					if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_COVERAGE, false))
+					if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_COVERAGE))
 						return false;
 
 					glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
@@ -1716,7 +1744,7 @@ bool CBSPRenderer::DrawFirst( void )
 			}
 			else
 			{
-				if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false))
+				if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED))
 					return false;
 			}
 		}
@@ -1779,7 +1807,9 @@ bool CBSPRenderer::DrawFirst( void )
 		if(m_pCurrentEntity->curstate.effects & EF_CONVEYOR)
 			m_pShader->SetUniform2f(m_attribs.u_uvoffset, 0, 0);
 
-		if(pmaterial->flags & TX_FL_ALPHATEST && rns.msaa)
+		if((pmaterial->flags & TX_FL_ALPHATEST && rns.msaa)
+			&& (m_pLegacyTransparents->GetValue() < 1 
+			|| (rendermodeext == RENDER_TRANSALPHA_UNLIT || RENDER_TRANSALPHA)))
 		{
 			glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 			gGLExtF.glSampleCoverage(1.0, GL_FALSE);
@@ -2365,8 +2395,10 @@ bool CBSPRenderer::DrawBrushModel( cl_entity_t& entity, bool isstatic )
 		Math::VectorAdd(m_pCurrentEntity->curstate.origin, pmodel->maxs, maxs);
 	}
 
-	// Do not culling on skybox entities
-	if(m_pCurrentEntity->curstate.renderfx != RenderFx_SkyEnt && rns.view.frustum.CullBBox(mins, maxs))
+	// Also cull skybox entities now with frustum culling - the exception for 
+	// sky ents was an ancient remnant from the Paranoia-type skybox rendering, 
+	// and was never removed after that got replaced
+	if(rns.view.frustum.CullBBox(mins, maxs))
 		return true;
 
 	// Transform to local space the origin

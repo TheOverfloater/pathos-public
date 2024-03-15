@@ -674,7 +674,7 @@ bool CGLSLShader::LoadFromBSD( void )
 			// Update client about or progress if needed
 			if(m_pProgressUpdateCallbackFn)
 			{
-				if(i - lastPrompt > promptSpacing || i == (pBSDHeader->numshaders-1))
+				if(i - lastPrompt > promptSpacing || i == (pBSDHeader->numshaders-1) || i == 0)
 				{
 					m_pProgressUpdateCallbackFn(m_shaderFile.c_str(), pBSDHeader->numshaders, i+1);
 					lastPrompt = i;

@@ -780,7 +780,7 @@ protected:
 	// Check if you can advance the route index
 	bool CheckAdvanceRoute( Float distanceToPoint, CBaseEntity* pTargetEntity );
 	// Executes movement for thE NPC
-	void ExecuteMovement( CBaseEntity* pTargetEntity, const Vector direction, Double animInterval, Float checkDistance );
+	void ExecuteMovement( CBaseEntity* pTargetEntity, const Vector& direction, Double animInterval, Float checkDistance );
 
 	// Tries to find a lateral shooting position
 	bool GetLateralShootingPosition( const Vector& enemyPosition );
