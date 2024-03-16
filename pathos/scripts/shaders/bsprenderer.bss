@@ -708,7 +708,7 @@ void main()
 		finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
 		
 		// Add to specular
-		finalColor.xyz += AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
+		finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
 	$end
 	$branch shadertype == 7 || shadertype == 8
 	$begin
@@ -722,7 +722,7 @@ void main()
 		finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
 		
 		// Add to specular
-		finalColor.xyz += AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
+		finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
 	$end
 	$branch shadertype == 9
 	$begin
