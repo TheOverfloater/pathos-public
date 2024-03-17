@@ -5,7 +5,9 @@ $global_determinator bumpmapping 0 1
 $global_determinator specular 0 1
 $global_determinator cubemaps 0 2
 $global_determinator luminance 0 1
-$invalid_state 2 fogtype 1 2 shadertype 5 19
+$invalid_state 2 fogtype 1 2 shadertype 5 10
+$invalid_state 2 fogtype 1 2 shadertype 12 16
+$invalid_state 2 fogtype 1 2 shadertype 18 19
 $invalid_state 2 alphatest 1 2 shadertype 5 9
 $invalid_state 2 alphatest 1 2 shadertype 11 16
 $invalid_state 2 alphatest 1 2 shadertype 18 19
@@ -708,7 +710,7 @@ void main()
 		finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
 		
 		// Add to specular
-		finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
+		finalColor.xyz += AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
 	$end
 	$branch shadertype == 7 || shadertype == 8
 	$begin
@@ -722,7 +724,7 @@ void main()
 		finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
 		
 		// Add to specular
-		finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
+		finalColor.xyz += AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
 	$end
 	$branch shadertype == 9
 	$begin

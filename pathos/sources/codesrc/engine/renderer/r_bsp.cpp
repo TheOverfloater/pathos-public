@@ -84,8 +84,7 @@ CBSPRenderer::CBSPRenderer( void ):
 	m_pCvarDetailScale(nullptr),
 	m_pCvarDrawWorld(nullptr),
 	m_pCvarNormalBlendAngle(nullptr),
-	m_pCvarDrawBatches(nullptr),
-	m_pLegacyTransparents(nullptr),
+	m_pCvarLegacyTransparents(nullptr),
 	m_pShader(nullptr),
 	m_pVBO(nullptr),
 	m_isCubemappingSupported(false)
@@ -113,8 +112,7 @@ bool CBSPRenderer::Init( void )
 	m_pCvarDetailTextures = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_detail", "1", "Toggle detail textures." );
 	m_pCvarDetailScale = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_detail_scale", "1", "Adjusts detail texture scaling." );
 	m_pCvarNormalBlendAngle = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_smooth_angle", "60", "Controls normal blending for brushes." );
-	m_pCvarDrawBatches = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_bsp_drawbatches", "1", "Controls whether BSP rendering uses batching." );
-	m_pLegacyTransparents = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_bsp_legacytransparents", "0", "Controls whether BSP rendering uses legacy(HL1 style unlit) rendering for transparent entities." );
+	m_pCvarLegacyTransparents = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_bsp_legacytransparents", "0", "Controls whether BSP rendering uses legacy(HL1 style unlit) rendering for transparent entities." );
 
 	return true;
 }
@@ -1508,11 +1506,14 @@ __forceinline void CBSPRenderer::BatchSurface( msurface_t* psurface )
 __forceinline void CBSPRenderer::AddBatch( CArray<drawbatch_t>& batches, Uint32& numbatches, bsp_surface_t *psurface )
 {
 	drawbatch_t *pbatch;
-	if(m_pCvarDrawBatches->GetValue() >= 1)
+	if(numbatches > 0)
 	{
-		for(Uint32 i = 0; i < numbatches; i++)
-		{
-			pbatch = &batches[i];
+		// So based on some testing I did, it doesn't make much
+		// of a difference to go through all batches, or to just
+		// check the last one, so always only check the last batch
+		// for matching indexes
+		pbatch = &batches[numbatches-1];
+
 			if(psurface->end_index == pbatch->start_index)
 			{
 				pbatch->start_index = psurface->start_index;
@@ -1525,7 +1526,6 @@ __forceinline void CBSPRenderer::AddBatch( CArray<drawbatch_t>& batches, Uint32&
 				return;
 			}
 		}
-	}
 
 	// Add a new one
 	pbatch = &batches[numbatches];
@@ -1611,7 +1611,7 @@ void CBSPRenderer::FlagIfDynamicLighted( const Vector& mins, const Vector& maxs 
 bool CBSPRenderer::DrawFirst( void ) 
 {
 	Int32 rendermodeext;
-	if(m_pLegacyTransparents->GetValue() >= 1)
+	if(m_pCvarLegacyTransparents->GetValue() >= 1)
 		rendermodeext = m_pCurrentEntity->curstate.rendermode;
 	else
 		rendermodeext = m_pCurrentEntity->curstate.rendermode & RENDERMODE_BITMASK;
@@ -1647,7 +1647,7 @@ bool CBSPRenderer::DrawFirst( void )
 		cubemapinfo_t* pprevcubemapinfo = nullptr;
 
 		// rendermode overrides
-		if(m_pLegacyTransparents->GetValue() >= 1 && !m_multiPass 
+		if(m_pCvarLegacyTransparents->GetValue() >= 1 && !m_multiPass 
 			&& (rendermodeext == RENDER_TRANSADDITIVE || rendermodeext == RENDER_TRANSTEXTURE 
 			|| rendermodeext == RENDER_TRANSALPHA_UNLIT || rendermodeext == RENDER_TRANSCOLOR 
 			|| rendermodeext == RENDER_TRANSCOLOR_LIT))
@@ -1751,50 +1751,50 @@ bool CBSPRenderer::DrawFirst( void )
 		else
 		{
 			// Find any cubemaps
-			if(m_isCubemappingSupported && g_pCvarCubemaps->GetValue() > 0 && pmaterial->flags & TX_FL_CUBEMAPS)
-			{
-				pcubemapinfo = gCubemaps.GetIdealCubemap();
-				if(gCubemaps.GetInterpolant() != 1.0)
-					pprevcubemapinfo = gCubemaps.GetPrevCubemap();
-			}
+		if(m_isCubemappingSupported && g_pCvarCubemaps->GetValue() > 0 && pmaterial->flags & TX_FL_CUBEMAPS)
+		{
+			pcubemapinfo = gCubemaps.GetIdealCubemap();
+			if(gCubemaps.GetInterpolant() != 1.0)
+				pprevcubemapinfo = gCubemaps.GetPrevCubemap();
+		}
 
-			// Set up binds
-			if(!BindTextures(ptexturehandle, pcubemapinfo, pprevcubemapinfo, cubemapUnit))
-				return false;
-			
-			// Set specular and phong if it's needed
-			if(pmaterial->ptextures[MT_TX_SPECULAR])
-			{
-				m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
-				m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
-			}
+		// Set up binds
+		if(!BindTextures(ptexturehandle, pcubemapinfo, pprevcubemapinfo, cubemapUnit))
+			return false;
+		
+		// Set specular and phong if it's needed
+		if(pmaterial->ptextures[MT_TX_SPECULAR])
+		{
+			m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
+			m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
+		}
 
-			// Reset cubemap bind
-			if(m_isCubemappingSupported && pcubemapinfo && g_pCvarCubemaps->GetValue() > 0 && !cubematrixSet)
-			{
-				// So it gets synced between drawcalls
-				m_pShader->EnableSync(m_attribs.u_modelmatrix);
-				m_pShader->EnableSync(m_attribs.u_inv_modelmatrix);
-				cubematrixSet = true;
+		// Reset cubemap bind
+		if(m_isCubemappingSupported && pcubemapinfo && g_pCvarCubemaps->GetValue() > 0 && !cubematrixSet)
+		{
+			// So it gets synced between drawcalls
+			m_pShader->EnableSync(m_attribs.u_modelmatrix);
+			m_pShader->EnableSync(m_attribs.u_inv_modelmatrix);
+			cubematrixSet = true;
 
-				CMatrix modelMatrix;
-				modelMatrix.LoadIdentity();
-				modelMatrix.Rotate(90,  1, 0, 0);// put X going down
-				modelMatrix.Rotate(-90,  0, 0, 1); // put Z going up
-				modelMatrix.Scale(-1.0, 1.0, 1.0);
-				modelMatrix.Translate(-rns.view.v_origin[0], -rns.view.v_origin[1], -rns.view.v_origin[2]);
+			CMatrix modelMatrix;
+			modelMatrix.LoadIdentity();
+			modelMatrix.Rotate(90,  1, 0, 0);// put X going down
+			modelMatrix.Rotate(-90,  0, 0, 1); // put Z going up
+			modelMatrix.Scale(-1.0, 1.0, 1.0);
+			modelMatrix.Translate(-rns.view.v_origin[0], -rns.view.v_origin[1], -rns.view.v_origin[2]);
 
-				// We need to multiply normals with the inverse
-				m_pShader->SetUniformMatrix4fv(m_attribs.u_modelmatrix, modelMatrix.GetMatrix());
-				m_pShader->SetUniformMatrix4fv(m_attribs.u_inv_modelmatrix, modelMatrix.GetInverse());
-				m_pShader->SetUniform1f(m_attribs.u_cubemapstrength, pmaterial->cubemapstrength);
-			}
-			else if(cubematrixSet)
-			{
-				m_pShader->DisableSync(m_attribs.u_modelmatrix);
-				m_pShader->DisableSync(m_attribs.u_inv_modelmatrix);
-				cubematrixSet = false;
-			}
+			// We need to multiply normals with the inverse
+			m_pShader->SetUniformMatrix4fv(m_attribs.u_modelmatrix, modelMatrix.GetMatrix());
+			m_pShader->SetUniformMatrix4fv(m_attribs.u_inv_modelmatrix, modelMatrix.GetInverse());
+			m_pShader->SetUniform1f(m_attribs.u_cubemapstrength, pmaterial->cubemapstrength);
+		}
+		else if(cubematrixSet)
+		{
+			m_pShader->DisableSync(m_attribs.u_modelmatrix);
+			m_pShader->DisableSync(m_attribs.u_inv_modelmatrix);
+			cubematrixSet = false;
+		}
 		}
 
 		R_ValidateShader(m_pShader);
@@ -1808,7 +1808,7 @@ bool CBSPRenderer::DrawFirst( void )
 			m_pShader->SetUniform2f(m_attribs.u_uvoffset, 0, 0);
 
 		if((pmaterial->flags & TX_FL_ALPHATEST && rns.msaa)
-			&& (m_pLegacyTransparents->GetValue() < 1 
+			&& (m_pCvarLegacyTransparents->GetValue() < 1 
 			|| (rendermodeext == RENDER_TRANSALPHA_UNLIT || RENDER_TRANSALPHA)))
 		{
 			glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
