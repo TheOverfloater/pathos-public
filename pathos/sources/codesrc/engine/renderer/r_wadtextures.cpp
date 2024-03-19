@@ -92,7 +92,7 @@ CWADTextureResource::~CWADTextureResource( void )
 // @brief Destructor
 //
 //=============================================
-bool CWADTextureResource::Init( const Char* pstrBSPName, const CArray<CString>& wadFilesList, bool generateMissing )
+bool CWADTextureResource::Init( const Char* pstrBSPName, const CArray<CString>& wadFilesList, bool generateMissingWAD, bool generateMissingBSP )
 {
 	Uint32 filesize = 0;
 	const byte* pfile = FL_LoadFile(pstrBSPName, &filesize);
@@ -151,66 +151,72 @@ bool CWADTextureResource::Init( const Char* pstrBSPName, const CArray<CString>& 
 	}
 
 	// Only generate new ones if set
-	if(!generateMissing)
+	if(!generateMissingWAD && !generateMissingBSP)
 		return true;
 
 	// Now that all WAD files are loaded, check if the world has data for it
 	const dmiptexlump_t* ptexturelump = nullptr;
 	const dpbspv1header_t* pheaderp1bsp = reinterpret_cast<const dpbspv1header_t*>(m_pBSPFile);
-	if(pheaderp1bsp->id == PBSP_HEADER && pheaderp1bsp->version == PBSP_VERSION)
+	if (generateMissingBSP)
 	{
-		// Pathos BSP
-		ptexturelump = reinterpret_cast<const dmiptexlump_t*>(reinterpret_cast<byte*>(m_pBSPFile) + pheaderp1bsp->lumps[LUMP_TEXTURES].offset);
-	}
-	else
-	{
-		const dheader_t* pheaderv30bsp = reinterpret_cast<const dheader_t*>(m_pBSPFile);
-		if(pheaderv30bsp->version != BSPV30_VERSION)
+		if (pheaderp1bsp->id == PBSP_HEADER && pheaderp1bsp->version == PBSP_VERSION)
 		{
-			Con_Printf("%s - Unknown BSP version %d.\n", __FUNCTION__, pheaderv30bsp->version);
-			return false;
+			// Pathos BSP
+			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(reinterpret_cast<byte*>(m_pBSPFile) + pheaderp1bsp->lumps[LUMP_TEXTURES].offset);
+		}
+		else
+		{
+			const dheader_t* pheaderv30bsp = reinterpret_cast<const dheader_t*>(m_pBSPFile);
+			if (pheaderv30bsp->version != BSPV30_VERSION && pheaderv30bsp->version != BSPV29_VERSION)
+			{
+				Con_Printf("%s - Unknown BSP version %d.\n", __FUNCTION__, pheaderv30bsp->version);
+				return false;
+			}
+
+			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(reinterpret_cast<byte*>(m_pBSPFile) + pheaderv30bsp->lumps[LUMP_TEXTURES].offset);
 		}
 
-		ptexturelump = reinterpret_cast<const dmiptexlump_t*>(reinterpret_cast<byte*>(m_pBSPFile) + pheaderv30bsp->lumps[LUMP_TEXTURES].offset);
-	}
-
-	for(Int32 i = 0; i < ptexturelump->nummiptex; i++)
-	{
-		if(ptexturelump->dataoffsets[i] == -1)
-			continue;
-
-		const dmiptex_t* pmiptex = reinterpret_cast<const dmiptex_t*>(reinterpret_cast<const byte*>(ptexturelump) + ptexturelump->dataoffsets[i]);
-		if(!pmiptex->offsets[0])
-			continue;
-
-		if(!IsMaterialScriptPresent(pmiptex->name, pstrBSPName))
+		for (Int32 i = 0; i < ptexturelump->nummiptex; i++)
 		{
-			generateBSPPMFFiles = true;
-			break;
+			if (ptexturelump->dataoffsets[i] == -1)
+				continue;
+
+			const dmiptex_t* pmiptex = reinterpret_cast<const dmiptex_t*>(reinterpret_cast<const byte*>(ptexturelump) + ptexturelump->dataoffsets[i]);
+			if (!pmiptex->offsets[0])
+				continue;
+
+			if (!IsMaterialScriptPresent(pmiptex->name, pstrBSPName))
+			{
+				generateBSPPMFFiles = true;
+				break;
+			}
 		}
 	}
 
 	// Check WADs too
-	for(Uint32 i = 0; i < m_pWADFilesArray.size(); i++)
+	if (generateWADPMFFiles)
 	{
-		const wad3info_t* pwadinfo = reinterpret_cast<const wad3info_t*>(m_pWADFilesArray[i].pwadfile);
-		const wad3lumpinfo_t* plumps = reinterpret_cast<const wad3lumpinfo_t*>(reinterpret_cast<const byte*>(pwadinfo) + pwadinfo->infotableofs);
-
-		for(Int32 j = 0; j < pwadinfo->numlumps; j++)
+		for (Uint32 i = 0; i < m_pWADFilesArray.size(); i++)
 		{
-			const wad3lumpinfo_t* plump = &plumps[j];
-			if(plump->type != 0 && !(plump->type & 0x43))
-				continue;
+			const wad3info_t* pwadinfo = reinterpret_cast<const wad3info_t*>(m_pWADFilesArray[i].pwadfile);
+			const wad3lumpinfo_t* plumps = reinterpret_cast<const wad3lumpinfo_t*>(reinterpret_cast<const byte*>(pwadinfo) + pwadinfo->infotableofs);
 
-			CString wadbasename;
-			Common::Basename(m_pWADFilesArray[i].wadfilename, wadbasename);
-			wadbasename << WAD_FILE_EXTENSION;
-
-			if(!IsMaterialScriptPresent(plump->name, wadbasename.c_str()))
+			for (Int32 j = 0; j < pwadinfo->numlumps; j++)
 			{
-				m_pWADFilesArray[i].hasmissing = true;
-				generateWADPMFFiles = true;
-				break;
+				const wad3lumpinfo_t* plump = &plumps[j];
+				if (plump->type != 0 && !(plump->type & 0x43))
+					continue;
+
+				CString wadbasename;
+				Common::Basename(m_pWADFilesArray[i].wadfilename, wadbasename);
+				wadbasename << WAD_FILE_EXTENSION;
+
+				if (!IsMaterialScriptPresent(plump->name, wadbasename.c_str()))
+				{
+					m_pWADFilesArray[i].hasmissing = true;
+					generateWADPMFFiles = true;
+					break;
+				}
 			}
 		}
 	}
@@ -231,21 +237,25 @@ bool CWADTextureResource::Init( const Char* pstrBSPName, const CArray<CString>& 
 			return false;
 
 		// Find all missing entries and create PMF files for them for BSP
-		for(Int32 i = 0; i < ptexturelump->nummiptex; i++)
+		if (generateBSPPMFFiles && generateMissingBSP)
 		{
-			if(ptexturelump->dataoffsets[i] == -1)
-				continue;
+			for (Int32 i = 0; i < ptexturelump->nummiptex; i++)
+			{
+				if (ptexturelump->dataoffsets[i] == -1)
+					continue;
 
-			const dmiptex_t* pmiptex = reinterpret_cast<const dmiptex_t*>(reinterpret_cast<const byte*>(ptexturelump) + ptexturelump->dataoffsets[i]);
-			if(!pmiptex->offsets[0])
-				continue;
+				const dmiptex_t* pmiptex = reinterpret_cast<const dmiptex_t*>(reinterpret_cast<const byte*>(ptexturelump) + ptexturelump->dataoffsets[i]);
+				if (!pmiptex->offsets[0])
+					continue;
 
-			if(!IsMaterialScriptPresent(pmiptex->name, m_BSPFileName.c_str()))
-				CreateMaterialScript(pmiptex, m_BSPFileName.c_str());
+				if (!IsMaterialScriptPresent(pmiptex->name, m_BSPFileName.c_str()))
+					CreateMaterialScript(pmiptex, m_BSPFileName.c_str());
+			}
 		}
+		
 
 		// Find also in the WAD files
-		if(generateWADPMFFiles && !m_pWADFilesArray.empty())
+		if(generateWADPMFFiles && generateMissingWAD && !m_pWADFilesArray.empty())
 		{
 			for(Uint32 i = 0; i < m_pWADFilesArray.size(); i++)
 			{

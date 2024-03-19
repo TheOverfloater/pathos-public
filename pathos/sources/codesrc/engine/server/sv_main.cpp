@@ -882,7 +882,11 @@ bool SV_SpawnGame( const Char* pstrLevelName, const Char* pstrSaveFile, const Ch
 
 	// Allocate new object
 	ens.pwadresource = new CWADTextureResource();
-	if(ens.pwadresource->Init(ens.pworld->name.c_str(), mapWADList, (g_pCvarWadChecks->GetValue() >= 1) ? true : false))
+	if(ens.pwadresource->Init(
+		ens.pworld->name.c_str(), 
+		mapWADList,
+		(g_pCvarWadTextureChecks->GetValue() >= 1) ? true : false,
+		(g_pCvarBspTextureChecks->GetValue() >= 1) ? true : false))
 	{
 		// Link up map textures with material scripts
 		SV_LinkMapTextureMaterials(mapWADList);
