@@ -43,6 +43,8 @@ static const Float NEAR_CLIP_DISTANCE = 4.0f;
 static const Uint32 MAX_MODEL_LIGHTS = 2048;
 // Render pass id for main frame's render pass
 static const Uint32 MAINFRAME_RENDERPASS_ID = 0;
+// Max lights in a single batch
+static const Uint32 MAX_BATCH_LIGHTS = 4;
 
 extern CGLExtF gGLExtF;
 
@@ -420,6 +422,28 @@ struct active_load_shader_t
 	Int32 lastshaderindex;
 };
 
+enum lightbatchtype_t
+{
+	LB_TYPE_NONE = 0,
+	LB_TYPE_POINTLIGHT,
+	LB_TYPE_POINTLIGHT_SHADOW,
+	LB_TYPE_SPOTLIGHT,
+	LB_TYPE_SPOTLIGHT_SHADOW,
+};
+
+struct lightbatch_t
+{
+	lightbatch_t():
+		type(LB_TYPE_NONE)
+		{}
+
+	lightbatchtype_t type;
+	Vector mins;
+	Vector maxs;
+
+	CLinkedList<cl_dlight_t*> lightslist;
+};
+
 // For access across the engine
 extern renderer_state_t rns;
 
@@ -437,7 +461,8 @@ extern CCVar* g_pCvarDynamicLights;
 extern CCVar* g_pCvarGaussianBlur;
 extern CCVar* g_pCvarCubemaps;
 extern CCVar* g_pCvarAnisotropy;
-extern CCVar* g_pCvarWadChecks;
+extern CCVar* g_pCvarWadTextureChecks;
+extern CCVar* g_pCvarBspTextureChecks;
 extern CCVar* g_pCvarGLSLOnDemand;
 extern CCVar* g_pCvarGLSLActiveLoad;
 extern CCVar* g_pCvarHighlightEntity;
@@ -445,7 +470,8 @@ extern CCVar* g_pCvarGLSLValidate;
 extern CCVar* g_pCvarSkipFrames;
 extern CCVar* g_pCvarOcclusionQueries;
 extern CCVar* g_pCvarTraceGlow;
-
+extern CCVar* g_pCvarBatchDynamicLights;
+	
 extern void R_InitRenderInterface( r_interface_t &renderFuncs );
 
 extern void R_Bind2DTexture( Int32 texture, Uint32 id, bool force = false );

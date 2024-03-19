@@ -1,5 +1,10 @@
 $global_determinator shadertype 0 17
 $global_determinator bumpmapping 0 1
+$global_determinator numdlights 0 4
+$global_determinator dlight0_shadow 0 1
+$global_determinator dlight1_shadow 0 1
+$global_determinator dlight2_shadow 0 1
+$global_determinator dlight3_shadow 0 1
 $shader_vertex 
 $determinator chrome 0 1
 $determinator flex 0 1
@@ -10,7 +15,10 @@ uniform mat4 projection;
 uniform mat4 modelview;
 
 uniform mat4 normalmatrix;
-uniform mat4 lightmatrix;
+uniform mat4 dlight_0_matrix;
+uniform mat4 dlight_1_matrix;
+uniform mat4 dlight_2_matrix;
+uniform mat4 dlight_3_matrix;
 
 uniform vec4 bones[96];
 
@@ -43,7 +51,10 @@ out vec3 ps_binormal;
 out vec3 ps_normal;
 out vec2 ps_texcoord1;
 out vec2 ps_texcoord2;
-out vec4 ps_vertexcoord;
+out vec4 ps_dlight_0_vertexcoord;
+out vec4 ps_dlight_1_vertexcoord;
+out vec4 ps_dlight_2_vertexcoord;
+out vec4 ps_dlight_3_vertexcoord;
 
 vec3 TransformVectorByBone( vec3 vin, int boneindex, float weight )
 {
@@ -124,14 +135,44 @@ void main()
 		ps_texcoord2 = in_texcoord2;
 	$end
 	
-	$branch shadertype == 4
+	$branch shadertype == 3
 	$begin
-		ps_vertexcoord = lightmatrix*vec4(trans_origin, 1.0);
+		$branch numdlights >= 1  && dlight0_shadow == 1
+		$begin
+			ps_dlight_0_vertexcoord = dlight_0_matrix*vec4(trans_origin, 1.0);
+		$end
+		$branch numdlights >= 2  && dlight1_shadow == 1
+		$begin
+			ps_dlight_1_vertexcoord = dlight_1_matrix*vec4(trans_origin, 1.0);
+		$end
+		$branch numdlights >= 3  && dlight2_shadow == 1
+		$begin
+			ps_dlight_2_vertexcoord = dlight_2_matrix*vec4(trans_origin, 1.0);
+		$end
+		$branch numdlights >= 4  && dlight3_shadow == 1
+		$begin
+			ps_dlight_3_vertexcoord = dlight_3_matrix*vec4(trans_origin, 1.0);
+		$end
 	$end
 	
-	$branch shadertype == 5 || shadertype == 6
+	$branch shadertype == 5
 	$begin
-		ps_vertexcoord = lightmatrix*position;
+		$branch numdlights >= 1  && dlight0_shadow == 1
+		$begin
+			ps_dlight_0_vertexcoord = dlight_0_matrix*position;
+		$end
+		$branch numdlights >= 2  && dlight1_shadow == 1
+		$begin
+			ps_dlight_1_vertexcoord = dlight_1_matrix*position;
+		$end
+		$branch numdlights >= 3  && dlight2_shadow == 1
+		$begin
+			ps_dlight_2_vertexcoord = dlight_2_matrix*position;
+		$end
+		$branch numdlights >= 4  && dlight3_shadow == 1
+		$begin
+			ps_dlight_3_vertexcoord = dlight_3_matrix*position;
+		$end
 	$end
 	
 	$branch shadertype == 7
@@ -184,6 +225,17 @@ $invalid_state 2 specular 0 0 shadertype 15 15
 $invalid_state 2 luminance 1 1 shadertype 3 17
 $invalid_state 2 bumpmapping 1 1 shadertype 7 14
 $invalid_state 2 bumpmapping 1 1 shadertype 16 17
+$invalid_state 2 numdlights 1 4 shadertype 0 2
+$invalid_state 2 numdlights 1 4 shadertype 4 4
+$invalid_state 2 numdlights 1 4 shadertype 6 17
+$invalid_state 2 dlight0_shadow 1 1 numdlights 0 0
+$invalid_state 2 dlight1_shadow 1 1 numdlights 0 1
+$invalid_state 2 dlight2_shadow 1 1 numdlights 0 2
+$invalid_state 2 dlight3_shadow 1 1 numdlights 0 3
+$invalid_state 2 numdlights 1 4 num_lights 1 6
+$invalid_state 2 numdlights 1 4 alphatest 1 1
+$invalid_state 1 shadertype 4 4
+$invalid_state 1 shadertype 6 6
 $begin
 #version 130
 #extension GL_ARB_texture_rectangle : enable
@@ -196,14 +248,10 @@ uniform vec3 skylight_ambient;
 uniform vec3 skylight_diffuse;
 uniform vec3 skylight_dir;
 
-uniform vec3 light_origin;
 uniform float light_radius;
 
 uniform vec3 fogcolor;
 uniform vec2 fogparams;
-
-uniform sampler2D shadowmap;
-uniform samplerCube cubemap;
 
 $branch specular == 1
 $begin
@@ -250,13 +298,108 @@ uniform vec3 lights_5_origin;
 uniform vec3 lights_5_color;
 uniform float lights_5_radius;
 
+$branch numdlights >= 1
+$begin
+uniform vec3 dlight_0_origin;
+uniform float dlight_0_radius;
+uniform vec4 dlight_0_color;
+	$branch shadertype == 5
+	$begin
+	uniform sampler2D dlight_0_projtexture;
+	$end
+	
+	$branch dlight0_shadow == 1
+	$begin
+		$branch shadertype == 3
+		$begin
+			uniform samplerCube dlight_0_cubemap;
+		$end
+		$branch shadertype == 5
+		$begin
+			uniform sampler2D dlight_0_shadowmap;
+		$end
+	$end
+$end
+
+$branch numdlights >= 2
+$begin
+uniform vec3 dlight_1_origin;
+uniform float dlight_1_radius;
+uniform vec4 dlight_1_color;
+	$branch shadertype == 5
+	$begin
+	uniform sampler2D dlight_1_projtexture;
+	$end
+	
+	$branch dlight1_shadow == 1
+	$begin
+		$branch shadertype == 3
+		$begin
+			uniform samplerCube dlight_1_cubemap;
+		$end
+		$branch shadertype == 5
+		$begin
+			uniform sampler2D dlight_1_shadowmap;
+		$end
+	$end
+$end
+
+$branch numdlights >= 2
+$begin
+uniform vec3 dlight_2_origin;
+uniform float dlight_2_radius;
+uniform vec4 dlight_2_color;
+	$branch shadertype == 5
+	$begin
+	uniform sampler2D dlight_2_projtexture;
+	$end
+	
+	$branch dlight2_shadow == 1
+	$begin
+		$branch shadertype == 3
+		$begin
+			uniform samplerCube dlight_2_cubemap;
+		$end
+		$branch shadertype == 5
+		$begin
+			uniform sampler2D dlight_2_shadowmap;
+		$end
+	$end
+$end
+
+$branch numdlights >= 3
+$begin
+uniform vec3 dlight_3_origin;
+uniform float dlight_3_radius;
+uniform vec4 dlight_3_color;
+	$branch shadertype == 5
+	$begin
+	uniform sampler2D dlight_3_projtexture;
+	$end
+	
+	$branch dlight3_shadow == 1
+	$begin
+		$branch shadertype == 3
+		$begin
+			uniform samplerCube dlight_3_cubemap;
+		$end
+		$branch shadertype == 5
+		$begin
+			uniform sampler2D dlight_3_shadowmap;
+		$end
+	$end
+$end
+
 in vec3 ps_vertexpos;
 in vec3 ps_tangent;
 in vec3 ps_binormal;
 in vec3 ps_normal;
 in vec2 ps_texcoord1;
 in vec2 ps_texcoord2;
-in vec4 ps_vertexcoord;
+in vec4 ps_dlight_0_vertexcoord;
+in vec4 ps_dlight_1_vertexcoord;
+in vec4 ps_dlight_2_vertexcoord;
+in vec4 ps_dlight_3_vertexcoord;
 
 out vec4 oColor;
 
@@ -362,7 +505,7 @@ vec4 AddModelLight( vec3 l_origin, vec3 l_color, float l_radius, vec3 v_origin, 
 	return outColor;
 }
 
-vec4 AddPointLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, vec4 v_coord, vec3 v_normal, samplerCube l_shadowmap, float specularStrength )
+vec4 AddPointLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, vec4 v_coord, vec3 v_normal, float specularStrength )
 {
 	// Inverse squared radius
 	float rad = l_radius * l_radius;
@@ -374,13 +517,6 @@ vec4 AddPointLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, 
 	dir = normalize(dir);
 	attn = clamp(attn, 0.0, 1.0);
 	float dp = dot(dir, v_normal);
-
-	$branch shadertype == 4
-	$begin
-		float fldistance = clamp((length(v_coord.xyz)/l_radius), 0.0, 1.0);
-		float flresult = DepthTestCube(fldistance, l_shadowmap, normalize(v_coord.xyz));
-		attn = attn*ReduceLightBleeding(flresult, 0.4);
-	$end
 
 	attn = max(dp, 0)*attn;
 	vec4 outColor;
@@ -396,7 +532,14 @@ vec4 AddPointLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, 
 	return outColor;
 }
 
-vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, vec4 v_coord, vec3 v_normal, sampler2D l_shadowmap, sampler2D l_texture, float specularStrength )
+float GetPointLightShadowing( float l_radius, vec4 v_coord, samplerCube l_shadowmap )
+{
+	float fldistance = clamp((length(v_coord.xyz)/l_radius), 0.0, 1.0);
+	float flresult = DepthTestCube(fldistance, l_shadowmap, normalize(v_coord.xyz));
+	return ReduceLightBleeding(flresult, 0.4);
+}
+
+vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, vec4 v_coord, vec3 v_normal, sampler2D l_texture, float specularStrength )
 {
 	float rad = l_radius*l_radius;
 	vec3 dir = l_origin-v_origin;
@@ -407,13 +550,6 @@ vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, v
 	dir = normalize(dir);
 	float dp = max(dot(dir, v_normal), 0);
 	vec4 texclamp = max(v_coord, 0);
-	
-	$branch shadertype == 6
-	$begin
-		float fldistance = clamp((length(l_origin-v_origin)/l_radius), 0.0, 1.0);
-		float flresult = DepthTestProj(fldistance, l_shadowmap, texclamp);
-		attn = attn * ReduceLightBleeding(flresult, 0.4);
-	$end
 
 	vec4 texColor = textureProj(l_texture, texclamp);
 	
@@ -429,6 +565,14 @@ vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, v
 	$end
 	
 	return outColor;
+}
+
+float GetProjLightShadowing( float l_radius, vec3 l_origin, vec3 v_origin, vec4 v_coord, sampler2D l_shadowmap )
+{
+	vec4 texclamp = max(v_coord, 0);
+	float fldistance = clamp((length(l_origin-v_origin)/l_radius), 0.0, 1.0);
+	float flresult = DepthTestProj(fldistance, l_shadowmap, texclamp);
+	return ReduceLightBleeding(flresult, 0.4);
 }
 
 vec4 AddBaseLight( vec3 s_lightdir, vec3 s_ambient, vec3 s_diffuse, vec3 v_normal, vec3 v_origin, float specularStrength )
@@ -659,25 +803,155 @@ void main()
 	$end
 	
 	// Dynamic light passes
-	$branch shadertype == 3 || shadertype == 4
+	$branch shadertype == 3
 	$begin
-		lightColor = AddPointLight(light_radius, light_origin, color.xyz, ps_vertexpos.xyz, ps_vertexcoord, v_normal, cubemap, specularFactor);
-		
-		// Add in the diffuse light
-		finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
-		
-		// Add to specular
-		finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
+		$branch numdlights >= 1
+		$begin
+			//
+			// Light 1
+			// 
+			lightColor = AddPointLight(dlight_0_radius, dlight_0_origin, dlight_0_color.xyz, ps_vertexpos.xyz, ps_dlight_0_vertexcoord, v_normal, specularFactor);
+			
+			$branch dlight0_shadow == 1
+			$begin
+				lightColor *= GetPointLightShadowing(dlight_0_radius, ps_dlight_0_vertexcoord, dlight_0_cubemap);
+			$end
+			
+			// Add in the diffuse light
+			finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
+			
+			// Add to specular
+			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_0_color.xyz);
+		$end
+		$branch numdlights >= 2
+		$begin
+			//
+			// Light 2
+			// 
+			lightColor = AddPointLight(dlight_1_radius, dlight_1_origin, dlight_1_color.xyz, ps_vertexpos.xyz, ps_dlight_1_vertexcoord, v_normal, specularFactor);
+			
+			$branch dlight1_shadow == 1
+			$begin
+				lightColor *= GetPointLightShadowing(dlight_1_radius, ps_dlight_1_vertexcoord, dlight_1_cubemap);
+			$end
+			
+			// Add in the diffuse light
+			finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
+			
+			// Add to specular
+			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_1_color.xyz);
+		$end
+		$branch numdlights >= 3
+		$begin
+			//
+			// Light 3
+			// 
+			lightColor = AddPointLight(dlight_2_radius, dlight_2_origin, dlight_2_color.xyz, ps_vertexpos.xyz, ps_dlight_2_vertexcoord, v_normal, specularFactor);
+			
+			$branch dlight2_shadow == 1
+			$begin
+				lightColor *= GetPointLightShadowing(dlight_2_radius, ps_dlight_2_vertexcoord, dlight_2_cubemap);
+			$end	
+			
+			// Add in the diffuse light
+			finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
+			
+			// Add to specular
+			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_2_color.xyz);
+		$end
+		$branch numdlights >= 4
+		$begin
+			//
+			// Light 4
+			// 
+			lightColor = AddPointLight(dlight_3_radius, dlight_3_origin, dlight_3_color.xyz, ps_vertexpos.xyz, ps_dlight_3_vertexcoord, v_normal, specularFactor);
+			
+			$branch dlight3_shadow == 1
+			$begin
+				lightColor *= GetPointLightShadowing(dlight_3_radius, ps_dlight_3_vertexcoord, dlight_3_cubemap);
+			$end
+			
+			// Add in the diffuse light
+			finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
+			
+			// Add to specular
+			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_3_color.xyz);
+		$end
 	$end
-	$branch shadertype == 5 || shadertype == 6
+	$branch shadertype == 5
 	$begin
-		lightColor = AddProjLight(light_radius, light_origin, color.xyz, ps_vertexpos.xyz, ps_vertexcoord, v_normal, shadowmap, texture0, specularFactor);
-		
-		// Add in the diffuse light
-		finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
-		
-		// Add to specular
-		finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, color.xyz);
+		$branch numdlights >= 1
+		$begin
+			//
+			// Light 1
+			//
+			lightColor = AddProjLight(dlight_0_radius, dlight_0_origin, dlight_0_color.xyz, ps_vertexpos.xyz, ps_dlight_0_vertexcoord, v_normal, dlight_0_projtexture, specularFactor);
+			
+			$branch dlight0_shadow == 1
+			$begin
+				lightColor *= GetProjLightShadowing(dlight_0_radius, dlight_0_origin, ps_vertexpos.xyz, ps_dlight_0_vertexcoord, dlight_0_shadowmap);
+			$end
+			
+			// Add in the diffuse light
+			finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
+			
+			// Add to specular
+			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_0_color.xyz);
+		$end
+		$branch numdlights >= 2
+		$begin
+			//
+			// Light 2
+			//
+			lightColor = AddProjLight(dlight_1_radius, dlight_1_origin, dlight_1_color.xyz, ps_vertexpos.xyz, ps_dlight_1_vertexcoord, v_normal, dlight_1_projtexture, specularFactor);
+			
+			$branch dlight1_shadow == 1
+			$begin
+				lightColor *= GetProjLightShadowing(dlight_1_radius, dlight_1_origin, ps_vertexpos.xyz, ps_dlight_1_vertexcoord, dlight_1_shadowmap);
+			$end			
+			
+			// Add in the diffuse light
+			finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
+			
+			// Add to specular
+			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_1_color.xyz);
+		$end
+		$branch numdlights >= 3
+		$begin
+			//
+			// Light 3
+			//
+			lightColor = AddProjLight(dlight_2_radius, dlight_2_origin, dlight_2_color.xyz, ps_vertexpos.xyz, ps_dlight_2_vertexcoord, v_normal, dlight_2_projtexture, specularFactor);
+			
+			$branch dlight2_shadow == 1
+			$begin
+				lightColor *= GetProjLightShadowing(dlight_2_radius, dlight_2_origin, ps_vertexpos.xyz, ps_dlight_2_vertexcoord, dlight_2_shadowmap);
+			$end			
+			
+			// Add in the diffuse light
+			finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
+			
+			// Add to specular
+			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_2_color.xyz);
+		$end
+		$branch numdlights >= 4
+		$begin
+			//
+			// Light 4
+			//
+			lightColor = AddProjLight(dlight_3_radius, dlight_3_origin, dlight_3_color.xyz, ps_vertexpos.xyz, ps_dlight_3_vertexcoord, v_normal, dlight_3_projtexture, specularFactor);
+			
+			$branch dlight3_shadow == 1
+			$begin
+				lightColor *= GetProjLightShadowing(dlight_3_radius, dlight_3_origin, ps_vertexpos.xyz, ps_dlight_3_vertexcoord, dlight_3_shadowmap);
+			$end				
+			
+			// Add in the diffuse light
+			finalColor.xyz = AddDiffuseDynamicLight(finalColor.xyz, lightColor.xyz);
+			
+			// Add to specular
+			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_3_color.xyz);
+		$end
 	$end
 	
 	// Caustics

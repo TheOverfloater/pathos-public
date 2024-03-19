@@ -49,9 +49,11 @@ bool CFuncMonitor::Spawn( void )
 
 	m_pState->movetype = MOVETYPE_PUSH;
 	m_pState->solid = SOLID_BSP;
-	m_pState->effects |= EF_STATICENTITY;
 	m_pState->flags |= (FL_WORLDBRUSH|FL_INITIALIZE);
 	m_pState->rendertype = RT_MONITORENTITY;
+
+	if(m_pFields->targetname == NO_STRING_VALUE)
+		m_pState->effects |= EF_STATICENTITY;
 
 	if(m_pFields->target == NO_STRING_VALUE)
 	{

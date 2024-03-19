@@ -14,6 +14,7 @@ All Rights Reserved.
 #include "mlight.h"
 #include "vbm_shared.h"
 #include "r_glsl.h"
+#include "r_main.h"
 
 // Notes:
 // Part of this implementation is based on the implementation in the Half-Life SDK
@@ -41,9 +42,9 @@ enum vbm_shtype
 	vbm_texture_fog,
 	vbm_notexture,
 	vbm_dynlight,
-	vbm_dynlight_shadow,
+	vbm_unused1,
 	vbm_spotlight,
-	vbm_spotlight_shadow,
+	vbm_unused2,
 	vbm_caustics,
 	vbm_solid,
 	vbm_vsm,
@@ -156,6 +157,30 @@ struct attrib_light
 	Int32 u_radius;
 };
 
+struct vbm_dlight_attribs_t
+{
+	vbm_dlight_attribs_t():
+		u_light_color(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_origin(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_radius(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_cubemap(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_projtexture(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_matrix(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_light_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE)
+	{}
+
+	Int32 u_light_color;
+	Int32 u_light_origin;
+	Int32 u_light_radius;
+	Int32 u_light_cubemap;
+	Int32 u_light_projtexture;
+	Int32 u_light_shadowmap;
+	Int32 u_light_matrix;
+
+	Int32 d_light_shadowmap;
+};
+
 struct vbm_attribs
 {
 	vbm_attribs():
@@ -170,7 +195,6 @@ struct vbm_attribs
 		u_projection(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_modelview(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_normalmatrix(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_lightmatrix(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_flextexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_flextexturesize(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_caustics_interp(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -185,12 +209,9 @@ struct vbm_attribs
 		u_spectexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_lumtexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_normalmap(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_cubemap(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_sky_ambient(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_sky_diffuse(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_sky_dir(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_light_origin(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_light_radius(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_fogcolor(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_fogparams(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -206,7 +227,8 @@ struct vbm_attribs
 		d_flexes(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_luminance(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_bumpmapping(CGLSLShader::PROPERTY_UNAVAILABLE)
+		d_bumpmapping(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_numdlights(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{
 			for(Uint32 i = 0; i < MAX_SHADER_BONES; i++)
 				boneindexes[i] = 0;
@@ -225,7 +247,6 @@ struct vbm_attribs
 	Int32 u_modelview;
 	
 	Int32 u_normalmatrix;
-	Int32 u_lightmatrix;
 
 	Int32 u_flextexture;
 	Int32 u_flextexturesize;
@@ -249,14 +270,10 @@ struct vbm_attribs
 	Int32 u_lumtexture;
 	Int32 u_normalmap;
 
-	Int32 u_shadowmap;
-	Int32 u_cubemap;
-
 	Int32 u_sky_ambient;
 	Int32 u_sky_diffuse;
 	Int32 u_sky_dir;
 
-	Int32 u_light_origin;
 	Int32 u_light_radius;
 
 	Int32 u_fogcolor;
@@ -280,6 +297,9 @@ struct vbm_attribs
 	Int32 d_specular;
 	Int32 d_luminance;
 	Int32 d_bumpmapping;
+	Int32 d_numdlights;
+	
+	vbm_dlight_attribs_t dlights[MAX_BATCH_LIGHTS];
 };
 
 /*

@@ -42,6 +42,7 @@ CGLExtF::CGLExtF ( void ):
 	glDeleteFramebuffers(nullptr),
 	glGetFramebufferAttachmentParameteriv(nullptr),
 	glGetRenderbufferParameteriv(nullptr),
+	glBlitFramebuffer(nullptr),
 	glLinkProgram(nullptr),
 	glShaderSource(nullptr),
 	glUseProgram(nullptr),
@@ -164,7 +165,8 @@ bool CGLExtF::GetFunctions ( void )
 	glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC)GetFunction("glDeleteFramebuffers");
 	glGetFramebufferAttachmentParameteriv = (PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC)GetFunction("glGetFramebufferAttachmentParameteriv");
 	glGetRenderbufferParameteriv = (PFNGLGETRENDERBUFFERPARAMETERIVPROC)GetFunction("glGetRenderbufferParameteriv");
-	
+	glBlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC)GetFunction("glBlitFramebuffer");
+
 	glLinkProgram = (PFNGLLINKPROGRAMARBPROC)GetFunction("glLinkProgramARB");
 	glShaderSource = (PFNGLSHADERSOURCEPROC)GetFunction("glShaderSource");
 	glUseProgram = (PFNGLUSEPROGRAMPROC)GetFunction("glUseProgram");

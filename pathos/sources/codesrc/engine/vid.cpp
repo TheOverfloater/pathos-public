@@ -813,12 +813,17 @@ void VID_GetScreenContents( Uint32& width, Uint32& height, Uint32& bpp, byte** p
 // @brief Callback function for shader compile progress
 //
 //=============================================
-void VID_ShaderCompileCallback( const Char* pstrShaderName, Uint32 totalCount, Uint32 completedCount )
+void VID_ShaderCompileCallback( const Char* pstrShaderName, Uint32 totalCount, Uint32 completedCount, bool buildingCache )
 {
 	Float progressPercentage = ((Float)completedCount/(Float)totalCount)*100;
 
 	CString strProgressText;
-	strProgressText << "Loading shader '" << pstrShaderName << "' - " << (Int32)progressPercentage << "% ";
+	if(!buildingCache)
+		strProgressText << "Loading shader '";
+	else
+		strProgressText << "Loading shader and building cache '";
+		
+	strProgressText << pstrShaderName << "' - " << (Int32)progressPercentage << "% ";
 	strProgressText << "(" << completedCount << "/" << totalCount << ")"; 
 
 	VID_DrawLoadingScreen(strProgressText.c_str());

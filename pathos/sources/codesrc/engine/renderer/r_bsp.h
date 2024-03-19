@@ -36,9 +36,9 @@ enum bsp_shaders_t
 	shader_texunit0,
 	shader_texunit1,
 	shader_dynlight,
-	shader_dynlight_shadow,
+	shader_unused1,
 	shader_spotlight,
-	shader_spotlight_shadow,
+	shader_unused2,
 	shader_caustics,
 	shader_lightalpha,
 	shader_solidcolor,
@@ -62,6 +62,30 @@ enum bsp_fog_settings_t
 	fog_fogcoord
 };
 
+struct light_attribs_t
+{
+	light_attribs_t():
+		u_light_color(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_origin(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_radius(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_cubemap(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_projtexture(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_matrix(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_light_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE)
+	{}
+
+	Int32 u_light_color;
+	Int32 u_light_origin;
+	Int32 u_light_radius;
+	Int32 u_light_cubemap;
+	Int32 u_light_projtexture;
+	Int32 u_light_shadowmap;
+	Int32 u_light_matrix;
+
+	Int32 d_light_shadowmap;
+};
+
 struct bsp_shader_attribs
 {
 	bsp_shader_attribs():
@@ -72,6 +96,7 @@ struct bsp_shader_attribs
 		d_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_cubemaps(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_luminance(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_numlights(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_position(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_tangent(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_binormal(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -84,7 +109,6 @@ struct bsp_shader_attribs
 		u_modelview(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_modelmatrix(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_inv_modelmatrix(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_lightmatrix(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_normalmatrix(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_causticsm2(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_causticsm1(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -94,7 +118,6 @@ struct bsp_shader_attribs
 		u_phong_exponent(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_specularfactor(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_interpolant(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_cameraposition(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_cubemapstrength(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_decalalpha(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_decalscale(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -109,9 +132,7 @@ struct bsp_shader_attribs
 		u_difflightmap(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_lightvecstex(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_color(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_light_origin(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_light_radius(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_fogcolor(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_fogparams(CGLSLShader::PROPERTY_UNAVAILABLE)
@@ -124,6 +145,7 @@ struct bsp_shader_attribs
 	Int32 d_specular;
 	Int32 d_cubemaps;
 	Int32 d_luminance;
+	Int32 d_numlights;
 
 	// vertex attribs
 	Int32 a_position;
@@ -142,7 +164,6 @@ struct bsp_shader_attribs
 	Int32 u_modelmatrix;
 	Int32 u_inv_modelmatrix;
 
-	Int32 u_lightmatrix;
 	Int32 u_normalmatrix;
 
 	Int32 u_causticsm2;
@@ -156,7 +177,6 @@ struct bsp_shader_attribs
 	Int32 u_phong_exponent;
 	Int32 u_specularfactor;
 	Int32 u_interpolant;
-	Int32 u_cameraposition;
 	Int32 u_cubemapstrength;
 	Int32 u_decalalpha;
 	Int32 u_decalscale;
@@ -173,14 +193,13 @@ struct bsp_shader_attribs
 	Int32 u_difflightmap;
 	Int32 u_lightvecstex;
 	Int32 u_specular;
-	Int32 u_shadowmap;
-
 	Int32 u_color;
-	Int32 u_light_origin;
 	Int32 u_light_radius;
 
 	Int32 u_fogcolor;
 	Int32 u_fogparams;
+
+	light_attribs_t lights[MAX_BATCH_LIGHTS];
 };
 
 struct bsp_vertex_t
@@ -410,7 +429,7 @@ public:
 	// Draws non-transparent decals
 	bool DrawNormalDecals( void );
 	// Draws objects for VSM renderpass
-	bool DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 numentities );
+	bool DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 numentities, bool drawworld );
 	// Draws skybox elements
 	bool DrawSkyBox( bool inZElements );
 
@@ -484,9 +503,9 @@ private:
 	bool BatchBrushModelForVSM( cl_entity_t& entity, bool isstatic );
 
 	// Prepares a light for rendering
-	bool SetupLight( Vector& mins, Vector& maxsz );
+	bool SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Uint32& texunit, lightbatchtype_t type );
 	// Finishes rendering of a light
-	void FinishLight( void );
+	void FinishLight( cl_dlight_t* pdlight, Uint32& texunit );
 
 private:
 	// Draws a single decal
@@ -513,9 +532,6 @@ private:
 	CArray<bsp_texture_t> m_texturesArray;
 
 private:
-	// Current dynamic light being drawn
-	cl_dlight_t *m_pCurrentLight;
-
 	bool m_multiPass;
 	bool m_addMulti;
 	bool m_bumpMaps;

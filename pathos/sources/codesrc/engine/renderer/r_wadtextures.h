@@ -105,7 +105,7 @@ public:
 
 public:
 	// Initializes the class, loads BSP and all WADs
-	bool Init( const Char* pstrBSPName, const CArray<CString>& wadFilesList, bool generateMissing );
+	bool Init( const Char* pstrBSPName, const CArray<CString>& wadFilesList, bool generateMissingWAD, bool generateMissingBSP );
 	// Returns a WAD texture's pointer
 	en_texture_t* GetWADTexture( en_material_t* pmaterial, const Char* pstrContainerName, const Char* pstrTextureName );
 

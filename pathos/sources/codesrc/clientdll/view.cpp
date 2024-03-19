@@ -1093,7 +1093,7 @@ void CDefaultView::SetupFlashlightForType( const ref_params_t& params, Float* ps
 
 		pdlight->origin = vOrigin;
 		pdlight->angles = vAngles;
-		pdlight->color = Vector(0.5, 0.5, 0.6)*pstrengths[i];
+		pdlight->color = Vector(0.8, 0.8, 0.9)*pstrengths[i];
 		pdlight->textureindex = 0;
 		pdlight->cone_size = cone_size;
 		pdlight->radius = radius;

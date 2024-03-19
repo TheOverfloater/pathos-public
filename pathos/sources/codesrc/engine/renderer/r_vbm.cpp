@@ -344,16 +344,12 @@ bool CVBMRenderer::InitGL( void )
 		m_attribs.u_texture0 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_texture1 = m_pShader->InitUniform("texture1", CGLSLShader::UNIFORM_NOSYNC);
 		m_attribs.u_rectangle = m_pShader->InitUniform("rectangle", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_cubemap = m_pShader->InitUniform("cubemap", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_shadowmap = m_pShader->InitUniform("shadowmap", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_spectexture = m_pShader->InitUniform("spectexture", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_lumtexture = m_pShader->InitUniform("lumtexture", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_normalmap = m_pShader->InitUniform("normalmap", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_FLOAT3);
 		m_attribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_FLOAT2);
-		m_attribs.u_lightmatrix = m_pShader->InitUniform("lightmatrix", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_normalmatrix = m_pShader->InitUniform("normalmatrix", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_light_origin = m_pShader->InitUniform("light_origin", CGLSLShader::UNIFORM_FLOAT3);
 		m_attribs.u_light_radius = m_pShader->InitUniform("light_radius", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
@@ -377,16 +373,12 @@ bool CVBMRenderer::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_texture0, "texture0", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_texture1, "texture1", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_rectangle, "rectangle", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_cubemap, "cubemap", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_shadowmap, "shadowmap", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_spectexture, "spectexture", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_lumtexture, "lumtexture", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_normalmap, "normalmap", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_fogcolor, "fogcolor", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_fogparams, "fogparams", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_lightmatrix, "lightmatrix", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_normalmatrix, "normalmatrix", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_light_origin, "light_origin", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_light_radius, "light_radius", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_modelview, "modelview", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_projection, "projection", m_pShader, Sys_ErrorPopup)
@@ -408,6 +400,7 @@ bool CVBMRenderer::InitGL( void )
 		m_attribs.d_specular = m_pShader->GetDeterminatorIndex("specular");
 		m_attribs.d_luminance = m_pShader->GetDeterminatorIndex("luminance");
 		m_attribs.d_bumpmapping = m_pShader->GetDeterminatorIndex("bumpmapping");
+		m_attribs.d_numdlights = m_pShader->GetDeterminatorIndex("numdlights");
 
 		if(!R_CheckShaderDeterminator(m_attribs.d_numlights, "num_lights", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_chrome, "chrome", m_pShader, Sys_ErrorPopup)
@@ -418,6 +411,52 @@ bool CVBMRenderer::InitGL( void )
 			|| !R_CheckShaderDeterminator(m_attribs.d_luminance, "luminance", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_bumpmapping, "bumpmapping", m_pShader, Sys_ErrorPopup))
 			return false;
+
+		for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
+		{
+			CString lightcolor;
+			lightcolor << "dlight_" << i << "_color";
+
+			CString lightorigin;
+			lightorigin << "dlight_" << i << "_origin";
+
+			CString lightradius;
+			lightradius << "dlight_" << i << "_radius";
+
+			CString lightcubemap;
+			lightcubemap << "dlight_" << i << "_cubemap";
+
+			CString lightprojtexture;
+			lightprojtexture << "dlight_" << i << "_projtexture";
+
+			CString lightshadowmap;
+			lightshadowmap << "dlight_" << i << "_shadowmap";
+
+			CString lightmatrix;
+			lightmatrix << "dlight_" << i << "_matrix";
+
+			CString lightdeterminatorshadowmap;
+			lightdeterminatorshadowmap << "dlight" << i << "_shadow";
+
+			m_attribs.dlights[i].u_light_color = m_pShader->InitUniform(lightcolor.c_str(), CGLSLShader::UNIFORM_FLOAT4);
+			m_attribs.dlights[i].u_light_origin = m_pShader->InitUniform(lightorigin.c_str(), CGLSLShader::UNIFORM_FLOAT3);
+			m_attribs.dlights[i].u_light_radius = m_pShader->InitUniform(lightradius.c_str(), CGLSLShader::UNIFORM_FLOAT1);
+			m_attribs.dlights[i].u_light_cubemap = m_pShader->InitUniform(lightcubemap.c_str(), CGLSLShader::UNIFORM_INT1);
+			m_attribs.dlights[i].u_light_projtexture = m_pShader->InitUniform(lightprojtexture.c_str(), CGLSLShader::UNIFORM_INT1);
+			m_attribs.dlights[i].u_light_shadowmap = m_pShader->InitUniform(lightshadowmap.c_str(), CGLSLShader::UNIFORM_INT1);
+			m_attribs.dlights[i].u_light_matrix = m_pShader->InitUniform(lightmatrix.c_str(), CGLSLShader::UNIFORM_MATRIX4);
+			m_attribs.dlights[i].d_light_shadowmap = m_pShader->GetDeterminatorIndex(lightdeterminatorshadowmap.c_str());
+
+			if(!R_CheckShaderUniform(m_attribs.dlights[i].u_light_color, lightcolor.c_str(), m_pShader, Sys_ErrorPopup)
+				|| !R_CheckShaderUniform(m_attribs.dlights[i].u_light_origin, lightorigin.c_str(), m_pShader, Sys_ErrorPopup)
+				|| !R_CheckShaderUniform(m_attribs.dlights[i].u_light_radius, lightradius.c_str(), m_pShader, Sys_ErrorPopup)
+				|| !R_CheckShaderUniform(m_attribs.dlights[i].u_light_cubemap, lightcubemap.c_str(), m_pShader, Sys_ErrorPopup)
+				|| !R_CheckShaderUniform(m_attribs.dlights[i].u_light_projtexture, lightprojtexture.c_str(), m_pShader, Sys_ErrorPopup)
+				|| !R_CheckShaderUniform(m_attribs.dlights[i].u_light_shadowmap, lightshadowmap.c_str(), m_pShader, Sys_ErrorPopup)
+				|| !R_CheckShaderUniform(m_attribs.dlights[i].u_light_matrix, lightmatrix.c_str(), m_pShader, Sys_ErrorPopup)
+				|| !R_CheckShaderDeterminator(m_attribs.dlights[i].d_light_shadowmap, lightdeterminatorshadowmap.c_str(), m_pShader, Sys_ErrorPopup))
+				return false;
+		}
 	}
 
 	if(m_isVertexFetchSupported)
@@ -1005,8 +1044,8 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 		// Also cull skybox entities now with frustum culling - the exception for 
 		// sky ents was an ancient remnant from the Paranoia-type skybox rendering, 
 		// and was never removed after that got replaced
-			if (CheckBBox())
-				return true;
+		if (CheckBBox())
+			return true;
 
 		// See if we're using any scope textures
 		if(!(flags & VBM_SETUPBONES) && m_pCvarDrawModels->GetValue() >= 1)
@@ -2297,13 +2336,20 @@ bool CVBMRenderer::SetupRenderer( void )
 
 	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, m_renderAlpha);
 
-	m_pShader->DisableSync(m_attribs.u_lightmatrix);
 	m_pShader->DisableSync(m_attribs.u_causticsm1);
 	m_pShader->DisableSync(m_attribs.u_causticsm2);
-	m_pShader->DisableSync(m_attribs.u_shadowmap);
-	m_pShader->DisableSync(m_attribs.u_cubemap);
-	m_pShader->DisableSync(m_attribs.u_light_origin);
 	m_pShader->DisableSync(m_attribs.u_light_radius);
+
+	for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
+	{
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_color);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_origin);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_radius);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_cubemap);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_projtexture);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_shadowmap);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_matrix);
+	}
 
 	m_pShader->EnableSync(m_attribs.u_projection);
 	m_pShader->EnableSync(m_attribs.u_modelview);
@@ -2724,18 +2770,76 @@ bool CVBMRenderer::DrawLights( bool specularPass )
 	if(!m_numDynamicLights)
 		return true;
 
+	Uint32 firstexunit = 0;
+
 	if(m_useFlexes)
 	{
 		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, TRUE, false))
 			return false;
 
-		m_pShader->SetUniform1i(m_attribs.u_flextexture, 2);
-		R_Bind2DTexture(GL_TEXTURE2_ARB, m_pFlexTexture->gl_index);
+		m_pShader->SetUniform1i(m_attribs.u_flextexture, firstexunit);
+		R_Bind2DTexture(GL_TEXTURE0_ARB+firstexunit, m_pFlexTexture->gl_index);
+		firstexunit++;
 	}
 	else
 	{
 		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false))
 			return false;
+	}
+
+	// Linked list of dynamic light batches
+	CLinkedList<lightbatch_t> lightBatches;
+
+	for(Uint32 i = 0; i < m_numDynamicLights; i++)
+	{
+		cl_dlight_t *pdlight = m_pDynamicLights[i];
+
+		// Pointer to batch we'll use
+		lightbatch_t* pbatch = nullptr;
+
+		// Determine batch type
+		lightbatchtype_t type;
+		if(pdlight->cone_size)
+		{
+			if(pdlight->noShadow())
+				type = LB_TYPE_SPOTLIGHT;
+			else
+				type = LB_TYPE_SPOTLIGHT_SHADOW;
+		}
+		else
+		{
+			if(pdlight->noShadow())
+				type = LB_TYPE_POINTLIGHT;
+			else
+				type = LB_TYPE_POINTLIGHT_SHADOW;
+		}
+
+		if(g_pCvarBatchDynamicLights->GetValue() >= 1)
+		{
+			// See if we have a fitting batch
+			lightBatches.begin();
+			while(!lightBatches.end())
+			{
+				lightbatch_t& curbatch = lightBatches.get();
+				if(curbatch.type == type && curbatch.lightslist.size() < MAX_BATCH_LIGHTS)
+				{
+					pbatch = &curbatch;
+					break;
+				}
+
+				lightBatches.next();
+			}
+		}
+
+		if(!pbatch)
+		{
+			lightbatch_t newbatch;
+			newbatch.type = type;
+
+			pbatch = &lightBatches.add(newbatch)->_val;
+		}
+
+		pbatch->lightslist.add(pdlight);
 	}
 
 	m_pShader->DisableSync(m_attribs.u_causticsm1);
@@ -2748,16 +2852,12 @@ bool CVBMRenderer::DrawLights( bool specularPass )
 	m_pShader->DisableSync(m_attribs.u_sky_dir);
 	m_pShader->DisableSync(m_attribs.u_fogcolor);
 	m_pShader->DisableSync(m_attribs.u_fogparams);
+	m_pShader->DisableSync(m_attribs.u_light_radius);
 
 	m_pShader->EnableSync(m_attribs.u_projection);
 	m_pShader->EnableSync(m_attribs.u_modelview);
 	m_pShader->EnableSync(m_attribs.u_texture0);
 	m_pShader->EnableSync(m_attribs.u_color);
-	m_pShader->EnableSync(m_attribs.u_lightmatrix);
-	m_pShader->EnableSync(m_attribs.u_cubemap);
-	m_pShader->EnableSync(m_attribs.u_shadowmap);
-	m_pShader->EnableSync(m_attribs.u_light_origin);
-	m_pShader->EnableSync(m_attribs.u_light_radius);
 	m_pShader->EnableSync(m_attribs.u_normalmatrix);
 
 	m_pShader->EnableAttribute(m_attribs.a_texcoord1);
@@ -2771,90 +2871,137 @@ bool CVBMRenderer::DrawLights( bool specularPass )
 	CMatrix pmatrix;
 	const Float *fltranspose = rns.view.modelview.Transpose();
 
-	for(Uint32 i = 0; i < m_numDynamicLights; i++)
+	Uint32 highestunit = 0;
+
+	lightBatches.begin();
+	while(!lightBatches.end())
 	{
-		cl_dlight_t *pdlight = m_pDynamicLights[i];
+		lightbatch_t& batch = lightBatches.get();
 
-		if(pdlight->cone_size)
+		if(batch.type == LB_TYPE_POINTLIGHT || batch.type == LB_TYPE_POINTLIGHT_SHADOW)
 		{
-			if(DL_CanShadow(pdlight))
-			{
-				if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_spotlight_shadow, false))
-					return false;
-
-				m_pShader->SetUniform1i(m_attribs.u_shadowmap, 1);
-				R_Bind2DTexture(GL_TEXTURE1, pdlight->getProjShadowMap()->pfbo->ptexture1->gl_index);
-			}
-			else
-			{
-				if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_spotlight, false))
-					return false;
-			}
-
-			m_pShader->SetUniform1i(m_attribs.u_texture0, 0);
-			R_Bind2DTexture(GL_TEXTURE0, rns.objects.projective_textures[pdlight->textureindex]->palloc->gl_index);
-
-			Vector angles = pdlight->angles;
-			Common::FixVector(angles);
-
-			Vector vforward, vtarget;
-			Math::AngleVectors(angles, &vforward, nullptr, nullptr);
-			Math::VectorMA(pdlight->origin, pdlight->radius, vforward, vtarget);
-
-			pmatrix.LoadIdentity();
-			pmatrix.Translate(0.5, 0.5, 0.5);
-			pmatrix.Scale(0.5, 0.5, 0.5);
-
-			Float flSize = tan((M_PI/360) * pdlight->cone_size);
-			pmatrix.SetFrustum(-flSize, flSize, -flSize, flSize, 1, pdlight->radius);
-			pmatrix.LookAt(pdlight->origin[0], pdlight->origin[1], pdlight->origin[2], vtarget[0], vtarget[1], vtarget[2], 0, 0, Common::IsPitchReversed(angles[PITCH]) ? -1 : 1);
-
-			pmatrix.MultMatrix(rns.view.modelview.GetInverse());
-			m_pShader->SetUniformMatrix4fv(m_attribs.u_lightmatrix, pmatrix.Transpose());
+			if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_dynlight, false))
+				return false;
 		}
 		else
 		{
-			if(DL_CanShadow(pdlight))
+			if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_spotlight, false))
+				return false;
+		}
+
+		// Latest light index
+		Uint32 lightindex = 0;
+		// Next available texture unit
+		Uint32 texunit = firstexunit;
+		
+		batch.lightslist.begin();
+		while(!batch.lightslist.end())
+		{
+			cl_dlight_t* pdlight = batch.lightslist.get();
+
+			m_pShader->EnableSync(m_attribs.dlights[lightindex].u_light_color);
+			m_pShader->EnableSync(m_attribs.dlights[lightindex].u_light_origin);
+			m_pShader->EnableSync(m_attribs.dlights[lightindex].u_light_radius);
+
+			if(pdlight->cone_size)
 			{
-				if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_dynlight_shadow, false))
-					return false;
+				if(DL_CanShadow(pdlight))
+				{
+					if(!m_pShader->SetDeterminator(m_attribs.dlights[lightindex].d_light_shadowmap, TRUE, false))
+						return false;
 
-				m_pShader->SetUniform1i(m_attribs.u_cubemap, 0);
+					m_pShader->EnableSync(m_attribs.dlights[lightindex].u_light_shadowmap);
+					m_pShader->SetUniform1i(m_attribs.dlights[lightindex].u_light_shadowmap, texunit);
+					R_Bind2DTexture(GL_TEXTURE0+texunit, pdlight->getProjShadowMap()->pfbo->ptexture1->gl_index);
+					texunit++;
+				}
+				else
+				{
+					m_pShader->DisableSync(m_attribs.dlights[lightindex].u_light_shadowmap);
+					if(!m_pShader->SetDeterminator(m_attribs.dlights[lightindex].d_light_shadowmap, FALSE, false))
+						return false;
+				}
 
-				R_BindCubemapTexture(GL_TEXTURE0, pdlight->getCubeShadowMap()->pfbo->ptexture1->gl_index);
+				m_pShader->EnableSync(m_attribs.dlights[lightindex].u_light_projtexture);
+				m_pShader->SetUniform1i(m_attribs.dlights[lightindex].u_light_projtexture, texunit);
+				R_Bind2DTexture(GL_TEXTURE0+texunit, rns.objects.projective_textures[pdlight->textureindex]->palloc->gl_index);
+				texunit++;
 
-				// Set up world-space matrix
+				Vector angles = pdlight->angles;
+				Common::FixVector(angles);
+
+				Vector vforward, vtarget;
+				Math::AngleVectors(angles, &vforward, nullptr, nullptr);
+				Math::VectorMA(pdlight->origin, pdlight->radius, vforward, vtarget);
+
 				pmatrix.LoadIdentity();
-				pmatrix.Rotate(-90,  1, 0, 0);// put X going down
-				pmatrix.Rotate(90,  0, 0, 1); // put Z going up
-				pmatrix.Translate(-pdlight->origin[0], -pdlight->origin[1], -pdlight->origin[2]);
+				pmatrix.Translate(0.5, 0.5, 0.5);
+				pmatrix.Scale(0.5, 0.5, 0.5);
 
-				// set up light matrix
-				m_pShader->SetUniformMatrix4fv(m_attribs.u_lightmatrix, pmatrix.GetMatrix(), true);
-				
+				Float flSize = tan((M_PI/360) * pdlight->cone_size);
+				pmatrix.SetFrustum(-flSize, flSize, -flSize, flSize, 1, pdlight->radius);
+				pmatrix.LookAt(pdlight->origin[0], pdlight->origin[1], pdlight->origin[2], vtarget[0], vtarget[1], vtarget[2], 0, 0, Common::IsPitchReversed(angles[PITCH]) ? -1 : 1);
+
+				pmatrix.MultMatrix(rns.view.modelview.GetInverse());
+
+				m_pShader->EnableSync(m_attribs.dlights[lightindex].u_light_matrix);
+				m_pShader->SetUniformMatrix4fv(m_attribs.dlights[lightindex].u_light_matrix, pmatrix.Transpose());
 			}
 			else
 			{
-				if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_dynlight, false))
-					return false;
+				m_pShader->DisableSync(m_attribs.dlights[lightindex].u_light_projtexture);
+				m_pShader->DisableSync(m_attribs.dlights[lightindex].u_light_shadowmap);
+
+				if(DL_CanShadow(pdlight))
+				{
+					if(!m_pShader->SetDeterminator(m_attribs.dlights[lightindex].d_light_shadowmap, TRUE, false))
+						return false;
+
+					m_pShader->EnableSync(m_attribs.dlights[lightindex].u_light_cubemap);
+					m_pShader->SetUniform1i(m_attribs.dlights[lightindex].u_light_cubemap, texunit);
+					R_BindCubemapTexture(GL_TEXTURE0+texunit, pdlight->getCubeShadowMap()->pfbo->ptexture1->gl_index);
+					texunit++;
+
+					// Set up world-space matrix
+					pmatrix.LoadIdentity();
+					pmatrix.Rotate(-90,  1, 0, 0);// put X going down
+					pmatrix.Rotate(90,  0, 0, 1); // put Z going up
+					pmatrix.Translate(-pdlight->origin[0], -pdlight->origin[1], -pdlight->origin[2]);
+
+					// set up light matrix
+					m_pShader->EnableSync(m_attribs.dlights[lightindex].u_light_matrix);
+					m_pShader->SetUniformMatrix4fv(m_attribs.dlights[lightindex].u_light_matrix, pmatrix.GetMatrix(), true);
+				}
+				else
+				{
+					m_pShader->DisableSync(m_attribs.dlights[lightindex].u_light_cubemap);
+					if(!m_pShader->SetDeterminator(m_attribs.dlights[lightindex].d_light_shadowmap, FALSE, false))
+						return false;
+				}
 			}
+
+			Vector vtransorigin;
+			Math::MatMultPosition(fltranspose, pdlight->origin, &vtransorigin);
+
+			Vector color;
+			Math::VectorCopy(pdlight->color, color);
+			gDynamicLights.ApplyLightStyle(pdlight, color);
+
+			m_pShader->SetUniform3f(m_attribs.dlights[lightindex].u_light_origin, vtransorigin[0], vtransorigin[1], vtransorigin[2]);
+			m_pShader->SetUniform4f(m_attribs.dlights[lightindex].u_light_color, color.x, color.y, color.z, 1.0);
+			m_pShader->SetUniform1f(m_attribs.dlights[lightindex].u_light_radius, pdlight->radius);
+
+			batch.lightslist.next();
+			lightindex++;
 		}
+
+		if(!m_pShader->SetDeterminator(m_attribs.d_numdlights, lightindex, false))
+			return false;
 
 		// ALWAYS set this, because AMD will complain about multiple
 		// sampler types being set to texture unit 0
-		m_pShader->SetUniform1i(m_attribs.u_normalmap, 3);
-		m_pShader->SetUniform1i(m_attribs.u_spectexture, 4);
-
-		Vector vtransorigin;
-		Math::MatMultPosition(fltranspose, pdlight->origin, &vtransorigin);
-
-		Vector color;
-		Math::VectorCopy(pdlight->color, color);
-		gDynamicLights.ApplyLightStyle(pdlight, color);
-
-		m_pShader->SetUniform3f(m_attribs.u_light_origin, vtransorigin[0], vtransorigin[1], vtransorigin[2]);
-		m_pShader->SetUniform4f(m_attribs.u_color, color.x, color.y, color.z, 1.0);
-		m_pShader->SetUniform1f(m_attribs.u_light_radius, pdlight->radius);
+		m_pShader->SetUniform1i(m_attribs.u_normalmap, texunit);
+		m_pShader->SetUniform1i(m_attribs.u_spectexture, texunit+1);
 
 		for (Uint32 j = 0; j < m_numDrawSubmodels; j++)
 		{
@@ -2879,7 +3026,7 @@ bool CVBMRenderer::DrawLights( bool specularPass )
 					m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
 					m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
 
-					R_Bind2DTexture(GL_TEXTURE4, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
+					R_Bind2DTexture(GL_TEXTURE0+texunit+1, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
 				}
 
 				if(pmaterial->ptextures[MT_TX_NORMALMAP] && g_pCvarBumpMaps->GetValue() > 0)
@@ -2887,13 +3034,16 @@ bool CVBMRenderer::DrawLights( bool specularPass )
 					if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, true))
 						return false;
 
-					R_Bind2DTexture(GL_TEXTURE3, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
+					R_Bind2DTexture(GL_TEXTURE0+texunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
 				}
 				else
 				{
 					if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, false))
 						return false;
 				}
+
+				if(highestunit < texunit)
+					highestunit = texunit;
 
 				if(pmesh->numbones)
 				{
@@ -2908,16 +3058,58 @@ bool CVBMRenderer::DrawLights( bool specularPass )
 			}
 		}
 
-		if(pdlight->cone_size)
+		// Reset texunits
+		texunit = firstexunit;
+
+		batch.lightslist.begin();
+		while(!batch.lightslist.end())
 		{
-			if(DL_CanShadow(pdlight))
-				R_Bind2DTexture(GL_TEXTURE1, 0);
+			cl_dlight_t* pdlight = batch.lightslist.get();
+
+			if(pdlight->cone_size)
+			{
+				if(DL_CanShadow(pdlight))
+				{
+					R_Bind2DTexture(GL_TEXTURE1+texunit, 0);
+					texunit++;
+				}
+
+				R_Bind2DTexture(GL_TEXTURE0+texunit, 0);
+				texunit++;
+			}
+			else if(DL_CanShadow(pdlight))
+			{
+				R_BindCubemapTexture(GL_TEXTURE0+texunit, 0);
+				texunit++;
+			}
+
+			batch.lightslist.next();
 		}
-		else if(DL_CanShadow(pdlight))
+
+		// Reset everything
+		for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
 		{
-			R_BindCubemapTexture(GL_TEXTURE0, 0);
+			m_pShader->DisableSync(m_attribs.dlights[i].u_light_color);
+			m_pShader->DisableSync(m_attribs.dlights[i].u_light_origin);
+			m_pShader->DisableSync(m_attribs.dlights[i].u_light_radius);
+			m_pShader->DisableSync(m_attribs.dlights[i].u_light_cubemap);
+			m_pShader->DisableSync(m_attribs.dlights[i].u_light_projtexture);
+			m_pShader->DisableSync(m_attribs.dlights[i].u_light_shadowmap);
+			m_pShader->DisableSync(m_attribs.dlights[i].u_light_matrix);
+		
+			// Reset all of these
+			if(!m_pShader->SetDeterminator(m_attribs.dlights[i].d_light_shadowmap, FALSE, false))
+				return false;		
 		}
+
+		lightBatches.next();
 	}
+
+	R_Bind2DTexture(GL_TEXTURE0+highestunit, 0);
+	R_Bind2DTexture(GL_TEXTURE0+highestunit+1, 0);
+
+	if(!m_pShader->SetDeterminator(m_attribs.d_numdlights, 0, false))
+		return false;
 
 	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
 	gGLExtF.glActiveTexture(GL_TEXTURE0);
@@ -2943,12 +3135,19 @@ bool CVBMRenderer::DrawFinal ( void )
 	m_pShader->DisableSync(m_attribs.u_sky_ambient);
 	m_pShader->DisableSync(m_attribs.u_sky_diffuse);
 	m_pShader->DisableSync(m_attribs.u_sky_dir);
-	m_pShader->DisableSync(m_attribs.u_lightmatrix);
-	m_pShader->DisableSync(m_attribs.u_cubemap);
-	m_pShader->DisableSync(m_attribs.u_shadowmap);
-	m_pShader->DisableSync(m_attribs.u_light_origin);
 	m_pShader->DisableSync(m_attribs.u_light_radius);
 	m_pShader->DisableSync(m_attribs.u_normalmatrix);
+
+	for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
+	{
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_color);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_origin);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_radius);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_cubemap);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_projtexture);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_shadowmap);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_matrix);
+	}
 
 	m_pShader->EnableSync(m_attribs.u_projection);
 	m_pShader->EnableSync(m_attribs.u_modelview);
@@ -3277,7 +3476,7 @@ bool CVBMRenderer::DrawFinal ( void )
 		// Draw dynamic light specular lighting
 		if(m_numDynamicLights)
 		{
-			if(!DrawLights(TRUE))
+			if(!DrawLights(true))
 				return false;
 
 			if(m_useFlexes)
@@ -3453,13 +3652,20 @@ bool CVBMRenderer::DrawWireframe( void )
 	m_pShader->DisableSync(m_attribs.u_sky_ambient);
 	m_pShader->DisableSync(m_attribs.u_sky_diffuse);
 	m_pShader->DisableSync(m_attribs.u_sky_dir);
-	m_pShader->DisableSync(m_attribs.u_lightmatrix);
-	m_pShader->DisableSync(m_attribs.u_cubemap);
-	m_pShader->DisableSync(m_attribs.u_shadowmap);
-	m_pShader->DisableSync(m_attribs.u_light_origin);
 	m_pShader->DisableSync(m_attribs.u_light_radius);
 	m_pShader->DisableSync(m_attribs.u_normalmatrix);
 	m_pShader->DisableSync(m_attribs.u_texture0);
+
+	for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
+	{
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_color);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_origin);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_radius);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_cubemap);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_projtexture);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_shadowmap);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_matrix);
+	}
 
 	m_pShader->EnableSync(m_attribs.u_projection);
 	m_pShader->EnableSync(m_attribs.u_modelview);
@@ -4154,12 +4360,19 @@ bool CVBMRenderer::DrawDecals( void )
 	m_pShader->DisableSync(m_attribs.u_sky_ambient);
 	m_pShader->DisableSync(m_attribs.u_sky_diffuse);
 	m_pShader->DisableSync(m_attribs.u_sky_dir);
-	m_pShader->DisableSync(m_attribs.u_lightmatrix);
-	m_pShader->DisableSync(m_attribs.u_cubemap);
-	m_pShader->DisableSync(m_attribs.u_shadowmap);
-	m_pShader->DisableSync(m_attribs.u_light_origin);
 	m_pShader->DisableSync(m_attribs.u_light_radius);
 	m_pShader->DisableSync(m_attribs.u_normalmatrix);
+
+	for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
+	{
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_color);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_origin);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_radius);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_cubemap);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_projtexture);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_shadowmap);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_matrix);
+	}
 
 	m_pShader->EnableSync(m_attribs.u_projection);
 	m_pShader->EnableSync(m_attribs.u_modelview);
@@ -4953,11 +5166,8 @@ bool CVBMRenderer::PrepareVSM( cl_dlight_t *dl )
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
 
-	m_pShader->DisableSync(m_attribs.u_lightmatrix);
 	m_pShader->DisableSync(m_attribs.u_causticsm1);
 	m_pShader->DisableSync(m_attribs.u_causticsm2);
-	m_pShader->DisableSync(m_attribs.u_shadowmap);
-	m_pShader->DisableSync(m_attribs.u_cubemap);
 	m_pShader->DisableSync(m_attribs.u_normalmatrix);
 	m_pShader->DisableSync(m_attribs.u_flextexture);
 	m_pShader->DisableSync(m_attribs.u_flextexturesize);
@@ -4973,8 +5183,18 @@ bool CVBMRenderer::PrepareVSM( cl_dlight_t *dl )
 	m_pShader->EnableSync(m_attribs.u_projection);
 	m_pShader->EnableSync(m_attribs.u_modelview);
 	m_pShader->EnableSync(m_attribs.u_texture0);
-	m_pShader->EnableSync(m_attribs.u_light_origin);
 	m_pShader->EnableSync(m_attribs.u_light_radius);
+
+	for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
+	{
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_color);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_origin);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_radius);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_cubemap);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_projtexture);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_shadowmap);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_matrix);
+	}
 	return true;
 }
 
@@ -5241,12 +5461,8 @@ bool CVBMRenderer::PrepAuraPass( void )
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
 
-	m_pShader->DisableSync(m_attribs.u_lightmatrix);
 	m_pShader->DisableSync(m_attribs.u_causticsm1);
 	m_pShader->DisableSync(m_attribs.u_causticsm2);
-	m_pShader->DisableSync(m_attribs.u_shadowmap);
-	m_pShader->DisableSync(m_attribs.u_cubemap);
-	m_pShader->DisableSync(m_attribs.u_light_origin);
 	m_pShader->DisableSync(m_attribs.u_light_radius);
 	m_pShader->DisableSync(m_attribs.u_normalmatrix);
 	m_pShader->DisableSync(m_attribs.u_flextexture);
@@ -5258,6 +5474,17 @@ bool CVBMRenderer::PrepAuraPass( void )
 	m_pShader->DisableSync(m_attribs.u_sky_dir);
 	m_pShader->DisableSync(m_attribs.u_fogcolor);
 	m_pShader->DisableSync(m_attribs.u_fogparams);
+
+	for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
+	{
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_color);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_origin);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_radius);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_cubemap);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_projtexture);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_shadowmap);
+		m_pShader->DisableSync(m_attribs.dlights[i].u_light_matrix);
+	}
 
 	m_pShader->EnableSync(m_attribs.u_projection);
 	m_pShader->EnableSync(m_attribs.u_modelview);

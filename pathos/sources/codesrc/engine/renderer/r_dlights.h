@@ -16,7 +16,7 @@ All Rights Reserved.
 #include "dlight.h"
 
 // Max number of dynlight visents
-static const Uint32 MAX_DLIGHT_VISENTS		= 256;
+static const Uint32 DLIGHT_VISENTS_ALLOCSIZE = 256;
 
 enum vsmshadertype_t
 {
@@ -40,18 +40,19 @@ struct shadowmap_t
 	bool used;
 	Double freetime;
 	struct fbobind_t* pfbo;
+
+	CArray<struct fbobind_t*> pblitfboarray;
 };
 
-struct dlight_staticinfo_t
+struct dlight_sceneinfo_t
 {
-	dlight_staticinfo_t():
+	dlight_sceneinfo_t():
 		numvisents(0),
 		drawframe(0)
 		{
-			memset(pvisents, 0, sizeof(pvisents));
 		}
 
-	cl_entity_t* pvisents[MAX_DLIGHT_VISENTS];
+	CArray<cl_entity_t*> pvisents;
 	Uint32 numvisents;
 
 	Int32 drawframe;
@@ -170,7 +171,7 @@ public:
 	void ApplyLightStyle( cl_dlight_t* dl, Vector& color );
 
 	// Returns the projective shadowmap size
-	Int32 GetShadowmapSize( void ) const ;
+	Int32 GetShadowmapSize( void ) const;
 	// Returns the cubemap shadowmap size
 	Int32 GetCubeShadowmapSize( void ) const;
 	// Returns the dynamic light list
@@ -193,23 +194,33 @@ private:
 	// Clears shadow maps
 	void ClearShadowMaps( void );
 	// Updates static lights
-	void UpdateStaticLights( void );
+	void UpdateLights( void );
+
 	// Allocates a cubemap shadowmap
-	shadowmap_t *AllocCubemapShadowMap( void );
+	shadowmap_t *AllocCubemapShadowMap( bool allocblitmap );
 	// Allocates a projective shadowmap
-	shadowmap_t *AllocProjectiveShadowMap( void );
+	shadowmap_t *AllocProjectiveShadowMap( bool allocblitmap );
+
 	// Frees a dynamic light
 	void FreeDynamicLight( cl_dlight_t* pdlight, bool ignoreStatic = false );
 	// Sets up a dynamic light's pointers
-	void SetupLight( cl_dlight_t* pdlight, bool spotlight, bool noshadow, cl_entity_t *pentity );
+	void SetupLight( cl_dlight_t* pdlight, bool spotlight, bool noshadow, bool isstatic, cl_entity_t *pentity );
 
 	// Adds a lightstyle
 	void AddLightStyle( Uint32 index, Int32 framerate, bool interpolate, const Char* pstring );
 
 	// Creates a projective FBO
-	bool CreateProjectiveFBO( shadowmap_t& shadowmap ) const;
+	bool CreateProjectiveFBO( shadowmap_t& shadowmap );
 	// Creates a cubemap FBO
-	bool CreateCubemapFBO( shadowmap_t& shadowmap ) const;
+	bool CreateCubemapFBO( shadowmap_t& shadowmap );
+
+	// Creates blit FBOs for shadowmap
+	bool CreateShadowmapBlitFBOs( shadowmap_t& shadowmap, Uint32 shadowmapSize, Uint32 numFBO );
+	// Creates blit FBOs for shadowmap
+	void ReleaseShadowmapBlitFBOs( shadowmap_t& shadowmap );
+
+	// Blits shadowmaps for a dynamic light
+	void BlitDynamicLightShadowMaps( cl_dlight_t* pdlight );
 
 	// Initializes the FBOs
 	bool InitFBOs( void );
@@ -218,15 +229,19 @@ private:
 	// Checks FBO sizes for any changes
 	bool CheckFBOs( void );
 
+	// Returns a dynamic light by it's key and subkey
 	cl_dlight_t* GetLightByKey( Int32 key, Int32 subkey );
+
+	// Draws shadowmap passes for a light
+	bool DrawShadowMapPasses( cl_dlight_t *dl, cl_entity_t** pvisents, Int32 numentities, bool isfinal );
 
 private:
 	// Draws a projective shadow pass
-	bool DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pvisents, Int32 numentities );
+	bool DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pvisents, Int32 numentities, bool isfinal );
 	// Draws a cubemap shadow pass
-	bool DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int32 index, cl_entity_t** pvisents, Int32 numentities );
+	bool DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int32 index, cl_entity_t** pvisents, Int32 numentities, bool isfinal );
 	// Tell if static shadows need to be redrawn
-	static bool ShouldRedrawStaticMap( cl_dlight_t *dl );
+	static bool ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_sceneinfo_t* psceneinfo, bool isstatic );
 
 private:
 	// VSM shader
@@ -266,6 +281,8 @@ private:
 	CCVar* m_pCvarShadowmapSize;
 	// Controls cubemap shadowmap size
 	CCVar* m_pCvarCubeShadowmapSize;
+	// Controls whether we use shadowmap blitting
+	CCVar* m_pCvarShadowmapBlit;
 };
 extern CDynamicLightManager gDynamicLights;
 

@@ -676,7 +676,7 @@ bool CGLSLShader::LoadFromBSD( void )
 			{
 				if(i - lastPrompt > promptSpacing || i == (pBSDHeader->numshaders-1) || i == 0)
 				{
-					m_pProgressUpdateCallbackFn(m_shaderFile.c_str(), pBSDHeader->numshaders, i+1);
+					m_pProgressUpdateCallbackFn(m_shaderFile.c_str(), pBSDHeader->numshaders, i+1, false);
 					lastPrompt = i;
 				}
 			}
@@ -775,7 +775,7 @@ bool CGLSLShader::CompileCSDShaderData( void )
 		{
 			if(i - lastPrompt > promptSpacing || i == (m_shadersArray.size()-1))
 			{
-				m_pProgressUpdateCallbackFn(m_shaderFile.c_str(), m_shadersArray.size(), i+1);
+				m_pProgressUpdateCallbackFn(m_shaderFile.c_str(), m_shadersArray.size(), i+1, true);
 				lastPrompt = i;
 			}
 		}

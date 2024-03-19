@@ -57,7 +57,8 @@ CDynamicLightManager::CDynamicLightManager( void ):
 	m_shadowmapSize(0),
 	m_cubeShadowmapSize(0),
 	m_pCvarShadowmapSize(nullptr),
-	m_pCvarCubeShadowmapSize(nullptr)
+	m_pCvarCubeShadowmapSize(nullptr),
+	m_pCvarShadowmapBlit(nullptr)
 {
 }
 
@@ -77,6 +78,7 @@ bool CDynamicLightManager::Init( void )
 	// init cvars
 	m_pCvarShadowmapSize = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_shadowmap_proj_size", "512", "Controls resolution of projected light shadows.", R_CheckShadowmapSizeCvarCallBack );
 	m_pCvarCubeShadowmapSize = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_shadowmap_cube_size", "256", "Controls resolution of point light shadows.", R_CheckShadowmapSizeCvarCallBack );
+	m_pCvarShadowmapBlit = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_shadowmap_blitting", "1", "Enable or disable shadowmap blitting." );
 
 	return true;
 }
@@ -408,12 +410,14 @@ bool CDynamicLightManager::CheckFBOs( void )
 		while(!m_cubemapPoolList.end())
 		{
 			shadowmap_t* psm = m_cubemapPoolList.get();
-			if(!psm->used && psm->freetime != -1 && (rns.time - psm->freetime) > SHADOWMAP_RELEASE_DELAY)
+			if(!psm->used && psm->freetime != -1 
+				&& (rns.time - psm->freetime) > SHADOWMAP_RELEASE_DELAY)
 			{
 				m_cubemapPoolList.remove(m_cubemapPoolList.get_link());
 				if(psm->pfbo)
 				{
 					gGLExtF.glDeleteFramebuffers(1, &psm->pfbo->fboid);
+					ReleaseShadowmapBlitFBOs((*psm));
 					delete psm->pfbo;
 				}
 
@@ -431,12 +435,14 @@ bool CDynamicLightManager::CheckFBOs( void )
 		while(!m_projectivePoolList.end())
 		{
 			shadowmap_t* psm = m_projectivePoolList.get();
-			if(!psm->used && psm->freetime != -1 && (rns.time - psm->freetime) > SHADOWMAP_RELEASE_DELAY)
+			if(!psm->used && psm->freetime != -1 
+				&& (rns.time - psm->freetime) > SHADOWMAP_RELEASE_DELAY)
 			{
 				m_projectivePoolList.remove(m_projectivePoolList.get_link());
 				if(psm->pfbo)
 				{
 					gGLExtF.glDeleteFramebuffers(1, &psm->pfbo->fboid);
+					ReleaseShadowmapBlitFBOs((*psm));
 					delete psm->pfbo;
 				}
 
@@ -614,7 +620,7 @@ bool CDynamicLightManager::InitFBOs( void )
 //====================================
 //
 //====================================
-shadowmap_t *CDynamicLightManager::AllocProjectiveShadowMap( void )
+shadowmap_t *CDynamicLightManager::AllocProjectiveShadowMap( bool allocblitmap )
 {
 	shadowmap_t* pshadowmap = nullptr;
 
@@ -644,6 +650,12 @@ shadowmap_t *CDynamicLightManager::AllocProjectiveShadowMap( void )
 	if(!CreateProjectiveFBO(*pshadowmap))
 		return nullptr;
 
+	if(allocblitmap && m_pCvarShadowmapBlit->GetValue() >= 1)
+	{
+		if(!CreateShadowmapBlitFBOs((*pshadowmap), GetShadowmapSize(), 1))
+			return false;
+	}
+
 	m_projectivePoolList.add(pshadowmap);
 	return pshadowmap;
 }
@@ -651,7 +663,7 @@ shadowmap_t *CDynamicLightManager::AllocProjectiveShadowMap( void )
 //====================================
 //
 //====================================
-shadowmap_t *CDynamicLightManager::AllocCubemapShadowMap( void )
+shadowmap_t *CDynamicLightManager::AllocCubemapShadowMap( bool allocblitmap )
 {
 	shadowmap_t* pshadowmap = nullptr;
 
@@ -681,6 +693,12 @@ shadowmap_t *CDynamicLightManager::AllocCubemapShadowMap( void )
 	if(!CreateCubemapFBO(*pshadowmap))
 		return nullptr;
 
+	if(allocblitmap && m_pCvarShadowmapBlit->GetValue() >= 1)
+	{
+		if(!CreateShadowmapBlitFBOs((*pshadowmap), GetCubeShadowmapSize(), 6))
+			return false;
+	}
+
 	m_cubemapPoolList.add(pshadowmap);
 	return pshadowmap;
 }
@@ -688,7 +706,7 @@ shadowmap_t *CDynamicLightManager::AllocCubemapShadowMap( void )
 //====================================
 //
 //====================================
-bool CDynamicLightManager::CreateProjectiveFBO( shadowmap_t& shadowmap ) const
+bool CDynamicLightManager::CreateProjectiveFBO( shadowmap_t& shadowmap )
 {
 	if(!shadowmap.pfbo)
 		shadowmap.pfbo = new fbobind_t();
@@ -713,7 +731,7 @@ bool CDynamicLightManager::CreateProjectiveFBO( shadowmap_t& shadowmap ) const
 		Con_Printf("%s - FBO creation failed. Code returned: %d.\n", __FUNCTION__, (Int32)glGetError());
 		return false;
 	}
-		
+
 	gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -723,7 +741,7 @@ bool CDynamicLightManager::CreateProjectiveFBO( shadowmap_t& shadowmap ) const
 //====================================
 //
 //====================================
-bool CDynamicLightManager::CreateCubemapFBO( shadowmap_t& shadowmap ) const
+bool CDynamicLightManager::CreateCubemapFBO( shadowmap_t& shadowmap )
 {
 	// Create the cubemap
 	if(!shadowmap.pfbo)
@@ -781,6 +799,70 @@ void CDynamicLightManager::ClearCubemapShadowMap( shadowmap_t *psm )
 //====================================
 //
 //====================================
+bool CDynamicLightManager::CreateShadowmapBlitFBOs( shadowmap_t& shadowmap, Uint32 shadowmapSize, Uint32 numFBO )
+{
+	if(!shadowmap.pblitfboarray.empty())
+		ReleaseShadowmapBlitFBOs(shadowmap);
+
+	for(Uint32 i = 0; i < numFBO; i++)
+	{
+		fbobind_t* pfbo = new fbobind_t();
+		shadowmap.pblitfboarray.push_back(pfbo);
+
+		gGLExtF.glGenRenderbuffers(1, &pfbo->rboid1);
+		gGLExtF.glBindRenderbuffer(GL_RENDERBUFFER, pfbo->rboid1);
+		gGLExtF.glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA16, shadowmapSize, shadowmapSize);
+		gGLExtF.glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		gGLExtF.glGenRenderbuffers(1, &pfbo->rboid2);
+		gGLExtF.glBindRenderbuffer(GL_RENDERBUFFER, pfbo->rboid2);
+		gGLExtF.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, shadowmapSize, shadowmapSize);
+		gGLExtF.glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		gGLExtF.glGenFramebuffers(1, &pfbo->fboid);
+		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, pfbo->fboid);
+		gGLExtF.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, pfbo->rboid1);
+		gGLExtF.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, pfbo->rboid2);
+
+		GLenum eStatus = gGLExtF.glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if(eStatus != GL_FRAMEBUFFER_COMPLETE)
+		{
+			Con_Printf("%s - FBO creation failed. Code returned: %d.\n", __FUNCTION__, (Int32)glGetError());
+			return false;
+		}
+	}
+
+	gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+	return true;
+}
+
+//====================================
+//
+//====================================
+void CDynamicLightManager::ReleaseShadowmapBlitFBOs( shadowmap_t& shadowmap )
+{
+	if(shadowmap.pblitfboarray.empty())
+		return;
+
+	for(Uint32 i = 0; i < shadowmap.pblitfboarray.size(); i++)
+	{
+		fbobind_t* pfbobind = shadowmap.pblitfboarray[i];
+
+		gGLExtF.glDeleteFramebuffers(1, &pfbobind->fboid);
+		gGLExtF.glDeleteRenderbuffers(1, &pfbobind->rboid1);
+		gGLExtF.glDeleteRenderbuffers(1, &pfbobind->rboid2);
+
+		delete pfbobind;
+	}
+
+	shadowmap.pblitfboarray.clear();
+}
+
+//====================================
+//
+//====================================
 void CDynamicLightManager::DeleteFBOs( void )
 {
 	if(m_blurFBO.fboid)
@@ -822,6 +904,8 @@ void CDynamicLightManager::ClearShadowMaps( void )
 				delete psm->pfbo;
 			}
 
+			ReleaseShadowmapBlitFBOs((*psm));
+
 			delete psm;
 			m_cubemapPoolList.next();
 		}
@@ -841,6 +925,8 @@ void CDynamicLightManager::ClearShadowMaps( void )
 				gGLExtF.glDeleteFramebuffers(1, &psm->pfbo->fboid);
 				delete psm->pfbo;
 			}
+
+			ReleaseShadowmapBlitFBOs((*psm));
 
 			delete psm;
 			m_projectivePoolList.next();
@@ -867,7 +953,7 @@ void CDynamicLightManager::SetVIS( void )
 		cl_dlight_t *plight = m_dlightsList.get();
 
 		if(!DL_CanShadow(plight) || plight->key == CL_GetLocalPlayer()->entindex 
-			|| plight->isstatic && plight->pstaticinfo->drawframe != rns.framecount_main)
+			|| plight->isstatic && plight->psceneinfo->drawframe != rns.framecount_main)
 		{
 			m_dlightsList.next();
 			continue;
@@ -885,7 +971,7 @@ void CDynamicLightManager::SetVIS( void )
 //====================================
 //
 //====================================
-void CDynamicLightManager::UpdateStaticLights( void )
+void CDynamicLightManager::UpdateLights( void )
 {
 	// Loop through dynlights
 	m_dlightsList.begin();
@@ -894,10 +980,57 @@ void CDynamicLightManager::UpdateStaticLights( void )
 		CLinkedList<cl_dlight_t*>::link_t *plink = m_dlightsList.get_link();
 		cl_dlight_t *dl = plink->_val;
 
-		if(!dl->isstatic)
+		if(dl->noShadow())
 		{
 			m_dlightsList.next();
 			continue;
+		}
+
+		// Manage hot swapping of blitting
+		if(m_pCvarShadowmapBlit->GetValue() >= 1 && rns.fboused)
+		{
+			if(!dl->psceneinfo)
+			{
+				dl->psceneinfo = new dlight_sceneinfo_t();
+				dl->psceneinfo->drawframe = -1; // Set initial value
+			}
+
+			if(!dl->isstatic && !dl->psceneinfo_nonstatic)
+			{
+				dl->psceneinfo_nonstatic = new dlight_sceneinfo_t();
+				dl->psceneinfo_nonstatic->drawframe = -1; // Set initial value
+			}
+
+			if(dl->pshadowmap && dl->pshadowmap->pblitfboarray.empty())
+				CreateShadowmapBlitFBOs((*dl->pshadowmap), GetShadowmapSize(), 1);
+			else if(dl->psmcubemap && dl->psmcubemap->pblitfboarray.empty())
+				CreateShadowmapBlitFBOs((*dl->psmcubemap), GetCubeShadowmapSize(), 6);
+		}
+		else
+		{
+			if(dl->psceneinfo_nonstatic)
+			{
+				delete dl->psceneinfo_nonstatic;
+				dl->psceneinfo_nonstatic = nullptr;
+			}
+
+			if(dl->pshadowmap && !dl->pshadowmap->pblitfboarray.empty())
+				ReleaseShadowmapBlitFBOs((*dl->pshadowmap));
+
+			if(dl->psmcubemap && !dl->psmcubemap->pblitfboarray.empty())
+				ReleaseShadowmapBlitFBOs((*dl->psmcubemap));
+
+			if(!dl->isstatic)
+			{
+				if(dl->psceneinfo)
+				{
+					delete dl->psceneinfo;
+					dl->psceneinfo = nullptr;
+				}
+
+				m_dlightsList.next();
+				continue;
+			}
 		}
 
 		// Build mins/maxs
@@ -916,14 +1049,24 @@ void CDynamicLightManager::UpdateStaticLights( void )
 			continue;
 		}
 
-		if(ShouldRedrawStaticMap(dl))
+		if(ShouldRedrawShadowMap(dl, dl->psceneinfo, true))
 		{
 			// Redraw the shadow map for this frame
-			dl->pstaticinfo->drawframe = rns.framecount_main;
+			dl->psceneinfo->drawframe = rns.framecount_main;
+		}
+
+		if(!dl->isStatic() && m_pCvarShadowmapBlit->GetValue() >= 1)
+		{
+			if(ShouldRedrawShadowMap(dl, dl->psceneinfo_nonstatic, false)
+				|| dl->psceneinfo_nonstatic->drawframe == rns.framecount_main)
+			{
+				// Redraw the shadow map for this frame
+				dl->psceneinfo_nonstatic->drawframe = rns.framecount_main;
+			}
 		}
 
 		// Reset this
-		if(dl->cone_size && dl->pshadowmap && dl->pshadowmap->reset)
+		if(dl->pshadowmap && dl->pshadowmap->reset)
 			dl->pshadowmap->reset = false;
 		else if(dl->psmcubemap && dl->psmcubemap->reset)
 			dl->psmcubemap->reset = false;
@@ -947,7 +1090,7 @@ bool CDynamicLightManager::DrawPasses( void )
 		return true;
 
 	// Update static lights and set vis too
-	UpdateStaticLights();
+	UpdateLights();
 	SetVIS();
 
 	// Animate lightstyles
@@ -965,7 +1108,7 @@ bool CDynamicLightManager::DrawPasses( void )
 	{
 		cl_dlight_t* dl = m_dlightsList.get();
 
-		if (!DL_CanShadow(dl) || dl->isstatic && dl->pstaticinfo->drawframe != rns.framecount_main)
+		if (!DL_CanShadow(dl))
 		{
 			m_dlightsList.next();
 			continue;
@@ -988,49 +1131,54 @@ bool CDynamicLightManager::DrawPasses( void )
 			}
 		}
 
-		Int32 numentities = 0;
-		cl_entity_t** pentityarray = nullptr;
-
-		if(dl->isstatic)
+		if(m_pCvarShadowmapBlit->GetValue() >= 1 && !dl->isStatic()
+			&& (dl->psceneinfo->drawframe == rns.framecount_main
+			|| dl->psceneinfo_nonstatic->drawframe == rns.framecount_main))
 		{
-			pentityarray = dl->pstaticinfo->pvisents;
-			numentities = dl->pstaticinfo->numvisents;
-		}
-		else
-		{
-			pentityarray = &rns.objects.pvisents[0];
-			numentities = rns.objects.numvisents;
-		}
-
-		if(dl->cone_size)
-		{
-			glViewport(GL_ZERO, GL_ZERO, GetShadowmapSize(), GetShadowmapSize());
-			if(!DrawProjectivePass(dl, pentityarray, numentities))
+			// Draw static part if needed
+			if(dl->psceneinfo->drawframe == rns.framecount_main)
 			{
-				result = false;
-				break;
+				cl_entity_t** pvisents = (dl->psceneinfo->numvisents > 0) ? &dl->psceneinfo->pvisents[0] : nullptr;
+				result = DrawShadowMapPasses(dl, pvisents, dl->psceneinfo->numvisents, false);
+				if(!result)
+					break;
+			}
+
+			// Draw dynamic part
+			if(dl->psceneinfo->drawframe == rns.framecount_main 
+				|| dl->psceneinfo_nonstatic->drawframe == rns.framecount_main)
+			{
+				cl_entity_t** pvisents = (dl->psceneinfo_nonstatic->numvisents > 0) ? &dl->psceneinfo_nonstatic->pvisents[0] : nullptr;
+				result = DrawShadowMapPasses(dl, pvisents, dl->psceneinfo_nonstatic->numvisents, true);
+				if(!result)
+					break;
+			}
+		}
+		else if(dl->isstatic)
+		{
+			if(dl->psceneinfo->drawframe == rns.framecount_main)
+			{
+				// Draw using the static part
+				cl_entity_t** pvisents = (dl->psceneinfo->numvisents > 0) ? &dl->psceneinfo->pvisents[0] : nullptr;
+				result = DrawShadowMapPasses(dl, pvisents, dl->psceneinfo->numvisents, true);
+				if(!result)
+					break;
 			}
 		}
 		else
 		{
-			glViewport(GL_ZERO, GL_ZERO, GetCubeShadowmapSize(), GetCubeShadowmapSize());
-			if(!DrawCubemapPass(dl, Vector(0, -90, 180), 0, pentityarray, numentities) ||
-				!DrawCubemapPass(dl, Vector(0, 90, 180), 1, pentityarray, numentities) ||
-				!DrawCubemapPass(dl, Vector(-90, 0, 0), 2, pentityarray, numentities) ||
-				!DrawCubemapPass(dl, Vector(90, 0, 0), 3, pentityarray, numentities) ||
-				!DrawCubemapPass(dl, Vector(0, 180, 180), 4, pentityarray, numentities) ||
-				!DrawCubemapPass(dl, Vector(0, 0, 180), 5, pentityarray, numentities))
-			{
-				result = false;
-				break;
-			}
+			// Draw normal visents into final pass
+			DrawShadowMapPasses(dl, &rns.objects.pvisents[0], rns.objects.numvisents, true);
 		}
+
+		// Set these after rendering
+		dl->prevorigin = dl->origin;
+		dl->prevangles = dl->angles;
 
 		m_dlightsList.next();
 	}
 
-	if(rns.fboused)
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+	gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 
 	glViewport(GL_ZERO, GL_ZERO, rns.screenwidth, rns.screenheight);
 
@@ -1043,18 +1191,75 @@ bool CDynamicLightManager::DrawPasses( void )
 //====================================
 //
 //====================================
-bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pvisents, Int32 numentities )
+bool CDynamicLightManager::DrawShadowMapPasses( cl_dlight_t *dl, cl_entity_t** pentityarray, Int32 numentities, bool isfinal)
+{
+	if(dl->cone_size)
+	{
+		glViewport(GL_ZERO, GL_ZERO, GetShadowmapSize(), GetShadowmapSize());
+		if(!DrawProjectivePass(dl, pentityarray, numentities, isfinal))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		glViewport(GL_ZERO, GL_ZERO, GetCubeShadowmapSize(), GetCubeShadowmapSize());
+		if(!DrawCubemapPass(dl, Vector(0, -90, 180), 0, pentityarray, numentities, isfinal) ||
+			!DrawCubemapPass(dl, Vector(0, 90, 180), 1, pentityarray, numentities, isfinal) ||
+			!DrawCubemapPass(dl, Vector(-90, 0, 0), 2, pentityarray, numentities, isfinal) ||
+			!DrawCubemapPass(dl, Vector(90, 0, 0), 3, pentityarray, numentities, isfinal) ||
+			!DrawCubemapPass(dl, Vector(0, 180, 180), 4, pentityarray, numentities, isfinal) ||
+			!DrawCubemapPass(dl, Vector(0, 0, 180), 5, pentityarray, numentities, isfinal))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+//====================================
+//
+//====================================
+bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pvisents, Int32 numentities, bool isfinal )
 {
 	rns.view.frustum.SetFrustum(dl->angles, dl->origin, dl->cone_size, dl->radius);
 	Math::VectorCopy(dl->angles, rns.view.v_angles);
 	Math::VectorCopy(dl->origin, rns.view.v_origin);
 
-	if(rns.fboused)
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_renderFBO.fboid);
+	// If not static, blitting is enabled, and is the final, then blit from
+	// the cached shadowmap and render the dynamic elements
+	if(!dl->isStatic() && m_pCvarShadowmapBlit->GetValue() >= 1 && isfinal)
+	{
+		gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, dl->pshadowmap->pblitfboarray[0]->fboid);
+		gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_renderFBO.fboid);
 
-	//Completely clear everything
-	glClearColor(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		Uint32 shadowmapSize = GetShadowmapSize();
+
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+		gGLExtF.glBlitFramebuffer(0, 0, shadowmapSize, shadowmapSize, 0, 0, shadowmapSize, shadowmapSize, GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+		gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, 0),
+		gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_renderFBO.fboid);
+	}
+	else
+	{
+		// Otherwise if blit is enabled and it's not the final render,
+		// render into the blit map, otherwise render to the default
+		// FBO target
+		if(m_pCvarShadowmapBlit->GetValue() >= 1 && !isfinal)
+			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, dl->pshadowmap->pblitfboarray[0]->fboid);
+		else
+			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_renderFBO.fboid);
+
+		//Completely clear everything
+		glClearColor(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 
 	glCullFace(GL_FRONT);
 	glDisable(GL_BLEND);
@@ -1081,15 +1286,25 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 	// Render everything
 	rns.visframe = rns.view.pviewleaf->visframe;
 
-	if(!gBSPRenderer.DrawVSM(dl, pvisents, numentities))
+	// Do not draw world if we're blitting, and it's the final call
+	bool drawstatics;
+	if(!dl->isStatic() && m_pCvarShadowmapBlit->GetValue() >= 1 && isfinal)
+		drawstatics = false;
+	else
+		drawstatics = true;
+
+	if(!gBSPRenderer.DrawVSM(dl, pvisents, numentities, drawstatics))
 		return false;
 
 	if(!gVBMRenderer.DrawVSM(dl, pvisents, numentities))
 		return false;
 
-	// Draw any ladders on client
-	if(!cls.dllfuncs.pfnDrawLaddersForVSM(dl))
-		return false;
+	if(drawstatics)
+	{
+		// Draw any ladders on client
+		if(!cls.dllfuncs.pfnDrawLaddersForVSM(dl))
+			return false;
+	}
 
 	// Draw any view objects for shadows
 	entindex_t localPlayerIndex = CL_GetLocalPlayer()->entindex;
@@ -1123,63 +1338,64 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 	m_pVSMShader->EnableAttribute(m_vsmAttribs.a_origin);
 	m_pVSMShader->EnableAttribute(m_vsmAttribs.a_texcoord);
 
-	if(g_pCvarGaussianBlur->GetValue() > 0)
+	if(dl->isStatic() || isfinal)
 	{
-		// blur vertically
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_blurFBO.fboid);
-
-		if(!m_pVSMShader->SetDeterminator(m_vsmAttribs.d_type, VSM_SHADER_VBLUR))
+		if(g_pCvarGaussianBlur->GetValue() > 0)
 		{
-			Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
-			m_pVSMShader->DisableShader();
-			m_pVSMVBO->UnBind();
-			return false;
+			// blur vertically
+			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_blurFBO.fboid);
+
+			if(!m_pVSMShader->SetDeterminator(m_vsmAttribs.d_type, VSM_SHADER_VBLUR))
+			{
+				Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
+				m_pVSMShader->DisableShader();
+				m_pVSMVBO->UnBind();
+				return false;
+			}
+
+			R_Bind2DTexture(GL_TEXTURE0, m_renderFBO.ptexture1->gl_index);
+
+			glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			R_ValidateShader(m_pVSMShader);
+
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+
+			// blur vertically
+			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, dl->pshadowmap->pfbo->fboid);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			if(!m_pVSMShader->SetDeterminator(m_vsmAttribs.d_type, VSM_SHADER_HBLUR))
+			{
+				Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
+				m_pVSMShader->DisableShader();
+				m_pVSMVBO->UnBind();
+				return false;
+			}
+
+			R_Bind2DTexture(GL_TEXTURE0, m_blurFBO.ptexture1->gl_index);
+			R_ValidateShader(m_pVSMShader);
+
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
-
-		R_Bind2DTexture(GL_TEXTURE0, m_renderFBO.ptexture1->gl_index);
-
-		glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		R_ValidateShader(m_pVSMShader);
-
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		// blur vertically
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, dl->pshadowmap->pfbo->fboid);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		if(!m_pVSMShader->SetDeterminator(m_vsmAttribs.d_type, VSM_SHADER_HBLUR))
+		else
 		{
-			Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
-			m_pVSMShader->DisableShader();
-			m_pVSMVBO->UnBind();
-			return false;
+			// Update - Don't render, but rather just use a direct blit
+			gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, m_renderFBO.fboid);
+			gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dl->pshadowmap->pfbo->fboid);
+
+			Uint32 shadowmapSize = GetShadowmapSize();
+
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
+			glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+			// Only copy color
+			gGLExtF.glBlitFramebuffer(0, 0, shadowmapSize, shadowmapSize, 0, 0, shadowmapSize, shadowmapSize, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, 0),
+			gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
-
-		R_Bind2DTexture(GL_TEXTURE0, m_blurFBO.ptexture1->gl_index);
-		R_ValidateShader(m_pVSMShader);
-
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-	}
-	else
-	{
-		// just copy
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, dl->pshadowmap->pfbo->fboid);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		if(!m_pVSMShader->SetDeterminator(m_vsmAttribs.d_type, VSM_SHADER_COPY))
-		{
-			Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
-			m_pVSMShader->DisableShader();
-			m_pVSMVBO->UnBind();
-			return false;
-		}
-
-		R_Bind2DTexture(GL_TEXTURE0, m_renderFBO.ptexture1->gl_index);
-		R_ValidateShader(m_pVSMShader);
-
-		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 	rns.view.projection.PopMatrix();
@@ -1196,17 +1412,44 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 //====================================
 //
 //====================================
-bool CDynamicLightManager::DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int32 index, cl_entity_t** pvisents, Int32 numentities )
+bool CDynamicLightManager::DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int32 index, cl_entity_t** pvisents, Int32 numentities, bool isfinal )
 {
 	rns.view.frustum.SetFrustum(vangles, dl->origin, 90, dl->radius);
 	Math::VectorCopy(dl->origin, rns.view.v_origin);
 	Math::VectorCopy(vangles, rns.view.v_angles);
 	
-	gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_cubeRenderFBO.fboid);
+	// If not static, blitting is enabled, and is the final, then blit from
+	// the cached shadowmap and render the dynamic elements
+	if(!dl->isStatic() && m_pCvarShadowmapBlit->GetValue() >= 1 && isfinal)
+	{
+		gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, dl->psmcubemap->pblitfboarray[index]->fboid);
+		gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_cubeRenderFBO.fboid);
 
-	//Completely clear everything
-	glClearColor(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		Uint32 shadowmapSize = GetCubeShadowmapSize();
+
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+		gGLExtF.glBlitFramebuffer(0, 0, shadowmapSize, shadowmapSize, 0, 0, shadowmapSize, shadowmapSize, GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, 0),
+		gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_cubeRenderFBO.fboid);
+	}
+	else
+	{
+		// Otherwise if blit is enabled and it's not the final render,
+		// render into the blit map, otherwise render to the default
+		// FBO target
+		if(m_pCvarShadowmapBlit->GetValue() >= 1 && !isfinal)
+			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, dl->psmcubemap->pblitfboarray[index]->fboid);
+		else
+			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_cubeRenderFBO.fboid);
+
+		//Completely clear everything
+		glClearColor(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 
 	glCullFace(GL_FRONT);
 	glDisable(GL_BLEND);
@@ -1230,17 +1473,25 @@ bool CDynamicLightManager::DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int
 	// Render everything
 	rns.visframe = rns.view.pviewleaf->visframe;
 
-	// draw world
-	if(!gBSPRenderer.DrawVSM(dl, pvisents, numentities))
+	// Do not draw world if we're blitting, and it's the final call
+	bool drawstatics;
+	if(!dl->isStatic() && m_pCvarShadowmapBlit->GetValue() >= 1 && isfinal)
+		drawstatics = false;
+	else
+		drawstatics = true;
+
+	if(!gBSPRenderer.DrawVSM(dl, pvisents, numentities, drawstatics))
 		return false;
 
-	// draw models
 	if(!gVBMRenderer.DrawVSM(dl, pvisents, numentities))
 		return false;
 
-	// Draw any ladders on client
-	if(!cls.dllfuncs.pfnDrawLaddersForVSM(dl))
-		return false;
+	if(drawstatics)
+	{
+		// Draw any ladders on client
+		if(!cls.dllfuncs.pfnDrawLaddersForVSM(dl))
+			return false;
+	}
 
 	// Draw any view objects for shadows
 	if(!cls.dllfuncs.pfnDrawViewObjectsForVSM(dl))
@@ -1270,59 +1521,61 @@ bool CDynamicLightManager::DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int
 	m_pVSMShader->EnableAttribute(m_vsmAttribs.a_origin);
 	m_pVSMShader->EnableAttribute(m_vsmAttribs.a_texcoord);
 
-	if(g_pCvarGaussianBlur->GetValue() > 0)
+	if(dl->isStatic() || isfinal)
 	{
-		// blur vertically
-		if(!m_pVSMShader->SetDeterminator(m_vsmAttribs.d_type, VSM_SHADER_VBLUR))
+		if(g_pCvarGaussianBlur->GetValue() > 0)
 		{
-			Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
-			return false;
+			// blur vertically
+			if(!m_pVSMShader->SetDeterminator(m_vsmAttribs.d_type, VSM_SHADER_VBLUR))
+			{
+				Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
+				return false;
+			}
+
+			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_cubeBlurFBO.fboid);
+			R_Bind2DTexture(GL_TEXTURE0, m_cubeRenderFBO.ptexture1->gl_index);
+
+			glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			R_ValidateShader(m_pVSMShader);
+
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+
+			// blur horizontally
+			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, dl->psmcubemap->pfbo->fboid);
+			gGLExtF.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
+				GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, dl->psmcubemap->pfbo->ptexture1->gl_index, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			if(!m_pVSMShader->SetDeterminator(m_vsmAttribs.d_type, VSM_SHADER_HBLUR))
+			{
+				Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
+				return false;
+			}
+
+			R_Bind2DTexture(GL_TEXTURE0, m_cubeBlurFBO.ptexture1->gl_index);
+			R_ValidateShader(m_pVSMShader);
+
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
-
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_cubeBlurFBO.fboid);
-		R_Bind2DTexture(GL_TEXTURE0, m_cubeRenderFBO.ptexture1->gl_index);
-
-		glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		R_ValidateShader(m_pVSMShader);
-
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		// blur horizontally
-
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, dl->psmcubemap->pfbo->fboid);
-		gGLExtF.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, dl->psmcubemap->pfbo->ptexture1->gl_index, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		if(!m_pVSMShader->SetDeterminator(m_vsmAttribs.d_type, VSM_SHADER_HBLUR))
+		else
 		{
-			Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
-			return false;
+			// Update - Don't render, but rather just use a direct blit
+			gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, m_cubeRenderFBO.fboid);
+			gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dl->psmcubemap->pfbo->fboid);
+
+			Uint32 shadowmapSize = GetCubeShadowmapSize();
+
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
+			glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+			// Only copy color
+			gGLExtF.glBlitFramebuffer(0, 0, shadowmapSize, shadowmapSize, 0, 0, shadowmapSize, shadowmapSize, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, 0),
+			gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		}
-
-		R_Bind2DTexture(GL_TEXTURE0, m_cubeBlurFBO.ptexture1->gl_index);
-		R_ValidateShader(m_pVSMShader);
-
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-	}
-	else
-	{
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, dl->psmcubemap->pfbo->fboid);
-		gGLExtF.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, dl->psmcubemap->pfbo->ptexture1->gl_index, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		if(!m_pVSMShader->SetDeterminator(m_vsmAttribs.d_type, VSM_SHADER_COPY))
-		{
-			Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
-			return false;
-		}
-
-		R_Bind2DTexture(GL_TEXTURE0, m_cubeRenderFBO.ptexture1->gl_index);
-		R_ValidateShader(m_pVSMShader);
-
-		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 	rns.view.projection.PopMatrix();
@@ -1350,8 +1603,8 @@ void CDynamicLightManager::FreeDynamicLight( cl_dlight_t* pdlight, bool ignoreSt
 			ClearCubemapShadowMap(pdlight->psmcubemap);
 	}
 
-	if(pdlight->pstaticinfo)
-		delete pdlight->pstaticinfo;
+	if(pdlight->psceneinfo)
+		delete pdlight->psceneinfo;
 
 	if(pdlight->pfrustum)
 		delete pdlight->pfrustum;
@@ -1461,7 +1714,7 @@ void CDynamicLightManager::ClearGame( void )
 //====================================
 //
 //====================================
-void CDynamicLightManager::SetupLight( cl_dlight_t* pdlight, bool spotlight, bool noshadow, cl_entity_t *pentity )
+void CDynamicLightManager::SetupLight( cl_dlight_t* pdlight, bool spotlight, bool noshadow, bool isstatic, cl_entity_t *pentity )
 {
 	entity_extrainfo_t* pextrainfo = CL_GetEntityExtraData(pentity);
 
@@ -1469,6 +1722,8 @@ void CDynamicLightManager::SetupLight( cl_dlight_t* pdlight, bool spotlight, boo
 	{
 		if(!pextrainfo || !pextrainfo->pshadowmap)
 		{
+			bool allocblit = isstatic ? false : true;
+
 			// prevent cross-use
 			if(spotlight)
 			{
@@ -1476,7 +1731,7 @@ void CDynamicLightManager::SetupLight( cl_dlight_t* pdlight, bool spotlight, boo
 					ClearCubemapShadowMap(pdlight->psmcubemap);
 
 				if(!pdlight->pshadowmap)
-					pdlight->pshadowmap = AllocProjectiveShadowMap();
+					pdlight->pshadowmap = AllocProjectiveShadowMap(allocblit);
 			}
 			else
 			{
@@ -1484,7 +1739,7 @@ void CDynamicLightManager::SetupLight( cl_dlight_t* pdlight, bool spotlight, boo
 					ClearProjectiveShadowMap(pdlight->pshadowmap);
 
 				if(!pdlight->psmcubemap)
-					pdlight->psmcubemap = AllocCubemapShadowMap();
+					pdlight->psmcubemap = AllocCubemapShadowMap(allocblit);
 			}
 		}
 		else
@@ -1550,20 +1805,37 @@ cl_dlight_t* CDynamicLightManager::AllocDynamicSpotlight( Int32 key, Int32 subke
 			pdlight->nomaincull = false;
 			pdlight->decay_delay = 0;
 
-			if(!pdlight->isstatic && pdlight->pstaticinfo)
+			if(m_pCvarShadowmapBlit->GetValue() < 1 && rns.fboused)
 			{
-				// Remove it
-				delete pdlight->pstaticinfo;
-				pdlight->pstaticinfo = nullptr;
+				if(!pdlight->isstatic && pdlight->psceneinfo)
+				{
+					// Remove it
+					delete pdlight->psceneinfo;
+					pdlight->psceneinfo = nullptr;
+				}
+				else if(pdlight->isstatic && !pdlight->psceneinfo)
+				{
+					pdlight->psceneinfo = new dlight_sceneinfo_t();
+					pdlight->psceneinfo->drawframe = -1; // Set initial value
+				}
 			}
-			else if(pdlight->isstatic && !pdlight->pstaticinfo)
+			else
 			{
-				pdlight->pstaticinfo = new dlight_staticinfo_t();
-				pdlight->pstaticinfo->drawframe = -1; // Set initial value
+				if(!pdlight->psceneinfo)
+				{
+					pdlight->psceneinfo = new dlight_sceneinfo_t();
+					pdlight->psceneinfo->drawframe = -1; // Set initial value
+				}
+
+				if(!pdlight->isstatic && !pdlight->psceneinfo_nonstatic)
+				{
+					pdlight->psceneinfo_nonstatic = new dlight_sceneinfo_t();
+					pdlight->psceneinfo_nonstatic->drawframe = -1; // Set initial value
+				}
 			}
 
 			// Set the dynlight info
-			SetupLight(pdlight, true, noshadow, pentity);
+			SetupLight(pdlight, true, noshadow, isstatic, pentity);
 			return pdlight;
 		}
 	}
@@ -1582,7 +1854,7 @@ cl_dlight_t* CDynamicLightManager::AllocDynamicSpotlight( Int32 key, Int32 subke
 	m_dlightsList.add(pdlight);
 
 	// Set the dynlight infos
-	SetupLight(pdlight, true, noshadow, pentity);
+	SetupLight(pdlight, true, noshadow, isstatic, pentity);
 
 	// Set pointers in entity
 	if(pdlight->isstatic && pentity)
@@ -1597,10 +1869,27 @@ cl_dlight_t* CDynamicLightManager::AllocDynamicSpotlight( Int32 key, Int32 subke
 	}
 
 	// Allocate static dlight info if needed
-	if(pdlight->isstatic && !pdlight->pstaticinfo)
+	if(m_pCvarShadowmapBlit->GetValue() < 1 && rns.fboused)
 	{
-		pdlight->pstaticinfo = new dlight_staticinfo_t();
-		pdlight->pstaticinfo->drawframe = -1; // Set initial value
+		if(pdlight->isstatic && !pdlight->psceneinfo)
+		{
+			pdlight->psceneinfo = new dlight_sceneinfo_t();
+			pdlight->psceneinfo->drawframe = -1; // Set initial value
+		}
+	}
+	else
+	{
+		if(!pdlight->psceneinfo)
+		{
+			pdlight->psceneinfo = new dlight_sceneinfo_t();
+			pdlight->psceneinfo->drawframe = -1; // Set initial value
+		}
+
+		if(!pdlight->isstatic && !pdlight->psceneinfo_nonstatic)
+		{
+			pdlight->psceneinfo_nonstatic = new dlight_sceneinfo_t();
+			pdlight->psceneinfo_nonstatic->drawframe = -1; // Set initial value
+		}
 	}
 
 	return pdlight;
@@ -1627,20 +1916,37 @@ cl_dlight_t* CDynamicLightManager::AllocDynamicPointLight( Int32 key, Int32 subk
 			pdlight->nomaincull = false;
 			pdlight->decay_delay = 0;
 
-			if(!pdlight->isstatic && pdlight->pstaticinfo)
+			if(m_pCvarShadowmapBlit->GetValue() < 1 && rns.fboused)
 			{
-				// Remove it
-				delete pdlight->pstaticinfo;
-				pdlight->pstaticinfo = nullptr;
+				if(!pdlight->isstatic && pdlight->psceneinfo)
+				{
+					// Remove it
+					delete pdlight->psceneinfo;
+					pdlight->psceneinfo = nullptr;
+				}
+				else if(pdlight->isstatic && !pdlight->psceneinfo)
+				{
+					pdlight->psceneinfo = new dlight_sceneinfo_t();
+					pdlight->psceneinfo->drawframe = -1; // Set initial value
+				}
 			}
-			else if(pdlight->isstatic && !pdlight->pstaticinfo)
+			else
 			{
-				pdlight->pstaticinfo = new dlight_staticinfo_t();
-				pdlight->pstaticinfo->drawframe = -1; // Set initial value
+				if(!pdlight->psceneinfo)
+				{
+					pdlight->psceneinfo = new dlight_sceneinfo_t();
+					pdlight->psceneinfo->drawframe = -1; // Set initial value
+				}
+
+				if(!pdlight->isstatic && !pdlight->psceneinfo_nonstatic)
+				{
+					pdlight->psceneinfo_nonstatic = new dlight_sceneinfo_t();
+					pdlight->psceneinfo_nonstatic->drawframe = -1; // Set initial value
+				}
 			}
 
 			// Set the dynlight info
-			SetupLight(pdlight, false, noshadow, pentity);
+			SetupLight(pdlight, false, noshadow, isstatic, pentity);
 			return pdlight;
 		}
 	}
@@ -1659,7 +1965,7 @@ cl_dlight_t* CDynamicLightManager::AllocDynamicPointLight( Int32 key, Int32 subk
 	m_dlightsList.add(pdlight);
 
 	// Set the dynlight infos
-	SetupLight(pdlight, false, noshadow, pentity);
+	SetupLight(pdlight, false, noshadow, isstatic, pentity);
 
 	// Set pointers in entity
 	if(pdlight->isstatic && pentity)
@@ -1675,10 +1981,27 @@ cl_dlight_t* CDynamicLightManager::AllocDynamicPointLight( Int32 key, Int32 subk
 	}
 
 	// Allocate static dlight info if needed
-	if(pdlight->isstatic && !pdlight->pstaticinfo)
+	if(m_pCvarShadowmapBlit->GetValue() < 1 && rns.fboused)
 	{
-		pdlight->pstaticinfo = new dlight_staticinfo_t();
-		pdlight->pstaticinfo->drawframe = -1; // Set initial value
+		if(pdlight->isstatic && !pdlight->psceneinfo)
+		{
+			pdlight->psceneinfo = new dlight_sceneinfo_t();
+			pdlight->psceneinfo->drawframe = -1; // Set initial value
+		}
+	}
+	else
+	{
+		if(!pdlight->psceneinfo)
+		{
+			pdlight->psceneinfo = new dlight_sceneinfo_t();
+			pdlight->psceneinfo->drawframe = -1; // Set initial value
+		}
+
+		if(!pdlight->isstatic && !pdlight->psceneinfo_nonstatic)
+		{
+			pdlight->psceneinfo_nonstatic = new dlight_sceneinfo_t();
+			pdlight->psceneinfo_nonstatic->drawframe = -1; // Set initial value
+		}
 	}
 
 	return pdlight;
@@ -1707,7 +2030,7 @@ cl_dlight_t* CDynamicLightManager::GetLightByKey( Int32 key, Int32 subkey )
 //====================================
 //
 //====================================
-bool CDynamicLightManager::ShouldRedrawStaticMap( cl_dlight_t *dl )
+bool CDynamicLightManager::ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_sceneinfo_t* psceneinfo, bool isstatic )
 {
 	Vector lightmins, lightmaxs;
 	for(Int32 i = 0; i < 3; i++)
@@ -1716,8 +2039,12 @@ bool CDynamicLightManager::ShouldRedrawStaticMap( cl_dlight_t *dl )
 		lightmaxs[i] = dl->origin[i] + dl->radius;
 	}
 
+	// Number of new entities added, if any
 	Int32 numAdded = 0;
-	bool bRedraw = false;
+	// TODO - for now always redraw the dynamic shadowmap
+	bool bRedraw = false; 
+
+	// check if a new entity has been added to the list
 	for(Uint32 i = 0; i < rns.objects.numvisents; i++)
 	{
 		if(!rns.objects.pvisents[i]->pmodel)
@@ -1726,9 +2053,22 @@ bool CDynamicLightManager::ShouldRedrawStaticMap( cl_dlight_t *dl )
 		cl_entity_t* pvisentity = rns.objects.pvisents[i];
 
 		// Only static objects
-		if(pvisentity->curstate.movetype != MOVETYPE_NONE
-			&& !(pvisentity->curstate.effects & EF_STATICENTITY))
-			continue;
+		if(isstatic)
+		{
+			if(pvisentity->curstate.movetype != MOVETYPE_NONE
+				&& !(pvisentity->curstate.effects & EF_STATICENTITY)
+				|| !pvisentity->curstate.velocity.IsZero()
+				|| !pvisentity->curstate.avelocity.IsZero())
+				continue;
+		}
+		else
+		{
+			if(pvisentity->curstate.movetype == MOVETYPE_NONE
+				|| pvisentity->curstate.effects & EF_STATICENTITY
+				|| pvisentity->curstate.velocity.IsZero()
+				&& pvisentity->curstate.avelocity.IsZero())
+				continue;
+		}
 
 		// No transparents
 		if(R_IsEntityTransparent((*pvisentity)))
@@ -1762,34 +2102,38 @@ bool CDynamicLightManager::ShouldRedrawStaticMap( cl_dlight_t *dl )
 			Math::VectorCopy(pinfo->absmax, maxs);
 		}
 
+		// Always do this - it's cheaper
+		if(Math::CheckMinsMaxs(mins, maxs, lightmins, lightmaxs))
+			continue;
+
+		// Do extra cull for frustum if spotlight
 		if(dl->cone_size && dl->pfrustum)
 		{
 			if(dl->pfrustum->CullBBox(mins, maxs))
 				continue;
 		}
-		else
-		{
-			if(Math::CheckMinsMaxs(mins, maxs, lightmins, lightmaxs))
-				continue;
-		}
 
 		// Check if this entity is already present in the list
 		Uint32 j = 0;
-		for(; j < dl->pstaticinfo->numvisents; j++)
+		if(!psceneinfo->pvisents.empty())
 		{
-			if(pvisentity == dl->pstaticinfo->pvisents[j])
-				break;
+			for(; j < psceneinfo->numvisents; j++)
+			{
+				if(pvisentity == psceneinfo->pvisents[j])
+					break;
+			}
 		}
 		
-		if(j == dl->pstaticinfo->numvisents)
+		if(psceneinfo->pvisents.empty() 
+			|| j == psceneinfo->numvisents)
 		{
-			if(dl->pstaticinfo->numvisents == MAX_DLIGHT_VISENTS)
-				return (numAdded > 0) ? true : false;
+			if(psceneinfo->pvisents.empty()
+				|| psceneinfo->numvisents == psceneinfo->pvisents.size())
+				psceneinfo->pvisents.resize(psceneinfo->pvisents.size() + DLIGHT_VISENTS_ALLOCSIZE);
 
 			// Add the missing entity to the list
-			dlight_staticinfo_t *pinfo = dl->pstaticinfo;
-			pinfo->pvisents[pinfo->numvisents] = pvisentity;
-			pinfo->numvisents++;
+			psceneinfo->pvisents[psceneinfo->numvisents] = pvisentity;
+			psceneinfo->numvisents++;
 
 			// We'll need to redraw this light
 			bRedraw = true;
@@ -1797,8 +2141,23 @@ bool CDynamicLightManager::ShouldRedrawStaticMap( cl_dlight_t *dl )
 		}
 	}
 
+	if(!isstatic && psceneinfo->numvisents > 0)
+	{
+		for(Uint32 i = 0; i < psceneinfo->numvisents; i++)
+		{
+			cl_entity_t* pentity = psceneinfo->pvisents[i];
+			if(!Math::VectorCompare(pentity->curstate.origin, pentity->prevstate.origin)
+				|| !Math::VectorCompare(pentity->curstate.angles, pentity->prevstate.angles)
+				|| pentity->pmodel->type == MOD_VBM && !(pentity->curstate.effects & EF_STATICENTITY))
+			{
+				// If an entity has changed, then redraw the non-static map
+				return true;
+			}
+		}
+	}
+
 	// If we haven't drawn a shadowmap yet
-	if(dl->pstaticinfo->drawframe == -1)
+	if(dl->psceneinfo->drawframe == -1)
 		return true;
 
 	// Check for resets
@@ -1806,7 +2165,12 @@ bool CDynamicLightManager::ShouldRedrawStaticMap( cl_dlight_t *dl )
 	if(pshadowmap->reset)
 		return true;
 
-	return bRedraw;
+	// Redraw if dlight moved
+	if(!Math::VectorCompare(dl->origin, dl->prevorigin)
+		|| !Math::VectorCompare(dl->angles, dl->prevangles))
+		return true;
+
+	return true;
 }
 
 //====================================
@@ -1854,9 +2218,9 @@ void CDynamicLightManager::ReleaseEntityDynamicLights( entindex_t entindex )
 		{
 			// Clear the shadow map
 			if(pextradata->pshadowmap->projective)
-				gDynamicLights.ClearProjectiveShadowMap(pextradata->pshadowmap);
+				ClearProjectiveShadowMap(pextradata->pshadowmap);
 			else
-				gDynamicLights.ClearCubemapShadowMap(pextradata->pshadowmap);
+				ClearCubemapShadowMap(pextradata->pshadowmap);
 
 			// Remove the pointer
 			pextradata->pshadowmap = nullptr;

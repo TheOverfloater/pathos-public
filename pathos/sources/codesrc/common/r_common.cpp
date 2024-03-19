@@ -24,7 +24,7 @@ All Rights Reserved.
 //=============================================
 Int32 R_StyleIndex ( const msurface_t *psurface, Uint32 style )
 {
-	for (Uint32 j = 0 ; j < V30_MAX_LIGHTMAPS && psurface->styles[j] != 255 ; j++)
+	for (Uint32 j = 0 ; j < psurface->styles.size() && psurface->styles[j] != 255 ; j++)
 	{
 		if (psurface->styles[j] == style)
 			return j;

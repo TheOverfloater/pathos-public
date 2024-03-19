@@ -22,9 +22,9 @@ static const Uint32 LIGHTCHECK_DISTANCE			= 16;
 static const Uint32 MAX_ACTIVE_PARTICLES		= 32768;
 
 // Max lights for projective type
-static const Uint32 MAX_PARTICLE_POINT_LIGHTS	= 2;
+static const Uint32 MAX_PARTICLE_POINT_LIGHTS	= 4;
 // Max lights for projective type
-static const Uint32 MAX_PARTICLE_PROJ_LIGHTS	= 2;
+static const Uint32 MAX_PARTICLE_PROJ_LIGHTS	= 4;
 
 enum particle_lightflags_t
 {

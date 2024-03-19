@@ -21,5 +21,5 @@ extern void VID_BeginLoading( bool drawUI );
 extern void VID_EndLoading( void );
 extern void VID_DrawSceneOnly( void );
 extern void VID_GetScreenContents( Uint32& width, Uint32& height, Uint32& bpp, byte** pdata );
-extern void VID_ShaderCompileCallback( const Char* pstrShaderName, Uint32 totalCount, Uint32 completedCount );
+extern void VID_ShaderCompileCallback( const Char* pstrShaderName, Uint32 totalCount, Uint32 completedCount, bool buildingCache );
 #endif

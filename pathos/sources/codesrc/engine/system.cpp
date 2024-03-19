@@ -1004,7 +1004,7 @@ void Sys_Frame( Double frametime )
 //=============================================
 // @brief Manages the main application loop
 //
-// @param pparams Launch parameters string
+// @param argsArray Array of launch args
 // @return Status code
 //=============================================
 Int32 Sys_Main( CArray<CString>* argsArray )

@@ -37,7 +37,8 @@ public:
 		nomaincull(false),
 		pshadowmap(nullptr),
 		psmcubemap(nullptr),
-		pstaticinfo(nullptr),
+		psceneinfo(nullptr),
+		psceneinfo_nonstatic(nullptr),
 		pfrustum(nullptr)
 	{
 	}
@@ -92,7 +93,11 @@ private:
 	struct shadowmap_t *pshadowmap;
 	struct shadowmap_t *psmcubemap;
 
-	struct dlight_staticinfo_t* pstaticinfo;
+	struct dlight_sceneinfo_t* psceneinfo;
+	struct dlight_sceneinfo_t* psceneinfo_nonstatic;
+
+	Vector prevorigin;
+	Vector prevangles;
 
 public:
 	class CFrustum* pfrustum;

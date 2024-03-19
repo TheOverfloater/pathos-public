@@ -38,7 +38,9 @@ CFuncWallToggle::~CFuncWallToggle( void )
 bool CFuncWallToggle::Spawn( void )
 {
 	m_pState->movetype = MOVETYPE_PUSH;
-	m_pState->effects |= EF_STATICENTITY;
+
+	if(m_pFields->targetname == NO_STRING_VALUE)
+		m_pState->effects |= EF_STATICENTITY;
 
 	if(m_pState->renderamt == 0 
 		&& (m_pState->rendermode & RENDERMODE_BITMASK) == RENDER_TRANSCOLOR)

@@ -64,6 +64,54 @@
 	{ "1.000000" }
 }
 
+"r_shadowmap_blitting"
+{
+	"Shadowmap optimization"
+	{
+		UIDropDownList
+		"No optimization" "0"
+		"Static buffer optimization" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_lightbatches"
+{
+	"Multi-pass light batching"
+	{
+		UIDropDownList
+		"Disabled" "0"
+		"Enabled" "1"
+	}
+	{ "1.000000" }
+}
+
+"r_shadowmap_proj_size"
+{
+	"Projective shadowmap resolution"
+	{
+		UIDropDownList
+		"128x128" "128"
+		"256x256" "256"
+		"512x512" "512"
+		"1024x1024" "1024"
+	}
+	{ "512.000000" }
+}
+
+"r_shadowmap_cube_size"
+{
+	"Point light shadowmap resolution"
+	{
+		UIDropDownList
+		"64x64" "64"
+		"128x128" "128"
+		"256x256" "256"
+		"512x512" "512"
+	}
+	{ "128.000000" }
+}
+
 "r_glowaura"
 {
 	"Glow auras"
@@ -194,3 +242,4 @@
 	}
 	{ "2.000000" }
 }
+

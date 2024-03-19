@@ -14,8 +14,8 @@ All Rights Reserved.
 
 class CGLExtF;
 
-#define MAX_DETERMINATORS		8
-#define MAX_VARIATIONS			2048
+#define MAX_DETERMINATORS		16
+#define MAX_VARIATIONS			4096
 
 #define SHADER_VERTEX			0
 #define SHADER_FRAGMENT			1
@@ -36,7 +36,7 @@ class CGLSLShader
 {
 public:
 	// Typedef for progress update function
-	typedef void (*pfnProgressUpdateFunction_t)( const Char* pstrShaderName, Uint32 totalCount, Uint32 completedCount );
+	typedef void (*pfnProgressUpdateFunction_t)( const Char* pstrShaderName, Uint32 totalCount, Uint32 completedCount, bool buildingCache );
 
 public:
 	enum shaderflags_t

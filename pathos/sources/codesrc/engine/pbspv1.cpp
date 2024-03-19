@@ -445,6 +445,7 @@ bool PBSPV1_LoadFaces( const byte* pfile, brushmodel_t& model, const lump_t& lum
 		if(!PBSPV1_CalcSurfaceExtents(pout, model))
 			return false;
 
+		pout->styles.resize(PBSPV1_MAX_LIGHTMAPS);
 		for(Uint32 j = 0; j < PBSPV1_MAX_LIGHTMAPS; j++)
 			pout->styles[j] = pinfaces[i].lmstyles[j];
 		

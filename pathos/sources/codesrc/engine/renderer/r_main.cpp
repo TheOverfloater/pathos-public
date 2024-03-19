@@ -88,7 +88,8 @@ CCVar* g_pCvarStats = nullptr;
 CCVar* g_pCvarCubemaps = nullptr;
 CCVar* g_pCvarDrawOrigins = nullptr;
 CCVar* g_pCvarAnisotropy = nullptr;
-CCVar* g_pCvarWadChecks = nullptr;
+CCVar* g_pCvarWadTextureChecks = nullptr;
+CCVar* g_pCvarBspTextureChecks = nullptr;
 CCVar* g_pCvarGLSLOnDemand = nullptr;
 CCVar* g_pCvarGLSLActiveLoad = nullptr;
 CCVar* g_pCvarGLSLActiveMaxShaders = nullptr;
@@ -100,6 +101,7 @@ CCVar* g_pCvarGraphHeight = nullptr;
 CCVar* g_pCvarTimeGraph = nullptr;
 CCVar* g_pCvarOcclusionQueries = nullptr;
 CCVar* g_pCvarTraceGlow = nullptr;
+CCVar* g_pCvarBatchDynamicLights = nullptr;
 
 // Caustics texture list file path
 static const Char CAUSTICS_TEXTURE_FILE_PATH[] = "textures/general/caustics_textures.txt";
@@ -174,7 +176,8 @@ bool R_Init( void )
 	g_pCvarCubemaps = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_cubemaps", "1", "Toggles cubemap reflections" );
 	g_pCvarDrawOrigins = gConsole.CreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "r_draworigins", "0", "Toggle rendering of origin points");
 	g_pCvarAnisotropy = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_GL_DEPENDENT|FL_CV_CLIENT|FL_CV_SAVE), ANISOTROPY_CVAR_NAME, "0", "Controls texture anisotropy", R_AnisotropyCvarCallBack);
-	g_pCvarWadChecks = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_wadchecks", "0", "Perform checks for wad textures without scripts." );
+	g_pCvarWadTextureChecks = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_wadtexturechecks", "0", "Perform checks for WAD textures without scripts." );
+	g_pCvarBspTextureChecks = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT | FL_CV_SAVE), "r_bsptexturechecks", "0", "Perform checks for BSP textures without scripts.");
 	g_pCvarGLSLOnDemand = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_glsl_ondemand", "1", "On-demand load GLSL shaders." );
 	g_pCvarGLSLActiveLoad = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_glsl_activeload", "1", "Load shaders during active runtime." );
 	g_pCvarGLSLActiveMaxShaders = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_glsl_activeload_max_shaders", "4", "Max number of shaders loaded each frame for active load.", R_ActiveLoadMaxShadersCvarCallBack);
@@ -186,6 +189,7 @@ bool R_Init( void )
 	g_pCvarTimeGraph = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_timegraph", "0", "Show render performance timegraph." );
 	g_pCvarOcclusionQueries = gConsole.CreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "r_glowocclusion", "1", "Toggles the use of occlusion queries for glows." );
 	g_pCvarTraceGlow = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_traceglow", "0", "Enable/disable performance intensive trace tests." );
+	g_pCvarBatchDynamicLights = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_lightbatches", "0", "Controls whether light rendering is batched based on proximity and type of light." );
 
 	gCommands.CreateCommand("r_exportald", ALD_ExportLightmaps, "Exports current lightmap info as nightstage light info");
 	gCommands.CreateCommand("r_detail_auto", Cmd_DetailAuto, "Generates detail texture entries for world textures without");

@@ -1,10 +1,10 @@
 $global_determinator fog 0 1
-$global_determinator num_point_lights 0 2
-$global_determinator num_proj_lights 0 2
+$global_determinator num_point_lights 0 4
+$global_determinator num_proj_lights 0 4
 $global_determinator type 0 1
 $global_determinator alphatest 0 2
-$invalid_state 2 type 1 1 num_point_lights 1 2
-$invalid_state 2 type 1 1 num_proj_lights 1 2
+$invalid_state 2 type 1 1 num_point_lights 1 4
+$invalid_state 2 type 1 1 num_proj_lights 1 4
 $invalid_state 2 alphatest 1 2 type 1 1
 $shader_vertex $begin
 #version 130
@@ -14,6 +14,8 @@ uniform mat4 modelview;
 
 uniform mat4 proj_lights_0_matrix;
 uniform mat4 proj_lights_1_matrix;
+uniform mat4 proj_lights_2_matrix;
+uniform mat4 proj_lights_3_matrix;
 
 in vec4 in_position;
 in vec2 in_texcoord;
@@ -26,6 +28,8 @@ out vec4 ps_fragcoord;
 
 out vec4 ps_proj_l0vertexcoord;
 out vec4 ps_proj_l1vertexcoord;
+out vec4 ps_proj_l2vertexcoord;
+out vec4 ps_proj_l3vertexcoord;
 
 void main()
 {
@@ -42,9 +46,19 @@ void main()
 		ps_vertexpos = position.xyz;
 	$end
 
-	$branch num_proj_lights == 2
+	$branch num_proj_lights >= 2
 	$begin
 		ps_proj_l1vertexcoord = proj_lights_1_matrix * position;
+	$end
+
+	$branch num_proj_lights >= 3
+	$begin
+		ps_proj_l2vertexcoord = proj_lights_2_matrix * position;
+	$end
+
+	$branch num_proj_lights >= 4
+	$begin
+		ps_proj_l3vertexcoord = proj_lights_3_matrix * position;
 	$end
 
 	vec4 fragcoord = position*projection;
@@ -64,6 +78,8 @@ $shader_fragment $begin
 uniform sampler2D texture0;
 uniform sampler2D proj_lights_0_texture;
 uniform sampler2D proj_lights_1_texture;
+uniform sampler2D proj_lights_2_texture;
+uniform sampler2D proj_lights_3_texture;
 
 uniform sampler2DRect rtexture0;
 uniform sampler2DRect rtexture1;
@@ -76,6 +92,14 @@ uniform vec3 point_lights_1_origin;
 uniform vec3 point_lights_1_color;
 uniform float point_lights_1_radius;
 
+uniform vec3 point_lights_2_origin;
+uniform vec3 point_lights_2_color;
+uniform float point_lights_2_radius;
+
+uniform vec3 point_lights_3_origin;
+uniform vec3 point_lights_3_color;
+uniform float point_lights_3_radius;
+
 uniform vec3 proj_lights_0_origin;
 uniform vec3 proj_lights_0_color;
 uniform float proj_lights_0_radius;
@@ -83,6 +107,14 @@ uniform float proj_lights_0_radius;
 uniform vec3 proj_lights_1_origin;
 uniform vec3 proj_lights_1_color;
 uniform float proj_lights_1_radius;
+
+uniform vec3 proj_lights_2_origin;
+uniform vec3 proj_lights_2_color;
+uniform float proj_lights_2_radius;
+
+uniform vec3 proj_lights_3_origin;
+uniform vec3 proj_lights_3_color;
+uniform float proj_lights_3_radius;
 
 uniform vec2 fogparams;
 uniform vec3 fogcolor;
@@ -96,6 +128,8 @@ in vec4 ps_fragcoord;
 
 in vec4 ps_proj_l0vertexcoord;
 in vec4 ps_proj_l1vertexcoord;
+in vec4 ps_proj_l2vertexcoord;
+in vec4 ps_proj_l3vertexcoord;
 
 out vec4 oColor;
 
@@ -146,9 +180,19 @@ void main()
 		finalColor.xyz += AddPointLight(point_lights_0_origin, point_lights_0_color, point_lights_0_radius, ps_vertexpos);
 	$end
 
-	$branch num_point_lights == 2
+	$branch num_point_lights >= 2
 	$begin
 		finalColor.xyz += AddPointLight(point_lights_1_origin, point_lights_1_color, point_lights_1_radius, ps_vertexpos);
+	$end
+
+	$branch num_point_lights >= 3
+	$begin
+		finalColor.xyz += AddPointLight(point_lights_2_origin, point_lights_2_color, point_lights_2_radius, ps_vertexpos);
+	$end
+
+	$branch num_point_lights == 4
+	$begin
+		finalColor.xyz += AddPointLight(point_lights_3_origin, point_lights_3_color, point_lights_3_radius, ps_vertexpos);
 	$end
 
 	$branch num_proj_lights >= 1
@@ -156,10 +200,20 @@ void main()
 		finalColor.xyz += AddProjLight(proj_lights_0_origin, proj_lights_0_color, proj_lights_0_radius, ps_vertexpos, ps_proj_l0vertexcoord, proj_lights_0_texture);
 	$end
 
-	$branch num_proj_lights == 2
+	$branch num_proj_lights >= 2
 	$begin
 		finalColor.xyz += AddProjLight(proj_lights_1_origin, proj_lights_1_color, proj_lights_1_radius, ps_vertexpos, ps_proj_l1vertexcoord, proj_lights_1_texture);
 	$end
+	
+	$branch num_proj_lights >= 3
+	$begin
+		finalColor.xyz += AddProjLight(proj_lights_2_origin, proj_lights_2_color, proj_lights_2_radius, ps_vertexpos, ps_proj_l2vertexcoord, proj_lights_2_texture);
+	$end
+
+	$branch num_proj_lights == 4
+	$begin
+		finalColor.xyz += AddProjLight(proj_lights_3_origin, proj_lights_3_color, proj_lights_3_radius, ps_vertexpos, ps_proj_l3vertexcoord, proj_lights_3_texture);
+	$end	
 	
 	$branch type == 0
 	$begin

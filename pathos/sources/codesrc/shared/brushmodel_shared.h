@@ -230,7 +230,6 @@ struct msurface_t
 	{
 		memset(texturemins, 0, sizeof(texturemins));
 		memset(extents, 0, sizeof(extents));
-		memset(styles, 0, sizeof(styles));
 	}
 
 	// Visframe this was drawn on
@@ -264,7 +263,11 @@ struct msurface_t
 	Vector maxs;
 
 	// lightmap styles
-	byte styles[V30_MAX_LIGHTMAPS];
+	// made this an array as part
+	// of getting rid of fixed size
+	// arrays. will depend on bsp
+	// loader logic from now on
+	CArray<byte> styles;
 	// Pointer to lightmap samples
 	color24_t* psamples;
 	// original offset value into samples

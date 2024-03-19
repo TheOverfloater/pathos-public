@@ -190,6 +190,9 @@ bool CWindow::Init( void )
 	}
 
 	// Set default(off) value for multisample
+	if(!m_multiSampleSettingsArray.empty())
+		m_multiSampleSettingsArray.clear();
+
 	m_multiSampleSettingsArray.push_back(0);
 
 	// Set up multisampling

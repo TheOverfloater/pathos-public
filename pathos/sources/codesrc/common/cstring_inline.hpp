@@ -619,7 +619,7 @@ inline void CString::erase( Uint32 begin, Uint32 numremove )
 //=============================================
 inline void CString::insert( Uint32 begin, const Char* pstrsubstr )
 {
-	assert(begin < m_stringLength);
+	assert(begin <= m_stringLength);
 
 	Uint32 substrlength = qstrlen(pstrsubstr);
 	Char* pstrnew = new Char[m_stringLength + substrlength + 1];

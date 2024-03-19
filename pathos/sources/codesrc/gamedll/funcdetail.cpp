@@ -42,7 +42,9 @@ bool CFuncDetail::Spawn( void )
 
 	m_pState->movetype = MOVETYPE_PUSH;
 	m_pState->solid = SOLID_BSP;
-	m_pState->effects |= EF_STATICENTITY;
+
+	if(m_pFields->targetname == NO_STRING_VALUE)
+		m_pState->effects |= EF_STATICENTITY;
 
 	if(m_pState->rendermode == RENDER_NORMAL
 		|| (m_pState->rendermode & RENDERMODE_BITMASK) == RENDER_TRANSALPHA)
