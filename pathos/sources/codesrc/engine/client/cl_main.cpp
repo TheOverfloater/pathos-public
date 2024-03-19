@@ -625,12 +625,21 @@ bool CL_InitGame( void )
 
 		// Legacy texture managing object
 		ens.pwadresource = new CWADTextureResource();
-		if(!ens.pwadresource->Init(ens.pworld->name.c_str(), wadFilesList, true))
-			Con_Printf("%s - Failed to set up wad textures.\n", __FUNCTION__);
+		if (!ens.pwadresource->Init(
+			ens.pworld->name.c_str(),
+			wadFilesList,
+			(g_pCvarWadTextureChecks->GetValue() >= 1) ? true : false,
+			(g_pCvarBspTextureChecks->GetValue() >= 1) ? true : false))
+		{
+			// Link up WAD textures with their material scripts
+			CL_LinkMapTextureMaterials(wadFilesList);
+		}
+		else
+		{
+			// Log failure
+			Con_EPrintf("%s - Failed to initialize WAD resources.\n", __FUNCTION__);
+		}
 	}
-
-	// Link up WAD textures with their material scripts
-	CL_LinkMapTextureMaterials(wadFilesList);
 
 	// Call renderer to initialize
 	if(!R_InitGame())

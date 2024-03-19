@@ -379,8 +379,14 @@ void CBSPRenderer::LoadTextures( void )
 	{
 		// WAD texture managing object
 		ens.pwadresource = new CWADTextureResource();
-		if(!ens.pwadresource->Init(ens.pworld->name.c_str(), wadFilesList, (g_pCvarWadChecks->GetValue() >= 1) ? true : false))
+		if(!ens.pwadresource->Init(
+			ens.pworld->name.c_str(), 
+			wadFilesList, 
+			(g_pCvarWadTextureChecks->GetValue() >= 1) ? true : false,
+			(g_pCvarBspTextureChecks->GetValue() >= 1) ? true : false))
+		{
 			Con_Printf("%s - Failed to set up wad textures.\n", __FUNCTION__);
+		}
 	}
 
 	VID_DrawLoadingScreen("Loading world textures");
