@@ -617,7 +617,9 @@ bool CL_InitGame( void )
 		wadFilesList.clear();
 	}
 
-	// Manage WAD resource object
+	// Manage WAD resource object - This will have already been set
+	// by server for localhost, so in that case ens.pwadresource will
+	// be already set
 	if(!ens.pwadresource)
 	{
 		// Update loading screen
@@ -631,7 +633,7 @@ bool CL_InitGame( void )
 			(g_pCvarWadTextureChecks->GetValue() >= 1) ? true : false,
 			(g_pCvarBspTextureChecks->GetValue() >= 1) ? true : false))
 		{
-			// Link up WAD textures with their material scripts
+			// This is done for non-localhosts
 			CL_LinkMapTextureMaterials(wadFilesList);
 		}
 		else
@@ -639,6 +641,11 @@ bool CL_InitGame( void )
 			// Log failure
 			Con_EPrintf("%s - Failed to initialize WAD resources.\n", __FUNCTION__);
 		}
+	}
+	else
+	{
+		// Copy mappings from server for localhost
+		cls.mapmaterialfiles = svs.mapmaterialfiles;
 	}
 
 	// Call renderer to initialize
