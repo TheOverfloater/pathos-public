@@ -2058,17 +2058,13 @@ bool CDynamicLightManager::ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_scenei
 		if(isstatic)
 		{
 			if(pvisentity->curstate.movetype != MOVETYPE_NONE
-				&& !(pvisentity->curstate.effects & EF_STATICENTITY)
-				|| !pvisentity->curstate.velocity.IsZero()
-				|| !pvisentity->curstate.avelocity.IsZero())
+				&& !(pvisentity->curstate.effects & EF_STATICENTITY))
 				continue;
 		}
 		else
 		{
 			if(pvisentity->curstate.movetype == MOVETYPE_NONE
-				|| pvisentity->curstate.effects & EF_STATICENTITY
-				|| pvisentity->curstate.velocity.IsZero()
-				&& pvisentity->curstate.avelocity.IsZero())
+				|| pvisentity->curstate.effects & EF_STATICENTITY)
 				continue;
 		}
 
