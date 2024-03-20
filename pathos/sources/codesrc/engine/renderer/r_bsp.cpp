@@ -1227,7 +1227,7 @@ bool CBSPRenderer::DrawSkyBox( bool inZElements )
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
-	m_pCurrentEntity = rns.objects.pvisents[0];
+	m_pCurrentEntity = CL_GetEntityByIndex(WORLDSPAWN_ENTITY_INDEX);
 
 	if(!inZElements)
 	{

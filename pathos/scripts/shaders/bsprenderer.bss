@@ -617,7 +617,7 @@ $begin
 	$begin
 		lightmapColor.xyz += texture(luminance, ps_texcoord).xyz;
 	$end
-	return lightmapColor;
+	return clamp(lightmapColor, 0, 1); // To prevent multipass inconsistencies
 $end
 $branch bumpmapping == 1
 $begin
@@ -629,8 +629,8 @@ $begin
 	$begin
 		finalColor.xyz += texture(luminance, ps_texcoord).xyz;
 	$end	
-	
-	return finalColor;
+
+	return clamp(finalColor, 0, 1); // To prevent multipass inconsistencies
 $end
 }
 
@@ -746,6 +746,7 @@ vec4 CombineTextureLayers( vec3 v_origin, vec3 v_normal, float specularStrength 
 		float specularValue = CalcSpecular(v_origin, eyeSpaceNormal, -eyeSpaceDir, specularStrength);
 		
 		finalColor += specularValue * lightDiffuse * shineFactor;
+		finalColor = clamp(finalColor, 0, 1); // To prevent multipass inconsistencies
 	$end	
 	
 	return finalColor;
@@ -765,6 +766,7 @@ vec4 GetLightmappedSpecular( vec3 v_origin, vec3 v_normal, float specularStrengt
 	float specularValue = CalcSpecular(v_origin, eyeSpaceNormal, -eyeSpaceDir, specularStrength);
 	
 	vec4 finalColor = specularValue * lightDiffuse * shineFactor;
+	finalColor = clamp(finalColor, 0, 1); // To prevent multipass inconsistencies
 	return finalColor;
 }
 

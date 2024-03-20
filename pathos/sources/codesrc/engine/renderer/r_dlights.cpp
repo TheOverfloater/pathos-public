@@ -1168,7 +1168,9 @@ bool CDynamicLightManager::DrawPasses( void )
 		else
 		{
 			// Draw normal visents into final pass
-			DrawShadowMapPasses(dl, &rns.objects.pvisents[0], rns.objects.numvisents, true);
+			result = DrawShadowMapPasses(dl, &rns.objects.pvisents[0], rns.objects.numvisents, true);
+			if(!result)
+				break;
 		}
 
 		// Set these after rendering

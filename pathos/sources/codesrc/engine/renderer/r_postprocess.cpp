@@ -338,7 +338,7 @@ bool CPostProcess :: DrawMotionBlur( void )
 	if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_MBLUR))
 		return false;
 
-	m_pShader->SetUniform4f(m_attribs.u_color, GL_ONE, GL_ONE, GL_ONE, 1.0 -m_blurFade);
+	m_pShader->SetUniform4f(m_attribs.u_color, GL_ONE, GL_ONE, GL_ONE, 1.0 - m_blurFade);
 
 	R_ValidateShader(m_pShader);
 
