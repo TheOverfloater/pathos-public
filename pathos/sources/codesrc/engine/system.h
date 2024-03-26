@@ -15,6 +15,9 @@ class CCVar;
 // Size of buffer for message prints
 static const Uint32 PRINT_MSG_BUFFER_SIZE = 16384;
 
+// Gameinfo file name
+static const Char GAMEINFO_FILENAME[] = "gameinfo.cfg";
+
 // Timescale cvar
 extern CCVar* g_pCvarTimeScale;
 
@@ -59,6 +62,7 @@ extern bool Sys_ShouldExit( void );
 extern bool Sys_InitFloatTime( void );
 extern Double Sys_FloatTime( void );
 
+extern bool Sys_CheckGameDir( const CArray<CString>* argsArray );
 extern bool Sys_LoadDefaultFont( const Char* pstr );
 extern bool Sys_LoadGameInfo( CArray<CString>* argsArray );
 extern bool Sys_IsGameControlActive( void );

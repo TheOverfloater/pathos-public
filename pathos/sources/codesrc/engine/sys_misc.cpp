@@ -57,10 +57,10 @@ bool Sys_LoadDefaultFont( const Char* pstr )
 //=============================================
 bool Sys_LoadGameInfo( CArray<CString>* argsArray )
 {
-	const byte* pfile = FL_LoadFile("gameinfo.cfg");
+	const byte* pfile = FL_LoadFile(GAMEINFO_FILENAME);
 	if(!pfile)
 	{
-		Con_EPrintf("Failed to load gameinfo.cfg.\n");
+		Sys_ErrorPopup("Failed to load %s.\n", GAMEINFO_FILENAME);
 		return false;
 	}
 
@@ -83,7 +83,7 @@ bool Sys_LoadGameInfo( CArray<CString>* argsArray )
 		const Char* ppstr = Common::Parse(line.c_str(), token);
 		if(!ppstr)
 		{
-			Con_EPrintf("Missing value token in gameinfo.cfg.\n");
+			Con_EPrintf("Missing value token in %s.\n", GAMEINFO_FILENAME);
 			break;
 		}
 
@@ -140,7 +140,7 @@ bool Sys_LoadGameInfo( CArray<CString>* argsArray )
 			}
 			else
 			{
-				Con_Printf("Unknown field %s in gameinfo.cfg.\n", token.c_str());
+				Con_Printf("Unknown field %s in %s.\n", token.c_str(), GAMEINFO_FILENAME);
 			}
 		}
 	}
@@ -151,13 +151,13 @@ bool Sys_LoadGameInfo( CArray<CString>* argsArray )
 	// Verify that the required values were set
 	if(ens.gametitle.empty())
 	{
-		Sys_ErrorPopup("$title not set in gameinfo.cfg.\n");
+		Sys_ErrorPopup("$title not set in %s.\n", GAMEINFO_FILENAME);
 		return false;
 	}
 
 	if(ens.startmap.empty())
 	{
-		Sys_ErrorPopup("$startmap not set in gameinfo.cfg.\n");
+		Sys_ErrorPopup("$startmap not set in %s.\n", GAMEINFO_FILENAME);
 		return false;
 	}
 

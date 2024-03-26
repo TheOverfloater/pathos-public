@@ -121,6 +121,11 @@ bool Sys_Init( CArray<CString>* argsArray )
 		return false;
 	}
 
+	// Find out what mod we are running before doing
+	// anything else
+	if(!Sys_CheckGameDir(argsArray))
+		return false;
+
 	// Create file writer thread
 	FWT_Init();
 
@@ -129,7 +134,7 @@ bool Sys_Init( CArray<CString>* argsArray )
 		return false;
 
 	// Set ens.time to a nonzero value so some time-based functions work immediately
-	// after starting the engine
+	// after starting the engine(Sys_InitFloatTime takes care of this)
 	ens.time = ens.curtime;
 
 	// Developer cvar
@@ -466,6 +471,50 @@ Uint32 Sys_GetFPSLimit( void )
 }
 
 //=============================================
+// @brief Parses launch parameters for the mod name
+// and/or checks whether there's a valid gameinfog.cfg file
+// present
+//
+// @param argsArray Array of arguments
+//=============================================
+bool Sys_CheckGameDir( const CArray<CString>* argsArray )
+{
+	// Parse all the other arguments
+	for(Uint32 i = 1; i < argsArray->size(); i++)
+	{
+		CString strArg = (*argsArray)[i];
+		CString argName(strArg);
+
+		if(!qstrcmp(strArg, "-game"))
+		{
+			if(i == (argsArray->size()-1))
+			{
+				Con_Printf("Warning: Missing argument for %s.\n", strArg.c_str());
+				continue;
+			}
+
+			ens.gamedir = (*argsArray)[++i];
+			break;
+		}
+	}
+
+	// Ensure the file exists, don't use FL_FileExists because it defaults
+	// to the common dir, so use SDL_RW functions instead
+	CString filepath;
+	filepath << ens.gamedir << PATH_SLASH_CHAR << GAMEINFO_FILENAME;
+
+	SDL_RWops* pf = SDL_RWFromFile(filepath.c_str(), "rb");
+	if(!pf)
+	{
+		Sys_ErrorPopup("Could not locate game config file '%s'.\n", filepath.c_str());
+		return false;
+	}
+
+	SDL_RWclose(pf);
+	return true;
+}
+
+//=============================================
 // @brief Parses launch parameters
 //
 // @param argsArray Array of arguments
@@ -575,7 +624,7 @@ bool Sys_ParseLaunchParams( const CArray<CString>* argsArray )
 	// Parse all the other arguments
 	for(i = 1; i < argsArray->size(); i++)
 	{
-		CString& strArg = (*argsArray)[i];
+		CString strArg = (*argsArray)[i];
 		CString argName(strArg);
 
 		if(!qstrcmp(strArg.c_str(), "-log") 
@@ -696,13 +745,8 @@ bool Sys_ParseLaunchParams( const CArray<CString>* argsArray )
 			}
 			else if(!qstrcmp(strArg, "-game"))
 			{
-				if(i == (argsArray->size()-1))
-				{
-					Con_Printf("Warning: Missing argument for %s.\n", strArg.c_str());
-					continue;
-				}
-
-				ens.gamedir = strArg = (*argsArray)[++i];
+				// Not handled in this function
+				++i;
 			}
 			else if(!qstrcmp(strArg, "-console"))
 			{

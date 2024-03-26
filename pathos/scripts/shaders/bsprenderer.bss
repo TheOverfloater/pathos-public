@@ -746,7 +746,6 @@ vec4 CombineTextureLayers( vec3 v_origin, vec3 v_normal, float specularStrength 
 		float specularValue = CalcSpecular(v_origin, eyeSpaceNormal, -eyeSpaceDir, specularStrength);
 		
 		finalColor += specularValue * lightDiffuse * shineFactor;
-		finalColor = clamp(finalColor, 0, 1); // To prevent multipass inconsistencies
 	$end	
 	
 	return finalColor;
@@ -766,7 +765,6 @@ vec4 GetLightmappedSpecular( vec3 v_origin, vec3 v_normal, float specularStrengt
 	float specularValue = CalcSpecular(v_origin, eyeSpaceNormal, -eyeSpaceDir, specularStrength);
 	
 	vec4 finalColor = specularValue * lightDiffuse * shineFactor;
-	finalColor = clamp(finalColor, 0, 1); // To prevent multipass inconsistencies
 	return finalColor;
 }
 
