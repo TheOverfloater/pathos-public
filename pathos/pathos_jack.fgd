@@ -1080,7 +1080,7 @@
     4 : "No VIS checks" : 0
     8 : "Start Invisible" : 0
   ] 
-  scale(Integer) : "Scale" : 0
+  scale(Integer) : "Scale" : 1
 ]
 @PointClass base(Angles, Targetname, RenderFields, Breakable) size(-16 -16 0, 16 16 36) studio() = env_model_breakable : "Model" 
 [
@@ -1282,7 +1282,7 @@
 [
   renderamt(integer) : "Radius" : 15
   rendercolor(color255) : "Render Color" : "255 255 255"
-  scale(string) : "Scale" : "1.0"
+  scale(string) : "Field of View" : "1.0"
  
   body(integer) : "Texture Index" : 0
 
