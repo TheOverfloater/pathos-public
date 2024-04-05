@@ -327,7 +327,7 @@
     <ClCompile Include="envposworld.cpp" />
     <ClCompile Include="envspotlight.cpp" />
     <ClCompile Include="funcconveyor.cpp" />
-    <ClCompile Include="funcdetail.cpp" />
+    <ClCompile Include="funcclipeconomy.cpp" />
     <ClCompile Include="funcfade.cpp" />
     <ClCompile Include="funcillusionary.cpp" />
     <ClCompile Include="funcmirror.cpp" />
@@ -606,7 +606,7 @@
     <ClInclude Include="envposworld.h" />
     <ClInclude Include="envspotlight.h" />
     <ClInclude Include="funcconveyor.h" />
-    <ClInclude Include="funcdetail.h" />
+    <ClInclude Include="funcclipeconomy.h" />
     <ClInclude Include="funcfade.h" />
     <ClInclude Include="funcillusionary.h" />
     <ClInclude Include="funcmirror.h" />

@@ -593,7 +593,7 @@
   ]
 ]
 
-@PointClass base(Targetname) = ambient_fmodstream: "OGG Audio player"
+@PointClass base(Targetname) = ambient_oggstream: "OGG Audio player"
 [
      message(string) : "File Name"
      fadeintime(integer) : "Fade In Time" : 0
@@ -1076,7 +1076,7 @@
     4 : "No VIS checks" : 0
     8 : "Start Invisible" : 0
   ] 
-  scale(Integer) : "Scale" : 1
+  scale(Integer) : "Scale" : 0
 ]
 @PointClass base(Angles, Targetname, RenderFields, Breakable) size(-16 -16 0, 16 16 36) studio() = env_model_breakable : "Model" 
 [
@@ -1479,19 +1479,7 @@
   ]
   _minlight(string) : "Minimum light level"
 ]
-
-@SolidClass base(Targetname, Global, RenderFields, Angles, ZHLT) = func_conveyor : "Conveyor Belt" 
-[
-  spawnflags(flags) =
-  [
-    1 : "No Push" : 0
-    2 : "Not Solid" : 0
-    4 : "Start Invisible" : 0
-  ]
-  speed(string) : "Conveyor Speed" : "100"
-  _minlight(string) : "Minimum light level"
-]
-@SolidClass base(Targetname, Global, Appearflags, RenderFields, ZHLT, Angles, ParentedEnt) = func_detail : "Detail Entity" 
+@SolidClass base(Targetname, Global, Appearflags, RenderFields, ZHLT, Angles, ParentedEnt) = func_clipeconomy : "Clipnode Economy Entity" 
 [
   zhlt_noclip(integer) : "Noclip" : 1
   _minlight(string) : "Minimum light level"
@@ -1504,6 +1492,17 @@
   [
     1 : "Take Angles" : 0
   ] 
+]
+@SolidClass base(Targetname, Global, RenderFields, Angles, ZHLT) = func_conveyor : "Conveyor Belt" 
+[
+  spawnflags(flags) =
+  [
+    1 : "No Push" : 0
+    2 : "Not Solid" : 0
+    4 : "Start Invisible" : 0
+  ]
+  speed(string) : "Conveyor Speed" : "100"
+  _minlight(string) : "Minimum light level"
 ]
 @SolidClass base(Door, ZHLT, NoclipEnt) = func_door : "Basic door" []
 

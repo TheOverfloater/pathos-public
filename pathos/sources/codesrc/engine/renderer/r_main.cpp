@@ -4461,14 +4461,29 @@ void Cmd_EFX_CreateParticle( void )
 //====================================
 void Cmd_BSPToSMD_Textures( void )
 {
+	if(!CL_IsGameActive() || !ens.pworld)
+	{
+		Con_Printf("You need to load a level before using this command.\n");
+		return;
+	}
+
+	if(!FL_CreateDirectory("dumps"))
+	{
+		Con_EPrintf("%s - Could not create directory '%s/dumps/'.\n", __FUNCTION__, ens.gamedir.c_str());
+		return;
+	}
+
 	Uint32 fileidx = 0;
 	CString filepath;
 	FILE* pf = NULL;
 
+	CString levelname;
+	Common::Basename(ens.pworld->name.c_str(), levelname);
+	
 	while(true)
 	{
 		filepath.clear();
-		filepath << "dump_tris_" << fileidx << ".smd";
+		filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << levelname << "_" << fileidx << "_mesh_textures.smd";
 
 		if(!FL_FileExists(filepath.c_str()))
 			break;
@@ -4477,7 +4492,7 @@ void Cmd_BSPToSMD_Textures( void )
 	}
 
 	filepath.clear();
-	filepath << ens.gamedir << PATH_SLASH_CHAR << "dump_tris_" << fileidx << ".smd";
+	filepath << ens.gamedir << PATH_SLASH_CHAR << "dumps" << PATH_SLASH_CHAR << "dump_" << levelname << "_" << fileidx << "_mesh_textures.smd";
 
 	pf = fopen(filepath.c_str(), "w");
 	if(!pf)
@@ -4590,23 +4605,38 @@ void Cmd_BSPToSMD_Textures( void )
 //====================================
 void Cmd_BSPToSMD_Lightmap( void )
 {
+	if(!CL_IsGameActive() || !ens.pworld)
+	{
+		Con_Printf("You need to load a level before using this command.\n");
+		return;
+	}
+
+	if(!FL_CreateDirectory("dumps"))
+	{
+		Con_EPrintf("%s - Could not create directory '%s/dumps/'.\n", __FUNCTION__, ens.gamedir.c_str());
+		return;
+	}
+
 	Uint32 fileidx = 0;
 	CString filepath;
 	FILE* pf = NULL;
 
+	CString levelname;
+	Common::Basename(ens.pworld->name.c_str(), levelname);
+	
 	while(true)
 	{
 		filepath.clear();
-		filepath << "dump_tris_" << fileidx << ".smd";
+		filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << levelname << "_" << fileidx << "_mesh_lightmap.smd";
 
-		if(!::FL_FileExists(filepath.c_str()))
+		if(!FL_FileExists(filepath.c_str()))
 			break;
 
 		fileidx++;
 	}
 
 	filepath.clear();
-	filepath << ens.gamedir << PATH_SLASH_CHAR << "dump_tris_" << fileidx << ".smd";
+	filepath << ens.gamedir << PATH_SLASH_CHAR << "dumps" << PATH_SLASH_CHAR << "dump_" << levelname << "_" << fileidx << "_mesh_lightmap.smd";
 
 	pf = fopen(filepath.c_str(), "w");
 	if(!pf)
@@ -4718,25 +4748,28 @@ void Cmd_BSPToSMD_Lightmap( void )
 
 	Con_Printf("Exported %s.\n", filepath.c_str());
 
-	// Export lightmap too
-	fileidx = 0;
-	while(true)
-	{
-		filepath.clear();
-		filepath << "dump_lightmap_" << fileidx << ".tga";
-		fileidx++;
-
-		if(!::FL_FileExists(filepath.c_str()))
-			break;
-	}
-
 	Uint32 lightmapWidth = CBSPRenderer::LIGHTMAP_WIDTH;
 	Uint32 lightmapHeight = gBSPRenderer.GetLightmapHeight();
 
-	// alloc default lightmap's data
+	// alloc lightmap data ptrs
 	Uint32 lightmapdatasize = 0;
 	color32_t* plightmap = new color32_t[lightmapWidth*lightmapHeight];
 	memset(plightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
+
+	// alloc ambient lightmap's data
+	Uint32 amblightdatasize = 0;
+	color32_t* pambientlightmap = new color32_t[lightmapWidth*lightmapHeight];
+	memset(pambientlightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
+
+	// alloc diffuse lightmap's data
+	Uint32 diffuselightdatasize = 0;
+	color32_t* pdiffuselightmap = new color32_t[lightmapWidth*lightmapHeight];
+	memset(pdiffuselightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
+
+	// alloc lightvec lightmap's data
+	Uint32 lightvecsdatasize = 0;
+	color32_t* plightvecslightmap = new color32_t[lightmapWidth*lightmapHeight];
+	memset(plightvecslightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
 
 	// Process the surfaces
 	for(Uint32 i = 0; i < ens.pworld->numsurfaces; i++)
@@ -4754,11 +4787,69 @@ void Cmd_BSPToSMD_Lightmap( void )
 		color24_t* psrc = psurface->psamples;
 		R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, plightmap, 0, lightmapWidth, false, false);
 		lightmapdatasize += size*sizeof(color32_t);
+
+		// Get the normal map data too if required
+		Int32 ambientindex = R_StyleIndex(psurface, LM_AMBIENT_STYLE);
+		Int32 diffuseindex = R_StyleIndex(psurface, LM_DIFFUSE_STYLE);
+		Int32 lightvecsindex = R_StyleIndex(psurface, LM_LIGHTVECS_STYLE);
+
+		// See if we have anything to bind
+		if(ambientindex != -1 && diffuseindex != -1 && lightvecsindex != -1)
+		{
+			// Ambient lightmap
+			R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, pambientlightmap, ambientindex, lightmapWidth);
+			amblightdatasize += size*sizeof(color32_t);
+
+			// Diffuse lightmap
+			R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, pdiffuselightmap, diffuseindex, lightmapWidth);
+			diffuselightdatasize += size*sizeof(color32_t);
+
+			// Light vectors lightmap
+			R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, plightvecslightmap, lightvecsindex, lightmapWidth, true);
+			lightvecsdatasize += size*sizeof(color32_t);
+		}
 	}
+
+	CString lightmapfilebasename;
+	lightmapfilebasename << "dumps" << PATH_SLASH_CHAR << "dump_" << levelname << "_" << fileidx << "_lightmap";
+
+	filepath.clear();
+	filepath << lightmapfilebasename << "_default.tga";
 
 	const byte* pwritedata = reinterpret_cast<const byte*>(plightmap);
 	TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf);
+
+	if(amblightdatasize > 0)
+	{
+		filepath.clear();
+		filepath << lightmapfilebasename << "_ambient.tga";
+
+		pwritedata = reinterpret_cast<const byte*>(pambientlightmap);
+		TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf);
+	}
+
+	if(diffuselightdatasize > 0)
+	{
+		filepath.clear();
+		filepath << lightmapfilebasename << "_diffuse.tga";
+
+		pwritedata = reinterpret_cast<const byte*>(pdiffuselightmap);
+		TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf);
+	}
+
+	if(lightvecsdatasize > 0)
+	{
+		filepath.clear();
+		filepath << lightmapfilebasename << "_lightvecs.tga";
+
+		pwritedata = reinterpret_cast<const byte*>(plightvecslightmap);
+		TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf);
+	}
+
 	delete[] plightmap;
+	delete[] pambientlightmap;
+	delete[] pdiffuselightmap;
+	delete[] plightvecslightmap;
 }
 
 //====================================

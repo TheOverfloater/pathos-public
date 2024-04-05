@@ -2743,6 +2743,26 @@ void CSoundEngine::CacheMessage( const Vector* pOrigin, Int32 svindex, Int32 cha
 			m_msgCacheList.next();
 		}
 	}
+	else
+	{
+		m_updateMsgCacheList.begin();
+		while(!m_updateMsgCacheList.end())
+		{
+			s_msg_cache_t* pmsg = m_updateMsgCacheList.get();
+
+			if(pmsg->channel == channel 
+				&& pmsg->entindex == entindex
+				&& pmsg->svindex == svindex
+				&& (pmsg->flags & SND_FL_STOP))
+			{
+				// Remove it
+				delete m_updateMsgCacheList.get();
+				m_updateMsgCacheList.remove(m_updateMsgCacheList.get_link());
+			}
+
+			m_updateMsgCacheList.next();
+		}
+	}
 
 	// Determine type
 	snd_cachetype_t type = isambient ? SND_CT_PLAYAMBIENTSOUND : SND_CT_PLAYENTITYSOUND;

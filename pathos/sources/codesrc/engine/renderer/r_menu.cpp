@@ -509,10 +509,8 @@ bool CMenu::DrawMenuBackground( CBasicDraw* pDraw )
 			R_Bind2DTexture(GL_TEXTURE0_ARB, m_pBlendToTexture->palloc->gl_index);
 		}
 
-		alpha = (ens.time - m_flBlendBeginTime) / MENU_BLEND_TIME;
-		alpha = clamp(alpha, 0.0, 1.0);
-
-		pDraw->Color4f(GL_ONE, GL_ONE, GL_ONE, alpha);
+		// Do not recalculate this, insteadj ust use 1.0 - alpha
+		pDraw->Color4f(GL_ONE, GL_ONE, GL_ONE, (1.0 - alpha));
 
 		R_ValidateShader(pDraw);
 

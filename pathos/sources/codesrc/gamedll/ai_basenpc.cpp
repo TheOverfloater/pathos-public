@@ -708,7 +708,7 @@ void CBaseNPC::HearSounds( void )
 		Uint64 scheduleMask = m_pSchedule->GetSoundMask();
 		if(m_npcState == NPC_STATE_SCRIPT)
 		{
-			if(m_pScriptedSequence->CanInterrupt() && m_pScriptedSequence->HasSpawnFlag(CScriptedSequence::FL_SOUNDS_CAN_INTERRUPT))
+			if(m_pScriptedSequence && m_pScriptedSequence->CanInterrupt() && m_pScriptedSequence->HasSpawnFlag(CScriptedSequence::FL_SOUNDS_CAN_INTERRUPT))
 				scheduleMask |= m_pScriptedSequence->GetInterruptSoundMask(); // Use dedicated sound mask
 			else
 				scheduleMask |= (AI_SOUND_PLAYER|AI_SOUND_COMBAT); // Always add these so AI triggers work
@@ -873,7 +873,8 @@ void CBaseNPC::PerformMovement( Double animInterval )
 	localmove_t moveResult = CheckLocalMove(m_pState->origin, destinationPosition, m_movementGoalEntity, &moveDistance);
 
 	// If we reached the target, then stop
-	if(moveResult == LOCAL_MOVE_REACHED_TARGET && moveDistance < NPC_STEP_SIZE)
+	if(moveResult == LOCAL_MOVE_REACHED_TARGET 
+		&& moveDistance < NPC_STEP_SIZE)
 	{
 		StopMovement();
 		ClearRoute();

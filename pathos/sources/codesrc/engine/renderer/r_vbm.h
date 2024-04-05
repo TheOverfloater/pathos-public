@@ -26,6 +26,8 @@ struct cache_model_t;
 struct entity_extrainfo_t;
 
 // Max dynamic lights affecting a model entity
+static const Uint32 MAX_ENT_ACTIVE_DLIGHTS		= 4;
+// Max dynamic lights affecting a model entity
 static const Uint32 MAX_ENT_DLIGHTS				= 12;
 // Max studio decals total
 static const Uint32 MAX_VBM_TOTAL_DECALS		= 512;

@@ -249,9 +249,6 @@
     <ClCompile Include="funcconveyor.cpp">
       <Filter>Source Files\entities\func</Filter>
     </ClCompile>
-    <ClCompile Include="funcdetail.cpp">
-      <Filter>Source Files\entities\func</Filter>
-    </ClCompile>
     <ClCompile Include="funcfade.cpp">
       <Filter>Source Files\entities\func</Filter>
     </ClCompile>
@@ -891,6 +888,9 @@
     <ClCompile Include="funcslippery.cpp">
       <Filter>Source Files\entities\func</Filter>
     </ClCompile>
+    <ClCompile Include="funcclipeconomy.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gamedll.h">
@@ -1059,9 +1059,6 @@
       <Filter>Header Files\entities\func</Filter>
     </ClInclude>
     <ClInclude Include="funcconveyor.h">
-      <Filter>Header Files\entities\func</Filter>
-    </ClInclude>
-    <ClInclude Include="funcdetail.h">
       <Filter>Header Files\entities\func</Filter>
     </ClInclude>
     <ClInclude Include="funcfade.h">
@@ -1671,6 +1668,9 @@
       <Filter>Header Files\entities\env</Filter>
     </ClInclude>
     <ClInclude Include="funcslippery.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="funcclipeconomy.h">
       <Filter>Header Files\entities\func</Filter>
     </ClInclude>
   </ItemGroup>

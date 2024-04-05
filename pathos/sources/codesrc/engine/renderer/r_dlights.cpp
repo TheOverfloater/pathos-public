@@ -2043,7 +2043,6 @@ bool CDynamicLightManager::ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_scenei
 
 	// Number of new entities added, if any
 	Int32 numAdded = 0;
-	// TODO - for now always redraw the dynamic shadowmap
 	bool bRedraw = false; 
 
 	// check if a new entity has been added to the list
@@ -2139,17 +2138,41 @@ bool CDynamicLightManager::ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_scenei
 		}
 	}
 
-	if(!isstatic && psceneinfo->numvisents > 0)
+	cl_entity_t* plocalplayer = CL_GetLocalPlayer();
+
+	for(Uint32 i = 0; i < psceneinfo->numvisents; i++)
 	{
-		for(Uint32 i = 0; i < psceneinfo->numvisents; i++)
+		cl_entity_t* pentity = psceneinfo->pvisents[i];
+
+		// Check if entity got removed
+		// WARNING - This check needs to be first!
+		if(pentity->curstate.msg_num != plocalplayer->curstate.msg_num)
 		{
-			cl_entity_t* pentity = psceneinfo->pvisents[i];
+			for(Uint32 j = i; j < (psceneinfo->numvisents-1); j++)
+				psceneinfo->pvisents[j] = psceneinfo->pvisents[j+1];
+
+			// Subtract from counts
+			psceneinfo->numvisents--;
+			i--; // So we check the first moved entity
+
+			// Mark for redraw
+			bRedraw = true;
+			continue;
+		}
+
+		// Check for entities that have changed in the dynamic map and we haven't flagged
+		// for a redraw yet
+		if(!isstatic && psceneinfo->numvisents > 0 && !bRedraw)
+		{
 			if(!Math::VectorCompare(pentity->curstate.origin, pentity->prevstate.origin)
 				|| !Math::VectorCompare(pentity->curstate.angles, pentity->prevstate.angles)
 				|| pentity->pmodel->type == MOD_VBM && !(pentity->curstate.effects & EF_STATICENTITY))
 			{
-				// If an entity has changed, then redraw the non-static map
-				return true;
+				// If an entity has changed, then redraw the non-static map.
+				// EF_STATICENTITY on VBM models means the model animates all
+				// the time in a loop, so the map needs to be redrawn each
+				// frame for this
+				bRedraw = true;
 			}
 		}
 	}

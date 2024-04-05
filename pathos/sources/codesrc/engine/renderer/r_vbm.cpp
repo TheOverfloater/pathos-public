@@ -1793,16 +1793,22 @@ void CVBMRenderer::GetModelLights( void )
 
 	// collect strongest modellights
 	Uint32 nummodellights = 0;
-	mlight_t* plightslist[MAX_ENT_MLIGHTS];
-	Float lightstrengths[MAX_ENT_MLIGHTS];
+	mlight_t* plightslist[MAX_ENT_ACTIVE_DLIGHTS];
+	Float lightstrengths[MAX_ENT_ACTIVE_DLIGHTS];
+
+	//
+	// Reduce max active lights to 4 model/entity lights,
+	// and keep 2 slots for fading lights. This should help
+	// reduce sudden changes from other lights being culled
+	// out due to limits
+
+	// Total lights affecting model
+	CArray<mlight_t*> ptotallights;
 
 	// Look in the modellights array first
 	mlight_t *mlight = rns.objects.modellights;
 	for (Uint32 i = 0; i < rns.objects.nummodellights; i++, mlight++)
 	{
-		if(m_numModelLights == MAX_ENT_MLIGHTS)
-			break;
-
 		if (Math::CheckMinsMaxs(mlight->mins, mlight->maxs, m_mins, m_maxs))
 			continue;
 		
@@ -1820,9 +1826,9 @@ void CVBMRenderer::GetModelLights( void )
 		Float strength = (mlight->color.x + mlight->color.y + mlight->color.z)/3.0f;
 		strength *= clamp((dist/radius-1.0) * -1.0, 0.0, 1.0);
 
-		if(nummodellights == MAX_ENT_MLIGHTS)
+		if(nummodellights == MAX_ENT_ACTIVE_DLIGHTS)
 		{
-			for(Uint32 j = 0; j < MAX_ENT_MLIGHTS; j++)
+			for(Uint32 j = 0; j < MAX_ENT_ACTIVE_DLIGHTS; j++)
 			{
 				if(strength > lightstrengths[j])
 				{
@@ -1838,6 +1844,9 @@ void CVBMRenderer::GetModelLights( void )
 			lightstrengths[nummodellights] = strength;
 			nummodellights++;
 		}
+
+		// Remember for total list
+		ptotallights.push_back(mlight);
 	}	
 
 	// Parse the lights we've gathered
@@ -1950,7 +1959,20 @@ void CVBMRenderer::GetModelLights( void )
 			{
 				CL_PlayerTrace(vcenter, pprevinfo->light.origin, FL_TRACE_WORLD_ONLY, HULL_POINT, NO_ENTITY_INDEX, pmtrace);
 				if (pmtrace.fraction == 1.0)
-					continue; // not blocked, probably turned off
+				{
+					Uint32 j = 0;
+					for(; j < ptotallights.size(); j++)
+					{
+						if(pprevinfo->light.entindex == ptotallights[j]->entindex)
+							break;
+					}
+
+					if(j == ptotallights.size())
+					{
+						// not blocked, not on total list, probably turned off
+						continue; 
+					}
+				}
 			}
 
 			mlightinfo_t* pinfo = &m_modelLights[m_numModelLights];

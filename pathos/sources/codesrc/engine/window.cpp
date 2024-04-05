@@ -75,7 +75,7 @@ CWindow::~CWindow( void )
 //=============================================
 Int32 CWindow::GetMaxMultiSample( void )
 {
-	// Create the window
+	// Create the temporary window
 	SDL_Window* pTempWindow = SDL_CreateWindow(ens.gametitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 		4, 4, (SDL_WINDOW_OPENGL|SDL_WINDOW_HIDDEN));
 
@@ -162,6 +162,13 @@ bool CWindow::Init( void )
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, nbDepthBits);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, nbStencilBits);
+
+	if(Sys_CheckLaunchArgs("-lowcolorwidth") == NO_POSITION)
+	{
+		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 10);
+		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 10);
+		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 10);
+	}
 
 	Int32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
 	if(m_bFullScreen)
