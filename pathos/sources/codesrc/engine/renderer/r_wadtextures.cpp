@@ -194,7 +194,7 @@ bool CWADTextureResource::Init( const Char* pstrBSPName, const CArray<CString>& 
 	}
 
 	// Check WADs too
-	if (generateWADPMFFiles)
+	if (generateMissingWAD)
 	{
 		for (Uint32 i = 0; i < m_pWADFilesArray.size(); i++)
 		{
