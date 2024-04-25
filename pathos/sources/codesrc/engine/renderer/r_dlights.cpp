@@ -2094,9 +2094,16 @@ bool CDynamicLightManager::ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_scenei
 		else
 		{
 			entity_extrainfo_t* pinfo = CL_GetEntityExtraData(pvisentity);
-
-			Math::VectorCopy(pinfo->absmin, mins);
-			Math::VectorCopy(pinfo->absmax, maxs);
+			if(!(pinfo->absmax - pinfo->absmin).IsZero())
+			{
+				Math::VectorCopy(pinfo->absmin, mins);
+				Math::VectorCopy(pinfo->absmax, maxs);
+			}
+			else
+			{
+				Math::VectorAdd(pvisentity->pmodel->mins, pvisentity->curstate.origin, mins);
+				Math::VectorAdd(pvisentity->pmodel->maxs, pvisentity->curstate.origin, maxs);
+			}
 		}
 
 		// Always do this - it's cheaper
@@ -2143,6 +2150,8 @@ bool CDynamicLightManager::ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_scenei
 	for(Uint32 i = 0; i < psceneinfo->numvisents; i++)
 	{
 		cl_entity_t* pentity = psceneinfo->pvisents[i];
+		if(pentity->curstate.effects & EF_CLIENTENT)
+			continue;
 
 		// Check if entity got removed
 		// WARNING - This check needs to be first!
@@ -2191,7 +2200,7 @@ bool CDynamicLightManager::ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_scenei
 		|| !Math::VectorCompare(dl->angles, dl->prevangles))
 		return true;
 
-	return true;
+	return bRedraw;
 }
 
 //====================================

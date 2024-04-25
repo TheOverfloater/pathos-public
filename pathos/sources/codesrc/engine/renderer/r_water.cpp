@@ -384,13 +384,18 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 
 	bool hasbumpdata = false;
 
+	// Get overdarken treshold
+	Float overdarken = g_pCvarOverdarkenTreshold->GetValue();
+	if(overdarken < 0)
+		overdarken = 0;
+
 	for(Uint32 j = 0; j < pbrushmodel->nummodelsurfaces; j++)
 	{
 		msurface_t* psurf = &psurfaces[j];
 		if(!(psurf->flags & SURF_SHADERWATER))
 			continue;
 
-		R_BuildLightmap(psurf->light_s, psurf->light_t, psurf->psamples, psurf, plightmapdata, 0, WATER_LIGHTMAP_X);
+		R_BuildLightmap(psurf->light_s, psurf->light_t, psurf->psamples, psurf, plightmapdata, 0, WATER_LIGHTMAP_X, overdarken);
 
 		Int32 ambientindex = R_StyleIndex(psurf, LM_AMBIENT_STYLE);
 		Int32 diffuseindex = R_StyleIndex(psurf, LM_DIFFUSE_STYLE);
@@ -399,8 +404,8 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 		// See if we have anything to bind
 		if(ambientindex != -1 && diffuseindex != -1 && lightvecsindex != -1)
 		{
-			R_BuildLightmap(psurf->light_s, psurf->light_t, psurf->psamples, psurf, pdiffusemaptexture, diffuseindex, WATER_LIGHTMAP_X);
-			R_BuildLightmap(psurf->light_s, psurf->light_t, psurf->psamples, psurf, plightvecstexture, lightvecsindex, WATER_LIGHTMAP_X, true);
+			R_BuildLightmap(psurf->light_s, psurf->light_t, psurf->psamples, psurf, pdiffusemaptexture, diffuseindex, WATER_LIGHTMAP_X, overdarken);
+			R_BuildLightmap(psurf->light_s, psurf->light_t, psurf->psamples, psurf, plightvecstexture, lightvecsindex, WATER_LIGHTMAP_X, 0, true);
 			hasbumpdata = true;
 		}
 	}

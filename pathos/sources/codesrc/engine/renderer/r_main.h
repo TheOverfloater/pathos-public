@@ -471,6 +471,7 @@ extern CCVar* g_pCvarSkipFrames;
 extern CCVar* g_pCvarOcclusionQueries;
 extern CCVar* g_pCvarTraceGlow;
 extern CCVar* g_pCvarBatchDynamicLights;
+extern CCVar* g_pCvarOverdarkenTreshold;
 	
 extern void R_InitRenderInterface( r_interface_t &renderFuncs );
 

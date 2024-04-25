@@ -102,6 +102,7 @@ CCVar* g_pCvarTimeGraph = nullptr;
 CCVar* g_pCvarOcclusionQueries = nullptr;
 CCVar* g_pCvarTraceGlow = nullptr;
 CCVar* g_pCvarBatchDynamicLights = nullptr;
+CCVar* g_pCvarOverdarkenTreshold = nullptr;
 
 // Caustics texture list file path
 static const Char CAUSTICS_TEXTURE_FILE_PATH[] = "textures/general/caustics_textures.txt";
@@ -190,6 +191,7 @@ bool R_Init( void )
 	g_pCvarOcclusionQueries = gConsole.CreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "r_glowocclusion", "1", "Toggles the use of occlusion queries for glows." );
 	g_pCvarTraceGlow = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_traceglow", "0", "Enable/disable performance intensive trace tests." );
 	g_pCvarBatchDynamicLights = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_lightbatches", "0", "Controls whether light rendering is batched based on proximity and type of light." );
+	g_pCvarOverdarkenTreshold = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_overdarken_treshold", "35", "Overdarkening treshold setting, default is 35." );
 
 	gCommands.CreateCommand("r_exportald", ALD_ExportLightmaps, "Exports current lightmap info as nightstage light info");
 	gCommands.CreateCommand("r_detail_auto", Cmd_DetailAuto, "Generates detail texture entries for world textures without");
@@ -4797,15 +4799,15 @@ void Cmd_BSPToSMD_Lightmap( void )
 		if(ambientindex != -1 && diffuseindex != -1 && lightvecsindex != -1)
 		{
 			// Ambient lightmap
-			R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, pambientlightmap, ambientindex, lightmapWidth);
+			R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, pambientlightmap, ambientindex, lightmapWidth, 0);
 			amblightdatasize += size*sizeof(color32_t);
 
 			// Diffuse lightmap
-			R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, pdiffuselightmap, diffuseindex, lightmapWidth);
+			R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, pdiffuselightmap, diffuseindex, lightmapWidth, 0);
 			diffuselightdatasize += size*sizeof(color32_t);
 
 			// Light vectors lightmap
-			R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, plightvecslightmap, lightvecsindex, lightmapWidth, true);
+			R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, plightvecslightmap, lightvecsindex, lightmapWidth, 0, true);
 			lightvecsdatasize += size*sizeof(color32_t);
 		}
 	}

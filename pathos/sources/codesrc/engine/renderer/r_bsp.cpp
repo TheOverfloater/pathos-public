@@ -597,6 +597,11 @@ void CBSPRenderer::InitLightmaps( bool loadald )
 
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 	
+	// Get overdarken treshold
+	Float overdarken = g_pCvarOverdarkenTreshold->GetValue();
+	if(overdarken < 0)
+		overdarken = 0;
+	
 	// Process the surfaces
 	for(Uint32 i = 0; i < ens.pworld->numsurfaces; i++)
 	{
@@ -621,7 +626,7 @@ void CBSPRenderer::InitLightmaps( bool loadald )
 
 		// Build the base lightmap
 		color24_t* psrc = psurface->psamples;
-		R_BuildLightmap(pbspsurface->light_s, pbspsurface->light_t, psrc, psurface, plightmap, 0, LIGHTMAP_WIDTH, false, isfullbright);
+		R_BuildLightmap(pbspsurface->light_s, pbspsurface->light_t, psrc, psurface, plightmap, 0, LIGHTMAP_WIDTH, overdarken, false, isfullbright);
 		lightmapdatasize += size*sizeof(color32_t);
 
 		// Get the normal map data too if required
@@ -635,15 +640,15 @@ void CBSPRenderer::InitLightmaps( bool loadald )
 			if(ambientindex != -1 && diffuseindex != -1 && lightvecsindex != -1)
 			{
 				// Ambient lightmap
-				R_BuildLightmap(pbspsurface->light_s, pbspsurface->light_t, psrc, psurface, pambientlightmap, ambientindex, LIGHTMAP_WIDTH);
+				R_BuildLightmap(pbspsurface->light_s, pbspsurface->light_t, psrc, psurface, pambientlightmap, ambientindex, LIGHTMAP_WIDTH, overdarken);
 				amblightdatasize += size*sizeof(color32_t);
 
 				// Diffuse lightmap
-				R_BuildLightmap(pbspsurface->light_s, pbspsurface->light_t, psrc, psurface, pdiffuselightmap, diffuseindex, LIGHTMAP_WIDTH);
+				R_BuildLightmap(pbspsurface->light_s, pbspsurface->light_t, psrc, psurface, pdiffuselightmap, diffuseindex, LIGHTMAP_WIDTH, overdarken);
 				diffuselightdatasize += size*sizeof(color32_t);
 
 				// Light vectors lightmap
-				R_BuildLightmap(pbspsurface->light_s, pbspsurface->light_t, psrc, psurface, plightvecslightmap, lightvecsindex, LIGHTMAP_WIDTH, true);
+				R_BuildLightmap(pbspsurface->light_s, pbspsurface->light_t, psrc, psurface, plightvecslightmap, lightvecsindex, LIGHTMAP_WIDTH, 0, true);
 				lightvecsdatasize += size*sizeof(color32_t);
 			}
 		}

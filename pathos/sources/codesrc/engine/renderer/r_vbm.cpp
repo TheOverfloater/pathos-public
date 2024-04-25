@@ -2190,6 +2190,12 @@ bool CVBMRenderer::CheckBBox( void )
 	// Add in origin
 	Math::VectorAdd(m_pCurrentEntity->curstate.origin, vMins, m_mins);
 	Math::VectorAdd(m_pCurrentEntity->curstate.origin, vMaxs, m_maxs);
+	
+	if(m_pExtraInfo)
+	{
+		m_pExtraInfo->absmin = m_mins;
+		m_pExtraInfo->absmax = m_maxs;
+	}
 
 	// View entity is always present
 	if(m_pCurrentEntity == cls.dllfuncs.pfnGetViewModel())

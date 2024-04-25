@@ -80,7 +80,7 @@ void R_AllocBlock ( Uint32 w, Uint32 h, Uint32 &x, Uint32 &y, Uint32 width, Uint
 // @brief
 //
 //=============================================
-color24_t *R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psamples, const msurface_t *psurface, color32_t *pout, Int32 index, Uint32 sizex, bool isvectormap, bool fullbright )
+color24_t *R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psamples, const msurface_t *psurface, color32_t *pout, Int32 index, Uint32 sizex, Float overdarken, bool isvectormap, bool fullbright )
 {
 	static color24_t blocklights[BLOCKLIGHTS_SIZE];
 	color24_t *pblock = blocklights;
@@ -130,14 +130,15 @@ color24_t *R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psa
 		}
 
 		// Do not perform this on lightvecs
-		if(index != R_StyleIndex(psurface, LM_LIGHTVECS_STYLE))
+		if(overdarken > 0 && 
+			index != R_StyleIndex(psurface, LM_LIGHTVECS_STYLE))
 		{
 			const color24_t* prefsrc = psamples;
 			for (Uint32 i = 0; i < size; i++)
 			{
 				// Darken pixels with low values, helps make maps darker
 				Float flintensity = (prefsrc[i].r + prefsrc[i].g + prefsrc[i].b)/3;
-				flintensity = _max(flintensity/35, 1);
+				flintensity = _max(flintensity/overdarken, 1);
 
 				pblock[i].r = pblock[i].r*flintensity;
 				pblock[i].g = pblock[i].g*flintensity;

@@ -50,6 +50,7 @@ bool Sys_LoadDefaultFont( const Char* pstr )
 	return true;
 }
 
+
 //=============================================
 // @brief Loads the gameinfo file
 //
