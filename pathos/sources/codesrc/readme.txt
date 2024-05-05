@@ -19,9 +19,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 I want to thank the following parties for their part with developing this project:
- - Valve Software for the code referenced from the Half-Life SDK while developing this project.
- - Id Software for the code referenced from the Quake 1 engine while developing this project.
- - dreamstalker for the code referenced from ReHLDS while developing this project.
+ - Valve Software for the code referenced(aka clean room design) from the Half-Life SDK while developing this project.
+ - Id Software for the code referenced(aka clean room design) from the Quake 1 engine while developing this project.
+ - dreamstalker for the code referenced(aka clean room design) from ReHLDS while developing this project.
  - Magic Nipples for helping me with the motorbike's surface alignment code.
  - Yriy "BUzer" Sitnikov for the mod Paranoia, and the help he gave me while developing 
    the renderer code under the original mod version.
