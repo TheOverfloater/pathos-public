@@ -20,9 +20,11 @@
 #include "vbmformat.h"
 
 // Notes:
-// Part of this implementation is based on the implementation in the Half-Life SDK
+// Part of this implementation is based on the implementation in the Half-Life SDK,
+// meaning that code in the Half-Life SDK was referenced(Clean room design) when this
+// file was written.
 // The studiomodel format is Valve's original work, and I take no ownership of it
-// No copyright infringement intended
+// No copyright infringement intended.
 
 #define STUDIO_VERSION	10
 #define IDSTUDIOHEADER	(('T'<<24)+('S'<<16)+('D'<<8)+'I')
