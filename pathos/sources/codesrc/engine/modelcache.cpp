@@ -265,15 +265,6 @@ cache_model_t* CModelCache::LoadVBMModel( const Char* pstrFilename, const byte* 
 	pcache->pstudiohdr = reinterpret_cast<studiohdr_t *>(pstudiodata);
 	pcache->pvbmhdr = reinterpret_cast<vbmheader_t *>(pvbmdata);
 
-	// Remove this if present
-	if(pcache->pstudiohdr->flags & STUDIO_MF_DEMOLOCK)
-	{
-		pcache->pstudiohdr->bodypartindex -= qstrlen(pcache->pstudiohdr->name)*32;
-		pcache->pstudiohdr->seqindex -= qstrlen(pcache->pstudiohdr->name)*16;
-		pcache->pstudiohdr->seqgroupindex -= qstrlen(pcache->pstudiohdr->name)*8;
-		pcache->pstudiohdr->flags &= ~STUDIO_MF_DEMOLOCK;
-	}
-
 	// Create a new model entry
 	Uint32 modelindex = m_modelCacheArray.size();
 	cache_model_t* pnew = new cache_model_t;

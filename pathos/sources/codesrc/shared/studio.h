@@ -1,17 +1,11 @@
-/***
-*
-*	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*	
-*	This product contains software technology licensed from Id 
-*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
-*	All Rights Reserved.
-*
-*   Use, distribution, and modification of this source code and/or resulting
-*   object code is restricted to non-commercial enhancements to products from
-*   Valve LLC.  All other use, distribution, or modification is prohibited
-*   without written permission from Valve LLC.
-*
-****/
+/*
+===============================================
+Pathos Engine - Created by Andrew Stephen "Overfloater" Lucas
+
+Copyright 2016
+All Rights Reserved.
+===============================================
+*/
 
 #ifndef STUDIO_H
 #define STUDIO_H
@@ -21,29 +15,122 @@
 
 // Notes:
 // Part of this implementation is based on the implementation in the Half-Life SDK,
-// meaning that code in the Half-Life SDK was referenced(Clean room design) when this
-// file was written.
-// The studiomodel format is Valve's original work, and I take no ownership of it
+// meaning that the code was referenced(aka clean room design) when writing this file.
+// The studiomodel format is Valve's original work, and I take no ownership of it.
 // No copyright infringement intended.
 
-#define STUDIO_VERSION	10
-#define IDSTUDIOHEADER	(('T'<<24)+('S'<<16)+('D'<<8)+'I')
+/************************
+	Constants
 
-#define MAXSTUDIOVERTS_REF	2048
-#define MAXSTUDIOTRIANGLES	16384
-#define MAXSTUDIOVERTS		8196
-#define MAXSTUDIOSEQUENCES	256	
-#define MAXSTUDIOSKINS		100
-#define MAXSTUDIOSRCBONES	256
-#define MAXSTUDIOBONES		128
-#define MAXSTUDIOMODELS		32
-#define MAXSTUDIOBODYPARTS	32
-#define MAXSTUDIOGROUPS		32
-#define MAXSTUDIOANIMATIONS	2048
-#define MAXSTUDIOMESHES		32
-#define MAXSTUDIOEVENTS		1024
-#define MAXSTUDIOPIVOTS		256
-#define MAXSTUDIOCONTROLLERS 8
+************************/
+
+// This is used to identify a studiomdl file
+static const Int32 IDSTUDIOHEADER	= (('T'<<24)+('S'<<16)+('D'<<8)+'I');
+// Version used by Half-Life 1, JACK, VHE for studiomodels
+static const Uint32 STUDIO_VERSION	= 10;
+
+// Max vertexes supported by VHE
+static const Uint32 MAXSTUDIOVERTS_REF		= 2048;
+
+// Required by studiomdl(todo: remove after studiomdl rewrite)
+static const Uint32 MAXSTUDIOTRIANGLES		= 16384; 
+
+// Max vertexes in a submodel supported by studiomdl at the moment(todo: remove after studiomdl rewrite)
+static const Uint32 MAXSTUDIOVERTS			= 8196; 
+
+// Max sequences in a model(todo: remove after studiomdl rewrite)
+static const Uint32 MAXSTUDIOSEQUENCES		= 256; 
+
+// Max skins a model can have(todo: remove after studiomdl rewrite)
+static const Uint32 MAXSTUDIOSKINS			= 100; 
+
+// Todo: remove after studiomdl rewrite
+static const Uint32 MAXSTUDIOSRCBONES		= 256; 
+
+// Max bones in a model
+static const Uint32 MAXSTUDIOBONES			= 128;
+
+// Max submodels a bodygroup can have(todo: remove after studiomdl rewrite)
+static const Uint32 MAXSTUDIOMODELS			= 32;
+
+// Max bodygroups a model can have(todo: remove after studiomdl rewrite)
+static const Uint32 MAXSTUDIOBODYPARTS		= 32;
+
+// Max groups a model can have(todo: remove after studiomdl rewrite)
+static const Uint32 MAXSTUDIOGROUPS			= 32;
+
+// Max sequences a model can have(todo: remove after studiomdl rewrite)
+static const Uint32 MAXSTUDIOANIMATIONS		= 2048;
+
+// Max meshes a submodel can have(todo: remove after studiomdl rewrite)
+static const Uint32 MAXSTUDIOMESHES			= 32;
+
+// Max events a model can have(todo: remove after studiomdl rewrite)
+static const Uint32 MAXSTUDIOEVENTS			= 1024;
+
+// Max pivots a model can have(todo: remove after studiomdl rewrite)
+static const Uint32 MAXSTUDIOPIVOTS			= 256;
+
+// Max controllers a model can have(todo: remove after studiomdl rewrite)
+static const Uint32 MAXSTUDIOCONTROLLERS	= 8;
+
+// Used by studiohdr->flags
+enum studio_flags_t
+{
+	STUDIO_MF_ROCKET			= (1<<0), // Leave a trail
+	STUDIO_MF_GRENADE			= (1<<1), // Leave a trail
+	STUDIO_MF_GIB				= (1<<2), // Leave a blood trail
+	STUDIO_MF_ROTATE			= (1<<3), // Rotate, for bonus items
+	STUDIO_MF_TRACER			= (1<<4), // Green spit trail
+	STUDIO_MF_ZOMGIB			= (1<<5), // Small blood trail
+	STUDIO_MF_TRACER2			= (1<<6), // Create orange spit trail, and rotate
+	STUDIO_MF_TRACER3			= (1<<7), // Purple trail for vore projectile
+	STUDIO_MF_DYNAMIC_LIGHT		= (1<<8), // Get lighting from floor or ceiling
+	STUDIO_MF_TRACE_HITBOX		= (1<<9), // Use hitboxes for collision testing
+	STUDIO_MF_UNUSED1			= (1<<10), // Unused
+	STUDIO_MF_SKYLIGHT			= (1<<12), // Take lighting from skybox only
+	STUDIO_MF_CENTERLIGHT		= (1<<13), // Use center of model for lighting
+	STUDIO_MF_HAS_FLEXES		= (1<<14), // This model supports flexes
+};
+
+// Used by animations
+enum studio_motionflags_t
+{
+	STUDIO_X					= (1<<0),
+	STUDIO_Y					= (1<<1),
+	STUDIO_Z					= (1<<2),
+	STUDIO_XR					= (1<<3),
+	STUDIO_YR					= (1<<4),
+	STUDIO_ZR					= (1<<5),
+	STUDIO_LX					= (1<<6),
+	STUDIO_LY					= (1<<7),
+	STUDIO_LZ					= (1<<8),
+	STUDIO_AX					= (1<<9),
+	STUDIO_AY					= (1<<10),
+	STUDIO_AZ					= (1<<11),
+	STUDIO_AXR					= (1<<12),
+	STUDIO_AYR					= (1<<13),
+	STUDIO_AZR					= (1<<14),
+	STUDIO_TYPES				= 0x7FFF,
+	STUDIO_RLOOP				= (1<<15)
+};
+
+// Flags for animations
+enum studio_seqflags_t
+{
+	STUDIO_LOOPING				= (1<<0)
+};
+
+// Flags for bones
+enum studio_boneflags_t
+{
+	STUDIO_HAS_NORMALS			= (1<<0),
+	STUDIO_HAS_VERTICES			= (1<<1),
+	STUDIO_HAS_BBOX				= (1<<2),
+	STUDIO_HAS_CHROME			= (1<<3),
+	STUDIO_DONT_BLEND			= (1<<4),
+	STUDIO_VBMCONTROLLER		= (1<<5)
+};
 
 struct studiohdr_t;
 struct mstudiobone_t;
@@ -60,8 +147,10 @@ struct mstudiotexture_t;
 struct mstudiomodel_t;
 struct mstudiomesh_t;
 
+/************************
+	Definitions
 
-// bones
+************************/
 struct mstudiobone_t
 {
 	mstudiobone_t():
@@ -74,16 +163,20 @@ struct mstudiobone_t
 		memset(scale, 0, sizeof(scale));
 	}
 
-	Char				name[32];	// bone name for symbolic links
-	Int32		 		parent;		// parent bone
-	Int32				flags;		// ??
-	Int32				bonecontroller[6];	// bone controller index, -1 == none
-	Float				value[6];	// default DoF values
-	Float				scale[6];   // scale for delta DoF values
+	// Bone name
+	Char name[32];
+	// Parent bone index
+	Int32 parent;
+	// Flags for special animation exceptions
+	Int32 flags;
+	// Bone controller index, -1 means null
+	Int32 bonecontroller[6];
+	// Default DoF values
+	Float value[6];
+	// Scale for delta DoF values
+	Float scale[6];
 };
 
-
-// bone controllers
 struct mstudiobonecontroller_t
 {
 	mstudiobonecontroller_t():
@@ -95,15 +188,20 @@ struct mstudiobonecontroller_t
 		index(0)
 		{}
 
-	Int32				bone;	// -1 == 0
-	Int32				type;	// X, Y, Z, XR, YR, ZR, M
-	Float				start;
-	Float				end;
-	Int32				rest;	// byte index value at rest
-	Int32				index;	// 0-3 user set controller, 4 mouth
+	// Bone affected, -1 is bone 0
+	Int32 bone;
+	// Controller type
+	Int32 type;
+	// Start value
+	Float start;
+	// End value
+	Float end;
+	// Byte index value at neutral
+	Int32 rest;
+	// Controller index(0-3 are user set controllers, 4 is mouth)
+	Int32 index;
 };
 
-// intersection boxes
 struct mstudiobbox_t
 {
 	mstudiobbox_t():
@@ -111,10 +209,14 @@ struct mstudiobbox_t
 		group(0)
 		{}
 
-	Int32				bone;
-	Int32				group;			// intersection group
-	Vector				bbmin;		// bounding box
-	Vector				bbmax;		
+	// Bone index bbox is tied to
+	Int32 bone;
+	// Hitgroup
+	Int32 group;
+	// BBox mins
+	Vector bbmin;
+	// BBox maxs
+	Vector bbmax;		
 };
 
 struct cache_user_t
@@ -135,10 +237,15 @@ struct mstudioseqgroup_t
 		memset(label, 0, sizeof(label));
 		memset(name, 0, sizeof(name));
 	}
-	Char				label[32];	// textual name
-	Char				name[64];	// file name
-	cache_user_t		cache;		// cache index pointer
-	Int32				data;		// hack for group 0
+
+	// Label of the sequence group
+	Char label[32];
+	// Name of the file(always none)
+	Char name[64];
+	// Cache index pointer
+	cache_user_t cache;
+	// Hack variable for group 0
+	Int32 data;
 };
 
 struct mstudioevent_t
@@ -151,10 +258,14 @@ struct mstudioevent_t
 		memset(options, 0, sizeof(options));
 	}
 
-	Int32 				frame;
-	Int32				event;
-	Int32				type;
-	Char				options[64];
+	// Event's frame
+	Int32 frame;
+	// Event id
+	Int32 event;
+	// Event type
+	Int32 type;
+	// String for optional options
+	Char options[64];
 };
 
 struct mstudioseqdesc_t
@@ -194,49 +305,75 @@ struct mstudioseqdesc_t
 		return reinterpret_cast<const mstudioevent_t*>(reinterpret_cast<const byte*>(phdr) + eventindex) + index;
 	}
 
-	Char				label[32];
+	// Name of the sequence
+	Char label[32];
 
-	Float				fps;
-	Int32				flags;
+	// Framerate
+	Float fps;
+	// Flag bits for sequence
+	Int32 flags;
 
-	Int32				activity;
-	Int32				actweight;
+	// Activity id
+	Int32 activity;
+	// Weight of activity
+	Int32 actweight;
 
-	Int32				numevents;
-	Int32				eventindex;
+	// Number of events 
+	Int32 numevents;
+	// Offset to event data
+	Int32 eventindex;
 
-	Int32				numframes;
+	// Number of frames in sequence
+	Int32 numframes;
 
-	Int32				numpivots;
-	Int32				pivotindex;
+	// Number of pivots
+	Int32 numpivots;
+	// Offset to pivot data
+	Int32 pivotindex;
 
-	Int32				motiontype;	
-	Int32				motionbone;
-	Vector				linearmovement;
-	Int32				automoveposindex;
-	Int32				automoveangleindex;
+	// Motion type
+	Int32 motiontype;
+	// Bone doing motion
+	Int32 motionbone;
+	// Linear movement
+	Vector linearmovement;
+	// Seems to be unused
+	Int32 automoveposindex;
+	// Seems to be unused
+	Int32 automoveangleindex;
 
-	Vector				bbmin;
-	Vector				bbmax;		
+	// Bounding box of sequence
+	Vector bbmin;
+	Vector bbmax;		
 
-	Int32				numblends;
-	Int32				animindex;
+	// Amount of blends in sequence
+	Int32 numblends;
+	// Animation data offset
+	Int32 animindex;
 
-	Int32				blendtype[2];
-	Float				blendstart[2];
-	Float				blendend[2];
-	Int32				blendparent;
+	// Blend type
+	Int32 blendtype[2];
+	// Blend start
+	Float blendstart[2];
+	// Blend end
+	Float blendend[2];
+	// Blend parent
+	Int32 blendparent;
 
-	Int32				seqgroup;
+	// Sequence group index
+	Int32 seqgroup;
 
-	Int32				entrynode;
-	Int32				exitnode;
-	Int32				nodeflags;
+	// Entry node index
+	Int32 entrynode;
+	// Exit node index
+	Int32 exitnode;
+	// Node flags
+	Int32 nodeflags;
 	
-	Int32				nextseq;
+	// Seems to be unused
+	Int32 nextseq;
 };
 
-// pivots
 struct mstudiopivot_t
 {
 	mstudiopivot_t():
@@ -244,12 +381,14 @@ struct mstudiopivot_t
 		end(0)
 		{}
 
-	Vector				org;
-	Int32				start;
-	Int32				end;
+	// Pivot origin
+	Vector org;
+	// Pivot start
+	Int32 start;
+	// Pivot end
+	Int32 end;
 };
 
-// attachment
 struct mstudioattachment_t
 {
 	mstudioattachment_t():
@@ -259,11 +398,16 @@ struct mstudioattachment_t
 		memset(name, 0, sizeof(name));
 	}
 
-	Char				name[32];
-	Int32				type;
-	Int32				bone;
-	Vector				org;	// attachment point
-	Vector				vectors[3];
+	// Name of attachment
+	Char name[32];
+	// Attachment type
+	Int32 type;
+	// Bone attachment is tied to
+	Int32 bone;
+	// Origin in bone space
+	Vector org;
+	// Seems to be unused
+	Vector vectors[3];
 };
 
 struct mstudioanim_t
@@ -279,20 +423,22 @@ struct mstudioanim_t
 		return reinterpret_cast<const mstudioanimvalue_t*>(reinterpret_cast<const byte*>(this) + offset[index]);
 	}
 
-	Uint16				offset[6];
+	// Offset values
+	Uint16 offset[6];
 };
 
-// animation frames
+// This is ugly and should be refactored
 union mstudioanimvalue_t
 {
-	struct {
+	struct 
+	{
 		byte	valid;
 		byte	total;
 	} num;
-	Int16		value;
+
+	Int16 value;
 };
 
-// skin info
 struct mstudiotexture_t
 {
 	mstudiotexture_t():
@@ -303,11 +449,17 @@ struct mstudiotexture_t
 	{
 		memset(name, 0, sizeof(name));
 	}
-	Char					name[64];
-	Int32					flags;
-	Int32					width;
-	Int32					height;
-	Int32					index;
+
+	// Name of texture
+	Char name[64];
+	// Texture flags
+	Int32 flags;
+	// Width of texture
+	Int32 width;
+	// Height of texture
+	Int32 height;
+	// Index into model data
+	Int32 index;
 };
 
 // studio models
@@ -329,33 +481,46 @@ struct mstudiomodel_t
 	{
 		memset(name, 0, sizeof(name));
 	}
+
 	const mstudiomodel_t* getMesh( studiohdr_t* phdr, Int32 index ) const
 	{
 		assert(index >= 0 && index < nummesh);
 		return reinterpret_cast<const mstudiomodel_t*>(reinterpret_cast<const byte*>(phdr) + meshindex) + index;
 	}
 
-	Char				name[64];
+	// Name of the submodel
+	Char name[64];
 
-	Int32				type;
+	// Unused?
+	Int32 type;
 
-	Float				boundingradius;
+	// Unused?
+	Float boundingradius;
 
-	Int32				nummesh;
-	Int32				meshindex;
+	// Number of meshes
+	Int32 nummesh;
+	// Mesh data offset
+	Int32 meshindex;
 
-	Int32				numverts;
-	Int32				vertinfoindex;
-	Int32				vertindex;
-	Int32				numnorms;
-	Int32				norminfoindex;
-	Int32				normindex;
+	// Number of vertexes
+	Int32 numverts;
+	// Vertex bone indexes offset
+	Int32 vertinfoindex;
+	// Vertex coordinates offset
+	Int32 vertindex;
+	// Number of normals
+	Int32 numnorms;
+	// Normal bone info indexes offset
+	Int32 norminfoindex;
+	// Normal vectors offset
+	Int32 normindex;
 
-	Int32				numgroups;
-	Int32				groupindex;
+	// Unused?
+	Int32 numgroups;
+	// Unused?
+	Int32 groupindex;
 };
 
-// body part index
 struct mstudiobodyparts_t
 {
 	mstudiobodyparts_t():
@@ -372,14 +537,16 @@ struct mstudiobodyparts_t
 		return reinterpret_cast<const mstudiomodel_t*>(reinterpret_cast<const byte*>(phdr) + modelindex) + index;
 	}
 
-	Char				name[64];
-	Int32				nummodels;
-	Int32				base;
-	Int32				modelindex;
+	// Name of bodygroup
+	Char name[64];
+	// Number of submodels in bodygroup
+	Int32 nummodels;
+	// Base index
+	Int32 base;
+	// Submodel data offset
+	Int32 modelindex;
 };
 
-
-// meshes
 struct mstudiomesh_t
 {
 	mstudiomesh_t():
@@ -390,11 +557,16 @@ struct mstudiomesh_t
 		normindex(0)
 		{}
 
-	Int32					numtris;
-	Int32					triindex;
-	Int32					skinref;
-	Int32					numnorms;
-	Int32					normindex;
+	// Number of triangles in mesh
+	Int32 numtris;
+	// Offset for triangle data
+	Int32 triindex;
+	// Skin reference index
+	Int32 skinref;
+	// Number of normals in mesh
+	Int32 numnorms;
+	// Normal index offset
+	Int32 normindex;
 };
 
 struct studiohdr_t
@@ -488,57 +660,93 @@ struct studiohdr_t
 		return reinterpret_cast<const mstudioseqgroup_t*>(reinterpret_cast<const byte*>(this) + seqgroupindex) + groupindex;
 	}
 
-	Int32				id;
-	Int32				version;
+	// Holds the ID of the file type
+	Int32 id;
+	// Version of the model file
+	Int32 version;
 
-	Char				name[64];
-	Int32				length;
+	// Model file name
+	Char name[64];
+	// Total size of model
+	Int32 length;
 
-	Vector				eyeposition;	// ideal eye position
-	Vector				min;			// ideal movement hull size
-	Vector				max;			
+	// Eye offset from base
+	Vector eyeposition;
+	// Bounding box mins
+	Vector min;
+	// Bounding box maxs
+	Vector max;
 
-	Vector				bbmin;			// clipping bounding box
-	Vector				bbmax;		
+	// Used by clipping hull?
+	Vector bbmin;
+	// Used by clipping hull?
+	Vector bbmax;		
 
-	Int32				flags;
+	// Model flags
+	Int32 flags;
 
-	Int32				numbones;			// bones
-	Int32				boneindex;
+	// Number of bones in model
+	Int32 numbones;
+	// Offset to bone data
+	Int32 boneindex;
 
-	Int32				numbonecontrollers;		// bone controllers
-	Int32				bonecontrollerindex;
+	// Number of bone controllers
+	Int32 numbonecontrollers;	
+	// Offset to bone controller data
+	Int32 bonecontrollerindex;
 
-	Int32				numhitboxes;			// complex bounding boxes
-	Int32				hitboxindex;			
+	// Number of hitboxes in model
+	Int32 numhitboxes;
+	// Offset to hitbox data
+	Int32 hitboxindex;			
 	
-	Int32				numseq;				// animation sequences
-	Int32				seqindex;
+	// Number of sequences in model
+	Int32 numseq;
+	// Offset to sequence data
+	Int32 seqindex;
 
-	Int32				numseqgroups;		// demand loaded sequences
-	Int32				seqgroupindex;
+	// Number of sequence groups(deprecated in Pathos)
+	Int32 numseqgroups;
+	// Offset to sequence group data(deprecated in Pathos)
+	Int32 seqgroupindex;
 
-	Int32				numtextures;		// raw textures
-	Int32				textureindex;
-	Int32				texturedataindex;
+	// Number of textures in model
+	Int32 numtextures;
+	// Offset to texture data
+	Int32 textureindex;
+	// Offset at which texture bitmap data starts
+	Int32 texturedataindex;
 
-	Int32				numskinref;			// replaceable textures
-	Int32				numskinfamilies;
-	Int32				skinindex;
+	// Number of skins in replacement matrix
+	Int32 numskinref;
+	// Number of skin replacements
+	Int32 numskinfamilies;
+	// Offset to skin matrix data
+	Int32 skinindex;
 
-	Int32				numbodyparts;		
-	Int32				bodypartindex;
+	// Number of bodyparts
+	Int32 numbodyparts;		
+	// Offset to bodypart data
+	Int32 bodypartindex;
 
-	Int32				numattachments;		// queryable attachable points
-	Int32				attachmentindex;
+	// Number of attachments in model
+	Int32 numattachments;
+	// Offset to attachment data
+	Int32 attachmentindex;
 
-	Int32				soundtable;
-	Int32				soundindex;
-	Int32				soundgroups;
-	Int32				soundgroupindex;
+	// Unused
+	Int32 soundtable;
+	// Unused
+	Int32 soundindex;
+	// Unused
+	Int32 soundgroups;
+	// Unused
+	Int32 soundgroupindex;
 
-	Int32				numtransitions;		// animation node to animation node transition graph
-	Int32				transitionindex;
+	// Transition info number
+	Int32 numtransitions;
+	// Transition index
+	Int32 transitionindex;
 };
 
 struct vbmcache_t
@@ -556,62 +764,9 @@ struct vbmcache_t
 			delete pvbmhdr;
 	}
 
+	// Pointer to studiomdl data
 	studiohdr_t *pstudiohdr;
+	// Pointer to vbm data
 	vbmheader_t *pvbmhdr;
 };
-
-#define STUDIO_DEMO_OFFSET		4096
-
-// Used in $flags
-#define STUDIO_MF_ROCKET		1 // leave a trail 
-#define STUDIO_MF_GRENADE		2 // leave a trail 
-#define STUDIO_MF_GIB			4 // leave a trail 
-#define STUDIO_MF_ROTATE		8 // rotate (bonus items) 
-#define STUDIO_MF_TRACER		16 // green split trail 
-#define STUDIO_MF_ZOMGIB		32 // small blood trail 
-#define STUDIO_MF_TRACER2		64 // orange split trail + rotate 
-#define STUDIO_MF_TRACER3		128 // purple trail 
-#define STUDIO_MF_DYNAMIC_LIGHT	256 // dynamically get lighting from floor or ceil (flying monsters) 
-#define STUDIO_MF_TRACE_HITBOX	512 // always use hitbox trace instead of bbox
-#define STUDIO_MF_SMALLFOV		1024 // Use a small FOV(view models)
-#define STUDIO_MF_DEMOLOCK		2048 // Scramble model data
-#define STUDIO_MF_SKYLIGHT		4096 // Take light from skybox
-#define STUDIO_MF_CENTERLIGHT	8192 // Take light from absolute center
-#define STUDIO_MF_HAS_FLEXES	16384 // This model supports flexes
-
-// motion flags
-#define STUDIO_X				0x0001
-#define STUDIO_Y				0x0002	
-#define STUDIO_Z				0x0004
-#define STUDIO_XR				0x0008
-#define STUDIO_YR				0x0010
-#define STUDIO_ZR				0x0020
-#define STUDIO_LX				0x0040
-#define STUDIO_LY				0x0080
-#define STUDIO_LZ				0x0100
-#define STUDIO_AX				0x0200
-#define STUDIO_AY				0x0400
-#define STUDIO_AZ				0x0800
-#define STUDIO_AXR				0x1000
-#define STUDIO_AYR				0x2000
-#define STUDIO_AZR				0x4000
-#define STUDIO_TYPES			0x7FFF
-#define STUDIO_RLOOP			0x8000	// controller that wraps shortest distance
-
-// sequence flags
-#define STUDIO_LOOPING			0x0001
-
-// bone flags
-#define STUDIO_HAS_NORMALS		0x0001
-#define STUDIO_HAS_VERTICES		0x0002
-#define STUDIO_HAS_BBOX			0x0004
-#define STUDIO_HAS_CHROME		0x0008	// if any of the textures have chrome on them
-#define STUDIO_DONT_BLEND		0x0010	// Don't perform animation blending
-#define STUDIO_VBMCONTROLLER	0x0012	// This bone is affected by a VBM-defined controller
-
-#define RAD_TO_STUDIO			(32768.0/M_PI)
-#define STUDIO_TO_RAD			(M_PI/32768.0)
-
-#define STUDIO_NF_CHROME		0x0002
-
 #endif //STUDIO_H
