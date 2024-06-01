@@ -57,6 +57,9 @@ Some very small pieces might still exist inside Pathos, but
 the code is very different now. Still, what BUzer did with
 Paranoia was an amazing feat, so I feel I have to thank him
 for a lot.
+Uncle Misha for the idea and solution to normalizing vertex
+weights upon loading them. FiElectro for one of the fence
+textures used in the WAD files.
 
 Twinkie Masta:
 I requested permission to use Twinkie Masta's Glock model as a
