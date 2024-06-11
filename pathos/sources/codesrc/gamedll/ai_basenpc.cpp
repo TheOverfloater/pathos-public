@@ -2062,7 +2062,7 @@ void CBaseNPC::HandleAnimationEvent( const mstudioevent_t* pevent )
 		break;
 	default:
 		{
-			Util::EntityConPrintf(m_pEdict, "Unhandled animation event with id '%d'.\n", pevent->event);
+			Util::EntityConDPrintf(m_pEdict, "Unhandled animation event with id '%d'.\n", pevent->event);
 		}
 		break;
 	}
@@ -3471,7 +3471,7 @@ void CBaseNPC::Look( void )
 				continue;
 
 			// Don't bother with prisoner NPCs, or dead ones
-			if(pEntity->HasSpawnFlag(FL_NPC_PRISONER) || !pEntity->IsAlive())
+			if((pEntity->HasSpawnFlag(FL_NPC_PRISONER) && !IsEnemyOf(pEntity)) || !pEntity->IsAlive())
 				continue;
 
 			// Don't see through water boundaries
@@ -5279,6 +5279,14 @@ bool CBaseNPC::CheckEnemy( void )
 		SetConditions(AI_COND_ENEMY_OCCLUDED);
 	else
 		ClearConditions(AI_COND_ENEMY_OCCLUDED);
+
+	// Check if enemy died
+	if(!m_enemy->IsAlive())
+	{
+		SetConditions(AI_COND_ENEMY_DEAD);
+		ClearConditions(AI_COND_SEE_ENEMY|AI_COND_ENEMY_OCCLUDED|AI_COND_ENEMY_NAVIGABLE);
+		return false;
+	}
 
 	// Get distance to enemy's origin
 	Vector enemyPosition = m_enemy->GetNavigablePosition();
