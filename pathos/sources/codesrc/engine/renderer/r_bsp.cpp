@@ -3525,6 +3525,9 @@ void CBSPRenderer::PrepareVSM( void )
 		m_texturesArray[i].numsinglebatches = 0;
 		m_texturesArray[i].psurfchain = nullptr;
 	}
+
+	// Disable this for VSM
+	m_addMulti = false;
 }
 
 //=============================================
