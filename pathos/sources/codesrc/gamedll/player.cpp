@@ -1210,9 +1210,9 @@ void CPlayerEntity::TraceAttack( CBaseEntity* pAttacker, Float damage, const Vec
 Int32 CPlayerEntity::GetRelationship( CBaseEntity* pOther )
 {
 	Int32 myClassification = GetClassification();
-	assert(myClassification >= 0 && myClassification < NUM_ENEMY_RELATIONS);
+	assert(myClassification >= 0 && myClassification < NB_CLASSIFICATIONS);
 	Int32 enemyClassification = pOther->GetClassification();
-	assert(enemyClassification >= 0 && enemyClassification < NUM_ENEMY_RELATIONS);
+	assert(enemyClassification >= 0 && enemyClassification < NB_CLASSIFICATIONS);
 
 	return NPC_RELATIONS_TABLE[myClassification][enemyClassification];
 }
