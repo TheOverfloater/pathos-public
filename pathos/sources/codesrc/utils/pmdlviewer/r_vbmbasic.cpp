@@ -1738,7 +1738,7 @@ bool CBasicVBMRenderer::DrawModel( CMatrix& modelview, CMatrix& projection )
 //=============================================
 void CBasicVBMRenderer::SetupLighting ( void )
 {
-	m_ambientlight = 100;
+	m_ambientlight = 120;
 	m_lightDirection = Vector(0, 0, -1.0);
 }
 

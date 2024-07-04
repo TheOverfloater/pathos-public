@@ -659,6 +659,7 @@ int CControlPanel::handleEvent( mxEvent *pEvent )
 			return 1;
 		
 		Int32 labelidx = pEvent->action - IDC_FLEXCONTROLLER_BASE;
+		assert(labelidx >= 0 && labelidx < vs.pvbmheader->numflexcontrollers);
 		const Char *pstrname = m_pLabelFlexNames[labelidx]->getLabel();
 		
 		// This is done for assigning indexes to vbm flex controllers
@@ -679,6 +680,7 @@ int CControlPanel::handleEvent( mxEvent *pEvent )
 		// Set value if index is valid
 		if(index != -1)
 		{
+			assert(index >= 0 && index < (NB_FIXED_FLEXES + vs.pvbmheader->numflexcontrollers));
 			Float value = ((mxSlider*)pEvent->widget)->getValue();
 			vs.pflexvalues[index] = value / 100.0f;
 		}

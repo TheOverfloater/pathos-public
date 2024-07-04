@@ -367,8 +367,8 @@ bool Viewer_LoadModel( const Char* pstrFilePath )
 	}
 
 	// Allocate flex values array
-	vs.pflexvalues = new Float[vs.pvbmheader->numflexcontrollers];
-	memset(vs.pflexvalues, 0, sizeof(Float)*vs.pvbmheader->numflexcontrollers);
+	vs.pflexvalues = new Float[NB_FIXED_FLEXES + vs.pvbmheader->numflexcontrollers];
+	memset(vs.pflexvalues, 0, sizeof(Float)*(NB_FIXED_FLEXES + vs.pvbmheader->numflexcontrollers));
 
 	// Set flex index mappings
 	vs.pflexmanager->SetFlexMappings(vs.pvbmheader, &vs.flexstate);
@@ -667,8 +667,15 @@ void Viewer_SetFlexValues ( void )
 
 	if(!vs.flexscripting)
 	{
-		for(Int32 i = 0; i < vs.pvbmheader->numflexcontrollers; i++)
-			vs.flexstate.values[i] = Common::SplineFraction( vs.pflexvalues[i], 1.0/1.0 );
+		for (Int32 i = 0; i < vs.pvbmheader->numflexcontrollers; i++)
+		{
+			Int32 flexcontrollerindex = vs.flexstate.indexmap[i];
+			if (flexcontrollerindex == -1)
+				continue;
+
+			assert(flexcontrollerindex >= 0 && flexcontrollerindex < 64);
+			vs.flexstate.values[flexcontrollerindex] = Common::SplineFraction(vs.pflexvalues[flexcontrollerindex], 1.0 / 1.0);
+		}
 	}
 	else if(vs.scriptplayback)
 	{
