@@ -25,9 +25,9 @@ your scripts folder. The command will then change the material type in the PMF
 file, and write it to disk, and the texture will stop being displayed on-screen.
  
 # Example
-r_list_default_materials
-r_show_list_material 0
-r_set_texture_material 0 computer
-...
-r_show_list_material 74
-r_set_texture_material 74 concrete
+r_list_default_materials <br />
+r_show_list_material 0 <br />
+r_set_texture_material 0 computer <br />
+... <br />
+r_show_list_material 74 <br />
+r_set_texture_material 74 concrete <br />
