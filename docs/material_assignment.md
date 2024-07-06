@@ -9,20 +9,20 @@ material files are set to.
 
 Here at the commands listed below:
 ## r_list_default_materials
-This will generate a list of all materials in your map that are not assigned 
-a non-default material type. You can then use this list to select a texture 
-to display on-screen.
+	This will generate a list of all materials in your map that are not assigned 
+	a non-default material type. You can then use this list to select a texture 
+	to display on-screen.
  
 ## r_show_list_material
-Use this with the index of the texture you want to display. The engine will 
-then diplay this material on-screen, so you know what texture you are working 
-with. Calling it with -1 will cause the texture to stop being diplayed on-screen.
+	Use this with the index of the texture you want to display. The engine will 
+	then diplay this material on-screen, so you know what texture you are working 
+	with. Calling it with -1 will cause the texture to stop being diplayed on-screen.
  
 ## r_set_texture_material
-Call this with the material type name you want to assign to this texture. These 
-material types are the ones referenced in the footstep and materialdefs files in 
-your scripts folder. The command will then change the material type in the PMF 
-file, and write it to disk, and the texture will stop being displayed on-screen.
+	Call this with the material type name you want to assign to this texture. These 
+	material types are the ones referenced in the footstep and materialdefs files in 
+	your scripts folder. The command will then change the material type in the PMF 
+	file, and write it to disk, and the texture will stop being displayed on-screen.
  
 # Example
 r_list_default_materials <br />
