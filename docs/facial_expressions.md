@@ -1,6 +1,4 @@
-//=============================
-// - Facial Animation System -
-//=============================
+# Facial Animation System
 
 The Pathos Engine sports a facial animation system heavily inspired by
 how Source did facial animations, but the system in Pathos is far simpler

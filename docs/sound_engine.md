@@ -1,6 +1,4 @@
-//===========================
-// - Pathos sound engine -
-//===========================
+# Pathos sound engine
 
 Pathos uses an OpenAL implementation for playing sound, with OGG used
 for music playback. Currently the engine supports OGG only for music

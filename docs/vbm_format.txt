@@ -1,9 +1,6 @@
-//===========================
-// - VBM format -
-//===========================
+# VBM format
 
- - Description:
- 
+# Description
 The VBM format is Pathos's proprietary model format for storing geometric
 information used for rendering. This format supports both vertex weights
 and rudimentary facial animations.
@@ -18,7 +15,7 @@ For ease of compilation, I recommend using the Pathos Model Viewer that
 is located under "pathos/sources/progs/pmdlviewer". This tool has a built-in
 tool that is meant to make compiling models far easier.
 
- - Porting Half-Life 1 Models:
+# Porting Half-Life 1 Models:
 For porting GoldSrc models, your easiest option is to use the "mdlexport"
 tool located under "pathos/sources/progs/". This command-line tool allows
 you to generate PMF, VBM and texture files from the GoldSrc models.
@@ -35,7 +32,7 @@ Note: Models converted this way WILL NOT have vertex weights. For those,
 you need to use your modelling program of choice, and add the vertex
 weights as you need.
 
- - Compiling VBM models:
+# Compiling VBM models:
 Every VBM model is mostly the exact same as GoldSrc models, but you need
 to set up the proper directories described in the "files.txt" file. You
 will need to set up a sequence file called "reference_frame.smd" in your

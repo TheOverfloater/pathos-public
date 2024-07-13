@@ -1,6 +1,4 @@
-//===============================
-// - Useful cvars and commands -
-//===============================
+# Useful cvars and commands
 
 I've included several useful console commands and cvars that help 
 with debugging issues with the engine. In this file I will list a 

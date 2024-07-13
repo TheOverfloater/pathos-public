@@ -1,8 +1,6 @@
-//===========================
-// - Pathos Model Viewer -
-//===========================
+# Pathos Model Viewer
 
- - Description -
+# Description
 Pathos comes with it's own model viewer, which supports the VBM format. This model
 viewer was based on the original Half-Life Model Viewer by Mete Ciragan, and uses
 the Mx Toolkit for the UI.
@@ -31,12 +29,12 @@ to view just by clicking on one model from the list twice. This will make it eas
 pick out prop models for your level.
 Your recently opened folders will be available under File->Recent Folders.
 
-Note:
-While you can change texture flags under the Texture tab, these will not modify the PMF
-file contents. For that, you need to edit the PMF file with the appropriate settings and
-flags yourself. This is solely used for testing out the individual settings.
+> [!NOTE]
+> While you can change texture flags under the Texture tab, these will not modify the PMF
+> file contents. For that, you need to edit the PMF file with the appropriate settings and
+> flags yourself. This is solely used for testing out the individual settings.
 
- - Flex scripting -
+# Flex scripting
 The model viewer allows you to do flex scripting for characters by loading their models
 into the viewer, then going to the "Flex Scripting" tab. Here, you can load up a sound
 file by pressing "Load Wav". The editor will then automatically set the duration, and a

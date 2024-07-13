@@ -1,39 +1,37 @@
-//===========================
-// - PMF format -
-//===========================
+# PMF format
 
 Pathos uses material scripts not unlike Source's for defining textures 
 used by the world and models. A PMF file(short for Pathos Material File)
 has two main types:
  
- - Alias scripts:
+# Alias scripts:
 This type of script is used to tell the engine that it refers to another
 material file in another location. A typical alias script will look like
 the one below:
 
-$alias
-{
-	$scriptfile models/civilians/civilian_body1.pmf
-}
+>$alias <br />
+>{ <br />
+>	$scriptfile models/civilians/civilian_body1.pmf <br />
+>} <br />
 
 This is useful for textures that are shared across models.
 
- - Texture scripts:
+# Texture scripts:
 Texture scripts store the base definitions of textures. This is used to
 define how textures behave and what properties they have. Here is an
 example with alpha testing enabled, and with a luminance map added:
 
-$texture
-{
-	$alphatest
-	$texture diffuse models/shellcasings/pistolcasing_silver.tga
-	$texture luminance models/bullets/pistolcasing_silver_glow.tga
-}
+>$texture <br />
+>{ <br />
+>	$alphatest <br />
+>	$texture diffuse models/shellcasings/pistolcasing_silver.tga <br />
+>	$texture luminance models/bullets/pistolcasing_silver_glow.tga <br />
+>} <br />
 
 Below described are the behaviors of each individual option in the PMF
 script format:
 
-Textures:
+# Textures:
 Currently five types of textures are supported:
  - diffuse : This is the base color texture.
  - normalmap/normal : This is the texture containing normal values.
@@ -44,7 +42,7 @@ Currently five types of textures are supported:
  - luminance : This is used for textures that have a self-illumination
                component to them.
 
-Flags and values:
+# Flags and values:
  - $cubemaps : Marks that the texture will use cubemap reflections.
  - $fullbright : The texture is fullbright, and will not be affected by 
                  any lights.

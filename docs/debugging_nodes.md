@@ -1,6 +1,4 @@
-//==================================
-// - Debugging the AI node graph -
-//==================================
+# Debugging the AI node graph
 
 Pathos uses a node graph system very similar to Half-Life 1's, only
 with major improvements. One of these improvements is that the code
