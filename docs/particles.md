@@ -39,30 +39,30 @@ specify a cluster script inside another cluster script.
 These files will contain the settings that define particle behaviors. There
 are a lot of options for these. Here is a simple example:
 
->$particlescript
->{
->	$shape box
->	$system_size 6.000000
->	$fade_in_time 0.500000
->	$fade_out_delay 1.000000
->	$lifetime 4.000000
->	$lifetime_variation 1.000000
->	$primary_color 255 255 255
->	$scale 16.000000
->	$scale_variation 8.000000
->	$scale_damping 8.000000
->	$max_particles -1
->	$particle_frequency 10.000000
->	$rendermode additive
->	$alpha 1.000000
->	$alignment parallel
->	$texture flames
->	$render_flags overbright
->	$frame_width 32
->	$frame_height 64
->	$num_frames 14
->	$framerate 14
->}
+>$particlescript <br />
+>{ <br />
+>	$shape box <br />
+>	$system_size 6.000000 <br />
+>	$fade_in_time 0.500000 <br />
+>	$fade_out_delay 1.000000 <br />
+>	$lifetime 4.000000 <br />
+>	$lifetime_variation 1.000000 <br />
+>	$primary_color 255 255 255 <br />
+>	$scale 16.000000 <br />
+>	$scale_variation 8.000000 <br />
+>	$scale_damping 8.000000 <br />
+>	$max_particles -1 <br />
+>	$particle_frequency 10.000000 <br />
+>	$rendermode additive <br />
+>	$alpha 1.000000 <br />
+>	$alignment parallel <br />
+>	$texture flames <br />
+>	$render_flags overbright <br />
+>	$frame_width 32 <br />
+>	$frame_height 64 <br />
+>	$num_frames 14 <br />
+>	$framerate 14 <br />
+>} <br />
 
 On second thought, it's not that simple. Particle behaviors are quite
 complex to define, and lacking a proper editor, I recommend using the
