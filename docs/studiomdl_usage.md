@@ -60,7 +60,7 @@ LODs. Shadow LODs are solely used for rendering shadows for models, while
 the distance-based LODs are applied based on the distance to the viewer.
 
 Here is an example of how a LOD is defined in the QC:
-$lod "marine_body_reference" "marine_body_lod1_reference" distance 300
+>$lod "marine_body_reference" "marine_body_lod1_reference" distance 300<br />
 
 The first parameter after $lod is the submodel name, then the second is the
 SMD for the LOD itself. The third parameter is the type of LOD, and the final
