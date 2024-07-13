@@ -1,8 +1,6 @@
-//===========================
-// - Particle engine -
-//===========================
+# Particle engine
 
- - Description:
+# Description
 The Pathos particle engine is a heavily advanced version of what
 was once in Trinity. The particle script format has been totally
 updated to provide a far more descriptive and user-friendly way of
@@ -14,13 +12,13 @@ Particle scripts are located under the path:
 The textures will be loaded from the following path:
 "pathos/textures/particles"
 
- - Scripts and their tokens:
+# Scripts and their tokens:
 The particle scripts contain all the information that defines how
 particles behave. There's two main types of scripts used:
 
- - Cluster scripts:
- These scripts group multiple particle scripts into a single effect
- that spawns all the particle systems listed. Here is an example:
+# Cluster scripts:
+These scripts group multiple particle scripts into a single effect
+that spawns all the particle systems listed. Here is an example:
  
 	$clusterscript
 	{
@@ -37,40 +35,40 @@ This script will spawn all of these particle systems with one entity/call.
 A cluster script cannot spawn another cluster script though, so don't
 specify a cluster script inside another cluster script.
 
- - System scripts:
+# System scripts:
 These files will contain the settings that define particle behaviors. There
 are a lot of options for these. Here is a simple example:
 
-	$particlescript
-	{
-		$shape box
-		$system_size 6.000000
-		$fade_in_time 0.500000
-		$fade_out_delay 1.000000
-		$lifetime 4.000000
-		$lifetime_variation 1.000000
-		$primary_color 255 255 255
-		$scale 16.000000
-		$scale_variation 8.000000
-		$scale_damping 8.000000
-		$max_particles -1
-		$particle_frequency 10.000000
-		$rendermode additive
-		$alpha 1.000000
-		$alignment parallel
-		$texture flames
-		$render_flags overbright
-		$frame_width 32
-		$frame_height 64
-		$num_frames 14
-		$framerate 14
-	}
+>$particlescript
+>{
+>	$shape box
+>	$system_size 6.000000
+>	$fade_in_time 0.500000
+>	$fade_out_delay 1.000000
+>	$lifetime 4.000000
+>	$lifetime_variation 1.000000
+>	$primary_color 255 255 255
+>	$scale 16.000000
+>	$scale_variation 8.000000
+>	$scale_damping 8.000000
+>	$max_particles -1
+>	$particle_frequency 10.000000
+>	$rendermode additive
+>	$alpha 1.000000
+>	$alignment parallel
+>	$texture flames
+>	$render_flags overbright
+>	$frame_width 32
+>	$frame_height 64
+>	$num_frames 14
+>	$framerate 14
+>}
 
 On second thought, it's not that simple. Particle behaviors are quite
 complex to define, and lacking a proper editor, I recommend using the
 in-game command "efx_createparticle" for testing out systems.
 
- - Textures:
+# Textures:
 Your particle textures can have an alpha component, or they can be
 additive, where the black color is fully transparent. Texturs can also
 be atlases of individual frames, defined by $num_frames, $frame_width,
