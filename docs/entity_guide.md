@@ -76,7 +76,7 @@ document:
 	- "No VIS checks": The entity will have no VIS checks done for it, meaning it will be visible across 
 	all the level.
 	
-## Light style/Appearence
+## Light style/Appearance
 >This is the same as it was in Half-Life, except in Pathos you need to use dynamic lights to have switchable
 >and/or animated lighting in your level. Pathos does not support HLRAD-based switchable lighting due to
 >issues with performance and half the surfaces not getting their lightmaps updated on more complex levels.
@@ -2184,7 +2184,7 @@ document:
 >[!NOTE]
 >Scripts for water entities are located inside "\*modfolder\*/scripts/water", and will be named with the
 >following schema:<br />
->water_\*mapname\*_\*index\*.txt<br />
+>water\_\*mapname\*\_\*index\*.txt<br />
 >So for entitytest2, the script will be named as "water_entitytest2_0.txt". If the daystage is set to the
 >night mode, then a "_n" is appended to the end of the script name, like "water_entitytest2_0_n.txt". The
 >contents of the script are defined using the fields described in "docs/water_scripts.md".

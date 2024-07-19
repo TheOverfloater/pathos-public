@@ -6,10 +6,10 @@ in a level.
 
 Water scripts are organized by level, the script's index defined in the water entity with "Script Index", and
 whether it the day stage is nighttime or not. This means a water entity will seek a script under the following
-file path:
-"\*modfolder\*/scripts/water/water\_\*levelname\*\_\*scriptindex\*.txt
-If the nighttime daystage is set, a "_n" is appended at the very end, like:
-"\*modfolder\*/scripts/water/water\_\*levelname\*\_\*scriptindex\*\_n.txt
+file path:<br />
+"\*modfolder\*/scripts/water/water\_\*levelname\*\_\*scriptindex\*.txt<br />
+If the nighttime daystage is set, a "_n" is appended at the very end, like:<br />
+"\*modfolder\*/scripts/water/water\_\*levelname\*\_\*scriptindex\*\_n.txt<br />
 
 For example, one of the water scripts used in the entity test levels is named as such:
 water_entitytest2c_0_n.txt.
