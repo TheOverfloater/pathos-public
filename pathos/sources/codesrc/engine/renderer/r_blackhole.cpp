@@ -367,6 +367,9 @@ bool CBlackHoleRenderer::DrawBlackHoles( void )
 	if(m_pCvarDrawBlackHoles->GetValue() < 1)
 		return true;
 
+	if (m_blackHolesList.empty())
+		return true;
+
 	m_pVBO->Bind();
 
 	if(!m_pShader->EnableShader())

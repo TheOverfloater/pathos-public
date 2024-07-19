@@ -115,3 +115,9 @@
  - Modify compile*.bat files under "pathos/sources" to always use -low for all compiler executions.
  - Updated VHLT tools that automatically remove clipping hulls from func_clipeconomy without needing the "zhlt_noclip" setting to be "1".
  - Added high-resolution DMC Forest skybox.
+ 
+-2024 July 19th additional fixes:
+ - Fix broken FGD entry for env_blur.
+ - Fix black hole render routines being run even if no black holes are present.
+ - Fix FBO cache causing first-frame bug with black holes and other effects.
+ - Fix post-process breaking motion blur after level change or save load.

@@ -764,7 +764,7 @@
 ]
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blur : "Motion Blur" 
 [
-  fade(integer) : "Blur fade" : 0.1
+  fade(string) : "Blur fade" : "0.1"
   spawnflags(flags) =
   [
     1 : "Start On" : 0

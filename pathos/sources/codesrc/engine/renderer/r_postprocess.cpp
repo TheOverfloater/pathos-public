@@ -624,7 +624,7 @@ void CPostProcess :: CreateBlurScreenTexture( void )
 //=============================================
 bool CPostProcess::CreateBlurScreenFBO(void)
 {
-	m_blurScreenFBO.ptexture1 = CTextureManager::GetInstance()->GenTextureIndex(RS_GAME_LEVEL);
+	m_blurScreenFBO.ptexture1 = CTextureManager::GetInstance()->GenTextureIndex(RS_WINDOW_LEVEL);
 	glBindTexture(GL_TEXTURE_2D, m_blurScreenFBO.ptexture1->gl_index);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rns.screenwidth, rns.screenheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

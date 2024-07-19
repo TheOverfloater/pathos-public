@@ -186,7 +186,10 @@ CFBOCache::cache_fbo_t* CFBOCache::Alloc(Uint32 width, Uint32 height, bool depth
 		gGLExtF.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, pnew->fbo.pdepth->gl_index, 0);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-	gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	if(rns.pboundfbo)
+		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
+	else
+		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	GLenum eStatus = gGLExtF.glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (eStatus != GL_FRAMEBUFFER_COMPLETE)
