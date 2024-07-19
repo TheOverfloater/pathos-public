@@ -122,7 +122,7 @@ void CModelCache::ClearCache( void )
 				}
 				break;
 			default:
-				Con_Printf("%s - Unknown model type %d for '%s'.\n", __FUNCTION__, (Int32)pmodel->type, pmodel->name.c_str());
+				Con_Printf("%s - Unknown model type %d for '%s'.\n", __FUNCTION__, static_cast<Int32>(pmodel->type), pmodel->name.c_str());
 				break;
 			}
 		}
@@ -396,6 +396,7 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 		pnewmodel->ppasdata = model.ppasdata;
 		pnewmodel->pasdatasize = model.pasdatasize;
 		pnewmodel->plightdata = model.plightdata;
+		pnewmodel->pbaselightdata = model.pbaselightdata;
 		pnewmodel->lightdatasize = model.lightdatasize;
 		pnewmodel->pclipnodes = model.pclipnodes;
 		pnewmodel->numclipnodes = model.numclipnodes;
@@ -454,7 +455,7 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 		if(i == 0)
 			modelname = loadName;
 		else
-			modelname << '*' << (Int32)(i);
+			modelname << '*' << static_cast<Int32>(i);
 
 		// Set in brushmodel_t too
 		pnewmodel->name = modelname;
@@ -500,8 +501,8 @@ cache_model_t* CModelCache::FindModelByName( const Char* pstrFilename )
 cache_model_t* CModelCache::GetModelByIndex( Uint32 index )
 {
 	// Verify if the index is correct
-	Int32 realIndex = (Uint32)(index - 1);
-	if(realIndex >= (Int32)m_modelCacheArray.size() || realIndex < 0)
+	Int32 realIndex = static_cast<Int32>(index - 1);
+	if(realIndex >= static_cast<Int32>(m_modelCacheArray.size()) || realIndex < 0)
 	{
 		Con_DPrintf("CModelCache::GetModelByIndex - Invalid index: %d.\n", index);
 		return nullptr;
@@ -519,8 +520,8 @@ cmodel_type_t CModelCache::GetType( Uint32 index )
 	cache_model_t* pmodel = GetModelByIndex(index);
 	if(!pmodel)
 		return MOD_NONE;
-
-	return pmodel->type;
+	else
+		return pmodel->type;
 }
 
 //=============================================

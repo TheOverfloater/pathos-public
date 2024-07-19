@@ -53,7 +53,7 @@ const Uint32 CWaterShader::WATER_RTT_SIZE = 512;
 //=============================================
 void R_WaterQualityCvarCallBack( CCVar* pCVar )
 {
-	Int32 waterQuality = (Int32)pCVar->GetValue();
+	Int32 waterQuality = static_cast<Int32>(pCVar->GetValue());
 	switch(waterQuality)
 	{
 	case 0:
@@ -173,6 +173,7 @@ bool CWaterShader::InitGL( void )
 		m_attribs.u_rectscale = m_pShader->InitUniform("rectscale", CGLSLShader::UNIFORM_FLOAT2);
 		m_attribs.u_lightstrength = m_pShader->InitUniform("lightstrength", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_specularstrength = m_pShader->InitUniform("specularstrength", CGLSLShader::UNIFORM_FLOAT1);
+		m_attribs.u_wavefresnelstrength = m_pShader->InitUniform("wavefresnelstrength", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_phongexponent = m_pShader->InitUniform("phongexponent", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_normalmatrix = m_pShader->InitUniform("normalmatrix", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_normalmatrix_v = m_pShader->InitUniform("normalmatrix_v", CGLSLShader::UNIFORM_MATRIX4);
@@ -196,6 +197,7 @@ bool CWaterShader::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_rectscale, "rectscale", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_lightstrength, "lightstrength", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_specularstrength, "specularstrength", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_wavefresnelstrength, "wavefresnelstrength", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_phongexponent, "phongexponent", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_normalmatrix, "normalmatrix", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_normalmatrix_v, "normalmatrix_v", m_pShader, Sys_ErrorPopup)
@@ -277,6 +279,9 @@ void CWaterShader::ClearGL( void )
 
 	if(m_pVBO)
 		m_pVBO->ClearGL();
+
+	if (m_pDepthTexture)
+		m_pDepthTexture = nullptr;
 }
 
 //====================================
@@ -284,7 +289,7 @@ void CWaterShader::ClearGL( void )
 //====================================
 bool CWaterShader::InitGame( void ) 
 {
-	Int32 waterQuality = (Int32)m_pCvarWaterQuality->GetValue();
+	Int32 waterQuality = static_cast<Int32>(m_pCvarWaterQuality->GetValue());
 	switch(waterQuality)
 	{
 	case 0:
@@ -444,6 +449,9 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 //====================================
 void CWaterShader::CreateDepthTexture( void ) 
 {
+	if (m_pDepthTexture)
+		return;
+
 	m_pDepthTexture = CTextureManager::GetInstance()->GenTextureIndex(RS_GAME_LEVEL);
 	glBindTexture(GL_TEXTURE_2D, m_pDepthTexture->gl_index);
 
@@ -498,6 +506,12 @@ void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *pset
 			pscan = Common::Parse(pscan, szValue);
 		}	
 
+		// Set defaults
+		psettings->wavefresnelstrength = 1.0;
+		psettings->lightstrength = 0.2;
+		psettings->phongexponent = DEFAULT_PHONG_EXPONENT;
+		psettings->specularstrength = DEFAULT_SPECULAR_FACTOR;
+
 		if(!qstrcmp(szField, "fresnel"))
 			psettings->fresnel = atof(szValue);
 		else if(!qstrcmp(szField, "colr"))
@@ -522,6 +536,8 @@ void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *pset
 			psettings->specularstrength = atof(szValue);
 		else if(!qstrcmp(szField, "phongexponent"))
 			psettings->phongexponent = atof(szValue);
+		else if(!qstrcmp(szField, "wavefresnelstrength"))
+			psettings->wavefresnelstrength = atof(szValue);
 		else if(!qstrcmp(szField, "scrollu"))
 			psettings->scrollu = atof(szValue);
 		else if(!qstrcmp(szField, "scrollv"))
@@ -537,7 +553,7 @@ void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *pset
 		else if(!qstrcmp(szField, "cheaprefraction"))
 			psettings->cheaprefraction = true;
 		else
-			Con_Printf("Unknown field: %s\n", szField);
+			Con_Printf("%s - Unknown field '%s' in '%s'\n", __FUNCTION__, szField, pstrFilename);
 	}
 
 	// always true
@@ -559,15 +575,6 @@ void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *pset
 
 	if(psettings->texscale <= 0)
 		psettings->texscale = 1;
-
-	if(psettings->lightstrength <= 0)
-		psettings->lightstrength = 0.2;
-
-	if(psettings->specularstrength <= 0)
-		psettings->specularstrength = DEFAULT_SPECULAR_FACTOR;
-
-	if(psettings->phongexponent <= 0)
-		psettings->phongexponent = DEFAULT_PHONG_EXPONENT;
 
 	if(psettings->cheaprefraction && (psettings->fogparams.end > 0 || psettings->fogparams.start > 0))
 	{
@@ -599,6 +606,43 @@ void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *pset
 //====================================
 //
 //====================================
+void CWaterShader::ReloadLightmapData( void )
+{
+	// If we have water entities, restore them also
+	if (m_waterEntitiesArray.empty())
+		return;
+
+	CTextureManager* pTextureManager = CTextureManager::GetInstance();
+
+	for (Uint32 i = 0; i < m_waterEntitiesArray.size(); i++)
+	{
+		cl_water_t* pwater = m_waterEntitiesArray[i];
+
+		if (pwater->plightmap_texture)
+		{
+			pTextureManager->DeleteAllocation(pwater->plightmap_texture);
+			pwater->plightmap_texture = nullptr;
+		}
+
+		if (pwater->plightmap_diffuse_texture)
+		{
+			pTextureManager->DeleteAllocation(pwater->plightmap_diffuse_texture);
+			pwater->plightmap_diffuse_texture = nullptr;
+		}
+
+		if (pwater->plightmap_lightvecs_texture)
+		{
+			pTextureManager->DeleteAllocation(pwater->plightmap_lightvecs_texture);
+			pwater->plightmap_lightvecs_texture = nullptr;
+		}
+
+		CreateLightmapTexture(pwater);
+	}
+}
+
+//====================================
+//
+//====================================
 void CWaterShader::LoadScripts( void ) 
 {
 	if(!m_waterSettingsArray.empty())
@@ -617,14 +661,14 @@ void CWaterShader::LoadScripts( void )
 		if(rns.daystage == DAYSTAGE_NIGHTSTAGE)
 		{
 			filename.clear();
-			filename << WATER_SCRIPT_BASEPATH << "water_" << mapname << "_" << (Int32)m_waterSettingsArray.size() << "_n.txt";
+			filename << WATER_SCRIPT_BASEPATH << "water_" << mapname << "_" << static_cast<Int32>(m_waterSettingsArray.size()) << "_n.txt";
 			pFile = reinterpret_cast<const Char *>(FL_LoadFile(filename.c_str(), nullptr));
 		}
 		
 		if(!pFile)
 		{
 			filename.clear();
-			filename << WATER_SCRIPT_BASEPATH << "water_" << mapname << "_" << (Int32)m_waterSettingsArray.size() << ".txt";
+			filename << WATER_SCRIPT_BASEPATH << "water_" << mapname << "_" << static_cast<Int32>(m_waterSettingsArray.size()) << ".txt";
 			pFile = reinterpret_cast<const Char *>(FL_LoadFile(filename.c_str(), nullptr));
 		}
 
@@ -663,6 +707,7 @@ void CWaterShader::LoadScripts( void )
 			pSettings->lightstrength = 0.2;
 			pSettings->specularstrength = DEFAULT_SPECULAR_FACTOR;
 			pSettings->phongexponent = DEFAULT_PHONG_EXPONENT;
+			pSettings->wavefresnelstrength = 1.0;
 
 			Con_Printf("Could not load default water definition file '%s'!\n", filepath.c_str());
 			return;
@@ -676,10 +721,9 @@ void CWaterShader::LoadScripts( void )
 //====================================
 //
 //====================================
-bool CWaterShader::ShouldReflect( Uint32 index ) const
+bool CWaterShader::ShouldReflect( Uint32 index, const water_settings_t* psettings ) const
 {
-	if(m_waterQuality <= WATER_QUALITY_NO_REFLECT 
-		|| m_pCurrentWater->psettings->refractonly)
+	if(m_waterQuality <= WATER_QUALITY_NO_REFLECT || psettings->refractonly)
 		return false;
 
 	Vector viewOrg = GetViewOrigin();
@@ -702,8 +746,7 @@ bool CWaterShader::ShouldReflect( Uint32 index ) const
 
 		cl_water_t *pwater = pinfo->pwaterdata;
 
-		if(!pwater->psettings->refractonly
-			&& pwater->framecount == m_drawCounter)
+		if(!psettings->refractonly && pwater->framecount == m_drawCounter)
 		{
 			if(GetWaterOrigin(pwater).z == GetWaterOrigin().z)
 				return false;
@@ -875,10 +918,10 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 			}
 
 			pcurvert->texcoords[0] = Math::DotProduct(pcurvert->origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
-			pcurvert->texcoords[0] /= (Float)ptexinfo->ptexture->width;
+			pcurvert->texcoords[0] /= static_cast<Float>(ptexinfo->ptexture->width);
 
 			pcurvert->texcoords[1] = Math::DotProduct(pcurvert->origin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
-			pcurvert->texcoords[1] /= (Float)ptexinfo->ptexture->height;
+			pcurvert->texcoords[1] /= static_cast<Float>(ptexinfo->ptexture->height);
 
 			pcurvert->lightcoords[0] = Math::DotProduct(pcurvert->origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
 			pcurvert->lightcoords[0] -= psurf->texturemins[0];
@@ -944,15 +987,17 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 	if(settingindex < 0)
 		settingindex = 0;
 
-	// Set this
-	pwater->psettings = &m_waterSettingsArray[settingindex];
+	// Set this for later
+	pwater->settingsindex = settingindex;
+	// Retrieve settings tied to this water entity
+	const water_settings_t* psettings = GetWaterSettings(pwater);
 
 	// Rebuild lightmap
 	CreateLightmapTexture(pwater);
 
 	if(m_waterQuality > WATER_QUALITY_NO_REFLECT_REFRACT
-		&& (!pwater->psettings->cheaprefraction 
-		|| !pwater->psettings->refractonly))
+		&& (!psettings->cheaprefraction
+		|| !psettings->refractonly))
 	{
 		// Create render-to-texture objects
 		if(!CreateRenderToTexture(pwater))
@@ -971,7 +1016,10 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 //====================================
 bool CWaterShader::CreateRenderToTexture( cl_water_t* pwater ) 
 {
+	// Get ptr to texture manager
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
+	// Get water entity's settings
+	const water_settings_t* psettings = GetWaterSettings(pwater);
 
 	if(rns.fboused)
 	{
@@ -979,7 +1027,7 @@ bool CWaterShader::CreateRenderToTexture( cl_water_t* pwater )
 			CreateDepthTexture();
 
 		if(m_waterQuality > WATER_QUALITY_NO_REFLECT_REFRACT 
-			&& !pwater->psettings->cheaprefraction)
+			&& !psettings->cheaprefraction)
 		{
 			// Create refraction image
 			pwater->prefractfbo = new fbobind_t;
@@ -1007,7 +1055,7 @@ bool CWaterShader::CreateRenderToTexture( cl_water_t* pwater )
 		}
 
 		if(m_waterQuality > WATER_QUALITY_NO_REFLECT 
-			&& !pwater->psettings->refractonly)
+			&& !psettings->refractonly)
 		{
 			// Create reflection image
 			pwater->preflectfbo = new fbobind_t;
@@ -1043,7 +1091,7 @@ bool CWaterShader::CreateRenderToTexture( cl_water_t* pwater )
 	else
 	{
 		if(m_waterQuality > WATER_QUALITY_NO_REFLECT
-			&& !pwater->psettings->refractonly)
+			&& !psettings->refractonly)
 		{
 			// Create the reflection texture
 			pwater->preflect_texture = pTextureManager->GenTextureIndex(RS_GAME_LEVEL);
@@ -1053,11 +1101,11 @@ bool CWaterShader::CreateRenderToTexture( cl_water_t* pwater )
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, WATER_RTT_SIZE, WATER_RTT_SIZE, 0, nullptr);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WATER_RTT_SIZE, WATER_RTT_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		}
 
 		if(m_waterQuality > WATER_QUALITY_NO_REFLECT_REFRACT 
-			&& !pwater->psettings->cheaprefraction)
+			&& !psettings->cheaprefraction)
 		{
 			// Create the reflection texture
 			pwater->prefract_texture = pTextureManager->GenTextureIndex(RS_GAME_LEVEL);
@@ -1067,7 +1115,7 @@ bool CWaterShader::CreateRenderToTexture( cl_water_t* pwater )
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, WATER_RTT_SIZE, WATER_RTT_SIZE, 0, nullptr);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WATER_RTT_SIZE, WATER_RTT_SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		}
 
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -1221,18 +1269,21 @@ bool CWaterShader::DrawWaterPasses( void )
 				continue;
 		}
 
+		// Get water entity's settings
+		const water_settings_t* psettings = GetWaterSettings(m_pCurrentWater);
+
 		if(m_waterQuality == WATER_QUALITY_NO_REFLECT_REFRACT 
-			|| m_pCurrentWater->psettings->cheaprefraction
-			&& m_pCurrentWater->psettings->refractonly)
+			|| psettings->cheaprefraction
+			&& psettings->refractonly)
 		{
 			m_pCurrentWater->framecount = m_drawCounter;
 			continue;
 		}
 
 		if(m_waterQuality > WATER_QUALITY_NO_REFLECT_REFRACT 
-			&& !m_pCurrentWater->psettings->cheaprefraction)
+			&& !psettings->cheaprefraction)
 		{
-			SetupRefract();
+			SetupRefract(psettings);
 
 			// Draw the refraction scene
 			result = DrawScene(m_waterParams, true);
@@ -1245,7 +1296,7 @@ bool CWaterShader::DrawWaterPasses( void )
 			FinishRefract();
 		}
 
-		if(ShouldReflect(i))
+		if(ShouldReflect(i, psettings))
 		{
 			SetupReflect();
 
@@ -1272,9 +1323,10 @@ bool CWaterShader::DrawWaterPasses( void )
 			if(m_pCurrentWater->pentity->curstate.rendertype == RT_SKYWATERENT)
 				continue;
 
+			const water_settings_t* psettings = GetWaterSettings(m_pCurrentWater);
 			if(ViewInWater() && !rns.inwater)
 			{
-				rns.fog.settings = m_pCurrentWater->psettings->fogparams;
+				rns.fog.settings = psettings->fogparams;
 				rns.inwater = true;
 				break;
 			}
@@ -1364,7 +1416,7 @@ Vector CWaterShader::GetViewOrigin( void ) const
 //====================================
 //
 //====================================
-void CWaterShader::SetupRefract( void ) 
+void CWaterShader::SetupRefract( const water_settings_t* psettings ) 
 {
 	// Copy values from main view params
 	m_waterParams = rns.view.params;
@@ -1387,7 +1439,7 @@ void CWaterShader::SetupRefract( void )
 		Math::VectorAdd(m_pCurrentWater->pentity->curstate.maxs, m_pCurrentWater->pentity->curstate.origin, vMaxs);
 
 		rns.view.frustum.SetExtraCullBox(vMins, vMaxs);
-		rns.fog.settings = m_pCurrentWater->psettings->fogparams;
+		rns.fog.settings = psettings->fogparams;
 		rns.inwater = true;
 	}
 	else
@@ -1534,7 +1586,7 @@ bool CWaterShader::DrawWater( bool skybox )
 	{
 		result = m_pShader->SetDeterminator(m_attribs.d_fog, 1, false);
 		m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
-		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/((Float)rns.fog.settings.end-(Float)rns.fog.settings.start));
+		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/(static_cast<Float>(rns.fog.settings.end)- static_cast<Float>(rns.fog.settings.start)));
 	}
 	else
 	{
@@ -1580,8 +1632,10 @@ bool CWaterShader::DrawWater( bool skybox )
 		if(!pinfo->pwaterdata)
 			continue;
 
+		// Get ptr from entity
 		m_pCurrentWater = pinfo->pwaterdata;
-		water_settings_t *psettings = m_pCurrentWater->psettings;
+		// get water settings ptr
+		const water_settings_t* psettings = GetWaterSettings(m_pCurrentWater);
 
 		if(!m_pCurrentWater->preflectfbo && m_pCurrentWater->prefractfbo
 			&& !m_pCurrentWater->preflect_texture && m_pCurrentWater->prefract_texture)
@@ -1599,8 +1653,7 @@ bool CWaterShader::DrawWater( bool skybox )
 			rns.view.modelview.PopMatrix();
 		}
 
-		if(!m_pCurrentWater->psettings->refractonly 
-			&& m_waterQuality > WATER_QUALITY_NO_REFLECT
+		if(!psettings->refractonly && m_waterQuality > WATER_QUALITY_NO_REFLECT
 			&& rns.view.v_origin[2] > GetWaterOrigin().z)
 		{
 			glCullFace(GL_FRONT);
@@ -1609,8 +1662,7 @@ bool CWaterShader::DrawWater( bool skybox )
 		}
 		else
 		{
-			if((m_pCurrentWater->psettings->refractonly
-				|| m_waterQuality <= WATER_QUALITY_NO_REFLECT)
+			if((psettings->refractonly || m_waterQuality <= WATER_QUALITY_NO_REFLECT)
 				&& rns.view.v_origin[2] > GetWaterOrigin().z)
 				glCullFace(GL_FRONT);
 			else
@@ -1631,11 +1683,11 @@ bool CWaterShader::DrawWater( bool skybox )
 		m_pShader->SetUniform1f(m_attribs.u_lightstrength, psettings->lightstrength);
 		m_pShader->SetUniform1f(m_attribs.u_specularstrength, psettings->specularstrength);
 		m_pShader->SetUniform1f(m_attribs.u_phongexponent, psettings->phongexponent*g_pCvarPhongExponent->GetValue());
+		m_pShader->SetUniform1f(m_attribs.u_wavefresnelstrength, psettings->wavefresnelstrength);
 
 		Int32 textureUnit = 4;
 
-		if(m_pCurrentWater->psettings->cheaprefraction
-			|| m_waterQuality <= WATER_QUALITY_NO_REFLECT_REFRACT)
+		if(psettings->cheaprefraction || m_waterQuality <= WATER_QUALITY_NO_REFLECT_REFRACT)
 		{
 			result = m_pShader->SetDeterminator(m_attribs.d_rectrefract, 1, false);
 			if(!result)
@@ -1668,8 +1720,7 @@ bool CWaterShader::DrawWater( bool skybox )
 				R_Bind2DTexture(GL_TEXTURE2, m_pCurrentWater->prefract_texture->gl_index);
 		}
 
-		if(!m_pCurrentWater->psettings->refractonly
-			&& m_waterQuality > WATER_QUALITY_NO_REFLECT)
+		if(!psettings->refractonly && m_waterQuality > WATER_QUALITY_NO_REFLECT)
 		{
 			// Optimization: Try and find a water entity on the same z coord
 			Uint32 j = 0;
@@ -1736,8 +1787,7 @@ bool CWaterShader::DrawWater( bool skybox )
 
 		glDrawElements(GL_TRIANGLES, m_pCurrentWater->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pCurrentWater->start_index));
 
-		if(m_pCurrentWater->psettings->cheaprefraction
-			&& (m_pCurrentWater->psettings->refractonly
+		if(psettings->cheaprefraction && (psettings->refractonly
 			|| rns.view.v_origin[2] < GetWaterOrigin().z)
 			|| m_waterQuality <= WATER_QUALITY_NO_REFLECT_REFRACT)
 		{
@@ -1761,4 +1811,24 @@ bool CWaterShader::DrawWater( bool skybox )
 	R_ClearBinds();
 
 	return result;
+}
+
+//====================================
+//
+//====================================
+const water_settings_t* CWaterShader::GetActiveSettings( void ) const
+{ 
+	return GetWaterSettings(m_pCurrentWater);
+}
+
+//====================================
+//
+//====================================
+const water_settings_t* CWaterShader::GetWaterSettings( cl_water_t* pwater ) const
+{
+	if (pwater->settingsindex < 0 ||
+		pwater->settingsindex >= m_waterSettingsArray.size())
+		return &m_waterSettingsArray[0];
+	else
+		return &m_waterSettingsArray[pwater->settingsindex];
 }

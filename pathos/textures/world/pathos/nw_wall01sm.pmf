@@ -2,7 +2,6 @@ $texture
 {
 	$int_width 128
 	$int_height 128
-	$container pathos.wad
 	$material wood
-	$texture diffuse nw_wall01sm
+	$texture diffuse world/pathos/nw_wall01sm.dds
 }

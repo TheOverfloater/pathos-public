@@ -97,7 +97,8 @@ CAINodeGraph::CAINodeGraph( void ):
 	m_pNodeHeader(nullptr),
 	m_nearestNodeDistance(0),
 	m_nearestNodeIndex(NO_POSITION),
-	m_disableDebugMessages(false)
+	m_disableDebugMessages(false),
+	m_pLogFile(nullptr)
 {
 }
 
@@ -1422,12 +1423,12 @@ bool CAINodeGraph::LinkNodes( CBaseEntity* pTestNPC )
 				// Clear link entities relevant to this link
 				if(plink->numlinkentities > 0 && plink->linkentityindex != NO_POSITION)
 				{
-					CArray<link_entity_t*>& linkEntityArray = m_linkEntityArrayOfArrays[plink->linkentityindex];
-					for(Uint32 l = 0; l < linkEntityArray.size(); l++)
-						delete linkEntityArray[l];
+					CArray<link_entity_t*>& _linkEntityArray = m_linkEntityArrayOfArrays[plink->linkentityindex];
+					for(Uint32 l = 0; l < _linkEntityArray.size(); l++)
+						delete _linkEntityArray[l];
 
-					nbLinkEntities -= linkEntityArray.size();
-					linkEntityArray.clear();
+					nbLinkEntities -= _linkEntityArray.size();
+					_linkEntityArray.clear();
 				}
 
 				// Delete the link itself

@@ -16,15 +16,15 @@ struct en_texalloc_t;
 #include "r_glsl.h"
 
 // Distance between light checks
-static const Uint32 LIGHTCHECK_DISTANCE			= 16;
+static constexpr Uint32 LIGHTCHECK_DISTANCE			= 16;
 
 // Max active particles
-static const Uint32 MAX_ACTIVE_PARTICLES		= 32768;
+static constexpr Uint32 MAX_ACTIVE_PARTICLES		= 32768;
 
 // Max lights for projective type
-static const Uint32 MAX_PARTICLE_POINT_LIGHTS	= 4;
+static constexpr Uint32 MAX_PARTICLE_POINT_LIGHTS	= 4;
 // Max lights for projective type
-static const Uint32 MAX_PARTICLE_PROJ_LIGHTS	= 4;
+static constexpr Uint32 MAX_PARTICLE_PROJ_LIGHTS	= 4;
 
 enum particle_lightflags_t
 {
@@ -569,7 +569,9 @@ struct particle_attribs
 		u_znear(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_texture0(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_rtexture0(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_rtexture1(CGLSLShader::PROPERTY_UNAVAILABLE)
+		u_rtexture1(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_scrtexture0(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_scrtexture1(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{}
 
 	Int32 a_origin;
@@ -585,6 +587,7 @@ struct particle_attribs
 	Int32 d_fog;
 	Int32 d_type;
 	Int32 d_alphatest;
+	Int32 d_rectangle;
 
 	Int32 u_modelview;
 	Int32 u_projection;
@@ -601,6 +604,9 @@ struct particle_attribs
 
 	Int32 u_rtexture0;
 	Int32 u_rtexture1;
+
+	Int32 u_scrtexture0;
+	Int32 u_scrtexture1;
 };
 
 /*

@@ -20,7 +20,8 @@ LINK_ENTITY_TO_CLASS(light_environment, CLightEnvironment);
 //=============================================
 CLightEnvironment::CLightEnvironment( edict_t* pedict ):
 	CPointEntity(pedict),
-	m_sunlightIntensity(0)
+	m_sunlightIntensity(0),
+	m_lightEnvMode(MODE_NORMAL)
 {
 }
 
@@ -30,6 +31,21 @@ CLightEnvironment::CLightEnvironment( edict_t* pedict ):
 //=============================================
 CLightEnvironment::~CLightEnvironment( void )
 {
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CLightEnvironment::DeclareSaveFields(void)
+{
+	// Call base class to do it first
+	CPointEntity::DeclareSaveFields();
+
+	DeclareSaveField(DEFINE_DATA_FIELD(CLightEnvironment, m_sunlightDirection, EFIELD_VECTOR));
+	DeclareSaveField(DEFINE_DATA_FIELD(CLightEnvironment, m_sunlightColor, EFIELD_VECTOR));
+	DeclareSaveField(DEFINE_DATA_FIELD(CLightEnvironment, m_sunlightIntensity, EFIELD_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CLightEnvironment, m_lightEnvMode, EFIELD_INT32));
 }
 
 //=============================================
@@ -52,17 +68,39 @@ bool CLightEnvironment::KeyValue( const keyvalue_t& kv )
 		Uint32 num = SDL_sscanf(kv.value, "%d %d %d %d", &colorr, &colorg, &colorb, &intensity);
 		if(num == 1)
 		{
-			m_sunlightColor.r = clamp(colorr, 0, 255);
-			m_sunlightColor.g = m_sunlightColor.r;
-			m_sunlightColor.b = m_sunlightColor.r;
+			m_sunlightColor.x = clamp(colorr, 0, 255);
+			m_sunlightColor.y = m_sunlightColor.x;
+			m_sunlightColor.z = m_sunlightColor.y;
 			m_sunlightIntensity = 0;
 		}
 		else
 		{
-			m_sunlightColor.r = clamp(colorr, 0, 255);
-			m_sunlightColor.g = clamp(colorg, 0, 255);
-			m_sunlightColor.b = clamp(colorb, 0, 255);
+			m_sunlightColor.x = clamp(colorr, 0, 255);
+			m_sunlightColor.y = clamp(colorg, 0, 255);
+			m_sunlightColor.z = clamp(colorb, 0, 255);
 			m_sunlightIntensity = clamp(intensity, 0, 255);
+		}
+		return true;
+	}
+	else if (!qstrcmp(kv.keyname, "nightmode"))
+	{
+		if (SDL_atoi(kv.value) == 1)
+		{
+			if (m_lightEnvMode == MODE_NIGHT)
+				m_lightEnvMode = MODE_DAYLIGHT_RETURN_AND_NIGHT;
+			else
+				m_lightEnvMode = MODE_NIGHT;
+		}
+		return true;
+	}
+	else if (!qstrcmp(kv.keyname, "daylightreturn"))
+	{
+		if (SDL_atoi(kv.value) == 1)
+		{
+			if (m_lightEnvMode == MODE_DAYLIGHT_RETURN)
+				m_lightEnvMode = MODE_DAYLIGHT_RETURN_AND_NIGHT;
+			else
+				m_lightEnvMode = MODE_DAYLIGHT_RETURN;
 		}
 		return true;
 	}
@@ -82,15 +120,73 @@ bool CLightEnvironment::Spawn( void )
 	// Calculate final light values
 	if(m_sunlightIntensity)
 	{
-		m_sunlightColor.r = ((Float)m_sunlightIntensity/255.0f) * m_sunlightColor.r;
-		m_sunlightColor.g = ((Float)m_sunlightIntensity/255.0f) * m_sunlightColor.g;
-		m_sunlightColor.b = ((Float)m_sunlightIntensity/255.0f) * m_sunlightColor.b;
+		m_sunlightColor.x = ((Float)m_sunlightIntensity/255.0f) * m_sunlightColor.x;
+		m_sunlightColor.y = ((Float)m_sunlightIntensity/255.0f) * m_sunlightColor.y;
+		m_sunlightColor.z = ((Float)m_sunlightIntensity/255.0f) * m_sunlightColor.z;
+	}
+
+	// Flag entity for removal
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CLightEnvironment::SendInitMessage( const CBaseEntity* pPlayer )
+{
+	// Either use activator, or assume it's local player
+	const CBaseEntity* pEntity;
+	if (pPlayer)
+		pEntity = pPlayer;
+	else
+		pEntity = Util::GetHostPlayer();
+
+	if (!pEntity || !pEntity->IsPlayer())
+	{
+		Util::EntityConPrintf(m_pEdict, "Not a player entity.\n");
+		return;
 	}
 	
+	daystage_t dayStage = pEntity->GetDayStage();
+	SetLightEnvValues(dayStage);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CLightEnvironment::SetLightEnvValues( daystage_t daystage )
+{
+	switch (daystage)
+	{
+	case DAYSTAGE_NIGHTSTAGE:
+	{
+		if (m_lightEnvMode != MODE_NIGHT
+			&& m_lightEnvMode != MODE_DAYLIGHT_RETURN_AND_NIGHT)
+			return false;
+	}
+	break;
+	case DAYSTAGE_DAYLIGHT_RETURN:
+	{
+		if (m_lightEnvMode != MODE_DAYLIGHT_RETURN
+			&& m_lightEnvMode != MODE_DAYLIGHT_RETURN_AND_NIGHT)
+			return false;
+	}
+	break;
+	default:
+	case DAYSTAGE_NORMAL:
+	{
+		if (m_lightEnvMode != MODE_NORMAL)
+			return false;
+	}
+	break;
+	}
+
 	// Modulate the color like RAD does with gamma adjustments
-	Uint32 color_r = pow((Float)m_sunlightColor.r / 114.0, 0.6) * 264;
-	Uint32 color_g = pow((Float)m_sunlightColor.g / 114.0, 0.6) * 264;
-	Uint32 color_b = pow((Float)m_sunlightColor.b / 114.0, 0.6) * 264;
+	Uint32 color_r = pow((Float)m_sunlightColor.x / 114.0, 0.6) * 264;
+	Uint32 color_g = pow((Float)m_sunlightColor.y / 114.0, 0.6) * 264;
+	Uint32 color_b = pow((Float)m_sunlightColor.z / 114.0, 0.6) * 264;
 
 	gd_engfuncs.pfnSetCVarFloat("sv_skycolor_r", (Float)color_r);
 	gd_engfuncs.pfnSetCVarFloat("sv_skycolor_g", (Float)color_g);
@@ -103,7 +199,5 @@ bool CLightEnvironment::Spawn( void )
 	gd_engfuncs.pfnSetCVarFloat("sv_skyvec_y", forward.y);
 	gd_engfuncs.pfnSetCVarFloat("sv_skyvec_z", forward.z);
 
-	// Flag entity for removal
-	Util::RemoveEntity(this);
 	return true;
 }

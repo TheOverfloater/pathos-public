@@ -31,6 +31,10 @@ private:
 private:
 	struct saytextinfo_t
 	{
+		saytextinfo_t() :
+			die(0)
+			{}
+
 		Float die;
 		CString playername;
 		CString message;

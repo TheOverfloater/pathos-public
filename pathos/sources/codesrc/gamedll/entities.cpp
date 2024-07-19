@@ -382,14 +382,14 @@ bool RunEntityPhysics( edict_t* pedict )
 // @brief
 //
 //=============================================
-void FreeEntity( edict_t* pedict )
+void FreeEntity( edict_t* pedict, edict_removed_t freeMode )
 {
 	if(!pedict->pprivatedata)
 		return;
 
 	// Call to clean up
 	CBaseEntity* pEntity = reinterpret_cast<CBaseEntity*>(pedict->pprivatedata);
-	pEntity->FreeEntity();
+	pEntity->FreeEntity(freeMode);
 
 	// Delete instance
 	delete pEntity;
@@ -1064,6 +1064,7 @@ bool CheckVisibility( const edict_t& client, const edict_t& entity, const byte* 
 
 	// Check skybox if we're a sky entity
 	if(entity.state.renderfx == RenderFx_SkyEnt || 
+		entity.state.renderfx == RenderFx_SkyEntScaled ||
 		entity.state.renderfx == RenderFx_SkyEntNC || 
 		entity.state.rendertype == RT_SKYWATERENT)
 	{

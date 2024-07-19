@@ -372,6 +372,7 @@ struct brushmodel_t
 		ppasdata(nullptr),
 		pasdatasize(0),
 		plightdata(nullptr),
+		pbaselightdata(nullptr),
 		lightdatasize(0),
 		pentdata(nullptr),
 		entdatasize(0)
@@ -410,8 +411,10 @@ struct brushmodel_t
 				delete[] pvisdata;
 			if(ppasdata) 
 				delete[] ppasdata;
-			if(plightdata)
+			if(plightdata && plightdata != pbaselightdata)
 				delete[] plightdata;
+			if (pbaselightdata)
+				delete[] pbaselightdata;
 			if(pentdata) 
 				delete[] pentdata;
 			if(hulls[0].pclipnodes)
@@ -499,6 +502,9 @@ struct brushmodel_t
 	color24_t* plightdata;
 	Uint32 lightdatasize;
 	
+	// original lightdata
+	color24_t* pbaselightdata;
+
 	// entities
 	Char* pentdata;
 	Uint32 entdatasize;

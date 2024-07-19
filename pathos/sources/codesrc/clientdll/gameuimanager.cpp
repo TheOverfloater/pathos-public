@@ -345,8 +345,10 @@ void CGameUIManager::RespawnWindow( void )
 			// Get the current window state
 			Int32 flags;
 			CString scriptfile;
+			Int32 subwayLineIndex;
+
 			CGameUISubwayWindow* pActiveWindow = reinterpret_cast<CGameUISubwayWindow*>(m_pActiveWindow);
-			pActiveWindow->getInformation(scriptfile, flags);
+			pActiveWindow->getInformation(scriptfile, flags, subwayLineIndex);
 
 			// Destroy it
 			DestroyActiveWindow();
@@ -356,7 +358,7 @@ void CGameUIManager::RespawnWindow( void )
 			if(!pActiveWindow)
 				return;
 
-			pActiveWindow->initData(scriptfile.c_str(), flags);
+			pActiveWindow->initData(scriptfile.c_str(), flags, subwayLineIndex);
 		}
 		break;
 	case GAMEUI_OBJECTIVESWINDOW:

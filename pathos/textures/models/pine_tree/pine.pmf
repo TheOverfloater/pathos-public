@@ -1,0 +1,5 @@
+$texture
+{
+	$alphatest
+	$texture diffuse models/pine_tree/pine.tga
+}

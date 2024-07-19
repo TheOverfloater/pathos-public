@@ -229,7 +229,7 @@ bool CFlexManager::LoadAssociationScript( flextypes_t npcType, const Char* pscri
 	// Make sure the type is valid
 	if( npcType == FLEX_NPC_TYPE_NONE || npcType != FLEX_NPC_TYPE_HUMAN && npcType != FLEX_NPC_TYPE_UNUSED )
 	{
-		SetError("%s - Unknown NPC type '%d' in '%s'", __FUNCTION__, (Int32)npcType, pscriptname);
+		SetError("%s - Unknown NPC type '%d' in '%s'", __FUNCTION__, static_cast<Int32>(npcType), pscriptname);
 		return false;
 	}
 
@@ -373,7 +373,7 @@ const Char* CFlexManager::GetAIScript( flextypes_t npcType, flexaistates_t aiSta
 		return nullptr;
 
 	CArray<CString>& scriptArray = m_flexAIStateScripts[npcType][aiState];
-	Uint32 scriptIndex = Common::RandomLong( 0, (((Int32)scriptArray.size())-1) );
+	Uint32 scriptIndex = Common::RandomLong( 0, (static_cast<Int32>(scriptArray.size()))-1);
 
 	return scriptArray[scriptIndex].c_str();
 }
@@ -634,7 +634,7 @@ const flexscript_t* CFlexManager::LoadScript( const Char* pscriptname )
 //====================================
 void CFlexManager::SetMouth( Int32 mouthopen, flexstate_t* pstate )
 {
-	Float value = (Float)mouthopen / 30.0f;
+	Float value = static_cast<Float>(mouthopen) / 30.0f;
 	value = clamp(value, 0.0, 1.0);
 
 	Float outValue = pstate->values[FLEX_MOUTH_OPEN] += value;
@@ -714,7 +714,7 @@ void CFlexManager::UpdateValues( Float cur_time, Float health, Int32 mouthopen, 
 		for(Uint32 i = 0; i < pscript->controllers.size(); i++)
 		{
 			const flexcontroller_t* pcontroller = &pscript->controllers[i];
-			for(Int32 j = 0; j < ((Int32)pcontroller->binds.size())-1; j++)
+			for(Int32 j = 0; j < (static_cast<Int32>(pcontroller->binds.size()))-1; j++)
 			{
 				Double bindtime = pstate->time + pcontroller->binds[j].time;
 				Double nextbindtime = pstate->time + pcontroller->binds[j+1].time;
@@ -734,7 +734,7 @@ void CFlexManager::UpdateValues( Float cur_time, Float health, Int32 mouthopen, 
 				if(bindtime < cur_time && nextbindtime < cur_time)
 				{
 					// If we're at the last one, just keep the last max value
-					if(j == (((Int32)pcontroller->binds.size())-2))
+					if(j == ((static_cast<Int32>(pcontroller->binds.size()))-2))
 						flexValues[pcontroller->index] = pcontroller->binds[j+1].strength;
 
 					// Nothing to do on this one

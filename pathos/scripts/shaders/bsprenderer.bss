@@ -617,7 +617,8 @@ $begin
 	$begin
 		lightmapColor.xyz += texture(luminance, ps_texcoord).xyz;
 	$end
-	return clamp(lightmapColor, 0, 1); // To prevent multipass inconsistencies
+	//return clamp(lightmapColor, 0, 1); // To prevent multipass inconsistencies
+	return lightmapColor;
 $end
 $branch bumpmapping == 1
 $begin
@@ -630,7 +631,8 @@ $begin
 		finalColor.xyz += texture(luminance, ps_texcoord).xyz;
 	$end	
 
-	return clamp(finalColor, 0, 1); // To prevent multipass inconsistencies
+	//return clamp(finalColor, 0, 1); // To prevent multipass inconsistencies
+	return finalColor;
 $end
 }
 

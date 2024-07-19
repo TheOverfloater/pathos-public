@@ -18,7 +18,7 @@ struct ref_params_t;
 struct en_texture_t;
 
 // Lightmap X resolution
-const Uint32 WATER_LIGHTMAP_X = 128;
+static constexpr Uint32 WATER_LIGHTMAP_X = 128;
 
 struct cl_water_t
 {
@@ -37,7 +37,7 @@ struct cl_water_t
 		plightmap_diffuse_texture(nullptr),
 		plightmap_lightvecs_texture(nullptr),
 		lightmaptextureheight(0),
-		psettings(nullptr)
+		settingsindex(0)
 		{}
 
 	Uint32 index;
@@ -66,7 +66,7 @@ struct cl_water_t
 
 	Uint32 lightmaptextureheight;
 
-	struct water_settings_t *psettings;
+	Int32 settingsindex;
 };
 
 struct water_settings_t
@@ -83,6 +83,7 @@ struct water_settings_t
 		texscale(0),
 		lightstrength(0),
 		specularstrength(0),
+		wavefresnelstrength(0),
 		phongexponent(0),
 		refractonly(false),
 		cheaprefraction(false)
@@ -100,6 +101,7 @@ struct water_settings_t
 	Float texscale;
 	Float lightstrength;
 	Float specularstrength;
+	Float wavefresnelstrength;
 	Float phongexponent;
 	bool refractonly;
 	bool cheaprefraction;
@@ -193,6 +195,7 @@ struct water_attribs
 	Int32 u_lightstrength;
 	Int32 u_specularstrength;
 	Int32 u_phongexponent;
+	Int32 u_wavefresnelstrength;
 
 	Int32 u_modelview;
 	Int32 u_projection;
@@ -276,12 +279,14 @@ public:
 
 	// Loads water scripts
 	void LoadScripts( void );
+	// Reloads lightmap data for water entities
+	void ReloadLightmapData( void );
 
 public:
 	// Retreives the current water's settings
-	water_settings_t *GetActiveSettings( void ) { return m_pCurrentWater->psettings; };
+	const water_settings_t *GetActiveSettings( void ) const;
 	// Returns the current water quality setting
-	water_quality_t GetWaterQualitySetting( void ) { return m_waterQuality; };
+	const water_quality_t GetWaterQualitySetting( void ) const { return m_waterQuality; };
 	// Returns the value of the reflection setting cvar
 	Int32 GetWaterReflectionCvarSetting( void ) { return m_pCvarWaterReflectionSetting->GetValue(); }
 
@@ -290,7 +295,7 @@ private:
 	bool DrawScene( const ref_params_t& pparams, bool isrefracting );
 
 	// Sets up for a refraction renderpass
-	void SetupRefract( void );
+	void SetupRefract( const water_settings_t* psettings );
 	// Finalizes a refraction renderpass
 	void FinishRefract( void );
 
@@ -304,11 +309,14 @@ private:
 	// Creates a depth texture
 	void CreateDepthTexture ( void );
 
+	// Returns settings for a water entity
+	const water_settings_t* GetWaterSettings( cl_water_t* pwater ) const;
+
 private:
 	// Tells if the view is within a water object
 	bool ViewInWater( void );
 	// Tells if a water entity should do a reflection pass
-	bool ShouldReflect( Uint32 index ) const;
+	bool ShouldReflect( Uint32 index, const water_settings_t* psettings ) const;
 
 	// Gets the water entity's surface origin
 	Vector GetWaterOrigin( cl_water_t *pwater = nullptr ) const;

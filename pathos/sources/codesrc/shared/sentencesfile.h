@@ -116,9 +116,10 @@ public:
 	bool HasError( void ) const;
 	const Char* GetError( void ) const;
 
+	sentence_t* GetSentenceDefinition(const Char* pstrSentenceName);
+
 private:
 	bool ParseOptionToken( const Char** ppoutstr, const Char* pstroption, Uint32& pitch, Uint32& time, Uint32& start, Uint32& end, Uint32& volume );
-	sentence_t* GetSentenceDefinition( const Char* pstrSentenceName );
 
 private:
 	// Array of sentence groups

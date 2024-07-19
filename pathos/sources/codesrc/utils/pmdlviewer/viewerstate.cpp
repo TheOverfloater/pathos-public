@@ -155,7 +155,7 @@ bool Viewer_InitStates( void )
 			{
 				// Mod folder is missing the shader script
 				errorMsg << " Unable to find shader script '" << shaderPath << "', please specify a valid mod folder.";
-				mxMessageBox(CMDLViewer::GetInstance(), errorMsg.c_str(), CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+				mxMessageBox(nullptr, errorMsg.c_str(), CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
 			}
 			else
 			{
@@ -167,7 +167,7 @@ bool Viewer_InitStates( void )
 		{
 			// No mod folder specified at all
 			errorMsg << "No mod folder set. Please specify the mod folder.";
-			mxMessageBox(CMDLViewer::GetInstance(), errorMsg.c_str(), CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+			mxMessageBox(nullptr, errorMsg.c_str(), CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
 		}
 
 		const Char *pstrFolderPath = mxGetSelectFolder(CMDLViewer::GetInstance());
@@ -222,15 +222,6 @@ bool Viewer_LoadStudioModel( const Char* pstrFilePath )
 	FL_FreeFile(pFile);
 
 	vs.pstudioheader = reinterpret_cast<studiohdr_t*>(pdata);
-
-	// Remove this if present
-	if(vs.pstudioheader->flags & STUDIO_MF_DEMOLOCK)
-	{
-		vs.pstudioheader->bodypartindex -= qstrlen(vs.pstudioheader->name)*32;
-		vs.pstudioheader->seqindex -= qstrlen(vs.pstudioheader->name)*16;
-		vs.pstudioheader->seqgroupindex -= qstrlen(vs.pstudioheader->name)*8;
-		vs.pstudioheader->flags &= ~STUDIO_MF_DEMOLOCK;
-	}
 
 	return true;
 }

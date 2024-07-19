@@ -1,0 +1,12 @@
+$texture
+{
+	$int_width 128
+	$int_height 256
+	$dt_scalex 6.000000
+	$dt_scaley 12.000000
+	$alphatest
+	$container pathos.wad
+	$material dirt
+	$texture diffuse {3dm_struikje03
+	$texture detail detail/dt_grass1.dds
+}

@@ -26,6 +26,14 @@ class CLensFlareRenderer
 public:
 	struct sunflare_t
 	{
+		sunflare_t() :
+			pitch(0),
+			roll(0),
+			scale(0),
+			portal(false),
+			entindex(NO_ENTITY_INDEX)
+			{}
+
 		// Sun flare pitch
 		Float pitch;
 		// Sun flare roll

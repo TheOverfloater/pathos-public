@@ -121,6 +121,10 @@ bool Sys_Init( CArray<CString>* argsArray )
 		return false;
 	}
 
+	// Save launch args to args list
+	for (Uint32 i = 0; i < argsArray->size(); i++)
+		ens.launchargs.push_back((*argsArray)[i]);
+
 	// Find out what mod we are running before doing
 	// anything else
 	if(!Sys_CheckGameDir(argsArray))
@@ -340,7 +344,7 @@ void Sys_Exit()
 void Sys_ErrorPopup ( const Char *fmt, ... )
 { 
 	va_list	vArgPtr;
-	Char cMsg[PRINT_MSG_BUFFER_SIZE];
+	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
 	
 	va_start(vArgPtr,fmt);
 	vsprintf_s(cMsg, fmt, vArgPtr);
@@ -369,8 +373,8 @@ bool Sys_InitFloatTime( void )
 		return false;
 	}
 
-	Uint32 lowPart = (Uint32)performanceFrequency.LowPart;
-	Uint32 highPart = (Uint32)performanceFrequency.HighPart;
+	Uint32 lowPart = static_cast<Uint32>(performanceFrequency.LowPart);
+	Uint32 highPart = static_cast<Uint32>(performanceFrequency.HighPart);
 
 	// Default to this value
 	ens.lowshift = 0;
@@ -385,7 +389,7 @@ bool Sys_InitFloatTime( void )
 		highPart >>= 1;
 	}
 
-	ens.perffreq = 1.0f / (Double)lowPart;
+	ens.perffreq = 1.0f / static_cast<Double>(lowPart);
 
 	// So values are filled
 	Sys_FloatTime();
@@ -415,8 +419,8 @@ Double Sys_FloatTime( void )
 	LARGE_INTEGER performanceFrequency;
 	QueryPerformanceCounter(&performanceFrequency);
 
-	Uint32 tmp = ((Uint32)performanceFrequency.LowPart >> ens.lowshift)
-		| ((Uint32)performanceFrequency.HighPart << (32 - ens.lowshift));
+	Uint32 tmp = (static_cast<Uint32>(performanceFrequency.LowPart) >> ens.lowshift)
+		| (static_cast<Uint32>(performanceFrequency.HighPart) << (32 - ens.lowshift));
 
 	if(isfirstcall)
 	{
@@ -433,7 +437,7 @@ Double Sys_FloatTime( void )
 		else
 		{
 			Uint32 t2 = tmp - oldtime;
-			Double time = (Double)t2*ens.perffreq;
+			Double time = static_cast<Double>(t2*ens.perffreq);
 			oldtime = tmp;
 			ens.curtime += time;
 
@@ -466,7 +470,7 @@ Double Sys_FloatTime( void )
 //=============================================
 Uint32 Sys_GetFPSLimit( void )
 {
-	Uint32 cvarLimit = (Uint32)g_pCvarFPSMax->GetValue();
+	Uint32 cvarLimit = static_cast<Uint32>(g_pCvarFPSMax->GetValue());
 	return cvarLimit;
 }
 
@@ -690,7 +694,7 @@ bool Sys_ParseLaunchParams( const CArray<CString>* argsArray )
 				ens.arg_max_edicts = SDL_atoi(strArg.c_str());
 				if(ens.arg_max_edicts > MAX_SERVER_ENTITIES)
 				{
-					Con_Printf("Invalid value %d for '-max_edicts', maximum is %d.\n", ens.arg_max_edicts, (Int32)MAX_SERVER_ENTITIES);
+					Con_Printf("Invalid value %d for '-max_edicts', maximum is %d.\n", ens.arg_max_edicts, static_cast<Int32>(MAX_SERVER_ENTITIES));
 					ens.arg_max_edicts = MAX_SERVER_ENTITIES;
 				}
 			}
@@ -1156,7 +1160,7 @@ void Con_Printf( const Char *fmt, ... )
 	WaitForSingleObject(g_hPrintMutex, INFINITE);
 
 	va_list	vArgPtr;
-	Char cMsg[PRINT_MSG_BUFFER_SIZE];
+	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
 	
 	va_start(vArgPtr,fmt);
 	vsprintf_s(cMsg, fmt, vArgPtr);
@@ -1203,7 +1207,7 @@ void Con_DPrintf( const Char *fmt, ... )
 	WaitForSingleObject(g_hPrintMutex, INFINITE);
 
 	va_list	vArgPtr;
-	Char cMsg[PRINT_MSG_BUFFER_SIZE];
+	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
 	
 	va_start(vArgPtr,fmt);
 	vsprintf_s(cMsg, fmt, vArgPtr);
@@ -1255,7 +1259,7 @@ void Con_VPrintf( const Char *fmt, ... )
 	WaitForSingleObject(g_hPrintMutex, INFINITE);
 
 	va_list	vArgPtr;
-	Char cMsg[PRINT_MSG_BUFFER_SIZE];
+	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
 	
 	va_start(vArgPtr,fmt);
 	vsprintf_s(cMsg, fmt, vArgPtr);
@@ -1301,7 +1305,7 @@ void Con_EPrintf( const Char *fmt, ... )
 	WaitForSingleObject(g_hPrintMutex, INFINITE);
 
 	va_list	vArgPtr;
-	Char cMsg[PRINT_MSG_BUFFER_SIZE];
+	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
 	
 	va_start(vArgPtr, fmt);
 	vsprintf_s(cMsg, fmt, vArgPtr);

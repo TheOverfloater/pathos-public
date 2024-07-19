@@ -1,0 +1,9 @@
+The weapon models taken from GameBanana were taken with permission back around 2012-2015,
+wherever this was possible to get. The credits list below is taken from these entries.
+
+Note: These models are all placeholders, and will be removed as development progresses
+forward. There's no plans to make these models the final ones.
+
+ - Knife: Havok101, Loyen, BlackHoleSon, Sebhael
+ - Glock: Twinke Masta, FxDarkloki, Dr. Zoidberg, Jennifer!!. Sparkwire, Bushmasta101
+ - Grenade: Kaskad, Malignant, DrHubbler, Xander the Sailor

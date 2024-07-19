@@ -26,14 +26,14 @@ All Rights Reserved.
 #include "save_shared.h"
 
 // Limits on area nodes
-static const Int32 MAX_AREA_DEPTH = 4;
-static const Int32 MAX_AREA_NODES = 32;
+static constexpr Int32 MAX_AREA_DEPTH = 4;
+static constexpr Int32 MAX_AREA_NODES = 32;
 
 // Max touchents for players
-static const Int32 MAX_TOUCHENTS = 64;
+static constexpr Int32 MAX_TOUCHENTS = 64;
 
 // Usercmd buffer allocation size
-static const Uint32 USERCMD_ALLOC_SIZE = 64;
+static constexpr Uint32 USERCMD_ALLOC_SIZE = 64;
 
 // Server dll path
 #ifdef _64BUILD
@@ -228,6 +228,11 @@ struct sv_client_t
 
 	// Playermove information
 	pm_info_t pminfo;
+
+	// last sky vector sent
+	Vector currentskyvector;
+	// last sky color sent
+	Vector currentskycolor;
 
 	// Cached up messages
 	CLinkedList<usermsgdata_t*> cachedmsglist;

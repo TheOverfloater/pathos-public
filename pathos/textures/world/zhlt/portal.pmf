@@ -1,0 +1,7 @@
+$texture
+{
+	$int_width 128
+	$int_height 128
+	$container reckon.wad
+	$texture diffuse portal
+}

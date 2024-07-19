@@ -1,0 +1,117 @@
+-2024 July 19th:
+ - Add credits_placeholder.txt for placeholder viewmodel meshes/textures.
+ - Add FAQ.
+ - Added water_scrpts.md documentation for water scripts.
+ - Added entity_guide.mdl documentation for all entities in the FGD file.
+ - Modified FBO setting to not be cvar-based, removed r_nofbo cvar.
+ - Massive extension of demo levels shipped with Pathos.
+   - Added beach area for daystage testing.
+   - Added forest level for testing fog blending.
+   - Extended test suite to include more tests.
+ - Fix func_trackautochange_rc, previously it did not move after being used once.
+ - Added diary models used by item_diary.
+ - Remove pathos.fgd as it is not usable by anything but the closed custom Hammer.
+ - Massive updates to pathos_jack.fgd:
+   - Added Render FX flag "Scaled Skybox VBM model"
+   - Remove animated light fields for light, light_spot, night_light and night_light_spot entities.
+   - Removed unused keyvalues from func_door and func_door_rotating entities.
+   - Added missing entries for custom movement/stop sounds to door and train entities.
+   - Added missign entries for custom use/locked sounds for button entities.
+   - Remove unused flags for trackchange entities.
+   - Remove unused entries from trigger_ brush entities.
+   - Add "XXL Radius" spawnflag to ambient_generic.
+   - Add "No start/end segment fade" to env_beam entity.
+   - Fix attachment functionality on env_beamfollow entity.
+   - Remove unused entries from env_blood entity.
+   - Add missing entry for "Blur Fade" to env_blur.
+   - Add missing spawnflag for "Start On" to env_blur.
+   - Reposition env_dlighttrain and env_elightrain to be in proper alphabetic order.
+   - Add missing "Sprite Name" field to env_funnel for custom sprites.
+   - Remove "Parent" from env_model as it's not used.
+   - Add support for attaching to a target entity and/or attachment on said entity for env_particle_system.
+   - Remove unused flags from env_shake.
+   - Added env_syncanimation entity entry.
+   - Remove unused entries from func_button.
+   - Remove unused entries from func_rot_button.
+   - Remove unused entries/spawnflags from func_tracktrain.
+   - Add custom sound entries to func_tracktrain.
+   - Remove unused "Wave Height" from func_water.
+   - Remove unused "Alternate Source" entry from game_radio.
+   - Remove unused entry from game_text.
+   - Added info_vismark entity.
+   - Added item_glock_flashlight and item_glock_silencer entities.
+   - Remove unused spawnflag from item_motorbike.
+   - Added "Night mode only" to light_environment.
+   - Removed spawn flag "Head Controller" from npc_generic as it's not used.
+   - Removed spawn flag "Not Solid" from npc_generic as it clashed with other spawnflags on NPCs.
+   Instead, it was replaced with the "Not Solid" keyvalue.
+   - Removed unused "Suspicious" entry from npc_security.
+   - Removed unused "New Train rot. Speed" entry from path_corner.
+   - Removed "Target" fields from scripted_sentence.
+   - Formatting changes on numerous entities' field names.
+   - Removed unused flags from scripted_sequence.
+   - Added "Trigger on play sequence start" to scripted_sequence.
+   - Added "Trigger on loop sequence start" to scripted_sequence.
+   - Added "Trigger on loop exit sequence start" to scripted_sequence.
+   - Removed unused fields from trigger_changelevel.
+   - Removed unused flag "No Intermission" from trigger_changelevel.
+   - Changed "Keypad Id" to "Code Id" on all entities that interact with registered codes.
+   - Removed unused trigger_fileconditional entity.
+   - Added "Delay before next hurt" field to trigger_hurt.
+   - Removed "Target" field from trigger_killplayer.
+   - Added new trigger_relay_binary entity.
+   - Removed "Angles" from trigger_sound.
+ - Fix numerous issues with Mission Objectives scripts.
+ - Added HDR support to Pathos, so that dynamic light intensity is not lost during multi-pass dynamic light rendering.
+ - Added an option in Video settings to disable/enable HDR.
+ - Added an option in Video settings to disable/enable Framebuffer Objects.
+ - Added new "wavefresnelstrength" field to water scripts to set how much waviness influences reflectivity.
+ - Added in-game voice recordings that explain the function/use of entities.
+ - Modify water script settings to make water look better ingame.
+ - Moved all Visual Studio projects to VS 2022.
+ - Fix the Pathos Model Viewer to support VS 2022.
+ - Added viewmodel muzzlelash anim event 6065 with user-specifiable attachment index to use. Specified as "0;silenced" for example.
+ - Fix for decal growth causing issues when reading decal messages.
+ - Add support for scaling models in the skybox with the "Scaled Skybox VBM model" Render FX.
+ - Fixes in C++ code where some member variables in some classes were not being properly initialized in the constructor.
+ - Relace remaining C-style casts with C++ ones.
+ - Fix ALD(Alternate Lightmap Data) feature to save the base lightmap in the BSP for restoring "Default" lighting from game_setdaystage.
+ - Add support for allowing light_environments to switch skybox model lighting between eachother based on the stage of the day.
+ - Increase the size of VBM_MAX_FLEXVERTS from 5376 to 21760.
+ - Fix studiomdl.exe not accounting for VBM_MAX_FLEXVERTS properly and allowing models with larger flex vertex counts compile.
+ - Fix issue with func_portal_surface entities not setting VIS properly for rendering.
+ - Fix crash with func_portal_surface causing corruptions/crashes after the OpenGL window is destroyed then recreated upon changing video settings.
+ - Fix crash caused by BSP geometry decals on alpha masked surfaces upon after the OpenGL window is destroyed then recreated upon changing video settings.
+ - Optimize dynamic lighting on BSP geometry with a fix on how it is determined if something is dynamically lit or not.
+ - Add caching to Framebuffer Objects to reduce VRAM load.
+ - Fix issue with fog colored blending rectangle not being drawn for blending between fogged and non-fogged sky when there was no 3d skybox used.
+ - Fix issue where water would not reload it's skybox when the stage of day is modified.
+ - Fix issue where the launch arguments for Pathos were not saved, not allowing them to be checked via engine functions later on.
+ - Improve hardware compatibility checks when the game boots.
+ - Fix for NPC navigation issues on sloped floors/stairs causing AI navigation failures.
+ - Fix for potential over-indexing in CBaseNPC::AttemptShiftDestination.
+ - Add "Militia NPC" base class for NPCs.
+ - Fix variable name shadowing issue in ai_nodegraph.cpp
+ - Generalize some schedules used by multiple NPCs into ai_schedules.cpp.
+ - Fix ai_setfollowtarget not cleaning the follow target on the NPC when the target field is empty.
+ - Fix env_setsequence not resetting the current frame on the target to 0.
+ - Added env_syncanimation entity.
+ - Fix SPAWN_OBJECT_TYPES_COUNT in CFuncBreakable to reflect the actual count of items it can spawn.
+ - Clean up CFuncButton by removing unused "Change Target" feature.
+ - Remove unused spawn flags FL_AUTO_ACTIVATE_TRAIN	and FL_RELINK_TRACK from func_trachckange.
+ - Added game dll export function AdjustLandmarkPVSData that allows to adjust the VIS data used during level changes.
+ - Fix missing call to base class function FreeEntity in CGib entity.
+ - Fix missing call to base class function FreeEntity in CInfoMonitorCamera entity.
+ - Added info_vismark entity, allowing mappers to add additional PVS sampling spots for level changes.
+ - Remove unused FL_LEAVE_DIALOUGE spawnflag from CItemMotorBike entity.
+ - Clean up custom weapon and head settings in npcmaker entity to reduce strain on save files and memory.
+ - Fix missing call to base class function FreeEntity in CTimeDamage entity.
+ - Fix trigger_cameramodel not being set to SOLID_NOT on spawn.
+ - Fix spawnflags on trigger_hurt entity.
+ - Added trigger_relay_binary entity.
+ - Add Uniform Buffer Object support to CGLSLShader class.
+ - Improve uniform consistency checks in CGLSLShader class to minimize the reload of uniform values and fix consistency issues across shaders variants.
+ - Fix MxToolkit to support VS 2022.
+ - Modify compile*.bat files under "pathos/sources" to always use -low for all compiler executions.
+ - Updated VHLT tools that automatically remove clipping hulls from func_clipeconomy without needing the "zhlt_noclip" setting to be "1".
+ - Added high-resolution DMC Forest skybox.

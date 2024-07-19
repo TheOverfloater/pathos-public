@@ -1,0 +1,7 @@
+$texture
+{
+	$int_width 32
+	$int_height 32
+	$material concrete
+	$texture diffuse world/pathos/pi_road_sm.tga
+}

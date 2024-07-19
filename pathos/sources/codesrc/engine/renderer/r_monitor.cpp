@@ -442,10 +442,10 @@ void CMonitorManager::AllocNewMonitor( cl_entity_t* pentity )
 
 			// Set texcoords
 			Float scoord = Math::DotProduct(vertexpos, ptexinfo->vecs[0])+ptexinfo->vecs[0][3];
-			scoord /= (Float)psurf->ptexinfo->ptexture->width;
+			scoord /= static_cast<Float>(psurf->ptexinfo->ptexture->width);
 
 			Float tcoord = Math::DotProduct(vertexpos, ptexinfo->vecs[1])+ptexinfo->vecs[1][3];
-			tcoord /= (Float)psurf->ptexinfo->ptexture->height;
+			tcoord /= static_cast<Float>(psurf->ptexinfo->ptexture->height);
 
 			Math::VectorCopy(vertexpos, vertexes[j]);
 			texcoords[j][0] = scoord;
@@ -474,10 +474,10 @@ void CMonitorManager::AllocNewMonitor( cl_entity_t* pentity )
 
 			// Set texcoords
 			Float scoord = Math::DotProduct(vertexpos, ptexinfo->vecs[0])+ptexinfo->vecs[0][3];
-			scoord /= (Float)psurf->ptexinfo->ptexture->width;
+			scoord /= static_cast<Float>(psurf->ptexinfo->ptexture->width);
 
 			Float tcoord = Math::DotProduct(vertexpos, ptexinfo->vecs[1])+ptexinfo->vecs[1][3];
-			tcoord /= (Float)psurf->ptexinfo->ptexture->height;
+			tcoord /= static_cast<Float>(psurf->ptexinfo->ptexture->height);
 
 			Math::VectorCopy(vertexpos, vertexes[2]);
 			texcoords[2][0] = scoord;
@@ -738,7 +738,7 @@ bool CMonitorManager::DrawMonitors( void )
 	{
 		result = m_pShader->SetDeterminator(m_attribs.d_fog, 1);
 		m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
-		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/((Float)rns.fog.settings.end-(Float)rns.fog.settings.start));
+		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f / (static_cast<Float>(rns.fog.settings.end) - static_cast<Float>(rns.fog.settings.start)));
 	}
 	else
 	{

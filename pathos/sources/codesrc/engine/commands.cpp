@@ -158,9 +158,9 @@ void CCommandManager::CreateCommand( const Char* name, cmdfunc_t pfn, const Char
 void CCommandManager::IncreaseBufferSize( void )
 {
 	void* pnew = Common::ResizeArray(m_pCommandBuffer, sizeof(Char), m_cmdBufUsageLength, CMDBUF_ALLOC_SIZE);
-	m_pCommandBuffer = reinterpret_cast<Char*>(pnew);
+	m_pCommandBuffer = static_cast<Char*>(pnew);
 
-	Con_DPrintf("Increasing command buffer size by %d bytes.\n", (Int32)CMDBUF_ALLOC_SIZE);
+	Con_DPrintf("Increasing command buffer size by %d bytes.\n", static_cast<Int32>(CMDBUF_ALLOC_SIZE));
 	m_cmdBufSize += CMDBUF_ALLOC_SIZE;
 }
 
@@ -396,7 +396,7 @@ bool CCommandManager::ExecuteCommand( const Char* pstrCommand, bool isServerCall
 			}
 			else if((pcmd->flags & CMD_FL_HOST_ONLY) && !SV_IsHostClient(m_invokerPlayerIndex))
 			{
-				if(m_invokerPlayerIndex < 0 || m_invokerPlayerIndex >= (Int32)svs.maxclients)
+				if(m_invokerPlayerIndex < 0 || m_invokerPlayerIndex >= static_cast<Int32>(svs.maxclients))
 				{
 					Con_Printf("Invalid invoker client %d.\n", m_invokerPlayerIndex);
 					return true;

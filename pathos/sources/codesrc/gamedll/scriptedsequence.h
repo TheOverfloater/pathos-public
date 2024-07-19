@@ -33,6 +33,13 @@ enum script_loop_t
 	SCRIPT_LOOP_PLAYING_EXIT
 };
 
+enum scripted_sequence_anim_t
+{
+	SCRIPT_SEQ_PLAY = 0,
+	SCRIPT_SEQ_LOOP,
+	SCRIPT_SEQ_LOOP_EXIT
+};
+
 //=============================================
 //
 //=============================================
@@ -73,6 +80,7 @@ public:
 	virtual void InitEntity( void ) override;
 	virtual bool IsScriptedSequenceEntity( void ) const override { return true; }
 	virtual CBaseEntity* GetTargetEntity( void ) override { return m_targetEntity; }
+	virtual void OnScriptedAnimationStart( scripted_sequence_anim_t scriptanim ) override;
 
 public:
 	bool StartSequence( CBaseEntity* pNPC, const Char* pstrSequenceName, bool completeOnEmpty );
@@ -99,7 +107,7 @@ public:
 	script_loop_t GetLoopState( void ) const;
 
 	static void FixScriptNPCSchedule( CBaseEntity* pNPC );
-	static void ScriptEntityCancel( CScriptedSequence* pScripted );
+	void ScriptEntityCancel( CScriptedSequence* pScripted );
 
 public:
 	bool HasPlaySequence( void ) const;
@@ -120,6 +128,12 @@ private:
 	string_t m_loopSequence;
 	string_t m_exitSequence;
 	string_t m_npcName;
+
+	string_t m_onPlaySeqTarget;
+	string_t m_onLoopSeqTarget;
+	string_t m_onLoopExitSeqTarget;
+	Int32 m_seqTriggerFlags;
+
 	Int32 m_lastSequence;
 	Int32 m_moveToSetting;
 

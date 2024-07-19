@@ -187,8 +187,8 @@ inline Int32 qstrcicmp( const Char* pstr1, const Char* pstr2 )
 	const Char* ppstr2 = pstr2;
 	while(true)
 	{
-		Char c1 = SDL_tolower(*ppstr1);
-		Char c2 = SDL_tolower(*ppstr2);
+		const Char c1 = SDL_tolower(*ppstr1);
+		const Char c2 = SDL_tolower(*ppstr2);
 
 		if(c1 != c2)
 			return (c1 - c2);
@@ -540,16 +540,13 @@ namespace Common
 	//=============================================
 	inline Float qrsqrt( Float value )
 	{
-		long i;
-		Float x, y;
+		Float x = value * 0.5f;
+		Float y = value;
 
-		x = value * 0.5f;
-		y = value;
-
-		i = *(long*)&y;
+		long i = *reinterpret_cast<long*>(&y);
 		i = 0x5f3759df - (i>>1);
 	
-		y = *(Float*)&i;
+		y = *reinterpret_cast<Float*>(&i);
 		y = y*(1.5f-(x * y * y));
 
 		return y;
@@ -601,9 +598,9 @@ namespace Common
 	//====================================
 	inline void ParseColor (Float* pout, const color24_t *plightmap)
 	{
-		pout[0] = (Float)plightmap->r / 255.0f;
-		pout[1] = (Float)plightmap->g / 255.0f;
-		pout[2] = (Float)plightmap->b / 255.0f;
+		pout[0] = static_cast<Float>(plightmap->r / 255.0f);
+		pout[1] = static_cast<Float>(plightmap->g / 255.0f);
+		pout[2] = static_cast<Float>(plightmap->b / 255.0f);
 	}
 
 	//====================================

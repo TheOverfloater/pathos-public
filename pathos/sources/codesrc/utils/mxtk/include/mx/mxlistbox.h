@@ -36,7 +36,7 @@ public:
 	enum { Normal, MultiSelection };
 
 	// CREATORS
-	mxListBox (mxWindow *parent, int x, int y, int w, int h, int id = 0, int style = 0);
+	mxListBox (mxWindow *parent, int x, int y, int w, int h, __int64 id = 0, int style = 0);
 	virtual ~mxListBox ();
 
 	// MANIPULATORS

@@ -43,7 +43,7 @@ struct cache_model_t
 	brushmodel_t* getBrushmodel( void )
 	{
 		assert(type == MOD_BRUSH);
-		return reinterpret_cast<brushmodel_t*>(pcachedata);
+		return static_cast<brushmodel_t*>(pcachedata);
 	}
 
 	//=============================================
@@ -54,7 +54,7 @@ struct cache_model_t
 	const brushmodel_t* getBrushmodel( void ) const 
 	{
 		assert(type == MOD_BRUSH);
-		return reinterpret_cast<const brushmodel_t*>(pcachedata);
+		return static_cast<const brushmodel_t*>(pcachedata);
 	}
 
 	//=============================================
@@ -65,7 +65,7 @@ struct cache_model_t
 	vbmcache_t* getVBMCache( void )
 	{
 		assert(type == MOD_VBM);
-		return reinterpret_cast<vbmcache_t*>(pcachedata);
+		return static_cast<vbmcache_t*>(pcachedata);
 	}
 
 	//=============================================
@@ -76,7 +76,7 @@ struct cache_model_t
 	const vbmcache_t* getVBMCache( void ) const 
 	{
 		assert(type == MOD_VBM);
-		return reinterpret_cast<const vbmcache_t*>(pcachedata);
+		return static_cast<const vbmcache_t*>(pcachedata);
 	}
 
 	//=============================================
@@ -87,7 +87,7 @@ struct cache_model_t
 	msprite_t* getSprite( void )
 	{
 		assert(type == MOD_SPRITE);
-		return reinterpret_cast<msprite_t*>(pcachedata);
+		return static_cast<msprite_t*>(pcachedata);
 	}
 
 	//=============================================
@@ -98,7 +98,7 @@ struct cache_model_t
 	const msprite_t* getSprite( void ) const 
 	{
 		assert(type == MOD_SPRITE);
-		return reinterpret_cast<const msprite_t*>(pcachedata);
+		return static_cast<const msprite_t*>(pcachedata);
 	}
 
 	// Model flags

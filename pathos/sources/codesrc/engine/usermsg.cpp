@@ -56,7 +56,7 @@ Int32 UserMSG_RegisterUserMessage( CArray<usermsg_t>& usermsgarray, const Char* 
 void UserMSG_UserMessageBegin( CArray<usermsg_t>& usermsgarray, usermsgdata_t& msgdata, msgdest_t dest, Int32 msgid, const Vector* porigin, const edict_t* pedict )
 {
 	// Make sure the message is valid
-	if(msgid <= 0 || msgid > (Int32)usermsgarray.size())
+	if(msgid <= 0 || msgid > static_cast<Int32>(usermsgarray.size()))
 	{
 		Con_EPrintf("%s - Bogus message id %d.\n", __FUNCTION__, msgid);
 		return;
@@ -97,13 +97,13 @@ void UserMSG_Msg_CheckBuffer( usermsgdata_t& msgdata, Uint32 size )
 	Uint32 memNeeded = finalSize - (msgdata.bufsize - msgdata.msgsize);
 	if(memNeeded > USERMSG_ALLOC_SIZE)
 	{
-		Float nbTimes = (Float)((Float)memNeeded/(Float)USERMSG_ALLOC_SIZE);
-		multiplier = (Int32)ceil(nbTimes);
+		Float nbTimes = (static_cast<Float>(memNeeded)/ static_cast<Float>(USERMSG_ALLOC_SIZE));
+		multiplier = static_cast<Int32>(SDL_ceil(nbTimes));
 	}
 
 	// Resize the message data buffer
 	void* pnewbuffer = Common::ResizeArray(msgdata.pmsgbuffer, sizeof(byte), msgdata.bufsize, USERMSG_ALLOC_SIZE*multiplier);
-	msgdata.pmsgbuffer = reinterpret_cast<byte*>(pnewbuffer);
+	msgdata.pmsgbuffer = static_cast<byte*>(pnewbuffer);
 	msgdata.bufsize = msgdata.bufsize + USERMSG_ALLOC_SIZE*multiplier;
 }
 
@@ -272,7 +272,7 @@ void UserMSG_Msg_WriteUint64( usermsgdata_t& msgdata, Uint64 value )
 //=============================================
 void UserMSG_Msg_WriteSmallFloat( usermsgdata_t& msgdata, Float value )
 {
-	Int16 intvalue = (Int16)SDL_floor(value * 8);
+	Int16 intvalue = static_cast<Int16>(SDL_floor(value * 8));
 	UserMSG_Msg_WriteInt16(msgdata, intvalue);
 }
 
@@ -377,7 +377,7 @@ void UserMSG_Msg_WriteString( usermsgdata_t& msgdata, const Char* pstrstring )
 		+ msgdata.msgsize;
 
 	for(Uint32 i = 0; i < strlength; i++)
-		pdest[i] = (byte)pstrstring[i];
+		pdest[i] = static_cast<byte>(pstrstring[i]);
 		
 	msgdata.msgsize += strlength;
 }

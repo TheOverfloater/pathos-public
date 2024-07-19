@@ -13,7 +13,7 @@ All Rights Reserved.
 class CCVar;
 
 // Size of buffer for message prints
-static const Uint32 PRINT_MSG_BUFFER_SIZE = 16384;
+static constexpr Uint32 PRINT_MSG_BUFFER_SIZE = 16384;
 
 // Gameinfo file name
 static const Char GAMEINFO_FILENAME[] = "gameinfo.cfg";

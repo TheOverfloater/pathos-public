@@ -57,7 +57,8 @@ CSpriteRenderer::CSpriteRenderer( void ) :
 	m_pVertexes(nullptr),
 	m_occlusionQueryVBOBufferOffset(0),
 	m_numVertexes(0),
-	m_promptedLimitsThisFrame(false)
+	m_promptedLimitsThisFrame(false),
+	m_glowStep(0)
 {
 	memset(m_viewMatrix, 0, sizeof(m_viewMatrix));
 
@@ -309,6 +310,8 @@ void CSpriteRenderer::BatchSprites( cl_entity_t* entitiesArray, Uint32 numEntiti
 
 		if(pEntity->curstate.renderfx == RenderFx_SkyEnt && !rns.water_skydraw
 			|| pEntity->curstate.renderfx != RenderFx_SkyEnt && rns.water_skydraw
+			|| pEntity->curstate.renderfx == RenderFx_SkyEntScaled && !rns.water_skydraw
+			|| pEntity->curstate.renderfx != RenderFx_SkyEntScaled && rns.water_skydraw
 			|| pEntity->curstate.renderfx == RenderFx_SkyEntNC
 			|| pEntity->curstate.renderfx == RenderFx_InPortalEntity && !rns.portalpass
 			|| pEntity->curstate.renderfx != RenderFx_InPortalEntity && rns.portalpass)
@@ -538,7 +541,7 @@ bool CSpriteRenderer::DrawSprites( void )
 	{
 		result = m_pShader->SetDeterminator(m_attribs.d_fog, 1);
 		m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
-		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/((Float)rns.fog.settings.end-(Float)rns.fog.settings.start));
+		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/(static_cast<Float>(rns.fog.settings.end)- static_cast<Float>(rns.fog.settings.start)));
 	}
 	else
 	{
@@ -699,7 +702,7 @@ bool CSpriteRenderer::BatchSprite( cl_entity_t *pEntity )
 		// Add in fog fade
 		if(rns.fog.settings.active)
 		{
-			Float f = 1.0f/((Float)rns.fog.settings.end-(Float)rns.fog.settings.start);
+			Float f = 1.0f/(static_cast<Float>(rns.fog.settings.end)- static_cast<Float>(rns.fog.settings.start));
 
 			Float length = (rns.view.v_origin - pEntity->curstate.origin).Length();
 			Float fogfactor = (rns.fog.settings.end - length)*f;
@@ -768,9 +771,9 @@ bool CSpriteRenderer::BatchSprite( cl_entity_t *pEntity )
 
 	if (pEntity->curstate.rendercolor.x || pEntity->curstate.rendercolor.y || pEntity->curstate.rendercolor.z)
 	{
-		vColor[0] = (Float)pEntity->curstate.rendercolor.x/255.0f;
-		vColor[1] = (Float)pEntity->curstate.rendercolor.y/255.0f;
-		vColor[2] = (Float)pEntity->curstate.rendercolor.z/255.0f;
+		vColor[0] = static_cast<Float>(pEntity->curstate.rendercolor.x)/255.0f;
+		vColor[1] = static_cast<Float>(pEntity->curstate.rendercolor.y)/255.0f;
+		vColor[2] = static_cast<Float>(pEntity->curstate.rendercolor.z)/255.0f;
 		vColor[3] = flAlpha;
 	}
 	else
@@ -874,7 +877,7 @@ void CSpriteRenderer::Animate( void )
 		}
 		
 		Float flDelta = rns.time-pEntity->curstate.animtime;
-		pEntity->curstate.frame = (Int32)((pEntity->curstate.framerate*15)*flDelta) % (pSprite->frames.size()-1);
+		pEntity->curstate.frame = static_cast<Int32>((pEntity->curstate.framerate*15)*flDelta) % (pSprite->frames.size()-1);
 	}
 	
 	for(Uint32 i = 0; i < MAX_TEMP_SPRITES; i++)
@@ -913,7 +916,7 @@ void CSpriteRenderer::Animate( void )
 		}
 		
 		Float flDelta = rns.time-pEntity->curstate.animtime;
-		pEntity->curstate.frame = (Int32)((pEntity->curstate.framerate*15)*flDelta) % (pSprite->frames.size()-1);
+		pEntity->curstate.frame = static_cast<Int32>((pEntity->curstate.framerate*15)*flDelta) % (pSprite->frames.size()-1);
 	}
 }
 
@@ -935,5 +938,5 @@ void CSpriteRenderer::DrawFunction( const Vector& origin )
 //====================================
 void SPR_DrawFunction( void* pContext, const Vector& origin )
 {
-	reinterpret_cast<CSpriteRenderer*>(pContext)->DrawFunction(origin);
+	static_cast<CSpriteRenderer*>(pContext)->DrawFunction(origin);
 }

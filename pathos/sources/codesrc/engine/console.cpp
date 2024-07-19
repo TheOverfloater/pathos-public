@@ -230,7 +230,7 @@ void CConsole::AddTextHistory( const Char* pstrText )
 	if(m_bufferPosition+stringLength+1 > m_bufferSize)
 	{
 		void* pnew = Common::ResizeArray(m_pConsoleBuffer, sizeof(Char), m_bufferSize, CONSOLE_BUFFER_CHUNKSIZE);
-		m_pConsoleBuffer = reinterpret_cast<Char*>(pnew);
+		m_pConsoleBuffer = static_cast<Char*>(pnew);
 		m_bufferSize += CONSOLE_BUFFER_CHUNKSIZE;
 	}
 
@@ -433,15 +433,15 @@ bool CConsole::Draw( void )
 	rns.view.modelview.Scale(1.0f/rns.screenwidth, 1.0f/rns.screenheight, 1.0);
 
 	rns.view.projection.LoadIdentity();
-	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, (Float)0.1, 100);
+	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, static_cast<Float>(0.1), 100);
 
 	pDraw->SetModelview(rns.view.modelview.GetMatrix());
 	pDraw->SetProjection(rns.view.projection.GetMatrix());
 
-	pDraw->Color4f((Float)PRINT_BOX_BAR_COLOR.r/255.0f,
-		(Float)PRINT_BOX_BAR_COLOR.g/255.0f,
-		(Float)PRINT_BOX_BAR_COLOR.b/255.0f,
-		(Float)PRINT_BOX_BAR_COLOR.a/255.0f);
+	pDraw->Color4f(static_cast<Float>(PRINT_BOX_BAR_COLOR.r)/255.0f,
+		static_cast<Float>(PRINT_BOX_BAR_COLOR.g)/255.0f,
+		static_cast<Float>(PRINT_BOX_BAR_COLOR.b)/255.0f,
+		static_cast<Float>(PRINT_BOX_BAR_COLOR.a)/255.0f);
 
 	// Draw top bar
 	Float xCoord = boxXOrigin;
@@ -511,10 +511,10 @@ bool CConsole::Draw( void )
 	pDraw->End();
 
 	// Draw background
-	pDraw->Color4f((Float)PRINT_BOX_BACKGROUND_COLOR.r/255.0f,
-		(Float)PRINT_BOX_BACKGROUND_COLOR.g/255.0f,
-		(Float)PRINT_BOX_BACKGROUND_COLOR.b/255.0f,
-		(Float)PRINT_BOX_BACKGROUND_COLOR.a/255.0f);
+	pDraw->Color4f(static_cast<Float>(PRINT_BOX_BACKGROUND_COLOR.r)/255.0f,
+		static_cast<Float>(PRINT_BOX_BACKGROUND_COLOR.g)/255.0f,
+		static_cast<Float>(PRINT_BOX_BACKGROUND_COLOR.b)/255.0f,
+		static_cast<Float>(PRINT_BOX_BACKGROUND_COLOR.a)/255.0f);
 
 	xCoord = boxXOrigin + barThickness;
 	yCoord = boxYOrigin + barThickness;
@@ -1167,7 +1167,7 @@ void CConsole::CmdInputList( input_type_t type )
 	if(pfileBuffer)
 	{
 		(*pfileBuffer) << "---------------" << NEWLINE;
-		(*pfileBuffer) << (Int32)nbPrinted;
+		(*pfileBuffer) << static_cast<Int32>(nbPrinted);
 		
 		CString filename;
 		if(type == INPUT_CVAR)
@@ -1191,9 +1191,9 @@ void CConsole::CmdInputList( input_type_t type )
 		Con_Printf("---------------\n");
 
 		if(type == INPUT_CVAR)
-			Con_Printf("%d console variables.\n", (Int32)nbPrinted);
+			Con_Printf("%d console variables.\n", static_cast<Int32>(nbPrinted));
 		else
-			Con_Printf("%d commands.\n", (Int32)nbPrinted);
+			Con_Printf("%d commands.\n", static_cast<Int32>(nbPrinted));
 	}
 
 	Con_Printf("%s ? for syntax.\n", cmdName.c_str());
@@ -1227,7 +1227,7 @@ void CConsole::CmdConDump( void ) const
 	while(TRUE)
 	{
 		filePath.clear();
-		filePath << "condump" << (Int32)fileIdx << ".txt";
+		filePath << "condump" << static_cast<Int32>(fileIdx) << ".txt";
 
 		if(!FL_FileExists(filePath.c_str()))
 			break;

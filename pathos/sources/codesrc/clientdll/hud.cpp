@@ -226,7 +226,8 @@ CGameHUD::CGameHUD( void ):
 	m_screenWidth(0),
 	m_screenHeight(0),
 	m_usableObjectType(USABLE_OBJECT_DEFAULT),
-	m_pCvarDrawUseReticle(nullptr)
+	m_pCvarDrawUseReticle(nullptr),
+	m_lastThinkTime(0)
 {
 	m_pHistory = new CHUDHistory(*this);
 }

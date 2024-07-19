@@ -147,6 +147,9 @@ void CMirrorManager::ClearGL( void )
 
 	if(m_pVBO)
 		m_pVBO->ClearGL();
+
+	if (m_pDepthTexture)
+		m_pDepthTexture = nullptr;
 }
 
 //=============================================
@@ -199,6 +202,9 @@ void CMirrorManager::ClearGame( void )
 //=============================================
 void CMirrorManager::CreateDepthTexture( void ) 
 {
+	if (m_pDepthTexture)
+		return;
+
 	m_pDepthTexture = CTextureManager::GetInstance()->GenTextureIndex(RS_GAME_LEVEL);
 	glBindTexture(GL_TEXTURE_2D, m_pDepthTexture->gl_index);
 
@@ -219,8 +225,7 @@ bool CMirrorManager::AllocTextures( cl_mirror_t *pmirror )
 
 	if(rns.fboused)
 	{
-		if(!m_pDepthTexture)
-			CreateDepthTexture();
+		CreateDepthTexture();
 
 		pmirror->pfbo = new fbobind_t;
 
@@ -601,7 +606,7 @@ bool CMirrorManager::DrawMirrors( void )
 	{
 		result = m_pShader->SetDeterminator(m_attribs.d_fog, 1);
 		m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
-		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/((Float)rns.fog.settings.end-(Float)rns.fog.settings.start));
+		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/(static_cast<Float>(rns.fog.settings.end)- static_cast<Float>(rns.fog.settings.start)));
 	}
 	else
 	{

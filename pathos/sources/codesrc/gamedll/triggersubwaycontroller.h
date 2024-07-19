@@ -12,12 +12,6 @@ All Rights Reserved.
 
 #include "pointentity.h"
 
-enum subwayline_t
-{
-	SUBWAYLINE_BERGEN_ECKHART = 0,
-	SUBWAYLINE_KASSAR_STILLWELL
-};
-
 //=============================================
 //
 //=============================================
@@ -38,6 +32,10 @@ public:
 	static const Char MARSHALL_ST_DEST_ID[];
 	// Subway destination id for Eckhart st.
 	static const Char ECKHART_ST_DEST_ID[];
+	// Subway destination id for Kassarr st
+	static const Char KASSAR_ST_DEST_ID[];
+	// Subway destination id for Aiello
+	static const Char AIELLO_ST_DEST_ID[];
 
 public:
 	explicit CTriggerSubwayController( edict_t* pedict );

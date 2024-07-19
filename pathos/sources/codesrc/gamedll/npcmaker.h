@@ -20,8 +20,16 @@ class CNPCMaker : public CDelayEntity
 public:
 	// Proximity check boundary size
 	static const Vector BOUNDARY_CHECK_SIZE;
-	// Max number of classnames for weapons
-	static const Uint32 MAX_CLASSNAMES = 32;
+
+	// Temporary structure holding settings for classnames
+	struct classnamesetting_t
+	{
+		classnamesetting_t() :
+			settingvalue(0)
+		{}
+		CString classname;
+		Int32 settingvalue;
+	};
 
 public:
 	enum
@@ -82,23 +90,24 @@ private:
 	// Target to trigger on child's death
 	string_t m_deathTriggerTarget;
 
-	// Classname specified for weapon
-	string_t m_weaponSettingClassnames[MAX_CLASSNAMES];
-	// Weapon value on classname
-	Int32 m_classnameWeaponSettings[MAX_CLASSNAMES];
-	// Number of weapon classnames
-	Uint32 m_numClassnameWeaponSettings;
-
-	// Classname specified for head
-	string_t m_headSettingClassnames[MAX_CLASSNAMES];
-	// Head value on classname
-	Int32 m_classnameHeadSettings[MAX_CLASSNAMES];
-	// Number of head classnames
-	Uint32 m_numClassnameHeadSettings;
+	// Head setting value
+	Int32 m_classHeadSetting;
+	// TRUE if had setting was actually set
+	bool m_classHeadWasSet;
+	// Weapon setting value
+	Int32 m_classWeaponSetting;
+	// TRUE if had setting was actually set
+	bool m_classWeaponWasSet;
 
 	// TRUE if active
 	bool m_isActive;
 	// TRUE if children should fade
 	bool m_fadeChildren;
+
+protected:
+	// Head settings based on classname
+	CArray<classnamesetting_t> m_classnameHeadSettingsArray;
+	// Head settings based on classname
+	CArray<classnamesetting_t> m_classnameWeaponSettingsArray;
 };
 #endif //NPCMAKER_H

@@ -24,12 +24,12 @@ public:
 public:
 	enum
 	{
-		FL_TARGET_ONCE		= (1<<0),
-		FL_START_OFF		= (1<<1),
-		FL_NO_CLIENTS		= (1<<2),
-		FL_FIRE_ONLY_CLIENT	= (1<<3),
-		FL_ONLY_CLIENTS		= (1<<4),
-		FL_HURT_ONLY_ONCE	= (1<<5)
+		FL_TARGET_ONCE			= (1<<0),
+		FL_START_OFF			= (1<<1),
+		FL_NO_CLIENTS			= (1<<3),
+		FL_FIRE_ONLY_CLIENT		= (1<<4),
+		FL_ONLY_CLIENT_TOUCH	= (1<<5),
+		FL_HURT_ONLY_ONCE		= (1<<6)
 	};
 public:
 	explicit CTriggerHurt( edict_t* pedict );

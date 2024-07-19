@@ -158,7 +158,7 @@ bool CEntityHandle::operator == (const CBaseEntity* pEntity) const
 	if(pEntity)
 		pedict = pEntity->GetEdict();
 
-	if(pedict == m_pEdict && pedict->identifier == m_identifier && !pedict->free)
+	if(pedict && m_pEdict &&  pedict == m_pEdict && pedict->identifier == m_identifier && !pedict->free)
 		return true;
 	else
 		return false;

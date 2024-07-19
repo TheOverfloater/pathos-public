@@ -562,7 +562,7 @@ void CBeamRenderer::DrawBeamSegments( const Vector& src, const Vector& delta, Fl
 	Math::VectorMA(src, -width, normal, coord1_2);
 
 	// Resample the noise waveform
-	Int32 noisestep = (Int32)((Float)MAX_BEAM_SEGMENTS * div * 65536.0f);
+	Int32 noisestep = static_cast<Int32>(static_cast<Float>(MAX_BEAM_SEGMENTS) * div * 65536.0f);
 
 	Int32 noiseindex;
 	if(flags & FL_BEAM_SINENOISE)
@@ -604,7 +604,7 @@ void CBeamRenderer::DrawBeamSegments( const Vector& src, const Vector& delta, Fl
 		else if(!(flags & FL_BEAM_NO_FADE))
 		{
 			// Apply some small fade to the end and beginning
-			Float endsfraction = (Float)(i - 1) / (Float)(_numsegments - 2);
+			Float endsfraction = static_cast<Float>(i - 1) / static_cast<Float>(_numsegments - 2);
 			Float startfade = clamp(endsfraction / BEAM_FADE_FRACTION, 0.0, 1.0);
 			Float endfade = clamp((1.0 - endsfraction) / BEAM_FADE_FRACTION, 0.0, 1.0);
 			brightness2 *= startfade * endfade;
@@ -733,7 +733,7 @@ void CBeamRenderer::DrawBeamTesla( const Vector& src, const Vector& delta, Float
 	Math::VectorMA(src, -width, normal, coord1_2);
 
 	// Resample the noise waveform
-	Int32 noisestep = (Int32)((Float)MAX_BEAM_SEGMENTS * div * 65536.0f);
+	Int32 noisestep = static_cast<Int32>(static_cast<Float>(MAX_BEAM_SEGMENTS) * div * 65536.0f);
 
 	Int32 noiseindex;
 	if(flags & FL_BEAM_SINENOISE)
@@ -780,7 +780,7 @@ void CBeamRenderer::DrawBeamTesla( const Vector& src, const Vector& delta, Float
 		else if(!(flags & FL_BEAM_NO_FADE))
 		{
 			// Apply some small fade to the end and beginning
-			Float endsfraction = (Float)(i - 1) / (Float)(_numsegments - 2);
+			Float endsfraction = static_cast<Float>(i - 1) / static_cast<Float>(_numsegments - 2);
 			Float startfade = clamp(endsfraction / BEAM_FADE_FRACTION, 0.0, 1.0);
 			Float endfade = clamp((1.0 - endsfraction) / BEAM_FADE_FRACTION, 0.0, 1.0);
 			brightness2 *= startfade * endfade;
@@ -858,7 +858,7 @@ void CBeamRenderer::DrawBeamTesla( const Vector& src, const Vector& delta, Float
 		coord1_1 = coord2_1;
 		coord1_2 = coord2_2;
 
-		if(i == (Uint32)(numsegments * 0.5))
+		if(i == static_cast<Uint32>(numsegments * 0.5))
 		{
 			branchwidth = segmentwidth  * 0.25;
 			if(branchwidth > 0.25)
@@ -906,10 +906,10 @@ void CBeamRenderer::DrawBeamTorus( const Vector& src, const Vector& delta, Float
 	Float div = 1.0f / (_numsegments - 1);
 	Float step = length*div;
 	Float last = SDL_fmod(frequency*speed, 1.0);
-	Float _scale = scale * length;
+	const Float _scale = scale * length;
 
 	// Resample the noise waveform
-	Int32 noisestep = (Int32)((Float)MAX_BEAM_SEGMENTS * div * 65536.0f);
+	Int32 noisestep = static_cast<Int32>(static_cast<Float>(MAX_BEAM_SEGMENTS) * div * 65536.0f);
 	Int32 noiseindex = 0;
 
 	R_ValidateShader(m_pBasicDraw);
@@ -1171,7 +1171,7 @@ void CBeamRenderer::DrawBeamRing( const Vector& src, const Vector& delta, Float 
 	Float last = SDL_fmod(frequency*speed, 1.0);
 	Float scale = amplitude * length / 8.0f;
 
-	Int32 noisestep = (Int32)(MAX_BEAM_SEGMENTS * div * 65536.0f) * 8;
+	Int32 noisestep = static_cast<Int32>(MAX_BEAM_SEGMENTS * div * 65536.0f) * 8;
 	Int32 noiseindex = 0;
 	
 	Vector _delta, center;
@@ -1481,6 +1481,9 @@ void CBeamRenderer::DrawBeam( beam_t* pbeam )
 			break;
 		case BEAM_VAPORTRAIL:
 			DrawBeamVaporTrail(pbeam, (alpha * pbeam->brightness));
+			break;
+		default:
+			Con_DPrintf("%s - Unknown beam type %d.n", __FUNCTION__, pbeam->type);
 			break;
 		}
 	}
@@ -2032,6 +2035,7 @@ void CBeamRenderer::AddBeamEntity( cl_entity_t* pentity )
 	case BEAM_MSG_BEAMFOLLOW:
 	case BEAM_MSG_BEAMRING:
 	case BEAM_MSG_KILLENTITYBEAMS:
+	default:
 		break;
 	}
 }
@@ -2084,9 +2088,9 @@ bool CBeamRenderer::BeamSetup( beam_t* pbeam, const Vector& src, const Vector& e
 
 	Float length = pbeam->delta.Length();
 	if(amplitude >= 0.5)
-		pbeam->numsegments = (Uint32)(length * 0.25 + 3.0);
+		pbeam->numsegments = static_cast<Uint32>(length * 0.25 + 3.0);
 	else
-		pbeam->numsegments = (Uint32)(length * 0.075 + 3.0);
+		pbeam->numsegments = static_cast<Uint32>(length * 0.075 + 3.0);
 
 	if(pbeam->numsegments < MIN_NB_BEAM_SEGMENTS)
 		pbeam->numsegments = MIN_NB_BEAM_SEGMENTS;
@@ -2233,7 +2237,7 @@ beam_t* CBeamRenderer::BeamVaporTrail( const Vector& src, const Vector& end, Int
 
 	Float division = 16; // Every 16 units
 	Float beamlength = (src - end).Length();
-	Uint32 divisions = beamlength / (Float)division;
+	Uint32 divisions = beamlength / static_cast<Float>(division);
 
 	pbeam->drawsegments.resize(divisions*2);
 
@@ -2318,7 +2322,7 @@ beam_t* CBeamRenderer::BeamRing( entindex_t startentity, entindex_t endentity, I
 void CBeamRenderer::SetBeamAttributes( beam_t* pbeam, Float r, Float g, Float b, Float framerate, Uint32 startframe )
 {
 	pbeam->framerate = framerate;
-	pbeam->frame = (Float)startframe;
+	pbeam->frame = static_cast<Float>(startframe);
 	pbeam->color1.x = r;
 	pbeam->color1.y = g;
 	pbeam->color1.z = b;
@@ -2334,11 +2338,11 @@ void CBeamRenderer::ApplySegmentNoise( Vector& start, Uint32 beamindex, Uint32 i
 
 	// Calculate noise based on distance from center
 	Float noiseamount;
-	Uint32 halfsegcnt = (Uint32)(numsegments*0.5);
+	Uint32 halfsegcnt = static_cast<Uint32>(numsegments*0.5);
 	if(i < halfsegcnt)
-		noiseamount = (Float)i / (Float)halfsegcnt;
+		noiseamount = static_cast<Float>(i) / static_cast<Float>(halfsegcnt);
 	else
-		noiseamount = 1.0 - ((Float)(i-halfsegcnt) / (Float)halfsegcnt);
+		noiseamount = 1.0 - (static_cast<Float>(i-halfsegcnt) / static_cast<Float>(halfsegcnt));
 
 	// Scale up noise amount a bit
 	noiseamount = (noiseamount * sqrt(noiseamount))*10;
@@ -2360,13 +2364,13 @@ void CBeamRenderer::ApplySegmentNoise( Vector& start, Uint32 beamindex, Uint32 i
 	// Beam noise step
 	Float noisestep;
 	if(flags & FL_BEAM_VARIABLE_NOISE)
-		noisestep = (Float)beamindex * 2;
+		noisestep = static_cast<Float>(beamindex) * 2;
 	else
 		noisestep = 0;
 
 	// Calculate noise on up vector
-	Math::VectorMA(start, SDL_sin((Float)i*0.15 + (rns.time*dir) * 20 * (1.0 + speed) + noisestep)*noiseamount*scale, up, start);
+	Math::VectorMA(start, SDL_sin(static_cast<Float>(i)*0.15 + (rns.time*dir) * 20 * (1.0 + speed) + noisestep)*noiseamount*scale, up, start);
 
 	// Calculate noise on right vector
-	Math::VectorMA(start, SDL_cos((Float)i*0.25 + (rns.time*dir) * 30 * (1.0 + speed) + noisestep)*noiseamount*scale, right, start);
+	Math::VectorMA(start, SDL_cos(static_cast<Float>(i)*0.25 + (rns.time*dir) * 30 * (1.0 + speed) + noisestep)*noiseamount*scale, right, start);
 }

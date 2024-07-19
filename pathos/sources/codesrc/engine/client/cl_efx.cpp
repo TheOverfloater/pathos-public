@@ -42,6 +42,7 @@ All Rights Reserved.
 #include "cache_model.h"
 #include "studio.h"
 #include "vbmformat.h"
+#include "enginestate.h"
 
 static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 {
@@ -276,25 +277,57 @@ cl_dlight_t*CL_AllocDynamicSpotLight( Int32 key, Int32 subkey, bool isstatic, bo
 void CL_SetDayStage( daystage_t daystage )
 {
 	// Set value
+	daystage_t prevdaystage = rns.daystage;
 	rns.daystage = daystage;
+
+	if (prevdaystage == rns.daystage)
+		return;
 
 	// Load in the ALD file
 	if(!rns.isgameready)
 		return;
 
-	if(!ALD_Load(rns.daystage))
-		return;
+	// Get worldmodel ptr
+	brushmodel_t* pworldmodel = ens.pworld;
+
+	byte* plightdata = ALD_Load(rns.daystage);
+	if (!plightdata)
+	{
+		plightdata = reinterpret_cast<byte*>(pworldmodel->pbaselightdata);
+		if (!plightdata || plightdata == reinterpret_cast<byte*>(pworldmodel->plightdata))
+			return;
+	}
+
+	// Go through each surface and verify that the data size is correct
+	for (Uint32 i = 0; i < pworldmodel->numsurfaces; i++)
+	{
+		msurface_t* psurface = &pworldmodel->psurfaces[i];
+		if (psurface->lightoffset == -1)
+			continue;
+
+		// Re-set samples pointer to the new data
+		psurface->psamples = reinterpret_cast<color24_t*>(plightdata + psurface->lightoffset);
+	}
+
+	// All data was successfully set, so release original data
+	if (pworldmodel->plightdata != pworldmodel->pbaselightdata)
+		delete[] pworldmodel->plightdata;
+
+	// Set the new pointer
+	pworldmodel->plightdata = reinterpret_cast<color24_t*>(plightdata);
 
 	// Reset lighting on entities
 	CL_ResetLighting();
 
 	// Tell the renderer to reload certain things
 	gBSPRenderer.InitLightmaps(false);
+
 	// Load day stage cubemaps
 	gCubemaps.InitGame();
 
 	// Load day stage water scripts
 	gWaterShader.LoadScripts();
+	gWaterShader.ReloadLightmapData();
 }
 
 //====================================

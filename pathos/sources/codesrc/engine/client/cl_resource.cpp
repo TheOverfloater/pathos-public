@@ -125,7 +125,7 @@ const CString CL_GetResourceAbsolutePath( cl_resource_t* presource )
 		break;
 	case RS_TYPE_UNDEFINED:
 	default:
-		Con_EPrintf("%s - Invalid resource type %d for %s.\n", __FUNCTION__, (Int32)presource->type, presource->filepath.c_str());
+		Con_EPrintf("%s - Invalid resource type %d for %s.\n", __FUNCTION__, static_cast<Int32>(presource->type), presource->filepath.c_str());
 		return "";
 		break;
 	}
@@ -163,9 +163,9 @@ bool CL_BeginFilesDownload( void )
 {
 	// Notify the client
 	if(cls.netinfo.nummissingresources > 1)
-		Con_Printf("Beginning download of %d files.\n", (Int32)cls.netinfo.nummissingresources);
+		Con_Printf("Beginning download of %d files.\n", static_cast<Int32>(cls.netinfo.nummissingresources));
 	else
-		Con_Printf("Beginning download of %d file.\n", (Int32)cls.netinfo.nummissingresources);
+		Con_Printf("Beginning download of %d file.\n", static_cast<Int32>(cls.netinfo.nummissingresources));
 
 	// Get the first file
 	cl_resource_t* pfirst = CL_GetNextMissingResource();
@@ -406,7 +406,7 @@ bool CL_FinishDownloadedFile( void )
 	if(pWindow)
 	{
 		// Set the value of the total progress bar
-		Float value = (Float)cls.netinfo.numdownloadedresources/(Float)cls.netinfo.nummissingresources;
+		Float value = static_cast<Float>(cls.netinfo.numdownloadedresources)/static_cast<Float>(cls.netinfo.nummissingresources);
 		pWindow->SetTotalProgressBar(value);
 	}
 
@@ -438,7 +438,7 @@ bool CL_ReadFileChunk( void )
 	}
 
 	// Make sure everything is alright
-	if(fileid != (Uint32)cls.netinfo.download.presource->fileid)
+	if(fileid != static_cast<Uint32>(cls.netinfo.download.presource->fileid))
 	{
 		Con_EPrintf("%s - Mismatch in file ID. Received: %d, expected: %d.\n", __FUNCTION__, fileid, cls.netinfo.download.presource->fileid);
 		return false;
@@ -507,8 +507,8 @@ bool CL_ReadFileChunk( void )
 		pWindow->SetFileProgressBar(fileValue);
 
 		// Set total progress bar
-		Float totalValue = (Float)cls.netinfo.numdownloadedresources/(Float)cls.netinfo.nummissingresources;
-		totalValue += fileValue * 1.0f/(Float)cls.netinfo.nummissingresources;
+		Float totalValue = static_cast<Float>(cls.netinfo.numdownloadedresources)/static_cast<Float>(cls.netinfo.nummissingresources);
+		totalValue += fileValue * 1.0f/ static_cast<Float>(cls.netinfo.nummissingresources);
 
 		pWindow->SetTotalProgressBar(totalValue);
 	}
@@ -732,7 +732,7 @@ bool CL_ReadResourceList( void )
 			{
 				decalcache_t newcache;
 				newcache.name = reader.ReadString();
-				newcache.type = (decalcache_type_t)reader.ReadByte();
+				newcache.type = static_cast<decalcache_type_t>(reader.ReadByte());
 
 				cls.netinfo.decalcache.push_back(newcache);
 			}
@@ -758,6 +758,11 @@ bool CL_ReadResourceList( void )
 				CL_BeginFilesDownload();
 			}
 		};
+	default:
+		{
+			Con_Printf("%s - Error reading message: Unknown resource type %d.\n", __FUNCTION__, resourceType);
+		}
+		break;
 	}
 
 	return true;

@@ -62,6 +62,7 @@ enum ai_schedules_t
 	AI_SCHED_RUN_FROM_NPC_PULLER,
 	AI_SCHED_HOVER_BY_NPC_PULLER,
 	AI_SCHED_FACE_ENEMY,
+	AI_SCHED_SUPPRESSING_FIRE,
 
 	// Must be last
 	LAST_BASENPC_SCHEDULE
@@ -112,5 +113,7 @@ extern const CAISchedule scheduleMoveOutOfWay;
 extern const CAISchedule scheduleGrabbed;
 extern const CAISchedule scheduleFindEnemies;
 extern const CAISchedule scheduleDodgeEnemy;
+extern const CAISchedule scheduleRangeAttack1Long;
+extern const CAISchedule scheduleRangeAttack2Toss;
 
 #endif //AI_SCHEDULES_H

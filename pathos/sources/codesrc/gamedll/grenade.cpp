@@ -28,6 +28,7 @@ CGrenade::CGrenade( edict_t* pedict ):
 	CAnimatingEntity(pedict),
 	m_nextDmgTime(0),
 	m_explodeTime(0),
+	m_explodeDelay(0),
 	m_emittedNPCSound(false),
 	m_damageAmount(0),
 	m_damageRadius(0)

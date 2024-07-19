@@ -15,6 +15,7 @@ All Rights Reserved.
 #include "vbm_shared.h"
 #include "r_glsl.h"
 #include "r_main.h"
+#include "r_fbocache.h"
 
 // Notes:
 // Part of this implementation is based on the implementation in the Half-Life SDK
@@ -26,17 +27,17 @@ struct cache_model_t;
 struct entity_extrainfo_t;
 
 // Max dynamic lights affecting a model entity
-static const Uint32 MAX_ENT_ACTIVE_DLIGHTS		= 4;
+static constexpr Uint32 MAX_ENT_ACTIVE_DLIGHTS		= 4;
 // Max dynamic lights affecting a model entity
-static const Uint32 MAX_ENT_DLIGHTS				= 12;
+static constexpr Uint32 MAX_ENT_DLIGHTS				= 12;
 // Max studio decals total
-static const Uint32 MAX_VBM_TOTAL_DECALS		= 512;
+static constexpr Uint32 MAX_VBM_TOTAL_DECALS		= 512;
 // Max temporary indexes for decal creation
-static const Uint32 MAX_TEMP_VBM_INDEXES		= 16384;
+static constexpr Uint32 MAX_TEMP_VBM_INDEXES		= 16384;
 // Max temporary vertexes for special render stuff
-static const Uint32 MAX_TEMP_VBM_VERTEXES		= MAXSTUDIOBONES*2;
+static constexpr Uint32 MAX_TEMP_VBM_VERTEXES		= MAXSTUDIOBONES*2;
 // Maximum submodels rendered at once
-static const Uint32 MAX_VBM_RENDERED_SUBMODELS	= 64;
+static constexpr Uint32 MAX_VBM_RENDERED_SUBMODELS	= 64;
 
 enum vbm_shtype
 {
@@ -146,6 +147,20 @@ struct vbm_glvertex_t
 	byte pad[4];
 };
 
+struct ubo_modellight_t
+{
+	ubo_modellight_t()
+	{
+		memset(origin, 0, sizeof(origin));
+		memset(color, 0, sizeof(color));
+		memset(radius, 0, sizeof(radius));
+	}
+
+	Float origin[4];
+	Float color[4];
+	Float radius[4];
+};
+
 struct attrib_light
 {
 	attrib_light():
@@ -200,6 +215,9 @@ struct vbm_attribs
 		u_flextexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_flextexturesize(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_caustics_interp(CGLSLShader::PROPERTY_UNAVAILABLE),
+		ub_bonematrices(CGLSLShader::PROPERTY_UNAVAILABLE),
+		ub_modellights(CGLSLShader::PROPERTY_UNAVAILABLE),
+		ub_vsmatrices(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_vorigin(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_vright(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_causticsm1(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -230,7 +248,9 @@ struct vbm_attribs
 		d_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_luminance(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_bumpmapping(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_numdlights(CGLSLShader::PROPERTY_UNAVAILABLE)
+		d_numdlights(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_use_ubo(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_rectangle(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{
 			for(Uint32 i = 0; i < MAX_SHADER_BONES; i++)
 				boneindexes[i] = 0;
@@ -254,6 +274,10 @@ struct vbm_attribs
 	Int32 u_flextexturesize;
 
 	Int32 u_caustics_interp;
+
+	Int32 ub_bonematrices;
+	Int32 ub_modellights;
+	Int32 ub_vsmatrices;
 
 	Int32 boneindexes[MAX_SHADER_BONES];
 
@@ -300,6 +324,8 @@ struct vbm_attribs
 	Int32 d_luminance;
 	Int32 d_bumpmapping;
 	Int32 d_numdlights;
+	Int32 d_use_ubo;
+	Int32 d_rectangle;
 	
 	vbm_dlight_attribs_t dlights[MAX_BATCH_LIGHTS];
 };
@@ -330,6 +356,15 @@ public:
 
 	// Default lightmap sampling offset
 	static const Float DEFAULT_LIGHTMAP_SAMPLE_OFFSET;
+
+	enum vs_matrices_t
+	{
+		VS_MATRIX_PROJECTION = 0,
+		VS_MATRIX_MODELVIEW,
+		VS_MATRIX_NORMALMATRIX,
+
+		NB_VS_MATRICES
+	};
 
 public:
 	CVBMRenderer( void );
@@ -503,6 +538,9 @@ private:
 	// Initializes the vertex texture
 	void CreateVertexTexture( void );
 
+	// Set bone UBO contents
+	void SetShaderBoneTransform( Float (*pbonetransform)[MAXSTUDIOBONES][3][4], const byte* pboneindexes, Uint32 numbones );
+
 private:
 	// Allocates a decal slot
 	vbmdecal_t* AllocDecalSlot( void );
@@ -555,6 +593,8 @@ private:
 	struct en_texalloc_t* m_pFlexTexture;
 	// Screen texture pointer
 	struct rtt_texture_t* m_pScreenTexture;
+	// Screen FBO pointer
+	CFBOCache::cache_fbo_t* m_pScreenFBO;
 
 private:
 	// Currently rendered VBM submodel
@@ -608,6 +648,8 @@ private:
 	// Entity absolute maxs
 	Vector m_maxs;
 
+	// Tells if UBOs are supported
+	bool m_areUBOsSupported;
 	// Tells if vertex texture fetch is supported
 	bool m_isVertexFetchSupported;
 	// Tells if flexes are used
@@ -691,6 +733,14 @@ private:
 	vec4_t	m_boneQuaternions5[MAXSTUDIOBONES];
 	// Used for bone transform calculations
 	Float	m_boneMatrix[3][4];
+
+private:
+	// Used for uploading modellight data to the modellight UBO
+	ubo_modellight_t m_uboModelLightData[MAX_ENT_MLIGHTS];
+	// Used for uploading to the bonematrices UBO
+	vec4_t	m_uboBoneMatrixData[MAX_SHADER_BONES][3];
+	// Used for uploading matrices to the vs_matrices ubo
+	Float m_uboMatricesData[NB_VS_MATRICES][16];
 };
 extern CVBMRenderer gVBMRenderer;
 extern en_material_t* VBM_FindMaterialScriptByIndex( Int32 index );

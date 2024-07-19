@@ -46,7 +46,7 @@ public:
 	static int getDisplayHeight ();
 	static mxWindow *getMainWindow ();
 	static const char *getApplicationPath ();
-	static int getTickCount ();
+	static ULONGLONG getTickCount ();
 
 private:
 	// NOT IMPLEMENTED

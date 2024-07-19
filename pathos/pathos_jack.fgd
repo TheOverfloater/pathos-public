@@ -76,6 +76,16 @@
   ]
 ]
 
+@BaseClass = WanderNPC
+[
+    region(string) : "Node region"
+	wander(Choices) : "Wander" : 0 =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+]
+
 @BaseClass = Angles
 [
 	angles(string) : "Pitch Yaw Roll (Y Z X)" : "0 0 0"
@@ -134,6 +144,7 @@
     22: "Traced Glow"
     70: "Skybox Object"
     71: "Skybox Object - In Z"
+    72: "Scaled Skybox VBM model"
     101: "Glow Aura"
     109: "Mirror Only"
     113: "Monitor Only"
@@ -259,22 +270,6 @@
 @BaseClass = Light 
 [
   _light(color255) : "Brightness" : "255 255 128 200"
-  style(Choices) : "Appearance" : 0 =
-  [
-    0 : "Normal"
-    10: "Fluorescent flicker"
-    2 : "Slow, strong pulse"
-    11: "Slow pulse, noblack"
-    5 : "Gentle pulse"
-    1 : "Flicker A"
-    6 : "Flicker B"
-    3 : "Candle A"
-    7 : "Candle B"
-    8 : "Candle C"
-    4 : "Fast strobe"
-    9 : "Slow strobe"
-  ]
-  pattern(string) : "Custom Appearance"
 ]
 
 @BaseClass = LightStyle
@@ -340,7 +335,7 @@
     1 : "Only Trigger" : 0
     2 : "Touch"    : 0
     4 : "Pressure"     : 0
-    256: "Instant Crowbar" : 0
+    256: "Instant Melee" : 0
     512: "No gibs" : 0
     1024: "No penetration damage" : 0
     2048: "Smart ammo spawn" : 0
@@ -389,11 +384,9 @@
   ]
   lip(integer) : "Lip"
   dmg(integer) : "Damage inflicted when blocked" : 0
-  message(string) : "Message if triggered"
   target(target_destination) : "Target"
   delay(integer) : "Delay before fire" 
   netname(string) : "Fire on Close"
-  health(integer) : "Health (shoot open)" : 0
   spawnflags(flags) =
   [
     1 : "Starts Open" : 0
@@ -480,6 +473,7 @@
     12: "odd elev 1"
     13: "odd elev 2"
   ]
+  movesnd_custom(sound) : "Custom Move Sound"
   stopsnd(choices) : "Stop Sound" : 0 = 
   [
     0: "No Sound"
@@ -492,6 +486,7 @@
     7: "squeek stop"
     8: "quick stop"
   ]
+  stopsnd_custom(sound) : "Custom Stop Sound"
   volume(string) : "Sound Volume 0.0 - 1.0" : "0.85"
 ]
 
@@ -500,8 +495,6 @@
   height(integer) : "Travel altitude" : 0
   spawnflags(flags) =
   [
-    1: "Auto Activate train" : 0
-    2: "Relink track" : 0
     8: "Start at Bottom" : 0
     16: "Rotate Only" : 0
     64: "X Axis" : 0
@@ -518,14 +511,9 @@
 [
   filtername(string) : "Filter by name"
   killtarget(target_destination) : "Kill target"
-  netname(target_destination) : "Target Path"
   master(target_destination) : "Master" 
-  sounds(choices) : "Sound style" : 0 =
-  [
-    0 : "No Sound"
-  ]
   delay(string) : "Delay before trigger" : "0"
-  message(string) : "Message (set sound too!)"
+  message(string) : "Message"
   spawnflags(flags) = 
   [
     1: "NPCs" : 0
@@ -602,13 +590,13 @@
      message(string) : "File Name"
      fadeintime(integer) : "Fade In Time" : 0
      fadetime(integer) : "Fade Out Time" : 0
-	  channel(Choices) : "Channel" : 0 =
-	  [ 
-		  0 : "Channel 1"
-		  1 : "Channel 2"
-		  2 : "Channel 3"
-		  3 : "Channel 4"
-	  ]
+  channel(Choices) : "Channel" : 0 =
+  [ 
+      0 : "Channel 1"
+      1 : "Channel 2"
+      2 : "Channel 3"
+      3 : "Channel 4"
+  ]
      spawnflags(flags) =
      [
           1: "Remove on fire" : 0
@@ -638,6 +626,7 @@
     16:"Start Silent":0
     32:"Not Toggled":0
     64: "XL Radius" : 0
+	128: "XXL Radius" : 0
     256: "XS Radius" : 0
     512: "No reverb effects" : 0
     1024: "No occlusion dimming" : 0
@@ -691,6 +680,7 @@
     64: "Decal End" : 0
     128: "Shade Start" : 0
     256: "Shade End" : 0
+	512: "No start/end segment fade" : 0
   ]
 ]
 
@@ -705,15 +695,15 @@
   beamnoise(integer) : "Noise" : 0
   attachment(Choices) : "Attachment" : -1 =
   [ 
-      -1 : "None"
-      0 : "Attachment 1"
-      1 : "Attachment 2"
-      2 : "Attachment 3"
-      3 : "Attachment 4"
-      4 : "Attachment 5"
-      5 : "Attachment 6"
-      6 : "Attachment 7"
-      7 : "Attachment 8"
+      0 : "None"
+      1 : "Attachment 1"
+      2 : "Attachment 2"
+      3 : "Attachment 3"
+      4 : "Attachment 4"
+      5 : "Attachment 5"
+      6 : "Attachment 6"
+      7 : "Attachment 7"
+      8 : "Attachment 8"
   ] 
 ]
 
@@ -758,23 +748,8 @@
     6 : "Random"
   ]
 ]
-@PointClass base(Targetname, Angles) size(-16 -16 -16, 16 16 16) color(255 0 0) = env_blood : "Blood Effects" 
-[
-  color(choices) : "Blood Color" : 0=
-  [
-    0 : "Red (Human)"
-    1 : "Yellow (Alien)"
-  ]
-  amount(string) : "Amount of blood (damage to simulate)" : "100"
-  spawnflags(flags) =
-  [
-    1: "Random Direction" : 0
-    2: "Blood Stream" : 0
-    4: "On Player" : 0
-    8: "Spray decals" : 0
-  ]
-]
-@PointClass base(Targetname, ParentedEnt) size(-16 -16 -16, 16 16 16) = env_blackhole : "Black Hole"
+@PointClass base(Targetname, Angles) size(-16 -16 -16, 16 16 16) color(255 0 0) = env_blood : "Blood Effects"  []
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blackhole : "Black Hole"
 [
   scale(integer) : "Scale" : 1
   pullstrength(integer) : "Pull strength" : 0
@@ -787,7 +762,14 @@
     1 : "Start On" : 0
   ]
 ]
-@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blur : "Motion Blur" []
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blur : "Motion Blur" 
+[
+  fade(integer) : "Blur fade" : 0.1
+  spawnflags(flags) =
+  [
+    1 : "Start On" : 0
+  ]
+]
 @SolidClass base(Targetname, ZHLT) = env_bubbles : "Bubble Volume" 
 [
   density(integer) : "Bubble density" : 2
@@ -819,7 +801,8 @@
 ]
 @PointClass base(Targetname) size(-8 -8 -8, 8 8 8) color(230 230 255) = env_decal: "Decal Entity" 
 [
-  message(string) : "Decal entry name"
+  message(string) : "Decal entry/group name"
+  growthtime(integer) : "Growth duration" : 0
 
   spawnflags(flags) =
   [
@@ -855,6 +838,19 @@
     1 : "Start On" : 0
   ]
 ]
+@PointClass base(Targetname, Global) size(-8 -8 -8, 8 8 8) iconsprite("sprites/lightbulb.spr") color(0 128 255) sprite() = env_dlighttrain : "Dynamic light train"
+[
+  target(target_source) : "First stop target"
+  speed(integer) : "Speed (units per second)" : 64
+  renderamt(integer) : "Radius" : 15
+  rendercolor(color255) : "Render Color" : "255 255 255"
+  
+  spawnflags(flags) =
+  [
+    16 : "No fire pass" : 0
+    512 : "Start On" : 0
+  ]      
+]
 @PointClass base(Targetname) size(-8 -8 -8, 8 8 8) = env_earthquake : "Earthquake" 
 [
   mindelay(string) : "Minimum delay" : "0.1"
@@ -864,35 +860,21 @@
   duration(string) : "Duration" : "4"
   fadetime(string) : "Fade out time" : "0"
 ]
-@PointClass base(Targetname, ParentedEnt) iconsprite("sprites/lightbulb.spr") size(-16 -16 -16, 16 16 16) = env_elight : "Model light"
+@PointClass base(Targetname) iconsprite("sprites/lightbulb.spr") size(-16 -16 -16, 16 16 16) = env_elight : "Model light"
 [
-  renderamt(integer) : "Radius ( 1-25)" : 15
+  renderamt(integer) : "Radius(units / 9.5)" : 15
   rendercolor(color255) : "Render Color" : "255 255 255"
   spawnflags(flags) =
   [
     1 : "Start On" : 0
   ]
 ]
-@PointClass base(Targetname, Global) size(-8 -8 -8, 8 8 8) iconsprite("sprites/lightbulb.spr") color(0 128 255) sprite() = env_elighttrain : "ELight Train"
+@PointClass base(Targetname, Global) size(-8 -8 -8, 8 8 8) iconsprite("sprites/lightbulb.spr") color(0 128 255) sprite() = env_elighttrain : "Entity light train"
 [
   target(target_source) : "First stop target"
   speed(integer) : "Speed (units per second)" : 64
   avelocity(string) : "Angular Veocity (y z x)"
-  renderamt(integer) : "Radius ( 1-25)" : 15
-  rendercolor(color255) : "Render Color" : "255 255 255"
-  
-  spawnflags(flags) =
-  [
-    16 : "No fire pass" : 0
-    512 : "Start On" : 0
-  ]      
-]
-@PointClass base(Targetname, Global) size(-8 -8 -8, 8 8 8) iconsprite("sprites/lightbulb.spr") color(0 128 255) sprite() = env_dlighttrain : "ELight Train"
-[
-  target(target_source) : "First stop target"
-  speed(integer) : "Speed (units per second)" : 64
-  avelocity(string) : "Angular Veocity (y z x)"
-  renderamt(integer) : "Radius ( 1-25)" : 15
+  renderamt(integer) : "Radius(units / 9.5)" : 15
   rendercolor(color255) : "Render Color" : "255 255 255"
   
   spawnflags(flags) =
@@ -963,6 +945,7 @@
 ]
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_funnel : "Large Portal Funnel" 
 [
+  spritemodel(sprite) : "Sprite Name"
   spawnflags(flags) =
   [
     1: "Reverse" : 0
@@ -1006,7 +989,7 @@
     2 : "Start Disabled" : 0
   ] 
 ]
-@PointClass base(Targetname, RenderFxChoices, Angles) size(-16 -16 -16, 16 16 16) = env_laser : "Laser Beam Effect"
+@PointClass base(Targetname, RenderFxChoices) size(-16 -16 -16, 16 16 16) = env_laser : "Laser Beam Effect"
 [
   LaserTarget(target_destination) : "Target of Laser" 
   renderamt(integer) : "Brightness (1 - 255)" : 100
@@ -1059,7 +1042,7 @@
     3 : "Play Everywhere"
   ]
 ]
-@PointClass base(Angles, Targetname, RenderFields, ParentedEnt) size(-16 -16 0, 16 16 36) studio() = env_model : "Model" 
+@PointClass base(Angles, Targetname, RenderFields) size(-16 -16 0, 16 16 36) studio() = env_model : "Model" 
 [
   model(studio) : "Model"
   body(Integer) : "Body" : 0
@@ -1102,7 +1085,7 @@
     512 : "Start On" : 0
   ]      
 ]
-@PointClass base(Targetname, Angles) = env_particle_system: "Particle System"
+@PointClass base(Targetname, Target, Angles) = env_particle_system: "Particle System"
 [
 	spawnflags(flags) =
 	[
@@ -1116,6 +1099,13 @@
   	[
   	    0 : "System Script"
   	    1 : "Cluster Script"
+  	]
+	body(integer) : "Attachment on target" : 0
+  	skin(Choices) : "Attachment mode" : 0 =
+  	[
+  	    0 : "Entity origin"
+  	    1 : "Model attachment"
+        2 : "Vector from two attachments"
   	]
 ]
 @PointClass base(Targetname, Target, Angles) = env_particleeffect: "Particle Effect"
@@ -1211,7 +1201,6 @@
   spawnflags(flags) =
   [
     1: "GlobalShake" : 0
-    2: "Disrupt Controls" : 0
     4: "In air also" : 0
   ]
   amplitude(string) : "Amplitude 0-16" : "4"
@@ -1270,7 +1259,7 @@
     64: "Start ON" : 0
   ]
 ]
-@PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) = env_specialfog : "Set special fog"
+@PointClass base(Targetname) size(-8 -8 -8, 8 8 8) = env_specialfog : "Set special fog"
 [
   mode(Choices) : "Trigger Mode" : 0 =
   [ 
@@ -1326,7 +1315,6 @@
   speed(integer) : "Speed (units per second)" : 64
   renderamt(integer) : "Alpha ( 1-255 )" : 255
   scale(string) : "Sprite Scale"
-  avelocity(string) : "Angular Veocity (y z x)"
 
   spawnflags(flags) =
   [
@@ -1348,7 +1336,10 @@
     2 : "Portal Sun" : 0
   ] 
 ]
-
+@PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) = env_syncanimation : "Syncs animations"
+[
+  netname(target_source) : "Sync target"
+]
 @PointClass base(Targetname) size(-4 -4 -4, 4 4 4) color(200 100 50) = envpos_sky : "Sky Marker" 
 [
   target(target_source) : "First stop target"
@@ -1370,8 +1361,8 @@
 @PointClass base(Targetname) size(-4 -4 -4, 4 4 4) color(200 100 50) = envpos_world : "Sky World Marker" 
 [
   health(string) : "Size" : "16"
-  startdist(string) : "Start Distance" : "1"
-  enddist(integer) : "End Distance" : 1500
+  startdist(string) : "Fog Start Distance" : "1"
+  enddist(integer) : "Fog End Distance" : 1500
   rendercolor(color255) : "Fog Color (R G B)" : "0 0 0"
   affectsky(Choices) : "Don't Fog Sky" : 0 =
   [ 
@@ -1399,7 +1390,6 @@
   target(target_destination) : "Targetted object"
   lockedtarget(target_destination) : "Trigger when used and locked"
   pairbutton(target_destination) : "Paired button(s) name"
-  health(integer) : "Health (shootable if > 0)"
   lip(integer) : "Lip"
   master(target_destination) : "Master" 
   sounds(choices) : "Sounds" : 0 = 
@@ -1418,6 +1408,7 @@
     11: "Buzz Off"
     14: "Lightswitch"
   ]
+  sound_custom(sound) : "Custom Sound"
   wait(choices) : "Delay before reset" : 3 =
   [
     -1: "Stays pressed"
@@ -1441,6 +1432,7 @@
     11: "Buzz Off"
     12: "Latch Locked"
   ]
+  locked_sound_custom(sound) : "Custom Locked Sound"
   unlocked_sound(choices) : "Unlocked Sound" : 0 = 
   [
     0: "None"
@@ -1456,6 +1448,7 @@
     13: "Latch Unlocked"
     14: "Lightswitch"
   ]
+  unlocked_sound_custom(sound) : "Custom Unlocked Sound"
   locked_sentence(choices) : "Locked Sentence" : 0 = 
   [
     0: "None"
@@ -1522,7 +1515,7 @@
   distance(integer) : "Distance (deg)" : 90
   angles(string) : "Pitch Yaw Roll (Y Z X)" : "0 0 0"
 ]
-@SolidClass base(Targetname, Global, Appearflags, RenderFields, ZHLT, Angles) = func_fade : "Detail Entity" 
+@SolidClass base(Targetname, Global, Appearflags, RenderFields, ZHLT) = func_fade : "Fade Entity" 
 [
   _minlight(string) : "Minimum light level"
   fadetime(integer) : "Fade duration" : 0
@@ -1557,8 +1550,8 @@
 // You must create the physical ladder yourself
 @SolidClass base(Targetname) = func_ladder : "Ladder" []
 
-@SolidClass base(Targetname, Global, Appearflags, RenderFields, ZHLT) = func_mirror : "Mirror" []
-@SolidClass base(Appearflags, RenderFields, ZHLT) = func_null : "Null brush entity" 
+@SolidClass base(Targetname, Appearflags) = func_mirror : "Mirror" []
+@SolidClass = func_null : "Null brush entity" 
 [
   zhlt_noclip(integer) : "Noclip" : 1
 ]
@@ -1624,7 +1617,6 @@
   ]
       speed(integer) : "Speed" : 100
   height(integer) : "Travel altitude (can be negative)" : 0
-  speed(integer) : "Speed" : 50
   _minlight(string) : "Minimum light level"
 ] 
 
@@ -1672,11 +1664,8 @@
 [
   target(target_destination) : "Targetted object"
   lockedtarget(target_destination) : "Trigger when used and locked"
-  // changetarget will change the button's target's TARGET field to the button's changetarget.
-  changetarget(target_destination) : "ChangeTarget Name"
   master(target_destination) : "Master" 
   speed(integer) : "Speed" : 50
-  health(integer) : "Health (shootable if > 0)"
   sounds(choices) : "Sounds" : 21 = 
   [
     21: "Squeaky"
@@ -1685,6 +1674,7 @@
     24: "Clean Ratchet"
     25: "Gas Clunk"
   ]
+  sound_custom(sound) : "Custom Sound"
   wait(choices) : "Delay before reset" : 3 =
   [
     -1: "Stays pressed"
@@ -1761,7 +1751,6 @@
     1 : "No Pitch (X-rot)" : 0
     2 : "No User Control" : 0
     8 : "Passable" : 0
-    32 : "Use Rail Sounds" : 0
   ]
   target(target_destination) : "First stop target"
   sounds(choices) : "Sound" : 0 =
@@ -1775,6 +1764,9 @@
     6: "Rail 7"
     7: "Rail Train"
   ]
+  movesound_custom(sound) : "Custom Sound"
+  startsound_custom(sound) : "Custom Start Sound"
+  stopsound_custom(sound) : "Custom Stop Sound"
   wheels(integer) : "Distance between the wheels" : 50
   height(integer) : "Height above track" : 4
   startspeed(integer) : "Initial speed" : 0
@@ -1783,11 +1775,6 @@
   volume(integer) : "Volume (10 = loudest)" : 10
   bank(string) : "Bank angle on turns" : "0"
   _minlight(string) : "Minimum light level"
-  m_iIsRailtrain(choices) : "Is this a Rail Train" : 0 = 
-  [
-    0 : "No"
-    1 : "Yes"
-  ]
 ]
 
 @SolidClass base(Targetname, Global, Angles, RenderFields, ZHLT, NoclipEnt) = func_train : "Moving platform" 
@@ -1810,6 +1797,7 @@
     12: "odd elev 1"
     13: "odd elev 2"
   ]
+  movesnd_custom(sound) : "Custom Move Sound"
   stopsnd(choices) : "Stop Sound" : 0 = 
   [
     0: "No Sound"
@@ -1822,6 +1810,7 @@
     7: "squeek stop"
     8: "quick stop"
   ]
+  stopsnd_custom(sound) : "Custom Stop Sound"
   speed(integer) : "Speed (units per second)" : 64
   avelocity(string) : "Angular Veocity (y z x)"
   dmg(integer) : "Damage on crush" : 0
@@ -1929,14 +1918,13 @@
     -5: "Lava"
   ]
   body(integer) : "Script Index" : 0
-  WaveHeight(string) : "Wave Height" : "3.2"
 ]
 
 //
 // Game entities
 //
 
-@PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) color(230 230 255) = game_dialouge : "Mallard's sentences" 
+@PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) color(230 230 255) = game_dialouge : "Player's sentences" 
 [
   message(sound) : "WAV Name (e.g. vox/c.wav)"
   radius(integer) : "Radius" : 0
@@ -1966,7 +1954,6 @@
 [
 	message(sound) : "WAV Name (e.g. vox/c.wav)"
 	netname(string) : "Talker's name"
-  	impulse(string) : "Alternate Source"
 	health(integer) : "Hold time" : 5
 	rendercolor(color255) : "Label color (R G B)" : "0 0 0"
 	renderamt(integer) : "Transparency" : 255
@@ -2003,15 +1990,14 @@
   fadein(string) : "Fade in Time (or character scan time)" : "1.5"
   fadeout(string) : "Fade Out Time" : "0.5"
   holdtime(string) : "Hold Time" : "1.2"
-  fxtime(string) : "Scan time (scan effect only)" : "0.25"
+  fxtime(string) : "Scan time (credits effect only)" : "0.25"
   channel(choices) : "Text Channel" : 1 =
   [
     1 : "Channel 1"
     2 : "Channel 2"
     3 : "Channel 3" 
     4 : "Channel 4"
-  ]
-  master(string) : "Master" 
+  ] 
 ]
 
 @PointClass base(Targetname) size(-8 -8 -8, 8 8 8) color(230 230 255) = game_timer : "HUD timer effect" 
@@ -2069,6 +2055,7 @@
 ]
 @PointClass base(Targetname) size(-4 -4 -4, 4 4 4) color(200 100 50) = info_target : "Beam Target" []
 @PointClass size(-8 -8 0, 8 8 16) base(PlayerClass, Targetname) = info_teleport_destination : "Teleport destination" []
+@PointClass base(Targetname) = info_vismark : "Transition Extra VIS Marker" []
 
 //
 // items
@@ -2092,6 +2079,14 @@
     4 : "Cannot be skipped" : 0
   ] 
 ]
+@PointClass size(-16 -16 0, 16 16 36) base(Weapon, Targetx) studio("models/w_objects.mdl") = item_glock_flashlight : "Glock flashlight attachment" 
+[
+   body(integer) : "Body" : 29
+]
+@PointClass size(-16 -16 0, 16 16 36) base(Weapon, Targetx) studio("models/w_objects.mdl") = item_glock_silencer : "Glock silencer attachment" 
+[
+   body(integer) : "Body" : 28
+]
 @PointClass size(-16 -16 0, 16 16 36) base(Weapon, Targetx) studio("models/w_objects.mdl") = item_kevlar : "Kevlar plate" 
 [
    body(integer) : "Body" : 0
@@ -2100,13 +2095,7 @@
 [
    body(integer) : "Body" : 1
 ]
-@PointClass size(-16 -16 0, 16 16 36) base(Weapon, Targetx) studio("models/motorbike.mdl") = item_motorbike : "Motorbike" 
-[
-  spawnflags(flags) =
-  [
-    1 : "Leave Dialouge on Kill" : 0
-  ] 
-]
+@PointClass size(-16 -16 0, 16 16 36) base(Targetname, Angles) studio("models/motorbike.mdl") = item_motorbike : "Motorbike" []
 @PointClass size(-16 -16 0, 16 16 36) base(Weapon, Targetx) studio("models/w_objects.mdl") = item_security : "Security card" 
 [
    body(integer) : "Body" : 2
@@ -2132,12 +2121,11 @@
 // lights
 //
 
-@PointClass iconsprite("sprites/lightbulb.spr") base(Target, Targetname, Light, ZHLT_point) = light : "Invisible lightsource"
+@PointClass iconsprite("sprites/lightbulb.spr") base(Light, ZHLT_point) = light : "Invisible lightsource"
 [
-	spawnflags(Flags) = [ 1 : "Initially dark" : 0 ]
 ]
 
-@PointClass iconsprite("sprites/lightbulb.spr") base(Targetname, Target, Angles, ZHLT_point) = light_spot : "Spotlight" 
+@PointClass iconsprite("sprites/lightbulb.spr") base(Target, Angles, ZHLT_point) = light_spot : "Spotlight" 
 [
 	_cone(integer) : "Inner (bright) angle" : 30
 	_cone2(integer) : "Outer (fading) angle" : 45
@@ -2148,23 +2136,6 @@
 		0 : "No"
 		1 : "Yes"
 	]
-	spawnflags(Flags) = [ 1 : "Initially dark" : 0 ]
-      style(Choices) : "Appearance" : 0 =
-	[
-		0 : "Normal"
-		10: "Fluorescent flicker"
-		2 : "Slow, strong pulse"
-		11: "Slow pulse, noblack"
-		5 : "Gentle pulse"
-		1 : "Flicker A"
-		6 : "Flicker B"
-		3 : "Candle A"
-		7 : "Candle B"
-		8 : "Candle C"
-		4 : "Fast strobe"
-		9 : "Slow strobe"
-	]
-	pattern(string) : "Custom Appearance"
 ]
 
 @PointClass iconsprite("sprites/lightbulb.spr") base(Target, Targetname, Light, ZHLT_point) = night_light : "Invisible lightsource"
@@ -2202,11 +2173,16 @@
 	pattern(string) : "Custom Appearance"
 ]
 
-@PointClass base(Targetname, Angles, ZHLT_point) iconsprite("sprites/lightbulb.spr") = light_environment : "Environment" 
+@PointClass base(Angles, ZHLT_point) iconsprite("sprites/lightbulb.spr") = light_environment : "Environment" 
 [
 	pitch(integer) : "Pitch" : 0
 	_light(color255) : "Brightness" : "255 255 128 200"
 	daylightreturn(Choices) : "Daylight return only" : 0 =
+	[
+		0 : "No"
+		1 : "Yes"
+	]
+	nightmode(Choices) : "Night mode only" : 0 =
 	[
 		0 : "No"
 		1 : "Yes"
@@ -2220,7 +2196,6 @@
 [
   spawnflags(Flags) =
   [
-    18:  "Low Health"    : 0
     32 : "SquadLeader" : 0
   ]
   netname(string) : "Squad Name"
@@ -2235,21 +2210,16 @@
 ]
 @PointClass base(NPC, RenderFields) size(-16 -16 -36, 16 16 36) studio() = npc_generic : "Generic Script NPC" 
 [
-  spawnflags(Flags) = 
-  [
-    4 : "Not solid" : 0
-    8 : "Head Controller" : 0
-  ]
-  model(studio) : "model"
+  model(studio) : "Model"
   body(Integer) : "Body" : 0
+  notsolid(Choices) : "Not Solid" : 0 =
+  [
+    0 : "False"
+	1 : "True"
+  ]
 ]
-@PointClass base(NPC,TalkNPC) size(-16 -16 0, 16 16 72) studio("models/security.mdl") = npc_security : "Security"
+@PointClass base(NPC,TalkNPC,WanderNPC) size(-16 -16 0, 16 16 72) studio("models/security.mdl") = npc_security : "Security"
 [
-	suspicious(choices) : "Suspicious" : 0 =
-	[
-		0 : "No"
-		1 : "Yes"
-	]
 	hostile(choices) : "Hostile?" : 0 =
 	[
 		0 : "No"
@@ -2260,7 +2230,6 @@
 		0 : "Random"
 		1 : "Old White"
 		2 : "Young White"
-		3 : "Young Black"
 	]
   weapons(Choices) : "Weapons" : 1 =
   [
@@ -2278,7 +2247,7 @@
     2 : "On stomach"
     3 : "Suicide"
   ]
-	sequence(Integer): "Sequence" : 35
+	sequence(Integer): "Sequence" : 27
 ]
 
 @PointClass base(Targetname, Angles) size(-16 -16 -16, 16 16 16) = npcmaker : "NPC Maker"
@@ -2385,7 +2354,6 @@
 	message(target_destination) : "Fire On Pass"
 	wait(integer) : "Wait here (secs)" : 0
 	speed(integer) : "New Train Speed" : 0
-	yaw_speed(integer) : "New Train rot. Speed" : 0
 	avelocity(string) : "Angular Veocity (y z x)"
 ]
 
@@ -2422,7 +2390,7 @@
 
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = player_weaponstrip : "Strips player's weapons" []
 
-@PointClass base(Targetname, Targetx) size(-16 -16 0, 16 16 72) color(255 0 255) = scripted_sentence : "Scripted Sentence"
+@PointClass base(Targetname) size(-16 -16 0, 16 16 72) color(255 0 255) = scripted_sentence : "Scripted Sentence"
 [
   spawnflags(Flags) = 
   [
@@ -2435,7 +2403,7 @@
   sentence(string) : "Sentence Name" : ""
   entity(target_destination) : "Speaker Entity"
   duration(string) : "Sentence Time" : "3"
-  radius(integer) : "Search Radius" : 512
+  radius(integer) : "Radius" : 512
   refire(string) : "Delay Before Refire" : "3"
   listener(target_destination) : "Listener"
   volume(string) : "Volume 0-10" : "10"
@@ -2445,7 +2413,7 @@
     1 : "Medium Radius"
     2 : "Large  Radius"
     3 : "Play Everywhere"
-    4 : "X Large"
+    4 : "X-Large"
   ]
 ]
 
@@ -2476,7 +2444,6 @@
     32: "No Interruptions"  : 0
     64: "Override AI" : 0
     128: "No Script Movement" : 0
-    256: "No Reset Entity" : 0
     512: "Trigger to Idle" : 0
     1024: "Only in Radius" : 0
     2048: "Sounds can interrupt" : 0
@@ -2502,6 +2469,9 @@
 	0 : "No"
 	1 : "Yes"
   ]
+  onplayseqtarget(target_destination) : "Trigger on play sequence start" : ""
+  onloopseqtarget(target_destination) : "Trigger on loop sequence start" : ""
+  onloopexitseqtarget(target_destination) : "Trigger on loop exit sequence start" : ""
 ]
 
 //
@@ -2583,11 +2553,8 @@
   targetname(string) : "Name"
   map(string) : "New map name"
   landmark(string) : "Landmark name"
-  changetarget(target_destination) : "Change Target"
-  changedelay(string) : "Delay before change target" : "0"
   spawnflags(flags) =
   [
-    1: "No Intermission" : 0
     2: "USE Only" : 0
   ]
 ]
@@ -2604,7 +2571,7 @@
 
 @PointClass base(Targetname) size(-8 -8 -8, 8 8 8) = trigger_coderegister : "Code Register Entity" 
 [
-	keypadid(string) : "Keypad ID"
+	keypadid(string) : "Code ID"
 	code(string) : "Code"
 
 	spawnflags(Flags) =
@@ -2631,16 +2598,6 @@
 
 @SolidClass base(Targetname) = trigger_endgame : "EndSection Trigger"
 [
-]
-
-@PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) = trigger_fileconditional : "File Conditional Trigger" 
-[
-	filename(string) : "File"
-	mode(choices) : "Mode" : 0 =
-	[
-		0 : "Trigger if present"
-		1 : "Trigger if missing"
-	]
 ]
 
 @PointClass base(Targetname, Target) size(-4 -4 -4, 4 4 4) = trigger_forceclose : "Force close" []
@@ -2683,12 +2640,13 @@
     1: "Target Once" : 0 
     2: "Start Off" : 0
     8: "No clients" : 0
-    16:"FireClientOnly" : 0
-    32:"TouchClientOnly" : 0
+    16:"Fire Client Only" : 0
+    32:"Touch Client Only" : 0
   ]
   master(target_destination) : "Master" 
   dmg(integer) : "Damage" : 10
   delay(string) : "Delay before trigger" : "0"
+  dmgdelay(Integer) : "Delay before next hurt": "0.5"
   damagetype(choices) : "Damage Type" : 0 =
   [
     0 : "GENERIC"
@@ -2718,20 +2676,20 @@
 @PointClass base(Targetname, Target) size(-16 -16 -16, 16 16 16) = trigger_keypad : "Keypad entity" 
 [
 	message(string) : "Passcode"
-	keypadid(string) : "Keypad ID"
+	keypadid(string) : "Code ID"
 	spawnflags(Flags) =
 	[
 		1 : "Stay Till Next" : 0
 	]
 ]
 
-@PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) = trigger_killplayer : "Kills the player" []
+@PointClass base(Targetname) size(-8 -8 -8, 8 8 8) = trigger_killplayer : "Kills the player" []
 
 @PointClass base(Targetname, Target) size(-16 -16 -16, 16 16 16) = trigger_login : "Login Window" 
 [
 	username(string) : "Username" : "Robotnik"
 	password(string) : "Password"
-	keypadid(string) : "Password ID"
+	keypadid(string) : "Code ID"
 
 	spawnflags(Flags) =
 	[
@@ -2811,6 +2769,31 @@
   ]
 ]
 
+@PointClass base(Targetname) = trigger_relay_binary : "Binary Trigger Relay"
+[
+  target(target_destination) : "Target on turn on"
+  triggeronstate(choices) : "Trigger on mode" : 0 = 
+  [
+    0: "Off"
+    1: "On"
+    2: "Toggle"
+  ]
+  
+  netname(target_destination) : "Target on turn off"
+  triggeroffstate(choices) : "Trigger off mode" : 0 = 
+  [
+    0: "Off"
+    1: "On"
+    2: "Toggle"
+  ]
+  delay(string) : "Delay before trigger" : "0"
+  initialstate(choices) : "Initial state" : 0 = 
+  [
+    0: "Off"
+    1: "On"
+  ]
+]
+
 @PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) = trigger_repeat : "Repeat trigger" 
 [
 	health(Integer) : "Delay between triggers" : 1
@@ -2840,12 +2823,12 @@
 
 @PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) = trigger_speedup : "Speedup" 
 [
-	targetspeed(Integer) : "End Velocity" : 0
 	startspeed(Integer) : "Start Velocity" : 0
+	targetspeed(Integer) : "End Velocity" : 0
 	duration(Integer) : "Duration" : 0
 ]
 
-@SolidClass base(Trigger, Angles) = trigger_sound : "Brush Based Sound FX"
+@SolidClass base(Targetname) = trigger_sound : "Brush Based Sound FX"
 [
 	roomtype(choices) : "Room Type" : 0 =
 	[
@@ -2888,6 +2871,13 @@
 	target3(string) : "Outskirts Target"
 	target4(string) : "Centre Target"
 
+	line(choices) : "Line" : 0 =
+	[
+		0 : "Bergen-Eckhart"
+		1 : "Kassar-Stillwell"
+		2 : "Marshall-Lyne"
+	]
+
     spawnflags(Flags) =
     [
         1 : "Disable Options" : 0
@@ -2917,8 +2907,8 @@
 
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = trigger_textwindow : "Text Window" 
 [
-	textfile(string) : "Text file to load ( 16 KByte max )" : "text/yourtextfile.txt"
-	keypadid(string) : "Keypad ID"
+	textfile(string) : "Text file to load" : "text/yourtextfile.txt"
+	keypadid(string) : "Code ID"
 	code(string) : "Code"
 
 	spawnflags(Flags) =
@@ -2945,10 +2935,10 @@
 	fadeouttime(Integer) : "Fade out time" : 0
 ]
 
-@PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) = trigger_zoom : "Zoom" 
+@PointClass base(Targetname) size(-8 -8 -8, 8 8 8) = trigger_zoom : "Zoom" 
 [
-	targetsize(Integer) : "End FOV" : 0
 	startsize(Integer) : "Start FOV" : 0
+	targetsize(Integer) : "End FOV" : 0
 	duration(Integer) : "Duration" : 0
 
 	spawnflags(Flags) =

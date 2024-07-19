@@ -36,4 +36,5 @@ extern Int32 R_GetRelativeX( Int32 xPos, Int32 baseWidth, Int32 windowWidth );
 extern Int32 R_GetRelativeY( Int32 yPos, Int32 baseHeight, Int32 windowHeight );
 extern void R_ResizeTextureToPOT( Uint32& outwidth, Uint32& outheight, byte*& pdata );
 extern void R_FlipTexture( Uint32 width, Uint32 height, Uint32 bpp, bool fliph, bool flipv, byte*& pdata );
+extern void R_SetMatrixData( const Float *pin, Float* pout, bool transpose = false );
 #endif

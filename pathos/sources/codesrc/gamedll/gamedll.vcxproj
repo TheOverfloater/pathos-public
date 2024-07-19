@@ -22,26 +22,28 @@
     <ProjectGuid>{0CC32B0E-3226-40E0-9E1E-D751EAE5239B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>gamedll</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <CLRSupport>false</CLRSupport>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -50,6 +52,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -201,6 +204,7 @@
     <ClCompile Include="aiflagtoggler.cpp" />
     <ClCompile Include="aiwandercontroller.cpp" />
     <ClCompile Include="ai_common.cpp" />
+    <ClCompile Include="ai_militianpc.cpp" />
     <ClCompile Include="ai_nodegraph.cpp" />
     <ClCompile Include="ai_patrolnpc.cpp" />
     <ClCompile Include="ai_schedule.cpp" />
@@ -239,6 +243,7 @@
     <ClCompile Include="envspecialfog.cpp" />
     <ClCompile Include="envbeamfx.cpp" />
     <ClCompile Include="envsun.cpp" />
+    <ClCompile Include="envsyncanimation.cpp" />
     <ClCompile Include="funcbreakable.cpp" />
     <ClCompile Include="funcbutton.cpp" />
     <ClCompile Include="funcdoor.cpp" />
@@ -295,6 +300,7 @@
     <ClCompile Include="gib.cpp" />
     <ClCompile Include="gibshooter.cpp" />
     <ClCompile Include="grenade.cpp" />
+    <ClCompile Include="infovismark.cpp" />
     <ClCompile Include="materialdefs.cpp" />
     <ClCompile Include="infomonitorcamera.cpp" />
     <ClCompile Include="infonode.cpp" />
@@ -411,6 +417,7 @@
     <ClCompile Include="triggerparalyzeplayer.cpp" />
     <ClCompile Include="triggerpush.cpp" />
     <ClCompile Include="triggerrelay.cpp" />
+    <ClCompile Include="triggerrelaybinary.cpp" />
     <ClCompile Include="triggerrepeat.cpp" />
     <ClCompile Include="triggersaveweapons.cpp" />
     <ClCompile Include="triggersetsavetitle.cpp" />
@@ -472,6 +479,7 @@
     <ClInclude Include="aisettriggercondition.h" />
     <ClInclude Include="aiwandercontroller.h" />
     <ClInclude Include="ai_common.h" />
+    <ClInclude Include="ai_militianpc.h" />
     <ClInclude Include="ai_nodegraph.h" />
     <ClInclude Include="ai_patrolnpc.h" />
     <ClInclude Include="ai_schedule.h" />
@@ -500,6 +508,7 @@
     <ClInclude Include="envsetsequence.h" />
     <ClInclude Include="envsetskytexture.h" />
     <ClInclude Include="envsun.h" />
+    <ClInclude Include="envsyncanimation.h" />
     <ClInclude Include="funcportalsurface.h" />
     <ClInclude Include="funcslippery.h" />
     <ClInclude Include="gametimer.h" />
@@ -673,6 +682,7 @@
     <ClInclude Include="triggerparalyzeplayer.h" />
     <ClInclude Include="triggerpush.h" />
     <ClInclude Include="triggerrelay.h" />
+    <ClInclude Include="triggerrelaybinary.h" />
     <ClInclude Include="triggerrepeat.h" />
     <ClInclude Include="triggersaveweapons.h" />
     <ClInclude Include="triggersetsavetitle.h" />

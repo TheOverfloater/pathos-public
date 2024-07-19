@@ -168,6 +168,11 @@ void CL_VBMEvent( const struct mstudioevent_t *pvbmevent, struct cl_entity_t *pe
 			EV_AngleForwardMuzzleFlash(1, pentity->getAttachment(1), pentity, pvbmevent);
 		}
 		break;
+	case EVENT_CLIENTDLL_MUZZLEFLASH_2A_USER:
+		{
+			EV_ViewModelMuzzleflash_UserSpecifiedAttachment(pentity, pvbmevent, pentity->getAttachment(0));
+		}
+		break;
 	case EVENT_CLIENTDLL_CREATE_PARTICLE_SYSTEM_A1:
 		{
 			cl_efxapi.pfnSpawnParticleSystem(pentity->getAttachment(0), Vector(0, 0, 0), PART_SCRIPT_SYSTEM, pvbmevent->options, pentity->entindex, pentity->entindex, 0, NO_POSITION, PARTICLE_ATTACH_NONE);

@@ -43,7 +43,6 @@ mxBmpRead (const char *filename)
 	byte *pb, *pbPal = 0;
 	int cbPalBytes;
 	int biTrueWidth;
-	mxImage *image = 0;
 
 	// File exists?
 	if ((pfile = fopen (filename, "rb")) == 0)
@@ -77,7 +76,7 @@ mxBmpRead (const char *filename)
 	if (bmih.biClrUsed == 0)
 	{
 		bmih.biClrUsed = 256;
-		cbPalBytes = (1 << bmih.biBitCount) * sizeof (mxBitmapRGBQuad);
+		cbPalBytes = (1ULL << bmih.biBitCount) * sizeof (mxBitmapRGBQuad);
 	}
 	else 
 	{
@@ -88,7 +87,7 @@ mxBmpRead (const char *filename)
 	if (fread (rgrgbPalette, cbPalBytes, 1/*count*/, pfile) != 1)
 		goto GetOut;
 
-	image = new mxImage ();
+	mxImage* image = new mxImage ();
 	if (!image)
 		goto GetOut;
 
@@ -175,7 +174,7 @@ mxBmpWrite (const char *filename, mxImage *image)
 	mxBitmapRGBQuad rgrgbPalette[256];
 	int cbBmpBits;
 	byte *pbBmpBits;
-	byte *pb, *pbPal = 0;
+	byte *pb;
 	int cbPalBytes;
 	int biTrueWidth;
 

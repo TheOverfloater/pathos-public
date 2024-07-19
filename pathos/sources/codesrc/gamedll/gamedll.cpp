@@ -120,6 +120,7 @@ static gdll_funcs_t GAMEDLL_FUNCTIONS =
 	ReadGlobalStateData,		//pfnReadGlobalStateData
 	AreCheatsEnabled,			//pfnAreCheatsEnabled
 	GetTransitioningEntities,	//pfnGetTransitionList
+	AdjustLandmarkPVSData,		//pfnAdjustLandmarkPVSData
 	CanSaveGame,				//pfnCanSaveGame
 	CanLoadGame,				//pfnCanLoadGame
 	ShowSaveGameMessage,		//pfnShowSaveGameMessage
@@ -635,6 +636,78 @@ void RestoreDecal( const Vector& origin, const Vector& normal, edict_t* pedict, 
 
 	// Create the decal on the client
 	Util::CreateGenericDecal(origin, &normal, pstrDecalTexture, decalflags, entityindex);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void AdjustLandmarkPVSData( edict_t* pLandmarkEdict, byte* pPVS, Uint32 pvsBufferSize )
+{
+	if (!pLandmarkEdict)
+		return;
+
+	if (!pPVS)
+		return;
+
+	const Char* pstrLandmarkName = gd_engfuncs.pfnGetString(pLandmarkEdict->fields.targetname);
+	if (!pstrLandmarkName || !qstrlen(pstrLandmarkName))
+		return;
+
+	const cache_model_t* pworld = gd_engfuncs.pfnGetModel(1);
+	if (!pworld)
+		return;
+
+	const brushmodel_t* pworldmodel = pworld->getBrushmodel();
+	if (!pworldmodel)
+		return;
+
+	byte* ppvsdata = nullptr;
+
+	edict_t* pedict = nullptr;
+	while (true)
+	{
+		pedict = Util::FindEntityByTargetName(pedict, pstrLandmarkName);
+		if (!pedict)
+			break;
+
+		const Char* pstrEntityClassname = gd_engfuncs.pfnGetString(pedict->fields.classname);
+		if (!pstrEntityClassname)
+			continue;
+
+		if (!qstrcmp(pstrEntityClassname, "info_vismark"))
+		{
+			const mleaf_t* pleaf = nullptr;
+			for (Uint32 i = 0; i < 4; i++)
+			{
+				Vector testPosition = pedict->state.origin + Vector(0, 0, static_cast<Float>(i));
+				pleaf = gd_engfuncs.pfnPointInLeaf(testPosition, (*pworldmodel));
+				if (!pleaf || pleaf->contents != CONTENTS_SOLID)
+					break;
+			}
+
+			// Check if leaf was valid in the end
+			if (!pleaf || pleaf->contents == CONTENTS_SOLID)
+				continue;
+
+			if (!ppvsdata)
+			{
+				ppvsdata = new byte[pvsBufferSize];
+				memset(ppvsdata, 0, sizeof(byte) * pvsBufferSize);
+			}
+
+			// Get PVS for this vismark entity
+			gd_engfuncs.pfnLeafPVS(ppvsdata, pvsBufferSize, (*pleaf), (*pworldmodel));
+
+			// Add the contents to the server PVS
+			Uint32 bytecount = (pworldmodel->numleafs + 7) >> 3;
+			for (Uint32 i = 0; i < bytecount; i++)
+				pPVS[i] |= ppvsdata[i];
+		}
+	}
+
+	if (ppvsdata)
+		delete[] ppvsdata;
 }
 
 //=============================================

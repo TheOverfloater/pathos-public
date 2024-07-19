@@ -93,7 +93,7 @@ text "DisplayResolutionLabel"
 {
 	$text "Resolution"
 	$originx 32
-	$originy 118
+	$originy 98
 }
 list "DisplayResolutionList"
 {
@@ -101,7 +101,7 @@ list "DisplayResolutionList"
 	$width 225
 	$height 32
 	$originx 32
-	$originy 144
+	$originy 124
 	$rowheight 32
 	$flags align_top align_left
 }
@@ -109,7 +109,7 @@ text "WindowModeLabel"
 {
 	$text "Window mode"
 	$originx 32
-	$originy 206
+	$originy 166
 }
 list "WindowModeList"
 {
@@ -117,7 +117,7 @@ list "WindowModeList"
 	$width 225
 	$height 32
 	$originx 32
-	$originy 230
+	$originy 190
 	$rowheight 32
 	$flags align_top align_left
 }
@@ -125,8 +125,8 @@ text "GammaLabel"
 {
 	$text "Gamma"
 	$flags align_bottom align_left
-	$originx 32
-	$originy 68
+	$originx 92
+	$originy 32
 }
 slider "GammaSlider"
 {
@@ -134,8 +134,8 @@ slider "GammaSlider"
 	$flags align_bottom align_left
 	$width 225
 	$height 32
-	$originx 32
-	$originy 32
+	$originx 182
+	$originy 26
 	$minvalue 0.5
 	$maxvalue 4.0
 	$markerdistance 8.0
@@ -143,7 +143,7 @@ slider "GammaSlider"
 text "AnisotropyLabel"
 {
 	$text "Texture Filtering"
-	$originx 300
+	$originx 330
 	$originy 32
 	$flags align_top align_left
 }
@@ -152,7 +152,7 @@ list "AnisotropyList"
 	$schema "indentedwindow.txt"
 	$width 225
 	$height 32
-	$originx 300
+	$originx 330
 	$originy 56
 	$rowheight 32
 	$flags align_top align_left
@@ -160,8 +160,8 @@ list "AnisotropyList"
 text "AntiAliasLabel"
 {
 	$text "Anti-Aliasing"
-	$originx 300
-	$originy 118
+	$originx 330
+	$originy 98
 	$flags align_top align_left
 }
 list "AntiAliasList"
@@ -169,16 +169,16 @@ list "AntiAliasList"
 	$schema "indentedwindow.txt"
 	$width 225
 	$height 32
-	$originx 300
-	$originy 144
+	$originx 330
+	$originy 124
 	$rowheight 32
 	$flags align_top align_left
 }
 text "VerticalSyncLabel"
 {
 	$text "Vertical Sync"
-	$originx 300
-	$originy 206
+	$originx 330
+	$originy 166
 	$flags align_top align_left
 }
 list "VerticalSyncList"
@@ -186,8 +186,42 @@ list "VerticalSyncList"
 	$schema "indentedwindow.txt"
 	$width 225
 	$height 32
-	$originx 300
-	$originy 230
+	$originx 330
+	$originy 190
+	$rowheight 32
+	$flags align_top align_left
+}
+text "FramebufferObjectsLabel"
+{
+	$text "Framebuffer Objects"
+	$originx 32
+	$originy 232
+	$flags align_top align_left
+}
+list "FramebufferObjectsList"
+{
+	$schema "indentedwindow.txt"
+	$width 225
+	$height 32
+	$originx 32
+	$originy 256
+	$rowheight 32
+	$flags align_top align_left
+}
+text "HighDynamicRangeLabel"
+{
+	$text "High Dynamic Range"
+	$originx 330
+	$originy 232
+	$flags align_top align_left
+}
+list "HighDynamicRangeList"
+{
+	$schema "indentedwindow.txt"
+	$width 225
+	$height 32
+	$originx 330
+	$originy 256
 	$rowheight 32
 	$flags align_top align_left
 }

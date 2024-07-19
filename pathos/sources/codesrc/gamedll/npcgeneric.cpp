@@ -26,7 +26,8 @@ LINK_ENTITY_TO_CLASS( npc_generic, CNPCGeneric );
 //=============================================
 CNPCGeneric::CNPCGeneric( edict_t* pedict ):
 	CBaseNPC(pedict),
-	m_hullType(NPC_GENERIC_HULL_HUMAN)
+	m_hullType(NPC_GENERIC_HULL_HUMAN),
+	m_notSolid(false) // Doesn't need to be saved
 {
 }
 
@@ -58,7 +59,7 @@ bool CNPCGeneric::Spawn( void )
 		break;
 	}
 
-	if(!HasSpawnFlag(FL_GENERICNPC_NOT_SOLID))
+	if(m_notSolid)
 		m_pState->solid = SOLID_SLIDEBOX;
 	else
 		m_pState->solid = SOLID_NOT;
@@ -104,6 +105,11 @@ bool CNPCGeneric::KeyValue( const keyvalue_t& kv )
 			break;
 
 		}
+		return true;
+	}
+	else if(!qstrcmp(kv.keyname, "notsolid"))
+	{
+		m_notSolid = (SDL_atoi(kv.value) == 1) ? true : false;
 		return true;
 	}
 	else

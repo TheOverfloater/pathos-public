@@ -26,6 +26,7 @@ All Rights Reserved.
 #include "ai_sounds.h"
 #include "npcclonesoldier.h"
 #include "timedamage.h"
+#include "ai_militianpc.h"
 
 // Path to impact effects script
 static const Char MATERIAL_DEFINITIONS_SCRIPT_PATH[] = "scripts/materialdefs.txt";
@@ -184,6 +185,7 @@ void ClearGame( void )
 		g_pFlexManager->Clear();
 
 	CNPCCloneSoldier::Reset();
+	CMilitiaNPC::Reset();
 	CTalkNPC::ResetTalkTime();
 	CTimeDamage::ClearTimeDamageList();
 }
@@ -963,9 +965,9 @@ void FireBullets( Uint32 nbshots,
 
 					Vector startPosition;
 					Vector endPosition = tr.endpos;
-					for(Float distance = 4.0f; distance <= penetrationInfo.penetrationdepth; distance += 4.0f)
+					for(Float ldistance = 4.0f; ldistance <= penetrationInfo.penetrationdepth; ldistance += 4.0f)
 					{
-						startPosition = tr.endpos + shootDirection*distance;
+						startPosition = tr.endpos + shootDirection* ldistance;
 						if(pHitEntity->IsBrushModel() || pHitEntity->IsWorldSpawn())
 							Util::TraceLine(startPosition, endPosition, true, true, false, true, pAttacker->GetEdict(), tr);
 						else
@@ -984,15 +986,15 @@ void FireBullets( Uint32 nbshots,
 						// Min distance for sound spam
 						const Float minImpactSoundDistance = 128;
 
-						Uint32 i = 0;
-						for(; i < numImpactPositions; i++)
+						Uint32 j = 0;
+						for(; j < numImpactPositions; j++)
 						{
-							Float distance = (impactPositions[i] - tr.endpos).Length();
-							if(distance < minImpactSoundDistance)
+							Float sndDistance = (impactPositions[j] - tr.endpos).Length();
+							if(sndDistance < minImpactSoundDistance)
 								break;
 						}
 
-						if(i == numImpactPositions && numImpactPositions < IMPACT_POSITION_MAX)
+						if(j == numImpactPositions && numImpactPositions < IMPACT_POSITION_MAX)
 						{
 							impactPositions[numImpactPositions] = tr.endpos;
 							numImpactPositions++;

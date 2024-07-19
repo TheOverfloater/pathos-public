@@ -13,7 +13,7 @@ All Rights Reserved.
 #include "constants.h"
 
 // Used for custom rendermode types
-static const Uint32 RENDERMODE_BITMASK = 255;
+static constexpr Uint32 RENDERMODE_BITMASK = 255;
 
 enum movetype_t
 {
@@ -81,7 +81,8 @@ enum effects_t
 	EF_UPDATEMODEL		= (1<<20),
 	EF_QUAKEBUG_FIX		= (1<<21),
 	EF_NOINTERP			= (1<<22),
-	EF_SET_SEQTIME		= (1<<23)
+	EF_SET_SEQTIME		= (1<<23),
+	EF_SYNCSEQUENCE		= (1<<24),
 };
 
 enum waterlevel_t
@@ -93,40 +94,40 @@ enum waterlevel_t
 };
 
 
-static const Uint64 FL_NONE				= 0;
-static const Uint64 FL_KILLME			= (1ULL<<0);
-static const Uint64 FL_BASEVELOCITY		= (1ULL<<1);
-static const Uint64 FL_ONGROUND			= (1ULL<<2);
-static const Uint64 FL_CONVEYOR			= (1ULL<<3);
-static const Uint64 FL_ALWAYSTHINK		= (1ULL<<4);
-static const Uint64 FL_NPC_CLIP			= (1ULL<<5);
-static const Uint64 FL_WORLDBRUSH		= (1ULL<<6);
-static const Uint64 FL_NPC				= (1ULL<<7);
-static const Uint64 FL_CLIENT			= (1ULL<<8);
-static const Uint64 FL_FLOAT			= (1ULL<<9);
-static const Uint64 FL_FLY				= (1ULL<<10);
-static const Uint64 FL_SWIM				= (1ULL<<11);
-static const Uint64 FL_INWATER			= (1ULL<<12);
-static const Uint64 FL_WATERJUMP		= (1ULL<<13);
-static const Uint64 FL_DORMANT			= (1ULL<<14);
-static const Uint64 FL_DUCKING			= (1ULL<<15);
-static const Uint64 FL_FROZEN			= (1ULL<<16);
-static const Uint64 FL_UNUSED1			= (1ULL<<17);
-static const Uint64 FL_ON_LADDER		= (1ULL<<18);
-static const Uint64 FL_DEAD				= (1ULL<<19);
-static const Uint64 FL_ON_BIKE			= (1ULL<<20);
-static const Uint64 FL_NO_SPRINT		= (1ULL<<21);
-static const Uint64 FL_SLOWMOVE			= (1ULL<<22);
-static const Uint64 FL_GODMODE			= (1ULL<<23);
-static const Uint64 FL_NOTARGET			= (1ULL<<24);
-static const Uint64 FL_PARENTED			= (1ULL<<25);
-static const Uint64 FL_INITIALIZE		= (1ULL<<26);
-static const Uint64 FL_REMOVE_ON_SPAWN	= (1ULL<<27);
-static const Uint64 FL_PMOVE_IGNORE		= (1ULL<<28);
-static const Uint64 FL_PARTIALGROUND	= (1ULL<<29);
-static const Uint64 FL_GRAPH_ENTITY		= (1ULL<<30);
-static const Uint64 FL_PARALYZED		= (1ULL<<31);
-static const Uint64 FL_NO_HITBOX_TRACE	= (1ULL<<32);
+static constexpr Uint64 FL_NONE				= 0;
+static constexpr Uint64 FL_KILLME			= (1ULL<<0);
+static constexpr Uint64 FL_BASEVELOCITY		= (1ULL<<1);
+static constexpr Uint64 FL_ONGROUND			= (1ULL<<2);
+static constexpr Uint64 FL_CONVEYOR			= (1ULL<<3);
+static constexpr Uint64 FL_ALWAYSTHINK		= (1ULL<<4);
+static constexpr Uint64 FL_NPC_CLIP			= (1ULL<<5);
+static constexpr Uint64 FL_WORLDBRUSH		= (1ULL<<6);
+static constexpr Uint64 FL_NPC				= (1ULL<<7);
+static constexpr Uint64 FL_CLIENT			= (1ULL<<8);
+static constexpr Uint64 FL_FLOAT			= (1ULL<<9);
+static constexpr Uint64 FL_FLY				= (1ULL<<10);
+static constexpr Uint64 FL_SWIM				= (1ULL<<11);
+static constexpr Uint64 FL_INWATER			= (1ULL<<12);
+static constexpr Uint64 FL_WATERJUMP		= (1ULL<<13);
+static constexpr Uint64 FL_DORMANT			= (1ULL<<14);
+static constexpr Uint64 FL_DUCKING			= (1ULL<<15);
+static constexpr Uint64 FL_FROZEN			= (1ULL<<16);
+static constexpr Uint64 FL_GRABBED			= (1ULL<<17);
+static constexpr Uint64 FL_ON_LADDER		= (1ULL<<18);
+static constexpr Uint64 FL_DEAD				= (1ULL<<19);
+static constexpr Uint64 FL_ON_BIKE			= (1ULL<<20);
+static constexpr Uint64 FL_NO_SPRINT		= (1ULL<<21);
+static constexpr Uint64 FL_SLOWMOVE			= (1ULL<<22);
+static constexpr Uint64 FL_GODMODE			= (1ULL<<23);
+static constexpr Uint64 FL_NOTARGET			= (1ULL<<24);
+static constexpr Uint64 FL_PARENTED			= (1ULL<<25);
+static constexpr Uint64 FL_INITIALIZE		= (1ULL<<26);
+static constexpr Uint64 FL_REMOVE_ON_SPAWN	= (1ULL<<27);
+static constexpr Uint64 FL_PMOVE_IGNORE		= (1ULL<<28);
+static constexpr Uint64 FL_PARTIALGROUND	= (1ULL<<29);
+static constexpr Uint64 FL_GRAPH_ENTITY		= (1ULL<<30);
+static constexpr Uint64 FL_PARALYZED		= (1ULL<<31);
+static constexpr Uint64 FL_NO_HITBOX_TRACE	= (1ULL<<32);
 
 enum entstate_bits_t
 {

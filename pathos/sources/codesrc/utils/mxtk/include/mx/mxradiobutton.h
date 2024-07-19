@@ -33,7 +33,7 @@ class mxRadioButton : public mxWidget
 
 public:
 	// CREATORS
-	mxRadioButton (mxWindow *parent, int x, int y, int w, int h, const char *label = 0, int id = 0, bool newGroup = 0);
+	mxRadioButton (mxWindow *parent, int x, int y, int w, int h, const char *label = 0, __int64 id = 0, bool newGroup = 0);
 	virtual ~mxRadioButton ();
 
 	// MANIPULATORS

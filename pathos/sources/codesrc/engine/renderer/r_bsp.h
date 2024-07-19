@@ -335,7 +335,7 @@ struct decalpolygroup_t
 	Vector localorigin;
 	Float radius;
 
-	en_texture_t* ptexture;
+	mtexture_t* ptexture;
 	bool alphatest;
 };
 
@@ -514,7 +514,7 @@ private:
 	// Retreives the vertex index offset for a decal
 	Uint32 GetDecalOffset( Uint32 numverts );
 	// Applies a decal to a surface
-	void DecalSurface( const msurface_t *surf, bsp_decal_t *pdecal, const Vector& normal, const Vector& origin, bool transparent, en_texture_t* ptexture );
+	void DecalSurface( const msurface_t *surf, bsp_decal_t *pdecal, const Vector& normal, const Vector& origin, bool transparent );
 	// Recursively applies decals on the world surfaces
 	void RecursivePasteDecal( struct mnode_t *node, bsp_decal_t *pdecal, byte flags, const Vector& mins, const Vector& maxs );
 	// Deletes a decal from the chain

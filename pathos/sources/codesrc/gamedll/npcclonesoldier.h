@@ -14,8 +14,7 @@ All Rights Reserved.
 
 enum clone_soldier_schedules_t
 {
-	AI_CLONE_SOLDIER_SCHED_SUPPRESSING_FIRE = LAST_PATROLNPC_SCHEDULE + 1,
-	AI_CLONE_SOLDIER_SCHED_TAKE_TACTICAL_POSITION,
+	AI_CLONE_SOLDIER_SCHED_TAKE_TACTICAL_POSITION = LAST_PATROLNPC_SCHEDULE + 1,
 	AI_CLONE_SOLDIER_SCHED_IDLE_SWEEP,
 	AI_CLONE_SOLDIER_SCHED_AMBUSH_ENEMY,
 	AI_CLONE_SOLDIER_SCHED_HIDE_AND_WAIT
@@ -23,8 +22,7 @@ enum clone_soldier_schedules_t
 
 enum clone_soldier_tasks_t
 {
-	AI_CLONE_SOLDIER_TASK_FACE_TOSS_DIR = LAST_PATROLNPC_TASK + 1,
-	AI_CLONE_SOLDIER_TASK_SPEAK_SENTENCE,
+	AI_CLONE_SOLDIER_TASK_SPEAK_SENTENCE = LAST_PATROLNPC_TASK + 1,
 	AI_CLONE_SOLDIER_TASK_GET_AMBUSH_PATH,
 	AI_CLONE_SOLDIER_TASK_GET_TACTICAL_POSITION,
 	AI_CLONE_SOLDIER_TASK_GET_HIDING_POSITION
@@ -256,8 +254,6 @@ public:
 
 	// Starts a task
 	virtual void StartTask( const ai_task_t* pTask ) override;
-	// Runs a task
-	virtual void RunTask( const ai_task_t* pTask ) override;
 
 	// Gibs the NPC
 	virtual void GibNPC( void ) override;
@@ -313,6 +309,9 @@ public:
 	// Called when a clone soldier just spoke
 	void Spoke( void );
 
+	// Drops weapon NPC is carrying
+	void DropWeapon( bool wasGibbed );
+
 public:
 	// Resets global npc states
 	static void Reset( void );
@@ -331,8 +330,6 @@ private:
 	// Tactical firing position coverage
 	Float m_tacticalCoverage;
 
-	// Grenade toss velocity
-	Vector m_grenadeTossVelocity;
 	// TRUE if we can throw a grenade
 	bool m_tossGrenade;
 	// TRUe if standing to shoot

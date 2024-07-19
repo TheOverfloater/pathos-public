@@ -20,17 +20,6 @@
 	{ "1.000000" }
 }
 
-"r_nofbo"
-{
-	"Disable framebuffer objects"
-	{
-		UIDropDownList
-		"No" "0"
-		"Yes" "1"
-	}
-	{ "0.000000" }
-}
-
 "r_vertex_textures"
 {
 	"Vertex Textures"

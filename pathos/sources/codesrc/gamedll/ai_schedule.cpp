@@ -22,6 +22,7 @@ CAISchedule::CAISchedule( ai_task_t* pTasks, Uint32 nbTasks, Uint64 conditionMas
 	m_specialInterruptSchedule(AI_SCHED_NONE),
 	m_specialInterruptConditionMask(AI_COND_NONE),
 	m_specialInterruptExceptionMask(AI_COND_NONE),
+	m_specialInterruptRequirementMask(AI_COND_NONE),
 	m_soundMask(soundMask),
 	m_scheduleName(pstrName)
 {
@@ -39,6 +40,7 @@ CAISchedule::CAISchedule( ai_task_t* pTasks, Uint32 nbTasks, Uint64 conditionMas
 	m_specialInterruptSchedule(AI_SCHED_NONE),
 	m_specialInterruptConditionMask(AI_COND_NONE),
 	m_specialInterruptExceptionMask(AI_COND_NONE),
+	m_specialInterruptRequirementMask(AI_COND_NONE),
 	m_soundMask(soundMask),
 	m_scheduleName(pstrName)
 {

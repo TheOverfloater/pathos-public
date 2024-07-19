@@ -105,9 +105,9 @@ public:
 	void think( void ) override;
 
 	// Initializes the data
-	bool initData( const Char* pstrScriptFile, Int32 flags );
+	bool initData( const Char* pstrScriptFile, Int32 flags, Int32 subwayLineIndex );
 	// Returns the current window information
-	void getInformation( CString& scriptfile, Int32& flags ) const;
+	void getInformation( CString& scriptfile, Int32& flags, Int32& subwayLineIndex ) const;
 	// Returns the type of the window
 	virtual gameui_windows_t getWindowType( void ) const override { return GAMEUI_SUBWAYWINDOW; }
 
@@ -129,6 +129,8 @@ private:
 	CString m_scriptFilePath;
 	// Flags
 	Int32 m_subwayFlags;
+	// Subway line index
+	Int32 m_subwayLineIndex;
 };
 
 /*

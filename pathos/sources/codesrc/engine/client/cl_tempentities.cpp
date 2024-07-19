@@ -522,25 +522,25 @@ void CTempEntityManager::PlayTempEntitySound( tempentity_t *ptempentity, Float v
 	switch(ptempentity->soundtype)
 	{
 	case TE_BOUNCE_GLASS:
-		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "glass_clatter" << (Int32)(Common::RandomLong(1, 3)) << ".wav";
+		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "glass_clatter" << static_cast<Int32>(Common::RandomLong(1, 3)) << ".wav";
 		break;
 	case TE_BOUNCE_METAL:
-		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "metal_clatter" << (Int32)(Common::RandomLong(1, 3)) << ".wav";
+		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "metal_clatter" << static_cast<Int32>(Common::RandomLong(1, 3)) << ".wav";
 		break;
 	case TE_BOUNCE_FLESH:
-		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "flesh_splatter" << (Int32)(Common::RandomLong(1, 7)) << ".wav";
+		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "flesh_splatter" << static_cast<Int32>(Common::RandomLong(1, 7)) << ".wav";
 		break;
 	case TE_BOUNCE_WOOD:
-		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "wood_clatter" << (Int32)(Common::RandomLong(1, 3)) << ".wav";
+		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "wood_clatter" << static_cast<Int32>(Common::RandomLong(1, 3)) << ".wav";
 		break;
 	case TE_BOUNCE_SHELL:
-		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "shell" << (Int32)(Common::RandomLong(1, 3)) << ".wav";
+		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "shell" << static_cast<Int32>(Common::RandomLong(1, 3)) << ".wav";
 		break;
 	case TE_BOUNCE_CONCRETE:
-		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "concrete_clatter" << (Int32)(Common::RandomLong(1, 3)) << ".wav";
+		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "concrete_clatter" << static_cast<Int32>(Common::RandomLong(1, 3)) << ".wav";
 		break;
 	case TE_BOUNCE_SHOTSHELL:
-		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "shotshell" << (Int32)(Common::RandomLong(1, 3)) << ".wav";
+		filepath << DEBRIS_SOUND_BASE_DIR << PATH_SLASH_CHAR << "shotshell" << static_cast<Int32>(Common::RandomLong(1, 3)) << ".wav";
 		break;
 	default:
 		Con_Printf("%s - Unknown sound type '%d'.\n", __FUNCTION__, ptempentity->soundtype);
@@ -564,13 +564,13 @@ void CTempEntityManager::CreateFunnel( const Vector& origin, const Vector& color
 	cache_model_t* pmodel = gModelCache.GetModelByIndex(modelindex);
 	if(!pmodel)
 	{
-		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return;
 	}
 
 	if(pmodel->type != MOD_SPRITE)
 	{
-		Con_Printf("%s - %d is not a sprite model.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a sprite model.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return;
 	}
 
@@ -659,7 +659,7 @@ void CTempEntityManager::CreateBreakModel( const Vector& origin, const Vector& s
 	cache_model_t* pmodel = gModelCache.GetModelByIndex(modelindex);
 	if(!pmodel)
 	{
-		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return;
 	}
 
@@ -710,8 +710,8 @@ void CTempEntityManager::CreateBreakModel( const Vector& origin, const Vector& s
 			ptemp->entity.curstate.renderamt = 255;
 		}
 
-		ptemp->entity.curstate.velocity[0] = velocity[0] + Common::RandomFloat(-(Int32)random, random);
-		ptemp->entity.curstate.velocity[1] = velocity[1] + Common::RandomFloat(-(Int32)random, random);
+		ptemp->entity.curstate.velocity[0] = velocity[0] + Common::RandomFloat(-static_cast<Int32>(random), random);
+		ptemp->entity.curstate.velocity[1] = velocity[1] + Common::RandomFloat(-static_cast<Int32>(random), random);
 		ptemp->entity.curstate.velocity[2] = velocity[2] + Common::RandomFloat(0, random);
 
 		ptemp->startrenderamt = ptemp->entity.curstate.renderamt;
@@ -737,13 +737,13 @@ void CTempEntityManager::CreateBubbles( const Vector& mins, const Vector& maxs, 
 	cache_model_t* pmodel = gModelCache.GetModelByIndex(modelindex);
 	if(!pmodel)
 	{
-		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return;
 	}
 
 	if(pmodel->type != MOD_SPRITE)
 	{
-		Con_Printf("%s - %d is not a sprite model.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a sprite model.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return;
 	}
 
@@ -797,13 +797,13 @@ void CTempEntityManager::CreateBubbleTrail( const Vector& start, const Vector& e
 	cache_model_t* pmodel = gModelCache.GetModelByIndex(modelindex);
 	if(!pmodel)
 	{
-		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return;
 	}
 
 	if(pmodel->type != MOD_SPRITE)
 	{
-		Con_Printf("%s - %d is not a sprite model.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a sprite model.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return;
 	}
 
@@ -858,13 +858,13 @@ tempentity_t* CTempEntityManager::CreateTempModel( const Vector& origin, const V
 	cache_model_t* pmodel = gModelCache.GetModelByIndex(modelindex);
 	if(!pmodel)
 	{
-		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return nullptr;
 	}
 
 	if(pmodel->type != MOD_VBM)
 	{
-		Con_Printf("%s - %d is not a vbm model.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a vbm model.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return nullptr;
 	}
 
@@ -918,13 +918,13 @@ tempentity_t* CTempEntityManager::CreateTempSprite( const Vector& origin, const 
 	cache_model_t* pmodel = gModelCache.GetModelByIndex(modelindex);
 	if(!pmodel)
 	{
-		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return nullptr;
 	}
 
 	if(pmodel->type != MOD_SPRITE)
 	{
-		Con_Printf("%s - %d is not a sprite model.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a sprite model.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return nullptr;
 	}
 
@@ -937,7 +937,7 @@ tempentity_t* CTempEntityManager::CreateTempSprite( const Vector& origin, const 
 		return nullptr;
 
 	ptemp->entity.curstate.framerate = 10;
-	ptemp->entity.curstate.rendermode = (rendermode_t)rendermode;
+	ptemp->entity.curstate.rendermode = static_cast<rendermode_t>(rendermode);
 	ptemp->entity.curstate.renderamt = alpha * 255;
 	ptemp->startrenderamt = ptemp->entity.curstate.renderamt;
 	ptemp->entity.curstate.rendercolor = Vector(255, 255, 255);
@@ -971,13 +971,13 @@ void CTempEntityManager::CreateSphereModel( const Vector& origin, Float speed, F
 	cache_model_t* pmodel = gModelCache.GetModelByIndex(modelindex);
 	if(!pmodel)
 	{
-		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a valid model index.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return;
 	}
 
 	if(pmodel->type != MOD_VBM)
 	{
-		Con_Printf("%s - %d is not a vbm model.\n", __FUNCTION__, (Int32)modelindex);
+		Con_Printf("%s - %d is not a vbm model.\n", __FUNCTION__, static_cast<Int32>(modelindex));
 		return;
 	}
 

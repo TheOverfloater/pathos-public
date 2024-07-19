@@ -32,7 +32,7 @@ int _tmain(Int32 argc, Char* argv[])
 	argsArray = new CArray<CString>();
 
 	for(Int32 i = 0; i < argc; i++)
-		argsArray->push_back(reinterpret_cast<Char*>(argv[i]));
+		argsArray->push_back(argv[i]);
 
 	// Run main loop
 	return Sys_Main(argsArray);

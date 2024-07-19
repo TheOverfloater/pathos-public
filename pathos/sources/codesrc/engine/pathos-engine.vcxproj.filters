@@ -390,6 +390,9 @@
     <ClCompile Include="uimanager.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
+    <ClCompile Include="renderer\r_fbocache.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="system.h">
@@ -871,6 +874,9 @@
     </ClInclude>
     <ClInclude Include="uimanager.h">
       <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer\r_fbocache.h">
+      <Filter>Header Files\renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

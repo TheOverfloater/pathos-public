@@ -26,11 +26,6 @@ public:
 	static const Float NPC_DEFAULT_HEALTH;
 
 public:
-	enum
-	{
-		FL_GENERICNPC_NOT_SOLID = (1<<2)
-	};
-
 	enum hulltype_t
 	{
 		NPC_GENERIC_HULL_HUMAN = 0,
@@ -60,5 +55,7 @@ public:
 private:
 	// Hull type
 	Int32 m_hullType;
+	// TRUE if not solid
+	bool m_notSolid;
 };
 #endif //NPCGENERIC_H

@@ -401,7 +401,7 @@ bool CBasicDraw::EnableFog( void )
 void CBasicDraw::SetFogParams( const Vector& fogcolor, Float startdist, Float enddist )
 {
 	m_pShader->SetUniform3f(m_shaderAttribs.u_fogcolor, fogcolor[0], fogcolor[1], fogcolor[2]);
-	m_pShader->SetUniform2f(m_shaderAttribs.u_fogparams, enddist, 1.0f/((Float)enddist-(Float)startdist));
+	m_pShader->SetUniform2f(m_shaderAttribs.u_fogparams, enddist, 1.0f/(static_cast<Float>(enddist)- static_cast<Float>(startdist)));
 }
 
 //=============================================

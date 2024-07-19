@@ -109,8 +109,8 @@ bool PBSPV1_LoadEdges( const byte* pfile, brushmodel_t& model, const lump_t& lum
 
 	for(Uint32 i = 0; i < count; i++)
 	{
-		poutedges[i].vertexes[0] = Common::ByteToUint32((const byte*)&pinedges[i].vertexes[0]);
-		poutedges[i].vertexes[1] = Common::ByteToUint32((const byte*)&pinedges[i].vertexes[1]);
+		poutedges[i].vertexes[0] = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinedges[i].vertexes[0]));
+		poutedges[i].vertexes[1] = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinedges[i].vertexes[1]));
 	}
 
 	return true;
@@ -314,11 +314,13 @@ bool PBSPV1_LoadLighting( const byte* pfile, brushmodel_t& model, const lump_t& 
 		return false;
 	}
 
-	model.plightdata = reinterpret_cast<color24_t *>(new byte[lump.size]);
+	model.pbaselightdata = reinterpret_cast<color24_t *>(new byte[lump.size]);
 	model.lightdatasize = lump.size;
 
 	const byte *psrc = (pfile + lump.offset);
-	memcpy(model.plightdata, psrc, sizeof(byte)*lump.size);
+	memcpy(model.pbaselightdata, psrc, sizeof(byte)*lump.size);
+
+	model.plightdata = model.pbaselightdata;
 
 	return true;
 }
@@ -355,7 +357,7 @@ bool PBSPV1_LoadPlanes( const byte* pfile, brushmodel_t& model, const lump_t& lu
 		}
 
 		poutplanes[i].dist = pinplanes[i].dist;
-		poutplanes[i].type = (planetype_t)pinplanes[i].type;
+		poutplanes[i].type = static_cast<planetype_t>(pinplanes[i].type);
 		poutplanes[i].signbits = bits;
 	}
 
@@ -391,7 +393,7 @@ bool PBSPV1_LoadTexinfo( const byte* pfile, brushmodel_t& model, const lump_t& l
 		pouttexinfos[i].flags = pintexinfos[i].flags;
 		Int32 textureindex = pintexinfos[i].miptex;
 
-		if(textureindex >= (Int32)model.numtextures)
+		if(textureindex >= static_cast<Int32>(model.numtextures))
 		{
 			Con_EPrintf("Invalid texture index '%d' in '%s'.\n", textureindex, model.name.c_str());
 			continue;
@@ -429,17 +431,17 @@ bool PBSPV1_LoadFaces( const byte* pfile, brushmodel_t& model, const lump_t& lum
 		msurface_t* pout = &poutsurfaces[i];
 
 		pout->firstedge = pinfaces[i].firstedge;
-		pout->numedges = Common::ByteToInt32((const byte *)&pinfaces[i].numedges);
+		pout->numedges = Common::ByteToInt32(reinterpret_cast<const byte *>(&pinfaces[i].numedges));
 		pout->flags = 0;
 
-		Uint32 planeindex = Common::ByteToUint32((const byte *)&pinfaces[i].planenum);
-		Int32 side = Common::ByteToInt32((const byte *)&pinfaces[i].side);
+		Uint32 planeindex = Common::ByteToUint32(reinterpret_cast<const byte *>(&pinfaces[i].planenum));
+		Int32 side = Common::ByteToInt32(reinterpret_cast<const byte *>(&pinfaces[i].side));
 		if(side)
 			pout->flags |= SURF_PLANEBACK;
 
 		pout->pplane = &model.pplanes[planeindex];
 		
-		Int32 texinfoindex = Common::ByteToInt32((const byte*)&pinfaces[i].texinfo);
+		Int32 texinfoindex = Common::ByteToInt32(reinterpret_cast<const byte*>(&pinfaces[i].texinfo));
 		pout->ptexinfo = &model.ptexinfos[texinfoindex];
 
 		if(!PBSPV1_CalcSurfaceExtents(pout, model))
@@ -490,7 +492,7 @@ bool PBSPV1_LoadMarksurfaces( const byte* pfile, brushmodel_t& model, const lump
 
 	for(Uint32 i = 0; i < count; i++)
 	{
-		Uint32 surfindex = Common::ByteToUint32((const byte*)&pinmarksurfaces[i]);
+		Uint32 surfindex = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinmarksurfaces[i]));
 		if(surfindex >= count)
 		{
 			Con_EPrintf("PBSPV1_LoadFaces - Bad surface index.\n");
@@ -548,15 +550,15 @@ bool PBSPV1_LoadLeafs( const byte* pfile, brushmodel_t& model, const lump_t& lum
 
 		for(Uint32 j = 0; j < 3; j++)
 		{
-			pout->mins[j] = Common::ByteToInt16((const byte*)&pinleafs[i].mins[j]);
-			pout->maxs[j] = Common::ByteToInt16((const byte*)&pinleafs[i].maxs[j]);
+			pout->mins[j] = Common::ByteToInt16(reinterpret_cast<const byte*>(&pinleafs[i].mins[j]));
+			pout->maxs[j] = Common::ByteToInt16(reinterpret_cast<const byte*>(&pinleafs[i].maxs[j]));
 		}
 
 		pout->contents = pinleafs[i].contents;
 
-		Uint32 marksurfindex = Common::ByteToUint32((const byte*)&pinleafs[i].firstmarksurface);
+		Uint32 marksurfindex = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinleafs[i].firstmarksurface));
 		pout->pfirstmarksurface = &model.pmarksurfaces[marksurfindex];
-		pout->nummarksurfaces = Common::ByteToUint32((const byte*)&pinleafs[i].nummarksurfaces);
+		pout->nummarksurfaces = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinleafs[i].nummarksurfaces));
 
 		if(pinleafs[i].visoffset != -1)
 			pout->pcompressedvis = model.pvisdata + pinleafs[i].visoffset;
@@ -592,23 +594,23 @@ bool PBSPV1_LoadNodes( const byte* pfile, brushmodel_t& model, const lump_t& lum
 
 		for(Uint32 j = 0; j < 3; j++)
 		{
-			pout->mins[j] = Common::ByteToInt16((const byte*)&pinnodes[i].mins[j]);
-			pout->maxs[j] = Common::ByteToInt16((const byte*)&pinnodes[i].maxs[j]);
+			pout->mins[j] = Common::ByteToInt16(reinterpret_cast<const byte*>(&pinnodes[i].mins[j]));
+			pout->maxs[j] = Common::ByteToInt16(reinterpret_cast<const byte*>(&pinnodes[i].maxs[j]));
 		}
 
 		pout->pplane = &model.pplanes[pinnodes[i].planenum];
 
-		pout->firstsurface = Common::ByteToUint32((const byte*)&pinnodes[i].firstface);
-		pout->numsurfaces = Common::ByteToUint32((const byte*)&pinnodes[i].numfaces);
+		pout->firstsurface = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinnodes[i].firstface));
+		pout->numsurfaces = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinnodes[i].numfaces));
 
 		for(Uint32 j = 0; j < 2; j++)
 		{
-			Int32 nodeidx = Common::ByteToInt32((const byte*)&pinnodes[i].children[j]);
+			Int32 nodeidx = Common::ByteToInt32(reinterpret_cast<const byte*>(&pinnodes[i].children[j]));
 
 			if(nodeidx >= 0)
 				pout->pchildren[j] = &model.pnodes[nodeidx];
 			else
-				pout->pchildren[j] = (mnode_t*)(&model.pleafs[-1-nodeidx]);
+				pout->pchildren[j] = reinterpret_cast<mnode_t*>(&model.pleafs[-1-nodeidx]);
 		}
 	}
 
@@ -683,8 +685,8 @@ bool PBSPV1_LoadClipnodes( const byte* pfile, brushmodel_t& model, const lump_t&
 	for(Uint32 i = 0; i < count; i++)
 	{
 		poutnodes[i].planenum = pinnodes[i].planenum;
-		poutnodes[i].children[0] = Common::ByteToInt32((const byte*)&pinnodes[i].children[0]);
-		poutnodes[i].children[1] = Common::ByteToInt32((const byte*)&pinnodes[i].children[1]);
+		poutnodes[i].children[0] = Common::ByteToInt32(reinterpret_cast<const byte*>(&pinnodes[i].children[0]));
+		poutnodes[i].children[1] = Common::ByteToInt32(reinterpret_cast<const byte*>(&pinnodes[i].children[1]));
 	}
 
 	return true;
@@ -800,10 +802,10 @@ bool PBSPV1_CalcSurfaceExtents( msurface_t* psurf, brushmodel_t& model )
 		// Calculate surface extents
 		for(Uint32 j = 0; j < 2; j++)
 		{
-			Float val = pvertex->origin[0] * (Double)ptexinfo->vecs[j][0] 
-					+ pvertex->origin[1] * (Double)ptexinfo->vecs[j][1]
-					+ pvertex->origin[2] * (Double)ptexinfo->vecs[j][2]
-					+ (Double)ptexinfo->vecs[j][3];
+			Float val = pvertex->origin[0] * static_cast<Double>(ptexinfo->vecs[j][0]) 
+					+ pvertex->origin[1] * static_cast<Double>(ptexinfo->vecs[j][1])
+					+ pvertex->origin[2] * static_cast<Double>(ptexinfo->vecs[j][2])
+					+ static_cast<Double>(ptexinfo->vecs[j][3]);
 
 			if(val < mins[j])
 				mins[j] = val;
@@ -819,8 +821,8 @@ bool PBSPV1_CalcSurfaceExtents( msurface_t* psurf, brushmodel_t& model )
 
 	for(Uint32 i = 0; i < 2; i++)
 	{
-		Int16 boundsmin = (Int16)SDL_floor(mins[i]/PBSPV1_LM_SAMPLE_SIZE);
-		Int16 boundsmax = (Int16)SDL_ceil(maxs[i]/PBSPV1_LM_SAMPLE_SIZE);
+		Int16 boundsmin = static_cast<Int16>(SDL_floor(mins[i]/PBSPV1_LM_SAMPLE_SIZE));
+		Int16 boundsmax = static_cast<Int16>(SDL_ceil(maxs[i]/PBSPV1_LM_SAMPLE_SIZE));
 
 		psurf->texturemins[i] = boundsmin*PBSPV1_LM_SAMPLE_SIZE;
 		psurf->extents[i] = (boundsmax - boundsmin) * PBSPV1_LM_SAMPLE_SIZE;

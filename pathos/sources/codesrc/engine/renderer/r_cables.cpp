@@ -198,7 +198,7 @@ bool CCableRenderer::DrawCables( void )
 	{
 		m_pShader->SetDeterminator(m_attribs.d_fog, 1);
 		m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
-		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/((Float)rns.fog.settings.end-(Float)rns.fog.settings.start));
+		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/(static_cast<Float>(rns.fog.settings.end)- static_cast<Float>(rns.fog.settings.start)));
 	}
 	else
 	{
@@ -252,7 +252,7 @@ void CCableRenderer::InitCableVBOData( cable_object_t& cable )
 	cable_vertex_t pvertexes[4];
 	
 	// set first segment
-	Float f = 1.0f/(Float)cable.numsegments;
+	Float f = 1.0f/ static_cast<Float>(cable.numsegments);
 
 	for(Uint32 i = 0; i < 3; i++)
 		vpoint[i] = cable.start[i]*((1-f)*(1-f))+vbottom[i]*((1-f)*f*2)+cable.end[i]*(f*f);
@@ -262,11 +262,11 @@ void CCableRenderer::InitCableVBOData( cable_object_t& cable )
 
 	Math::VectorCopy(cable.start, pvertexes[0].origin);
 	Math::VectorCopy(vpoint, pvertexes[0].vpoint);
-	pvertexes[0].width = -(Float)cable.width;
+	pvertexes[0].width = -static_cast<Float>(cable.width);
 
 	Math::VectorCopy(cable.start, pvertexes[1].origin);
 	Math::VectorCopy(vpoint, pvertexes[1].vpoint);
-	pvertexes[1].width = (Float)cable.width;
+	pvertexes[1].width = static_cast<Float>(cable.width);
 	
 	Uint32 numverts = cable.numsegments*6;
 	cable_vertex_t *pverts = new cable_vertex_t[numverts];
@@ -274,18 +274,18 @@ void CCableRenderer::InitCableVBOData( cable_object_t& cable )
 
 	for(Int32 i = 1; i < (cable.numsegments+1); i++)
 	{
-		f = (Float)i/(Float)cable.numsegments;
+		f = static_cast<Float>(i)/static_cast<Float>(cable.numsegments);
 		for(Uint32 j = 0; j < 3; j++)
 			vpoint[j] = cable.start[j]*((1-f)*(1-f))+vbottom[j]*((1-f)*f*2)+cable.end[j]*(f*f);
 
 		// Set reference array
 		Math::VectorCopy(vpoint, pvertexes[2].origin);
 		Math::VectorCopy(vpoint, pvertexes[2].vpoint);
-		pvertexes[2].width = (Float)cable.width;
+		pvertexes[2].width = static_cast<Float>(cable.width);
 
 		Math::VectorCopy(vpoint, pvertexes[3].origin);
 		Math::VectorCopy(vpoint, pvertexes[3].vpoint);
-		pvertexes[3].width = -(Float)cable.width;
+		pvertexes[3].width = -static_cast<Float>(cable.width);
 
 		memcpy(&pverts[curvert], &pvertexes[0], sizeof(cable_vertex_t)); curvert++;
 		memcpy(&pverts[curvert], &pvertexes[1], sizeof(cable_vertex_t)); curvert++;
@@ -305,6 +305,7 @@ void CCableRenderer::InitCableVBOData( cable_object_t& cable )
 	m_pVBO->Append(pverts, sizeof(cable_vertex_t)*numverts, nullptr, 0);
 	delete[] pverts;
 }
+
 //====================================
 //
 //====================================
@@ -325,7 +326,7 @@ void CCableRenderer::AddCable( const Vector& start, const Vector& end, Uint32 de
 	Vector vmaxs = NULL_MAXS;
 	for(Uint32 i = 0; i < (numsegments+1); i++)
 	{
-		Float f = (Float)i/(Float)numsegments;
+		Float f = static_cast<Float>(i)/static_cast<Float>(numsegments);
 
 		Vector vpoint;
 		for(Uint32 j = 0; j < 3; j++)

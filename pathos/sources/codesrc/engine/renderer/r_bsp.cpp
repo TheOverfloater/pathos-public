@@ -154,7 +154,7 @@ bool CBSPRenderer::InitGL( void )
 
 			m_pShader->DisableDeterminatorState("cubemaps", 1);
 			m_pShader->DisableDeterminatorState("cubemaps", 2);
-			m_pShader->DisableDeterminatorState("shadertype", (Int32)shader_cubeonly);
+			m_pShader->DisableDeterminatorState("shadertype", static_cast<Int32>(shader_cubeonly));
 
 			if(!m_pShader->Compile("bsprenderer.bss"))
 			{
@@ -695,7 +695,7 @@ void CBSPRenderer::InitLightmaps( bool loadald )
 
 		// Calculate total memory used
 		Uint32 totalSize = lightmapdatasize + amblightdatasize + diffuselightdatasize + lightvecsdatasize;
-		Con_Printf("Loaded 4 lightmaps: %.2f mbytes.\n", (Float)totalSize/(1024.0f*1024.0f)); 
+		Con_Printf("Loaded 4 lightmaps: %.2f mbytes.\n", static_cast<Float>(totalSize)/(1024.0f*1024.0f)); 
 		m_bumpMaps = true;
 	}
 	else
@@ -704,7 +704,7 @@ void CBSPRenderer::InitLightmaps( bool loadald )
 		m_diffuseLightmapIndex = 0;
 		m_lightVectorsIndex = 0;
 
-		Con_Printf("Loaded 1 lightmaps: %.2f mbytes.\n", (Float)lightmapdatasize/(1024.0f*1024.0f)); 
+		Con_Printf("Loaded 1 lightmaps: %.2f mbytes.\n", static_cast<Float>(lightmapdatasize)/(1024.0f*1024.0f));
 		m_bumpMaps = false;
 	}
 
@@ -799,7 +799,7 @@ void CBSPRenderer::InitVBO( void )
 		// Link with the texture entry
 		if(ptexture->infoindex == NO_INFO_INDEX)
 		{
-			Con_EPrintf("Texture '%s' not linked to info in BSP.\n", ptexture->name);
+			Con_EPrintf("Texture '%s' not linked to info in BSP.\n", ptexture->name.c_str());
 			continue;
 		}
 
@@ -868,10 +868,10 @@ void CBSPRenderer::InitVBO( void )
 
 				// Set texcoords
 				vertex.texcoord[0] = Math::DotProduct(vertexOrigin, ptexinfo->vecs[0])+ptexinfo->vecs[0][3];
-				vertex.texcoord[0] /= (Float)psurface->ptexinfo->ptexture->width;
+				vertex.texcoord[0] /= static_cast<Float>(psurface->ptexinfo->ptexture->width);
 
 				vertex.texcoord[1] = Math::DotProduct(vertexOrigin, ptexinfo->vecs[1])+ptexinfo->vecs[1][3];
-				vertex.texcoord[1] /= (Float)psurface->ptexinfo->ptexture->height;
+				vertex.texcoord[1] /= static_cast<Float>(psurface->ptexinfo->ptexture->height);
 
 				// Set detail texcoords if needed
 				if(pbspsurface->ptexture->pmaterial->ptextures[MT_TX_DETAIL])
@@ -893,7 +893,7 @@ void CBSPRenderer::InitVBO( void )
 			}
 
 			// Set indexes
-			Uint32 indexes[3];
+			Uint32 indexes[3] = { 0 };
 			for(Uint32 k = 0; k < 3; k++)
 			{
 				indexes[k] = vertexBase + k;
@@ -1071,7 +1071,7 @@ void CBSPRenderer::InitTextures( CWADTextureResource& wadTextures, const CArray<
 		for(Uint32 j = 0; j < ens.pworld->numsurfaces; j++)
 		{
 			const msurface_t* psurface = &ens.pworld->psurfaces[j];
-			if(psurface->ptexinfo->ptexture->infoindex == (Int32)i)
+			if(psurface->ptexinfo->ptexture->infoindex == static_cast<Int32>(i))
 				numsurfaces++;
 		}
 
@@ -1175,6 +1175,8 @@ bool CBSPRenderer::DrawTransparent( void )
 
 			if(entity.curstate.renderfx == RenderFx_SkyEnt && !rns.water_skydraw
 				|| entity.curstate.renderfx != RenderFx_SkyEnt && rns.water_skydraw
+				|| entity.curstate.renderfx == RenderFx_SkyEntScaled && !rns.water_skydraw
+				|| entity.curstate.renderfx != RenderFx_SkyEntScaled && rns.water_skydraw
 				|| entity.curstate.renderfx == RenderFx_SkyEntNC
 				|| entity.curstate.renderfx == RenderFx_InPortalEntity
 				|| entity.curstate.renderfx == RenderFx_InPortalEntity && !rns.portalpass
@@ -1257,7 +1259,8 @@ bool CBSPRenderer::DrawSkyBox( bool inZElements )
 
 		if(!inZElements)
 		{
-			if(rns.objects.pvisents[i]->curstate.renderfx != RenderFx_SkyEnt)
+			if(rns.objects.pvisents[i]->curstate.renderfx != RenderFx_SkyEnt
+				&& rns.objects.pvisents[i]->curstate.renderfx != RenderFx_SkyEntScaled)
 				continue;
 		}
 		else
@@ -1318,6 +1321,8 @@ bool CBSPRenderer::DrawWorld( void )
 
 			if(entity.curstate.renderfx == RenderFx_SkyEnt && !rns.water_skydraw
 				|| entity.curstate.renderfx != RenderFx_SkyEnt && rns.water_skydraw
+				|| entity.curstate.renderfx == RenderFx_SkyEntScaled && !rns.water_skydraw
+				|| entity.curstate.renderfx != RenderFx_SkyEntScaled && rns.water_skydraw
 				|| entity.curstate.renderfx == RenderFx_SkyEntNC
 				|| entity.curstate.renderfx == RenderFx_InPortalEntity && !rns.portalpass
 				|| entity.curstate.renderfx != RenderFx_InPortalEntity && rns.portalpass)
@@ -1353,6 +1358,8 @@ bool CBSPRenderer::DrawWorld( void )
 
 			if(entity.curstate.renderfx == RenderFx_SkyEnt && !rns.water_skydraw
 				|| entity.curstate.renderfx != RenderFx_SkyEnt && rns.water_skydraw
+				|| entity.curstate.renderfx == RenderFx_SkyEntScaled && !rns.water_skydraw
+				|| entity.curstate.renderfx != RenderFx_SkyEntScaled && rns.water_skydraw
 				|| entity.curstate.renderfx == RenderFx_SkyEntNC
 				|| entity.curstate.renderfx == RenderFx_InPortalEntity && !rns.portalpass
 				|| entity.curstate.renderfx != RenderFx_InPortalEntity && rns.portalpass)
@@ -1383,7 +1390,7 @@ bool CBSPRenderer::Prepare( void )
 	if(rns.fog.settings.active)
 	{
 		m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
-		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/((Float)rns.fog.settings.end-(Float)rns.fog.settings.start));
+		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/(static_cast<Float>(rns.fog.settings.end)- static_cast<Float>(rns.fog.settings.start)));
 
 		if(rns.fog.specialfog)
 		{
@@ -1512,11 +1519,11 @@ void CBSPRenderer::RecursiveWorldNode( mnode_t* pnode )
 	// Batch the surfaces
 	if(pnode->numsurfaces)
 	{
-		FlagIfDynamicLighted(pnode->mins, pnode->maxs);
-
 		msurface_t* psurface = ens.pworld->psurfaces + pnode->firstsurface;
 		for(i = 0; i < pnode->numsurfaces; i++, psurface++)
 		{
+			FlagIfDynamicLighted(psurface->mins, psurface->maxs);
+
 			if(psurface->visframe != rns.framecount)
 				continue;
 
@@ -1622,7 +1629,7 @@ void CBSPRenderer::FlagIfDynamicLighted( const Vector& mins, const Vector& maxs 
 	if(rns.inwater && g_pCvarCaustics->GetValue() >= 1 
 		&& gWaterShader.GetWaterQualitySetting() > CWaterShader::WATER_QUALITY_NO_REFLECT_REFRACT)
 	{
-		water_settings_t* pwatersettings = gWaterShader.GetActiveSettings();
+		const water_settings_t* pwatersettings = gWaterShader.GetActiveSettings();
 		if(pwatersettings && pwatersettings->causticscale > 0 && pwatersettings->causticstrength > 0)
 		{
 			m_addMulti = true;
@@ -1788,7 +1795,7 @@ bool CBSPRenderer::DrawFirst( void )
 				return false;
 
 			if((pmaterial->flags & TX_FL_ALPHATEST)
-				&& (rendermodeext == RENDER_TRANSALPHA_UNLIT || RENDER_TRANSALPHA))
+				&& (rendermodeext == RENDER_TRANSALPHA_UNLIT || rendermodeext == RENDER_TRANSALPHA))
 			{
 				if(!rns.msaa || !rns.mainframe)
 				{
@@ -1871,7 +1878,7 @@ bool CBSPRenderer::DrawFirst( void )
 
 		if((pmaterial->flags & TX_FL_ALPHATEST && rns.msaa)
 			&& (m_pCvarLegacyTransparents->GetValue() < 1 
-			|| (rendermodeext == RENDER_TRANSALPHA_UNLIT || RENDER_TRANSALPHA)))
+			|| (rendermodeext == RENDER_TRANSALPHA_UNLIT || rendermodeext == RENDER_TRANSALPHA)))
 		{
 			glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 			gGLExtF.glSampleCoverage(1.0, GL_FALSE);
@@ -2161,7 +2168,7 @@ mtexture_t *CBSPRenderer::TextureAnimation( mtexture_t *pbase, Uint32 frame )
 		return ptexture;
 
 	Int32 count = 0;
-	Int32 relative = (Uint32)(rns.time*10) % ptexture->anim_total;
+	Int32 relative = static_cast<Uint32>(rns.time*10) % ptexture->anim_total;
 	while (ptexture->anim_min > relative || ptexture->anim_max <= relative)
 	{
 		ptexture = ptexture->panim_next;
@@ -3101,11 +3108,11 @@ bool CBSPRenderer::DrawFinal( void )
 
 	if(rns.inwater && g_pCvarCaustics->GetValue() >= 1)
 	{
-		water_settings_t *psettings = gWaterShader.GetActiveSettings();
+		const water_settings_t *psettings = gWaterShader.GetActiveSettings();
 		if(psettings && psettings->causticscale > 0 && psettings->causticstrength > 0)
 		{
-			GLfloat splane[4] = {(Float)0.005*psettings->causticscale, (Float)0.0025*psettings->causticscale, 0.0, 0.0};
-			GLfloat tplane[4] = {0.0, (Float)0.005*psettings->causticscale, (Float)0.0025*psettings->causticscale, 0.0};
+			GLfloat splane[4] = {static_cast<Float>(0.005)*psettings->causticscale, static_cast<Float>(0.0025)*psettings->causticscale, 0.0, 0.0};
+			GLfloat tplane[4] = {0.0, static_cast<Float>(0.005)*psettings->causticscale, static_cast<Float>(0.0025)*psettings->causticscale, 0.0};
 
 			if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_caustics))
 				return false;
@@ -3120,9 +3127,9 @@ bool CBSPRenderer::DrawFinal( void )
 			m_pShader->SetUniform4f(m_attribs.u_causticsm2, tplane[0], tplane[1], tplane[2], tplane[3]);
 
 			Float causticsTime = rns.time*10*psettings->causticstimescale;
-			Int32 causticsCurFrame = (Int32)(causticsTime) % rns.objects.caustics_textures.size();
+			Int32 causticsCurFrame = static_cast<Int32>(causticsTime) % rns.objects.caustics_textures.size();
 			Int32 causticsNextFrame = (causticsCurFrame+1) % rns.objects.caustics_textures.size();
-			Float causticsInterp = (causticsTime)-(Int32)(causticsTime);
+			Float causticsInterp = (causticsTime)-static_cast<Int32>(causticsTime);
 
 			R_Bind2DTexture(GL_TEXTURE0, rns.objects.caustics_textures[causticsCurFrame]->palloc->gl_index);
 			R_Bind2DTexture(GL_TEXTURE1, rns.objects.caustics_textures[causticsNextFrame]->palloc->gl_index);
@@ -3420,7 +3427,7 @@ bool CBSPRenderer::DrawFinal( void )
 	if(rns.fog.settings.active)
 	{
 		m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
-		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/((Float)rns.fog.settings.end-(Float)rns.fog.settings.start));
+		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/(static_cast<Float>(rns.fog.settings.end)- static_cast<Float>(rns.fog.settings.start)));
 
 		if(!m_pShader->SetDeterminator(m_attribs.d_fogtype, fog_none, false))
 			return false;
@@ -3526,7 +3533,7 @@ void CBSPRenderer::PrepareVSM( void )
 		m_texturesArray[i].psurfchain = nullptr;
 	}
 
-	// Disable this for VSM
+	// Make sure this is reset
 	m_addMulti = false;
 }
 
@@ -3644,6 +3651,7 @@ bool CBSPRenderer::DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 nume
 				continue;
 
 			if(pEntity->curstate.renderfx == RenderFx_SkyEnt ||
+				pEntity->curstate.renderfx == RenderFx_SkyEntScaled ||
 				pEntity->curstate.renderfx == RenderFx_SkyEntNC ||
 				pEntity->curstate.rendertype == RT_WATERSHADER ||
 				pEntity->curstate.rendertype == RT_MIRROR ||
@@ -3683,6 +3691,9 @@ bool CBSPRenderer::DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 nume
 				continue;
 
 			if(pEntity->curstate.renderfx == RenderFx_SkyEnt)
+				continue;
+
+			if (pEntity->curstate.renderfx == RenderFx_SkyEntScaled)
 				continue;
 
 			if(pEntity->curstate.renderfx == RenderFx_SkyEntNC)
@@ -3755,7 +3766,9 @@ bool CBSPRenderer::BatchBrushModelForVSM( cl_entity_t& entity, bool isstatic )
 	}
 
 	// Do not culling on skybox entities
-	if(m_pCurrentEntity->curstate.renderfx != RenderFx_SkyEnt && rns.view.frustum.CullBBox(mins, maxs))
+	if(m_pCurrentEntity->curstate.renderfx != RenderFx_SkyEnt &&
+		m_pCurrentEntity->curstate.renderfx != RenderFx_SkyEntScaled && 
+		rns.view.frustum.CullBBox(mins, maxs))
 		return true;
 
 	// Transform to local space the origin
@@ -3979,7 +3992,7 @@ void CBSPRenderer::CreateDecal( const Vector& origin, const Vector& normal, deca
 						continue;
 				}
 
-				DecalSurface(psurf, pdecal, localnormal, localorigin, false, nullptr);
+				DecalSurface(psurf, pdecal, localnormal, localorigin, false);
 			}
 		}
 
@@ -3993,7 +4006,7 @@ void CBSPRenderer::CreateDecal( const Vector& origin, const Vector& normal, deca
 			for(Uint32 l = 0; l < pbrushmodel->nummodelsurfaces; l++)
 			{
 				msurface_t* psurf = &psurfaces[l];
-				if(psurf->ptexinfo->ptexture->infoindex != (Int32)k)
+				if(psurf->ptexinfo->ptexture->infoindex != static_cast<Int32>(k))
 					continue;
 
 				Float dot;
@@ -4015,8 +4028,7 @@ void CBSPRenderer::CreateDecal( const Vector& origin, const Vector& normal, deca
 							continue;
 					}
 
-					en_texture_t* pbasetexture = ptexture->pmaterial->ptextures[MT_TX_DIFFUSE];
-					DecalSurface(psurf, pdecal, localnormal, localorigin, true, pbasetexture);
+					DecalSurface(psurf, pdecal, localnormal, localorigin, true);
 				}
 			}
 		}
@@ -4084,7 +4096,7 @@ void CBSPRenderer::RemoveDecalFromVBO( bsp_decal_t *pdelete )
 		return;
 
 	// Get VBO vertex data
-	const bsp_vertex_t* pvertexdata = reinterpret_cast<const bsp_vertex_t*>(m_pVBO->GetVBOData());
+	const bsp_vertex_t* pvertexdata = static_cast<const bsp_vertex_t*>(m_pVBO->GetVBOData());
 	const bsp_vertex_t* psrcdata = pvertexdata + vertexend;
 
 	m_pVBO->VBOSubBufferData(sizeof(bsp_vertex_t)*vertexstart, psrcdata, sizeof(bsp_vertex_t)*nbshift);
@@ -4191,7 +4203,7 @@ void CBSPRenderer::RecursivePasteDecal( mnode_t *node, bsp_decal_t *pdecal, byte
 						continue;
 				}
 
-				DecalSurface(surf, pdecal, pdecal->normal, pdecal->origin, false, nullptr);
+				DecalSurface(surf, pdecal, pdecal->normal, pdecal->origin, false);
 			}
 		}
 	}
@@ -4203,7 +4215,7 @@ void CBSPRenderer::RecursivePasteDecal( mnode_t *node, bsp_decal_t *pdecal, byte
 // @brief
 //
 //=============================================
-void CBSPRenderer::DecalSurface( const msurface_t *surf, bsp_decal_t *pdecal, const Vector& normal, const Vector& origin, bool transparent, en_texture_t* ptexture )
+void CBSPRenderer::DecalSurface( const msurface_t *surf, bsp_decal_t *pdecal, const Vector& normal, const Vector& origin, bool transparent )
 {
 	Vector right, up, tmp;
 
@@ -4271,7 +4283,7 @@ void CBSPRenderer::DecalSurface( const msurface_t *surf, bsp_decal_t *pdecal, co
 	if(!pgroup || ioffset < pgroup->start_vertex 
 		|| pgroup->pentity != m_pCurrentEntity
 		|| pgroup->alphatest != transparent
-		|| pgroup->alphatest && pgroup->ptexture != ptexture)
+		|| pgroup->alphatest && pgroup->ptexture != surf->ptexinfo->ptexture)
 	{
 		pgroup = new decalpolygroup_t;
 		pdecal->polygroups.push_back(pgroup);
@@ -4290,12 +4302,12 @@ void CBSPRenderer::DecalSurface( const msurface_t *surf, bsp_decal_t *pdecal, co
 		}
 
 		if(pgroup->alphatest)
-			pgroup->ptexture = ptexture;
+			pgroup->ptexture = surf->ptexinfo->ptexture;
 	}
 
-	if((Int32)m_tempDecalVertsArray.size() < numverts)
+	if(static_cast<Int32>(m_tempDecalVertsArray.size()) < numverts)
 	{
-		Uint32 currentsize = m_tempDecalVertsArray.size();
+		const Uint32 currentsize = m_tempDecalVertsArray.size();
 		m_tempDecalVertsArray.resize(currentsize+numverts);
 	}
 	
@@ -4328,10 +4340,10 @@ void CBSPRenderer::DecalSurface( const msurface_t *surf, bsp_decal_t *pdecal, co
 		if(transparent)
 		{
 			pconvverts[j].dtexcoord[0] = Math::DotProduct(pconvverts[j].origin, surf->ptexinfo->vecs[0])+surf->ptexinfo->vecs[0][3];
-			pconvverts[j].dtexcoord[0] /= (Float)surf->ptexinfo->ptexture->width;
+			pconvverts[j].dtexcoord[0] /= static_cast<Float>(surf->ptexinfo->ptexture->width);
 
 			pconvverts[j].dtexcoord[1] = Math::DotProduct(pconvverts[j].origin, surf->ptexinfo->vecs[1])+surf->ptexinfo->vecs[1][3];
-			pconvverts[j].dtexcoord[1] /= (Float)surf->ptexinfo->ptexture->height;
+			pconvverts[j].dtexcoord[1] /= static_cast<Float>(surf->ptexinfo->ptexture->height);
 		}
 	}
 
@@ -4365,10 +4377,10 @@ void CBSPRenderer::DecalSurface( const msurface_t *surf, bsp_decal_t *pdecal, co
 		if(transparent)
 		{
 			pconvverts[2].dtexcoord[0] = Math::DotProduct(pconvverts[2].origin, surf->ptexinfo->vecs[0])+surf->ptexinfo->vecs[0][3];
-			pconvverts[2].dtexcoord[0] /= (Float)surf->ptexinfo->ptexture->width;
+			pconvverts[2].dtexcoord[0] /= static_cast<Float>(surf->ptexinfo->ptexture->width);
 
 			pconvverts[2].dtexcoord[1] = Math::DotProduct(pconvverts[2].origin, surf->ptexinfo->vecs[1])+surf->ptexinfo->vecs[1][3];
-			pconvverts[2].dtexcoord[1] /= (Float)surf->ptexinfo->ptexture->height;
+			pconvverts[2].dtexcoord[1] /= static_cast<Float>(surf->ptexinfo->ptexture->height);
 		}
 
 		memcpy(&m_tempDecalVertsArray[curvert], &pconvverts[0], sizeof(bsp_vertex_t)); curvert++;
@@ -4458,7 +4470,7 @@ bool CBSPRenderer::DrawDecal( bsp_decal_t *pdecal, bool transparents, decal_rend
 
 		// Determine rendering method required
 		decal_rendermode_t requestedRendermode;
-		if(pgroup->alphatest && pgroup->ptexture && pgroup->ptexture->palloc)
+		if(pgroup->alphatest && pgroup->ptexture && pgroup->ptexture)
 			requestedRendermode = DECAL_RENDERMODE_ALPHATEST;
 		else
 			requestedRendermode = DECAL_RENDERMODE_NORMAL;
@@ -4546,8 +4558,13 @@ bool CBSPRenderer::DrawDecal( bsp_decal_t *pdecal, bool transparents, decal_rend
 		m_pShader->SetUniform1f(m_attribs.u_decalalpha, decalalpha);
 		m_pShader->SetUniform1f(m_attribs.u_decalscale, decalscale);
 
-		if(pgroup->alphatest && pgroup->ptexture && pgroup->ptexture->palloc)
-			R_Bind2DTexture(GL_TEXTURE1, pgroup->ptexture->palloc->gl_index);
+		if (pgroup->alphatest && pgroup->ptexture 
+			&& pgroup->ptexture && pgroup->ptexture->infoindex != NO_INFO_INDEX)
+		{
+			bsp_texture_t* ptexturehandle = &m_texturesArray[pgroup->ptexture->infoindex];
+			en_texture_t* ptexture = ptexturehandle->pmaterial->ptextures[MT_TX_DIFFUSE];
+			R_Bind2DTexture(GL_TEXTURE1, ptexture->palloc->gl_index);
+		}
 
 		R_Bind2DTexture(GL_TEXTURE0, pdecal->ptexinfo->ptexture->palloc->gl_index);
 		glDrawArrays(GL_TRIANGLES, pgroup->start_vertex, pgroup->num_vertexes);
@@ -4572,7 +4589,7 @@ bool CBSPRenderer::DrawDecals( bool transparents )
 	if(rns.fog.settings.active)
 	{
 		m_pShader->SetUniform3f(m_attribs.u_fogcolor, 0.5, 0.5, 0.5);
-		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end*0.8f, 1.0f/((Float)rns.fog.settings.end*0.8f-(Float)rns.fog.settings.start));
+		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end*0.8f, 1.0f/(static_cast<Float>(rns.fog.settings.end)*0.8f- static_cast<Float>(rns.fog.settings.start)));
 
 		if(rns.fog.specialfog)
 		{

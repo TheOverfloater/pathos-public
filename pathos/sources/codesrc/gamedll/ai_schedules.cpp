@@ -1509,6 +1509,109 @@ const CAISchedule scheduleHoverByNPCPuller(
 	"Hover by NPC puller"
 );
 
+//=============================================
+// @brief Boris Suppressing Fire
+//
+//=============================================
+ai_task_t taskListScheduleSuppressingFire[] = 
+{
+	AITASK(AI_TASK_STOP_MOVING,					0),
+	AITASK(AI_TASK_FACE_ENEMY,					0),
+	AITASK(AI_TASK_RANGE_ATTACK1,				0),
+	AITASK(AI_TASK_FACE_ENEMY,					0),
+	AITASK(AI_TASK_RANGE_ATTACK1,				0),
+	AITASK(AI_TASK_FACE_ENEMY,					0),
+	AITASK(AI_TASK_RANGE_ATTACK1,				0),
+	AITASK(AI_TASK_FACE_ENEMY,					0),
+	AITASK(AI_TASK_RANGE_ATTACK1,				0),
+	AITASK(AI_TASK_FACE_ENEMY,					0),
+	AITASK(AI_TASK_RANGE_ATTACK1,				0)
+};
+
+const CAISchedule scheduleSuppressingFire(
+	// Task list
+	taskListScheduleSuppressingFire, 
+	// Number of tasks
+	PT_ARRAYSIZE(taskListScheduleSuppressingFire),
+	// AI interrupt mask
+	AI_COND_DANGEROUS_ENEMY_CLOSE |
+	AI_COND_ENEMY_DEAD |
+	AI_COND_LIGHT_DAMAGE |
+	AI_COND_HEAVY_DAMAGE |
+	AI_COND_HEAR_SOUND |
+	AI_COND_NO_AMMO_LOADED |
+	AI_COND_FRIENDLY_FIRE,
+	// Sound mask
+	AI_SOUND_DANGER, 
+	// Name
+	"Suppressing Fire"
+);
+
+//=============================================
+// @brief Range Attack 1
+//
+//=============================================
+ai_task_t taskListScheduleRangeAttack1Long[] = 
+{
+	AITASK(AI_TASK_STOP_MOVING,								0),
+	AITASK(AI_TASK_SET_ACTIVITY,							ACT_IDLE_ANGRY),
+	AITASK(AI_TASK_ATTACK_REACTION_DELAY,					0),
+	AITASK(AI_TASK_RANGE_ATTACK1,							0),
+	AITASK(AI_TASK_FACE_ENEMY,								0),
+	AITASK(AI_TASK_RANGE_ATTACK1,							0),
+	AITASK(AI_TASK_FACE_ENEMY,								0),
+	AITASK(AI_TASK_RANGE_ATTACK1,							0),
+	AITASK(AI_TASK_FACE_ENEMY,								0),
+	AITASK(AI_TASK_RANGE_ATTACK1,							0),
+	AITASK(AI_TASK_FACE_ENEMY,								0),
+	AITASK(AI_TASK_RANGE_ATTACK1,							0)
+};
+
+const CAISchedule scheduleRangeAttack1Long(
+	// Task list
+	taskListScheduleRangeAttack1Long, 
+	// Number of tasks
+	PT_ARRAYSIZE(taskListScheduleRangeAttack1Long),
+	// AI interrupt mask
+	AI_COND_DANGEROUS_ENEMY_CLOSE |
+	AI_COND_NEW_ENEMY |
+	AI_COND_ENEMY_DEAD |
+	AI_COND_HEAVY_DAMAGE |
+	AI_COND_ENEMY_OCCLUDED |
+	AI_COND_HEAR_SOUND |
+	AI_COND_NO_AMMO_LOADED |
+	AI_COND_FRIENDLY_FIRE,
+	// Sound mask
+	AI_SOUND_DANGER, 
+	// Name
+	"Range Attack 1 Long"
+);
+
+//=============================================
+// @brief Range Attack 2
+//
+//=============================================
+ai_task_t taskListScheduleRangeAttack2Toss[] = 
+{
+	AITASK(AI_TASK_STOP_MOVING,					0),
+	AITASK(AI_TASK_FACE_TOSS_DIR,				0),
+	AITASK(AI_TASK_PLAY_SEQUENCE,				(Float)ACT_RANGE_ATTACK2),
+	AITASK(AI_TASK_SET_SCHEDULE,				(Float)AI_SCHED_WAIT_FACE_ENEMY)
+};
+
+const CAISchedule scheduleRangeAttack2Toss(
+	// Task list
+	taskListScheduleRangeAttack2Toss, 
+	// Number of tasks
+	PT_ARRAYSIZE(taskListScheduleRangeAttack2Toss),
+	// AI interrupt mask
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	// Sound mask
+	AI_SOUND_NONE, 
+	// Name
+	"Range Attack 2"
+);
+
 //==========================================================================
 //
 // SCHEDULES FOR CBASENPC CLASS
@@ -3093,6 +3196,11 @@ const CAISchedule* CBaseNPC::GetScheduleByIndex( Int32 scheduleIndex )
 	case AI_SCHED_FACE_ENEMY:
 		{
 			return &scheduleFaceEnemy;
+		}
+		break;
+	case AI_SCHED_SUPPRESSING_FIRE:
+		{
+			return &scheduleSuppressingFire;
 		}
 		break;
 	default:

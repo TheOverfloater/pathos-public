@@ -33,9 +33,9 @@ All Rights Reserved.
 CUIConsoleWindow* CUIConsoleWindow::m_pInstance = nullptr;
 
 // Console window relative width
-static const Uint32 CONSOLE_RELATIVE_SCREEN_WIDTH = 1920;
+static constexpr Uint32 CONSOLE_RELATIVE_SCREEN_WIDTH = 1920;
 // Console window relative height
-static const Uint32 CONSOLE_RELATIVE_SCREEN_HEIGHT = 1080;
+static constexpr Uint32 CONSOLE_RELATIVE_SCREEN_HEIGHT = 1080;
 
 // Window description file
 const Char CUIConsoleWindow::WINDOW_DESC_FILE[] = "consolewindow.txt";
@@ -430,7 +430,7 @@ bool CUIConsoleKeyEventCallback::KeyEvent( Int32 button, Int16 mod, bool keyDown
 		return true;
 
 	// Get SDL Keycode
-	SDL_Keycode sdlKeycode = SDL_GetKeyFromScancode((SDL_Scancode)button);
+	SDL_Keycode sdlKeycode = SDL_GetKeyFromScancode(static_cast<SDL_Scancode>(button));
 	if(sdlKeycode >= SDLK_SPACE && sdlKeycode <= SDLK_z || button == SDL_SCANCODE_BACKSPACE)
 	{
 		m_pWindow->ResetTabFilter();

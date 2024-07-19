@@ -138,7 +138,7 @@ CMenu::CMenu( void ):
 	// Create the buttons
 	m_buttonsArray.resize(NB_MENU_BTN);
 	for(Uint32 i = 0; i < NB_MENU_BTN; i++)
-		m_buttonsArray[i] = new CMenuButton(this, (mbutton_t)(MENU_BTN_FIRST+i), menuBtnNames[i].c_str(), scanCodes[i]);
+		m_buttonsArray[i] = new CMenuButton(this, static_cast<mbutton_t>(MENU_BTN_FIRST+i), menuBtnNames[i].c_str(), scanCodes[i]);
 
 	// Disabled save game by default
 	m_buttonsArray[MENU_BTN_RESUMEGAME]->SetEnabled(false);
@@ -173,7 +173,7 @@ bool CMenu::Init( void )
 		pTextureManager->DeleteTexture(m_pBgBlurredTexture->filepath.c_str());
 
 	// Determine which texture to use
-	Float aspectRatio = (Float)gWindow.GetWidth()/(Float)gWindow.GetHeight();
+	Float aspectRatio = static_cast<Float>(gWindow.GetWidth())/ static_cast<Float>(gWindow.GetHeight());
 	if(aspectRatio > 1.5)
 	{
 		m_pBackgroundTexture = pTextureManager->LoadTexture("menu/background_widescreen.dds", RS_WINDOW_LEVEL, TX_FL_NOMIPMAPS);
@@ -213,7 +213,7 @@ bool CMenu::Init( void )
 	m_pButtonFont = gTextSchemas.GetResolutionSchemaFontSet(MENU_BUTTON_TEXT_SCHEMA, gWindow.GetHeight());
 	if(!m_pButtonFont)
 	{
-		Int32 idealFontSize = (Uint32)R_GetRelativeY(MENU_BUTTON_FONTSIZE, MENU_BASE_HEIGHT, gWindow.GetHeight());
+		Int32 idealFontSize = static_cast<Uint32>(R_GetRelativeY(MENU_BUTTON_FONTSIZE, MENU_BASE_HEIGHT, gWindow.GetHeight()));
 		m_pButtonFont = gText.LoadFont("albertus.ttf", idealFontSize, true, nullptr, 2);
 	}
 
@@ -416,7 +416,7 @@ bool CMenu::DrawMenuBackground( CBasicDraw* pDraw )
 	rns.view.modelview.LoadIdentity();
 
 	rns.view.projection.LoadIdentity();
-	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, (Float)0.1, 100);
+	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, 0.1f, 100);
 
 	pDraw->SetModelview(rns.view.modelview.GetMatrix());
 	pDraw->SetProjection(rns.view.projection.GetMatrix());
@@ -615,10 +615,10 @@ CMenu::rendercode_t CMenu::DrawMenuElements( CBasicDraw* pDraw )
 
 	// Set matrices
 	rns.view.modelview.LoadIdentity();
-	rns.view.modelview.Scale(1.0/(Float)gWindow.GetWidth(), 1.0/(Float)gWindow.GetHeight(), 1.0);
+	rns.view.modelview.Scale(1.0/ static_cast<Float>(gWindow.GetWidth()), 1.0/ static_cast<Float>(gWindow.GetHeight()), 1.0);
 
 	rns.view.projection.LoadIdentity();
-	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, (Float)0.1, 100);
+	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, 0.1f, 100);
 
 	pDraw->SetModelview(rns.view.modelview.GetMatrix());
 	pDraw->SetProjection(rns.view.projection.GetMatrix());
@@ -731,7 +731,7 @@ bool CMenu::DrawMenuFade( void )
 	rns.view.modelview.LoadIdentity();
 
 	rns.view.projection.LoadIdentity();
-	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, (Float)0.1, 100);
+	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, 0.1f, 100);
 
 	pDraw->SetModelview(rns.view.modelview.GetMatrix());
 	pDraw->SetProjection(rns.view.projection.GetMatrix());
@@ -1424,10 +1424,10 @@ bool CMenuButton::Draw( const font_set_t* pFont )
 	if(m_isClicked)
 	{
 		// Set alpha at 25% for the outline
-		gText.SetColor((Uint32)(255*m_brightness),
-			(Uint32)(255*m_brightness),
-			(Uint32)(255*m_brightness),
-			(Uint32)(255*m_alpha*0.25));
+		gText.SetColor(static_cast<Uint32>(255*m_brightness),
+			static_cast<Uint32>(255*m_brightness),
+			static_cast<Uint32>(255*m_brightness),
+			static_cast<Uint32>(255*m_alpha*0.25));
 
 		// Draw a pale outline
 		if(!gText.DrawSimpleString(pFont, m_text.c_str(), originX, originY))
@@ -1435,10 +1435,10 @@ bool CMenuButton::Draw( const font_set_t* pFont )
 	}
 
 	// Set brightness and alpha
-	gText.SetColor((Uint32)(255*m_brightness),
-		(Uint32)(255*m_brightness),
-		(Uint32)(255*m_brightness),
-		(Uint32)(255*m_alpha));
+	gText.SetColor(static_cast<Uint32>(255*m_brightness),
+		static_cast<Uint32>(255*m_brightness),
+		static_cast<Uint32>(255*m_brightness),
+		static_cast<Uint32>(255*m_alpha));
 
 	if(m_isClicked)
 	{

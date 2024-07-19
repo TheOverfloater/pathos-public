@@ -1,0 +1,5 @@
+$texture
+{
+	$alphatest
+	$texture diffuse models/bigcluster1/pine.dds
+}

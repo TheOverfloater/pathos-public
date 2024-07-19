@@ -42,11 +42,11 @@ extern CCVar* g_pCvarName;
 extern CCVar* g_pCvarPredictiton;
 
 // Usercmd history allocation size
-static const Uint32 USERCMD_HISTORY_ALLOC_SIZE = 1024;
+static constexpr Uint32 USERCMD_HISTORY_ALLOC_SIZE = 1024;
 // Extrainfo allocation size
-static const Uint32 EXTRAINFO_ALLOC_SIZE = 128;
+static constexpr Uint32 EXTRAINFO_ALLOC_SIZE = 128;
 // Max entity lights
-static const Uint32 MAX_ENTITY_LIGHTS = 256;
+static constexpr Uint32 MAX_ENTITY_LIGHTS = 256;
 
 // Server dll path
 #ifdef _64BUILD

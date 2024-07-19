@@ -85,9 +85,9 @@ color24_t *R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psa
 	static color24_t blocklights[BLOCKLIGHTS_SIZE];
 	color24_t *pblock = blocklights;
 
-	Uint32 smax = (psurface->extents[0]>>4)+1;
-	Uint32 tmax = (psurface->extents[1]>>4)+1;
-	Uint32 size = smax*tmax;
+	const Uint32 smax = (psurface->extents[0]>>4)+1;
+	const Uint32 tmax = (psurface->extents[1]>>4)+1;
+	const Uint32 size = smax*tmax;
 	
 	if(size > BLOCKLIGHTS_SIZE)
 		return nullptr;
@@ -298,9 +298,9 @@ bool R_CheckShaderUniform( Int32 attribindex, const Char* pstrattribname, const 
 //=============================================
 Int32 R_GetRelativeX( Int32 xPos, Int32 baseWidth, Int32 windowWidth )
 {
-	Float outPos = ((Float)xPos/(Float)baseWidth);
+	Float outPos = (static_cast<Float>(xPos)/ static_cast<Float>(baseWidth));
 	outPos = outPos*windowWidth;
-	return (Int32)outPos;
+	return static_cast<Int32>(outPos);
 }
 
 //=============================================
@@ -309,9 +309,9 @@ Int32 R_GetRelativeX( Int32 xPos, Int32 baseWidth, Int32 windowWidth )
 //=============================================
 Int32 R_GetRelativeY( Int32 yPos, Int32 baseHeight, Int32 windowHeight )
 {
-	Float outPos = ((Float)yPos/(Float)baseHeight);
+	Float outPos = (static_cast<Float>(yPos)/ static_cast<Float>(baseHeight));
 	outPos = outPos*windowHeight;
-	return (Int32)outPos;
+	return static_cast<Int32>(outPos);
 }
 
 //=============================================
@@ -340,14 +340,14 @@ void R_ResizeTextureToPOT( Uint32& outwidth, Uint32& outheight, byte*& pdata )
 
 	for (Uint32 i = 0; i < outwidth; i++)
 	{
-		pcol1[i] = (Int32) ((i + 0.25) * (width / (Float)outwidth));
-		pcol2[i] = (Int32) ((i + 0.75) * (width / (Float)outwidth));
+		pcol1[i] = static_cast<Int32>((i + 0.25) * (width / (Float)outwidth));
+		pcol2[i] = static_cast<Int32>((i + 0.75) * (width / (Float)outwidth));
 	}
 
 	for (Uint32 i = 0; i < outheight; i++)
 	{
-		prow1[i] = (Int32) ((i + 0.25) * (height / (Float)outheight)) * width;
-		prow2[i] = (Int32) ((i + 0.75) * (height / (Float)outheight)) * width;
+		prow1[i] = static_cast<Int32>((i + 0.25) * (height / (Float)outheight)) * width;
+		prow2[i] = static_cast<Int32>((i + 0.75) * (height / (Float)outheight)) * width;
 	}
 
 	for (Uint32 i = 0; i < outheight; i++)
@@ -446,4 +446,25 @@ bool R_WorldToScreenTransform( CMatrix& matrix, const Vector& src, Vector& scree
 	}
 
 	return (zclipped <= 0) ? true : false;
+}
+
+//====================================
+//
+//====================================
+void R_SetMatrixData( const Float *pin, Float* pout, bool transpose )
+{
+	if(transpose)
+	{
+		pout[0] = pin[0]; pout[1] = pin[4]; pout[2] = pin[8]; pout[3] = pin[12];
+		pout[4] = pin[1]; pout[5] = pin[5]; pout[6] = pin[9]; pout[7] = pin[13];
+		pout[8] = pin[2]; pout[9] = pin[6]; pout[10] = pin[10]; pout[11] = pin[14];
+		pout[12] = pin[3]; pout[13] = pin[7]; pout[14] = pin[11]; pout[15] = pin[15];
+	}
+	else
+	{
+		pout[0] = pin[0]; pout[1] = pin[1]; pout[2] = pin[2]; pout[3] = pin[3];
+		pout[4] = pin[4]; pout[5] = pin[5]; pout[6] = pin[6]; pout[7] = pin[7];
+		pout[8] = pin[8]; pout[9] = pin[9]; pout[10] = pin[10]; pout[11] = pin[11];
+		pout[12] = pin[12]; pout[13] = pin[13]; pout[14] = pin[14]; pout[15] = pin[15];
+	}
 }

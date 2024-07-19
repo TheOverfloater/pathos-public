@@ -16,7 +16,7 @@ All Rights Reserved.
 //=============================================
 size_t AR_readOgg( void* dst, size_t size1, size_t size2, void* fh )
 {
-    snd_oggcache_t* of = reinterpret_cast<snd_oggcache_t*>(fh);
+    snd_oggcache_t* of = static_cast<snd_oggcache_t*>(fh);
     size_t len = size1 * size2;
 	
 	if ( of->pcurptr + len > of->pfileptr + of->filesize )
@@ -33,7 +33,7 @@ size_t AR_readOgg( void* dst, size_t size1, size_t size2, void* fh )
 //=============================================
 Int32 AR_seekOgg( void *fh, ogg_int64_t to, Int32 type )
 {
-    snd_oggcache_t* of = reinterpret_cast<snd_oggcache_t*>(fh);
+    snd_oggcache_t* of = static_cast<snd_oggcache_t*>(fh);
 
     switch( type ) {
         case SEEK_CUR:
@@ -79,6 +79,6 @@ Int32 AR_closeOgg( void* fh )
 //=============================================
 long AR_tellOgg( void *fh )
 {
-    snd_oggcache_t* of = reinterpret_cast<snd_oggcache_t*>(fh);
+    snd_oggcache_t* of = static_cast<snd_oggcache_t*>(fh);
 	return (of->pcurptr - of->pfileptr);
 }

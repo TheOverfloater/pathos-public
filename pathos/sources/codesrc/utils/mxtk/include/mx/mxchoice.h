@@ -33,7 +33,7 @@ class mxChoice : public mxWidget
 
 public:
 	// CREATORS
-	mxChoice (mxWindow *parent, int x, int y, int w, int h, int id = 0);
+	mxChoice (mxWindow *parent, int x, int y, int w, int h, __int64 id = 0);
 	virtual ~mxChoice ();
 
 	// MANIPULATORS

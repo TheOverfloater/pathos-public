@@ -61,9 +61,6 @@ public:
 		UNIFORM_FLOAT2,
 		UNIFORM_FLOAT3,
 		UNIFORM_FLOAT4,
-		UNIFORM_MATRIX1,
-		UNIFORM_MATRIX2,
-		UNIFORM_MATRIX3,
 		UNIFORM_MATRIX4
 	};
 
@@ -131,19 +128,32 @@ public:
 	{
 		glsl_uniform_t():
 			type(UNIFORM_UNDEFINED),
-			sync(false),
-			reload(false) {
-			memset(flvalue, 0, sizeof(flvalue));
-		}
+			stride(0),
+			sync(false)
+			{}
 
 		CString name;
 		uniform_e type;
 
-		Float flvalue[4][4];
+		CArray<Float> currentvalues;
+		CArray<Float> shadervalues;
+
 		CArray<Int16> indexes;
+		Uint32 stride;
 
 		bool sync;
-		bool reload;
+	};
+
+	// <glsl_ubo_t>
+	struct glsl_ubo_t
+	{
+		glsl_ubo_t():
+			buffer_id(0)
+		{};
+
+		CString name;
+		GLuint buffer_id;
+		CArray<Int32> blockindexes;
 	};
 
 	// <glsl_shader_t>
@@ -398,9 +408,14 @@ public:
 	// Validates a program, and if it's not ok, it'll write to the console
 	bool ValidateProgram( void (*pfnConPrintfFnPtr)( const Char *fmt, ... ) );
 
+	// Sets the data for the UBO
+	inline void SetUniformBufferObjectData( Int32 index, void* pBufferData, Uint32 dataSize );
+
 public:
 	// Initializes a uniform
 	Int32 InitUniform( const Char *szname, uniform_e type );
+	// Creates a uniform buffer object
+	Int32 InitUniformBufferObject( const Char* pstrName, Uint32 bufferSize );
 	// Initializes a vertex attribute
 	Int32 InitAttribute( const Char *szname, Uint32 size, Int32 type, Uint32 stride, const void *pointer );
 	// Sets a vertex attribute's data pointer
@@ -511,6 +526,9 @@ private:
 	// Prints error information for the entire program to a log file
 	void Program_PrintLog( GLuint program_id, const Char *szoutpath );
 
+	// Re-syncs a uniform
+	void SyncUniform( glsl_uniform_t& uniform );
+
 private:
 	// TRUE if the shader is active
 	bool m_isActive;
@@ -520,6 +538,8 @@ private:
 	bool m_onDemandLoad;
 	// TRUE if binary shader funcs are supported
 	bool m_useBinaryShaders;
+	// TRUE if the UBOs got bound
+	bool m_areUBOsBound;
 
 	// Currently bound shader's index
 	Int32 m_shaderIndex;
@@ -530,6 +550,8 @@ private:
 	CArray<glsl_determinator_t> m_determinatorArray;
 	// Array of GLSL uniforms
 	CArray<glsl_uniform_t> m_uniformsArray;
+	// Array of uniform buffer objects
+	CArray<glsl_ubo_t> m_uniformBufferObjectsArray;
 	// Array of unique GLSL shaders
 	CArray<glsl_shader_t> m_shadersArray;
 	// Array of vertex attributes
@@ -552,9 +574,13 @@ private:
 	// Pointer to shader data header
 	csdheader_t* m_pCSDHeader;
 
+	// Matrix uniform for non-sync matrices
+	Float m_uniformMatrix[4][4];
+
 private:
 	// Compile status
 	bool m_bFailed;
+
 	// Shader filename with path
 	CString m_shaderFile;
 	// Error string

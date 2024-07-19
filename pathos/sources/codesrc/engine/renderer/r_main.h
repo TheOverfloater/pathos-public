@@ -17,6 +17,7 @@ All Rights Reserved.
 #include "frustum.h"
 #include "mlight.h"
 #include "vid.h"
+#include "r_fbo.h"
 
 class Vector;
 class CFrustum;
@@ -34,17 +35,18 @@ struct rtt_texture_t;
 struct en_texalloc_t;
 struct cache_model_t;
 struct glowquery_t;
+struct fbobind_t;
 
 // Maximum textures bound at once
-static const Uint32 MAX_BOUND_TEXTURES = 16;
+static constexpr Uint32 MAX_BOUND_TEXTURES = 16;
 // Near clipping distance
-static const Float NEAR_CLIP_DISTANCE = 4.0f;
+static constexpr Float NEAR_CLIP_DISTANCE = 4.0f;
 // Max number of model lights
-static const Uint32 MAX_MODEL_LIGHTS = 2048;
+static constexpr Uint32 MAX_MODEL_LIGHTS = 2048;
 // Render pass id for main frame's render pass
-static const Uint32 MAINFRAME_RENDERPASS_ID = 0;
+static constexpr Uint32 MAINFRAME_RENDERPASS_ID = 0;
 // Max lights in a single batch
-static const Uint32 MAX_BATCH_LIGHTS = 4;
+static constexpr Uint32 MAX_BATCH_LIGHTS = 4;
 
 extern CGLExtF gGLExtF;
 
@@ -258,7 +260,6 @@ struct renderer_state_t
 		time(0),
 		screenwidth(0),
 		screenheight(0),
-		nofbo(false),
 		fboused(false),
 		inwater(false),
 		drawuiwhileloading(false),
@@ -278,12 +279,15 @@ struct renderer_state_t
 		usevisorigin(false),
 		validateshaders(false),
 		msaa(false),
+		usehdr(false),
+		fboblitsupported(false),
 		pvisbuffer(nullptr),
 		psecondaryvisbuffer(nullptr),
 		ploadbackground(nullptr),
 		pbgrtttexture(nullptr),
 		nextfreerenderpassidx(0),
-		renderpassidx(0)
+		renderpassidx(0),
+		pboundfbo(nullptr)
 	{}
 	~renderer_state_t()
 	{
@@ -328,8 +332,6 @@ struct renderer_state_t
 	// Array of GL extensions
 	CArray<CString> glextensions;
 
-	// true if fbos cannot be used
-	bool nofbo;
 	// true if fbos are supported
 	bool fboused;
 	// true if we're underrendering water areas
@@ -366,6 +368,10 @@ struct renderer_state_t
 	bool validateshaders;
 	// true if using MSAA
 	bool msaa;
+	// true if HDR is enabled
+	bool usehdr;
+	// true if fbo blit is supported
+	bool fboblitsupported;
 
 	// day stage
 	daystage_t daystage;
@@ -384,6 +390,11 @@ struct renderer_state_t
 	Uint32 nextfreerenderpassidx;
 	// Current render pass id
 	Uint32 renderpassidx;
+
+	// Currently bound FBO
+	fbobind_t* pboundfbo;
+	// FBO used by main screen
+	fbobind_t mainfbo;
 };
 
 enum querytype_t
@@ -544,6 +555,11 @@ extern Int32 R_SortEntities( const void* p1, const void* p2 );
 
 extern void R_AddShaderForLoading( CGLSLShader* pShader );
 extern bool R_PerformPendingShaderLoads( void );
+
+extern bool R_InitMainScreenFBO( void );
+extern void R_DeleteMainScreenFBO( void );
+extern void R_PerformMainScreenBlit( void );
+extern void R_BindMainScreenFBO( void );
 
 extern void Cmd_PasteDecal( void );
 extern void Cmd_CreateSprite( void );

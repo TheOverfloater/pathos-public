@@ -40,8 +40,7 @@ bool CAISetFollowTarget::Spawn( void )
 	if(!CPointEntity::Spawn())
 		return false;
 
-	if(m_pFields->target == NO_STRING_VALUE
-		|| m_pFields->netname == NO_STRING_VALUE)
+	if(m_pFields->target == NO_STRING_VALUE)
 	{
 		Util::WarnEmptyEntity(m_pEdict);
 		return false;
@@ -72,35 +71,43 @@ void CAISetFollowTarget::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller,
 		return;
 	}
 
-	CBaseEntity* pFollowEntity = nullptr;
-	const Char* pstrFollowEntityName = gd_engfuncs.pfnGetString(m_pFields->netname);
-
-	if(!qstrcmp(pstrFollowEntityName, "player"))
+	if (m_pFields->netname == NO_STRING_VALUE)
 	{
-		pFollowEntity = Util::GetHostPlayer();
-		if(!pFollowEntity)
-		{
-			Util::EntityConPrintf(m_pEdict, "Could not find follow target '%s'.\n", pstrFollowEntityName);
-			return;
-		}
+		// Reset it
+		pTargetEntity->SetFollowTarget(nullptr);
 	}
 	else
 	{
-		edict_t* pFollowEdict = Util::FindEntityByTargetName(nullptr, pstrFollowEntityName);
-		if(Util::IsNullEntity(pFollowEdict))
+		CBaseEntity* pFollowEntity = nullptr;
+		const Char* pstrFollowEntityName = gd_engfuncs.pfnGetString(m_pFields->netname);
+
+		if (!qstrcmp(pstrFollowEntityName, "player"))
 		{
-			Util::EntityConPrintf(m_pEdict, "Could not find follow target '%s'.\n", pstrFollowEntityName);
+			pFollowEntity = Util::GetHostPlayer();
+			if (!pFollowEntity)
+			{
+				Util::EntityConPrintf(m_pEdict, "Could not find follow target '%s'.\n", pstrFollowEntityName);
+				return;
+			}
+		}
+		else
+		{
+			edict_t* pFollowEdict = Util::FindEntityByTargetName(nullptr, pstrFollowEntityName);
+			if (Util::IsNullEntity(pFollowEdict))
+			{
+				Util::EntityConPrintf(m_pEdict, "Could not find follow target '%s'.\n", pstrFollowEntityName);
+				return;
+			}
+
+			pFollowEntity = CBaseEntity::GetClass(pFollowEdict);
+		}
+
+		if (!pFollowEntity->IsPlayer() && !pFollowEntity->IsNPC())
+		{
+			Util::EntityConDPrintf(m_pEdict, "Entity '%s' is not a player or an NPC.\n", pstrFollowEntityName);
 			return;
 		}
 
-		pFollowEntity = CBaseEntity::GetClass(pFollowEdict);
+		pTargetEntity->SetFollowTarget(pFollowEntity);
 	}
-
-	if(!pFollowEntity->IsPlayer() && !pFollowEntity->IsNPC())
-	{
-		Util::EntityConDPrintf(m_pEdict, "Entity '%s' is not a player or an NPC.\n", pstrFollowEntityName);
-		return;
-	}
-
-	pTargetEntity->SetFollowTarget(pFollowEntity);
 }

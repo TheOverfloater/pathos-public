@@ -143,6 +143,7 @@ bool CTriggerCameraModel::Spawn( void )
 		|| !CheckSequence(m_triggerSequence))
 		return false;
 
+	m_pState->solid = SOLID_NOT;
 	m_pState->movetype = MOVETYPE_NOCLIP;
 	m_pState->effects |= EF_VIEWONLY|EF_NOVIS|EF_NOLERP|EF_NOINTERP;
 

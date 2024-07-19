@@ -3,7 +3,6 @@ $texture
 	$int_width 256
 	$int_height 256
 	$alphatest
-	$container pathos.wad
 	$material concrete
-	$texture diffuse {rn_crows1
+	$texture diffuse world/pathos/{rn_crows1.dds
 }

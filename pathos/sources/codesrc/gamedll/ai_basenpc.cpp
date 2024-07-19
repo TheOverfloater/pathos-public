@@ -857,7 +857,7 @@ void CBaseNPC::PerformMovement( Double animInterval )
 	// Get current point and get direction
 	route_point_t& currentPoint = m_routePointsArray[m_routePointIndex];
 	Vector moveDirection = (currentPoint.position - m_pState->origin);
-	Float distanceToPoint = moveDirection.Length2D();
+	Float distanceToPoint = moveDirection.Length();
 	moveDirection.Normalize();
 
 	// Manage yaw related stuff
@@ -866,11 +866,9 @@ void CBaseNPC::PerformMovement( Double animInterval )
 	// Use distance to waypoint as max dist, because otherwise
 	// we night not detect anything blocking us in time
 	Float moveDistance = 0;
-	Vector vectorToTarget = moveDirection * distanceToPoint;
 
 	// Check our movement
-	Vector destinationPosition = m_pState->origin + vectorToTarget;
-	localmove_t moveResult = CheckLocalMove(m_pState->origin, destinationPosition, m_movementGoalEntity, &moveDistance);
+	localmove_t moveResult = CheckLocalMove(m_pState->origin, currentPoint.position, m_movementGoalEntity, &moveDistance);
 
 	// If we reached the target, then stop
 	if(moveResult == LOCAL_MOVE_REACHED_TARGET 
@@ -882,6 +880,7 @@ void CBaseNPC::PerformMovement( Double animInterval )
 	}
 
 	// Check if we can continue
+	Vector vectorToTarget = moveDirection * distanceToPoint;
 	if(!CheckMoveResult(moveResult, moveDistance, vectorToTarget))
 		return;
 
@@ -5650,23 +5649,55 @@ bool CBaseNPC::GetNextEnemy( void )
 // @brief
 //
 //=============================================
-CBaseEntity* CBaseNPC::DropItem( const Char* pstrClassName, const Vector& itemPosition, const Vector& itemAngles )
+CBaseEntity* CBaseNPC::DropItem( weaponid_t weaponId, Uint32 attachmentIndex, bool wasGibbed )
 {
-	if(!pstrClassName || !qstrlen(pstrClassName))
+	if(weaponId <= WEAPON_NONE || WEAPON_NONE >= NUM_WEAPONS)
+		return nullptr;
+
+	if(m_dontDropWeapons)
+		return nullptr;
+
+	Vector gunPosition;
+	GetAttachment(attachmentIndex, gunPosition);
+
+	Vector angles(m_pState->angles);
+	angles[PITCH] = angles[ROLL] = 0;
+
+	CString weaponName = WEAPON_ENTITY_NAMES[weaponId];
+	if(weaponName.empty())
 	{
 		Util::EntityConPrintf(m_pEdict, "No classname specified.\n");
 		return false;
 	}
 
-	CBaseEntity* pEntity = CBaseEntity::CreateEntity(pstrClassName, itemPosition, itemAngles, this);
+	CBaseEntity* pEntity = CBaseEntity::CreateEntity(weaponName.c_str(), gunPosition, angles, this);
 	if(!pEntity)
 	{
-		Util::EntityConPrintf(m_pEdict, "'%s' is not a valid classname.\n", pstrClassName);
+		Util::EntityConPrintf(m_pEdict, "'%s' is not a valid classname.\n", weaponName.c_str());
 		return nullptr;
 	}
 
-	pEntity->SetVelocity(m_pState->velocity);
-	Vector angularVelocity = Vector(0, Common::RandomFloat(0, 100), 0);
+	Vector velocity;
+	Vector angularVelocity;
+
+	if(wasGibbed)
+	{
+		for(Uint32 i = 0; i < 2; i++)
+			velocity[i] = Common::RandomFloat(-100, 100);
+		velocity[2] = Common::RandomFloat(200, 300);
+					
+		angularVelocity = Vector(0, Common::RandomFloat(200, 400), 0);
+
+		pEntity->SetVelocity(velocity);
+		pEntity->SetAngularVelocity(angularVelocity);
+	}
+	else
+	{
+		velocity = m_pState->velocity;
+		angularVelocity = Vector(0, Common::RandomFloat(0, 100), 0);
+	}
+
+	pEntity->SetVelocity(velocity);
 	pEntity->SetAngularVelocity(angularVelocity);
 
 	if(!pEntity->Spawn())
@@ -7717,7 +7748,7 @@ bool CBaseNPC::AttemptShiftDestination( CBaseEntity* pTargetEntity )
 
 	// Make sure the node we'll be checking is valid
 	Int32 nextNode = m_routePointIndex+1;
-	for(; nextNode < MAX_PATH; nextNode++)
+	for(; nextNode < MAX_ROUTE_POINTS; nextNode++)
 	{
 		const route_point_t& nextPoint = m_routePointsArray[nextNode];
 		Vector nextPosition = nextPoint.position;

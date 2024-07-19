@@ -18,6 +18,8 @@ All Rights Reserved.
 #include "r_interface.h"
 #include "efxapi.h"
 
+struct pm_info_t;
+
 // Declaration of gamedll enginefuncs struct
 extern cldll_engfuncs_t cl_engfuncs;
 // Trace functions from engine

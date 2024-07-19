@@ -180,8 +180,10 @@ bool CEnvPosPortal::Restore( void )
 // @brief
 //
 //=============================================
-void CEnvPosPortal::FreeEntity( void )
+void CEnvPosPortal::FreeEntity( edict_removed_t freeMode )
 {
+	CPointEntity::FreeEntity(freeMode);
+
 	if(m_pPVSData)
 	{
 		delete[] m_pPVSData;

@@ -18,6 +18,10 @@ CString
 */
 class CString
 {
+private:
+	// Empty string character
+	static Char EMPTY_STRING[];
+
 public:
 	CString();
 	CString( const Char* pstr );

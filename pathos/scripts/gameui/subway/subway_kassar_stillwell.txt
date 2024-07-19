@@ -1,0 +1,62 @@
+$title "Select a subway destination"
+$defaultdescription
+{
+	Welcome to the Subway Operator System, Version: 4.2.
+	Please choose a destination.
+}
+$button destination1
+{
+	$buttontext "Kassar St."
+	$destinationid "kassar"
+	$description
+	{
+		Kassar St. Subway Center.
+		Eastern District subway station, Everglast industrial complex.
+	}
+}
+$button destination2
+{
+	$buttontext "NA"
+	$destinationid "NA"
+	$description
+	{
+		NA
+	}
+}
+$button destination3
+{
+	$buttontext "Marshall St."
+	$destinationid "marshall"
+	$description
+	{
+		Marshall St. Subway Center.
+		City Central subway station, Prodigy HQ.
+	}
+}
+$button destination4
+{
+	$buttontext "NA"
+	$destinationid "NA"
+	$description
+	{
+		NA
+	}
+}
+$button unavailable
+{
+	$buttontext "MISSING PROTOCOL CARD"
+	$description
+	{
+		ERROR! Access card is missing!
+		Please insert the keycard with the correct protocols!
+	}
+}
+$button disabled
+{
+	$buttontext "DISABLED"
+	$description
+	{
+		This subway train was disabled using administrator access.
+		Please ask your administrator to re-enable it.
+	}
+}

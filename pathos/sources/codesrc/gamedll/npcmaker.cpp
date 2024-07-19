@@ -29,19 +29,13 @@ CNPCMaker::CNPCMaker( edict_t* pedict ):
 	m_maxLiveChildren(-1),
 	m_numLiveChildren(0),
 	m_deathTriggerTarget(NO_STRING_VALUE),
+	m_classHeadSetting(0),
+	m_classHeadWasSet(false),
+	m_classWeaponSetting(0),
+	m_classWeaponWasSet(false),
 	m_isActive(false),
-	m_fadeChildren(false),
-	m_numClassnameWeaponSettings(0),
-	m_numClassnameHeadSettings(0)
+	m_fadeChildren(false)
 {
-	for(Uint32 i = 0; i < MAX_CLASSNAMES; i++)
-	{
-		m_weaponSettingClassnames[i] = NO_STRING_VALUE;
-		m_classnameWeaponSettings[i] = 0;
-
-		m_headSettingClassnames[i] = NO_STRING_VALUE;
-		m_classnameHeadSettings[i] = 0;
-	}
 }
 
 //=============================================
@@ -89,6 +83,57 @@ bool CNPCMaker::Spawn( void )
 	m_pState->flags |= FL_INITIALIZE;
 
 	m_fadeChildren = (m_numNPCsToCreate > 1) ? true : false;
+
+	if(!m_classnameHeadSettingsArray.empty() && !m_classnameWeaponSettingsArray.empty())
+	{
+		// Get name of npc
+		const Char* pstrEntityClassName = gd_engfuncs.pfnGetString(m_npcClassName);
+		if(pstrEntityClassName && qstrlen(pstrEntityClassName))
+		{
+			// Legacy mod support
+			CString makeName = pstrEntityClassName;
+			if(!qstrncmp(makeName, "monster_", 8))
+			{
+				makeName.erase(0, 8);
+				makeName.insert(0, "npc_");
+			}
+
+			if(!m_classnameHeadSettingsArray.empty())
+			{
+				// Set head setting
+				for(Uint32 i = 0; i < m_classnameHeadSettingsArray.size(); i++)
+				{
+					const classnamesetting_t& setting = m_classnameHeadSettingsArray[i];
+					if(!qstrcmp(setting.classname, makeName))
+					{
+						m_classHeadSetting = setting.settingvalue;
+						m_classHeadWasSet = true;
+						break;
+					}
+				}
+
+				m_classnameHeadSettingsArray.clear();
+			}
+
+			if(!m_classnameWeaponSettingsArray.empty())
+			{
+				// Set weapon setting
+				for(Uint32 i = 0; i < m_classnameWeaponSettingsArray.size(); i++)
+				{
+					const classnamesetting_t& setting = m_classnameWeaponSettingsArray[i];
+					if(!qstrcmp(setting.classname, makeName))
+					{
+						m_classWeaponSetting = setting.settingvalue;
+						m_classWeaponWasSet = true;
+						break;
+					}
+				}
+
+				m_classnameWeaponSettingsArray.empty();
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -167,9 +212,11 @@ bool CNPCMaker::KeyValue( const keyvalue_t& kv )
 		CString strClassname;
 		strClassname << "npc_" << pstrClassnameBit;
 
-		m_weaponSettingClassnames[m_numClassnameWeaponSettings] = gd_engfuncs.pfnAllocString(strClassname.c_str());
-		m_classnameWeaponSettings[m_numClassnameWeaponSettings] = SDL_atoi(kv.value);
-		m_numClassnameWeaponSettings++;
+		classnamesetting_t setting;
+		setting.classname = strClassname;
+		setting.settingvalue = SDL_atoi(kv.value);
+		m_classnameWeaponSettingsArray.push_back(setting);
+
 		return true;
 	}
 	else if(!qstrncmp(kv.keyname, "heads_", 6))
@@ -178,9 +225,11 @@ bool CNPCMaker::KeyValue( const keyvalue_t& kv )
 		CString strClassname;
 		strClassname << "npc_" << pstrClassnameBit;
 
-		m_headSettingClassnames[m_numClassnameHeadSettings] = gd_engfuncs.pfnAllocString(strClassname.c_str());
-		m_classnameHeadSettings[m_numClassnameHeadSettings] = SDL_atoi(kv.value);
-		m_numClassnameHeadSettings++;
+		classnamesetting_t setting;
+		setting.classname = strClassname;
+		setting.settingvalue = SDL_atoi(kv.value);
+		m_classnameHeadSettingsArray.push_back(setting);
+
 		return true;
 	}
 	else
@@ -205,12 +254,10 @@ void CNPCMaker::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CNPCMaker, m_deathTriggerTarget, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CNPCMaker, m_isActive, EFIELD_BOOLEAN));
 	DeclareSaveField(DEFINE_DATA_FIELD(CNPCMaker, m_fadeChildren, EFIELD_BOOLEAN));
-	DeclareSaveField(DEFINE_DATA_FIELD_ARRAY(CNPCMaker, m_weaponSettingClassnames, EFIELD_STRING, MAX_CLASSNAMES));
-	DeclareSaveField(DEFINE_DATA_FIELD_ARRAY(CNPCMaker, m_classnameWeaponSettings, EFIELD_INT32, MAX_CLASSNAMES));
-	DeclareSaveField(DEFINE_DATA_FIELD(CNPCMaker, m_numClassnameWeaponSettings, EFIELD_UINT32));
-	DeclareSaveField(DEFINE_DATA_FIELD_ARRAY(CNPCMaker, m_headSettingClassnames, EFIELD_STRING, MAX_CLASSNAMES));
-	DeclareSaveField(DEFINE_DATA_FIELD_ARRAY(CNPCMaker, m_classnameHeadSettings, EFIELD_INT32, MAX_CLASSNAMES));
-	DeclareSaveField(DEFINE_DATA_FIELD(CNPCMaker, m_numClassnameHeadSettings, EFIELD_UINT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CNPCMaker, m_classHeadSetting, EFIELD_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CNPCMaker, m_classHeadWasSet, EFIELD_BOOLEAN));
+	DeclareSaveField(DEFINE_DATA_FIELD(CNPCMaker, m_classWeaponSetting, EFIELD_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CNPCMaker, m_classWeaponWasSet, EFIELD_BOOLEAN));
 }
 
 //=============================================
@@ -366,40 +413,17 @@ void CNPCMaker::CreateNPC( bool isCyclic )
 		return;
 	}
 
-	Int32 weaponsValue = 0;
-	Uint32 i = 0;
-	for(; i < m_numClassnameWeaponSettings; i++)
-	{
-		if(!qstrcmp(gd_engfuncs.pfnGetString(m_weaponSettingClassnames[i]), makeName))
-		{
-			weaponsValue = m_classnameWeaponSettings[i];
-			break;
-		}
-	}
-
 	// If not present, use legacy
-	if(i == m_numClassnameWeaponSettings 
-		|| weaponsValue == 0 && m_pState->weapons != 0)
+	Int32 weaponsValue;
+	if(!m_classWeaponWasSet || m_classWeaponSetting == 0 && m_pState->weapons != 0)
 		weaponsValue = m_pState->weapons;
+	else
+		weaponsValue = m_classWeaponSetting;
 
 	pEntity->SetWeapons(weaponsValue);
 
-	// Set head based on classname setting
-	Int32 headValue = 0;
-	i = 0;
-	for(; i < m_numClassnameHeadSettings; i++)
-	{
-		if(!qstrcmp(gd_engfuncs.pfnGetString(m_headSettingClassnames[i]), makeName))
-		{
-			headValue = m_classnameHeadSettings[i];
-			break;
-		}
-	}
-
-	// If not present, use legacy
-	if(i == m_numClassnameHeadSettings)
-		headValue = m_pState->body;
-
+	// Set head based on classname setting. If not present, use legacy.
+	Int32 headValue = m_classHeadWasSet ? m_classHeadSetting : m_pState->body;
 	pEntity->SetHead(headValue);
 
 	// TODO: Why did I do this?

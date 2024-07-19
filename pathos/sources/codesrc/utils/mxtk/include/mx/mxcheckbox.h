@@ -33,7 +33,7 @@ class mxCheckBox : public mxWidget
 
 public:
 	// CREATORS
-	mxCheckBox (mxWindow *parent, int x, int y, int w, int h, const char *label = 0, int id = 0);
+	mxCheckBox (mxWindow *parent, int x, int y, int w, int h, const char *label = 0, __int64 id = 0);
 	virtual ~mxCheckBox ();
 
 	// MANIPULATORS

@@ -1,0 +1,4 @@
+$texture
+{
+	$texture diffuse models/diary_emanations/book2.tga
+}

@@ -208,7 +208,7 @@ Int32 SV_GetNumEdicts( void )
 //=============================================
 edict_t* SV_GetEdictByIndex( entindex_t entindex )
 {
-	if(entindex >= (Int32)gEdicts.GetNbEdicts())
+	if(entindex >= static_cast<Int32>(gEdicts.GetNbEdicts()))
 	{
 		Con_Printf("%s - Bogus entity index %d.\n", __FUNCTION__, entindex);
 		return nullptr;
@@ -223,7 +223,7 @@ edict_t* SV_GetEdictByIndex( entindex_t entindex )
 bool SV_InitPrivateData( edict_t* pedict, const Char* pstrClassname )
 {
 	// Init the gamedll interface
-	pfnPrivateData_t pfn = reinterpret_cast<pfnPrivateData_t>(SDL_LoadFunction(svs.pdllhandle, pstrClassname));
+	pfnPrivateData_t pfn = static_cast<pfnPrivateData_t>(SDL_LoadFunction(svs.pdllhandle, pstrClassname));
 	if(!pfn)
 		return false;
 
@@ -264,7 +264,7 @@ edict_t* SV_CreateEntity( const Char* pstrClassName )
 	if(!SV_InitPrivateData(pedict, pstrClassName))
 	{
 		Con_EPrintf("%s - Could not allocate private data for edict with classname '%s'.\n", __FUNCTION__, pstrClassName);
-		gEdicts.FreeEdict(pedict);
+		gEdicts.FreeEdict(pedict, EDICT_REMOVED_AT_INIT);
 		return nullptr;
 	}
 
@@ -282,7 +282,7 @@ void SV_RemoveEntity( edict_t* pentity )
 	if(!pentity)
 		return;
 
-	gEdicts.FreeEdict(pentity);
+	gEdicts.FreeEdict(pentity, EDICT_REMOVED_KILLED);
 }
 
 //=============================================
@@ -298,7 +298,7 @@ bool SV_DropToFloor( edict_t* pentity )
 	if(pentity->state.flags & FL_NPC_CLIP)
 		traceFlags |= FL_TRACE_NPC_CLIP;
 
-	SV_Move(tr, pentity->state.origin, pentity->state.mins, pentity->state.maxs, traceEnd, traceFlags, pentity, (hull_types_t)pentity->state.forcehull);
+	SV_Move(tr, pentity->state.origin, pentity->state.mins, pentity->state.maxs, traceEnd, traceFlags, pentity, static_cast<hull_types_t>(pentity->state.forcehull));
 	if(tr.allSolid() || tr.startSolid() || tr.noHit())
 		return false;
 	

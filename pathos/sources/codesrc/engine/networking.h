@@ -18,9 +18,9 @@ All Rights Reserved.
 struct net_msgcache_t;
 
 // Max size of a UDP packet, with the IPv4 header accounted for
-static const Uint32 MAX_UDP_PACKET_SIZE = 548;
+static constexpr Uint32 MAX_UDP_PACKET_SIZE = 548;
 // Max timeout limit is 30 seconds
-static const Float CLIENT_TIMEOUT_LIMIT = 30;
+static constexpr Float CLIENT_TIMEOUT_LIMIT = 30;
 
 //
 // Network client states
@@ -61,7 +61,8 @@ enum svc_commands_t
 	svc_consistency,
 	svc_clcommand,
 	svc_precacheparticlescript,
-	svc_precachedecal
+	svc_precachedecal,
+	svc_lightenvinfo
 };
 
 //
@@ -158,7 +159,7 @@ struct net_msgcache_t
 		buffersize(src.buffersize)
 		{
 			pwritebuffer = new byte[buffersize];
-			memcpy(pwritebuffer, pwritebuffer, sizeof(byte)*buffersize);
+			memcpy(pwritebuffer, src.pwritebuffer, sizeof(byte)*buffersize);
 		}
 		~net_msgcache_t()
 		{
@@ -180,7 +181,7 @@ struct net_msgcache_t
 				delete[] pwritebuffer;
 
 			pwritebuffer = new byte[buffersize];
-			memcpy(pwritebuffer, pwritebuffer, sizeof(byte)*buffersize);
+			memcpy(pwritebuffer, src.pwritebuffer, sizeof(byte)*buffersize);
 
 			return *this;
 		}

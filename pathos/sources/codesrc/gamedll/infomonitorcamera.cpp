@@ -89,8 +89,10 @@ bool CInfoMonitorCamera::Restore( void )
 // @brief
 //
 //=============================================
-void CInfoMonitorCamera::FreeEntity( void )
+void CInfoMonitorCamera::FreeEntity( edict_removed_t freeMode )
 {
+	CPointEntity::FreeEntity(freeMode);
+
 	if(m_pPVSData)
 	{
 		delete[] m_pPVSData;

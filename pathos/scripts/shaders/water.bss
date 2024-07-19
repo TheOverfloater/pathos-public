@@ -76,6 +76,7 @@ uniform float strength;
 uniform float lightstrength;
 uniform float specularstrength;
 uniform float phongexponent;
+uniform float wavefresnelstrength;
 
 uniform vec2 scroll;
 uniform vec2 rectscale;
@@ -235,7 +236,9 @@ void main()
 		vec2 coordUV2 = (vec2(ps_screencoords.x, -ps_screencoords.y) / (2*ps_screencoords.w) ) + 0.5 + norm_combine.xy*0.1*strength;
 		vec4 reflectcolor = texture(reflectMap, coordUV2);
 
-		vec3 vnormal_texture = normalize((normalmatrix*vec4(norm_combine, 0)).xyz);
+		vec3 fresnel_normal = norm_combine * wavefresnelstrength + (1.0 - wavefresnelstrength)*vec3(0, 0, 1);
+
+		vec3 vnormal_texture = normalize((normalmatrix*vec4(fresnel_normal, 0)).xyz);
 		vec3 vnormal = normalize((normalmatrix*vec4(0, 0, 1, 0)).xyz);
 		
 		float fresnelterm = clamp(dot(-normalize(ps_eyecoords), vnormal_texture)*1.3*fresnel, 0.0, 0.97 );

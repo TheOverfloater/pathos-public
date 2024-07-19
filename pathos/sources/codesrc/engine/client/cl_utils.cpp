@@ -44,7 +44,7 @@ cl_entity_t* CL_GetEntityByIndex( Int32 index )
 	if(index < 0 || index >= cls.numentities)
 		return nullptr;
 
-	if(index > (Int32)cls.entities.size())
+	if(index > static_cast<Int32>(cls.entities.size()))
 		return nullptr;
 
 	return &cls.entities[index];
@@ -109,7 +109,7 @@ const movevars_t* CL_GetMoveVars( void )
 //=============================================
 Int32 CL_GetNumEntities( void )
 {
-	return (Int32)cls.numentities;
+	return static_cast<Int32>(cls.numentities);
 }
 
 //=============================================
@@ -248,7 +248,7 @@ Vector CL_GetBonePosition( entindex_t entindex, const Char* pstrbonename )
 	Vector boneposition;
 	if(!gVBMRenderer.GetBonePosition(pentity, pstrbonename, boneposition))
 	{
-		Con_Printf("%s - Failed to get bone '%s' for entity %d.\n", __FUNCTION__, pstrbonename, (Int32)entindex);
+		Con_Printf("%s - Failed to get bone '%s' for entity %d.\n", __FUNCTION__, pstrbonename, static_cast<Int32>(entindex));
 		return ZERO_VECTOR;
 	}
 

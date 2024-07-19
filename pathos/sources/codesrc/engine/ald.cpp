@@ -24,14 +24,14 @@ All Rights Reserved.
 // @brief
 //
 //=============================================
-bool ALD_Load( daystage_t stage )
+byte* ALD_Load( daystage_t stage )
 {
 	// Get worldmodel
 	cache_model_t* pworldcache = gModelCache.GetModelByIndex(WORLD_MODEL_INDEX);
 	if(!pworldcache)
 	{
 		Con_Printf("%s - Couldn't get world model.\n", __FUNCTION__);
-		return false;
+		return nullptr;
 	}
 
 	// Try to load the original file first
@@ -44,30 +44,30 @@ bool ALD_Load( daystage_t stage )
 	// Make sure file dates are correct
 	file_dateinfo_t bspFileDate;
 	if(!FL_GetFileDate(pworldcache->name.c_str(), bspFileDate))
-		return false;
+		return nullptr;
 
 	// Make sure file dates are correct
 	file_dateinfo_t aldFileDate;
 	if(!FL_GetFileDate(filename.c_str(), aldFileDate))
-		return false;
+		return nullptr;
 
 	if(FL_CompareFileDates(bspFileDate, aldFileDate) < 0)
 	{
 		Con_EPrintf("%s - ALD file '%s' is older than the BSP file '%s'.\n", __FUNCTION__, filename.c_str(), pworldcache->name.c_str());
-		return false;
+		return nullptr;
 	}
 
 	Uint32 iSize = 0;
 	const byte *pFile = FL_LoadFile(filename.c_str(), &iSize);
 	if(!pFile)
-		return false;
+		return nullptr;
 
 	const aldheader_t* ploadheader = reinterpret_cast<const aldheader_t*>(pFile);
 	if(ploadheader->header != ALD_HEADER_ENCODED)
 	{
 		Con_EPrintf("%s - Invalid ALD file '%s'.\n", __FUNCTION__, filename.c_str());
 		FL_FreeFile(pFile);
-		return false;
+		return nullptr;
 	}
 
 	// Load lump infos
@@ -90,17 +90,17 @@ bool ALD_Load( daystage_t stage )
 	if(!plump)
 	{
 		FL_FreeFile(pFile);
-		return false;
+		return nullptr;
 	}
 
 	// Get worldmodel ptr
 	brushmodel_t* pworldmodel = pworldcache->getBrushmodel();
 
-	if((Uint32)plump->lumpsize != pworldmodel->lightdatasize)
+	if(static_cast<Uint32>(plump->lumpsize) != pworldmodel->lightdatasize)
 	{
 		Con_EPrintf("%s - ALD lump of type %d inconsistent with BSP light data size(%d vs %d).\n", __FUNCTION__, plump->type, plump->lumpsize, pworldmodel->lightdatasize);
 		FL_FreeFile(pFile);
-		return false;
+		return nullptr;
 	}
 
 	// Load in the lump and copy the data
@@ -108,27 +108,9 @@ bool ALD_Load( daystage_t stage )
 	const byte* pdatasrc = (pFile+plump->lumpoffset);
 	memcpy(paldlightdata, pdatasrc, sizeof(byte)*plump->lumpsize);
 
-	// Go through each surface and verify that the data size is correct
-	for(Uint32 i = 0; i < pworldmodel->numsurfaces; i++)
-	{
-		msurface_t* psurface = &pworldmodel->psurfaces[i];
-		if(psurface->lightoffset == -1)
-			continue;
-
-		// Re-set samples pointer to the new data
-		psurface->psamples = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(paldlightdata) + psurface->lightoffset);
-	}
-
-	// All data was successfully set, so release original data
-	delete[] pworldmodel->plightdata;
-
-	// Set the new pointer
-	pworldmodel->plightdata = reinterpret_cast<color24_t*>(paldlightdata);
-	pworldmodel->lightdatasize = plump->lumpsize;
-
 	// Release the file
 	FL_FreeFile(pFile);
-	return true;
+	return paldlightdata;
 }
 
 //=============================================

@@ -90,7 +90,7 @@ public:
 	const Char* GetDisplayDeviceName( Int32 index ) const;
 	Int32 GetCurrentDeviceIndex( void ) const;
 
-	Int32 GetMaxMultiSample( void );
+	bool GetOpenGLInfo( Int32& maxMSAA, bool& fboSupported, bool& hdrSupported);
 
 	bool IsFullScreen( void ) const { return m_bFullScreen; }
 	bool IsVerticalSyncEnabled( void ) { return m_bVerticalSync; }
@@ -113,12 +113,18 @@ public:
 	bool IsActive( void ) const;
 	bool IsInitialized( void ) const;
 	bool IsMSAAEnabled( void ) const { return m_bIsMSAAEnabled; }
+	bool AreFBOsSupported(void) const { return m_areFBOsSupported; }
+	bool AreFBOsEnabled(void) const { return m_areFBOsEnabled; }
+	bool IsHDREnabled(void) const { return m_isHDREnabled; }
 
 private:
 	Int32			m_iDisplayDevice;
 	bool			m_bFullScreen;
 	bool			m_bVerticalSync;
 	bool			m_bIsMSAAEnabled;
+	bool			m_areFBOsSupported;
+	bool			m_areFBOsEnabled;
+	bool			m_isHDREnabled;
 
 private:
 	// TRUE if the window is in focus

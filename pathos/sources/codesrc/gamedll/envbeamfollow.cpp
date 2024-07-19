@@ -25,7 +25,7 @@ CEnvBeamFollow::CEnvBeamFollow( edict_t* pedict ):
 	m_life(0),
 	m_width(0),
 	m_beamNoise(0),
-	m_attachment(NO_POSITION)
+	m_attachment(0)
 {
 }
 
@@ -169,7 +169,8 @@ void CEnvBeamFollow::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, use
 		return;
 	}
 
-	Util::CreateBeamFollow(pEntity, m_attachment, gd_engfuncs.pfnGetString(m_spriteModelName), 
+	Int32 attachmentIndex = (m_attachment == 0) ? NO_POSITION : (m_attachment-1);
+	Util::CreateBeamFollow(pEntity, attachmentIndex, gd_engfuncs.pfnGetString(m_spriteModelName), 
 		m_life, m_width, m_beamNoise, m_pState->renderamt/255.0f, 
 		m_pState->rendercolor.x, m_pState->rendercolor.y, m_pState->rendercolor.z);
 }

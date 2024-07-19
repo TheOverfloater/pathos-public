@@ -1,0 +1,8 @@
+$texture
+{
+	$int_width 16
+	$int_height 16
+	$container entitytest2.bsp
+	$material concrete
+	$texture diffuse sky
+}

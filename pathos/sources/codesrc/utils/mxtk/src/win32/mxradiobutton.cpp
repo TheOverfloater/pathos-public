@@ -24,7 +24,7 @@ public:
 
 
 
-mxRadioButton::mxRadioButton (mxWindow *parent, int x, int y, int w, int h, const char *label, int id, bool newGroup)
+mxRadioButton::mxRadioButton (mxWindow *parent, int x, int y, int w, int h, const char *label, __int64 id, bool newGroup)
 : mxWidget (parent, x, y, w, h, label)
 {
 	if (!parent)
@@ -41,7 +41,7 @@ mxRadioButton::mxRadioButton (mxWindow *parent, int x, int y, int w, int h, cons
 				(HMENU) id, (HINSTANCE) GetModuleHandle (NULL), NULL);
 	
 	SendMessage ((HWND) handle, WM_SETFONT, (WPARAM) (HFONT) GetStockObject (ANSI_VAR_FONT), MAKELPARAM (TRUE, 0));
-	SetWindowLong ((HWND) handle, GWL_USERDATA, (LONG) this);
+	SetWindowLongPtr ((HWND) handle, GWL_USERDATA, (LONG_PTR) this);
 
 	setHandle (handle);
 	setType (MX_RADIOBUTTON);

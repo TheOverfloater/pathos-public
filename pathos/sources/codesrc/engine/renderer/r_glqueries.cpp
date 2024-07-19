@@ -22,7 +22,7 @@ All Rights Reserved.
 #include "r_glqueries.h"
 
 // Glow query increment count
-static const Uint32 GLOW_QUERY_INCR_COUNT = 64;
+static constexpr Uint32 GLOW_QUERY_INCR_COUNT = 64;
 
 //====================================
 //
@@ -162,7 +162,7 @@ Float R_CalcOcclusionFactor( const Vector& origin,
 	Math::VectorScale(dist, 1.0 / (numGlowTraces+1), step);
 
 	Float totalfrac = 0;
-	Float frac = (Float)1/(Float)numGlowTraces;
+	Float frac = 1.0f/ static_cast<Float>(numGlowTraces);
 
 	if(useQueries)
 	{

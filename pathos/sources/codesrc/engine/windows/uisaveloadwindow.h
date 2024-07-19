@@ -36,7 +36,10 @@ public:
 		save_file_t():
 			gametime(0),
 			type(SAVE_UNDEFINED)
-			{}
+		{
+			memset(filepath, 0, sizeof(filepath));
+			memset(savetitle, 0, sizeof(savetitle));
+		}
 
 		Char filepath[MAX_PARSE_LENGTH];
 		Char savetitle[SAVE_FILE_HEADER_MAX_LENGTH];

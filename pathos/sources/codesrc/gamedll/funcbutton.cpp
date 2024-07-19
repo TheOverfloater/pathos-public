@@ -64,7 +64,6 @@ LINK_ENTITY_TO_CLASS(func_button, CFuncButton);
 CFuncButton::CFuncButton( edict_t* pedict ):
 	CToggleEntity(pedict),
 	m_stayPushed(false),
-	m_changeTargetName(NO_STRING_VALUE),
 	m_lockedTriggerTarget(NO_STRING_VALUE),
 	m_pairButtonName(NO_STRING_VALUE),
 	m_legacyUseSound(0),
@@ -94,7 +93,6 @@ void CFuncButton::DeclareSaveFields( void )
 	CToggleEntity::DeclareSaveFields();
 	
 	DeclareSaveField(DEFINE_DATA_FIELD(CFuncButton, m_stayPushed, EFIELD_BOOLEAN));
-	DeclareSaveField(DEFINE_DATA_FIELD(CFuncButton, m_changeTargetName, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CFuncButton, m_lockedTriggerTarget, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CFuncButton, m_pairButtonName, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CFuncButton, m_useSoundFile, EFIELD_STRING));
@@ -107,12 +105,7 @@ void CFuncButton::DeclareSaveFields( void )
 //=============================================
 bool CFuncButton::KeyValue( const keyvalue_t& kv )
 {
-	if(!qstrcmp(kv.keyname, "changetarget"))
-	{
-		m_changeTargetName = gd_engfuncs.pfnAllocString(kv.value);
-		return true;
-	}
-	else if(!qstrcmp(kv.keyname, "lockedtarget"))
+	if(!qstrcmp(kv.keyname, "lockedtarget"))
 	{
 		m_lockedTriggerTarget = gd_engfuncs.pfnAllocString(kv.value);
 		return true;

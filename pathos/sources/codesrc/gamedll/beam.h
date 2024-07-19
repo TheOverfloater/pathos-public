@@ -30,7 +30,8 @@ public:
 		FL_DECAL_END		= (1<<6),
 		FL_SHADE_START		= (1<<7),
 		FL_SHADE_END		= (1<<8),
-		FL_TEMPORARY		= (1<<9)
+		FL_TEMPORARY		= (1<<9),
+		FL_NO_FADING		= (1<<10)
 	};
 public:
 	explicit CBeam( edict_t* pedict );

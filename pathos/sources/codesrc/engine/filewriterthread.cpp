@@ -105,14 +105,13 @@ bool FWT_AddFile( const Char* pstrFilename, const byte* pData, Uint32 dataSize, 
 //=============================================
 DWORD WINAPI FileWriterThread( LPVOID lpParam )
 {
-	writerthread_t* pThreadData = (writerthread_t*)lpParam;
+	writerthread_t* pThreadData = static_cast<writerthread_t*>(lpParam);
 
 	while(!pThreadData->exit)
 	{
 		if(WaitForSingleObject(pThreadData->exitevent, 0) == WAIT_OBJECT_0)
 		{
 			ExitThread(0);
-			return 0;
 		}
 
 		// Enter critical section
@@ -202,7 +201,7 @@ DWORD WINAPI FileWriterThread( LPVOID lpParam )
 void FWT_Con_Printf( writerthread_t* pThreadData, const Char *fmt, ... )
 {
 	va_list	vArgPtr;
-	Char cMsg[PRINT_MSG_BUFFER_SIZE];
+	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
 	
 	va_start(vArgPtr,fmt);
 	vsprintf_s(cMsg, fmt, vArgPtr);

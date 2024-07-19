@@ -86,7 +86,6 @@ public:
 protected:
 	bool m_stayPushed;
 
-	string_t m_changeTargetName;
 	string_t m_lockedTriggerTarget;
 	string_t m_pairButtonName;
 

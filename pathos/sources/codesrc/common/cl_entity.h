@@ -13,9 +13,9 @@ All Rights Reserved.
 #include "entity_state.h"
 
 // Maximum attachments on an entity
-static const Int32 MAX_ATTACHMENTS = 32;
+static constexpr Int32 MAX_ATTACHMENTS = 32;
 // Maximum previous animation states
-static const Int32 MAX_PREV_ANIMSTATES = 4;
+static constexpr Int32 MAX_PREV_ANIMSTATES = 4;
 
 struct cache_model_t;
 struct entity_extrainfo_t;
@@ -84,7 +84,7 @@ struct cl_entity_t
 	{
 	}
 
-	const Vector& getAttachment( Int32 index ) const
+	const Vector& getAttachment( const Int32 index ) const
 	{
 		if(index < 0 || index >= MAX_ATTACHMENTS)
 			return curstate.origin;

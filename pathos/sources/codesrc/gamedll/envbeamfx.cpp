@@ -29,6 +29,7 @@ CEnvBeamFX::CEnvBeamFX( edict_t* pedict ):
 	m_beamNoise(0),
 	m_noiseSpeed(0),
 	m_beamSpeed(0),
+	m_repeatMinDelay(0),
 	m_repeatMaxDelay(0),
 	m_isActive(false)
 {

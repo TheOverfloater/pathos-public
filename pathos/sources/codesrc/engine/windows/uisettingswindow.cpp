@@ -75,6 +75,14 @@ const Char CUISettingsWindow::VIDEOTAB_ANTIALIAS_LIST_OBJ_NAME[] = "AntiAliasLis
 const Char CUISettingsWindow::VIDEOTAB_VERTICAL_SYNC_LABEL_OBJ_NAME[] = "VerticalSyncLabel";
 // Video tab vertical sync dropdown list object name
 const Char CUISettingsWindow::VIDEOTAB_VERTICAL_SYNC_LIST_OBJ_NAME[] = "VerticalSyncList";
+// Video tab framebuffer object label object name
+const Char CUISettingsWindow::VIDEOTAB_FRAMEBUFFER_OBJECTS_LABEL_OBJ_NAME[] = "FramebufferObjectsLabel";
+// Video tab framebuffer object dropdown list object name
+const Char CUISettingsWindow::VIDEOTAB_FRAMEBUFFER_OBJECTS_LIST_OBJ_NAME[] = "FramebufferObjectsList";
+// Video tab high dynamic range label object name
+const Char CUISettingsWindow::VIDEOTAB_HIGH_DYNAMIC_RANGE_LABEL_OBJ_NAME[] = "HighDynamicRangeLabel";
+// Video tab high dynamic range dropdown list object name
+const Char CUISettingsWindow::VIDEOTAB_HIGH_DYNAMIC_RANGE_LIST_OBJ_NAME[] = "HighDynamicRangeList";
 // Video tab display device label object name
 const Char CUISettingsWindow::VIDEOTAB_GAMMA_LABEL_OBJ_NAME[] = "GammaLabel";
 // Video tab display resolution dropdown list object name
@@ -1168,7 +1176,7 @@ CUITabBody* CUISettingsWindow::InitVideoTab( CUITabList* pTabList, const ui_wind
 	const ui_objectinfo_t* pAnisotropyListObject = pWinDesc->getObject(UI_OBJECT_LIST, VIDEOTAB_ANISOTROPY_LIST_OBJ_NAME);
 	if(!pAnisotropyListObject)
 	{
-		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, VIDEOTAB_DISPLAY_DEVICE_LIST_OBJ_NAME);
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, VIDEOTAB_ANISOTROPY_LIST_OBJ_NAME);
 		return false;
 	}
 
@@ -1187,6 +1195,40 @@ CUITabBody* CUISettingsWindow::InitVideoTab( CUITabList* pTabList, const ui_wind
 	{
 		Con_EPrintf("Failed to initiate 'CUIDropDownList' for 'CUISettingsWindow'.\n");
 		return nullptr;
+	}
+
+	// Populate the tab
+	CTextureManager* pTextureManager = CTextureManager::GetInstance();
+
+	Uint32 nbAnisotropySettings = pTextureManager->GetNbAnisotropySettings();
+	for (Uint32 i = 0; i < nbAnisotropySettings; i++)
+	{
+		Uint32 value = pTextureManager->GetAnisotropySettingValue(i);
+
+		CString valueName;
+		if (value == CTextureManager::ANISOTROPY_OFF_VALUE)
+			valueName = "Trilinear";
+		else
+			valueName << "Anisotropic " << static_cast<Int32>(value) << "X";
+
+		pAnisotropyDropList->addChoice(valueName.c_str());
+	}
+
+	// Set the selection
+	pCVar = gConsole.GetCVar(ANISOTROPY_CVAR_NAME);
+	if (pCVar)
+	{
+		if (pCVar->GetType() != CVAR_FLOAT)
+			Con_EPrintf("CVar '%S' for 'CUISlider' object is not of float type.\n", ANISOTROPY_CVAR_NAME);
+		else
+		{
+			Int32 cvarValue = pCVar->GetValue();
+			pAnisotropyDropList->setSelection(cvarValue);
+		}
+	}
+	else
+	{
+		Con_EPrintf("CVar '%S' for 'CUISlider' not found.\n", ANISOTROPY_CVAR_NAME);
 	}
 
 	// Create the label
@@ -1210,7 +1252,7 @@ CUITabBody* CUISettingsWindow::InitVideoTab( CUITabList* pTabList, const ui_wind
 	const ui_objectinfo_t* pAntiAliasListObject = pWinDesc->getObject(UI_OBJECT_LIST, VIDEOTAB_ANTIALIAS_LIST_OBJ_NAME);
 	if(!pAntiAliasListObject)
 	{
-		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, VIDEOTAB_DISPLAY_DEVICE_LIST_OBJ_NAME);
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, VIDEOTAB_ANTIALIAS_LIST_OBJ_NAME);
 		return false;
 	}
 
@@ -1255,7 +1297,7 @@ CUITabBody* CUISettingsWindow::InitVideoTab( CUITabList* pTabList, const ui_wind
 	const ui_objectinfo_t* pVerticalSyncListObject = pWinDesc->getObject(UI_OBJECT_LIST, VIDEOTAB_VERTICAL_SYNC_LIST_OBJ_NAME);
 	if(!pVerticalSyncListObject)
 	{
-		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, VIDEOTAB_DISPLAY_DEVICE_LIST_OBJ_NAME);
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, VIDEOTAB_VERTICAL_SYNC_LIST_OBJ_NAME);
 		return false;
 	}
 
@@ -1286,38 +1328,120 @@ CUITabBody* CUISettingsWindow::InitVideoTab( CUITabList* pTabList, const ui_wind
 	else
 		pVerticalSyncDropList->setSelection(0);
 
-	// Populate the tab
-	CTextureManager* pTextureManager = CTextureManager::GetInstance();
-
-	Uint32 nbAnisotropySettings = pTextureManager->GetNbAnisotropySettings();
-	for(Uint32 i = 0; i < nbAnisotropySettings; i++)
+	// Create the label
+	const ui_objectinfo_t* pFramebufferObjectsLabelObjectInfo = pWinDesc->getObject(UI_OBJECT_TEXT, VIDEOTAB_FRAMEBUFFER_OBJECTS_LABEL_OBJ_NAME);
+	if (!pFramebufferObjectsLabelObjectInfo)
 	{
-		Uint32 value = pTextureManager->GetAnisotropySettingValue(i);
-
-		CString valueName;
-		if(value == CTextureManager::ANISOTROPY_OFF_VALUE)
-			valueName = "Trilinear";
-		else
-			valueName << "Anisotropic " << (Int32)value << "X";
-
-		pAnisotropyDropList->addChoice(valueName.c_str());
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, VIDEOTAB_FRAMEBUFFER_OBJECTS_LABEL_OBJ_NAME);
+		return false;
 	}
 
-	// Set the selection
-	pCVar = gConsole.GetCVar(ANISOTROPY_CVAR_NAME);
-	if(pCVar)
+	// Create the label
+	CUIText* pFramebufferObjectsLabel = new CUIText(pFramebufferObjectsLabelObjectInfo->getFlags(),
+		pFramebufferObjectsLabelObjectInfo->getFont(),
+		pFramebufferObjectsLabelObjectInfo->getText().c_str(),
+		pTabObject->getXInset() + pFramebufferObjectsLabelObjectInfo->getXOrigin(),
+		pTabObject->getYInset() + pFramebufferObjectsLabelObjectInfo->getYOrigin());
+
+	pFramebufferObjectsLabel->setParent(pVideoTab);
+
+	// Create the display device tab
+	const ui_objectinfo_t* pFramebufferObjectsListObject = pWinDesc->getObject(UI_OBJECT_LIST, VIDEOTAB_FRAMEBUFFER_OBJECTS_LIST_OBJ_NAME);
+	if (!pFramebufferObjectsListObject)
 	{
-		if(pCVar->GetType() != CVAR_FLOAT)
-			Con_EPrintf("CVar '%S' for 'CUISlider' object is not of float type.\n", ANISOTROPY_CVAR_NAME);
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, VIDEOTAB_FRAMEBUFFER_OBJECTS_LIST_OBJ_NAME);
+		return false;
+	}
+
+	CUIFramebufferObjectsSelectEvent* pFramebufferObjectsSelectEvent = new CUIFramebufferObjectsSelectEvent(this);
+	CUIDropDownList* pFramebufferObjectsDropList = new CUIDropDownList(pFramebufferObjectsListObject->getFlags(),
+		pFramebufferObjectsSelectEvent,
+		nullptr,
+		pFramebufferObjectsListObject->getFont(),
+		pFramebufferObjectsListObject->getWidth(),
+		pFramebufferObjectsListObject->getHeight(),
+		pTabObject->getXInset() + pFramebufferObjectsListObject->getXOrigin(),
+		pTabObject->getYInset() + pFramebufferObjectsListObject->getYOrigin());
+	pFramebufferObjectsDropList->setParent(pVideoTab);
+
+	if (!pFramebufferObjectsDropList->init(pFramebufferObjectsListObject->getSchema().c_str()))
+	{
+		Con_EPrintf("Failed to initiate 'CUIDropDownList' for 'CUISettingsWindow'.\n");
+		return nullptr;
+	}
+
+	// Populate the FBO list
+	if (gWindow.AreFBOsSupported())
+	{
+		pFramebufferObjectsDropList->addChoice("Disabled");
+		pFramebufferObjectsDropList->addChoice("Enabled");
+
+		if (gWindow.AreFBOsEnabled())
+			pFramebufferObjectsDropList->setSelection(1);
 		else
-		{
-			Int32 cvarValue = pCVar->GetValue();
-			pAnisotropyDropList->setSelection(cvarValue);
-		}
+			pFramebufferObjectsDropList->setSelection(0);
 	}
 	else
 	{
-		Con_EPrintf("CVar '%S' for 'CUISlider' not found.\n", ANISOTROPY_CVAR_NAME);
+		pFramebufferObjectsDropList->addChoice("N/A");
+	}
+
+	// Create the label
+	const ui_objectinfo_t* pHighDynamicRangeLabelObjectInfo = pWinDesc->getObject(UI_OBJECT_TEXT, VIDEOTAB_HIGH_DYNAMIC_RANGE_LABEL_OBJ_NAME);
+	if (!pHighDynamicRangeLabelObjectInfo)
+	{
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, VIDEOTAB_HIGH_DYNAMIC_RANGE_LABEL_OBJ_NAME);
+		return false;
+	}
+
+	// Create the label
+	CUIText* pHighDynamicRangeLabel = new CUIText(pHighDynamicRangeLabelObjectInfo->getFlags(),
+		pHighDynamicRangeLabelObjectInfo->getFont(),
+		pHighDynamicRangeLabelObjectInfo->getText().c_str(),
+		pTabObject->getXInset() + pHighDynamicRangeLabelObjectInfo->getXOrigin(),
+		pTabObject->getYInset() + pHighDynamicRangeLabelObjectInfo->getYOrigin());
+
+	pHighDynamicRangeLabel->setParent(pVideoTab);
+
+	// Create the display device tab
+	const ui_objectinfo_t* pHighDynamicRangeListObject = pWinDesc->getObject(UI_OBJECT_LIST, VIDEOTAB_HIGH_DYNAMIC_RANGE_LIST_OBJ_NAME);
+	if (!pHighDynamicRangeListObject)
+	{
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, VIDEOTAB_HIGH_DYNAMIC_RANGE_LIST_OBJ_NAME);
+		return false;
+	}
+
+	CUIHighDynamicRangeSelectEvent* pHighDynamicRangeSelectEvent = new CUIHighDynamicRangeSelectEvent(this);
+	CUIDropDownList* pHighDynamicRangeDropList = new CUIDropDownList(pHighDynamicRangeListObject->getFlags(),
+		pHighDynamicRangeSelectEvent,
+		nullptr,
+		pHighDynamicRangeListObject->getFont(),
+		pHighDynamicRangeListObject->getWidth(),
+		pHighDynamicRangeListObject->getHeight(),
+		pTabObject->getXInset() + pHighDynamicRangeListObject->getXOrigin(),
+		pTabObject->getYInset() + pHighDynamicRangeListObject->getYOrigin());
+	pHighDynamicRangeDropList->setParent(pVideoTab);
+
+	if (!pHighDynamicRangeDropList->init(pHighDynamicRangeListObject->getSchema().c_str()))
+	{
+		Con_EPrintf("Failed to initiate 'CUIDropDownList' for 'CUISettingsWindow'.\n");
+		return nullptr;
+	}
+
+	// Populate the HDR list
+	if (gWindow.AreFBOsSupported())
+	{
+		pHighDynamicRangeDropList->addChoice("Disabled");
+		pHighDynamicRangeDropList->addChoice("Enabled");
+
+		if (gWindow.IsHDREnabled())
+			pHighDynamicRangeDropList->setSelection(1);
+		else
+			pHighDynamicRangeDropList->setSelection(0);
+	}
+	else
+	{
+		pHighDynamicRangeDropList->addChoice("N/A");
 	}
 
 	return pVideoTab;
@@ -1558,7 +1682,7 @@ void CUISettingsWindow::PopulateResolutions( Int32 deviceIndex )
 		gWindow.GetResolutionInfo(deviceIndex, i, width, height);
 
 		CString strResChoice;
-		strResChoice << (Int32)width << "x" << (Int32)height;
+		strResChoice << static_cast<Int32>(width) << "x" << static_cast<Int32>(height);
 
 		m_pResolutionDropList->addChoice(strResChoice.c_str());
 
@@ -1956,7 +2080,7 @@ CUITabBody* CUISettingsWindow::InitMouseTab( CUITabList* pTabList, const ui_wind
 			pFilterFramesSlider->setValue(value);
 
 			Char szValue[64];
-			sprintf(szValue, "%d", (Int32)value);
+			sprintf_s(szValue, "%d", static_cast<Int32>(value));
 
 			m_pFilterFramesValueText->setText(szValue);
 		}
@@ -2672,7 +2796,7 @@ void CUISettingsWindow::SelectDevice( Int32 deviceIndex )
 
 	// Add the command to the queue
 	CString cmd;
-	cmd << "_vid_setdisplay " << (Int32)deviceIndex;
+	cmd << "_vid_setdisplay " << static_cast<Int32>(deviceIndex);
 
 	AddPendingSetting("Video.DisplayDevice", cmd.c_str());
 	PopulateResolutions(deviceIndex);
@@ -2680,6 +2804,36 @@ void CUISettingsWindow::SelectDevice( Int32 deviceIndex )
 
 	if(!m_bResetVideo)
 		m_bResetVideo = true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CUISettingsWindow::SelectHighDynamicRangeSetting(Int32 setting)
+{
+	// Add the command to the queue
+	CString cmd;
+	cmd << "_vid_sethdrenabled " << static_cast<Int32>(setting);
+
+	AddPendingSetting("Video.HighDynamicRange", cmd.c_str());
+
+	m_bResetVideo = true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CUISettingsWindow::SelectFramebufferObjectsSetting(Int32 setting)
+{
+	// Add the command to the queue
+	CString cmd;
+	cmd << "_vid_setfboenabled " << static_cast<Int32>(setting);
+
+	AddPendingSetting("Video.FramebufferObjects", cmd.c_str());
+
+	m_bResetVideo = true;
 }
 
 //=============================================
@@ -2697,11 +2851,11 @@ void CUISettingsWindow::SelectResolution( Int32 resIndex )
 
 	// Add the commands to the queue
 	CString cmd;
-	cmd << "_vid_setwidth " << (Int32)width;
+	cmd << "_vid_setwidth " << static_cast<Int32>(width);
 	AddPendingSetting("Video.ScreenWidth", cmd.c_str());
 
 	cmd.clear();
-	cmd << "_vid_setheight " << (Int32)height;
+	cmd << "_vid_setheight " << static_cast<Int32>(height);
 	AddPendingSetting("Video.ScreenHeight", cmd.c_str());
 
 	// Set current resolution
@@ -2738,7 +2892,7 @@ void CUISettingsWindow::SelectWindowMode( Int32 modeIdx )
 void CUISettingsWindow::SelectAnisotropy( Int32 anisotropyIdx )
 {
 	// Make sure it's valid
-	if(anisotropyIdx < 0 || anisotropyIdx >= (Int32)CTextureManager::GetInstance()->GetNbAnisotropySettings())
+	if(anisotropyIdx < 0 || anisotropyIdx >= static_cast<Int32>(CTextureManager::GetInstance()->GetNbAnisotropySettings()))
 		return;
 
 	// Add command to queue
@@ -2760,7 +2914,7 @@ void CUISettingsWindow::SelectAntiAliasSetting( Int32 msaaSetting )
 
 	// Add command to queue
 	CString cmd;
-	cmd << "_vid_setmsaa " << (Int32)msaaSetting;
+	cmd << "_vid_setmsaa " << static_cast<Int32>(msaaSetting);
 	AddPendingSetting("Video.SetMSAA", cmd.c_str());
 
 	if(!m_bResetVideo)
@@ -2881,7 +3035,7 @@ bool CUIBindsRowEvent::MouseButtonEvent( Int32 mouseX, Int32 mouseY, Int32 butto
 
 	if(keyDown)
 	{
-		Float interval = (Float)ens.time - m_lastClickTime;
+		Float interval = static_cast<Float>(ens.time) - m_lastClickTime;
 		if(interval < 0.5)
 		{
 			// Enter bind mode
@@ -3067,7 +3221,7 @@ void CUISliderAdjustEvent::PerformAction( Float param )
 	else if(!qstrcmp(m_cvarName, MOUSE_FILTER_FRAMES_CVAR_NAME))
 	{
 		Char szValue[64];
-		sprintf(szValue, "%d", (Int32)param);
+		sprintf(szValue, "%d", static_cast<Int32>(param));
 		m_pWindow->SetMouseFilterFramesTabText(szValue);
 	}
 	else if(!qstrcmp(m_cvarName, VIEW_ROLL_CVAR_NAME))
@@ -3082,4 +3236,28 @@ void CUISliderAdjustEvent::PerformAction( Float param )
 		sprintf(szValue, "%0.1f", param);
 		m_pWindow->SetViewBobTabText(szValue);
 	}
+}
+
+//=============================================
+// @brief Peforms the action of the button
+//
+//=============================================
+void CUIHighDynamicRangeSelectEvent::PerformAction(Float param)
+{
+	if (!m_pWindow)
+		return;
+
+	m_pWindow->SelectHighDynamicRangeSetting(param);
+}
+
+//=============================================
+// @brief Peforms the action of the button
+//
+//=============================================
+void CUIFramebufferObjectsSelectEvent::PerformAction(Float param)
+{
+	if (!m_pWindow)
+		return;
+
+	m_pWindow->SelectFramebufferObjectsSetting(param);
 }

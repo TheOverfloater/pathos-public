@@ -90,7 +90,7 @@ void CEdictManager::ClearEdicts( void )
 		if(pedict->free)
 			continue;
 
-		FreeEdict(pedict);
+		FreeEdict(pedict, EDICT_REMOVED_GAMECLEAR);
 	}
 
 	m_numEdicts = svs.maxclients+1;
@@ -172,7 +172,7 @@ bool CEdictManager::LoadEntities( const Char* pstrEntdata )
 				Float flvalue = SDL_atof(value);
 				if(flvalue >= 0.0)
 					sprintf(value, "0 %f 0", flvalue);
-				else if((Int32)flvalue == -1)
+				else if(static_cast<Int32>(flvalue) == -1)
 					qstrcpy(value, "-90 0 0");
 				else
 					qstrcpy(value, "90 0 0");
@@ -207,7 +207,7 @@ bool CEdictManager::LoadEntities( const Char* pstrEntdata )
 			if(svs.promptshashlist.addhash(pdata, entity.classname.length()))
 				Con_Printf("Failed to allocate private data for entity '%s'.\n", entity.classname.c_str());
 
-			FreeEdict(pedict);
+			FreeEdict(pedict, EDICT_REMOVED_AT_INIT);
 			continue;
 		}
 
@@ -236,7 +236,7 @@ bool CEdictManager::LoadEntities( const Char* pstrEntdata )
 			Con_DPrintf(msg.c_str());
 
 			// Release the edict
-			FreeEdict(pedict);
+			FreeEdict(pedict, EDICT_REMOVED_AT_SPAWN);
 			continue;
 		}
 	}
@@ -258,7 +258,7 @@ edict_t* CEdictManager::CreateEntity( const Char* pstrClassname )
 	if(!SV_InitPrivateData(pedict, pstrClassname))
 	{
 		Con_Printf("Failed to initialize entity '%s'.\n", pstrClassname);
-		FreeEdict(pedict);
+		FreeEdict(pedict, EDICT_REMOVED_AT_INIT);
 		return nullptr;
 	}
 
@@ -288,7 +288,7 @@ edict_t* CEdictManager::CreatePlayerEntity( Uint32 player_index )
 	if(!SV_InitPrivateData(pedict, "player"))
 	{
 		Con_Printf("Failed to initialize player entity.\n");
-		FreeEdict(pedict);
+		FreeEdict(pedict, EDICT_REMOVED_AT_INIT);
 		return nullptr;
 	}
 
@@ -325,7 +325,8 @@ edict_t* CEdictManager::AllocEdict( void )
 		edict_t* pedict = GetEdict(i);
 
 		// Avoid taking edicts during level start or too early
-		if(pedict->free && (pedict->freetime <= 2 || svs.time - pedict->freetime >= 0.5))
+		if(pedict->free && (pedict->freetime <= 2 
+			|| svs.time - pedict->freetime >= 0.5))
 		{
 			// Clear this edict
 			ClearEdict(pedict);
@@ -358,7 +359,7 @@ edict_t* CEdictManager::AllocEdict( void )
 // @brief
 //
 //=============================================
-void CEdictManager::FreeEdict( edict_t* pedict )
+void CEdictManager::FreeEdict( edict_t* pedict, edict_removed_t freeMode )
 {
 	for(Uint32 i = 0; i < m_numEdicts; i++)
 	{
@@ -374,7 +375,7 @@ void CEdictManager::FreeEdict( edict_t* pedict )
 	// clear private data with game dll
 	if(pedict->pprivatedata)
 	{
-		svs.dllfuncs.pfnFreeEntity(pedict);
+		svs.dllfuncs.pfnFreeEntity(pedict, freeMode);
 		pedict->pprivatedata = nullptr;
 	}
 
@@ -426,7 +427,7 @@ edict_t* CEdictManager::GetEdict( Int32 index )
 	if(index == NO_ENTITY_INDEX)
 		return nullptr;
 
-	if(index >= 0 && index >= (Int32)m_edictsArray.size())
+	if(index >= 0 && index >= static_cast<Int32>(m_edictsArray.size()))
 	{
 		Con_EPrintf("Invalid edict index '%d'.\n", index);
 		return nullptr;

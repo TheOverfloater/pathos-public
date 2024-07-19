@@ -20,7 +20,9 @@ LINK_ENTITY_TO_CLASS(env_decal, CEnvDecal);
 //=============================================
 CEnvDecal::CEnvDecal( edict_t* pedict ):
 	CPointEntity(pedict),
-	m_isActive(false)
+	m_isActive(false),
+	m_spawnTime(0),
+	m_growthTime(0)
 {
 }
 
@@ -42,6 +44,8 @@ void CEnvDecal::DeclareSaveFields( void )
 	CPointEntity::DeclareSaveFields();
 	
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvDecal, m_isActive, EFIELD_BOOLEAN));
+	DeclareSaveField(DEFINE_DATA_FIELD(CEnvDecal, m_spawnTime, EFIELD_TIME));
+	DeclareSaveField(DEFINE_DATA_FIELD(CEnvDecal, m_growthTime, EFIELD_FLOAT));
 }
 
 //=============================================
@@ -83,6 +87,10 @@ bool CEnvDecal::Spawn( void )
 			return false;
 		}
 
+		// Make sure this is set
+		if(m_pFields->targetname == NO_STRING_VALUE)
+			m_spawnTime = g_pGameVars->time;
+
 		// Set the new decal name
 		m_pFields->message = gd_engfuncs.pfnAllocString(pentry->name.c_str());
 	}
@@ -115,6 +123,21 @@ Int32 CEnvDecal::GetEntityFlags( void )
 }
 
 //=============================================
+// @brief Manages keyvalues
+//
+//=============================================
+bool CEnvDecal::KeyValue( const keyvalue_t& kv )
+{
+	if(!qstrcmp(kv.keyname, "growthtime"))
+	{
+		m_growthTime = SDL_atof(kv.value);
+		return true;
+	}
+	else
+		return CPointEntity::KeyValue(kv);
+}
+
+//=============================================
 // @brief
 //
 //=============================================
@@ -124,6 +147,8 @@ void CEnvDecal::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_
 		return;
 
 	m_isActive = true;
+	m_spawnTime = g_pGameVars->time;
+
 	SendInitMessage(nullptr);
 }
 
@@ -136,7 +161,13 @@ void CEnvDecal::SendInitMessage( const CBaseEntity* pPlayer )
 	if(!m_isActive)
 		return;
 
+	Float growthTime = 0;
 	Uint16 flags = FL_DECAL_PERSISTENT|FL_DECAL_SERVER;
+	if(m_spawnTime + m_growthTime > g_pGameVars->time)
+	{
+		flags |= FL_DECAL_GROW;
+		growthTime = m_growthTime - (g_pGameVars->time - m_spawnTime);
+	}
 
 	trace_t tr;
 	for(Uint32 i = 0; i < 3; i++)
@@ -198,6 +229,9 @@ void CEnvDecal::SendInitMessage( const CBaseEntity* pPlayer )
 			
 	if(flags & FL_DECAL_TIED_TO_ENTITY)
 		gd_engfuncs.pfnMsgWriteInt32(tr.hitentity);
+
+	if(flags & FL_DECAL_GROW)
+		gd_engfuncs.pfnMsgWriteSmallFloat(growthTime);
 
 	gd_engfuncs.pfnUserMessageEnd();
 }

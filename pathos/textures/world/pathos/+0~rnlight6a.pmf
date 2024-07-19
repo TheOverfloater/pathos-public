@@ -3,6 +3,6 @@ $texture
 	$int_width 16
 	$int_height 16
 	$container pathos.wad
-	$material concrete
+	$material metal
 	$texture diffuse +0~rnlight6a
 }

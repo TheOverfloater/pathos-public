@@ -13,7 +13,7 @@ All Rights Reserved.
 #include "networking.h"
 
 // Usermsg buffer allocation size
-static const Uint32 USERMSG_ALLOC_SIZE = 512;
+static constexpr Uint32 USERMSG_ALLOC_SIZE = 512;
 
 struct usermsg_t
 {

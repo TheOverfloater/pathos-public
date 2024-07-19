@@ -579,7 +579,7 @@ void CConfig::ReadSystemConfigFile( void )
 		field_type_t stype = CONF_FIELD_INT;
 		for(Uint32 i = 0; i < strValue.length(); i++)
 		{
-			if(!SDL_isdigit((Uchar)strValue[i]) && (strValue[i] != '.' || stype == CONF_FIELD_FLOAT))
+			if(!SDL_isdigit(static_cast<Uchar>(strValue[i])) && (strValue[i] != '.' || stype == CONF_FIELD_FLOAT))
 			{
 				stype = CONF_FIELD_STRING;
 				break;
@@ -602,7 +602,7 @@ void CConfig::ReadSystemConfigFile( void )
 		if(stype == CONF_FIELD_INT)
 			SetValue(pgrp, strFieldName.c_str(), SDL_atoi(strValue.c_str()), true);
 		else if(stype == CONF_FIELD_FLOAT)
-			SetValue(pgrp, strFieldName.c_str(), (Float)SDL_atof(strValue.c_str()), true);
+			SetValue(pgrp, strFieldName.c_str(), static_cast<Float>(SDL_atof(strValue.c_str()), true));
 		else if(stype == CONF_FIELD_STRING)
 			SetValue(pgrp, strFieldName.c_str(), strValue.c_str(), true);
 

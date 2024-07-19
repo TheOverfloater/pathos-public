@@ -27,7 +27,8 @@ CEnvBlackHole::CEnvBlackHole( edict_t* pedict ):
 	m_rotationSpeed(0),
 	m_growthTime(0),
 	m_shrinkTime(0),
-	m_lifeTime(0)
+	m_lifeTime(0),
+	m_spawnTime(0)
 {
 }
 

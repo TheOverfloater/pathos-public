@@ -169,7 +169,7 @@ void CNetworking::SVC_MessageBegin( msgdest_t dest, Uint32 type, const edict_t* 
 		}
 
 		// Make sure it's a valid client, if we have an edict
-		if(pedict->entindex < 1 || pedict->entindex > (Int32)svs.maxclients)
+		if(pedict->entindex < 1 || pedict->entindex > static_cast<Int32>(svs.maxclients))
 		{
 			Con_EPrintf("%s: Not a client.\n", __FUNCTION__);
 			return;
@@ -212,7 +212,7 @@ void CNetworking::SVC_MessageBegin( msgdest_t dest, Uint32 type, const edict_t* 
 	m_pCurrentMessage->msg_size = sizeof(msgheader_t);
 
 	// Set basics
-	msgheader_t* phdr = (msgheader_t*)((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
+	msgheader_t* phdr = reinterpret_cast<msgheader_t*>((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
 	phdr->msgid = m_nbSVCMessagesSent;
 	phdr->msgsize = 0;
 	phdr->flags = flags;
@@ -238,7 +238,7 @@ bool CNetworking::SVC_MessageEnd_Local( void )
 	pcache->num_msg++;
 
 	// Set the header data
-	msgheader_t* phdr = (msgheader_t*)((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
+	msgheader_t* phdr = reinterpret_cast<msgheader_t*>((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
 	phdr->msgsize = m_pCurrentMessage->msg_size;
 
 	m_nbSVCMessagesRecieved++;
@@ -340,7 +340,7 @@ void CNetworking::CLS_MessageBegin( Uint32 type, Int32 flags )
 	m_pCurrentMessage->msg_size += sizeof(msgheader_t);
 
 	// Set the header info
-	msgheader_t* phdr = (msgheader_t*)((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
+	msgheader_t* phdr = reinterpret_cast<msgheader_t*>((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
 	phdr->msgid = m_nbCLSMessagesSent;
 	phdr->msgsize = 0;
 	phdr->flags = flags;
@@ -372,7 +372,7 @@ bool CNetworking::CLS_MessageEnd_Local( void )
 	pcache->bufferdatasize += m_pCurrentMessage->msg_size;
 
 	// Set the header data
-	msgheader_t* phdr = (msgheader_t*)((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
+	msgheader_t* phdr = reinterpret_cast<msgheader_t*>((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
 	phdr->msgsize = m_pCurrentMessage->msg_size;
 
 	m_nbCLSMessagesRecieved++;
@@ -488,7 +488,7 @@ void CNetworking::WriteChar( Char value )
 
 	CheckBuffer((*m_pCurrentMessage), sizeof(value));
 
-	Char* pdata = (Char*)(*m_pCurrentMessage->pmsg_base) 
+	Char* pdata = reinterpret_cast<Char*>(*m_pCurrentMessage->pmsg_base) 
 		+ m_pCurrentMessage->msg_offset
 		+ m_pCurrentMessage->msg_size;
 
@@ -619,7 +619,7 @@ void CNetworking::WriteSmallFloat( Float value )
 	if(!m_pCurrentMessage)
 		return;
 
-	Int16 intvalue = (Int16)SDL_floor(value * 8);
+	Int16 intvalue = static_cast<Int16>(SDL_floor(value * 8));
 	WriteInt16(intvalue);
 }
 
@@ -716,7 +716,7 @@ void CNetworking::WriteString( const Char* pstring )
 		+ m_pCurrentMessage->msg_size;
 
 	for(Uint32 i = 0; i < stringlength; i++)
-		pdest[i] = (byte)pstring[i];
+		pdest[i] = static_cast<byte>(pstring[i]);
 		
 	m_pCurrentMessage->msg_size += stringlength;
 }
@@ -735,13 +735,13 @@ void CNetworking::CheckBuffer( net_msg_t& msg, Uint32 size )
 	Uint32 memNeeded = finalSize - ((*msg.pmsg_bufsize) - msg.msg_size);
 	if(memNeeded > MSG_DATA_BUFFER_ALLOC_SIZE)
 	{
-		Float nbTimes = (Float)((Float)memNeeded/(Float)MSG_DATA_BUFFER_ALLOC_SIZE);
-		multiplier = (Int32)ceil(nbTimes);
+		Float nbTimes = static_cast<Float>(static_cast<Float>(memNeeded)/ static_cast<Float>(MSG_DATA_BUFFER_ALLOC_SIZE));
+		multiplier = static_cast<Int32>(SDL_ceil(nbTimes));
 	}
 
 	// Resize the message data buffer
 	void* pmsgbuffer = Common::ResizeArray((*msg.pmsg_base), sizeof(byte), (*msg.pmsg_bufsize), MSG_DATA_BUFFER_ALLOC_SIZE*multiplier);
-	(*msg.pmsg_base) = reinterpret_cast<byte*>(pmsgbuffer);
+	(*msg.pmsg_base) = static_cast<byte*>(pmsgbuffer);
 	(*msg.pmsg_bufsize) = (*msg.pmsg_bufsize) + MSG_DATA_BUFFER_ALLOC_SIZE*multiplier;
 }
 

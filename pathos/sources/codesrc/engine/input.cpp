@@ -224,7 +224,7 @@ bool CInput::LoadKeyNames( void )
 		
 		// Get the scancode from the file
 		Int32 keyIndex = SDL_atoi(sdlScancode.c_str());
-		if(keyIndex < 0 || (Uint32)keyIndex >= m_keyInfoArray.size())
+		if(keyIndex < 0 || static_cast<Uint32>(keyIndex) >= m_keyInfoArray.size())
 		{
 			Con_EPrintf("Line %d in %s has an invalid scancode value.\n", lineNum, filename.c_str());
 			FL_FreeFile(pfile);
@@ -248,7 +248,7 @@ bool CInput::LoadKeyNames( void )
 
 		if(keyInfo.name.empty())
 		{
-			SDL_Keycode sdlKeycode = SDL_GetKeyFromScancode((SDL_Scancode)i);
+			SDL_Keycode sdlKeycode = SDL_GetKeyFromScancode(static_cast<SDL_Scancode>(i));
 			keyInfo.name = SDL_GetKeyName(sdlKeycode);
 			keyInfo.color = color32_t(255, 255, 255, 255);
 		}
@@ -263,7 +263,7 @@ bool CInput::LoadKeyNames( void )
 		if(keyInfo.name.empty())
 		{
 			CString sBtnName;
-			sBtnName << "MOUSE" << (Int32)(i+1);
+			sBtnName << "MOUSE" << static_cast<Int32>(i+1);
 
 			keyInfo.name = sBtnName;
 			keyInfo.color = color32_t(255, 255, 255, 255);
@@ -495,7 +495,7 @@ void CInput::KeyEvent( Int32 button, Int16 mod, bool keyDown )
 		return;
 
 	// Get SDL Keycode
-	SDL_Keycode sdlKeycode = SDL_GetKeyFromScancode((SDL_Scancode)button);
+	SDL_Keycode sdlKeycode = SDL_GetKeyFromScancode(static_cast<SDL_Scancode>(button));
 
 	// Reset this
 	if(keyDown)
@@ -519,7 +519,7 @@ void CInput::KeyEvent( Int32 button, Int16 mod, bool keyDown )
 		if(keyBinding[0] == '+')
 		{
 			CString keyCommand;
-			keyCommand << '-' << keyBinding.c_str()+1 << " " << (Int32)button;
+			keyCommand << '-' << keyBinding.c_str()+1 << " " << static_cast<Int32>(button);
 			
 			// Add it to the buffer
 			gCommands.AddCommand(keyCommand.c_str());
@@ -532,7 +532,7 @@ void CInput::KeyEvent( Int32 button, Int16 mod, bool keyDown )
 		if(keyBinding[0] == '+')
 		{
 			CString keyCommand;
-			keyCommand << keyBinding.c_str() << " " << (Int32)button;
+			keyCommand << keyBinding.c_str() << " " << static_cast<Int32>(button);
 			
 			// Add it to the buffer
 			gCommands.AddCommand(keyCommand.c_str());
@@ -598,7 +598,7 @@ void CInput::MouseButtonEvent( Int32 button, bool keyDown )
 	if(!keyDown && keyBinding[0] == '+')
 	{
 		CString keyCommand;
-		keyCommand << '-' << keyBinding.c_str()+1 << " " << (Int32)keyinfoIdx;
+		keyCommand << '-' << keyBinding.c_str()+1 << " " << static_cast<Int32>(keyinfoIdx);
 			
 		// Add it to the buffer
 		gCommands.AddCommand(keyCommand.c_str());
@@ -608,7 +608,7 @@ void CInput::MouseButtonEvent( Int32 button, bool keyDown )
 		if(keyBinding[0] == '+')
 		{
 			CString keyCommand;
-			keyCommand << keyBinding.c_str() << " " << (Int32)keyinfoIdx;
+			keyCommand << keyBinding.c_str() << " " << static_cast<Int32>(keyinfoIdx);
 			
 			// Add it to the buffer
 			gCommands.AddCommand(keyCommand.c_str());
@@ -674,7 +674,7 @@ void CInput::MouseWheelEvent( Int32 button, bool keyDown, Int32 scroll )
 	if(!keyDown && keyBinding[0] == '+')
 	{
 		CString keyCommand;
-		keyCommand << '-' << keyBinding.c_str()+1 << " " << (Int32)keyinfoIdx;
+		keyCommand << '-' << keyBinding.c_str()+1 << " " << static_cast<Int32>(keyinfoIdx);
 			
 		// Add it to the buffer
 		gCommands.AddCommand(keyCommand.c_str());
@@ -684,7 +684,7 @@ void CInput::MouseWheelEvent( Int32 button, bool keyDown, Int32 scroll )
 		if(keyBinding[0] == '+')
 		{
 			CString keyCommand;
-			keyCommand << keyBinding.c_str() << " " << (Int32)keyinfoIdx;
+			keyCommand << keyBinding.c_str() << " " << static_cast<Int32>(keyinfoIdx);
 			
 			// Add it to the buffer
 			gCommands.AddCommand(keyCommand.c_str());
@@ -745,13 +745,13 @@ void CInput::GetMouseDelta( Int32 &deltaX, Int32 &deltaY )
 	Uint32 winWidth = gWindow.GetWidth();
 	if(m_mousePosition[0] < 0)
 		m_mousePosition[0] = 0;
-	else if(m_mousePosition[0] > (Int32)winWidth)
+	else if(m_mousePosition[0] > static_cast<Int32>(winWidth))
 		m_mousePosition[0] = winWidth;
 
 	Uint32 winHeight = gWindow.GetHeight();
 	if(m_mousePosition[1] < 0)
 		m_mousePosition[1] = 0;
-	else if(m_mousePosition[1] > (Int32)winHeight)
+	else if(m_mousePosition[1] > static_cast<Int32>(winHeight))
 		m_mousePosition[1] = winHeight;
 
 	// Reposition mouse on center
@@ -810,13 +810,13 @@ void CInput::UpdateMousePositions( bool clearReset )
 	Uint32 winWidth = gWindow.GetWidth();
 	if(m_mousePosition[0] < 0)
 		m_mousePosition[0] = 0;
-	else if(m_mousePosition[0] > (Int32)winWidth)
+	else if(m_mousePosition[0] > static_cast<Int32>(winWidth))
 		m_mousePosition[0] = winWidth;
 
 	Uint32 winHeight = gWindow.GetHeight();
 	if(m_mousePosition[1] < 0)
 		m_mousePosition[1] = 0;
-	else if(m_mousePosition[1] > (Int32)winHeight)
+	else if(m_mousePosition[1] > static_cast<Int32>(winHeight))
 		m_mousePosition[1] = winHeight;
 
 	// Reposition mouse on center

@@ -112,6 +112,12 @@ void CTriggerSubwayFlagger::CallUse( CBaseEntity* pActivator, CBaseEntity* pCall
 	case SW_FLAG_HACKED:
 		flag = FL_SUBWAY_DISABLED;
 		break;
+	case SW_FLAG_KASSAR_ST:
+		flag = FL_SUBWAY_GOT_KASSARST;
+		break;
+	case SW_FLAG_AIELLO_ST:
+		flag = FL_SUBWAY_GOT_AIELLOST;
+		break;
 	default:
 		gd_engfuncs.pfnClientPrintf(pEntity->GetEdict(), "Unknown subway flag %d.\n", m_flag);
 	}

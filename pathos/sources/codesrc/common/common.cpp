@@ -79,6 +79,12 @@ namespace Common
 	//=============================================
 	const Char* Parse( const Char *pstr, Char* pdest, const Char* pbreakchars, bool ignoreComma, bool checkCurlyBrackets )
 	{
+		if (!pdest)
+			return nullptr;
+
+		if (!pstr)
+			return nullptr;
+
 		bool includeSpaces = false;
 		Uint32 strLength = 0;
 		const Char* ppstr = pstr;
@@ -221,7 +227,7 @@ namespace Common
 	//=============================================
 	CString GetDate( void )
 	{
-		time_t curtime = time(0);
+		const time_t curtime = time(0);
 		struct tm tstruct;
 		Char buffer[80];
 		tstruct = *localtime(&curtime);
@@ -242,7 +248,7 @@ namespace Common
 	//=============================================
 	void *ResizeArray( void *parray, Uint64 size, Uint64 count, Uint64 countNew )
 	{
-		Uint64 allocSize = size*(count+countNew);
+		const Uint64 allocSize = size*(count+countNew);
 		byte *pnew = new byte[allocSize]();
 
 		if(parray && count)
@@ -280,8 +286,8 @@ namespace Common
 		Uint32 lastdot = 0;
 		Uint32 lastbar = 0;
 		Uint32 pathlength = 0;
-
-		for(Uint32 i = 0; i < (Uint32)qstrlen(pstrin); i++)
+		
+		for(Uint32 i = 0; i < static_cast<Uint32>(qstrlen(pstrin)); i++)
 		{
 			if(pstrin[i] == '/' || pstrin[i] == '\\')
 				lastbar = i+1;
@@ -427,7 +433,7 @@ namespace Common
 	//=============================================
 	Int32 IsPitchReversed( Float pitch )
 	{
-		Int32 quadrant = Int32(pitch / 90) % 4;
+		const Int32 quadrant = static_cast<Int32>(pitch / 90) % 4;
 		if ((quadrant == 1) || (quadrant == 2)) 
 			return -1;
 	
@@ -465,11 +471,11 @@ namespace Common
 	//=============================================
 	Float RandomFloat( Float low, Float high )
 	{
-		const Int32 floatRandomMaxResolution = 1000;
-		Int32 randomvalue = rand() % floatRandomMaxResolution;
+		constexpr Int32 floatRandomMaxResolution = 1000;
+		const Int32 randomvalue = rand() % floatRandomMaxResolution;
 
 		// Constrict to 0-1 range first
-		Float value = (Float)randomvalue / (Float)floatRandomMaxResolution;
+		Float value = static_cast<Float>(randomvalue) / static_cast<Float>(floatRandomMaxResolution);
 		// Then to the range of low-high
 		value = value * (high - low) + low;
 
@@ -485,8 +491,8 @@ namespace Common
 	//=============================================
 	Int64 RandomLong( Int64 low, Int64 high )
 	{
-		Int64 valueRange = high - low;
-		Int64 randomvalue = rand() % (valueRange+1);
+		const Int64 valueRange = high - low;
+		const Int64 randomvalue = rand() % (valueRange+1);
 
 		return randomvalue + low;
 	}

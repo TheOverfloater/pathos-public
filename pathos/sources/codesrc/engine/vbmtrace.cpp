@@ -112,7 +112,8 @@ bool TR_VBMCheckHullInfo( entity_vbmhulldata_t* pdata, const cache_model_t* pmod
 			return false;
 	}
 
-	if(!Math::VectorCompare(pdata->origin, state.origin) || !Math::VectorCompare(pdata->angles, state.angles))
+	if(!Math::VectorCompare(pdata->origin, state.origin) 
+		|| !Math::VectorCompare(pdata->angles, state.angles))
 		return false;
 
 	return true;
@@ -132,7 +133,9 @@ void TR_VBMSetupBones( entity_vbmhulldata_t* phulldata, const studiohdr_t* pstud
 		g_rotationMatrix[i][3] = state.origin[i];
 
 	// Apply scale to models that require it
-	if((state.renderfx == RenderFx_ScaledModel || state.renderfx == RenderFx_InPortalScaledModel) && state.scale != 0)
+	if((state.renderfx == RenderFx_ScaledModel 
+		|| state.renderfx == RenderFx_InPortalScaledModel 
+		|| state.renderfx == RenderFx_SkyEntScaled) && state.scale != 0)
 	{
 		for(Uint32 i = 0; i < 3; i++)
 		{
@@ -331,7 +334,7 @@ void TR_VBMSetHullInfo( entity_vbmhulldata_t*& pdataptr, const cache_model_t* pm
 		if(!pdataptr->hulls[hullindex].hullset)
 		{
 			// Initialize only the relevant hull
-			TR_VBMInitHulls(pstudiohdr, (hull_types_t)hullindex, *pdataptr);
+			TR_VBMInitHulls(pstudiohdr, static_cast<hull_types_t>(hullindex), *pdataptr);
 		}
 
 		if(!statematches)

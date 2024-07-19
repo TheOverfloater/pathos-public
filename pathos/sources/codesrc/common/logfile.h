@@ -65,5 +65,8 @@ private:
 	pfnConPrintf_t m_pfnConPrintf;
 	// File interface fns
 	file_interface_t m_fileInterface;
+
+	// Temporary write buffer
+	Char* m_pTempWriteBuffer;
 };
 #endif //CLOGFILE_H

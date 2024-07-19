@@ -352,7 +352,7 @@ bool CSkyRenderer::DrawSky( void )
 	fog_settings_t savedfog;
 	bool drawskybox = false;
 
-	if(rns.sky.skybox && !rns.fog.settings.affectsky && !rns.water_skydraw)
+	if(rns.sky.skybox && !rns.fog.settings.affectsky && !rns.water_skydraw && !rns.portalpass)
 	{
 		Vector vorigin;
 		Math::VectorCopy(rns.view.v_origin, vsavedorigin);
@@ -469,7 +469,7 @@ bool CSkyRenderer::DrawSky( void )
 		m_pVBO->UnBind();
 	}
 
-	if(drawskybox && !rns.water_skydraw)
+	if(drawskybox && !rns.water_skydraw && !rns.portalpass)
 	{
 		rns.view.modelview.PushMatrix();
 		rns.view.modelview.LoadIdentity();
@@ -526,7 +526,7 @@ bool CSkyRenderer::DrawSky( void )
 	}
 
 	// Lastly, draw a fullscreen square for fog blending
-	if(rns.fog.blendtime && rns.sky.skybox)
+	if(rns.fog.blendtime && rns.sky.drawsky)
 	{
 		if(!rns.fog.blend1.affectsky && !rns.fog.blend2.affectsky)
 			return true;
@@ -662,7 +662,7 @@ Int32 CSkyRenderer::FindSkySet( Int32 skysetindex )
 	if(i == m_skySetsArray.size())
 		return NO_POSITION;
 	else
-		return (Int32)i;
+		return static_cast<Int32>(i);
 }
 
 //====================================

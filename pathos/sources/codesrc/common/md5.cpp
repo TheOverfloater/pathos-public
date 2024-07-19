@@ -76,7 +76,10 @@ void CMD5::Init( void )
 void CMD5::Decode( Uint32 *poutput, const byte *pinput, Uint32 length )
 {
 	for(Uint32 i = 0, j = 0; j < length; i++, j += 4)
-		poutput[i] = ((Uint32)pinput[j]) | (((Uint32)pinput[j+1]) << 8) | (((Uint32)pinput[j+2]) << 16) | (((Uint32)pinput[j+3]) << 24);
+		poutput[i] = (static_cast<Uint32>(pinput[j])) 
+		| (static_cast<Uint32>(pinput[j+1]) << 8)
+		| (static_cast<Uint32>(pinput[j+2]) << 16)
+		| (static_cast<Uint32>(pinput[j+3]) << 24);
 }
 
 //=============================================
@@ -205,7 +208,7 @@ void CMD5::Update( const byte *pinput, Uint32 length )
 	m_count[1] += (length >> 29);
  
 	// number of bytes we need to fill in m_buffer
-	Uint32 firstpart = 64 - index;
+	const Uint32 firstpart = 64 - index;
 	Uint32 i;
  
 	// transform as many times as possible.
@@ -247,8 +250,8 @@ CMD5& CMD5::Finalize()
 		Encode(bits, m_count, 8);
  
 		// pad out to 56 mod 64.
-		Uint32 index = m_count[0] / 8 % 64;
-		Uint32 padLen = (index < 56) ? (56 - index) : (120 - index);
+		const Uint32 index = m_count[0] / 8 % 64;
+		const Uint32 padLen = (index < 56) ? (56 - index) : (120 - index);
 		Update(padding, padLen);
  
 		// Append length (before padding)
@@ -276,7 +279,7 @@ CString CMD5::HexDigest( void ) const
 	if(!m_isFinalized)
 		return "";
  
-	Char buffer[33];
+	Char buffer[33] = {'\0'};
 	for(Uint32 i = 0; i < 16; i++)
 		sprintf(&buffer[i*2], "%02x", m_digest[i]);
 

@@ -11,7 +11,7 @@ All Rights Reserved.
 #include "cbuffer.h"
 
 // Default allocation size is 1kb
-static const Uint32 DEFAULT_ALLOC_SIZE = 1024;
+static constexpr Uint32 DEFAULT_ALLOC_SIZE = 1024;
 
 //=============================================
 // @brief
@@ -103,7 +103,7 @@ CBuffer::~CBuffer( void )
 {
 	if(m_pBufferData)
 	{
-		byte* pdata = reinterpret_cast<byte*>(m_pBufferData);
+		byte* pdata = static_cast<byte*>(m_pBufferData);
 		delete[] pdata;
 	}
 }

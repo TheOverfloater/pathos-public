@@ -1,0 +1,16 @@
+fogend 400
+fogstart 100
+fresnel 1
+colr 0
+colg 0
+colb 0
+causticscale 2
+causticstrength 1.0
+causticstimescale 1.0
+strength 1
+texturescale 0.3
+timescale 0.4
+lightstrength 0.2
+specularstrength 0.85
+wavefresnelstrength 0.8
+phongexponent 256

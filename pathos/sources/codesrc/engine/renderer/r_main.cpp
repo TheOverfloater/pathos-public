@@ -69,6 +69,7 @@ All Rights Reserved.
 #include "r_glqueries.h"
 #include "r_wadtextures.h"
 #include "r_sky.h"
+#include "r_fbocache.h"
 
 #include "stepsound.h"
 
@@ -83,7 +84,6 @@ CCVar* g_pCvarFarZ = nullptr;
 CCVar* g_pCvarShadows = nullptr;
 CCVar* g_pCvarGaussianBlur = nullptr;
 CCVar* g_pCvarDynamicLights = nullptr;
-CCVar* g_pCvarNoFBO = nullptr;
 CCVar* g_pCvarStats = nullptr;
 CCVar* g_pCvarCubemaps = nullptr;
 CCVar* g_pCvarDrawOrigins = nullptr;
@@ -112,23 +112,23 @@ static const Char PROJECTIVE_TEXTURE_FILE_PATH[] = "textures/general/projective_
 static const Char ROTATING_LIGHT_SPRITE_PATH[] = "sprites/emerg_flare.spr";
 
 // Reference width for the logo text
-static const Uint32 LOAD_TEXT_BASE_WIDTH = 512;
+static constexpr Uint32 LOAD_TEXT_BASE_WIDTH = 512;
 // Reference width for the logo text
-static const Uint32 LOAD_TEXT_BASE_HEIGHT = 128;
+static constexpr Uint32 LOAD_TEXT_BASE_HEIGHT = 128;
 
 // Reference width for the logo text
-static const Uint32 PAUSED_TEXT_BASE_WIDTH = 512;
+static constexpr Uint32 PAUSED_TEXT_BASE_WIDTH = 512;
 // Reference width for the logo text
-static const Uint32 PAUSED_TEXT_BASE_HEIGHT = 128;
+static constexpr Uint32 PAUSED_TEXT_BASE_HEIGHT = 128;
 
 // Max extensions per line
-static const Uint32 MAX_EXTENSIONS_PER_LINE = 6;
+static constexpr Uint32 MAX_EXTENSIONS_PER_LINE = 6;
 
 // Max active-load shaders per frame
-static const Uint32 MAX_ACTIVELOAD_SHADERS = 4;
+static constexpr Uint32 MAX_ACTIVELOAD_SHADERS = 4;
 
 // Max timings on time graph
-static const Uint32 MAX_TIMINGS = 400;
+static constexpr Uint32 MAX_TIMINGS = 400;
 
 // Holds rendering related information
 renderer_state_t rns;
@@ -172,7 +172,6 @@ bool R_Init( void )
 	g_pCvarShadows = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_shadows", "1", "Controls rendering of shadows" );
 	g_pCvarGaussianBlur = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_gaussianblur", "1", "Toggles the use of gaussian blurring effects" );
 	g_pCvarDynamicLights = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_dynamiclights", "1", "Toggles dynamic light effects" );
-	g_pCvarNoFBO = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_nofbo", "0", "Enable/Disable FBO usage" );
 	g_pCvarStats = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_stats", "0", "Toggle render statistics info printing" );
 	g_pCvarCubemaps = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_cubemaps", "1", "Toggles cubemap reflections" );
 	g_pCvarDrawOrigins = gConsole.CreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "r_draworigins", "0", "Toggle rendering of origin points");
@@ -299,8 +298,18 @@ bool R_Init( void )
 	if(!gLensFlareRenderer.Init())
 		return false;
 
+	if (!gFBOCache.Init())
+		return false;
+
 	// Init decal class
 	gDecals.Init();
+
+	if (rns.usehdr)
+	{
+		gGLExtF.glClampColor(GL_CLAMP_VERTEX_COLOR_ARB, GL_FALSE);
+		gGLExtF.glClampColor(GL_CLAMP_FRAGMENT_COLOR_ARB, GL_FALSE);
+		gGLExtF.glClampColor(GL_CLAMP_VERTEX_COLOR_ARB, GL_FALSE);
+	}
 
 	return true;
 }
@@ -327,6 +336,7 @@ void R_Shutdown( void )
 	gBeamRenderer.Shutdown();
 	gPortalManager.Shutdown();
 	gLensFlareRenderer.Shutdown();
+	gFBOCache.Shutdown();
 
 	CBasicDraw::DeleteInstance();
 }
@@ -450,24 +460,35 @@ bool R_InitGL( void )
 	// Load any textures
 	R_LoadTextures();
 
-	// Determine FBO use
-	if(R_IsExtensionSupported("GL_EXT_framebuffer_object") || R_IsExtensionSupported("GL_ARB_framebuffer_object"))
-	{
-		rns.fboused = (g_pCvarNoFBO->GetValue() > 0) ? false : true;
-		rns.nofbo = rns.fboused ? false : true;
+	// Check if blit is supported
+	rns.fboblitsupported = R_IsExtensionSupported("GL_EXT_framebuffer_blit");
 
-		Con_Printf("Framebuffer objects are enabled.\n");
+	// Determine FBO use
+	if(gWindow.AreFBOsSupported())
+	{
+		rns.fboused = gWindow.AreFBOsEnabled();
+		rns.usehdr = gWindow.IsHDREnabled();
 	}
 	else
 	{
 		rns.fboused = false;
-		rns.nofbo = true;
-
-		Con_Printf("Framebuffer objects are disabled.\n");
+		rns.usehdr = false;
 	}
 
-	if(rns.nofbo)
-		Con_Printf("Warning: FBOs are not enabled. Shadow maps will not be available.\n");
+	if(rns.fboused)
+		Con_Printf("Framebuffer objects are enabled.\n");
+	else
+		Con_Printf("Framebuffer objects are disabled, shadows will not be available.\n");
+
+	// Set whether MSAA is enabled
+	rns.msaa = gWindow.IsMSAAEnabled();
+
+	// Create main screen FBO
+	if (rns.fboused && rns.usehdr)
+	{
+		if(!R_InitMainScreenFBO())
+			return false;
+	}
 
 	// Create basic draw instance
 	CBasicDraw* pDraw = CBasicDraw::CreateInstance();
@@ -556,6 +577,9 @@ bool R_InitGL( void )
 	if(!gBlackHoleRenderer.InitGL())
 		return false;
 
+	if (!gFBOCache.InitGL())
+		return false;
+
 	// Draw the menu loading screen
 	VID_DrawLoadingScreen();
 
@@ -564,9 +588,6 @@ bool R_InitGL( void )
 
 	// Create query objects
 	R_InitQueryObjects();
-
-	// Set whether MSAA is enabled
-	rns.msaa = gWindow.IsMSAAEnabled();
 
 	return true;
 }
@@ -600,6 +621,7 @@ void R_ShutdownGL( void )
 	gBeamRenderer.ClearGL();
 	gPortalManager.ClearGL();
 	gBlackHoleRenderer.ClearGL();
+	gFBOCache.ClearGL();
 
 	// Reset cache states
 	gModelCache.ClearGL();
@@ -610,8 +632,9 @@ void R_ShutdownGL( void )
 	// Call client objects to clear as well
 	cls.dllfuncs.pfnGLClear();
 
-	// Clear query objects
 	R_ClearQueryObjects();
+	if(rns.usehdr)
+		R_DeleteMainScreenFBO();
 }
 
 //====================================
@@ -678,6 +701,9 @@ bool R_LoadResources( void )
 		return false;
 
 	if(!gLensFlareRenderer.InitGame())
+		return false;
+
+	if (!gFBOCache.InitGame())
 		return false;
 
 	VID_DrawLoadingScreen("Renderer ready");
@@ -789,6 +815,7 @@ void R_ResetGame( void )
 	gPortalManager.ClearGame();
 	gBlackHoleRenderer.ClearGame();
 	gLensFlareRenderer.ClearGame();
+	gFBOCache.ClearGame();
 
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 
@@ -1076,7 +1103,8 @@ void R_SetupView( const ref_params_t& params )
 	cls.dllfuncs.pfnSetupView(params);
 
 	// Mark visible leaves
-	if(!rns.sky.skybox || rns.fog.settings.affectsky || rns.water_skydraw)
+	if(!rns.sky.skybox || rns.fog.settings.affectsky 
+		|| rns.water_skydraw || rns.portalpass)
 	{
 		Vector vieworigin;
 		if(rns.usevisorigin)
@@ -1104,7 +1132,7 @@ void R_SetProjectionMatrix( Float znear, Float fovY )
 	else
 		rns.view.zfar = g_pCvarFarZ->GetValue();
 
-	Float ratio = (Float)rns.screenwidth/(Float)rns.screenheight;
+	Float ratio = static_cast<Float>(rns.screenwidth)/ static_cast<Float>(rns.screenheight);
 	Float fovX = GetXFOVFromY(fovY, ratio * 0.75f);
 
 	Float width = 2*rns.view.znear*SDL_tan(fovX*M_PI/360.0f);
@@ -1162,7 +1190,7 @@ void R_MarkLeaves( const Vector& origin )
 	{
 		if(pvsdata[i>>3] & (1<<(i&7)))
 		{
-			mnode_t* pnode = (mnode_t*)&ens.pworld->pleafs[i+1];
+			mnode_t* pnode = reinterpret_cast<mnode_t*>(&ens.pworld->pleafs[i+1]);
 			do
 			{
 				if(pnode->visframe == rns.visframe)
@@ -1193,7 +1221,7 @@ void R_ForceMarkLeaves( const mleaf_t* pleaf, Int32 visframe, byte *pvsdata )
 	{
 		if(_pvsdata[i>>3] & (1<<(i&7)))
 		{
-			mnode_t* pnode = (mnode_t*)&ens.pworld->pleafs[i+1];
+			mnode_t* pnode = reinterpret_cast<mnode_t*>(&ens.pworld->pleafs[i+1]);
 			do
 			{
 				pnode->visframe = visframe;
@@ -1219,9 +1247,9 @@ void R_Ent_ModelLight( cl_entity_t *pentity )
 	rns.objects.nummodellights++;
 
 	mlight->entindex = pentity->entindex;
-	mlight->color.x	= (Float)pentity->curstate.rendercolor.x/255;
-	mlight->color.y	= (Float)pentity->curstate.rendercolor.y/255;
-	mlight->color.z	= (Float)pentity->curstate.rendercolor.z/255;
+	mlight->color.x	= static_cast<Float>(pentity->curstate.rendercolor.x)/255;
+	mlight->color.y	= static_cast<Float>(pentity->curstate.rendercolor.y)/255;
+	mlight->color.z	= static_cast<Float>(pentity->curstate.rendercolor.z)/255;
 	mlight->radius = pentity->curstate.renderamt*ENV_ELIGHT_RADIUS_MULTIPLIER*g_pCvarModelLightMultiplier->GetValue();
 	mlight->noblend = pentity->curstate.velocity.IsZero() ? false : true;
 
@@ -1243,11 +1271,11 @@ void R_Ent_DynamicLight( cl_entity_t *pentity )
 	cl_dlight_t *pdlight = gDynamicLights.AllocDynamicPointLight(pentity->entindex, 0, isstatic, noshadow, pentity);
 
 	pdlight->origin = pentity->curstate.origin;
-	pdlight->color.x = pentity->curstate.rendercolor.x/255.0f;
-	pdlight->color.y = pentity->curstate.rendercolor.y/255.0f;
-	pdlight->color.z = pentity->curstate.rendercolor.z/255.0f;
+	pdlight->color.x = static_cast<Float>(pentity->curstate.rendercolor.x)/255.0f;
+	pdlight->color.y = static_cast<Float>(pentity->curstate.rendercolor.y)/255.0f;
+	pdlight->color.z = static_cast<Float>(pentity->curstate.rendercolor.z)/255.0f;
 	pdlight->radius = pentity->curstate.renderamt;
-	pdlight->lightstyle = (Uint32)pentity->curstate.frame;
+	pdlight->lightstyle = static_cast<Uint32>(pentity->curstate.frame);
 	pdlight->lastframe = rns.framecount_main;
 	pdlight->die = -1;
 
@@ -1274,13 +1302,13 @@ void R_Ent_Spotlight( cl_entity_t *pentity )
 
 	pdlight->angles = pentity->curstate.angles;
 	pdlight->origin = pentity->curstate.origin;
-	pdlight->color.x = pentity->curstate.rendercolor.x/255.0f;
-	pdlight->color.y = pentity->curstate.rendercolor.y/255.0f;
-	pdlight->color.z = pentity->curstate.rendercolor.z/255.0f;
+	pdlight->color.x = static_cast<Float>(pentity->curstate.rendercolor.x)/255.0f;
+	pdlight->color.y = static_cast<Float>(pentity->curstate.rendercolor.y)/255.0f;
+	pdlight->color.z = static_cast<Float>(pentity->curstate.rendercolor.z)/255.0f;
 	pdlight->radius = pentity->curstate.renderamt;
 	pdlight->cone_size = pentity->curstate.scale;
 	pdlight->textureindex = pentity->curstate.body;
-	pdlight->lightstyle = (Uint32)pentity->curstate.frame;
+	pdlight->lightstyle = static_cast<Uint32>(pentity->curstate.frame);
 	pdlight->lastframe = rns.framecount_main;
 	pdlight->die = -1;
 
@@ -1337,14 +1365,14 @@ void R_Ent_RotLight( cl_entity_t *pentity )
 	}
 	else
 	{
-		dlight1->color.x = (Float)pentity->curstate.rendercolor.x/255.0f;
-		dlight1->color.y = (Float)pentity->curstate.rendercolor.y/255.0f;
-		dlight1->color.z = (Float)pentity->curstate.rendercolor.z/255.0f;
+		dlight1->color.x = static_cast<Float>(pentity->curstate.rendercolor.x)/255.0f;
+		dlight1->color.y = static_cast<Float>(pentity->curstate.rendercolor.y)/255.0f;
+		dlight1->color.z = static_cast<Float>(pentity->curstate.rendercolor.z)/255.0f;
 	}
 
 	angles = Math::VectorToAngles(vback, vright);
 
-	cl_dlight_t* dlight2 = gDynamicLights.AllocDynamicSpotlight(-((Int32)pentity->entindex), 0, false, noshadow, pentity);
+	cl_dlight_t* dlight2 = gDynamicLights.AllocDynamicSpotlight(-static_cast<Int32>(pentity->entindex), 0, false, noshadow, pentity);
 	dlight2->angles = angles;
 	dlight2->radius = radius;
 	dlight2->cone_size = cone_size;
@@ -1361,9 +1389,9 @@ void R_Ent_RotLight( cl_entity_t *pentity )
 	}
 	else
 	{
-		dlight2->color.x = (Float)pentity->curstate.rendercolor.x/255.0f;
-		dlight2->color.y = (Float)pentity->curstate.rendercolor.y/255.0f;
-		dlight2->color.z = (Float)pentity->curstate.rendercolor.z/255.0f;
+		dlight2->color.x = static_cast<Float>(pentity->curstate.rendercolor.x)/255.0f;
+		dlight2->color.y = static_cast<Float>(pentity->curstate.rendercolor.y)/255.0f;
+		dlight2->color.z = static_cast<Float>(pentity->curstate.rendercolor.z)/255.0f;
 	}
 
 	// Allocate the sprites
@@ -1389,7 +1417,7 @@ void R_Ent_RotLight( cl_entity_t *pentity )
 		psprite1->curstate.scale = 0.05;
 		psprite1->curstate.fuser1 = dlight2->cone_size;
 
-		cl_entity_t* psprite2 = gSpriteRenderer.AllocTempSprite( -((Int32)pentity->entindex), 0.01 );
+		cl_entity_t* psprite2 = gSpriteRenderer.AllocTempSprite( -(static_cast<Int32>(pentity->entindex)), 0.01 );
 
 		Math::VectorCopy( dlight2->angles, psprite2->curstate.angles );
 		Math::VectorScale(vforward, -1, vforward);
@@ -1423,7 +1451,7 @@ void R_Ent_RotLight( cl_entity_t *pentity )
 		mlight_t* pmlight2 = &rns.objects.modellights[rns.objects.nummodellights];
 		rns.objects.nummodellights++;
 
-		pmlight2->entindex = -((Int32)pentity->entindex);
+		pmlight2->entindex = -(static_cast<Int32>(pentity->entindex));
 		Math::VectorCopy( psprite2->curstate.origin, pmlight2->origin );
 		Math::VectorCopy( dlight2->color, pmlight2->color );
 		pmlight2->radius = pmlight1->radius;
@@ -1769,10 +1797,10 @@ bool R_DrawLogo( en_texture_t* ptexture, Int32 basewidth, Int32 baseheight )
 
 	// Set matrices
 	rns.view.modelview.LoadIdentity();
-	rns.view.modelview.Scale(1.0/(Float)gWindow.GetWidth(), 1.0/(Float)gWindow.GetHeight(), 1.0);
+	rns.view.modelview.Scale(1.0/ static_cast<Float>(gWindow.GetWidth()), 1.0/ static_cast<Float>(gWindow.GetHeight()), 1.0);
 
 	rns.view.projection.LoadIdentity();
-	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, (Float)0.1, 100);
+	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, 0.1f, 100);
 
 	CBasicDraw* pDraw = CBasicDraw::GetInstance();
 	pDraw->SetModelview(rns.view.modelview.GetMatrix());
@@ -1842,7 +1870,7 @@ bool R_DrawLoadingBackground( void )
 	rns.view.modelview.LoadIdentity();
 
 	rns.view.projection.LoadIdentity();
-	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, (Float)0.1, 100);
+	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, 0.1f , 100);
 
 	pDraw->SetModelview(rns.view.modelview.GetMatrix());
 	pDraw->SetProjection(rns.view.projection.GetMatrix());
@@ -2121,7 +2149,7 @@ bool R_Draw( const ref_params_t& params )
 	// Draw transparents
 	if(!R_DrawTransparent())
 		return false;
-	
+
 	if(!rns.view.params.nodraw)
 	{
 		// Draw origins if cvar is set
@@ -2197,8 +2225,14 @@ bool R_DrawScene( void )
 	// Draw any renderpasses
 	if(!rns.view.params.nodraw)
 	{
+		if (rns.fboused && rns.usehdr)
+			R_BindFBO(nullptr);
+
 		if(!R_DrawRenderPasses())
 			return false;
+
+		if (rns.fboused && rns.usehdr)
+			R_BindFBO(&rns.mainfbo);
 	}
 
 	// Set this so engine knows it's
@@ -2271,11 +2305,11 @@ bool R_DrawTimeGraph( Double& time1, Double& time2 )
 
 	rns.view.modelview.PushMatrix();
 	rns.view.modelview.LoadIdentity();
-	rns.view.modelview.Scale(1.0/(Float)gWindow.GetWidth(), 1.0/(Float)gWindow.GetHeight(), 1.0);
+	rns.view.modelview.Scale(1.0/ static_cast<Float>(gWindow.GetWidth()), 1.0/ static_cast<Float>(gWindow.GetHeight()), 1.0);
 
 	rns.view.projection.PushMatrix();
 	rns.view.projection.LoadIdentity();
-	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, (Float)0.1, 100);
+	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, 0.1f, 100);
 
 	pDraw->SetModelview(rns.view.modelview.GetMatrix());
 	pDraw->SetProjection(rns.view.projection.GetMatrix());
@@ -2581,6 +2615,8 @@ void R_BindFBO( fbobind_t *pfbo )
 		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, pfbo->fboid);
 	else
 		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+
+	rns.pboundfbo = pfbo;
 }
 
 //====================================
@@ -2679,18 +2715,6 @@ void R_ResetFrameStates( void )
 //====================================
 bool R_Update( void )
 {
-	// Check the fbo cvar
-	Float nofbnovalue = g_pCvarNoFBO->GetValue();
-	if(nofbnovalue > 0 && !rns.nofbo || nofbnovalue == 0 && rns.nofbo)
-	{
-		if(!R_IsExtensionSupported("GL_EXT_framebuffer_object")  && !R_IsExtensionSupported("GL_ARB_framebuffer_object") && nofbnovalue < 0)
-			Con_Printf("Framebuffer objects are not supported by your GPU.\n");
-		else
-			Con_Printf("This change will only take effect after reloading the game.\n");
-
-		rns.nofbo = (nofbnovalue > 0) ? true : false;
-	}
-
 	// Reset outside of render loop
 	R_ResetFrameStates();
 
@@ -2740,6 +2764,9 @@ bool R_Update( void )
 	// Update RTT cache
 	gRTTCache.Think();
 
+	// Update FBO cache
+	gFBOCache.Think();
+	
 	// Update beams
 	gBeamRenderer.Update();
 
@@ -2875,10 +2902,10 @@ bool R_PrintCounters( void )
 
 	Uint32 fps = 1/frametime;
 	CString strPrint;
-	strPrint << (Int32)rns.counters.brushpolies << " wpolys(" << (Int32)rns.counters.batches << " batches), " 
-		<< (Int32)rns.counters.modelpolies << " vbm polys, " 
-		<< (Int32)rns.counters.particles << " particles, " 
-		<< (Int32)fps << " fps\n";
+	strPrint << static_cast<Int32>(rns.counters.brushpolies) << " wpolys(" << static_cast<Int32>(rns.counters.batches) << " batches), "
+		<< static_cast<Int32>(rns.counters.modelpolies) << " vbm polys, " 
+		<< static_cast<Int32>(rns.counters.particles) << " particles, " 
+		<< static_cast<Int32>(fps) << " fps\n";
 
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
@@ -2939,7 +2966,7 @@ bool R_DrawOrigins( void )
 	glDisable(GL_DEPTH_TEST);
 	glLineWidth(2.0);
 
-	const Float linelength = 16;
+	constexpr Float linelength = 16;
 
 	for(Uint32 i = 0; i < rns.objects.numvisents; i++)
 	{
@@ -3046,7 +3073,7 @@ void R_LoadSprite( cache_model_t* pmodel )
 
 			CString name, basename;
 			Common::Basename(pmodel->name.c_str(), basename);
-			name << basename << (Int32)frameindex << ".spr";
+			name << basename << static_cast<Int32>(frameindex) << ".spr";
 			frameindex++;
 
 			const color24_t* ppalette = reinterpret_cast<const color24_t*>(psprite->palette);
@@ -3066,7 +3093,7 @@ void R_LoadSprite( cache_model_t* pmodel )
 
 				CString name, basename;
 				Common::Basename(pmodel->name.c_str(), basename);
-				name << basename << (Int32)frameindex << ".spr";
+				name << basename << static_cast<Int32>(frameindex) << ".spr";
 				frameindex++;
 
 				const color24_t* ppalette = reinterpret_cast<const color24_t*>(psprite->palette);
@@ -3229,8 +3256,8 @@ Float R_RenderFxBlend( cl_entity_t* pentity )
 //====================================
 Int32 R_SortEntities( const void* p1, const void* p2 )
 {
-	cl_entity_t **ppentity1 = (cl_entity_t **)p1;
-	cl_entity_t **ppentity2 = (cl_entity_t **)p2;
+	cl_entity_t **ppentity1 = static_cast<cl_entity_t **>(const_cast<void*>(p1));
+	cl_entity_t **ppentity2 = static_cast<cl_entity_t **>(const_cast<void*>(p2));
 
 	Vector center1 = (*ppentity1)->curstate.origin + ((*ppentity1)->curstate.mins + (*ppentity1)->curstate.maxs) * 0.5;
 	Vector center2 = (*ppentity2)->curstate.origin + ((*ppentity2)->curstate.mins + (*ppentity2)->curstate.maxs) * 0.5;
@@ -3333,6 +3360,141 @@ bool R_PerformPendingShaderLoads( void )
 	}
 	
 	return true;
+}
+
+//====================================
+//
+//====================================
+bool R_InitMainScreenFBO( void )
+{
+	assert(rns.fboused && rns.usehdr);
+
+	CTextureManager* pTextureManager = CTextureManager::GetInstance();
+	assert(pTextureManager != nullptr);
+
+	GLsizei nbSamples = 0;
+	if (rns.msaa)
+	{
+		Int32 index = gWindow.GetCurrentMSAASetting();
+		nbSamples = gWindow.GetMSAASetting(index);
+	}
+
+	//
+	// Main renderbuffer
+	//
+	gGLExtF.glGenRenderbuffers(1, &rns.mainfbo.rboid1);
+	gGLExtF.glBindRenderbuffer(GL_RENDERBUFFER, rns.mainfbo.rboid1);
+	if (nbSamples > 0)
+		gGLExtF.glRenderbufferStorageMultisample(GL_RENDERBUFFER, nbSamples, GL_RGBA16F, rns.screenwidth, rns.screenheight);
+	else
+		gGLExtF.glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA16F, rns.screenwidth, rns.screenheight);
+
+	//
+	// Depth buffer
+	//
+	gGLExtF.glGenRenderbuffers(1, &rns.mainfbo.rboid2);
+	gGLExtF.glBindRenderbuffer(GL_RENDERBUFFER, rns.mainfbo.rboid2);
+	if (nbSamples > 0)
+		gGLExtF.glRenderbufferStorageMultisample(GL_RENDERBUFFER, nbSamples, GL_DEPTH_COMPONENT24, rns.screenwidth, rns.screenheight);
+	else
+		gGLExtF.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, rns.screenwidth, rns.screenheight);
+
+	gGLExtF.glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	//
+	// Third renderbuffer used by glow aura
+	//
+	gGLExtF.glGenRenderbuffers(1, &rns.mainfbo.rboid3);
+	gGLExtF.glBindRenderbuffer(GL_RENDERBUFFER, rns.mainfbo.rboid3);
+	if (nbSamples > 0)
+		gGLExtF.glRenderbufferStorageMultisample(GL_RENDERBUFFER, nbSamples, GL_RGBA, rns.screenwidth, rns.screenheight);
+	else
+		gGLExtF.glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, rns.screenwidth, rns.screenheight);
+
+	gGLExtF.glGenFramebuffers(1, &rns.mainfbo.fboid);
+	gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.mainfbo.fboid);
+	gGLExtF.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rns.mainfbo.rboid1);
+	gGLExtF.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_RENDERBUFFER, rns.mainfbo.rboid3);
+	gGLExtF.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rns.mainfbo.rboid2);
+
+	GLenum eStatus = gGLExtF.glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (eStatus != GL_FRAMEBUFFER_COMPLETE)
+	{
+		gGLExtF.glDeleteFramebuffers(1, &rns.mainfbo.fboid);
+
+		Sys_ErrorPopup("%s - Main screen FBO creation failed. Code returned: %d.\n", __FUNCTION__, glGetError());
+		return false;
+	}
+
+	gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	return true;
+}
+
+//====================================
+//
+//====================================
+void R_DeleteMainScreenFBO( void )
+{
+	assert(rns.fboused && rns.usehdr);
+
+	if (rns.mainfbo.fboid)
+		gGLExtF.glDeleteFramebuffers(1, &rns.mainfbo.fboid);
+
+	if (rns.mainfbo.rboid1)
+		gGLExtF.glDeleteRenderbuffers(1, &rns.mainfbo.rboid1);
+
+	if (rns.mainfbo.rboid2)
+		gGLExtF.glDeleteRenderbuffers(1, &rns.mainfbo.rboid2);
+
+	if (rns.mainfbo.rboid3)
+		gGLExtF.glDeleteRenderbuffers(1, &rns.mainfbo.rboid3);
+
+	rns.mainfbo = fbobind_t();
+}
+
+//====================================
+//
+//====================================
+void R_BindMainScreenFBO( void )
+{
+	assert(rns.fboused && rns.usehdr);
+	assert(rns.pboundfbo == nullptr);
+
+	// Reset to no FBO
+	R_BindFBO(&rns.mainfbo);
+
+	// Make sure this gets set
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	// Enable multisampling if set
+	if(rns.msaa)
+		glEnable(GL_MULTISAMPLE);
+}
+
+//====================================
+//
+//====================================
+void R_PerformMainScreenBlit( void )
+{
+	assert(rns.fboused && rns.usehdr);
+	assert(rns.pboundfbo != nullptr);
+	assert(rns.pboundfbo == &rns.mainfbo);
+
+	// Blit from main FBO to main renderbuffer or intermediate
+	gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, rns.mainfbo.fboid);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+	gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	gGLExtF.glBlitFramebuffer(0, 0, rns.screenwidth, rns.screenheight, 0, 0, rns.screenwidth, rns.screenheight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	if (rns.msaa)
+		glDisable(GL_MULTISAMPLE);
+
+	R_BindFBO(nullptr);
 }
 
 //====================================
@@ -4105,7 +4267,7 @@ void Cmd_EFX_BeamCirclePoints( void )
 		startPosition = pPlayer->curstate.origin;
 	}
 
-	gBeamRenderer.BeamCirclePoints((beam_types_t)type, startPosition, endPosition, pmodel->cacheindex, life, width, amplitude, brightness, speed, noisespeed, startframe, framerate, r, g, b, FL_BEAM_NONE);
+	gBeamRenderer.BeamCirclePoints(static_cast<beam_types_t>(type), startPosition, endPosition, pmodel->cacheindex, life, width, amplitude, brightness, speed, noisespeed, startframe, framerate, r, g, b, FL_BEAM_NONE);
 }
 
 //====================================
@@ -4455,7 +4617,7 @@ void Cmd_EFX_CreateParticle( void )
 		tr.hitentity = NO_ENTITY_INDEX;
 	}
 
-	gParticleEngine.CacheCreateSystem(tr.endpos, tr.plane.normal, (part_script_type_t)type, scriptname.c_str(), 0, tr.hitentity, 0, boneindex, attachflags);
+	gParticleEngine.CacheCreateSystem(tr.endpos, tr.plane.normal, static_cast<part_script_type_t>(type), scriptname.c_str(), 0, tr.hitentity, 0, boneindex, attachflags);
 }
 
 //====================================
@@ -4553,10 +4715,10 @@ void Cmd_BSPToSMD_Textures( void )
 
 				mtexinfo_t *ptexinfo = psurf->ptexinfo;
 				pverts[k].texcoord[0] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
-				pverts[k].texcoord[0] /= (float)ptexinfo->ptexture->width;
+				pverts[k].texcoord[0] /= static_cast<Float>(ptexinfo->ptexture->width);
 
 				pverts[k].texcoord[1] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
-				pverts[k].texcoord[1] /= (float)ptexinfo->ptexture->height;
+				pverts[k].texcoord[1] /= static_cast<Float>(ptexinfo->ptexture->height);
 
 				Math::VectorCopy(psurf->pplane->normal, pverts[k].normal);
 			}
@@ -4700,12 +4862,12 @@ void Cmd_BSPToSMD_Lightmap( void )
 				pverts[k].lmapcoord[0] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
 				pverts[k].lmapcoord[0] -= psurf->texturemins[0];
 				pverts[k].lmapcoord[0] += psurf->light_s*16+8;
-				pverts[k].lmapcoord[0] /= (Float)CBSPRenderer::LIGHTMAP_WIDTH*16;
+				pverts[k].lmapcoord[0] /= static_cast<Float>(CBSPRenderer::LIGHTMAP_WIDTH*16);
 
 				pverts[k].lmapcoord[1] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
 				pverts[k].lmapcoord[1] -= psurf->texturemins[1];
 				pverts[k].lmapcoord[1] += psurf->light_t*16+8;
-				pverts[k].lmapcoord[1] /= (Float)gBSPRenderer.GetLightmapHeight()*16;
+				pverts[k].lmapcoord[1] /= static_cast<Float>(gBSPRenderer.GetLightmapHeight()*16);
 
 				Math::VectorCopy(psurf->pplane->normal, pverts[k].normal);
 			}
@@ -4862,16 +5024,24 @@ void Cmd_TimeRefresh( void )
 	glDrawBuffer(GL_FRONT);
 	glFinish();
 
-	clock_t beginTime = clock();
+	Double beginTime = Sys_FloatTime();
 
 	for(Uint32 i = 0; i < 128; i++)
 	{
+		// Bind FBO if we use HDR
+		if (rns.fboused && rns.usehdr)
+			R_BindMainScreenFBO();
+
 		glViewport(0, 0, rns.screenwidth, rns.screenheight);
 		glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-		rns.view.v_angles[YAW] = ((Float)i/128.0f) * 360.0f;
+		rns.view.v_angles[YAW] = (static_cast<Float>(i)/128.0f) * 360.0f;
 		R_DrawScene();
+
+		// Blit from main FBO to back buffer
+		if (rns.fboused && rns.usehdr)
+			R_PerformMainScreenBlit();
 
 		// Increment frame counter
 		rns.framecount++;
@@ -4879,13 +5049,11 @@ void Cmd_TimeRefresh( void )
 
 	glFinish();
 
-	clock_t endTime = clock();
-	clock_t duration = endTime - beginTime;
+	Double endTime = Sys_FloatTime();
+	Double duration = endTime - beginTime;
+	Float fps = 128.0f / duration;
 
-	Float seconds = duration * MILLISECONDS_TO_SECONDS;
-	Float fps = 128.0f / seconds;
-
-	Con_Printf("%f seconds(%f fps)\n", seconds, fps);
+	Con_Printf("%f seconds(%f fps)\n", (Float)duration, fps);
 
 	glDrawBuffer(GL_BACK);
 
@@ -4967,8 +5135,8 @@ void Cmd_DetailAuto( void )
 		// Find associated detail texture
 		detailtexture_t* pdetail = detailTexturesArray[passoc->detailtextureidx];
 
-		pmaterial->dt_scalex = (((Float)ptexture->width)/256.0)*(128.0/((float)pdetail->width))*12.0;
-		pmaterial->dt_scaley = (((Float)ptexture->height)/256.0)*(128.0/((float)pdetail->height))*12.0;
+		pmaterial->dt_scalex = (static_cast<Float>(ptexture->width)/256.0) * (128.0/static_cast<Float>(pdetail->width)*12.0);
+		pmaterial->dt_scaley = (static_cast<Float>(ptexture->height)/256.0) * (128.0/static_cast<Float>(pdetail->height)*12.0);
 
 		CString dtfilepath;
 		dtfilepath << pdetail->filename;

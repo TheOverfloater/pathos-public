@@ -121,7 +121,7 @@ CControlPanel::CControlPanel( mxWindow *parent ):
 {
 	// create tabcontrol with subdialog windows
 	m_pTab = new mxTab (this, 0, 0, 0, 0, IDC_TAB);
-	SetWindowLong((HWND) m_pTab->getHandle(), GWL_EXSTYLE, WS_EX_CLIENTEDGE);
+	SetWindowLongPtr((HWND) m_pTab->getHandle(), GWL_EXSTYLE, WS_EX_CLIENTEDGE);
 
 	// Init render tab
 	InitRenderTab();
@@ -846,6 +846,16 @@ int CControlPanel::handleEvent( mxEvent *pEvent )
 		{
 			mxSlider* pSlider = reinterpret_cast<mxSlider*>(pEvent->widget);
 			vs.speedscale = (float) (pSlider->getValue() * 5) / 200.0f;
+
+			Float framerate;
+			Int32 numFrames;
+			Float groundSpeed;
+
+			CBasicVBMRenderer* pVBMRenderer = CBasicVBMRenderer::GetInstance();
+			pVBMRenderer->GetSequenceInfo(framerate, numFrames, groundSpeed);
+
+			framerate *= vs.speedscale;
+			m_pLabelFramerate->setLabel("FPS: %.3f", framerate);
 		}
 		break;
 	case IDC_STOP:
@@ -1788,6 +1798,8 @@ void CControlPanel::SetSequence( Int32 index )
 	Int32 numFrames;
 	Float groundSpeed;
 	pVBMRenderer->GetSequenceInfo(framerate, numFrames, groundSpeed);
+
+	framerate *= vs.speedscale;
 
 	m_pLabelSequenceIndex->setLabel( "Sequence index: %d", index );
 	m_pLabelFrameCount->setLabel( "Frames: %d", numFrames );

@@ -79,7 +79,7 @@ msprite_t* Sprite_Load( const byte* pfile, Uint32 filesize )
 	for(Uint32 i = 0; i < pheader->numframes; i++)
 	{
 		mspriteframedesc_t* pframedesc = &psprite->frames[i];
-		pframedesc->type = (spr_frametype_t)Common::ByteToUint32(pdata);
+		pframedesc->type = static_cast<spr_frametype_t>(Common::ByteToUint32(pdata));
 		pdata += sizeof(Uint32);
 
 		if(pframedesc->type == SPR_SINGLE)
@@ -122,7 +122,7 @@ msprite_t* Sprite_Load( const byte* pfile, Uint32 filesize )
 		else
 		{
 			// Error case
-			Con_Printf("%s - Invalid sprite frametype %d.\n", __FUNCTION__, (Int32)pframedesc->type);
+			Con_Printf("%s - Invalid sprite frametype %d.\n", __FUNCTION__, static_cast<Int32>(pframedesc->type));
 			delete psprite;
 			return nullptr;
 		}
@@ -149,13 +149,13 @@ const mspriteframe_t* Sprite_GetFrame( const msprite_t* psprite, Uint32 frame, F
 	}
 	else
 	{
-		mspritegroup_t* pspritegroup = reinterpret_cast<mspritegroup_t*>(psprite->frames[frame].pgroupptr);
+		mspritegroup_t* pspritegroup = psprite->frames[frame].pgroupptr;
 		Uint32 numframes = pspritegroup->frames.size();
 		Float fullinterval = pspritegroup->intervals[numframes-1];
 
 		// when loading in Mod_LoadSpriteGroup, we guaranteed all interval values
 		// are positive, so we don't have to worry about division by 0
-		Float targettime = time - ((Int32)(time / fullinterval)) * fullinterval;
+		Float targettime = time - (static_cast<Int32>(time / fullinterval)) * fullinterval;
 
 		Uint32 i = 0;
 		for(; i < (numframes-1); i++)

@@ -11,9 +11,9 @@ All Rights Reserved.
 #define SAVE_SHARED_H
 
 // Max generic string length for save files
-static const Int32 SAVE_FILE_STRING_MAX_LENGTH = 256;
+static constexpr Int32 SAVE_FILE_STRING_MAX_LENGTH = 256;
 // Maximum transitioning entities
-static const Uint32 MAX_TRANSITIONING_ENTITIES = 512;
+static constexpr Uint32 MAX_TRANSITIONING_ENTITIES = 512;
 
 // Save file extension
 static const Char SAVE_FILE_EXTENSION[] = ".psf";

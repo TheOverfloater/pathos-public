@@ -11,7 +11,7 @@ All Rights Reserved.
 #define SCREENFADE_H
 
 // Max env_fade layers
-static const Uint32 MAX_FADE_LAYERS = 8;
+static constexpr Uint32 MAX_FADE_LAYERS = 8;
 
 enum fadeflags_t
 {

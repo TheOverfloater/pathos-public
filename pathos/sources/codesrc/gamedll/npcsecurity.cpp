@@ -465,20 +465,8 @@ void CNPCSecurity::Killed( CBaseEntity* pAttacker, gibbing_t gibbing, deathmode_
 		// Spawn weapon
 		if(!m_dontDropWeapons)
 		{
-			const Char* pstrWeaponName = nullptr;
-			// All other weapons got cut from the public release
-			pstrWeaponName = WEAPON_ENTITY_NAMES[WEAPON_GLOCK];
-
-			if(pstrWeaponName)
-			{
-				Vector position;
-				GetAttachment(NPC_WEAPON_ATTACHMENT_INDEX, position);
-
-				Vector angles;
-				angles[YAW] = m_pState->angles[YAW];
-
-				DropItem(pstrWeaponName, position, angles);
-			}
+			weaponid_t weaponid = WEAPON_GLOCK;
+			DropItem(weaponid, NPC_WEAPON_ATTACHMENT_INDEX, false);
 		}
 	}
 
@@ -720,11 +708,6 @@ const Uint32 CNPCSecurity::GetFiringCone( bool attenuateByFog )
 //=============================================
 bullet_types_t CNPCSecurity::GetBulletType( void )
 {
-	bullet_types_t bulletType = BULLET_NONE;
-	if(m_pState->weapons & NPC_WEAPON_TRG42)
-		bulletType = BULLET_NPC_TRG42;
-	else
-		bulletType = BULLET_NPC_9MM;
-
+	bullet_types_t bulletType = BULLET_NPC_9MM;
 	return bulletType;
 }

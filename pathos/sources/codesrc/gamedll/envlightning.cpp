@@ -105,6 +105,9 @@ bool CEnvLightning::Spawn( void )
 
 		if(m_isTeslaBeam)
 			m_pState->iuser2 |= FL_BEAM_TESLA;
+
+		if(HasSpawnFlag(FL_NO_FADING))
+			m_pState->iuser2 |= FL_BEAM_NO_FADE;
 	}
 	else
 	{

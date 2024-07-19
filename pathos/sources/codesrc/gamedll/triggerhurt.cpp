@@ -149,7 +149,7 @@ void CTriggerHurt::HurtTouch( CBaseEntity* pOther )
 		return;
 
 	// Check if only allowed to touch clients or not allowed to touch clients
-	if(HasSpawnFlag(FL_ONLY_CLIENTS) && !pOther->IsPlayer()
+	if(HasSpawnFlag(FL_ONLY_CLIENT_TOUCH) && !pOther->IsPlayer()
 		|| HasSpawnFlag(FL_NO_CLIENTS) && pOther->IsPlayer())
 		return;
 
@@ -197,12 +197,12 @@ void CTriggerHurt::HurtTouch( CBaseEntity* pOther )
 	if(m_pFields->target != NO_STRING_VALUE)
 	{
 		// Check if only client touch should trigger
-		if(HasSpawnFlag(FL_FIRE_ONLY_CLIENT) && !pOther->IsPlayer())
-			return;
-
-		UseTargets(pOther, USE_TOGGLE, 0);
-		if(HasSpawnFlag(FL_TARGET_ONCE))
-			m_pFields->target = NO_STRING_VALUE;
+		if (!HasSpawnFlag(FL_FIRE_ONLY_CLIENT) || pOther->IsPlayer())
+		{
+			UseTargets(pOther, USE_TOGGLE, 0);
+			if (HasSpawnFlag(FL_TARGET_ONCE))
+				m_pFields->target = NO_STRING_VALUE;
+		}
 	}
 
 	// Remove entity if flagged to do so

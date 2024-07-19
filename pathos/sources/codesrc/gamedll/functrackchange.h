@@ -27,8 +27,6 @@ public:
 public:
 	enum
 	{
-		FL_AUTO_ACTIVATE_TRAIN	= (1<<0),
-		FL_RELINK_TRACK			= (1<<1),
 		FL_ROTATE_MOVE			= (1<<2),
 		FL_START_AT_BOTTOM		= (1<<3),
 		FL_ROTATE_ONLY			= (1<<4),

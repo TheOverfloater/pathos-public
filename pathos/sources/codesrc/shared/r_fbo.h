@@ -20,7 +20,8 @@ struct fbobind_t
 		pdepth(nullptr),
 		fboid(0),
 		rboid1(0),
-		rboid2(0)
+		rboid2(0),
+		rboid3(0)
 	{}
 
 	en_texalloc_t* ptexture1;
@@ -30,6 +31,7 @@ struct fbobind_t
 	GLuint fboid;
 	GLuint rboid1;
 	GLuint rboid2;
+	GLuint rboid3;
 };
 
 #endif //R_FBO_H

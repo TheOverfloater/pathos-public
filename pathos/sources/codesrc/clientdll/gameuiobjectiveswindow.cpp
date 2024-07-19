@@ -415,15 +415,14 @@ bool CGameUIObjectivesWindow::initData( const CArray<CString>& objectivesArray, 
 		scriptFilePath.clear();;
 		scriptFilePath << GAMEUI_SCRIPT_BASE_PATH << PATH_SLASH_CHAR << "objectives" << PATH_SLASH_CHAR << objectivesArray[i] << ".txt";
 
-		const byte* pfile = cl_filefuncs.pfnLoadFile(scriptFilePath.c_str(), nullptr);
-		if(!pfile)
+		const byte* pobjfile = cl_filefuncs.pfnLoadFile(scriptFilePath.c_str(), nullptr);
+		if(!pobjfile)
 		{
 			cl_engfuncs.pfnCon_EPrintf("%s - Failed to load '%s'.\n", __FUNCTION__, scriptFilePath.c_str());
 			continue;
 		}
 
-		CString token;
-		const Char* pstr = reinterpret_cast<const Char*>(pfile);
+		pstr = reinterpret_cast<const Char*>(pobjfile);
 
 		// Read the token in
 		pstr = Common::Parse(pstr, token);
@@ -432,7 +431,7 @@ bool CGameUIObjectivesWindow::initData( const CArray<CString>& objectivesArray, 
 		if(qstrcmp(token, "$title"))
 		{
 			cl_engfuncs.pfnCon_EPrintf("%s - Unknown token '$s' in '%s', expected '$title'.\n", __FUNCTION__, token.c_str(), scriptFilePath.c_str());
-			cl_filefuncs.pfnFreeFile(pfile);
+			cl_filefuncs.pfnFreeFile(pobjfile);
 			continue;
 		}
 
@@ -441,7 +440,7 @@ bool CGameUIObjectivesWindow::initData( const CArray<CString>& objectivesArray, 
 		if(!pstr)
 		{
 			cl_engfuncs.pfnCon_EPrintf("%s - Unexpected EOF while reading objective definition in '%s'.\n", __FUNCTION__, scriptFilePath.c_str());
-			cl_filefuncs.pfnFreeFile(pfile);
+			cl_filefuncs.pfnFreeFile(pobjfile);
 			continue;
 		}
 
@@ -453,14 +452,14 @@ bool CGameUIObjectivesWindow::initData( const CArray<CString>& objectivesArray, 
 		if(!pstr)
 		{
 			cl_engfuncs.pfnCon_EPrintf("%s - Unexpected EOF while reading $button definition in '%s'.\n", __FUNCTION__, scriptFilePath.c_str());
-			cl_filefuncs.pfnFreeFile(pfile);
+			cl_filefuncs.pfnFreeFile(pobjfile);
 			continue;
 		}
 
 		if(qstrcmp(token, "{"))
 		{
 			cl_engfuncs.pfnCon_EPrintf("%s - Expected '{', got %s instead in definition in '%s'.\n", __FUNCTION__, token.c_str(), scriptFilePath.c_str());
-			cl_filefuncs.pfnFreeFile(pfile);
+			cl_filefuncs.pfnFreeFile(pobjfile);
 			continue;
 		}
 
@@ -473,7 +472,7 @@ bool CGameUIObjectivesWindow::initData( const CArray<CString>& objectivesArray, 
 		if(!pstrend)
 		{
 			cl_engfuncs.pfnCon_EPrintf("%s - Unexpected EOF while reading $button definition in '%s'.\n", __FUNCTION__, scriptFilePath.c_str());
-			cl_filefuncs.pfnFreeFile(pfile);
+			cl_filefuncs.pfnFreeFile(pobjfile);
 			continue;
 		}
 
@@ -519,7 +518,7 @@ bool CGameUIObjectivesWindow::initData( const CArray<CString>& objectivesArray, 
 		}
 
 		// Close file
-		cl_filefuncs.pfnFreeFile(pfile);
+		cl_filefuncs.pfnFreeFile(pobjfile);
 	}
 
 	// Clear "new objective" flag

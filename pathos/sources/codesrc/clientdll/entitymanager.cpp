@@ -820,7 +820,9 @@ void CEntityManager::Frame( void )
 		if(!pInfo)
 			continue;
 
-		if(pentity->curstate.renderfx != RenderFx_SkyEnt && pentity->curstate.renderfx != RenderFx_SkyEntNC)
+		if(pentity->curstate.renderfx != RenderFx_SkyEnt 
+			&& pentity->curstate.renderfx != RenderFx_SkyEntNC
+			&& pentity->curstate.renderfx != RenderFx_SkyEntScaled)
 		{
 			if(!Common::CheckVisibility(pInfo->leafnums, ppvs))
 			{

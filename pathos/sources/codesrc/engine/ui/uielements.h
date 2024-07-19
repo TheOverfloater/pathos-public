@@ -1112,7 +1112,7 @@ public:
 	// Gets the text on the column of a row
 	virtual CUIObject* getRowColumnObject( Uint32 rowIndex, Uint32 columnIndex );
 	// Returns the number of rows in the list
-	virtual Int32 getNbRows( void ) { return (Int32)m_rowsArray.size(); }
+	virtual Int32 getNbRows( void ) { return static_cast<Int32>(m_rowsArray.size()); }
 
 	// Clears the list
 	virtual void clearList( void );

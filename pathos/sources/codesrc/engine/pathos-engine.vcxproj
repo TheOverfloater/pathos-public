@@ -22,13 +22,14 @@
     <ProjectGuid>{9919AF58-E9C3-4694-8688-8048B97C6AC1}</ProjectGuid>
     <RootNamespace>pathosengine</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v100</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -36,16 +37,17 @@
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <UseOfMfc>Static</UseOfMfc>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CLRSupport>false</CLRSupport>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -120,6 +122,7 @@
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
       <DelayLoadDLLs>OpenAL32.dll;SDL2.dll;</DelayLoadDLLs>
       <AdditionalOptions>/DELAYLOAD:"OpenAL32.dll" %(AdditionalOptions)</AdditionalOptions>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
@@ -148,6 +151,7 @@
       <GenerateMapFile>true</GenerateMapFile>
       <DelayLoadDLLs>OpenAL32.dll;SDL2.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
@@ -177,6 +181,7 @@
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
       <DelayLoadDLLs>OpenAL32.dll;SDL2.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <AdditionalOptions>/NODEFAULTLIB:msvcrtd %(AdditionalOptions)</AdditionalOptions>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
@@ -260,6 +265,7 @@
     <ClCompile Include="renderer\r_cubemaps.cpp" />
     <ClCompile Include="renderer\r_decals.cpp" />
     <ClCompile Include="renderer\r_dlights.cpp" />
+    <ClCompile Include="renderer\r_fbocache.cpp" />
     <ClCompile Include="renderer\r_glowaura.cpp" />
     <ClCompile Include="renderer\r_glqueries.cpp" />
     <ClCompile Include="renderer\r_interfacefuncs.cpp" />
@@ -407,6 +413,7 @@
     <ClInclude Include="renderer\r_cubemaps.h" />
     <ClInclude Include="renderer\r_decals.h" />
     <ClInclude Include="renderer\r_dlights.h" />
+    <ClInclude Include="renderer\r_fbocache.h" />
     <ClInclude Include="renderer\r_glowaura.h" />
     <ClInclude Include="renderer\r_glqueries.h" />
     <ClInclude Include="renderer\r_interfacefuncs.h" />

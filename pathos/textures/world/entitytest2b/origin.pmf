@@ -1,8 +1,0 @@
-$texture
-{
-	$int_width 16
-	$int_height 16
-	$container entitytest2b.bsp
-	$material concrete
-	$texture diffuse origin
-}

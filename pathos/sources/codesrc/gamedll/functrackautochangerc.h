@@ -28,5 +28,7 @@ public:
 public:
 	virtual void CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value ) override;
 	virtual void CallBlocked( CBaseEntity* pBlocker ) override;
+	virtual void HitBottom( void ) override;
+	virtual void HitTop (void ) override;
 };
 #endif //FUNCTRACKAUTOCHANGERC_H

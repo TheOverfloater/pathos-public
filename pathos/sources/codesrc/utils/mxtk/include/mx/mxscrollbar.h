@@ -36,7 +36,7 @@ public:
 	enum { Horizontal, Vertical };
 
 	// CREATORS
-	mxScrollbar (mxWindow *parent, int x, int y, int w, int h, int id = 0, int style = 0);
+	mxScrollbar (mxWindow *parent, int x, int y, int w, int h, __int64 id = 0, int style = 0);
 	virtual ~mxScrollbar ();
 
 	// MANIPULATORS

@@ -888,8 +888,20 @@
     <ClCompile Include="funcslippery.cpp">
       <Filter>Source Files\entities\func</Filter>
     </ClCompile>
+    <ClCompile Include="ai_militianpc.cpp">
+      <Filter>Source Files\ai</Filter>
+    </ClCompile>
     <ClCompile Include="funcclipeconomy.cpp">
       <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="envsyncanimation.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="triggerrelaybinary.cpp">
+      <Filter>Source Files\entities\trigger</Filter>
+    </ClCompile>
+    <ClCompile Include="infovismark.cpp">
+      <Filter>Source Files\entities\info</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1670,8 +1682,17 @@
     <ClInclude Include="funcslippery.h">
       <Filter>Header Files\entities\func</Filter>
     </ClInclude>
+    <ClInclude Include="ai_militianpc.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
     <ClInclude Include="funcclipeconomy.h">
       <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="envsyncanimation.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="triggerrelaybinary.h">
+      <Filter>Header Files\entities\trigger</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

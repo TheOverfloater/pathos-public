@@ -109,9 +109,9 @@ bool CTimeDamage::Spawn( void )
 // @brief Called when the entity is freed
 //
 //=============================================
-void CTimeDamage::FreeEntity( void )
+void CTimeDamage::FreeEntity( edict_removed_t freeMode )
 {
-	CBaseEntity::FreeEntity();
+	CBaseEntity::FreeEntity(freeMode);
 
 	CTimeDamage::RemoveTimeDamageFromList(this);
 }

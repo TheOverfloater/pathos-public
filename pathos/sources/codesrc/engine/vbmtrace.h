@@ -23,9 +23,9 @@ struct studiohdr_t;
 struct mstudioseqdesc_t;
 
 // Number of planes for a hull
-static const Uint32 NUM_STUDIO_HULL_PLANES = 6;
+static constexpr Uint32 NUM_STUDIO_HULL_PLANES = 6;
 // Number of planes for a hull
-static const Uint32 NUM_STUDIO_HULL_CLIPNODES = 6;
+static constexpr Uint32 NUM_STUDIO_HULL_CLIPNODES = 6;
 
 struct vbmhitboxhull_t
 {

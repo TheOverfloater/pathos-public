@@ -34,6 +34,7 @@ All Rights Reserved.
 #include "networking.h"
 #include "r_vbm.h"
 #include "r_blackhole.h"
+#include "r_fbocache.h"
 
 // Class definition
 CParticleEngine gParticleEngine;
@@ -154,6 +155,8 @@ bool CParticleEngine::InitGL( void )
 		m_attribs.u_texture0 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_rtexture0 = m_pShader->InitUniform("rtexture0", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_rtexture1 = m_pShader->InitUniform("rtexture1", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_scrtexture0 = m_pShader->InitUniform("scrtexture0", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_scrtexture1 = m_pShader->InitUniform("scrtexture1", CGLSLShader::UNIFORM_INT1);
 
 		m_attribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_FLOAT3);
 		m_attribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_FLOAT2);
@@ -165,6 +168,8 @@ bool CParticleEngine::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_texture0, "texture0", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_rtexture0, "rtexture0", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_rtexture1, "rtexture1", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_scrtexture0, "scrtexture0", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_scrtexture1, "scrtexture1", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_fogcolor, "fogcolor", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_fogparams, "fogparams", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_overbright, "overbright", m_pShader, Sys_ErrorPopup)
@@ -174,28 +179,30 @@ bool CParticleEngine::InitGL( void )
 		m_attribs.d_fog = m_pShader->GetDeterminatorIndex("fog");
 		m_attribs.d_type = m_pShader->GetDeterminatorIndex("type");
 		m_attribs.d_alphatest = m_pShader->GetDeterminatorIndex("alphatest");
+		m_attribs.d_rectangle = m_pShader->GetDeterminatorIndex("rectangle");
 
 		if(!R_CheckShaderDeterminator(m_attribs.d_fog, "fog", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_type, "type", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_alphatest, "alphatest", m_pShader, Sys_ErrorPopup))
+			|| !R_CheckShaderDeterminator(m_attribs.d_alphatest, "alphatest", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderDeterminator(m_attribs.d_rectangle, "rectangle", m_pShader, Sys_ErrorPopup))
 			return false;
 
 		for(Uint32 i = 0; i < MAX_PARTICLE_POINT_LIGHTS; i++)
 		{
 			CString field;
-			field << "point_lights_" << (Int32)i << "_color";
+			field << "point_lights_" << static_cast<Int32>(i) << "_color";
 			m_attribs.point_lights[i].u_color = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_FLOAT3);
 			if(!R_CheckShaderUniform(m_attribs.point_lights[i].u_color, field.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
 
 			field.clear();
-			field << "point_lights_" << (Int32)i << "_origin";
+			field << "point_lights_" << static_cast<Int32>(i) << "_origin";
 			m_attribs.point_lights[i].u_origin = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_FLOAT3);
 			if(!R_CheckShaderUniform(m_attribs.point_lights[i].u_origin, field.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
 
 			field.clear();
-			field << "point_lights_" << (Int32)i << "_radius";
+			field << "point_lights_" << static_cast<Int32>(i) << "_radius";
 			m_attribs.point_lights[i].u_radius = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_FLOAT1);
 			if(!R_CheckShaderUniform(m_attribs.point_lights[i].u_radius, field.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
@@ -206,31 +213,31 @@ bool CParticleEngine::InitGL( void )
 		for(Uint32 i = 0; i < MAX_PARTICLE_PROJ_LIGHTS; i++)
 		{
 			CString field;
-			field << "proj_lights_" << (Int32)i << "_origin";
+			field << "proj_lights_" << static_cast<Int32>(i) << "_origin";
 			m_attribs.proj_lights[i].u_origin = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_FLOAT3);
 			if(!R_CheckShaderUniform(m_attribs.proj_lights[i].u_origin, field.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
 
 			field.clear();
-			field << "proj_lights_" << (Int32)i << "_color";
+			field << "proj_lights_" << static_cast<Int32>(i) << "_color";
 			m_attribs.proj_lights[i].u_color = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_FLOAT3);
 			if(!R_CheckShaderUniform(m_attribs.proj_lights[i].u_color, field.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
 
 			field.clear();
-			field << "proj_lights_" << (Int32)i << "_radius";
+			field << "proj_lights_" << static_cast<Int32>(i) << "_radius";
 			m_attribs.proj_lights[i].u_radius = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_FLOAT1);
 			if(!R_CheckShaderUniform(m_attribs.proj_lights[i].u_radius, field.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
 
 			field.clear();
-			field << "proj_lights_" << (Int32)i << "_matrix";
+			field << "proj_lights_" << static_cast<Int32>(i) << "_matrix";
 			m_attribs.proj_lights[i].u_matrix = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_MATRIX4);
 			if(!R_CheckShaderUniform(m_attribs.proj_lights[i].u_matrix, field.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
 
 			field.clear();
-			field << "proj_lights_" << (Int32)i << "_texture";
+			field << "proj_lights_" << static_cast<Int32>(i) << "_texture";
 			m_attribs.proj_lights[i].u_texture = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_INT1);
 			if(!R_CheckShaderUniform(m_attribs.proj_lights[i].u_texture, field.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
@@ -267,12 +274,12 @@ bool CParticleEngine::InitGL( void )
 
 		m_pVertexes[base].origin[0] = 0; m_pVertexes[base].origin[1] = 0; 
 		m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
-		m_pVertexes[base].texcoord[0] = 0; m_pVertexes[base].texcoord[1] = rns.screenheight;
+		m_pVertexes[base].texcoord[0] = 0; m_pVertexes[base].texcoord[1] = 1.0f;
 		base++;
 
 		m_pVertexes[base].origin[0] = 1; m_pVertexes[base].origin[1] = 0; 
 		m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
-		m_pVertexes[base].texcoord[0] = rns.screenwidth; m_pVertexes[base].texcoord[1] = rns.screenheight;
+		m_pVertexes[base].texcoord[0] = 1.0f; m_pVertexes[base].texcoord[1] = 1.0f;
 		base++;
 
 		m_pVertexes[base].origin[0] = 0; m_pVertexes[base].origin[1] = 1; 
@@ -282,12 +289,12 @@ bool CParticleEngine::InitGL( void )
 
 		m_pVertexes[base].origin[0] = 1; m_pVertexes[base].origin[1] = 0; 
 		m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
-		m_pVertexes[base].texcoord[0] = rns.screenwidth; m_pVertexes[base].texcoord[1] = rns.screenheight;
+		m_pVertexes[base].texcoord[0] = 1.0f; m_pVertexes[base].texcoord[1] = 1.0f;
 		base++;
 
 		m_pVertexes[base].origin[0] = 1; m_pVertexes[base].origin[1] = 1; 
 		m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
-		m_pVertexes[base].texcoord[0] = rns.screenwidth; m_pVertexes[base].texcoord[1] = 0;
+		m_pVertexes[base].texcoord[0] = 1.0f; m_pVertexes[base].texcoord[1] = 0;
 
 		Uint32 vertexcount = MAX_ACTIVE_PARTICLES*4+6;
 		m_pVBO = new CVBO(gGLExtF, m_pVertexes, sizeof(particle_vertex_t)*vertexcount, indexes, sizeof(Uint32)*MAX_ACTIVE_PARTICLES*6);
@@ -661,7 +668,7 @@ bool CParticleEngine::ReadField( script_definition_t* pdefinition, const Char* p
 			return false;
 		}
 
-		color.x = (Float)SDL_atoi(token) / 255.0f;
+		color.x = SDL_atof(token) / 255.0f;
 
 		// Parse G color element
 		pstr = Common::Parse(pstr, token);
@@ -671,12 +678,12 @@ bool CParticleEngine::ReadField( script_definition_t* pdefinition, const Char* p
 			return false;
 		}
 
-		color.y = (Float)SDL_atoi(token) / 255.0f;
+		color.y = SDL_atof(token) / 255.0f;
 
 		// Parse B color element
 		pstr = Common::Parse(pstr, token);
 
-		color.z = (Float)SDL_atoi(token) / 255.0f;
+		color.z = SDL_atof(token) / 255.0f;
 
 		if(!qstrcmp(pstrField, "$primary_color"))
 			pdefinition->primarycolor = color;
@@ -1713,7 +1720,7 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 			else
 			{
 				// Get desired frame
-				iframe = ((Int32)((rns.time - pparticle->spawntime)*pdefinition->framerate));
+				iframe = (static_cast<Int32>((rns.time - pparticle->spawntime)*pdefinition->framerate));
 				iframe = iframe % pdefinition->numframes;
 			}
 
@@ -1726,8 +1733,8 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 			Int32 row = (iframe/numframesx)%numframesy;
 
 			// Calculate these only once
-			Float fracwidth = (Float)pdefinition->framesizex/(Float)pTexture->width;
-			Float fracheight = (Float)pdefinition->framesizey/(Float)pTexture->height;
+			Float fracwidth = static_cast<Float>(pdefinition->framesizex)/static_cast<Float>(pTexture->width);
+			Float fracheight = static_cast<Float>(pdefinition->framesizey)/static_cast<Float>(pTexture->height);
 
 			// Calculate top left coordinate
 			pparticle->texcoords[0][0] = (column+1)*fracwidth;
@@ -1992,7 +1999,7 @@ void CParticleEngine::UpdateSystems( void )
 
 		// Determine how many we've spawned
 		Float life = rns.time - psystem->spawntime;
-		Float freq = 1/(Float)particlefreq;
+		Float freq = 1/ static_cast<Float>(particlefreq);
 		Uint64 itimesspawn = life/freq;
 
 		if(itimesspawn <= psystem->numspawns)
@@ -2713,7 +2720,7 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 
 			for(Uint32 i = 0; i < inumtraces; i++)
 			{
-				Float fraction = (i+1)/(Float)inumtraces;
+				Float fraction = (i+1)/ static_cast<Float>(inumtraces);
 				Math::VectorMA(pparticle->lastspawn, fraction, vdirection, vorigin);
 
 				Vector direction = pparticle->velocity;
@@ -2732,7 +2739,7 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 	if(pdefinition->numframes && pdefinition->framerate)
 	{
 		// Get desired frame
-		Int32 iframe = ((Int32)((rns.time - pparticle->spawntime)*pdefinition->framerate));
+		Int32 iframe = (static_cast<Int32>((rns.time - pparticle->spawntime)*pdefinition->framerate));
 		iframe = iframe % pdefinition->numframes;
 
 		// Check if we actually have to set the frame
@@ -2747,8 +2754,8 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 			Int32 row = (iframe/numframesx)%numframesy;
 
 			// Calculate these only once
-			Float fracwidth = (Float)pdefinition->framesizex/(Float)pTexture->width;
-			Float fracheight = (Float)pdefinition->framesizey/(Float)pTexture->height;
+			Float fracwidth = static_cast<Float>(pdefinition->framesizex)/ static_cast<Float>(pTexture->width);
+			Float fracheight = static_cast<Float>(pdefinition->framesizey)/ static_cast<Float>(pTexture->height);
 
 			// Calculate top left coordinate
 			pparticle->texcoords[0][0] = (column+1)*fracwidth;
@@ -3229,12 +3236,12 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 		{
 			if(pdefinition->framesizex > pdefinition->framesizey)
 			{
-				up = (Float)pdefinition->framesizey/(Float)pdefinition->framesizex;
+				up = static_cast<Float>(pdefinition->framesizey)/static_cast<Float>(pdefinition->framesizex);
 				right = 1.0;
 			}
 			else
 			{
-				right = (Float)pdefinition->framesizex/(Float)pdefinition->framesizey;
+				right = static_cast<Float>(pdefinition->framesizex)/static_cast<Float>(pdefinition->framesizey);
 				up = 1.0;
 			}
 		}
@@ -3242,12 +3249,12 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 		{
 			if(psystem->ptexture->width > psystem->ptexture->height)
 			{
-				up = (Float)psystem->ptexture->height/(Float)psystem->ptexture->width;
+				up = static_cast<Float>(psystem->ptexture->height)/static_cast<Float>(psystem->ptexture->width);
 				right = 1.0;
 			}
 			else
 			{
-				right = (Float)psystem->ptexture->width/(Float)psystem->ptexture->height;
+				right = static_cast<Float>(psystem->ptexture->width)/static_cast<Float>(psystem->ptexture->height);
 				up = 1.0;
 			}
 		}
@@ -3304,16 +3311,23 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 
 	if(rns.fog.settings.active)
 	{
-		result = m_pShader->SetDeterminator(m_attribs.d_fog, 1);
+		result = m_pShader->SetDeterminator(m_attribs.d_fog, 1, false);
 		m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
-		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/((Float)rns.fog.settings.end-(Float)rns.fog.settings.start));
+		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/(static_cast<Float>(rns.fog.settings.end)-static_cast<Float>(rns.fog.settings.start)));
 	}
 	else
 	{
-		result = m_pShader->SetDeterminator(m_attribs.d_fog, 0);
+		result = m_pShader->SetDeterminator(m_attribs.d_fog, 0, false);
 	}
 
 	if(!result)
+	{
+		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
+		return false;
+	}
+
+	result = m_pShader->SetDeterminator(m_attribs.d_rectangle, FALSE);
+	if (!result)
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		return false;
@@ -3333,6 +3347,10 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 	rtt_texture_t* prttscreentexture = nullptr;
 	rtt_texture_t* prttdistorttexture = nullptr;
 
+	// FBOs
+	CFBOCache::cache_fbo_t* pscreenfbo = nullptr;
+	CFBOCache::cache_fbo_t* pdistortfbo = nullptr;
+
 	// Render systems
 	m_particleSystemsList.begin();
 	while(!m_particleSystemsList.end())
@@ -3347,8 +3365,12 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 		// Pointer to script definition
 		const script_definition_t* pdefinition = psystem->pdefinition;
 
-		if((pdefinition->render_flags & RENDER_FL_NOFOG) && rns.fog.settings.active)
+		if ((pdefinition->render_flags & RENDER_FL_NOFOG) && rns.fog.settings.active)
+		{
 			result = m_pShader->SetDeterminator(m_attribs.d_fog, 0);
+			if (!result)
+				break;
+		}
 
 		m_pShader->SetUniform1f(m_attribs.u_overbright, (pdefinition->render_flags & RENDER_FL_OVERBRIGHT) ? 1.0 : 0.0);
 
@@ -3431,7 +3453,7 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 
 				m_pShader->SetUniform3f(m_attribs.proj_lights[i].u_color, vcolor[0], vcolor[1], vcolor[2]);
 
-				if(lastbind == (Int32)rns.objects.projective_textures[psystem->pspotlights[i]->textureindex]->palloc->gl_index)
+				if(lastbind == static_cast<Int32>(rns.objects.projective_textures[psystem->pspotlights[i]->textureindex]->palloc->gl_index))
 				{
 					m_pShader->SetUniform1i(m_attribs.proj_lights[i].u_texture, 2+lastunit);
 				}
@@ -3493,22 +3515,85 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 				break;
 			}
 
-			// Make sure the RTT objects are present
-			if(!prttscreentexture)
-				prttscreentexture = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
+			if (!rns.fboused || !rns.usehdr)
+			{
+				// Make sure the RTT objects are present
+				if (!prttscreentexture)
+				{
+					prttscreentexture = gRTTCache.Alloc(rns.view.viewsize_x, rns.view.viewsize_y, true);
+					if (!prttscreentexture)
+					{
+						Sys_ErrorPopup("%s - Failed to get screen texture for rendering", __FUNCTION__);
+						m_pShader->DisableShader();
+						m_pVBO->UnBind();
+						return false;
+					}
+				}
 
-			if(!prttdistorttexture)
-				prttdistorttexture = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
+				if (!prttdistorttexture)
+				{
+					prttdistorttexture = gRTTCache.Alloc(rns.view.viewsize_x, rns.view.viewsize_y, true);
+					if (!prttdistorttexture)
+					{
+						Sys_ErrorPopup("%s - Failed to get distortion texture for rendering", __FUNCTION__);
+						m_pShader->DisableShader();
+						m_pVBO->UnBind();
+						return false;
+					}
+				}
 
-			// Save the screen texture
-			gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-			glEnable(GL_TEXTURE_RECTANGLE);
+				// Save the screen texture
+				gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
+				glEnable(GL_TEXTURE_RECTANGLE);
 
-			R_BindRectangleTexture(GL_TEXTURE0_ARB, prttscreentexture->palloc->gl_index);
-			glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
+				R_BindRectangleTexture(GL_TEXTURE0_ARB, prttscreentexture->palloc->gl_index);
+				glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.view.viewsize_x, rns.view.viewsize_y, 0);
+			}
+			else
+			{
+				// Make sure the FBOs are present
+				if (!pscreenfbo)
+				{
+					pscreenfbo = gFBOCache.Alloc(rns.view.viewsize_x, rns.view.viewsize_y, false);
+					if (!pscreenfbo)
+					{
+						Sys_ErrorPopup("%s - Failed to get screen FBO for rendering", __FUNCTION__);
+						m_pShader->DisableShader();
+						m_pVBO->UnBind();
+						return false;
+					}
+				}
 
-			gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-			glEnable(GL_TEXTURE_RECTANGLE);
+				gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, pscreenfbo->fbo.fboid);
+				glClear(GL_COLOR_BUFFER_BIT);
+				glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
+
+				gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, rns.pboundfbo->fboid);
+				glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+				gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pscreenfbo->fbo.fboid);
+				glDrawBuffer(GL_COLOR_ATTACHMENT0);
+				glClear(GL_COLOR_BUFFER_BIT);
+
+				// Blit over the color buffer
+				gGLExtF.glBlitFramebuffer(0, 0, rns.view.viewsize_x, rns.view.viewsize_y, 0, 0, rns.view.viewsize_x, rns.view.viewsize_y, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+				if (!pdistortfbo)
+				{
+					pdistortfbo = gFBOCache.Alloc(rns.view.viewsize_x, rns.view.viewsize_y, false);
+					if (!pdistortfbo)
+					{
+						Sys_ErrorPopup("%s - Failed to get distortion FBO for rendering", __FUNCTION__);
+						m_pShader->DisableShader();
+						m_pVBO->UnBind();
+						return false;
+					}
+				}
+
+				// Bind main FBO and set color attachment 1 as target
+				gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
+				glDrawBuffer(GL_COLOR_ATTACHMENT1);
+			}
 
 			// Clear the color buffer and begin rendering
 			glClearColor(0.5, 0.5, 0.5, GL_ZERO);
@@ -3558,18 +3643,44 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 		{
 			glDisable(GL_BLEND);
 
-			// Grab the contents of the screen
-			gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-			glEnable(GL_TEXTURE_RECTANGLE);
+			if (!rns.fboused || !rns.usehdr)
+			{
+				// Grab the contents of the screen
+				gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
+				glEnable(GL_TEXTURE_RECTANGLE);
 
-			R_BindRectangleTexture(GL_TEXTURE0_ARB, prttdistorttexture->palloc->gl_index);
-			glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
+				R_BindRectangleTexture(GL_TEXTURE0_ARB, prttdistorttexture->palloc->gl_index);
+				glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
+			}
+			else
+			{
+				// First blit over to the distortion from the second attachment to our FBO
+				gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, pdistortfbo->fbo.fboid);
+				glClear(GL_COLOR_BUFFER_BIT);
+				glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
+
+				gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, rns.pboundfbo->fboid);
+				glReadBuffer(GL_COLOR_ATTACHMENT1);
+
+				gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pdistortfbo->fbo.fboid);
+				glDrawBuffer(GL_COLOR_ATTACHMENT0);
+				glClear(GL_COLOR_BUFFER_BIT);
+
+				// Perform blit
+				gGLExtF.glBlitFramebuffer(0, 0, rns.screenwidth, rns.screenheight, 0, 0, rns.screenwidth, rns.screenheight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+				// Bind main FBO
+				gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
+				glDrawBuffer(GL_COLOR_ATTACHMENT0);
+				glReadBuffer(GL_COLOR_ATTACHMENT0);
+			}
 
 			// Disable everything special
 			if(!m_pShader->SetDeterminator(m_attribs.d_numpointlights, 0, false)
 				|| !m_pShader->SetDeterminator(m_attribs.d_numprojlights, 0, false)
 				|| !m_pShader->SetDeterminator(m_attribs.d_fog, 0, false)
-				|| !m_pShader->SetDeterminator(m_attribs.d_type, SHADER_PRT_DISTORT))
+				|| !m_pShader->SetDeterminator(m_attribs.d_type, SHADER_PRT_DISTORT, false)
+				|| !m_pShader->SetDeterminator(m_attribs.d_rectangle, (rns.fboused && rns.usehdr) ? FALSE : TRUE))
 			{
 				result = false;
 				break;
@@ -3586,37 +3697,57 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 			m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
 
 			m_pShader->SetUniform1f(m_attribs.u_overbright, 0);
-			m_pShader->SetUniform2f(m_attribs.u_scrsize, rns.screenwidth, rns.screenheight);
 
 			rns.view.modelview.PopMatrix();
 			rns.view.projection.PopMatrix();
 
 			glDisable(GL_DEPTH_TEST);
 
-			gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-			glEnable(GL_TEXTURE_RECTANGLE);
-			R_BindRectangleTexture(GL_TEXTURE0_ARB, prttdistorttexture->palloc->gl_index);
-			m_pShader->SetUniform1i(m_attribs.u_rtexture0, 0);
+			if (rns.fboused && rns.usehdr)
+			{
+				m_pShader->SetUniform2f(m_attribs.u_scrsize, 1.0f, 1.0f);
 
-			gGLExtF.glActiveTexture(GL_TEXTURE1_ARB);
-			glEnable(GL_TEXTURE_RECTANGLE);
-			R_BindRectangleTexture(GL_TEXTURE1_ARB, prttscreentexture->palloc->gl_index);
-			m_pShader->SetUniform1i(m_attribs.u_rtexture1, 1);
+				R_Bind2DTexture(GL_TEXTURE0_ARB, pdistortfbo->fbo.ptexture1->gl_index);
+				m_pShader->SetUniform1i(m_attribs.u_scrtexture0, 0);
+
+				R_Bind2DTexture(GL_TEXTURE1_ARB, pscreenfbo->fbo.ptexture1->gl_index);
+				m_pShader->SetUniform1i(m_attribs.u_scrtexture1, 1);
+			}
+			else
+			{
+				m_pShader->SetUniform2f(m_attribs.u_scrsize, rns.screenwidth, rns.screenheight);
+
+				gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
+				glEnable(GL_TEXTURE_RECTANGLE);
+				R_BindRectangleTexture(GL_TEXTURE0_ARB, prttdistorttexture->palloc->gl_index);
+				m_pShader->SetUniform1i(m_attribs.u_rtexture0, 0);
+
+				gGLExtF.glActiveTexture(GL_TEXTURE1_ARB);
+				glEnable(GL_TEXTURE_RECTANGLE);
+				R_BindRectangleTexture(GL_TEXTURE1_ARB, prttscreentexture->palloc->gl_index);
+				m_pShader->SetUniform1i(m_attribs.u_rtexture1, 1);
+			}
 
 			R_ValidateShader(m_pShader);
 
 			// Render elements
 			glDrawArrays(GL_TRIANGLES, m_screenRectangleBase, 6);
 
-			gGLExtF.glActiveTexture(GL_TEXTURE1_ARB);
-			glDisable(GL_TEXTURE_RECTANGLE);
+			if (!rns.fboused && rns.usehdr)
+			{
+				R_BindRectangleTexture(GL_TEXTURE1_ARB, 0);
+				gGLExtF.glActiveTexture(GL_TEXTURE1_ARB);
+				glDisable(GL_TEXTURE_RECTANGLE);
 
-			gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-			glDisable(GL_TEXTURE_RECTANGLE);
+				R_BindRectangleTexture(GL_TEXTURE0_ARB, 0);
+				gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
+				glDisable(GL_TEXTURE_RECTANGLE);
+			}
 
 			glEnable(GL_DEPTH_TEST);
 			if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_PRT_NORMAL, false)
-				|| !m_pShader->SetDeterminator(m_attribs.d_fog, rns.fog.settings.active))
+				|| !m_pShader->SetDeterminator(m_attribs.d_fog, rns.fog.settings.active, false)
+				|| !m_pShader->SetDeterminator(m_attribs.d_rectangle, FALSE))
 			{
 				result = false;
 				break;
@@ -3641,7 +3772,6 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 			}
 		}
 
-
 		if((pdefinition->render_flags & RENDER_FL_NOFOG) && rns.fog.settings.active)
 			result = m_pShader->SetDeterminator(m_attribs.d_fog, 1);
 
@@ -3657,6 +3787,12 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 
 	if(prttdistorttexture)
 		gRTTCache.Free(prttdistorttexture);
+
+	if (pscreenfbo)
+		gFBOCache.Free(pscreenfbo);
+
+	if (pdistortfbo)
+		gFBOCache.Free(pdistortfbo);
 
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);

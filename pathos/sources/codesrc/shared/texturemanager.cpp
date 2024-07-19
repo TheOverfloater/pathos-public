@@ -181,7 +181,7 @@ void CTextureManager::UpdateAnisotropySettings( Float cvarValue )
 		return;
 
 	// Make sure it's valid
-	if(anisotropySetting < 0 || anisotropySetting >= (Int32)m_anisotropySettingsArray.size())
+	if(anisotropySetting < 0 || anisotropySetting >= static_cast<Int32>(m_anisotropySettingsArray.size()))
 		anisotropySetting = 0;
 
 	m_currentAnisotropySetting = anisotropySetting;
@@ -447,7 +447,7 @@ void CTextureManager::DeleteAllocation( en_texalloc_t* palloc )
 //=============================================
 void CTextureManager::CreateDummyTexture( void )
 {
-	const Uint32 dummyTextureSize = 16;
+	constexpr Uint32 dummyTextureSize = 16;
 	Uint32 dataSize = dummyTextureSize*dummyTextureSize*4;
 
 	byte *pdata = new byte[dataSize];
@@ -665,7 +665,7 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 	static Char line[MAX_LINE_LENGTH];
 
 	// Because we load textures after reading the script in
-	Char texturePaths[NB_MT_TX][MAX_PARSE_LENGTH];
+	Char texturePaths[NB_MT_TX][MAX_PARSE_LENGTH] = { 0 };
 	for(Uint32 i = 0; i < NB_MT_TX; i++)
 		texturePaths[i][0] = '\0';
 
@@ -782,21 +782,21 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 				else if(!qstrcmp(token, "$int_height"))
 					pmaterial->int_height = SDL_atoi(value);
 				else if(!qstrcmp(token, "$alpha"))
-					pmaterial->alpha = (Float)SDL_atof(value);
+					pmaterial->alpha = static_cast<Float>(SDL_atof(value));
 				else if(!qstrcmp(token, "$phong_exp"))
-					pmaterial->phong_exp = (Float)SDL_atof(value);
+					pmaterial->phong_exp = static_cast<Float>(SDL_atof(value));
 				else if(!qstrcmp(token, "$spec"))
-					pmaterial->spec_factor = (Float)SDL_atof(value);
+					pmaterial->spec_factor = static_cast<Float>(SDL_atof(value));
 				else if(!qstrcmp(token, "$scopescale"))
-					pmaterial->scale = (Float)SDL_atof(value);
+					pmaterial->scale = static_cast<Float>(SDL_atof(value));
 				else if(!qstrcmp(token, "$cubemapstrength"))
-					pmaterial->cubemapstrength = (Float)SDL_atof(value);
+					pmaterial->cubemapstrength = static_cast<Float>(SDL_atof(value));
 				else if(!qstrcmp(token, "$container"))
 					pmaterial->containername = value;
 				else if(!qstrcmp(token, "$scrollu"))
-					pmaterial->scrollu = SDL_atof(value);
+					pmaterial->scrollu = static_cast<Float>(SDL_atof(value));
 				else if(!qstrcmp(token, "$scrollv"))
-					pmaterial->scrollv = SDL_atof(value);
+					pmaterial->scrollv = static_cast<Float>(SDL_atof(value));
 			}
 			else if(!qstrcmp(token, "$texture"))
 			{
@@ -829,7 +829,7 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 			{
 				if(!pchar)
 				{
-					m_printErrorFunction("$material command is incomplete in '%s'.\n", filePath);
+					m_printErrorFunction("$material command is incomplete in '%s'.\n", filePath.c_str());
 					continue;
 				}
 
@@ -891,6 +891,7 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 	}
 
 	// Print about invalid detail texture scales
+	assert(pmaterial != nullptr);
 	if(pmaterial->dt_scalex && !pmaterial->dt_scaley)
 		m_printFunction("%s - Invalid y detail texture scale for material script file '%s'.\n", __FUNCTION__, filePath.c_str());
 	else if(!pmaterial->dt_scalex && pmaterial->dt_scaley)
@@ -1101,10 +1102,10 @@ en_texture_t* CTextureManager::LoadTexture( const Char* pstrFilename, rs_level_t
 
 	if(ptexture->flags & TX_FL_BORDER)
 	{
-		GLfloat values[4] = { (GLfloat)pborder[0]/255.0f, 
-			(GLfloat)pborder[1]/255.0f,
-			(GLfloat)pborder[2]/255.0f,
-			(GLfloat)pborder[3]/255.0f };
+		GLfloat values[4] = { static_cast<GLfloat>(pborder[0])/255.0f,
+			static_cast<GLfloat>(pborder[1])/255.0f,
+			static_cast<GLfloat>(pborder[2])/255.0f,
+			static_cast<GLfloat>(pborder[3])/255.0f };
 
 		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, values);
 	}
@@ -1311,14 +1312,14 @@ en_texture_t* CTextureManager::LoadPallettedTexture( const Char* pstrFilename, r
 
 	for (Uint32 i = 0; i < outwidth; i++)
 	{
-		pcol1[i] = (Int32) ((i + 0.25) * (width / (Float)outwidth));
-		pcol2[i] = (Int32) ((i + 0.75) * (width / (Float)outwidth));
+		pcol1[i] = static_cast<Int32>((i + 0.25) * (width / static_cast<Float>(outwidth)));
+		pcol2[i] = static_cast<Int32>((i + 0.75) * (width / static_cast<Float>(outwidth)));
 	}
 
 	for (Uint32 i = 0; i < outheight; i++)
 	{
-		prow1[i] = (Int32) ((i + 0.25) * (height / (Float)outheight)) * width;
-		prow2[i] = (Int32) ((i + 0.75) * (height / (Float)outheight)) * width;
+		prow1[i] = static_cast<Int32>((i + 0.25) * (height / static_cast<Float>(outheight))) * width;
+		prow2[i] = static_cast<Int32>((i + 0.75) * (height / static_cast<Float>(outheight))) * width;
 	}
 
 	for (Uint32 i = 0; i < outheight; i++)
@@ -1465,7 +1466,7 @@ void CTextureManager::PopulateAnisotropyList( void )
 //=============================================
 en_material_t* CTextureManager::FindMaterialScriptByIndex( Int32 index )
 {
-	if(index < 0 || index >= (Int32)m_materialsIndexPtrArray.size())
+	if(index < 0 || index >= static_cast<Int32>(m_materialsIndexPtrArray.size()))
 		return nullptr;
 	
 	en_material_t* pmaterial = m_materialsIndexPtrArray[index];

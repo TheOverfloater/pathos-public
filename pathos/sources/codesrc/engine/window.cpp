@@ -39,6 +39,9 @@ CWindow::CWindow( void ):
 	m_bFullScreen(false),
 	m_bVerticalSync(false),
 	m_bIsMSAAEnabled(false),
+	m_areFBOsSupported(false),
+	m_areFBOsEnabled(false),
+	m_isHDREnabled(false),
 	m_bWindowActive(false),
 	m_bWindowInitialized(false),
 	m_pSDLWindow(nullptr),
@@ -73,36 +76,111 @@ CWindow::~CWindow( void )
 // Class: CWindow
 // Function: Init
 //=============================================
-Int32 CWindow::GetMaxMultiSample( void )
+bool CWindow::GetOpenGLInfo(Int32& maxMSAA, bool& fboSupported, bool& hdrSupported)
 {
 	// Create the temporary window
 	SDL_Window* pTempWindow = SDL_CreateWindow(ens.gametitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
 		4, 4, (SDL_WINDOW_OPENGL|SDL_WINDOW_HIDDEN));
 
 	if(!pTempWindow)
-		return 0;
+		return false;
 
 	SDL_GLContext tempContext = SDL_GL_CreateContext(pTempWindow);
 	const Char* pstrError = SDL_GetError();
 	if(pstrError[0] != '\0')
 	{
 		SDL_DestroyWindow(pTempWindow);
-		return 0;
+		return false;
 	}
 
-	Int32 maxSamples;
-	glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
+	// Now check the extensions
+	PFNGLGETSTRINGIPROC glGetStringi = (PFNGLGETSTRINGIPROC)wglGetProcAddress("glGetStringi");
+	if (!glGetStringi)
+	{
+		SDL_DestroyWindow(pTempWindow);
+		return false;
+	}
+
+	bool checkHDRExtensions = false;
+	PFNGLCLAMPCOLORPROC glClampColor = reinterpret_cast<PFNGLCLAMPCOLORPROC>(wglGetProcAddress("glClampColor"));
+	if (glClampColor)
+		checkHDRExtensions = true;
+
+	GLint numExtensions;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+
+	// reset to default
+	fboSupported = false;
+	hdrSupported = false;
+
+	bool msaaSupported = false;
+	bool fboMSAASupported = false;
+	bool fboBlitSupported = false;
+	bool halfFloatPixelSupported = false;
+
+	Int32 i = 0;
+	for (; i < numExtensions; i++)
+	{
+		const Char* pstrExtension = reinterpret_cast<const Char*>(glGetStringi(GL_EXTENSIONS, i));
+		
+		if (!msaaSupported && !qstrcicmp(pstrExtension, "GL_ARB_multisample"))
+		{
+			msaaSupported = true;
+			continue;
+		}
+		
+		if (!fboSupported && (!qstrcicmp(pstrExtension, "GL_EXT_framebuffer_object")
+			|| !qstrcicmp(pstrExtension, "GL_ARB_framebuffer_object")))
+		{
+			fboSupported = true;
+			continue;
+		}
+
+		if (checkHDRExtensions)
+		{
+			if (!fboMSAASupported && !qstrcicmp(pstrExtension, "GL_EXT_framebuffer_multisample"))
+			{
+				fboMSAASupported = true;
+				continue;
+			}
+
+			if (!fboBlitSupported && !qstrcicmp(pstrExtension, "GL_EXT_framebuffer_blit"))
+			{
+				fboBlitSupported = true;
+				continue;
+			}
+
+			if (!halfFloatPixelSupported && !qstrcicmp(pstrExtension, "GL_ARB_half_float_pixel"))
+			{
+				halfFloatPixelSupported = true;
+				continue;
+			}
+		}
+	}
+
+	if (msaaSupported)
+	{
+		glGetIntegerv(GL_MAX_SAMPLES, &maxMSAA);
+
+		// Seems GL doesn't tolerate more
+		// than 12x, and above 8x menu items
+		// look artifacted
+		if (maxMSAA > MAX_MSAA_VALUE)
+			maxMSAA = MAX_MSAA_VALUE;
+	}
+	else
+	{
+		// No MSAA
+		maxMSAA = 0;
+	}
+
+	if (fboMSAASupported && fboBlitSupported && halfFloatPixelSupported)
+		hdrSupported = true;
 
 	SDL_GL_DeleteContext(tempContext);
 	SDL_DestroyWindow(pTempWindow);
 
-	// Seems GL doesn't tolerate more
-	// than 12x, and above 8x menu items
-	// look artifacted
-	if(maxSamples > MAX_MSAA_VALUE)
-		maxSamples = MAX_MSAA_VALUE;
-
-	return maxSamples;
+	return true;
 }
 
 //=============================================
@@ -147,7 +225,7 @@ bool CWindow::Init( void )
 	if(gConfig.GetStatus() != CONF_ERR_NONE || nbDepthBits != 24)
 	{
 		nbDepthBits = 24;
-		gConfig.SetValue(GetConfigGroup(), "DepthBits", (Int32)nbDepthBits, true);
+		gConfig.SetValue(GetConfigGroup(), "DepthBits", static_cast<Int32>(nbDepthBits), true);
 	}
 
 	// Get stencil bits count
@@ -155,7 +233,7 @@ bool CWindow::Init( void )
 	if(gConfig.GetStatus() != CONF_ERR_NONE)
 	{
 		nbStencilBits = 0;
-		gConfig.SetValue(GetConfigGroup(), "StencilBits", (Int32)nbStencilBits, true);
+		gConfig.SetValue(GetConfigGroup(), "StencilBits", static_cast<Int32>(nbStencilBits), true);
 	}
 
 	// Turn on double buffering with a 24bit z buffer
@@ -163,11 +241,10 @@ bool CWindow::Init( void )
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, nbDepthBits);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, nbStencilBits);
 
-	if(Sys_CheckLaunchArgs("-lowcolorwidth") == NO_POSITION)
+	if (Sys_CheckLaunchArgs("-renderdoc") != NO_POSITION)
 	{
-		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 10);
-		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 10);
-		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 10);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 	}
 
 	Int32 windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
@@ -203,9 +280,86 @@ bool CWindow::Init( void )
 	m_multiSampleSettingsArray.push_back(0);
 
 	// Set up multisampling
-	Int32 maxMultiSample = GetMaxMultiSample();
+	Int32 maxMultiSample = 0;
+	bool isHDRSupported = false;
+	if (!GetOpenGLInfo(maxMultiSample, m_areFBOsSupported, isHDRSupported))
+	{
+		Sys_ErrorPopup("Failed to fetch required OpenGL parameters at startup.");
+		return false;
+	}
+
 	for(Int32 i = 2; i <= maxMultiSample; i += 2)
 		m_multiSampleSettingsArray.push_back(i);
+
+	// get FBO enabled state
+	if (!m_areFBOsSupported)
+	{
+		// Make sure to reset this
+		ens.requestedFBOSetting = -1;
+
+		m_areFBOsEnabled = gConfig.GetInt(GetConfigGroup(), "FramebufferObjects");
+		if (m_areFBOsEnabled)
+		{
+			gConfig.SetValue(GetConfigGroup(), "FramebufferObjects", FALSE, true);
+			m_areFBOsEnabled = false;
+		}
+	}
+	else if (ens.requestedFBOSetting != -1)
+	{
+		bool requestEnable = ens.requestedFBOSetting == 0 ? false : true;
+		if (requestEnable != m_areFBOsEnabled)
+		{
+			gConfig.SetValue(GetConfigGroup(), "FramebufferObjects", requestEnable ? 1 : 0, true);
+			m_areFBOsEnabled = requestEnable;
+		}
+
+		// Make sure to reset this
+		ens.requestedFBOSetting = -1;
+	}
+	else
+	{
+		m_areFBOsEnabled = gConfig.GetInt(GetConfigGroup(), "FramebufferObjects");
+		if (gConfig.GetStatus() != CONF_ERR_NONE)
+		{
+			m_areFBOsEnabled = true;
+			gConfig.SetValue(GetConfigGroup(), "FramebufferObjects", TRUE, true);
+		}
+	}
+
+	// Get HDR state
+	if (!m_areFBOsEnabled || !isHDRSupported)
+	{
+		// Make sure to reset this
+		ens.requestedHDRSetting = -1;
+
+		m_isHDREnabled = gConfig.GetInt(GetConfigGroup(), "HighDynamicRange");
+		if (m_isHDREnabled)
+		{
+			gConfig.SetValue(GetConfigGroup(), "HighDynamicRange", FALSE, true);
+			m_isHDREnabled = false;
+		}
+	}
+	else if (ens.requestedHDRSetting != -1)
+	{
+		bool requestEnable = ens.requestedHDRSetting == 0 ? false : true;
+		if (requestEnable != m_isHDREnabled)
+		{
+			gConfig.SetValue(GetConfigGroup(), "HighDynamicRange", requestEnable ? 1 : 0, true);
+			m_isHDREnabled = requestEnable;
+		}
+
+		// Make sure to reset this
+		ens.requestedFBOSetting = -1;
+	}
+	else
+	{
+		m_isHDREnabled = gConfig.GetInt(GetConfigGroup(), "HighDynamicRange");
+		if (gConfig.GetStatus() != CONF_ERR_NONE)
+		{
+			m_isHDREnabled = true;
+			gConfig.SetValue(GetConfigGroup(), "HighDynamicRange", TRUE, true);
+		}
+	}
 
 	// Get current MSAA setting
 	Int32 currentMSAASetting = GetCurrentMSAASetting();
@@ -222,17 +376,17 @@ bool CWindow::Init( void )
 
 	ens.requestedMSAASetting = -1;
 
-	if(msaaSettingValue != 0)
+	m_bIsMSAAEnabled = (msaaSettingValue != 0) ? true : false;
+
+	if(msaaSettingValue != 0 && !m_isHDREnabled)
 	{
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaaSettingValue);
-		m_bIsMSAAEnabled = true;
 	}
 	else
 	{
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
-		m_bIsMSAAEnabled = false;
 	}
 
 	// Create the window
@@ -253,7 +407,7 @@ bool CWindow::Init( void )
 		return false;
 	}
 
-	if(msaaSettingValue != 0)
+	if(msaaSettingValue != 0 && !m_isHDREnabled)
 		glEnable(GL_MULTISAMPLE);
 	else
 		glDisable(GL_MULTISAMPLE);
@@ -309,11 +463,11 @@ bool CWindow::BuildDeviceList( void )
 	}
 
 	Int32 numDisplays = SDL_GetNumVideoDisplays();
-	for( Uint32 i = 0; i < (Uint32)numDisplays; i++ ) 
+	for( Uint32 i = 0; i < static_cast<Uint32>(numDisplays); i++ ) 
 	{
 		ddevice_t *newDevice = new ddevice_t;
 		CString deviceName;
-		deviceName << (Int32)(i+1) << " - " << SDL_GetDisplayName(i);
+		deviceName << static_cast<Int32>(i+1) << " - " << SDL_GetDisplayName(i);
 
 		newDevice->name = deviceName;
 		newDevice->index = i;
@@ -357,7 +511,7 @@ bool CWindow::FetchResolutions( ddevice_t* pdevice )
 	pdevice->resolutions.reserve(nbResolutions);
 
 	Uint32 resindex = 0;
-	for(Uint32 i = 0; i < (Uint32)nbResolutions; i++) 
+	for(Uint32 i = 0; i < static_cast<Uint32>(nbResolutions); i++)
 	{
 		SDL_DisplayMode dMode;
 		dMode.driverdata = nullptr;
@@ -374,8 +528,8 @@ bool CWindow::FetchResolutions( ddevice_t* pdevice )
 		Uint32 j = 0;
 		for(; j < pdevice->resolutions.size(); j++)
 		{
-			if(pdevice->resolutions[j].width == (Uint32)dMode.w 
-				&& pdevice->resolutions[j].height == (Uint32)dMode.h)
+			if(pdevice->resolutions[j].width == static_cast<Uint32>(dMode.w)
+				&& pdevice->resolutions[j].height == static_cast<Uint32>(dMode.h))
 				break;
 		}
 
@@ -443,8 +597,10 @@ bool CWindow::SetDisplayProperties( void )
 	bool setDisplayDeviceConfig = false;
 	if(ens.requestedDisplayDevice != -1)
 	{
-		if(ens.requestedDisplayDevice < 0 || (Uint32)ens.requestedDisplayDevice >= m_devicesArray.size())
+		if(ens.requestedDisplayDevice < 0 || static_cast<Uint32>(ens.requestedDisplayDevice) >= m_devicesArray.size())
+		{
 			Con_EPrintf("Invalid display device requested. Option discarded.\n");
+			}
 		else
 		{
 			m_pActiveDevice = m_devicesArray[ens.requestedDisplayDevice];
@@ -470,8 +626,8 @@ bool CWindow::SetDisplayProperties( void )
 		m_pCurrentRes = FindResolution(m_pActiveDevice, ens.requestedScrWidth, ens.requestedScrHeight);
 		if(m_pCurrentRes)
 		{
-			gConfig.SetValue(GetConfigGroup(), "ScreenWidth", (Int32)ens.requestedScrWidth, true);
-			gConfig.SetValue(GetConfigGroup(), "ScreenHeight", (Int32)ens.requestedScrHeight, true);
+			gConfig.SetValue(GetConfigGroup(), "ScreenWidth", static_cast<Int32>(ens.requestedScrWidth), true);
+			gConfig.SetValue(GetConfigGroup(), "ScreenHeight", static_cast<Int32>(ens.requestedScrHeight), true);
 		}
 		else
 			Con_EPrintf("Invalid width/height set, discarding launch args.\n");
@@ -529,8 +685,8 @@ bool CWindow::SetDisplayProperties( void )
 		{
 			m_pCurrentRes = &m_pActiveDevice->resolutions[0];
 
-			gConfig.SetValue(GetConfigGroup(), "ScreenWidth", (Int32)m_pCurrentRes->width, true);
-			gConfig.SetValue(GetConfigGroup(), "ScreenHeight", (Int32)m_pCurrentRes->height, true);
+			gConfig.SetValue(GetConfigGroup(), "ScreenWidth", static_cast<Int32>(m_pCurrentRes->width), true);
+			gConfig.SetValue(GetConfigGroup(), "ScreenHeight", static_cast<Int32>(m_pCurrentRes->height), true);
 		}
 	}
 
@@ -688,7 +844,7 @@ Int32 CWindow::GetCurrentResolutionIndex( void ) const
 //=============================================
 Int32 CWindow::GetNbDisplayDevices( void ) const
 {
-	return (Int32)m_devicesArray.size();
+	return static_cast<Int32>(m_devicesArray.size());
 }
 
 //=============================================
@@ -697,7 +853,7 @@ Int32 CWindow::GetNbDisplayDevices( void ) const
 //=============================================
 const Char* CWindow::GetDisplayDeviceName( Int32 index ) const
 {
-	assert(index >= 0 && index < (Int32)m_devicesArray.size());
+	assert(index >= 0 && index < static_cast<Int32>(m_devicesArray.size()));
 	return m_devicesArray[index]->name.c_str();
 }
 
@@ -719,7 +875,7 @@ Int32 CWindow::GetCurrentDeviceIndex( void ) const
 //=============================================
 Int32 CWindow::GetCenterX( void ) const
 {
-	return ((Int32)m_pCurrentRes->width/2);
+	return (static_cast<Int32>(m_pCurrentRes->width)/2);
 }
 
 //=============================================
@@ -728,7 +884,7 @@ Int32 CWindow::GetCenterX( void ) const
 //=============================================
 Int32 CWindow::GetCenterY( void ) const
 {
-	return ((Int32)m_pCurrentRes->height/2);
+	return (static_cast<Int32>(m_pCurrentRes->height)/2);
 }
 
 //=============================================

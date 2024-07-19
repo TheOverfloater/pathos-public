@@ -35,7 +35,7 @@ public:
 	// Allocates an edict
 	edict_t* AllocEdict( void );
 	// Deallocates an edict
-	void FreeEdict( edict_t* pedict );
+	void FreeEdict( edict_t* pedict, edict_removed_t freeMode );
 	// Returns an edict for an index
 	edict_t* GetEdict( Int32 index );
 

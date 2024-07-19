@@ -152,7 +152,7 @@ void SV_FlyMove( edict_t* pedict, Double time, Float bounce )
 
 		// See if we were successful
 		trace_t trace;
-		SV_Move(trace, pedict->state.origin, pedict->state.mins, pedict->state.maxs, move, moveflags, pedict, (hull_types_t)pedict->state.forcehull);
+		SV_Move(trace, pedict->state.origin, pedict->state.mins, pedict->state.maxs, move, moveflags, pedict, static_cast<hull_types_t>(pedict->state.forcehull));
 		if(trace.flags & FL_TR_ALLSOLID)
 		{
 			// We're trapped in a solid
@@ -163,7 +163,7 @@ void SV_FlyMove( edict_t* pedict, Double time, Float bounce )
 		if(trace.fraction > 0)
 		{
 			trace_t test;
-			SV_Move(test, trace.endpos, pedict->state.mins, pedict->state.maxs, trace.endpos, moveflags, pedict, (hull_types_t)pedict->state.forcehull);
+			SV_Move(test, trace.endpos, pedict->state.mins, pedict->state.maxs, trace.endpos, moveflags, pedict, static_cast<hull_types_t>(pedict->state.forcehull));
 			if(!(test.flags & FL_TR_ALLSOLID))
 			{
 				pedict->state.origin = trace.endpos;
@@ -398,6 +398,7 @@ Float SV_RecursiveWaterLevel( const Vector& origin, Float mins, Float maxs, Int3
 	else
 		return SV_RecursiveWaterLevel(origin, waterlevel, maxs, _depth);
 }
+
 //=============================================
 //
 //=============================================
@@ -548,7 +549,7 @@ bool SV_CheckBottomPrecise( edict_t* pedict, const Vector& mins, const Vector& m
 
 	// Do a trace test
 	trace_t trace;
-	SV_Move(trace, origin, ZERO_VECTOR, ZERO_VECTOR, stop, moveFlags, pedict, (hull_types_t)pedict->state.forcehull);
+	SV_Move(trace, origin, ZERO_VECTOR, ZERO_VECTOR, stop, moveFlags, pedict, static_cast<hull_types_t>(pedict->state.forcehull));
 	if(trace.fraction == 1.0f)
 		return false;
 
@@ -563,7 +564,7 @@ bool SV_CheckBottomPrecise( edict_t* pedict, const Vector& mins, const Vector& m
 			origin[0] = stop[0] = x2 ? maxs[0] : mins[0];
 			origin[1] = stop[1] = y2 ? maxs[1] : mins[1];
 
-			SV_Move(trace, origin, ZERO_VECTOR, ZERO_VECTOR, stop, moveFlags, pedict, (hull_types_t)pedict->state.forcehull);
+			SV_Move(trace, origin, ZERO_VECTOR, ZERO_VECTOR, stop, moveFlags, pedict, static_cast<hull_types_t>(pedict->state.forcehull));
 			if(trace.fraction != 1.0f && trace.endpos[2] > bottom)
 				bottom = trace.endpos[2];
 
@@ -677,7 +678,7 @@ void SV_PushEntity( edict_t* pentity, const Vector& push, trace_t& trace )
 	if(pentity->state.flags & FL_NPC_CLIP)
 		moveFlags |= FL_TRACE_NPC_CLIP;
 	
-	SV_Move(trace, pentity->state.origin, pentity->state.mins, pentity->state.maxs, end, moveFlags, pentity, (hull_types_t)pentity->state.forcehull);
+	SV_Move(trace, pentity->state.origin, pentity->state.mins, pentity->state.maxs, end, moveFlags, pentity, static_cast<hull_types_t>(pentity->state.forcehull));
 
 	if(trace.fraction != 0 && !(trace.flags & FL_TR_ALLSOLID))
 	{
@@ -723,7 +724,7 @@ bool SV_PushRotate( edict_t* ppusher, Float movetime )
 
 	// See if any solid entities are inside the final position
 	g_serverPhysics.numsavedmovingents = 0;
-	for(Int32 i = 1; i < (Int32)gEdicts.GetNbEdicts(); i++)
+	for(Int32 i = 1; i < static_cast<Int32>(gEdicts.GetNbEdicts()); i++)
 	{
 		edict_t* pother = gEdicts.GetEdict(i);
 		if(pother->free)
@@ -742,7 +743,7 @@ bool SV_PushRotate( edict_t* ppusher, Float movetime )
 				continue;
 
 			// See if we're inside the final position
-			if(SV_TestEntityPosition(pother, (hull_types_t)pother->state.forcehull) != ppusher)
+			if(SV_TestEntityPosition(pother, static_cast<hull_types_t>(pother->state.forcehull)) != ppusher)
 				continue;
 		}
 
@@ -805,7 +806,7 @@ bool SV_PushRotate( edict_t* ppusher, Float movetime )
 		}
 
 		// If it's still inside the ppusher, block
-		if(SV_TestEntityPosition(pother, (hull_types_t)pother->state.forcehull) == ppusher)
+		if(SV_TestEntityPosition(pother, static_cast<hull_types_t>(pother->state.forcehull)) == ppusher)
 		{
 			if(pother->state.mins[0] == pother->state.maxs[0])
 				continue;
@@ -860,7 +861,7 @@ bool SV_PushMove_UnstickGroundEntity( edict_t* ppusher, edict_t* pother, const V
 
 		pother->state.origin = testPosition;
 
-		if(SV_TestEntityPosition(pother, (hull_types_t)pother->state.forcehull) != ppusher)
+		if(SV_TestEntityPosition(pother, static_cast<hull_types_t>(pother->state.forcehull)) != ppusher)
 		{
 			canUnstick = true;
 			break;
@@ -880,7 +881,7 @@ bool SV_PushMove_UnstickGroundEntity( edict_t* ppusher, edict_t* pother, const V
 			Vector testOrigin = movedOrigin + moveDirection * dist;
 			pother->state.origin = testOrigin;
 
-			if(SV_TestEntityPosition(pother, (hull_types_t)pother->state.forcehull) != ppusher)
+			if(SV_TestEntityPosition(pother, static_cast<hull_types_t>(pother->state.forcehull)) != ppusher)
 			{
 				canUnstick = true;
 				break;
@@ -937,7 +938,7 @@ void SV_PushMove( edict_t* ppusher, Float movetime )
 
 	// See if any solid entites are in the final position
 	g_serverPhysics.numsavedmovingents = 0;
-	for(Int32 i = 1; i < (Int32)gEdicts.GetNbEdicts(); i++)
+	for(Int32 i = 1; i < static_cast<Int32>(gEdicts.GetNbEdicts()); i++)
 	{
 		edict_t* pother = gEdicts.GetEdict(i);
 		if(pother->free)
@@ -956,7 +957,7 @@ void SV_PushMove( edict_t* ppusher, Float movetime )
 				continue;
 
 			// See if we're inside the final position
-			if(SV_TestEntityPosition(pother, (hull_types_t)pother->state.forcehull) != ppusher)
+			if(SV_TestEntityPosition(pother, static_cast<hull_types_t>(pother->state.forcehull)) != ppusher)
 				continue;
 		}
 
@@ -979,7 +980,7 @@ void SV_PushMove( edict_t* ppusher, Float movetime )
 		ppusher->state.solid = SOLID_BSP;
 
 		// If it's still inside the pusher, block
-		if(SV_TestEntityPosition(pother, (hull_types_t)pother->state.forcehull) == ppusher)
+		if(SV_TestEntityPosition(pother, static_cast<hull_types_t>(pother->state.forcehull)) == ppusher)
 		{
 			if(pother->state.groundent == ppusher->entindex)
 			{
@@ -1048,7 +1049,7 @@ bool SV_RunThink( edict_t* pedict )
 
 	// catch freed edicts here too
 	if(pedict->state.flags & FL_KILLME)
-		gEdicts.FreeEdict(pedict);
+		gEdicts.FreeEdict(pedict, EDICT_REMOVED_KILLED);
 
 	return (pedict->free ? false : true);
 }
@@ -1286,7 +1287,7 @@ void SV_Physics_Step( edict_t* pedict )
 	else if(svs.gamevars.force_retouch)
 	{
 		trace_t trace;
-		SV_Move(trace, pedict->state.origin, pedict->state.mins, pedict->state.maxs, pedict->state.origin, FL_TRACE_NORMAL, pedict, (hull_types_t)pedict->state.forcehull);
+		SV_Move(trace, pedict->state.origin, pedict->state.mins, pedict->state.maxs, pedict->state.origin, FL_TRACE_NORMAL, pedict, static_cast<hull_types_t>(pedict->state.forcehull));
 
 		if(trace.fraction < 1 || trace.flags & FL_TR_STARTSOLID)
 		{
@@ -1570,7 +1571,7 @@ void SV_Physics( void )
 
 		// Kill the entity if flagged to do so
 		if(pedict->state.flags & FL_KILLME)
-			gEdicts.FreeEdict(pedict);
+			gEdicts.FreeEdict(pedict, EDICT_REMOVED_KILLED);
 	}
 
 	nbEdicts = gEdicts.GetNbEdicts();

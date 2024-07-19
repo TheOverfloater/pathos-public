@@ -53,7 +53,8 @@ CGameUISubwayWindow::CGameUISubwayWindow( Int32 flags, Int32 originX, Int32 orig
 	m_pWindowTitleText(nullptr),
 	m_pDefaultDescription(nullptr),
 	m_pExitButton(nullptr),
-	m_subwayFlags(0)
+	m_subwayFlags(0),
+	m_subwayLineIndex(0)
 {
 }
 
@@ -277,7 +278,7 @@ void CGameUISubwayWindow::think( void )
 //====================================
 //
 //====================================
-bool CGameUISubwayWindow::initData( const Char* pstrScriptFile, Int32 flags )
+bool CGameUISubwayWindow::initData( const Char* pstrScriptFile, Int32 flags, Int32 subwayLineIndex )
 {
 	const byte* pfile = cl_filefuncs.pfnLoadFile(pstrScriptFile, nullptr);
 	if(!pfile)
@@ -508,22 +509,96 @@ bool CGameUISubwayWindow::initData( const Char* pstrScriptFile, Int32 flags )
 	// Assign the button descriptions
 	for(Uint32 i = 0; i < NB_DESTINATION_BUTTONS; i++)
 	{
-		bool isAvailable = (flags & (1<<i)) ? true : false;
 		Int32 j = 0;
-		if(i == 2)
-			j = 3;
-		else if(i == 3)
-			j = 2;
-		else
-			j = i;
 
 		subwaybuttonschema_t* pschema = nullptr;
 		if(flags & FL_SUBWAY_DISABLED)
+		{
+			// Disabled by admin
 			pschema = &buttonschemas[SUBWAYWINDOW_BUTTON_DISABLED];
-		else if(!isAvailable)
-			pschema = &buttonschemas[SUBWAYWINDOW_BUTTON_UNAVAILABLE];
+			// set index
+			j = i;
+		}
 		else
-			pschema = &buttonschemas[SUBWAYWINDOW_BUTTON_DESTINATION_1+j];
+		{
+			bool isAvailable = false;
+
+			switch(subwayLineIndex)
+			{
+			case SUBWAYLINE_BERGEN_ECKHART:
+				{
+					isAvailable = (flags & (1<<i)) ? true : false;
+
+					// Stupid old hack
+					if(i == 2)
+						j = 3;
+					else if(i == 3)
+						j = 2;
+					else
+						j = i;
+				}
+				break;
+			case SUBWAYLINE_KASSAR_STILLWELL:
+				{
+					// Handle this specially
+					if(i == 0)
+					{
+						if(flags & FL_SUBWAY_GOT_KASSARST)
+							isAvailable = true;
+						else
+							isAvailable = false;
+					}
+					else if(i == 2)
+					{
+						if(flags & FL_SUBWAY_GOT_MARSHALLST)
+							isAvailable = true;
+						else
+							isAvailable = false;
+					}
+					else
+					{
+						// Not available
+						isAvailable = false;
+					}
+
+					// Set index
+					j = i;
+				}
+				break;
+			case SUBWAYLINE_MARSHALL_LYNE:
+				{
+					// Handle this specially
+					if(i == 0)
+					{
+						if(flags & FL_SUBWAY_GOT_MARSHALLST)
+							isAvailable = true;
+						else
+							isAvailable = false;
+					}
+					else if(i == 2)
+					{
+						if(flags & FL_SUBWAY_GOT_AIELLOST)
+							isAvailable = true;
+						else
+							isAvailable = false;
+					}
+					else
+					{
+						// Not available
+						isAvailable = false;
+					}
+
+					// Set index
+					j = i;
+				}
+				break;
+			}
+
+			if(!isAvailable)
+				pschema = &buttonschemas[SUBWAYWINDOW_BUTTON_UNAVAILABLE];
+			else
+				pschema = &buttonschemas[SUBWAYWINDOW_BUTTON_DESTINATION_1+j];
+		}
 
 		m_buttonsArray[j].pButton->setText(pschema->buttontext.c_str());
 		m_buttonsArray[j].pDescription->setText(pschema->description.c_str());
@@ -540,10 +615,11 @@ bool CGameUISubwayWindow::initData( const Char* pstrScriptFile, Int32 flags )
 //====================================
 //
 //====================================
-void CGameUISubwayWindow::getInformation( CString& scriptfile, Int32& flags ) const
+void CGameUISubwayWindow::getInformation( CString& scriptfile, Int32& flags, Int32& subwayLineIndex ) const
 {
 	scriptfile = m_scriptFilePath;
 	flags = m_subwayFlags;
+	subwayLineIndex = m_subwayLineIndex;
 }
 
 //====================================

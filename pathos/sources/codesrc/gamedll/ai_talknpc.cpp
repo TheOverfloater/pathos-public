@@ -1579,8 +1579,16 @@ void CTalkNPC::SetFollowTarget( CBaseEntity* pTarget )
 	if(m_enemy)
 		m_idealNPCState = NPC_STATE_ALERT;
 
-	m_targetEntity = pTarget;
-	m_talkTargetEntity = pTarget;
+	if (pTarget)
+	{
+		m_targetEntity = pTarget;
+		m_talkTargetEntity = pTarget;
+	}
+	else
+	{
+		m_targetEntity.reset();
+		m_talkTargetEntity.reset();
+	}
 
 	ClearConditions(AI_COND_BLOCKING_PATH);
 	ClearSchedule();

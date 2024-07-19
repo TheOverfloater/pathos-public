@@ -29,9 +29,9 @@ All Rights Reserved.
 #include "console.h"
 
 // Minimum chunk size is 56 kilobytes
-static const Uint32 MIN_FILECHUNK_SIZE = 57344;
+static constexpr Uint32 MIN_FILECHUNK_SIZE = 57344;
 // Maximum chunk size is 4 megabytes
-static const Uint32 MAX_FILECHUNK_SIZE = 4194304;
+static constexpr Uint32 MAX_FILECHUNK_SIZE = 4194304;
 
 //=============================================
 //
@@ -66,13 +66,6 @@ bool SV_SendClientData( sv_client_t* pclient )
 		svs.netinfo.pnet->SVC_MessageBegin(MSG_ONE, svc_serverinfo, pclient->pedict);
 			// Skybox information
 			svs.netinfo.pnet->WriteString(pstrSkyname);
-			svs.netinfo.pnet->WriteFloat(g_psv_skyvec_x->GetValue());
-			svs.netinfo.pnet->WriteFloat(g_psv_skyvec_y->GetValue());
-			svs.netinfo.pnet->WriteFloat(g_psv_skyvec_z->GetValue());
-			svs.netinfo.pnet->WriteFloat(g_psv_skycolor_r->GetValue());
-			svs.netinfo.pnet->WriteFloat(g_psv_skycolor_g->GetValue());
-			svs.netinfo.pnet->WriteFloat(g_psv_skycolor_b->GetValue());
-
 			// Write hull sizes
 			for(Uint32 i = 0; i < MAX_MAP_HULLS; i++)
 			{
@@ -85,9 +78,29 @@ bool SV_SendClientData( sv_client_t* pclient )
 		svs.netinfo.pnet->SVC_MessageEnd();
 
 		pclient->initialized = true;
+	}
+
+	// Check if sky info needs to be sent
+	Vector skyvector(g_psv_skyvec_x->GetValue(), g_psv_skyvec_y->GetValue(), g_psv_skyvec_z->GetValue());
+	Vector skycolor(g_psv_skycolor_r->GetValue(), g_psv_skycolor_g->GetValue(), g_psv_skycolor_b->GetValue());
+
+	if (!Math::VectorCompare(pclient->currentskyvector, skyvector)
+		|| !Math::VectorCompare(pclient->currentskycolor, skycolor))
+	{
+		svs.netinfo.pnet->SVC_MessageBegin(MSG_ONE, svc_lightenvinfo, pclient->pedict);
+			svs.netinfo.pnet->WriteFloat(g_psv_skyvec_x->GetValue());
+			svs.netinfo.pnet->WriteFloat(g_psv_skyvec_y->GetValue());
+			svs.netinfo.pnet->WriteFloat(g_psv_skyvec_z->GetValue());
+			svs.netinfo.pnet->WriteFloat(g_psv_skycolor_r->GetValue());
+			svs.netinfo.pnet->WriteFloat(g_psv_skycolor_g->GetValue());
+			svs.netinfo.pnet->WriteFloat(g_psv_skycolor_b->GetValue());
+		svs.netinfo.pnet->SVC_MessageEnd();
+
+		pclient->currentskyvector = skyvector;
+		pclient->currentskycolor = skycolor;
 
 		// Check for errors on client
-		if(svs.netinfo.pnet->GetClientState(pclient->index) != NETCL_CONNECTED)
+		if (svs.netinfo.pnet->GetClientState(pclient->index) != NETCL_CONNECTED)
 			return false;
 	}
 
@@ -204,7 +217,7 @@ bool SV_WriteEntitiesToClient( sv_client_t* pclient )
 	}
 
 	// Write all other entities
-	for(Int32 i = svs.maxclients+1; i < (Int32)gEdicts.GetNbEdicts(); i++)
+	for(Int32 i = svs.maxclients+1; i < static_cast<Int32>(gEdicts.GetNbEdicts()); i++)
 	{
 		if(pclient->packet.numentities >= MAX_VISIBLE_ENTITIES)
 		{
@@ -999,7 +1012,7 @@ void SV_PlayEntitySound( entindex_t entindex, const Char* pstrPath, Int32 flags,
 	edict_t* pplayer = nullptr;
 	if(dest_player != NO_CLIENT_INDEX)
 	{
-		if(dest_player < 0 || dest_player >= (Int32)svs.maxclients)
+		if(dest_player < 0 || dest_player >= static_cast<Int32>(svs.maxclients))
 		{
 			Con_EPrintf("Invalid player entity index %d.\n", dest_player);
 			return;
@@ -1082,7 +1095,7 @@ void SV_PlayAmbientSound( entindex_t entindex, const Char* pstrPath, const Vecto
 	edict_t* pplayer = nullptr;
 	if(dest_player != NO_CLIENT_INDEX)
 	{
-		if(dest_player < 0 || dest_player >= (Int32)svs.maxclients)
+		if(dest_player < 0 || dest_player >= static_cast<Int32>(svs.maxclients))
 		{
 			Con_EPrintf("Invalid player entity index %d.\n", dest_player);
 			return;
@@ -1160,7 +1173,7 @@ void SV_ApplySoundEffect( entindex_t entindex, const Char* pstrPath, Int32 chann
 	edict_t* pplayer = nullptr;
 	if(dest_player != NO_CLIENT_INDEX)
 	{
-		if(dest_player < 0 || dest_player >= (Int32)svs.maxclients)
+		if(dest_player < 0 || dest_player >= static_cast<Int32>(svs.maxclients))
 		{
 			Con_EPrintf("Invalid player entity index %d.\n", dest_player);
 			return;
@@ -1218,7 +1231,7 @@ void SV_StopEntitySounds( entindex_t entindex, Int32 channel, Int32 dest_player 
 	edict_t* pplayer = nullptr;
 	if(dest_player != NO_CLIENT_INDEX)
 	{
-		if(dest_player < 0 || dest_player >= (Int32)svs.maxclients)
+		if(dest_player < 0 || dest_player >= static_cast<Int32>(svs.maxclients))
 		{
 			Con_EPrintf("Invalid player entity index %d.\n", dest_player);
 			return;
@@ -1291,7 +1304,7 @@ void SV_PlayMusic( const Char* pstrPath, Int32 channel, Int32 flags, Float timeO
 	edict_t* pplayer = nullptr;
 	if(dest_player != NO_CLIENT_INDEX)
 	{
-		if(dest_player < 0 || dest_player >= (Int32)(svs.maxclients))
+		if(dest_player < 0 || dest_player >= static_cast<Int32>(svs.maxclients))
 		{
 			Con_EPrintf("Invalid player entity index %d.\n", dest_player);
 			return;
@@ -1348,7 +1361,7 @@ void SV_StopMusic( Int32 dest_player, const Char* pstrFilename, Int32 channel, F
 	edict_t* pplayer = nullptr;
 	if(dest_player != NO_CLIENT_INDEX)
 	{
-		if(dest_player < 0 || dest_player >= (Int32)svs.maxclients)
+		if(dest_player < 0 || dest_player >= static_cast<Int32>(svs.maxclients))
 		{
 			Con_EPrintf("Invalid player entity index %d.\n", dest_player);
 			return;
@@ -2030,7 +2043,7 @@ void SV_RegisterClientUserMessage( void )
 
 	// See if this message is already registered
 	Int32 index = msgid - 1;
-	if(index < (Int32)svs.netinfo.usermsgfunctions.size())
+	if(index < static_cast<Int32>(svs.netinfo.usermsgfunctions.size()))
 	{
 		sv_usermsgfunction_t& msg = svs.netinfo.usermsgfunctions[index];
 		if(qstrcmp(msg.name, pstrMsgName) || msg.id != msgid)
@@ -2045,7 +2058,7 @@ void SV_RegisterClientUserMessage( void )
 	usermsgfuncname << "MsgFunc_" << pstrMsgName;
 
 	// Load function pointer
-	pfnSVUserMsg_t pFunction = reinterpret_cast<pfnSVUserMsg_t>(SDL_LoadFunction(svs.pdllhandle, usermsgfuncname.c_str()));
+	pfnSVUserMsg_t pFunction = static_cast<pfnSVUserMsg_t>(SDL_LoadFunction(svs.pdllhandle, usermsgfuncname.c_str()));
 	if(!pFunction)
 	{
 		// Add the entry anyway, but warn the client
@@ -2092,7 +2105,7 @@ void SV_ReadClientUserMessage( sv_client_t& cl )
 	Int32 msgindex = msgid - 1;
 
 	// Look it up
-	if((Int32)svs.netinfo.usermsgfunctions.size() <= msgindex)
+	if(static_cast<Int32>(svs.netinfo.usermsgfunctions.size()) <= msgindex)
 	{
 		Con_EPrintf("%s - Message with bogus id %d received.\n", __FUNCTION__, msgid);
 		return;
@@ -2140,7 +2153,7 @@ void SV_UserMessageBegin( msgdest_t dest, Int32 msgid, const Vector* porigin, co
 			return;
 		}
 
-		if(pedict->clientindex == NO_CLIENT_INDEX || pedict->clientindex < 0 || pedict->clientindex >= (Int32)svs.maxclients)
+		if(pedict->clientindex == NO_CLIENT_INDEX || pedict->clientindex < 0 || pedict->clientindex >= static_cast<Int32>(svs.maxclients))
 		{
 			Con_Printf("%s - Bogus destination client.\n", __FUNCTION__);
 			return;
@@ -2178,7 +2191,7 @@ void SV_UserMessageEnd( void )
 	usermsgdata_t* pmsgdata = svs.netinfo.pcurrentmsg;
 	svs.netinfo.pcurrentmsg = nullptr;
 
-	if(pmsgdata->pusermsg->bufsize != -1 && pmsgdata->msgsize != (Int32)pmsgdata->bufsize)
+	if(pmsgdata->pusermsg->bufsize != -1 && pmsgdata->msgsize != static_cast<Int32>(pmsgdata->bufsize))
 	{
 		// Notify client about buffer size mismatch
 		Con_Printf("%s - User message '%s' mismatch with fixed size %d - %d bytes written.\n", 

@@ -33,7 +33,7 @@ class mxTab : public mxWidget
 
 public:
 	// CREATORS
-	mxTab (mxWindow *parent, int x, int y, int w, int h, int id = 0);
+	mxTab (mxWindow *parent, int x, int y, int w, int h, __int64 id = 0);
 	virtual ~mxTab ();
 
 	// MANIPULATORS

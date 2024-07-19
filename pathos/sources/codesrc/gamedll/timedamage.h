@@ -39,7 +39,7 @@ public:
 	// Returns entity's flags
 	virtual Int32 GetEntityFlags( void ) override;
 	// Called when the entity is freed
-	virtual void FreeEntity( void ) override;
+	virtual void FreeEntity( edict_removed_t freeMode ) override;
 
 public:
 	// Think function for follow-type damage infliction

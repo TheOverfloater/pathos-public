@@ -33,6 +33,7 @@ enum entfieldtype_t;
 enum msgdest_t;
 enum part_script_type_t;
 enum npc_movetype_t;
+enum edict_removed_t;
 
 // GameDLL interface version
 #define GDLL_INTERFACE_VERSION 1
@@ -60,7 +61,7 @@ struct gdll_funcs_t
 	void			(*pfnPostSpawnGame)( void );
 
 	bool			(*pfnKeyValue)( edict_t* pedict, const struct keyvalue_t& keyvalue );
-	void			(*pfnFreeEntity)( edict_t* pedict );
+	void			(*pfnFreeEntity)( edict_t* pedict, edict_removed_t freeMode );
 	void			(*prnOnAimentFreed)( edict_t* pedict );
 
 	void			(*pfnGetHullSizes)( Int32 hullIndex, Vector& pmins, Vector& pmaxs );
@@ -107,6 +108,7 @@ struct gdll_funcs_t
 	bool			(*pfnAreCheatsEnabled)( void );
 
 	bool			(*pfnGetTransitioningEntities)( const byte* pPVS, const Vector* pTransitionMins, const Vector* pTransitionMaxs, const Char* pstrLandmarkName, const Vector& landmarkPosition, Int32 *pTransitionList, Uint32& numEntities, Uint32 maxEntities );
+	void			(*pfnAdjustLandmarkPVSData) ( edict_t* pLandmarkEdict, byte* pPVS, Uint32 pvsBufferSize );
 	bool			(*pfnCanSaveGame)( enum savefile_type_t type );
 	bool			(*pfnCanLoadGame)( void );
 

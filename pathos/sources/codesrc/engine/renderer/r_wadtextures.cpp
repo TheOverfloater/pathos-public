@@ -162,7 +162,7 @@ bool CWADTextureResource::Init( const Char* pstrBSPName, const CArray<CString>& 
 		if (pheaderp1bsp->id == PBSP_HEADER && pheaderp1bsp->version == PBSP_VERSION)
 		{
 			// Pathos BSP
-			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(reinterpret_cast<byte*>(m_pBSPFile) + pheaderp1bsp->lumps[LUMP_TEXTURES].offset);
+			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pheaderp1bsp->lumps[LUMP_TEXTURES].offset);
 		}
 		else
 		{
@@ -173,7 +173,7 @@ bool CWADTextureResource::Init( const Char* pstrBSPName, const CArray<CString>& 
 				return false;
 			}
 
-			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(reinterpret_cast<byte*>(m_pBSPFile) + pheaderv30bsp->lumps[LUMP_TEXTURES].offset);
+			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pheaderv30bsp->lumps[LUMP_TEXTURES].offset);
 		}
 
 		for (Int32 i = 0; i < ptexturelump->nummiptex; i++)
@@ -458,14 +458,14 @@ void CWADTextureResource::CreateMaterialScript( const dmiptex_t* ptexture, const
 	}
 
 	// Set internal size
-	data << "\t$int_width " << (Int32)ptexture->width << NEWLINE;
-	data << "\t$int_height " << (Int32)ptexture->height << NEWLINE;
+	data << "\t$int_width " << static_cast<Int32>(ptexture->width) << NEWLINE;
+	data << "\t$int_height " << static_cast<Int32>(ptexture->height) << NEWLINE;
 
 	if(pdetailassoc)
 	{
 		detailtexture_t* pdetail = m_detailTexturesArray[pdetailassoc->detailtextureidx];
-		Float detailxscale = (((Float)ptexture->width)/256.0)*(128.0/((float)pdetail->width))*12.0;
-		Float detailyscale = (((Float)ptexture->height)/256.0)*(128.0/((float)pdetail->height))*12.0;
+		Float detailxscale = (static_cast<Float>(ptexture->width)/256.0)*(128.0/(static_cast<float>(pdetail->width))*12.0);
+		Float detailyscale = (static_cast<Float>(ptexture->height)/256.0)*(128.0/(static_cast<float>(pdetail->height))*12.0);
 
 		data << "\t$dt_scalex " << detailxscale << NEWLINE;
 		data << "\t$dt_scaley " << detailyscale << NEWLINE;
@@ -567,7 +567,7 @@ en_texture_t* CWADTextureResource::GetWADTexture( en_material_t* pmaterial, cons
 		if(pheaderp1bsp->id == PBSP_HEADER && pheaderp1bsp->version == PBSP_VERSION)
 		{
 			// Pathos BSP
-			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(reinterpret_cast<byte*>(m_pBSPFile) + pheaderp1bsp->lumps[LUMP_TEXTURES].offset);
+			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pheaderp1bsp->lumps[LUMP_TEXTURES].offset);
 		}
 		else
 		{
@@ -578,7 +578,7 @@ en_texture_t* CWADTextureResource::GetWADTexture( en_material_t* pmaterial, cons
 				return nullptr;
 			}
 
-			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(reinterpret_cast<const byte*>(m_pBSPFile) + pheaderv30bsp->lumps[LUMP_TEXTURES].offset);
+			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pheaderv30bsp->lumps[LUMP_TEXTURES].offset);
 		}
 
 		for(Int32 i = 0; i < ptexturelump->nummiptex; i++)
@@ -597,7 +597,7 @@ en_texture_t* CWADTextureResource::GetWADTexture( en_material_t* pmaterial, cons
 			{
 				Uint32 texturesize = pmiptex->height*pmiptex->width;
 				Uint32 paletteoffs = texturesize + (texturesize/4) + (texturesize/16) + (texturesize/64);
-				const byte *pcolorindexes = reinterpret_cast<const byte *>(reinterpret_cast<const byte*>(pmiptex) + pmiptex->offsets[0]);
+				const byte *pcolorindexes = reinterpret_cast<const byte*>(pmiptex) + pmiptex->offsets[0];
 				const color24_t *ppalette = reinterpret_cast<const color24_t*>(pcolorindexes + paletteoffs + 2);
 
 				en_texture_t* ptexture = pTextureManager->LoadPallettedTexture(pstrTextureName, RS_GAME_LEVEL, pcolorindexes, ppalette, pmiptex->width, pmiptex->height, pmaterial->flags);
@@ -635,7 +635,7 @@ en_texture_t* CWADTextureResource::GetWADTexture( en_material_t* pmaterial, cons
 			{
 				Uint32 texturesize = pmiptex->height*pmiptex->width;
 				Uint32 paletteoffs = texturesize + (texturesize/4) + (texturesize/16) + (texturesize/64);
-				const byte *pcolorindexes = reinterpret_cast<const byte *>(reinterpret_cast<const byte*>(pmiptex) + pmiptex->offsets[0]);
+				const byte *pcolorindexes = reinterpret_cast<const byte*>(pmiptex) + pmiptex->offsets[0];
 				const color24_t *ppalette = reinterpret_cast<const color24_t*>(pcolorindexes + paletteoffs + 2);
 
 				en_texture_t* ptexture = pTextureManager->LoadPallettedTexture(pstrTextureName, RS_GAME_LEVEL, pcolorindexes, ppalette, pmiptex->width, pmiptex->height, pmaterial->flags);

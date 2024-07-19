@@ -28,15 +28,15 @@ bool DDS_Load( const Char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 	const dds_header_t *pDDSHeader = reinterpret_cast<const dds_header_t*>(pfile);
 
 	// Read information
-	Uint32 ddsFlags = Common::ByteToUint32(pDDSHeader->bFlags);
-	Uint32 ddsMagic = Common::ByteToUint32(pDDSHeader->bMagic);
-	Uint32 ddsFourCC = Common::ByteToUint32(pDDSHeader->bPFFourCC);
-	Uint32 ddsPFFlags = Common::ByteToUint32(pDDSHeader->bPFFlags);
-	Uint32 ddsLinSize = Common::ByteToUint32(pDDSHeader->bPitchOrLinearSize);
-	Uint32 ddsSize = Common::ByteToUint32(pDDSHeader->bSize);
+	const Uint32 ddsFlags = Common::ByteToUint32(pDDSHeader->bFlags);
+	const Uint32 ddsMagic = Common::ByteToUint32(pDDSHeader->bMagic);
+	const Uint32 ddsFourCC = Common::ByteToUint32(pDDSHeader->bPFFourCC);
+	const Uint32 ddsPFFlags = Common::ByteToUint32(pDDSHeader->bPFFlags);
+	const Uint32 ddsLinSize = Common::ByteToUint32(pDDSHeader->bPitchOrLinearSize);
+	const Uint32 ddsSize = Common::ByteToUint32(pDDSHeader->bSize);
 
-	Uint32 ddsWidth = Common::ByteToUint32(pDDSHeader->bWidth);
-	Uint32 ddsHeight = Common::ByteToUint32(pDDSHeader->bHeight);
+	const Uint32 ddsWidth = Common::ByteToUint32(pDDSHeader->bWidth);
+	const Uint32 ddsHeight = Common::ByteToUint32(pDDSHeader->bHeight);
 
 	if(!Common::IsPowerOfTwo(ddsWidth) || !Common::IsPowerOfTwo(ddsHeight))
 	{

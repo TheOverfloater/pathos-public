@@ -128,109 +128,6 @@ Double CNPCCloneSoldier::g_talkWaitTime = 0;
 //==========================================================================
 
 //=============================================
-// @brief Suppressing Fire
-//
-//=============================================
-ai_task_t taskListScheduleCloneSoldierSuppressingFire[] = 
-{
-	AITASK(AI_TASK_STOP_MOVING,					0),
-	AITASK(AI_TASK_FACE_ENEMY,					0),
-	AITASK(AI_TASK_RANGE_ATTACK1,				0),
-	AITASK(AI_TASK_FACE_ENEMY,					0),
-	AITASK(AI_TASK_RANGE_ATTACK1,				0),
-	AITASK(AI_TASK_FACE_ENEMY,					0),
-	AITASK(AI_TASK_RANGE_ATTACK1,				0),
-	AITASK(AI_TASK_FACE_ENEMY,					0),
-	AITASK(AI_TASK_RANGE_ATTACK1,				0),
-	AITASK(AI_TASK_FACE_ENEMY,					0),
-	AITASK(AI_TASK_RANGE_ATTACK1,				0)
-};
-
-const CAISchedule scheduleCloneSoldierSuppressingFire(
-	// Task list
-	taskListScheduleCloneSoldierSuppressingFire, 
-	// Number of tasks
-	PT_ARRAYSIZE(taskListScheduleCloneSoldierSuppressingFire),
-	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_HEAR_SOUND |
-	AI_COND_NO_AMMO_LOADED |
-	AI_COND_FRIENDLY_FIRE,
-	// Sound mask
-	AI_SOUND_DANGER, 
-	// Name
-	"Suppressing Fire"
-);
-
-//=============================================
-// @brief Range Attack 1
-//
-//=============================================
-ai_task_t taskListScheduleCloneSoldierRangeAttack1[] = 
-{
-	AITASK(AI_TASK_STOP_MOVING,					0),
-	AITASK(AI_TASK_SET_ACTIVITY,				ACT_IDLE_ANGRY),
-	AITASK(AI_TASK_ATTACK_REACTION_DELAY,		0),
-	AITASK(AI_TASK_RANGE_ATTACK1,				0),
-	AITASK(AI_TASK_FACE_ENEMY,					0),
-	AITASK(AI_TASK_RANGE_ATTACK1,				0),
-	AITASK(AI_TASK_FACE_ENEMY,					0),
-	AITASK(AI_TASK_RANGE_ATTACK1,				0),
-	AITASK(AI_TASK_FACE_ENEMY,					0),
-	AITASK(AI_TASK_RANGE_ATTACK1,				0),
-	AITASK(AI_TASK_FACE_ENEMY,					0),
-	AITASK(AI_TASK_RANGE_ATTACK1,				0)
-};
-
-const CAISchedule scheduleCloneSoldierRangeAttack1(
-	// Task list
-	taskListScheduleCloneSoldierRangeAttack1, 
-	// Number of tasks
-	PT_ARRAYSIZE(taskListScheduleCloneSoldierRangeAttack1),
-	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_ENEMY_OCCLUDED |
-	AI_COND_HEAR_SOUND |
-	AI_COND_NO_AMMO_LOADED |
-	AI_COND_FRIENDLY_FIRE,
-	// Sound mask
-	AI_SOUND_DANGER, 
-	// Name
-	"Range Attack 1"
-);
-
-//=============================================
-// @brief Range Attack 2
-//
-//=============================================
-ai_task_t taskListScheduleCloneSoldierRangeAttack2[] = 
-{
-	AITASK(AI_TASK_STOP_MOVING,					0),
-	AITASK(AI_CLONE_SOLDIER_TASK_FACE_TOSS_DIR,	0),
-	AITASK(AI_TASK_PLAY_SEQUENCE,				(Float)ACT_RANGE_ATTACK2),
-	AITASK(AI_TASK_SET_SCHEDULE,				(Float)AI_SCHED_WAIT_FACE_ENEMY)
-};
-
-const CAISchedule scheduleCloneSoldierRangeAttack2(
-	// Task list
-	taskListScheduleCloneSoldierRangeAttack2, 
-	// Number of tasks
-	PT_ARRAYSIZE(taskListScheduleCloneSoldierRangeAttack2),
-	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE,
-	// Sound mask
-	AI_SOUND_NONE, 
-	// Name
-	"Range Attack 2"
-);
-
-//=============================================
 // @brief Take Tactical Position
 //
 //=============================================
@@ -403,6 +300,7 @@ CNPCCloneSoldier::CNPCCloneSoldier( edict_t* pedict ):
 	m_nextSweepTime(0),
 	m_helmetHealth(0),
 	m_preciseDistance(0),
+	m_tacticalCoverage(0),
 	m_tossGrenade(false),
 	m_isStanding(false),
 	m_takeAttackChance(false),
@@ -596,29 +494,7 @@ void CNPCCloneSoldier::HandleAnimationEvent( const mstudioevent_t* pevent )
 		break;
 	case NPC_AE_DROP_GUN:
 		{
-			if(GetBodyGroupValue(m_weaponsBodyGroupIndex) != m_weaponBlankSubmodelIndex)
-			{
-				if(m_weaponsBodyGroupIndex != NO_POSITION && m_weaponBlankSubmodelIndex != NO_POSITION)
-					SetBodyGroup(m_weaponsBodyGroupIndex, m_weaponBlankSubmodelIndex);
-
-				if(!m_dontDropWeapons)
-				{
-					CString weaponName;
-					// These weapons have been cut from the public release, so
-					// weaponName remains empty
-
-					if(!weaponName.empty())
-					{
-						Vector gunPosition;
-						GetAttachment(NPC_WEAPON_ATTACHMENT_INDEX, gunPosition);
-
-						Vector angles(m_pState->angles);
-						angles[PITCH] = angles[ROLL] = 0;
-
-						DropItem(weaponName.c_str(), gunPosition, angles);
-					}
-				}
-			}
+			DropWeapon(false);
 		}
 		break;
 	case NPC_AE_RELOAD:
@@ -703,7 +579,7 @@ void CNPCCloneSoldier::HandleAnimationEvent( const mstudioevent_t* pevent )
 			Float grenadeRadius = GetSkillCVarValue(g_skillcvars.skillGrenadeRadius);
 			Float grenadeDamage = GetSkillCVarValue(g_skillcvars.skillGrenadeDmg);
 
-			CGrenade::CreateTimed(this, GetGunPosition(), m_grenadeTossVelocity, NPC_GRENADE_EXPLODE_DELAY, grenadeRadius, grenadeDamage, true);
+			CGrenade::CreateTimed(this, GetGunPosition(), m_tossVelocity, NPC_GRENADE_EXPLODE_DELAY, grenadeRadius, grenadeDamage, true);
 
 			m_tossGrenade = false;
 			m_nextGrenadeCheckTime = g_pGameVars->time + NPC_GRENADE_CHECK_DELAY;
@@ -916,18 +792,21 @@ const CAISchedule* CNPCCloneSoldier::GetSchedule( void )
 	case NPC_STATE_ALERT:
 	case NPC_STATE_IDLE:
 		{
-			if(CheckConditions(AI_COND_HEAR_SOUND))
+			if(!HasSpawnFlag(FL_NPC_PRISONER))
 			{
-				if(m_pBestSound && (m_pBestSound->typeflags & AI_SOUND_DANGER))
-					return GetScheduleByIndex(AI_SCHED_TAKE_COVER_FROM_BEST_SOUND);
-				else if(m_pBestSound && (m_pBestSound->typeflags & (AI_SOUND_COMBAT|AI_SOUND_PLAYER)))
-					return GetScheduleByIndex(AI_SCHED_INVESTIGATE_SOUND);
-			}
+				if(CheckConditions(AI_COND_HEAR_SOUND))
+				{
+					if(m_pBestSound && (m_pBestSound->typeflags & AI_SOUND_DANGER))
+						return GetScheduleByIndex(AI_SCHED_TAKE_COVER_FROM_BEST_SOUND);
+					else if(m_pBestSound && (m_pBestSound->typeflags & (AI_SOUND_COMBAT|AI_SOUND_PLAYER)))
+						return GetScheduleByIndex(AI_SCHED_INVESTIGATE_SOUND);
+				}
 
-			if(m_shouldPatrol && m_nextSweepTime <= g_pGameVars->time)
-			{
-				m_nextSweepTime = g_pGameVars->time + Common::RandomFloat(4, 6);
-				return GetScheduleByIndex(AI_CLONE_SOLDIER_SCHED_IDLE_SWEEP);
+				if(m_shouldPatrol && m_nextSweepTime <= g_pGameVars->time)
+				{
+					m_nextSweepTime = g_pGameVars->time + Common::RandomFloat(4, 6);
+					return GetScheduleByIndex(AI_CLONE_SOLDIER_SCHED_IDLE_SWEEP);
+				}
 			}
 		}
 		break;
@@ -954,11 +833,6 @@ const CAISchedule* CNPCCloneSoldier::GetScheduleByIndex( Int32 scheduleIndex )
 			return &scheduleTakeCoverFromBestSoundWithCower;
 		}
 		break;
-	case AI_CLONE_SOLDIER_SCHED_SUPPRESSING_FIRE:
-		{
-			return &scheduleCloneSoldierSuppressingFire;
-		}
-		break;
 	case AI_CLONE_SOLDIER_SCHED_TAKE_TACTICAL_POSITION:
 		{
 			return &scheduleCloneSoldierTakeTacticalPosition;
@@ -976,12 +850,12 @@ const CAISchedule* CNPCCloneSoldier::GetScheduleByIndex( Int32 scheduleIndex )
 		break;
 	case AI_SCHED_RANGE_ATTACK1:
 		{
-			return &scheduleCloneSoldierRangeAttack1;
+			return &scheduleRangeAttack1Long;
 		}
 		break;
 	case AI_SCHED_RANGE_ATTACK2:
 		{
-			return &scheduleCloneSoldierRangeAttack2;
+			return &scheduleRangeAttack2Toss;
 		}
 		break;
 	case AI_SCHED_VICTORY_DANCE:
@@ -1196,11 +1070,9 @@ void CNPCCloneSoldier::EmitIdleSound( void )
 			{
 			case NPC_QUESTION_CHECKIN: // Check in request
 				PlaySentence("RP_CLEAR", 0, VOL_NORM, ATTN_NORM, 0, true);
-				g_questionAsked = NPC_QUESTION_CHECKIN;
 				break;
 			case NPC_QUESTION_NORMAL: // Question
 				PlaySentence("RP_ANSWER", 0, VOL_NORM, ATTN_NORM, 0, true);
-				g_questionAsked = NPC_QUESTION_NORMAL;
 				break;
 			}
 
@@ -1299,7 +1171,7 @@ bool CNPCCloneSoldier::CheckRangeAttack2( Float dp, Float distance )
 	if(!pSquadLeader || !pSquadLeader->GetNumGrenades())
 		return false;
 
-	return CheckGrenadeToss(m_nextGrenadeCheckTime, m_tossGrenade, m_grenadeTossVelocity);
+	return CheckGrenadeToss(m_nextGrenadeCheckTime, m_tossGrenade, m_tossVelocity);
 }
 
 //=============================================
@@ -1397,11 +1269,6 @@ void CNPCCloneSoldier::StartTask( const ai_task_t* pTask )
 {
 	switch(pTask->task)
 	{
-	case AI_CLONE_SOLDIER_TASK_FACE_TOSS_DIR:
-		{
-			m_updateYaw = true;
-		}
-		break;
 	case AI_CLONE_SOLDIER_TASK_SPEAK_SENTENCE:
 		{
 			SpeakSentence();
@@ -1552,69 +1419,13 @@ void CNPCCloneSoldier::StartTask( const ai_task_t* pTask )
 }
 
 //=============================================
-// @brief Runs a task
-//
-//=============================================
-void CNPCCloneSoldier::RunTask( const ai_task_t* pTask )
-{
-	switch(pTask->task)
-	{
-	case AI_CLONE_SOLDIER_TASK_FACE_TOSS_DIR:
-		{
-			SetIdealYaw(m_pState->origin + m_grenadeTossVelocity * 64);
-			if(IsFacingIdealYaw())
-				SetTaskCompleted();
-		}
-		break;
-	default:
-		{
-			CPatrolNPC::RunTask(pTask);
-		}
-		break;
-	}
-}
-
-//=============================================
 // @brief Gibs the NPC
 //
 //=============================================
 void CNPCCloneSoldier::GibNPC( void )
 {
-	if(GetBodyGroupValue(m_weaponsBodyGroupIndex) != m_weaponBlankSubmodelIndex)
-	{
-		Vector gunPosition;
-		GetAttachment(NPC_WEAPON_ATTACHMENT_INDEX, gunPosition);
-
-		if(m_weaponsBodyGroupIndex != NO_POSITION && m_weaponBlankSubmodelIndex != NO_POSITION)
-			SetBodyGroup(m_weaponsBodyGroupIndex, m_weaponBlankSubmodelIndex);
-
-		if(!m_dontDropWeapons)
-		{
-			CString weaponName;
-			// This NPC's weapons got cut from the public release, so
-			// weaponName remains empty
-
-			if(!weaponName.empty())
-			{
-				Vector angles(m_pState->angles);
-				angles[PITCH] = angles[ROLL] = 0;
-
-				CBaseEntity* pEntity = DropItem(weaponName.c_str(), gunPosition, angles);
-				if(pEntity)
-				{
-					Vector velocity;
-					for(Uint32 i = 0; i < 2; i++)
-						velocity[i] = Common::RandomFloat(-100, 100);
-					velocity[2] = Common::RandomFloat(200, 300);
-					
-					Vector avelocity(0, Common::RandomFloat(200, 400), 0);
-
-					pEntity->SetVelocity(velocity);
-					pEntity->SetAngularVelocity(avelocity);
-				}
-			}
-		}
-	}
+	// Drop weapon
+	DropWeapon(true);
 
 	CPatrolNPC::GibNPC();
 }
@@ -2236,4 +2047,23 @@ bullet_types_t CNPCCloneSoldier::GetBulletType( void )
 		bulletType = BULLET_NPC_TRG42;
 
 	return bulletType;
+}
+
+//=============================================
+// @brief Drop item based on weapon set
+//
+//=============================================
+void CNPCCloneSoldier::DropWeapon( bool wasGibbed )
+{
+	if(GetBodyGroupValue(m_weaponsBodyGroupIndex) == m_weaponBlankSubmodelIndex)
+		return;
+
+	if(m_weaponsBodyGroupIndex != NO_POSITION && m_weaponBlankSubmodelIndex != NO_POSITION)
+		SetBodyGroup(m_weaponsBodyGroupIndex, m_weaponBlankSubmodelIndex);
+
+	// These weapons have been cut from the public release
+	weaponid_t weaponId = WEAPON_NONE;
+
+	if(weaponId != WEAPON_NONE)
+		DropItem(weaponId, NPC_WEAPON_ATTACHMENT_INDEX, wasGibbed);
 }

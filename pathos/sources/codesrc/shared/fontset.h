@@ -12,16 +12,16 @@ All Rights Reserved.
 #define FONTSET_H
 
 // Number of glyphs
-static const Uint32 NUM_GLYPHS = 256;
+static constexpr Uint32 NUM_GLYPHS = 256;
 // Default font size
-static const Uint32 DEFAULT_FONT_SIZE = 20;
+static constexpr Uint32 DEFAULT_FONT_SIZE = 20;
 // Default font size
-static const Uint32 MAX_FONT_SIZE = 72;
+static constexpr Uint32 MAX_FONT_SIZE = 72;
 // Default font set name
 static const Char DEFAULT_FONTSET_NAME[] = "calibri.ttf";
 
 // No GL info index
-static const Int32 NO_GL_INFO_INDEX = -1;
+static constexpr Int32 NO_GL_INFO_INDEX = -1;
 
 struct font_glyph_t
 {

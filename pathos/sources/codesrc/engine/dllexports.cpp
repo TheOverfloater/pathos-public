@@ -93,7 +93,7 @@ bool EnumExportedFunctions ( const Char *szFilename, void (*pfnCallBack)(Char*) 
 		return false;
 	}
 
-    pSections = reinterpret_cast<sectionheader_t *>(malloc(numSections * sizeof(sectionheader_t)));
+    pSections = static_cast<sectionheader_t *>(malloc(numSections * sizeof(sectionheader_t)));
 
     for (i = 0; i < numSections; i++) 
 	{
@@ -139,7 +139,7 @@ bool EnumExportedFunctions ( const Char *szFilename, void (*pfnCallBack)(Char*) 
         }
 
         fseek (hFile, (-szNameLen)-1, SEEK_CUR);
-        Char* szName = reinterpret_cast<Char*>(calloc (szNameLen + 1, 1));
+        Char* szName = static_cast<Char*>(calloc (szNameLen + 1, 1));
         fread (szName, szNameLen, 1, hFile);
 
         pfnCallBack (szName);

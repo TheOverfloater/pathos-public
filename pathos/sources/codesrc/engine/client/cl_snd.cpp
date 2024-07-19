@@ -310,16 +310,16 @@ bool CSoundEngine::Init( void )
 	// Load extended functions
 	//
 
-	alGenEffects = (LPALGENEFFECTS)alGetProcAddress("alGenEffects");
-	alDeleteEffects = (LPALDELETEEFFECTS)alGetProcAddress("alDeleteEffects");
-	alEffecti = (LPALEFFECTI)alGetProcAddress("alEffecti");
-	alEffectf = (LPALEFFECTF)alGetProcAddress("alEffectf");
-	alEffectfv = (LPALEFFECTFV)alGetProcAddress("alEffectfv");
+	alGenEffects					= static_cast<LPALGENEFFECTS>(alGetProcAddress("alGenEffects"));
+	alDeleteEffects					= static_cast<LPALDELETEEFFECTS>(alGetProcAddress("alDeleteEffects"));
+	alEffecti						= static_cast<LPALEFFECTI>(alGetProcAddress("alEffecti"));
+	alEffectf						= static_cast<LPALEFFECTF>(alGetProcAddress("alEffectf"));
+	alEffectfv						= static_cast<LPALEFFECTFV>(alGetProcAddress("alEffectfv"));
 
-	alGenAuxiliaryEffectSlots = (LPALGENAUXILIARYEFFECTSLOTS)alGetProcAddress("alGenAuxiliaryEffectSlots");
-	alDeleteAuxiliaryEffectSlots = (LPALDELETEAUXILIARYEFFECTSLOTS)alGetProcAddress("alDeleteAuxiliaryEffectSlots");
-	alAuxiliaryEffectSloti = (LPALAUXILIARYEFFECTSLOTI)alGetProcAddress("alAuxiliaryEffectSloti");
-	alAuxiliaryEffectSlotf = (LPALAUXILIARYEFFECTSLOTF)alGetProcAddress("alAuxiliaryEffectSlotf");
+	alGenAuxiliaryEffectSlots		= static_cast<LPALGENAUXILIARYEFFECTSLOTS>(alGetProcAddress("alGenAuxiliaryEffectSlots"));
+	alDeleteAuxiliaryEffectSlots	= static_cast<LPALDELETEAUXILIARYEFFECTSLOTS>(alGetProcAddress("alDeleteAuxiliaryEffectSlots"));
+	alAuxiliaryEffectSloti			= static_cast<LPALAUXILIARYEFFECTSLOTI>(alGetProcAddress("alAuxiliaryEffectSloti"));
+	alAuxiliaryEffectSlotf			= static_cast<LPALAUXILIARYEFFECTSLOTF>(alGetProcAddress("alAuxiliaryEffectSlotf"));
 
 	if(!alGenEffects || !alDeleteEffects || !alEffecti || !alEffectf 
 		|| !alEffectfv || !alGenAuxiliaryEffectSlots || !alDeleteAuxiliaryEffectSlots
@@ -474,6 +474,7 @@ void CSoundEngine::PrintStats( void )
 		case ALC_HRTF_REQUIRED_SOFT:				Con_Printf("Head-related transfer function mixing is enabled.\n"); break;
 		case ALC_HRTF_HEADPHONES_DETECTED_SOFT:		Con_Printf("Head-related transfer function mixing is enabled for headphones.\n"); break;
 		case ALC_HRTF_UNSUPPORTED_FORMAT_SOFT :		Con_Printf("Head-related transfer function mixing is disabled due to unsupported output format.\n"); break;
+		default:									Con_Printf("Unknown HRTF status received from OpenAL.\n"); break;
 	}
 }
 
@@ -802,7 +803,7 @@ void CSoundEngine::CalcMouth8( snd_active_t& sound )
 		mouthavg += abs((*pdata)-127);
 	}
 
-	mouthavg = (mouthavg-10)/(Float)i;
+	mouthavg = (mouthavg-10)/static_cast<Float>(i);
 	if(mouthavg < 0) mouthavg = 0;
 	if(mouthavg > 255) mouthavg = 255;
 
@@ -840,7 +841,7 @@ void CSoundEngine::CalcMouth16( snd_active_t& sound )
 		mouthavg += abs((_8bitdata & 0xFF)-127);
 	}
 
-	mouthavg = (mouthavg-10)/(Float)i;
+	mouthavg = (mouthavg-10)/ static_cast<Float>(i);
 	if(mouthavg < 0) mouthavg = 0;
 	if(mouthavg > 255) mouthavg = 255;
 
@@ -1231,8 +1232,8 @@ bool CSoundEngine::LoadSoundData( const Char *sample, snd_cache_t* pcache, Int32
 	}
 
 	// Allocate new data
-	const byte *pbegin = reinterpret_cast<const byte*>(pfile) + 12;
-	const byte *pend = reinterpret_cast<const byte*>(pfile) + isize;
+	const byte *pbegin = pfile + 12;
+	const byte *pend = pfile + isize;
 
 	while(1)
 	{
@@ -1328,7 +1329,7 @@ bool CSoundEngine::PrecacheServerSound( const Char *sample, Int32 serverindex )
 		if(!m_pSentencesFile)
 			return false;
 
-		const CSentencesFile::sentence_t* psentence = reinterpret_cast<const CSentencesFile*>(m_pSentencesFile)->GetSentenceDefinition(sample);
+		const CSentencesFile::sentence_t* psentence = m_pSentencesFile->GetSentenceDefinition(sample);
 		for(Uint32 i = 0; i < psentence->chunks.size(); i++)
 		{
 			CString filepath;
@@ -1653,11 +1654,11 @@ void CSoundEngine::PlaySound( const Char *sample, const Vector* pOrigin, Int32 f
 	if(psound->psentence)
 	{
 		psound->pchunk = psentence->chunks[0];
-		psound->volume = ((Float)psound->pchunk->volume/100.0f)*psound->volume;
-		psound->pitch = ((Float)psound->pchunk->pitch/100.0f)*psound->mainpitch;
+		psound->volume = (static_cast<Float>(psound->pchunk->volume)/100.0f)*psound->volume;
+		psound->pitch = (static_cast<Float>(psound->pchunk->pitch)/100.0f)*psound->mainpitch;
 
 		if(psound->pchunk->start)
-			psound->datapos = psample->length*((Float)psound->pchunk->start/100.0f);
+			psound->datapos = psample->length*(static_cast<Float>(psound->pchunk->start)/100.0f);
 	}
 
 	if(psound->flags & SND_FL_RADIUS)
@@ -1737,7 +1738,7 @@ void CSoundEngine::PlaySound( const Char *sample, const Vector* pOrigin, Int32 f
 	if(psentence)
 	{
 		Int32 bytepersec = psample->channels * (psample->samplerate) * (psample->bitspersample>>3);
-		Float length = ((Float)psample->length/(Float)bytepersec) - timeoffs;
+		Float length = (static_cast<Float>(psample->length)/static_cast<Float>(bytepersec)) - timeoffs;
 
 		if(cls.dllfuncs.pfnAddSubtitle(psentence->name.c_str(), length))
 			psound->flags |= SND_FL_HAS_SUBTITLES;
@@ -1745,7 +1746,7 @@ void CSoundEngine::PlaySound( const Char *sample, const Vector* pOrigin, Int32 f
 	else
 	{
 		Int32 bytepersec = psample->channels * (psample->samplerate) * (psample->bitspersample>>3);
-		Float length = ((Float)psample->length/(Float)bytepersec) - timeoffs;
+		Float length = (static_cast<Float>(psample->length)/ static_cast<Float>(bytepersec)) - timeoffs;
 
 		CString filename;
 		Common::Basename(psample->name.c_str(), filename);
@@ -2114,7 +2115,7 @@ void CSoundEngine::Update( ref_params_t *pparams )
 			// Take length cutoff into consideration
 			Int32 endpos = pcache->length;
 			if(psound->psentence && psound->pchunk->end)
-				endpos = endpos*((Float)psound->pchunk->end/100.0f);
+				endpos = endpos*(static_cast<Float>(psound->pchunk->end)/100.0f);
 
 			ALenum state;
 			alGetSourcei(psound->pplaying->sourceindex, AL_SOURCE_STATE, &state);
@@ -2135,9 +2136,9 @@ void CSoundEngine::Update( ref_params_t *pparams )
 						RemovePlaying(*psound);
 
 					psound->pchunk = psound->pchunk->pnext;
-					psound->pitch = psound->mainpitch*((Float)psound->pchunk->pitch/100.0f);
-					psound->volume = psound->volume*((Float)psound->pchunk->volume/100.0f);
-					psound->datapos = pcache->length*((Float)psound->pchunk->start/100.0f);
+					psound->pitch = psound->mainpitch*(static_cast<Float>(psound->pchunk->pitch)/100.0f);
+					psound->volume = psound->volume*(static_cast<Float>(psound->pchunk->volume)/100.0f);
+					psound->datapos = pcache->length*(static_cast<Float>(psound->pchunk->start)/100.0f);
 
 					CString strSound;
 					strSound << SOUND_FOLDER_BASE_PATH << psound->psentence->folder << PATH_SLASH_CHAR << psound->pchunk->soundname << ".WAV";
@@ -2773,7 +2774,7 @@ void CSoundEngine::CacheMessage( const Vector* pOrigin, Int32 svindex, Int32 cha
 	{
 		Float soundpitch = clamp((pitch/(Float)PITCH_NORM), 0.5, 5.0);
 		Int32 bytepersec = pcache->channels * (pcache->samplerate*soundpitch) * (pcache->bitspersample>>3);
-		soundduration = (Float)pcache->length/(Float)bytepersec;
+		soundduration = static_cast<Float>(pcache->length)/ static_cast<Float>(bytepersec);
 	}
 	else if(svindex < 0)
 	{
@@ -2949,7 +2950,7 @@ void CSoundEngine::PlayOgg( const Char *sample, Int32 channel, Float timeOffset,
 	ptrack->fadeinduration = fadeInTime;
 	ptrack->channel = channel;
 	
-	if(ov_open_callbacks(reinterpret_cast<void *>(pfile), &ptrack->stream, nullptr, 0, m_oggCallbacks) < 0)
+	if(ov_open_callbacks(pfile, &ptrack->stream, nullptr, 0, m_oggCallbacks) < 0)
 	{
 		Con_Printf("%s - Decode error on music track '%s'.\n", __FUNCTION__, sample);
 		delete ptrack;
@@ -3351,7 +3352,7 @@ void CSoundEngine::ApplySoundEffect( entindex_t entindex, const Char *sample, In
 				}
 				break;
 			default:
-				Con_Printf("%s - Unknown effect type '%d' specified for sound '%s'.\n", __FUNCTION__, (Int32)effect, sample);
+				Con_Printf("%s - Unknown effect type '%d' specified for sound '%s'.\n", __FUNCTION__, static_cast<Int32>(effect), sample);
 				break;
 			}
 
@@ -3492,7 +3493,7 @@ void CSoundEngine::SetHRTFCommand( void )
 	if(!pGroup)
 		pGroup = gConfig.CreateGroup(SOUNDENGINE_CONFIG_GRP_NAME, CConfig::SYSTEM_CONFIG_FILENAME, CONF_GRP_SYSTEM);
 
-	gConfig.SetValue(pGroup, SOUNDENGINE_HRTF_SETTING_NAME, (Int32)enable, true);
+	gConfig.SetValue(pGroup, SOUNDENGINE_HRTF_SETTING_NAME, static_cast<Int32>(enable), true);
 	if(m_isHRTFEnabled != enable)
 		Con_Printf("HRTF setting will only take effect after application restart.\n");
 	else
@@ -3544,7 +3545,7 @@ Float Sentences_GetSoundDuration( const Char* pstrFilename, Uint32 pitch )
 			{
 				Float soundpitch = clamp((pitch/(Float)PITCH_NORM), 0.5, 5.0);
 				Int32 bytepersec = pcache->channels * (pcache->samplerate*soundpitch) * (pcache->bitspersample>>3);
-				duration += (Float)pcache->length/(Float)bytepersec;
+				duration += static_cast<Float>(pcache->length)/static_cast<Float>(bytepersec);
 			}
 		}
 
@@ -3558,6 +3559,6 @@ Float Sentences_GetSoundDuration( const Char* pstrFilename, Uint32 pitch )
 
 		Float soundpitch = clamp((pitch/(Float)PITCH_NORM), 0.5, 5.0);
 		Int32 bytepersec = pcache->channels * (pcache->samplerate*soundpitch) * (pcache->bitspersample>>3);
-		return (Float)pcache->length/(Float)bytepersec;
+		return static_cast<Float>(pcache->length)/ static_cast<Float>(bytepersec);
 	}
 }

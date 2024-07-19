@@ -7,3 +7,290 @@ testdialouge1
 {
 Boss Nass: This is a piece of test dialouge.
 }
+
+ai_flagtoggler
+{
+ai_flagtoggler allows you to toggle specific flags on NPCs like the "Gag" as well as the "Pre-distaster" flag, and other flags like that.
+}
+
+ai_followtarget
+{
+ai_followtarget allows you specify the follow target of an entity. You can also just set the target to zero, and then the entity will have it's target cleared.
+}
+
+ambient_ogg
+{
+ambient_oggstream entities can be used for music playback. You can have a single track that's not looped, or a track that is looped, and you have five channels total to use for OGG playback.
+}
+
+attached_particles
+{
+Particle systems can be attached to model entities, like NPCs, by basically taking the first specified attachment, and then the second, and then using these to build a vector for where the particles will shoot. Or, you can just specify one attachment, and the particle system will follow that attachment, but it will shoot the particles in the direction specified in the particle entity.
+}
+
+btn_dr_sounds
+{
+Apart from the basic legacy sound list that from GoldSrc, you can also set custom sounds for objects like doors and buttons. The custom sounds can cover the whole range, so you can set the opening, closing, stopping sound and the button use sound, or the locked door sound.
+}
+
+distortion_particles
+{
+Pathos allows you to render distortion particles. These particles basically take the screen texture, and then distort it after rendering. You need to specify the distort type for the render mode inside the particle script for this to work. This is useful for things like heat haze, and stuff like that.
+}
+
+env_blur
+{
+In Pathos, the env_blur entity is a very basic motion blur entity that also applies a gaussian blur to the screen when it's active.
+}
+
+env_fade
+{
+In Pathos, the env_fade entity can have multiple layers, where each consecutive stacks onto the other.
+}
+
+env_fog
+{
+env_fog is your basic fog entity in Pathos. You can set it to fog the sky, or to leave the sky alone, and you can also achieve blending between two fog entities by setting the "Blend" flag and specifying the blend duration in the fog entity. This is good for transitions, where you want a smooth transition between two types of fog.
+}
+
+env_funnel
+{
+env_funnel is an entity that is also present in Half-Life. You have the basic funnel entity that doesn't set a custom sprite, and then you have env_funnel that can set a custom sprite.
+}
+
+env_model_breakable
+{
+env_model_breakable is the same as func_breakable, except that it uses a VBM model instead of a brushmodel. For collisions, it will use the hitboxes inside the VBM model.
+}
+
+env_render_spotlight
+{
+These three buttons control three separate env_render entities. Each of these entities will set a unique color for the light stand that you see next to you.
+}
+
+env_rot_light
+{
+In Pathos, you can have rotating emergency lights using the env_rot_light entity. These entities can be triggered on and off, and are basically an animated entity that has attachment points in it, that specify the positions and orientations of the spotlight entities. You can set whether the spotlight entity uses a shadow also, or it doesn't use a shadow at all.
+}
+
+env_setangles
+{
+env_setangles can be used to change the angles of any entity.
+}
+
+env_setbody
+{
+env_setbody can be used to set the body value of an animated model.
+}
+
+env_setskin
+{
+env_setskin can be used to set the skin value on an entity. This is usable for animated models that have multiple skins. 
+}
+
+env_setskytexture
+{
+env_setskytexture allows you to override the skybox that was set in the worlspawn properties, with any skybox you want.
+}
+
+envpos_sky
+{
+envpos_sky is the entity that marks the position of the skybox itself. This is the entity you want to put into your skybox enclosure. It can be a stationary entity that doesn't move, or it can an entity that moves around like a train on path_corners. This is useful for some niche applications.
+}
+
+envpos_world
+{
+envpos_world is an entity that specifies the world center of the skybox. It can be used to set the fog that the skybox uses, and also the size of the skybox that basically does the division with the difference in coordinates, and specifies the amount of shifting the skybox does as the player moves around.
+}
+
+func_fade
+{
+func_fade is a very basic entity that basically allows you to have the entity fade out over a given amount of time.
+}
+
+func_portal_surface
+{
+Portal entities are not unlike skybox entities, in that they allow you to render a separate piece of the level, and then that rendered scene can be rendered onto the portal surface itself. This allow you to basically create a portal that the player can see through to another piece of the level.
+}
+
+func_slippery
+{
+func_slippery is not unlike the friction entity, but unlike the friction entity, it doesn't change the player's friction works, it changes how he behaves on sloped surfaces. For example, on the left, this is a 45 degree surface, and the player is normally able to walk on it, but on the right with func_slippery, if he tries to walk up the sloped surface then he will be unable to.
+}
+
+func_train_copy
+{
+func_train_copy is a type of entity that allows you to specify a base entity, which functions as the model for the entity, and then it will be copied, and be used by the func_train_copy entity. This is useful for saving on geometry, on brushmodels, that you will be using several times you will be using several times the exact same brushmodel, and you don't want to have that many brushmodels in your map. It can be used either as an non-moving entity, or it can be used as a train-type entity.
+}
+
+func_water
+{
+This test case allows you to observe moving water that has reflections and refractions. Use the wheel to lower or raise the water level.
+}
+
+game_objectives
+{
+game_objective allow you to specify a game objective that is displayed in a list that the player can call at any time they want, to check their current objectives, and the a notification icon will also appear in the upper right of the screen if a new objective is added, or if the objectives are refreshed. You can have a maximum of six objectives at a time.
+}
+
+game_radio
+{
+game_radio is an entity designed to play radio transmissions. This sound will also lower all the other sounds(in volume) in the game besides itself, and you can specify a notification icon with the radio icon and the name of the caller, that is displayed on the heads-up display.
+}
+
+game_setdaystage
+{
+Pathos's level compilers support compiling multiple layers of lightmaps, these are currently for the "nighttime" and "daylight return". By calling this game_setdaystage entity you can trigger the engine to load either of these alternate lightmaps, or go back to the default.
+}
+
+keypadcodes
+{
+In this example we have a test case involving a readable document, that saves a code globally, and then the keypad or the monitor login window can access that keycode, and use it for logging in. Try reading the document, and then try logging into computer.
+}
+
+mirrors
+{
+Pathos supports mirrors, but only in a very limited way. Mirrors currently do not render the player, because the player animation code, as well as the animations themselves are not optimized for the engine. Also it takes a heavy toll on the performance, so I only recommend only using this in very vew places.
+}
+
+monitors
+{
+Monitor entities, as the name suggests, are used for render a part of a level from a camera entity, and then rendering that onto a solid brush surface marked with the monitor texture. Due to performance reasons I only recommend rendering these entities if absolutely needed, and turning them off if the player leaves the room where they are supposed to be seeing the monitor surfaces. In this example, the monitors are triggered on when the player gets near this room, and they are triggered off again when the player leaves.
+}
+
+roomtype
+{
+In Pathos you have two ways of setting the environmental audio effects. One of them is the env_roomtype entity, which is an entity that needs to be triggered for it to set the room type, and the other is a trigger named trigger_sound.
+}
+
+seamless_teleport
+{
+A seamless teleport is an entity that uses a landmark for both the source and destination of the teleportation effect. In this case you can use it to do a relative teleport of the entities, the players inside the teleport volume to create a seamless teleport where the player cannot actually tell that the teleportation took place. Try going through these doors to see the effect for yourself.
+}
+
+shore_skybox
+{
+In this level, you can see an extensive use of the skybox entity, and in this case it is basically used to make the shoreline appear much bigger than it actually is, as well as the water, so that it appears almost infinite.
+}
+
+snow_and_rain
+{
+In Pathos, snow and rain are both solved with particle scripts, that form a moving plane above the player, from which the particles spawn. This system also uses a special trigger_relay_binary entity to toggle the effects on and off for each one of these, and the globals are also set using env_global to share across all the test levels.
+}
+
+train_entities
+{
+This part of the level is for testing multiple types of moving entities, mainly train entities. We have env_spritetrain, env_modeltrain, and the default func_train. You can use the buttons to test several of these entities.
+}
+
+trigger_cameramodel
+{
+trigger_cameramodel is an entity that can be used to set up first-person cutscenes. Think of Alien Isolation or some of the limited first-person cutscenes in Half-Life 2. trigger_cameramodel can be interpolated into the position where it will play, and also the entity can play a single animation, can be in a waiting animation prior to playing this animation. Or it can play a play animation, a loop animation, and an exit animation. 
+}
+
+trigger_chance
+{
+With trigger_chance you specify a percentage of success, and if the randomly generated value is within that percentage, it will only then trigger it's target.
+}
+
+trigger_lookat_coderegister
+{
+Here you have an example of trigger_lookat. The graffiti above the keypad reads "1332". If you look at this, then the code will be registered by a combination of a trigger_lookat which triggers it's target if the player is looking at it for a specified amount of time, and then that coderegister that it triggers will set the keypad or login window code globally, and it can be used to trigger this button.
+}
+
+trigger_movetrain
+{
+trigger_movetrain is an entity that allows you take a train-type entity and move it onto any path_corner entity you want. The middle button will trigger the env_spritetrain entity to move, and the two other buttons will move the spritetrain entity onto the path_corners that they are targeting.
+}
+
+trigger_repat
+{
+In trigger_repat you have to specify a number of repeats, and the delay between triggers, and the entity will keep triggering it's target until it exhausts the number of repeats.
+}
+
+trigger_saveweapons
+{
+trigger_saveweapons allows you to save the player's weapon information such as the ammo counts and number of rounds in the clips, and when it is triggered again, it will restore these values.
+}
+
+trigger_slowmove
+{
+trigger_slowmove allows you to force the player to only walk and not be able to run, but you can specify that the player should still be able to sprint. This is an entity that can be toggled.
+}
+
+trigger_subway_controller
+{
+trigger_subway_controller is an entity that can allow you to trigger four targets as you please(through a game UI window), as long as you have the keycards collected. In this case, if you collect all the keycards throughout these levels, and then use them, then you can enable the end of the game trigger at the end of this hallway.
+}
+
+trigger_toggletarget
+{
+trigger_toggletarget will allow you to toggle the visibility and solidity of any brushmodel entity. This is useful for when you want to, like disable a door, or a button. In essence it works the same way as if you had a func_wall_toggle, but this can be applied to any brushmodel entity.
+}
+
+wandering_npcs
+{
+Wandering NPCs, if their wandering behavior is enabled, can look up several info_node entities, and can they will walk to them based on their hint type.
+}
+
+introduction
+{
+Welcome to Pathos's test levels. The goal of these levels is to show off the engine features, ranging from graphical features, to unique entity entity features that should make life easier for level designers. As you move around you will be able to find several buttons that activate these features, as well as several tape recorders, like this one, which will explain some of these features.
+}
+
+env_beamfollow
+{
+env_beamfollow is a type of beam that follows an entity, or an attachment on an entity, and it leaves trails behind as the entity moves about. These trails will fade out over time that's specified in the entity itself.
+}
+
+beam_effects
+{
+Beam effects in Pathos are very similar to those used in GoldSource, with some modifications. You have the standard beams, like those in Half-Life, as well as tesla beams, which create multiple arcs for the env_beam entity. You can also specify attachments on an animated model entity that the beam can follow.
+}
+
+env_beamfx
+{
+env_beamfx is an entity that basically gives you access to some of the beam effects that Half-Life had, namely the beam, torus and cylinder beam effects.
+}
+
+dlight_elight_train
+{
+This room depicts two types of train-like light effects. One of them is the env_elighttrain, which only affects animated models, and the other is env_dlighttrain version, which affects both models and the world, and also casts shadows.
+}
+
+env_setsequence
+{
+env_setsequence is an entity that targets an animated model, and looks up a sequence to use for it, based on the sequence name specified.
+}
+
+env_blackhole
+{
+env_blackhole is a very basic black hole effect, that creates a warping of the screen contents to imitate a black hole, and if specified in the black hole entity, it can also pull in objects and destroy them. If the player is pulled into this entity, then he will be killed immediately.
+}
+
+env_lensflare_sun
+{
+Lens flare entities are used to create a lens flare effect with a color and a size that will be displayed on the screen if the player is looking at them from the given angle. You also have env_sun entities which are also lens flares that appear as a sun effect in the sky. You can have multiple of these entities, if you want.
+}
+
+env_particleeffect
+{
+I recreated Quake 1's particle effects mainly as a nostalgia thing and not as anything serious. You can test these in this room.
+}
+
+game_dialouge_lookat
+{
+game_dialouge entities can also function as "look at" entities, much like trigger_lookat. If the player is looking at them for a given amount of time without anything obstructing the view, then dialouge will play automatically. This dialouge can also trigger another entity.
+}
+
+game_dialouge
+{
+game_dialouge is an entity that basically plays a sound as if the player was speaking themselves. This is useful if you want first-person dialouge from the player themselves playing.
+}
+
+fog_blending
+{
+In this area you can the fog entity with blending enabled between two fog states.
+}
+
+

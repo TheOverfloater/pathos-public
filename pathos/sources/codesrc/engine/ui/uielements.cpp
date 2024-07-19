@@ -461,7 +461,7 @@ bool CUIObject::adjustSize( Int32 x, Int32 y )
 		// Helps filter out border and such fixed-size elements
 		if(considerElementOnResize(m_childrenArray[i]))
 		{
-			if(!m_childrenArray[i]->isParentSizeValid((Uint32)testWidth, (Uint32)testHeight, x, y))
+			if(!m_childrenArray[i]->isParentSizeValid(static_cast<Uint32>(testWidth), static_cast<Uint32>(testHeight), x, y))
 			{
 				// Try adjusting on only one axis
 				if((x && y) && (!adjustSize(x, 0) || adjustSize(0, y)))
@@ -473,8 +473,8 @@ bool CUIObject::adjustSize( Int32 x, Int32 y )
 	}
 
 	// Assign final width/height
-	m_width = (Uint32)testWidth;
-	m_height = (Uint32)testHeight;
+	m_width = static_cast<Uint32>(testWidth);
+	m_height = static_cast<Uint32>(testHeight);
 
 	// Adjust size on all children
 	for(Uint32 i = 0; i < m_childrenArray.size(); i++)
@@ -513,12 +513,12 @@ bool CUIObject::isParentSizeValid( Uint32 testWidth, Uint32 testHeight, Int32 ad
 		testOriginY = m_baseOriginY;
 
 	// See if the origin is valid
-	Int32 fullWidth = testOriginX + (Int32)m_width;
-	if((Int32)testWidth < fullWidth)
+	Int32 fullWidth = testOriginX + static_cast<Int32>(m_width);
+	if(static_cast<Int32>(testWidth) < fullWidth)
 		return false;
 
-	Int32 fullHeight = testOriginY + (Int32)m_height;
-	if((Int32)testHeight < fullHeight)
+	Int32 fullHeight = testOriginY + static_cast<Int32>(m_height);
+	if(static_cast<Int32>(testHeight) < fullHeight)
 		return false;
 
 	return true;
@@ -611,11 +611,11 @@ bool CUIInteractiveObject::isMouseOver( Int32 xPos, Int32 yPos )
 
 	if(absX > xPos)
 		return false;
-	if(absX+(Int32)m_width < xPos)
+	if(absX+static_cast<Int32>(m_width) < xPos)
 		return false;
 	if(absY > yPos)
 		return false;
-	if(absY+(Int32)m_height < yPos)
+	if(absY+static_cast<Int32>(m_height) < yPos)
 		return false;
 
 	return true;
@@ -699,35 +699,35 @@ bool CUITexturedObject::draw( void )
 
 		g_engineFuncs.pfnBind2DTexture(GL_TEXTURE0_ARB, ptexture->palloc->gl_index, false);
 
-		g_engineFuncs.pfnBasicDrawColor4f((Float)m_color.r/255.0f, 
-			(Float)m_color.g/255.0f, 
-			(Float)m_color.b/255.0f, 
-			(Float)m_color.a/255.0f);
+		g_engineFuncs.pfnBasicDrawColor4f(static_cast<Float>(m_color.r)/255.0f,
+			static_cast<Float>(m_color.g)/255.0f, 
+			static_cast<Float>(m_color.b)/255.0f, 
+			static_cast<Float>(m_color.a)/255.0f);
 
 		// Textures are tiled based on size, for now
-		Float tcmax_x = (Float)((Float)m_width / (Float)ptexture->width);
-		Float tcmax_y = (Float)((Float)m_height / (Float)ptexture->height);
+		Float tcmax_x = static_cast<Float>(m_width) / static_cast<Float>(ptexture->width);
+		Float tcmax_y = static_cast<Float>(m_height) / static_cast<Float>(ptexture->height);
 
 		g_engineFuncs.pfnValidateBasicDraw();
 
 		g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
 		g_engineFuncs.pfnBasicDrawTexCoord2f(0, tcmax_y);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos, (Float)ypos + m_height, -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos), static_cast<Float>(ypos) + static_cast<Float>(m_height), -1);
 
 		g_engineFuncs.pfnBasicDrawTexCoord2f(0, 0);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos, (Float)ypos, -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos), static_cast<Float>(ypos), -1);
 
 		g_engineFuncs.pfnBasicDrawTexCoord2f(tcmax_x, 0);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos+m_width, (Float)ypos, -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos)+static_cast<Float>(m_width), static_cast<Float>(ypos), -1);
 
 		g_engineFuncs.pfnBasicDrawTexCoord2f(0, tcmax_y);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos, (Float)ypos + m_height, -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos), static_cast<Float>(ypos)+static_cast<Float>(m_height), -1);
 
 		g_engineFuncs.pfnBasicDrawTexCoord2f(tcmax_x, 0);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos+m_width, (Float)ypos, -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos)+static_cast<Float>(m_width), static_cast<Float>(ypos), -1);
 
 		g_engineFuncs.pfnBasicDrawTexCoord2f(tcmax_x, tcmax_y);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos+m_width, (Float)ypos+m_height, -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos)+static_cast<Float>(m_width), static_cast<Float>(ypos)+static_cast<Float>(m_height), -1);
 		g_engineFuncs.pfnBasicDrawEnd();
 	}
 
@@ -769,8 +769,8 @@ CUISurface::~CUISurface( void )
 bool CUISurface::isParentSizeValid( Uint32 testWidth, Uint32 testHeight, Int32 adjX, Int32 adjY )
 {
 	// Determine my adjusted size
-	Int32 myTestWidth = (Int32)m_width;
-	Int32 myTestHeight = (Int32)m_height;
+	Int32 myTestWidth = static_cast<Int32>(m_width);
+	Int32 myTestHeight = static_cast<Int32>(m_height);
 
 	// Add it to the width/height
 	if(!(m_flags & UIEL_FL_FIXED_W))
@@ -801,7 +801,7 @@ bool CUISurface::isParentSizeValid( Uint32 testWidth, Uint32 testHeight, Int32 a
 	// Compare against parent size too
 	Int32 fullWidth = myTestWidth + testOriginX;
 	Int32 fullHeight = myTestHeight + testOriginY;
-	if(fullWidth > (Int32)testWidth || fullHeight > (Int32)testHeight)
+	if(fullWidth > static_cast<Int32>(testWidth) || fullHeight > static_cast<Int32>(testHeight))
 		return false;
 
 	// Test for children too
@@ -809,7 +809,7 @@ bool CUISurface::isParentSizeValid( Uint32 testWidth, Uint32 testHeight, Int32 a
 	{
 		if(considerElementOnResize(m_childrenArray[i]))
 		{
-			if(!m_childrenArray[i]->isParentSizeValid((Uint32)myTestWidth, (Uint32)myTestHeight, adjX, adjY))
+			if(!m_childrenArray[i]->isParentSizeValid(static_cast<Uint32>(myTestWidth), static_cast<Uint32>(myTestHeight), adjX, adjY))
 				return false;
 		}
 	}
@@ -1361,7 +1361,7 @@ void CUIText::setDisplayText( const Char* pstrText )
 		const Char* pstr = pstrText;
 		while(*pstr)
 		{
-			Int32 charIdx = (byte)(*pstr);
+			Int32 charIdx = static_cast<byte>(*pstr);
 			Int32 charWidth = m_pFont->glyphs[charIdx].advancex;
 
 			if((strWidth+charWidth) > m_maxTextWidth)
@@ -1498,8 +1498,8 @@ bool CUIDragger::mouseButtonEvent( Int32 mouseX, Int32 mouseY, Int32 button, boo
 bool CUIDragger::isParentSizeValid( Uint32 testWidth, Uint32 testHeight, Int32 adjX, Int32 adjY )
 {
 	// Determine my adjusted size
-	Int32 myTestWidth = (Int32)m_width;
-	Int32 myTestHeight = (Int32)m_height;
+	Int32 myTestWidth = static_cast<Int32>(m_width);
+	Int32 myTestHeight = static_cast<Int32>(m_height);
 
 	// Add it to the width/height
 	if(!(m_flags & UIEL_FL_FIXED_W))
@@ -1528,7 +1528,8 @@ bool CUIDragger::isParentSizeValid( Uint32 testWidth, Uint32 testHeight, Int32 a
 	// Compare against parent size too
 	Int32 fullWidth = myTestWidth + testOriginX;
 	Int32 fullHeight = myTestHeight + testOriginY;
-	if(fullWidth > (Int32)testWidth || fullHeight > (Int32)testHeight)
+	if(fullWidth > static_cast<Int32>(testWidth) 
+		|| fullHeight > static_cast<Int32>(testHeight))
 		return false;
 
 	return true;
@@ -1941,7 +1942,7 @@ bool CUITextInputTab::keyEvent( Int32 button, Int16 mod, bool keyDown )
 		return true;
 
 	// Get SDL Keycode
-	SDL_Keycode sdlKeycode = SDL_GetKeyFromScancode((SDL_Scancode)button);
+	SDL_Keycode sdlKeycode = SDL_GetKeyFromScancode(static_cast<SDL_Scancode>(button));
 	
 	switch(sdlKeycode)
 	{
@@ -1997,7 +1998,7 @@ bool CUITextInputTab::keyEvent( Int32 button, Int16 mod, bool keyDown )
 			return true;
 
 		// Shift if needed
-		Char inputChar = (Char)sdlKeycode;
+		Char inputChar = static_cast<Char>(sdlKeycode);
 		if(mod & (KMOD_SHIFT|KMOD_CAPS))
 			inputChar = Common::GetShiftedChar(inputChar);
 
@@ -2234,12 +2235,12 @@ bool CUITextInputTab::draw( void )
 		g_engineFuncs.pfnValidateBasicDraw();
 
 		g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xOrg, (Float)yOrg + markerHeight, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xOrg, (Float)yOrg, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xOrg+markerWidth, (Float)yOrg, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xOrg, (Float)yOrg + markerHeight, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xOrg+markerWidth, (Float)yOrg, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xOrg+markerWidth, (Float)yOrg+markerHeight, -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xOrg),				static_cast<Float>(yOrg+markerHeight), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xOrg),				static_cast<Float>(yOrg), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xOrg+markerWidth),	static_cast<Float>(yOrg), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xOrg),				static_cast<Float>(yOrg+markerHeight), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xOrg+markerWidth),	static_cast<Float>(yOrg), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xOrg+markerWidth),	static_cast<Float>(yOrg+markerHeight), -1);
 		g_engineFuncs.pfnBasicDrawEnd();
 
 		if(!g_engineFuncs.pfnBasicDrawEnableTextures())
@@ -2465,7 +2466,7 @@ bool CUIDragButton::adjPosition( Int32 adjAmt, bool isMouseDrag, bool callEvent 
 		referenceRange = m_pParent->getFullRange();
 
 	// Make adjustments
-	Double adjFrac = (Double)adjAmt/(Double)(referenceRange);
+	Double adjFrac = static_cast<Double>(adjAmt)/ static_cast<Double>(referenceRange);
 
 	m_position += adjFrac;
 	m_position = clamp(m_position, 0.0, 1.0);
@@ -2520,7 +2521,7 @@ void CUIDragButton::adjustPosition( void )
 		m_lastParentLength = parentLength;
 
 		// Determine current position based on this
-		Double currentPosition = (Double)prevRelativePosition/(Double)parentLength;
+		Double currentPosition = static_cast<Double>(prevRelativePosition)/static_cast<Double>(parentLength);
 		m_position = clamp(currentPosition, 0.0, 1.0);
 
 		// Determine my own range
@@ -2669,7 +2670,7 @@ bool CUIScroller::init( const Char* pstrSchemaName )
 		flags |= UIEL_FL_ALIGN_B;
 		objectName = "ArrowDown";
 
-		if((Int32)pObject->width > finalWidth)
+		if(static_cast<Int32>(pObject->width) > finalWidth)
 			finalWidth = pObject->width;
 	}
 	else
@@ -2677,7 +2678,7 @@ bool CUIScroller::init( const Char* pstrSchemaName )
 		flags |= UIEL_FL_ALIGN_R;
 		objectName = "ArrowRight";
 
-		if((Int32)pObject->height > finalHeight)
+		if(static_cast<Int32>(pObject->height) > finalHeight)
 			finalHeight = pObject->height;
 	}
 
@@ -2809,8 +2810,8 @@ void CUIScroller::readjustDragButton( void )
 		Double prevPos = m_pDragButton->getPosition();
 		Uint32 prevRealPos = m_prevFullRangeSize*prevPos;
 
-		Double newPos = (Double)prevRealPos/(Double)m_fullRangeSize;
-		m_pDragButton->setPosition((Float)newPos);
+		Double newPos = static_cast<Double>(prevRealPos)/static_cast<Double>(m_fullRangeSize);
+		m_pDragButton->setPosition(static_cast<Float>(newPos));
 	}
 
 	// Force a reset
@@ -2842,8 +2843,8 @@ bool CUIScroller::adjustSize( Int32 x, Int32 y )
 bool CUIScroller::isParentSizeValid( Uint32 testWidth, Uint32 testHeight, Int32 adjX, Int32 adjY )
 {
 	// Determine my adjusted size
-	Int32 myTestWidth = (Int32)m_width;
-	Int32 myTestHeight = (Int32)m_height;
+	Int32 myTestWidth = static_cast<Int32>(m_width);
+	Int32 myTestHeight = static_cast<Int32>(m_height);
 
 	// Add it to the width/height
 	if(!(m_flags & UIEL_FL_FIXED_W))
@@ -2868,7 +2869,8 @@ bool CUIScroller::isParentSizeValid( Uint32 testWidth, Uint32 testHeight, Int32 
 	// Compare against parent size too
 	Int32 fullWidth = myTestWidth + testOriginX;
 	Int32 fullHeight = myTestHeight + testOriginY;
-	if(fullWidth > (Int32)testWidth || fullHeight > (Int32)testHeight)
+	if(fullWidth > static_cast<Int32>(testWidth) 
+		|| fullHeight > static_cast<Int32>(testHeight))
 		return false;
 
 	// Test for children too
@@ -2876,7 +2878,7 @@ bool CUIScroller::isParentSizeValid( Uint32 testWidth, Uint32 testHeight, Int32 
 	{
 		if(considerElementOnResize(m_childrenArray[i]))
 		{
-			if(!m_childrenArray[i]->isParentSizeValid((Uint32)myTestWidth, (Uint32)myTestHeight, adjX, adjY))
+			if(!m_childrenArray[i]->isParentSizeValid(static_cast<Uint32>(myTestWidth), static_cast<Uint32>(myTestHeight), adjX, adjY))
 				return false;
 		}
 	}
@@ -3156,7 +3158,7 @@ CUITabBody* CUITabList::createTab( const Char* pstrName )
 	// Determine the label's origin
 	Int32 labelWidth = CUITabLabel::TAB_LABEL_WIDTH;
 	Int32 labelOriginX = originX + labelWidth*m_pTabsArray.size();
-	if(labelOriginX + labelWidth > (Int32)m_width - 32)
+	if(labelOriginX + labelWidth > static_cast<Int32>(m_width) - 32)
 	{
 		g_engineFuncs.pfnCon_EPrintf("Couldn't create CUITabBody with name %s - all space used up on width.\n", pstrName);
 		return nullptr;
@@ -3346,7 +3348,7 @@ bool CUIScrollableSurface::draw( void )
 	Uint32 scrwidth, scrheight;
 	g_engineFuncs.pfnGetWindowSize(scrwidth, scrheight);
 
-	Int32 originY = (Int32)scrheight - absY - height;
+	Int32 originY = static_cast<Int32>(scrheight) - absY - height;
 
 	glEnable(GL_SCISSOR_TEST);
 	glScissor(absX + 2, originY + 2, width - 4, height - 4);
@@ -3561,11 +3563,11 @@ bool CUIScrollableSurface::isMouseOver( Int32 xPos, Int32 yPos )
 
 	if(absX > xPos)
 		return false;
-	if(absX+(Int32)surfWidth < xPos)
+	if(absX+static_cast<Int32>(surfWidth) < xPos)
 		return false;
 	if(absY > yPos)
 		return false;
-	if(absY+(Int32)surfHeight+(Int32)m_baseYOffset < yPos)
+	if(absY+static_cast<Int32>(surfHeight)+static_cast<Int32>(m_baseYOffset) < yPos)
 		return false;
 
 	return true;
@@ -3592,13 +3594,13 @@ bool CUIScrollableSurface::isChildVisible( CUIObject* pChild, Int32 offset )
 	Uint32 surfWidth, surfHeight;
 	m_pSurface->getSize(surfWidth, surfHeight);
 
-	if(xPos >= surfX+(Int32)surfWidth)
+	if(xPos >= surfX+static_cast<Int32>(surfWidth))
 		return false;
-	else if(xPos+(Int32)width < surfX)
+	else if(xPos+static_cast<Int32>(width) < surfX)
 		return false;
-	else if(yPos >= surfY+(Int32)surfHeight)
+	else if(yPos >= surfY+static_cast<Int32>(surfHeight))
 		return false;
-	else if(yPos+(Int32)height < surfY)
+	else if(yPos+static_cast<Int32>(height) < surfY)
 		return false;
 
 	return true;
@@ -4034,12 +4036,12 @@ bool CUIListRow::draw( void )
 		g_engineFuncs.pfnValidateBasicDraw();
 
 		g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos, (Float)ypos + m_height, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos, (Float)ypos, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos+m_width, (Float)ypos, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos, (Float)ypos + m_height, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos+m_width, (Float)ypos, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos+m_width, (Float)ypos+m_height, -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos+m_height), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos+m_width),	static_cast<Float>(ypos), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos+m_height), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos+m_width),	static_cast<Float>(ypos), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos+m_width),	static_cast<Float>(ypos+m_height), -1);
 		g_engineFuncs.pfnBasicDrawEnd();
 
 		if(!g_engineFuncs.pfnBasicDrawEnableTextures())
@@ -4055,8 +4057,8 @@ bool CUIListRow::draw( void )
 		Int32 colXPos = m_highlightedColumnIdx*colWidth;
 		xpos += colXPos;
 
-		if(m_highlightedColumnIdx == (((Int32)m_columns.size())-1))
-			colWidth = (Int32)m_width - colXPos;
+		if(m_highlightedColumnIdx == ((static_cast<Int32>(m_columns.size()))-1))
+			colWidth = static_cast<Int32>(m_width) - colXPos;
 
 		if(!g_engineFuncs.pfnBasicDrawDisableTextures())
 			return false;
@@ -4066,12 +4068,12 @@ bool CUIListRow::draw( void )
 		g_engineFuncs.pfnValidateBasicDraw();
 
 		g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos, (Float)ypos + m_height, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos, (Float)ypos, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos+colWidth, (Float)ypos, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos, (Float)ypos + m_height, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos+colWidth, (Float)ypos, -1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos+colWidth, (Float)ypos+m_height, -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos+m_height), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos+colWidth),	static_cast<Float>(ypos), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos+m_height), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos+colWidth),	static_cast<Float>(ypos), -1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos+colWidth),	static_cast<Float>(ypos+m_height), -1);
 		g_engineFuncs.pfnBasicDrawEnd();
 
 		if(!g_engineFuncs.pfnBasicDrawEnableTextures())
@@ -4127,12 +4129,12 @@ bool CUIListSeparator::draw( void )
 	g_engineFuncs.pfnValidateBasicDraw();
 
 	g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
-	g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos, (Float)ypos + sepHeight, -1);
-	g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos, (Float)ypos, -1);
-	g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos+sepWidth, (Float)ypos, -1);
-	g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos, (Float)ypos + sepHeight, -1);
-	g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos+sepWidth, (Float)ypos, -1);
-	g_engineFuncs.pfnBasicDrawVertex3f((Float)xpos+sepWidth, (Float)ypos+sepHeight, -1);
+	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos+sepHeight), -1);
+	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos), -1);
+	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos+sepWidth),	static_cast<Float>(ypos), -1);
+	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos+sepHeight), -1);
+	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos+sepWidth),	static_cast<Float>(ypos), -1);
+	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos+sepWidth),	static_cast<Float>(ypos+sepHeight), -1);
 	g_engineFuncs.pfnBasicDrawEnd();
 
 	if(!g_engineFuncs.pfnBasicDrawEnableTextures())
@@ -4388,11 +4390,11 @@ bool CUIDropDownList::isMouseOver( Int32 xPos, Int32 yPos )
 
 	if(absX > xPos)
 		return false;
-	if(absX+(Int32)m_width < xPos)
+	if(absX+static_cast<Int32>(m_width) < xPos)
 		return false;
 	if(absY > yPos)
 		return false;
-	if(absY+(Int32)height < yPos)
+	if(absY+static_cast<Int32>(height) < yPos)
 		return false;
 
 	return true;
@@ -4569,7 +4571,7 @@ CUISlider::~CUISlider( void )
 bool CUISlider::draw( void )
 {
 	// Determine marker height
-	Float markerHeight = (Float)m_height/2.0f - (Float)m_pBodyObject->getHeight()/2.0f - 4;
+	Float markerHeight = static_cast<Float>(m_height)/2.0f - static_cast<Float>(m_pBodyObject->getHeight())/2.0f - 4;
 	Float markerWidth = 1.0f; // 2 pixels
 
 	Float distJump = (m_maxValue - m_minValue) / (1.0/m_markerDistance);
@@ -4582,7 +4584,7 @@ bool CUISlider::draw( void )
 
 		// Draw the marker
 		Float xPos = absX + dist;
-		Float yPos = absY + m_height - markerHeight + (Float)m_pBodyObject->getHeight()/2.0f;
+		Float yPos = absY + m_height - markerHeight + static_cast<Float>(m_pBodyObject->getHeight())/2.0f;
 
 		if(!g_engineFuncs.pfnBasicDrawDisableTextures())
 			return false;
@@ -4593,12 +4595,12 @@ bool CUISlider::draw( void )
 
 		// Draw it
 		g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xPos,				(Float)yPos + markerHeight,		-1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xPos,				(Float)yPos,					-1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xPos+markerWidth,	(Float)yPos,					-1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xPos,				(Float)yPos + markerHeight,		-1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xPos+markerWidth,	(Float)yPos,					-1);
-		g_engineFuncs.pfnBasicDrawVertex3f((Float)xPos+markerWidth,	(Float)yPos + markerHeight,		-1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos),				static_cast<Float>(yPos+markerHeight),		-1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos),				static_cast<Float>(yPos),					-1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos+markerWidth),	static_cast<Float>(yPos),					-1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos),				static_cast<Float>(yPos+markerHeight),		-1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos+markerWidth),	static_cast<Float>(yPos),					-1);
+		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos+markerWidth),	static_cast<Float>(yPos+markerHeight),		-1);
 		g_engineFuncs.pfnBasicDrawEnd();
 	}
 
@@ -4667,7 +4669,7 @@ bool CUISlider::init( const Char* pstrSchemaName )
 	if(m_minValue != 0.0 || m_maxValue != 1.0)
 	{
 		// Determine marker height
-		Float markerHeight = (Float)m_height/2.0f - (Float)m_pBodyObject->getHeight()/2.0f - 4;
+		Float markerHeight = static_cast<Float>(m_height)/2.0f - static_cast<Float>(m_pBodyObject->getHeight())/2.0f - 4;
 
 		Char valueStr[32];
 		sprintf(valueStr, "%0.1f", m_minValue);
@@ -4826,12 +4828,12 @@ bool CUIProgressBar::draw( void )
 
 	// Draw it
 	g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
-	g_engineFuncs.pfnBasicDrawVertex3f((Float)xPos,					(Float)yPos + meterHeight,		-1);
-	g_engineFuncs.pfnBasicDrawVertex3f((Float)xPos,					(Float)yPos,					-1);
-	g_engineFuncs.pfnBasicDrawVertex3f((Float)xPos+meterWidth,		(Float)yPos,					-1);
-	g_engineFuncs.pfnBasicDrawVertex3f((Float)xPos,					(Float)yPos + meterHeight,		-1);
-	g_engineFuncs.pfnBasicDrawVertex3f((Float)xPos+meterWidth,		(Float)yPos,					-1);
-	g_engineFuncs.pfnBasicDrawVertex3f((Float)xPos+meterWidth,		(Float)yPos + meterHeight,		-1);
+	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos),				static_cast<Float>(yPos+meterHeight),		-1);
+	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos),				static_cast<Float>(yPos),					-1);
+	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos+meterWidth),		static_cast<Float>(yPos),					-1);
+	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos),				static_cast<Float>(yPos+meterHeight),		-1);
+	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos+meterWidth),		static_cast<Float>(yPos),					-1);
+	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos+meterWidth),		static_cast<Float>(yPos+meterHeight),		-1);
 	g_engineFuncs.pfnBasicDrawEnd();
 
 	return true;

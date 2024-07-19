@@ -23,7 +23,7 @@ class mxListView : public mxWidget
 
 public:
 	// CREATORS
-	mxListView (mxWindow *parent, int x, int y, int w, int h, int id = 0);
+	mxListView (mxWindow *parent, int x, int y, int w, int h, __int64 id = 0);
 	virtual ~mxListView ();
 
 	// MANIPULATORS

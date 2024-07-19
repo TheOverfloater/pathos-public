@@ -25,6 +25,13 @@ public:
 		FL_NOT_TOGGLED		= (1<<2)
 	};
 
+	enum attachmode_t
+	{
+		ATTACHMODE_ENTITY_ORIGIN = 0,
+		ATTACHMODE_MODEL_ATTACHMENT,
+		ATTACHMODE_VECTOR_FROM_ATTACHMENTS
+	};
+
 public:
 	explicit CEnvParticleSystem( edict_t* pedict );
 	virtual ~CEnvParticleSystem( void );
@@ -36,6 +43,9 @@ public:
 	virtual bool Restore( void ) override;
 	virtual void CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value ) override;
 	virtual void SendInitMessage( const CBaseEntity* pPlayer ) override;
+
+public:
+	entindex_t GetTargetEntityIndex( void );
 
 private:
 	bool m_isActive;

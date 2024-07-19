@@ -5,22 +5,54 @@ $global_determinator dlight0_shadow 0 1
 $global_determinator dlight1_shadow 0 1
 $global_determinator dlight2_shadow 0 1
 $global_determinator dlight3_shadow 0 1
+$global_determinator use_ubo 0 1
+$global_determinator rectangle 0 1
 $shader_vertex 
 $determinator chrome 0 1
 $determinator flex 0 1
 $begin
+
+$branch use_ubo == 1
+$begin
+#version 330
+$end
+$branch use_ubo == 0
+$begin
 #version 130
+$end
 
-uniform mat4 projection;
-uniform mat4 modelview;
+$branch use_ubo == 0
+$begin
+	uniform mat4 projection;
+	uniform mat4 modelview;
+	uniform mat4 normalmatrix;
+$end
+$branch use_ubo == 1
+$begin
+layout (std140) uniform vs_matrices
+{
+	mat4 projection;
+	mat4 modelview;
+	mat4 normalmatrix;
+};
+$end
 
-uniform mat4 normalmatrix;
 uniform mat4 dlight_0_matrix;
 uniform mat4 dlight_1_matrix;
 uniform mat4 dlight_2_matrix;
 uniform mat4 dlight_3_matrix;
+$branch use_ubo == 1
+$begin
+layout (std140) uniform bonematrices
+{
+	vec4 bones[96];
+};
+$end
 
+$branch use_ubo == 0
+$begin
 uniform vec4 bones[96];
+$end
 
 uniform vec3 v_origin;
 uniform vec3 v_right;
@@ -236,13 +268,36 @@ $invalid_state 2 numdlights 1 4 num_lights 1 6
 $invalid_state 2 numdlights 1 4 alphatest 1 1
 $invalid_state 1 shadertype 4 4
 $invalid_state 1 shadertype 6 6
+$invalid state 2 shadertype 0 12 rectangle 1 1
+$invalid state 2 shadertype 14 17 rectangle 1 1
+$invalid_state 2 dlight0_shadow 1 1 rectangle 1 1
+$invalid_state 2 dlight1_shadow 1 1 rectangle 1 1
+$invalid_state 2 dlight2_shadow 1 1 rectangle 1 1
+$invalid_state 2 dlight3_shadow 1 1 rectangle 1 1
+$invalid_state 2 bumpmapping 1 1 rectangle 1 1
+$invalid_state 2 specular 1 1 rectangle 1 1
+$invalid_state 2 luminance 1 1 rectangle 1 1
+$invalid_state 2 alphatest 1 1 rectangle 1 1
+$invalid_state 2 num_lights 1 6 rectangle 1 1
+$invalid_state 2 chrome 1 1 rectangle 1 1
+
+$begin
+$branch use_ubo == 1
+$begin
+#version 330
+$end
+$branch use_ubo == 0
 $begin
 #version 130
+$end
 #extension GL_ARB_texture_rectangle : enable
 
 uniform sampler2D texture0;
 uniform sampler2D texture1;
-uniform sampler2DRect rectangle;
+$branch rectangle == 1
+$begin
+	uniform sampler2DRect rectangle;
+$end
 
 uniform vec3 skylight_ambient;
 uniform vec3 skylight_diffuse;
@@ -274,29 +329,61 @@ uniform float caust_interp;
 uniform float scope_scale;
 uniform vec2 scope_scrsize;
 
-uniform vec3 lights_0_origin;
-uniform vec3 lights_0_color;
-uniform float lights_0_radius;
+$branch use_ubo == 0
+$begin
+	uniform vec3 lights_0_origin;
+	uniform vec3 lights_0_color;
+	uniform float lights_0_radius;
 
-uniform vec3 lights_1_origin;
-uniform vec3 lights_1_color;
-uniform float lights_1_radius;
+	uniform vec3 lights_1_origin;
+	uniform vec3 lights_1_color;
+	uniform float lights_1_radius;
 
-uniform vec3 lights_2_origin;
-uniform vec3 lights_2_color;
-uniform float lights_2_radius;
+	uniform vec3 lights_2_origin;
+	uniform vec3 lights_2_color;
+	uniform float lights_2_radius;
 
-uniform vec3 lights_3_origin;
-uniform vec3 lights_3_color;
-uniform float lights_3_radius;
+	uniform vec3 lights_3_origin;
+	uniform vec3 lights_3_color;
+	uniform float lights_3_radius;
 
-uniform vec3 lights_4_origin;
-uniform vec3 lights_4_color;
-uniform float lights_4_radius;
+	uniform vec3 lights_4_origin;
+	uniform vec3 lights_4_color;
+	uniform float lights_4_radius;
 
-uniform vec3 lights_5_origin;
-uniform vec3 lights_5_color;
-uniform float lights_5_radius;
+	uniform vec3 lights_5_origin;
+	uniform vec3 lights_5_color;
+	uniform float lights_5_radius;
+$end
+$branch use_ubo == 1
+$begin
+layout (std140) uniform modellights
+{
+	vec4 lights_0_origin;
+	vec4 lights_0_color;
+	vec4 lights_0_radius;
+
+	vec4 lights_1_origin;
+	vec4 lights_1_color;
+	vec4 lights_1_radius;
+
+	vec4 lights_2_origin;
+	vec4 lights_2_color;
+	vec4 lights_2_radius;
+
+	vec4 lights_3_origin;
+	vec4 lights_3_color;
+	vec4 lights_3_radius;
+
+	vec4 lights_4_origin;
+	vec4 lights_4_color;
+	vec4 lights_4_radius;
+
+	vec4 lights_5_origin;
+	vec4 lights_5_color;
+	vec4 lights_5_radius;
+};
+$end
 
 $branch numdlights >= 1
 $begin
@@ -729,69 +816,147 @@ void main()
 	// Elights
 	$branch num_lights >= 1
 	$begin
-		lightColor = AddModelLight(lights_0_origin, lights_0_color, lights_0_radius, ps_vertexpos, v_normal, specularFactor);
+		$branch use_ubo == 1
+		$begin
+			vec3 mlight_origin = lights_0_origin.xyz;
+			vec3 mlight_color = lights_0_color.xyz;
+			float mlight_radius = lights_0_radius.x;
+		$end
+		$branch use_ubo == 0
+		$begin
+			vec3 mlight_origin = lights_0_origin;
+			vec3 mlight_color = lights_0_color;
+			float mlight_radius = lights_0_radius;
+		$end
+		
+		lightColor = AddModelLight(mlight_origin, mlight_color, mlight_radius, ps_vertexpos, v_normal, specularFactor);
 		
 		// Add in the diffuse light
 		finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
 		
 		// Add to specular
-		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, lights_0_color);
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, mlight_color);
 	$end
 	$branch num_lights >= 2
 	$begin
-		lightColor = AddModelLight(lights_1_origin, lights_1_color, lights_1_radius, ps_vertexpos, v_normal, specularFactor);
+		$branch use_ubo == 1
+		$begin
+			mlight_origin = lights_1_origin.xyz;
+			mlight_color = lights_1_color.xyz;
+			mlight_radius = lights_1_radius.x;
+		$end
+		$branch use_ubo == 0
+		$begin
+			mlight_origin = lights_1_origin;
+			mlight_color = lights_1_color;
+			mlight_radius = lights_1_radius;
+		$end
+		
+		lightColor = AddModelLight(mlight_origin, mlight_color, mlight_radius, ps_vertexpos, v_normal, specularFactor);
 		
 		// Add in the diffuse light
 		finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
 		
 		// Add to specular
-		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, lights_1_color);
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, mlight_color);
 	$end
 	$branch num_lights >= 3
 	$begin
-		lightColor = AddModelLight(lights_2_origin, lights_2_color, lights_2_radius, ps_vertexpos, v_normal, specularFactor);
+		$branch use_ubo == 1
+		$begin
+			mlight_origin = lights_2_origin.xyz;
+			mlight_color = lights_2_color.xyz;
+			mlight_radius = lights_2_radius.x;
+		$end
+		$branch use_ubo == 0
+		$begin
+			mlight_origin = lights_2_origin;
+			mlight_color = lights_2_color;
+			mlight_radius = lights_2_radius;
+		$end
+		
+		lightColor = AddModelLight(mlight_origin, mlight_color, mlight_radius, ps_vertexpos, v_normal, specularFactor);
 		
 		// Add in the diffuse light
 		finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
 		
 		// Add to specular
-		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, lights_2_color);
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, mlight_color);
 	$end
 	$branch num_lights >= 4
 	$begin
-		lightColor = AddModelLight(lights_3_origin, lights_3_color, lights_3_radius, ps_vertexpos, v_normal, specularFactor);
+		$branch use_ubo == 1
+		$begin
+			mlight_origin = lights_3_origin.xyz;
+			mlight_color = lights_3_color.xyz;
+			mlight_radius = lights_3_radius.x;
+		$end
+		$branch use_ubo == 0
+		$begin
+			mlight_origin = lights_3_origin;
+			mlight_color = lights_3_color;
+			mlight_radius = lights_3_radius;
+		$end
+		
+		lightColor = AddModelLight(mlight_origin, mlight_color, mlight_radius, ps_vertexpos, v_normal, specularFactor);
 		
 		// Add in the diffuse light
 		finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
 		
 		// Add to specular
-		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, lights_3_color);
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, mlight_color);
 	$end
 	$branch num_lights >= 5
 	$begin
-		lightColor = AddModelLight(lights_4_origin, lights_4_color, lights_4_radius, ps_vertexpos, v_normal, specularFactor);
+		$branch use_ubo == 1
+		$begin
+			mlight_origin = lights_4_origin.xyz;
+			mlight_color = lights_4_color.xyz;
+			mlight_radius = lights_4_radius.x;
+		$end
+		$branch use_ubo == 0
+		$begin
+			mlight_origin = lights_4_origin;
+			mlight_color = lights_4_color;
+			mlight_radius = lights_4_radius;
+		$end
+		
+		lightColor = AddModelLight(mlight_origin, mlight_color, mlight_radius, ps_vertexpos, v_normal, specularFactor);
 		
 		// Add in the diffuse light
 		finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
 		
 		// Add to specular
-		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, lights_4_color);
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, mlight_color);
 	$end
 	$branch num_lights == 6
 	$begin
-		lightColor = AddModelLight(lights_5_origin, lights_5_color, lights_5_radius, ps_vertexpos, v_normal, specularFactor);
+		$branch use_ubo == 1
+		$begin
+			mlight_origin = lights_5_origin.xyz;
+			mlight_color = lights_5_color.xyz;
+			mlight_radius = lights_5_radius.x;
+		$end
+		$branch use_ubo == 0
+		$begin
+			mlight_origin = lights_5_origin;
+			mlight_color = lights_5_color;
+			mlight_radius = lights_5_radius;
+		$end
+		
+		lightColor = AddModelLight(mlight_origin, mlight_color, mlight_radius, ps_vertexpos, v_normal, specularFactor);
 		
 		// Add in the diffuse light
 		finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
 		
 		// Add to specular
-		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, lights_5_color);
+		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, mlight_color);
 	$end
 	
 	// Normal single pass rendering
 	$branch shadertype == 0 || shadertype == 1
 	$begin
-		finalColor = clamp(finalColor, 0.0, 1.0); // To prevent multipass inconsistencies
+		//finalColor = clamp(finalColor, 0.0, 1.0); // To prevent multipass inconsistencies
 		vec4 textureColor = texture(texture0, ps_texcoord1);
 		finalColor = finalColor*textureColor + specularColor;
 		finalColor.xyz *= 2;
@@ -1012,8 +1177,15 @@ void main()
 		texcoord.y *= scope_scrsize.y;
 
 		vec4 texcolor = texture(texture0, ps_texcoord1);
-		vec4 rectcolor = texture(rectangle, texcoord);
-
+		$branch rectangle == 1
+		$begin
+			vec4 rectcolor = texture(rectangle, texcoord);
+		$end
+		$branch rectangle == 0
+		$begin
+			vec4 rectcolor = texture(texture1, texcoord);
+		$end
+		
 		finalColor = mix(rectcolor, texcolor*finalColor, texcolor.w);
 	$end
 	// Texture only and with fog

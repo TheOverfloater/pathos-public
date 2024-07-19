@@ -26,7 +26,7 @@ public:
 	virtual bool Spawn( void ) override;
 	virtual void Precache( void ) override;
 	virtual bool Restore( void ) override;
-	virtual void FreeEntity( void ) override;
+	virtual void FreeEntity( edict_removed_t freeMode ) override;
 	
 public:
 	virtual bool IsInfoMonitorCameraEntity( void ) const override { return true; }

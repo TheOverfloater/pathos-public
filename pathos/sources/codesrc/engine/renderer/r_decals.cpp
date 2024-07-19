@@ -147,7 +147,7 @@ bool CDecalManager::DrawBogusDecals( void )
 	pDraw->SetProjection(rns.view.projection.GetMatrix());
 	pDraw->SetModelview(rns.view.modelview.GetMatrix());
 
-	const Float axisLength = 32.0f;
+	constexpr Float axisLength = 32.0f;
 
 	glLineWidth(2.0f);
 

@@ -394,12 +394,7 @@ Int32 SV_LinkContents( areanode_t& node, const Vector& position )
 				continue;
 
 			// Check if the position is in the bounding box of this pentity
-			if(position[0] > ptouchedict->state.absmax[0]
-			|| position[1] > ptouchedict->state.absmax[1]
-			|| position[2] > ptouchedict->state.absmax[2]
-			|| position[0] < ptouchedict->state.absmin[0]
-			|| position[1] < ptouchedict->state.absmin[1]
-			|| position[2] < ptouchedict->state.absmin[2])
+			if(!Math::PointInMinsMaxs(position, ptouchedict->state.absmin, ptouchedict->state.absmax))
 				continue;
 
 			Int32 contents = ptouchedict->state.skin;
@@ -1082,7 +1077,7 @@ edict_t* SV_TestEntityPosition( edict_t* pentity, hull_types_t hulltype )
 		flags |= FL_TRACE_NPC_CLIP;
 
 	trace_t trace;
-	SV_Move(trace, pentity->state.origin, pentity->state.mins, pentity->state.maxs, pentity->state.origin, (trace_flags_t)flags, pentity, hulltype);
+	SV_Move(trace, pentity->state.origin, pentity->state.mins, pentity->state.maxs, pentity->state.origin, static_cast<trace_flags_t>(flags), pentity, hulltype);
 
 	if(trace.flags & FL_TR_ALLSOLID)
 	{
@@ -1132,9 +1127,9 @@ void SV_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 		Math::VectorAdd(tracemins, svs.player_mins[hulltype], tracemins);
 		Math::VectorAdd(tracemaxs, svs.player_maxs[hulltype], tracemaxs);
 
-		for(Int32 i = 1; i < (Int32)gEdicts.GetNbEdicts(); i++)
+		for(Int32 i = 1; i < static_cast<Int32>(gEdicts.GetNbEdicts()); i++)
 		{
-			if(i == ignore_ent || i == ((Int32)svs.pmoveplayerindex+1))
+			if(i == ignore_ent || i == (static_cast<Int32>(svs.pmoveplayerindex+1)))
 				continue;
 
 			// Get pointer to edict
@@ -1198,7 +1193,7 @@ void SV_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 //=============================================
 void SV_TraceLine( const Vector& start, const Vector& end, Int32 traceflags, hull_types_t hulltype, Int32 ignore_ent, trace_t& trace )
 {
-	if((ignore_ent < 0 || ignore_ent >= (Int32)gEdicts.GetNbEdicts()) && ignore_ent != NO_ENTITY_INDEX)
+	if((ignore_ent < 0 || ignore_ent >= static_cast<Int32>(gEdicts.GetNbEdicts())) && ignore_ent != NO_ENTITY_INDEX)
 	{
 		Con_Printf("%s - Bogus entity index %d.\n", __FUNCTION__, ignore_ent);
 		return;
@@ -1225,7 +1220,7 @@ Float SV_TraceModel( entindex_t entindex, const Vector& start, const Vector& end
 		return 0;
 	}
 
-	if(entindex < 0 || entindex >= (Int32)gEdicts.GetNbEdicts())
+	if(entindex < 0 || entindex >= static_cast<Int32>(gEdicts.GetNbEdicts()))
 	{
 		Con_Printf("%s - Bogus entity index %d.\n", __FUNCTION__, entindex);
 		return 0;

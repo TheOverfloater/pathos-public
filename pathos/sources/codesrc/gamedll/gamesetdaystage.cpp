@@ -93,4 +93,36 @@ void CGameSetDayStage::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, u
 	}
 
 	pEntity->SetDayStage((daystage_t)m_dayStage);
+
+	// True if any light_env set their values
+	bool valuesset = false;
+
+	// Update all light_env entities
+	Uint32 numEntities = gd_engfuncs.pfnGetNbEdicts();
+	for (Uint32 i = 1; i < numEntities; i++)
+	{
+		edict_t* pedict = gd_engfuncs.pfnGetEdictByIndex(i);
+		if (pedict->free || !pedict->pprivatedata)
+			continue;
+
+		pEntity = CBaseEntity::GetClass(pedict);
+		if (!pEntity->IsLightEnvironment())
+			continue;
+
+		bool result = pEntity->SetLightEnvValues((daystage_t)m_dayStage);
+		if(result)
+			valuesset = true;
+	}
+
+	// If no light_env set values, then clear them
+	if (!valuesset)
+	{
+		gd_engfuncs.pfnSetCVarFloat("sv_skycolor_r", 0);
+		gd_engfuncs.pfnSetCVarFloat("sv_skycolor_g", 0);
+		gd_engfuncs.pfnSetCVarFloat("sv_skycolor_b", 0);
+
+		gd_engfuncs.pfnSetCVarFloat("sv_skyvec_x", 0);
+		gd_engfuncs.pfnSetCVarFloat("sv_skyvec_y", 0);
+		gd_engfuncs.pfnSetCVarFloat("sv_skyvec_z", 0);
+	}
 }

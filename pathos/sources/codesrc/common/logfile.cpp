@@ -25,7 +25,7 @@ const Uint32 CLogFile::PRINT_MSG_BUFFER_SIZE = 16384;
 //
 // @param pstrPath Log file path
 //=============================================
-CLogFile::CLogFile( const Char* pstrPath, pfnConPrintf_t pfnConPrintf, file_interface_t& fileInterface, bool deletePrevious, bool timeStamps ):
+CLogFile::CLogFile(const Char* pstrPath, pfnConPrintf_t pfnConPrintf, file_interface_t& fileInterface, bool deletePrevious, bool timeStamps) :
 	m_sLogPath(pstrPath),
 	m_nbLinesWritten(0),
 	m_useTimeStamps(timeStamps),
@@ -34,9 +34,11 @@ CLogFile::CLogFile( const Char* pstrPath, pfnConPrintf_t pfnConPrintf, file_inte
 	m_logBufferLoad(0),
 	m_writeSemaphore(false),
 	m_pfnConPrintf(pfnConPrintf),
-	m_fileInterface(fileInterface)
+	m_fileInterface(fileInterface),
+	m_pTempWriteBuffer(nullptr)
 {
 	m_pBuffer = new Char[LOG_BUFFER_SIZE];
+	m_pTempWriteBuffer = new Char[PRINT_MSG_BUFFER_SIZE];
 }
 
 //=============================================
@@ -47,6 +49,9 @@ CLogFile::~CLogFile()
 {
 	if(m_pBuffer)
 		delete[] m_pBuffer;
+
+	if (m_pTempWriteBuffer)
+		delete[] m_pTempWriteBuffer;
 }
 
 //=============================================
@@ -176,7 +181,7 @@ bool CLogFile::Write( const Char* pstrString )
 				if(*pstr == '\n' || *pstr == '\r')
 				{
 					const Char* pstrbegin = pstrString+begin;
-					Uint32 count = (pstr - pstrbegin);
+					const Uint32 count = (pstr - pstrbegin);
 					if(count)
 					{
 						strOut.assign(pstrbegin, count);
@@ -212,7 +217,7 @@ bool CLogFile::Write( const Char* pstrString )
 			if(pstr - (pstrString+begin) > 0)
 			{
 				const Char* pstrbegin = pstrString+begin;
-				Uint32 count = (pstr - pstrbegin) - 1;
+				const Uint32 count = (pstr - pstrbegin) - 1;
 
 				strOut.assign(pstrbegin, count);
 				strOut.insert(0, dateStr.c_str());
@@ -288,11 +293,10 @@ bool CLogFile::WriteInternal( const Char* pstrString )
 bool CLogFile::Printf( const Char *fmt, ... )
 {
 	va_list	vArgPtr;
-	Char cMsg[PRINT_MSG_BUFFER_SIZE];
 	
 	va_start(vArgPtr,fmt);
-	vsprintf_s(cMsg, fmt, vArgPtr);
+	vsprintf_s(m_pTempWriteBuffer, PRINT_MSG_BUFFER_SIZE, fmt, vArgPtr);
 	va_end(vArgPtr);
 
-	return Write(cMsg);
+	return Write(m_pTempWriteBuffer);
 }

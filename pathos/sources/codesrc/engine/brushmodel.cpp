@@ -271,8 +271,8 @@ const msurface_t* Mod_SurfaceAtPoint( const brushmodel_t* pmodel, const mnode_t*
 		psurface = &pmodel->psurfaces[pnode->firstsurface + i];
 		mtexinfo_t *ptexinfo = psurface->ptexinfo;
 
-		Int32 ds = (Int32)(Math::DotProduct(mid, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3]);
-		Int32 dt = (Int32)(Math::DotProduct(mid, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3]);
+		Int32 ds = static_cast<Int32>(Math::DotProduct(mid, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3]);
+		Int32 dt = static_cast<Int32>(Math::DotProduct(mid, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3]);
 
 		if(ds >= psurface->texturemins[0] && dt >= psurface->texturemins[1])
 		{

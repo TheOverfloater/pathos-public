@@ -23,6 +23,7 @@ All Rights Reserved.
 #include "tga.h"
 #include "enginestate.h"
 #include "enginefuncs.h"
+#include "r_fbocache.h"
 
 // Console commands
 void Cmd_BuildCubemaps( void ) { gCubemaps.BuildCubemaps(); }
@@ -504,7 +505,7 @@ void CCubemapManager::BuildEntityList( cl_entity_t** pRenderEntities, Uint32 *pN
 		Math::VectorCopy(origin, pEntity->curstate.origin);
 		Math::VectorCopy(angles, pEntity->curstate.angles);
 
-		pEntity->curstate.rendermode = (rendermode_t)renderMode;
+		pEntity->curstate.rendermode = static_cast<rendermode_t>(renderMode);
 		pEntity->curstate.renderamt = renderamt;
 		pEntity->curstate.body = body;
 		pEntity->curstate.skin = skin;
@@ -526,7 +527,7 @@ bool CCubemapManager::VerifyECDFile( const ecdheader_t* pheader )
 	if(pheader->version != CUBEMAP_FILE_VERSION)
 		return false;
 
-	if(pheader->numcubemaps != (Int32)m_cubemapsArray.size())
+	if(pheader->numcubemaps != static_cast<Int32>(m_cubemapsArray.size()))
 		return false;
 
 	for(Int32 i = 0; i < pheader->numcubemaps; i++)
@@ -593,7 +594,7 @@ void CCubemapManager::SaveCubemapFile( void )
 	// Retreive data ptr
 	void*& dataptr = fileBuffer.getbufferdata();
 	ecdheader_t* pheader = reinterpret_cast<ecdheader_t*>(dataptr);
-	fileBuffer.addpointer((void**)&pheader);
+	fileBuffer.addpointer(reinterpret_cast<void**>(&pheader));
 
 	// Save basic info
 	pheader->id = ECD_HEADER_ENCODED;
@@ -640,7 +641,7 @@ void CCubemapManager::SaveCubemapFile( void )
 		}
 
 		// Write the data and reset pointer after reallocation
-		fileBuffer.append(m_cubemapsArray[i].pimagedata, (Uint32)imagesize*6);
+		fileBuffer.append(m_cubemapsArray[i].pimagedata, static_cast<Uint32>(imagesize*6));
 
 		// Free the image data
 		delete[] m_cubemapsArray[i].pimagedata;
@@ -749,24 +750,55 @@ bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRe
 			glCullFace(GL_FRONT);
 			glDisable(GL_BLEND);
 
+			CFBOCache::cache_fbo_t* pCubemapFBO = nullptr;
+			if (rns.fboused && rns.usehdr)
+			{
+				pCubemapFBO = gFBOCache.Alloc(m_cubemapsArray[i].width, m_cubemapsArray[i].height, true);
+				if (!pCubemapFBO)
+				{
+					Con_Printf("%s - Failed to get FBO for cubemap rendering with width %d, height %d.\n", __FUNCTION__, m_cubemapsArray[i].width, m_cubemapsArray[i].height);
+					result = false;
+					break;
+				}
+
+				R_BindFBO(&pCubemapFBO->fbo);
+			}
+
 			// Draw everything
 			result = R_Draw(viewParams);
-			if(!result)
+			if (!result)
+			{
+				gFBOCache.Free(pCubemapFBO);
 				break;
+			}
+
+			if (rns.fboused && rns.usehdr)
+			{
+				assert(pCubemapFBO != nullptr);
+				gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, pCubemapFBO->fbo.fboid);
+				glReadBuffer(GL_COLOR_ATTACHMENT0);
+			}
 
 			// Save it into the buffer
-			byte *pdest = m_cubemapsArray[i].pimagedata + imagedatasize*j;
+			byte* pdest = m_cubemapsArray[i].pimagedata + imagedatasize * j;
 			glReadPixels(0, 0, m_cubemapsArray[i].width, m_cubemapsArray[i].height, GL_RGB, GL_UNSIGNED_BYTE, pdest);
 
 			CString filepath;
-			filepath << "cubemap_" << (Int32)i << "_" << (Int32)j << ".tga";
+			filepath << "cubemap_" << static_cast<Int32>(i) << "_" << static_cast<Int32>(j) << ".tga";
 			TGA_Write(pdest, 3, m_cubemapsArray[i].width, m_cubemapsArray[i].height, filepath.c_str(), FL_GetInterface(), Con_EPrintf);
 
 			// Save it to the OGL texture too
 			gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemapsArray[i].palloc->gl_index);
 
-			glCopyTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, 0, GL_RGB, 0, 0, m_cubemapsArray[i].width, m_cubemapsArray[i].height, 0);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, 0, GL_RGB, m_cubemapsArray[i].width, m_cubemapsArray[i].height, FALSE, GL_RGB, GL_UNSIGNED_BYTE, pdest);
+
+			if (rns.fboused && rns.usehdr)
+			{
+				// Unbind FBO and free it
+				R_BindFBO(nullptr);
+				gFBOCache.Free(pCubemapFBO);
+			}
 		}
 
 		// Restore projection

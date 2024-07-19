@@ -108,6 +108,7 @@ void CEnvSetSequence::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, us
 
 		pEntity->SetSequence(sequenceIndex);
 		pEntity->ResetSequenceInfo();
+		pEntity->SetFrame(0);
 
 		if(m_pFields->target != NO_STRING_VALUE)
 		{

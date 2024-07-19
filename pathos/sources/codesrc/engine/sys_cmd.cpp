@@ -268,7 +268,7 @@ void Cmd_God( void )
 		return;
 	}
 
-	if(invokerClient < 0 || invokerClient >= (Int32)svs.maxclients)
+	if(invokerClient < 0 || invokerClient >= static_cast<Int32>(svs.maxclients))
 	{
 		Con_Printf("%s - Illegal client index %d.\n", __FUNCTION__, invokerClient);
 		return;
@@ -300,7 +300,7 @@ void Cmd_Notarget( void )
 		return;
 	}
 
-	if(invokerClient < 0 || invokerClient >= (Int32)svs.maxclients)
+	if(invokerClient < 0 || invokerClient >= static_cast<Int32>(svs.maxclients))
 	{
 		Con_Printf("%s - Illegal client index %d.\n", __FUNCTION__, invokerClient);
 		return;
@@ -332,7 +332,7 @@ void Cmd_Noclip( void )
 		return;
 	}
 
-	if(invokerClient < 0 || invokerClient >= (Int32)svs.maxclients)
+	if(invokerClient < 0 || invokerClient >= static_cast<Int32>(svs.maxclients))
 	{
 		Con_Printf("%s - Illegal client index %d.\n", __FUNCTION__, invokerClient);
 		return;

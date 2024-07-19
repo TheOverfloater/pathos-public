@@ -32,7 +32,7 @@ All Rights Reserved.
 #include "file.h"
 
 // New save row index
-static const Int32 NEW_SAVE_INDEX = -1;
+static constexpr Int32 NEW_SAVE_INDEX = -1;
 
 // Current instance of the window
 CUISaveLoadWindow* CUISaveLoadWindow::m_pInstance = nullptr;
@@ -58,8 +58,8 @@ const Char CUISaveLoadWindow::DELETE_SAVE_BUTTON_OBJ_NAME[] = "DeleteSaveButton"
 //=============================================
 static Int32 SortSaves( const void* p1, const void* p2 )
 {
-	CUISaveLoadWindow::save_file_t *psave1 = (CUISaveLoadWindow::save_file_t *)p1;
-	CUISaveLoadWindow::save_file_t *psave2 = (CUISaveLoadWindow::save_file_t *)p2;
+	const CUISaveLoadWindow::save_file_t *psave1 = reinterpret_cast<const CUISaveLoadWindow::save_file_t*>(const_cast<const void*>(p1));
+	const CUISaveLoadWindow::save_file_t *psave2 = reinterpret_cast<const CUISaveLoadWindow::save_file_t*>(const_cast<const void*>(p2));
 
 	if(!qstrlen(psave1->filepath))
 		return -1;
@@ -282,10 +282,10 @@ void CUISaveLoadWindow::CreateSaveFileRow( save_file_t& saveFile, Uint32 fileind
 
 	// Set game time
 	CString gameTime;
-	Int32 nbDays = (Int32)SDL_floor(saveFile.gametime / 86400.0f);
-	Int32 nbHours = (Int32)SDL_floor(saveFile.gametime / 3600.0f);
-	Int32 nbMinutes = (Int32)SDL_floor(saveFile.gametime / 60.0f);
-	Int32 nbSeconds = (Int32)SDL_floor(saveFile.gametime);
+	Int32 nbDays		= static_cast<Int32>(SDL_floor(saveFile.gametime / 86400.0f));
+	Int32 nbHours		= static_cast<Int32>(SDL_floor(saveFile.gametime / 3600.0f));
+	Int32 nbMinutes		= static_cast<Int32>(SDL_floor(saveFile.gametime / 60.0f));
+	Int32 nbSeconds		= static_cast<Int32>(SDL_floor(saveFile.gametime));
 
 	// Perform adjustments
 	if(nbDays > 0)
@@ -857,7 +857,7 @@ bool CUISaveLoadWindowRowEvent::MouseButtonEvent( Int32 mouseX, Int32 mouseY, In
 
 	if(keyDown)
 	{
-		Float interval = (Float)ens.time - m_lastClickTime;
+		Float interval = static_cast<Float>(ens.time) - m_lastClickTime;
 		if(interval < 0.5)
 		{
 			// Enter bind mode

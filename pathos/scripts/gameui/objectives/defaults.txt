@@ -1,0 +1,5 @@
+$title "Mission Objectives"
+$defaultdescription
+{
+These are the mission objectives. Click on an item to select it for viewing.
+}

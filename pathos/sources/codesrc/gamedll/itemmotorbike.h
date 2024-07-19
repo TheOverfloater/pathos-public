@@ -28,12 +28,6 @@ public:
 	static const Char BIKE_MODELNAME[];
 
 public:
-	enum
-	{
-		FL_LEAVE_DIALOUGE = (1<<0)
-	};
-
-public:
 	explicit CItemMotorBike( edict_t* pedict );
 	virtual ~CItemMotorBike( void );
 

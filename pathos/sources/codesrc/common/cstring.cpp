@@ -9,6 +9,9 @@ All Rights Reserved.
 
 #include "includes.h"
 
+// Empty string character
+Char CString::EMPTY_STRING[] = "\0";
+
 //=============================================
 // @brief Default constructor
 //
@@ -18,8 +21,7 @@ CString::CString():
 	m_pString(nullptr),
 	m_stringLength(0)
 {
-	m_pString = new Char[1];
-	*m_pString = '\0';
+	m_pString = EMPTY_STRING;
 }
 
 //=============================================
@@ -33,7 +35,7 @@ CString::CString( const Char* pstr ):
 {
 	if(pstr)
 	{
-		Uint32 strlength = qstrlen(pstr);
+		const Uint32 strlength = qstrlen(pstr);
 		if(strlength)
 		{
 			m_pString = new Char[strlength+1];
@@ -43,10 +45,7 @@ CString::CString( const Char* pstr ):
 	}
 
 	if(!m_pString)
-	{
-		m_pString = new Char[1];
-		*m_pString = '\0';
-	}
+		m_pString = EMPTY_STRING;
 }
 
 //=============================================
@@ -61,7 +60,7 @@ CString::CString( const CString& str ):
 	const Char* psrc = str.c_str();
 	if(psrc)
 	{
-		Uint32 length = str.length();
+		const Uint32 length = str.length();
 		if(length)
 		{
 			m_pString = new Char[length+1];
@@ -71,10 +70,7 @@ CString::CString( const CString& str ):
 	}
 
 	if(!m_pString)
-	{
-		m_pString = new Char[1];
-		*m_pString = '\0';
-	}
+		m_pString = EMPTY_STRING;
 }
 
 //=============================================
@@ -95,8 +91,7 @@ CString::CString( const Char* pstr, Uint32 length ):
 	}
 	else
 	{
-		m_pString = new Char[1];
-		*m_pString = '\0';
+		m_pString = EMPTY_STRING;
 	}
 }
 
@@ -106,6 +101,6 @@ CString::CString( const Char* pstr, Uint32 length ):
 //=============================================
 CString::~CString()
 {
-	if(m_pString)
+	if(m_pString && m_pString != EMPTY_STRING)
 		delete[] m_pString;
 }

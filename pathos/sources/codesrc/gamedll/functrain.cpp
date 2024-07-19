@@ -442,7 +442,7 @@ void CFuncTrain::Next( void )
 		if(!HasSpawnFlag(FL_DONT_NUDGE_NPCS))
 			Util::FixGroundEntities(this);
 
-		if(m_pCurrentTarget == pTarget)
+		if(m_pCurrentTarget && m_pCurrentTarget == pTarget)
 			Util::EntityConPrintf(m_pEdict, "Path corner '%s' targets itself.\n", m_pCurrentTarget->GetTargetName());
 
 		return;

@@ -592,7 +592,7 @@ bool CSquadNPC::OccupySlot( Uint64 desiredSlots )
 
 	for(Uint32 i = 0; i < NUM_SLOTS; i++)
 	{
-		Uint64 slotMask = (1<<i);
+		Uint64 slotMask = (1ULL<<i);
 		if((desiredSlots & slotMask) && !(squadLeaderSlots & slotMask))
 		{
 			pSquadLeader->SetSquadSlots((squadLeaderSlots|slotMask));

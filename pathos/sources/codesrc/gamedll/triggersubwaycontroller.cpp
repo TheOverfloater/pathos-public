@@ -21,6 +21,10 @@ const Char CTriggerSubwayController::IBMANN_ST_DEST_ID[] = "ibmann";
 const Char CTriggerSubwayController::MARSHALL_ST_DEST_ID[] = "marshall";
 // Subway destination id for Eckhart st.
 const Char CTriggerSubwayController::ECKHART_ST_DEST_ID[] = "eckhart";
+// Subway destination id for Kassarr st
+const Char CTriggerSubwayController::KASSAR_ST_DEST_ID[] = "kassar";
+// Subway destination id for Aiello St.
+const Char CTriggerSubwayController::AIELLO_ST_DEST_ID[] = "aiello";
 
 // Link the entity to it's class
 LINK_ENTITY_TO_CLASS(trigger_subway_controller, CTriggerSubwayController);
@@ -101,11 +105,12 @@ bool CTriggerSubwayController::KeyValue( const keyvalue_t& kv )
 		m_destination4Target = gd_engfuncs.pfnAllocString(kv.value);
 		return true;
 	}
-	else if(!qstrcmp(kv.keyname, "type"))
+	else if(!qstrcmp(kv.keyname, "line"))
 	{
 		m_subwayLine = SDL_atoi(kv.value);
 		if(m_subwayLine != SUBWAYLINE_BERGEN_ECKHART
-			&& m_subwayLine != SUBWAYLINE_KASSAR_STILLWELL)
+			&& m_subwayLine != SUBWAYLINE_KASSAR_STILLWELL
+			&& m_subwayLine != SUBWAYLINE_MARSHALL_LYNE)
 		{
 			gd_engfuncs.pfnCon_Printf("Invalid subway line specified for %s.\n", gd_engfuncs.pfnGetString(m_pFields->targetname));
 			m_subwayLine = SUBWAYLINE_BERGEN_ECKHART;
@@ -151,15 +156,39 @@ void CTriggerSubwayController::FireTarget( CBaseEntity* pPlayer, const Char* pst
 		return;
 
 	string_t targetentity = NO_STRING_VALUE;
-	if(!qstrcmp(pstrdestinationid, BERGEN_ST_DEST_ID))
-		targetentity = m_destination1Target;
-	else if(!qstrcmp(pstrdestinationid, IBMANN_ST_DEST_ID))
-		targetentity = m_destination2Target;
-	else if(!qstrcmp(pstrdestinationid, MARSHALL_ST_DEST_ID))
-		targetentity = m_destination4Target;
-	else if(!qstrcmp(pstrdestinationid, ECKHART_ST_DEST_ID))
-		targetentity = m_destination3Target;
-	else
+	switch(m_subwayLine)
+	{
+	case SUBWAYLINE_BERGEN_ECKHART:
+		{
+		if(!qstrcmp(pstrdestinationid, BERGEN_ST_DEST_ID))
+			targetentity = m_destination1Target;
+		else if(!qstrcmp(pstrdestinationid, IBMANN_ST_DEST_ID))
+			targetentity = m_destination2Target;
+		else if(!qstrcmp(pstrdestinationid, MARSHALL_ST_DEST_ID))
+			targetentity = m_destination4Target;
+		else if(!qstrcmp(pstrdestinationid, ECKHART_ST_DEST_ID))
+			targetentity = m_destination3Target;
+		}
+		break;
+	case SUBWAYLINE_KASSAR_STILLWELL:
+		{
+			if(!qstrcmp(pstrdestinationid, KASSAR_ST_DEST_ID))
+				targetentity = m_destination1Target;
+			else if(!qstrcmp(pstrdestinationid, MARSHALL_ST_DEST_ID))
+				targetentity = m_destination3Target;
+		}
+		break;
+	case SUBWAYLINE_MARSHALL_LYNE:
+		{
+			if(!qstrcmp(pstrdestinationid, MARSHALL_ST_DEST_ID))
+				targetentity = m_destination1Target;
+			else if(!qstrcmp(pstrdestinationid, AIELLO_ST_DEST_ID))
+				targetentity = m_destination3Target;
+		}
+		break;
+	}
+
+	if(targetentity == NO_STRING_VALUE)
 	{
 		gd_engfuncs.pfnClientPrintf(pPlayer->GetEdict(), "Unknown destination id '%s' specified.\n", pstrdestinationid);
 		return;

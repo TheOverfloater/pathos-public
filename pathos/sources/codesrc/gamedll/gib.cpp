@@ -54,8 +54,10 @@ CGib::~CGib( void )
 // @brief
 //
 //=============================================
-void CGib::FreeEntity( void )
+void CGib::FreeEntity( edict_removed_t freeMode )
 {
+	CBaseEntity::FreeEntity(freeMode);
+
 	if(m_numGibs > 0)
 		m_numGibs--;
 }

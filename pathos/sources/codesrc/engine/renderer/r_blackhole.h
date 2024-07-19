@@ -38,10 +38,12 @@ struct blackhole_attribs
 		u_modelview(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_projection(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_texture(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_texturerect(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_screensize(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_screenpos(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_distance(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_size(CGLSLShader::PROPERTY_UNAVAILABLE)
+		u_size(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_rectangle(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{
 		}
 
@@ -51,11 +53,14 @@ struct blackhole_attribs
 	Int32 u_projection;
 
 	Int32 u_texture;
+	Int32 u_texturerect;
 
 	Int32 u_screensize;
 	Int32 u_screenpos;
 	Int32 u_distance;
 	Int32 u_size;
+
+	Int32 d_rectangle;
 };
 
 /*

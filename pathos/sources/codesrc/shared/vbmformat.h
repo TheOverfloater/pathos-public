@@ -22,7 +22,7 @@ All Rights Reserved.
 #define MAX_VBM_LODS				16
 #define MAX_SUBMODEL_NAME_LENGTH	32
 
-#define VBM_FLEXTEXTURE_SIZE		128
+#define VBM_FLEXTEXTURE_SIZE		256
 
 #define VBM_HEADER					(('1'<<24)+('M'<<16)+('B'<<8)+'V')
 
@@ -113,7 +113,7 @@ struct vbmmesh_t
 	const byte* getBones( const vbmheader_t* phdr ) const
 	{
 		assert(numbones > 0);
-		return reinterpret_cast<const byte*>(reinterpret_cast<const byte*>(phdr) + boneoffset);
+		return reinterpret_cast<const byte*>(phdr) + boneoffset;
 	}
 
 	Int32 boneoffset;
@@ -294,7 +294,7 @@ struct vbmflexinfo_t
 
 	const byte* getFlexControllerIndexes( const vbmheader_t* phdr ) const
 	{
-		return reinterpret_cast<const byte*>(reinterpret_cast<const byte*>(phdr) + flexcontrolleridxoffset);
+		return reinterpret_cast<const byte*>(phdr) + flexcontrolleridxoffset;
 	}
 
 	Int32 type;

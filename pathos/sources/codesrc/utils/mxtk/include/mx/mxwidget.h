@@ -81,7 +81,7 @@ public:
 
 	void setVisible (bool b);
 	void setEnabled (bool b);
-	void setId (int id);
+	void setId (__int64 id);
 	void setUserData (void *userData);
 
 	// ACCESSORS

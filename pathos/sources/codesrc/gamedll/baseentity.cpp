@@ -304,7 +304,7 @@ void CBaseEntity::AdjustEntityPositions( const Vector& posAdj )
 // @brief
 //
 //=============================================
-void CBaseEntity::FreeEntity( void )
+void CBaseEntity::FreeEntity( edict_removed_t freeMode )
 {
 	// Release any relevant data on client side
 	gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.freeentitydata, nullptr, nullptr);

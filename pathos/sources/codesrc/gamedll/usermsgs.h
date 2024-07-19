@@ -63,6 +63,7 @@ struct usermsglist_t
 		setviewentity(0),
 		nodedebug(0),
 		screentext(0),
+		tempbeam(0),
 		blackhole(0),
 		sunflare(0),
 		vaportrail(0),

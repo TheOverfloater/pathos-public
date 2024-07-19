@@ -4,8 +4,7 @@ $texture
 	$int_height 128
 	$dt_scalex 4.500000
 	$dt_scaley 6.000000
-	$container pathos.wad
 	$material wood
-	$texture diffuse nw_plaster04b
+	$texture diffuse world/pathos/nw_plaster04b.dds
 	$texture detail detail/dt_plaster1.dds
 }

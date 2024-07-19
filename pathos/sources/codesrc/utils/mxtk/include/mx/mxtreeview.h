@@ -35,7 +35,7 @@ class mxTreeView : public mxWidget
 
 public:
 	// CREATORS
-	mxTreeView (mxWindow *parent, int x, int y, int w, int h, int id = 0);
+	mxTreeView (mxWindow *parent, int x, int y, int w, int h, __int64 id = 0);
 	virtual ~mxTreeView ();
 
 	// MANIPULATORS

@@ -12,6 +12,7 @@ All Rights Reserved.
 
 #include "screenfade.h"
 #include "r_rttcache.h"
+#include "r_fbocache.h"
 
 enum pp_shadertypes_t
 {
@@ -30,21 +31,27 @@ struct pp_shader_attribs
 	pp_shader_attribs():
 		u_modelview(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_projection(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_tcscale(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_offset(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_color(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_gamma(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_screenwidth(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_screenheight(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_timer(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_offsetdivider(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_texture1(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_texture1rect(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_texture2(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_texture2rect(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_origin(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_texcoord(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_type(CGLSLShader::PROPERTY_UNAVAILABLE)
+		d_type(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_rectangle(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{}
 
 	Int32	u_modelview;
 	Int32	u_projection;
+	Int32	u_tcscale;
 
 	Int32	u_offset;
 	Int32	u_color;
@@ -53,14 +60,18 @@ struct pp_shader_attribs
 	Int32	u_screenwidth;
 	Int32	u_screenheight;
 	Int32	u_timer;
+	Int32	u_offsetdivider;
 
 	Int32	u_texture1;
+	Int32	u_texture1rect;
 	Int32	u_texture2;
+	Int32	u_texture2rect;
 
 	Int32	a_origin;
 	Int32	a_texcoord;
 
 	Int32 d_type;
+	Int32 d_rectangle;
 };
 
 /*
@@ -109,10 +120,16 @@ private:
 
 	// Fetches screen contents
 	static void FetchScreen( rtt_texture_t** ptarget );
+	// Fetches screen contents for FBO
+	static bool FetchScreen( CFBOCache::cache_fbo_t** ptarget );
+
 	// Creates motion blur texture
 	void ClearMotionBlur( void );
+
 	// Creates the screen texture
-	void CreateScreenTexture( void );
+	void CreateBlurScreenTexture( void );
+	// Creates the screen texture
+	bool CreateBlurScreenFBO(void);
 
 public:
 	// Toggle motion blur effect message
@@ -145,6 +162,8 @@ private:
 	// Gaussian blur alpha
 	Float			m_gaussianBlurAlpha;
 
+	// TRUE if we should use FBOs
+	bool			m_useFBOs;
 private:
 	// Screenfade information
 	screenfade_t	m_fadeLayersArray[MAX_FADE_LAYERS];
@@ -162,9 +181,14 @@ private:
 
 	// Screen RTT
 	rtt_texture_t*	m_pScreenRTT;
-	
+	// Screen FBO
+	CFBOCache::cache_fbo_t* m_pScreenFBO;
+
 	// Screen texture pointer
-	en_texalloc_t*	m_pScreenTexture;
+	en_texalloc_t*	m_pBlurScreenTexture;
+	// Screen FBO
+	fbobind_t m_blurScreenFBO;
+
 	// Shader attributes
 	pp_shader_attribs m_attribs;
 };

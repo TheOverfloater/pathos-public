@@ -36,7 +36,7 @@ public:
 	// Adds a pointer to the list
 	inline void addpointer( void** ptr );
 	// Removes a pointer from the list
-	inline void removepointer( void** ptr );
+	inline void removepointer( const void** ptr );
 
 private:
 	// initializes the buffer

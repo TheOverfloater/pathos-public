@@ -28,12 +28,15 @@ public:
 	virtual void CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value ) override;
 	virtual Int32 GetEntityFlags( void ) override;
 	virtual void SendInitMessage( const CBaseEntity* pPlayer ) override;
+	virtual bool KeyValue( const keyvalue_t& kv ) override;
 
 public:
 	static void SpawnDecal( const Vector& origin, const Char* pstrdecalname );
 
 public:
 	bool m_isActive;
+	Double m_spawnTime;
+	Float m_growthTime;
 };
 
 #endif //ENVDECAL_H

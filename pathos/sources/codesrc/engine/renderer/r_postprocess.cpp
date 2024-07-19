@@ -25,11 +25,12 @@ All Rights Reserved.
 #include "system.h"
 #include "file.h"
 #include "r_common.h"
+#include "r_fbocache.h"
 
 // Blur fade amount
-static const Float BLUR_FADE = 0.1;
+static constexpr Float BLUR_FADE = 0.1;
 // Water effects fade duration
-static const Float WATER_FADE_TIME = 2.0;
+static constexpr Float WATER_FADE_TIME = 2.0;
 
 // Class definition
 CPostProcess gPostProcess;
@@ -47,12 +48,14 @@ CPostProcess::CPostProcess( void ):
 	m_blurFade(0),
 	m_lastWaterTime(-1),
 	m_gaussianBlurAlpha(0),
+	m_useFBOs(false),
 	m_pShader(nullptr),
 	m_pVBO(nullptr),
 	m_pCvarFilmGrain(nullptr),
 	m_pCvarPostProcess(nullptr),
 	m_pScreenRTT(nullptr),
-	m_pScreenTexture(nullptr)
+	m_pScreenFBO(nullptr),
+	m_pBlurScreenTexture(nullptr)
 {
 }
 
@@ -116,8 +119,12 @@ bool CPostProcess :: InitGL( void )
 		m_attribs.u_screenwidth = m_pShader->InitUniform("screenwidth", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_screenheight = m_pShader->InitUniform("screenheight", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_timer = m_pShader->InitUniform("timer", CGLSLShader::UNIFORM_FLOAT1);
+		m_attribs.u_offsetdivider = m_pShader->InitUniform("offsetdivider", CGLSLShader::UNIFORM_FLOAT2);
 		m_attribs.u_texture1 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture1rect = m_pShader->InitUniform("texture0rect", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_texture2 = m_pShader->InitUniform("blurtexture", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture2rect = m_pShader->InitUniform("blurtextureRect", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_tcscale = m_pShader->InitUniform("tc_scale", CGLSLShader::UNIFORM_FLOAT2);
 
 		if(!R_CheckShaderUniform(m_attribs.u_modelview, "modelview", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_projection, "projection", m_pShader, Sys_ErrorPopup)
@@ -127,8 +134,12 @@ bool CPostProcess :: InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_screenwidth, "screenwidth", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_screenheight, "screenheight", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_timer, "timer", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_offsetdivider, "offsetdivider", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_texture1, "texture0", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_texture1, "texture1", m_pShader, Sys_ErrorPopup))
+			|| !R_CheckShaderUniform(m_attribs.u_texture1, "texture0rect", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_texture1, "blurtexture", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_texture1, "blurtextureRect", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_tcscale, "tc_scale", m_pShader, Sys_ErrorPopup))
 			return false;
 
 		m_attribs.a_origin = m_pShader->InitAttribute("in_position", 4, GL_FLOAT, sizeof(basic_vertex_t), OFFSET(basic_vertex_t, origin));
@@ -139,7 +150,9 @@ bool CPostProcess :: InitGL( void )
 			return false;
 
 		m_attribs.d_type = m_pShader->GetDeterminatorIndex("pp_type");
-		if(!R_CheckShaderDeterminator(m_attribs.d_type, "pp_type", m_pShader, Sys_ErrorPopup))
+		m_attribs.d_rectangle = m_pShader->GetDeterminatorIndex("rectangle");
+		if(!R_CheckShaderDeterminator(m_attribs.d_type, "pp_type", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderDeterminator(m_attribs.d_rectangle, "rectangle", m_pShader, Sys_ErrorPopup))
 			return false;
 	}
 
@@ -155,11 +168,11 @@ bool CPostProcess :: InitGL( void )
 
 		pverts[1].origin[0] = 0; pverts[1].origin[1] = 0; 
 		pverts[1].origin[2] = -1; pverts[1].origin[3] = 1;
-		pverts[1].texcoords[0] = 0; pverts[1].texcoords[1] = rns.screenheight;
+		pverts[1].texcoords[0] = 0; pverts[1].texcoords[1] = 1;
 
 		pverts[2].origin[0] = 1; pverts[2].origin[1] = 0; 
 		pverts[2].origin[2] = -1; pverts[2].origin[3] = 1;
-		pverts[2].texcoords[0] = rns.screenwidth; pverts[2].texcoords[1] = rns.screenheight;
+		pverts[2].texcoords[0] = 1; pverts[2].texcoords[1] = 1;
 
 		pverts[3].origin[0] = 0; pverts[3].origin[1] = 1; 
 		pverts[3].origin[2] = -1; pverts[3].origin[3] = 1;
@@ -167,11 +180,11 @@ bool CPostProcess :: InitGL( void )
 
 		pverts[4].origin[0] = 1; pverts[4].origin[1] = 0; 
 		pverts[4].origin[2] = -1; pverts[4].origin[3] = 1;
-		pverts[4].texcoords[0] = rns.screenwidth; pverts[4].texcoords[1] = rns.screenheight;
+		pverts[4].texcoords[0] = 1; pverts[4].texcoords[1] = 1;
 
 		pverts[5].origin[0] = 1; pverts[5].origin[1] = 1; 
 		pverts[5].origin[2] = -1; pverts[5].origin[3] = 1;
-		pverts[5].texcoords[0] = rns.screenwidth; pverts[5].texcoords[1] = 0;
+		pverts[5].texcoords[0] = 1; pverts[5].texcoords[1] = 0;
 
 		m_pVBO = new CVBO(gGLExtF, pverts, sizeof(basic_vertex_t)*6, nullptr, 0);
 		m_pShader->SetVBO(m_pVBO);
@@ -198,6 +211,9 @@ void CPostProcess :: ClearGL( void )
 		delete m_pVBO;
 		m_pVBO = nullptr;
 	}
+
+	gGLExtF.glDeleteFramebuffers(1, &m_blurScreenFBO.fboid);
+	m_blurScreenFBO = fbobind_t();
 }
 
 //=============================================
@@ -229,7 +245,7 @@ void CPostProcess :: ClearGame( void )
 			m_fadeLayersArray[i] = screenfade_t();
 	}
 
-	m_pScreenTexture = nullptr;
+	m_pBlurScreenTexture = nullptr;
 }
 
 //=============================================
@@ -238,7 +254,7 @@ void CPostProcess :: ClearGame( void )
 //=============================================
 void CPostProcess :: FetchScreen( rtt_texture_t** ptarget )
 {
-	// Grab current screen contents and apply gamma
+	// Grab current screen contents and copy to target
 	if((*ptarget) == nullptr)
 		(*ptarget) = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
 
@@ -250,18 +266,57 @@ void CPostProcess :: FetchScreen( rtt_texture_t** ptarget )
 // @brief
 //
 //=============================================
+bool CPostProcess ::FetchScreen( CFBOCache::cache_fbo_t** ptarget )
+{
+	// Grab current screen contents and copy to target
+	if ((*ptarget) == nullptr)
+	{
+		(*ptarget) = gFBOCache.Alloc(rns.screenwidth, rns.screenheight, false);
+		if (!(*ptarget))
+			return false;
+	}
+
+	gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, rns.pboundfbo->fboid);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+	gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (*ptarget)->fbo.fboid);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	gGLExtF.glBlitFramebuffer(0, 0, rns.screenwidth, rns.screenheight, 0, 0, rns.screenwidth, rns.screenheight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 bool CPostProcess :: DrawGamma( void )
 {
-	FetchScreen(&m_pScreenRTT);
-	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	if (!m_useFBOs)
+	{
+		FetchScreen(&m_pScreenRTT);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	}
+	else
+	{
+		if (!FetchScreen(&m_pScreenFBO))
+		{
+			Sys_ErrorPopup("Failed to create FBO for gamma.");
+			return false;
+		}
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_NORMAL))
-		return false;
+		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
+	}
 
 	m_pShader->SetUniform1f(m_attribs.u_gamma, m_pCvarGamma->GetValue()/1.8);
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_GAMMA))
+	if (!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_GAMMA))
+	{
+		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		return false;
+	}
 
 	R_ValidateShader(m_pShader);
 
@@ -275,14 +330,30 @@ bool CPostProcess :: DrawGamma( void )
 //=============================================
 bool CPostProcess :: DrawDistortion( void )
 {
-	FetchScreen(&m_pScreenRTT);
-	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	if (!m_useFBOs)
+	{
+		FetchScreen(&m_pScreenRTT);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	}
+	else
+	{
+		if (!FetchScreen(&m_pScreenFBO))
+		{
+			Sys_ErrorPopup("Failed to create FBO for distortion effect.");
+			return false;
+		}
+
+		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
+	}
 
 	Float flOffset = rns.time*8;
 	m_pShader->SetUniform1f(m_attribs.u_offset, flOffset);
 
 	if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_DISTORT))
+	{
+		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		return false;
+	}
 
 	R_ValidateShader(m_pShader);
 
@@ -297,19 +368,48 @@ bool CPostProcess :: DrawDistortion( void )
 bool CPostProcess :: DrawBlur( void )
 {
 	// blur horizontally
-	FetchScreen(&m_pScreenRTT);
-	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	if (!m_useFBOs)
+	{
+		FetchScreen(&m_pScreenRTT);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	}
+	else
+	{
+		if (!FetchScreen(&m_pScreenFBO))
+		{
+			Sys_ErrorPopup("Failed to create FBO for motion blur effect.");
+			return false;
+		}
+
+		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
+	}
 
 	if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_BLUR_H))
+	{
+		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		return false;
+	}
 
 	R_ValidateShader(m_pShader);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	// blur horizontally
-	FetchScreen(&m_pScreenRTT);
-	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	if (!m_useFBOs)
+	{
+		FetchScreen(&m_pScreenRTT);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	}
+	else
+	{
+		if (!FetchScreen(&m_pScreenFBO))
+		{
+			Sys_ErrorPopup("Failed to create FBO for motion blur effect.");
+			return false;
+		}
+
+		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
+	}
 
 	if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_BLUR_V))
 		return false;
@@ -326,17 +426,33 @@ bool CPostProcess :: DrawBlur( void )
 //=============================================
 bool CPostProcess :: DrawMotionBlur( void )
 {
-	// Fetch screen contents
-	FetchScreen(&m_pScreenRTT);
-	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	if (!m_useFBOs)
+	{
+		FetchScreen(&m_pScreenRTT);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
 
-	// Bind the blur rectangle texture
-	gGLExtF.glActiveTexture(GL_TEXTURE1_ARB);
-	glEnable(GL_TEXTURE_RECTANGLE);
-	R_BindRectangleTexture(GL_TEXTURE1_ARB, m_pScreenTexture->gl_index);
+		// Bind the blur rectangle texture
+		gGLExtF.glActiveTexture(GL_TEXTURE1_ARB);
+		glEnable(GL_TEXTURE_RECTANGLE);
+		R_BindRectangleTexture(GL_TEXTURE1_ARB, m_pBlurScreenTexture->gl_index);
+	}
+	else
+	{
+		if (!FetchScreen(&m_pScreenFBO))
+		{
+			Sys_ErrorPopup("Failed to create FBO for motion blur effect.");
+			return false;
+		}
+
+		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
+		R_Bind2DTexture(GL_TEXTURE1_ARB, m_blurScreenFBO.ptexture1->gl_index);
+	}
 
 	if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_MBLUR))
+	{
+		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		return false;
+	}
 
 	m_pShader->SetUniform4f(m_attribs.u_color, GL_ONE, GL_ONE, GL_ONE, 1.0 - m_blurFade);
 
@@ -344,12 +460,29 @@ bool CPostProcess :: DrawMotionBlur( void )
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	gGLExtF.glActiveTexture(GL_TEXTURE1_ARB);
-	glDisable(GL_TEXTURE_RECTANGLE);
+	if (!m_useFBOs)
+	{
+		gGLExtF.glActiveTexture(GL_TEXTURE1_ARB);
+		glDisable(GL_TEXTURE_RECTANGLE);
 
-	// Copy to the blur FBO now
-	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenTexture->gl_index);
-	glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
+		// Copy to the blur FBO now
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pBlurScreenTexture->gl_index);
+		glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
+	}
+	else
+	{
+		// Copy screen contents to the blur FBO
+		gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, rns.pboundfbo->fboid);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+		gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_blurScreenFBO.fboid);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		gGLExtF.glBlitFramebuffer(0, 0, rns.screenwidth, rns.screenheight, 0, 0, rns.screenwidth, rns.screenheight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
+	}
+
 	return true;
 }
 
@@ -408,13 +541,29 @@ bool CPostProcess :: DrawFade( screenfade_t& fade )
 //=============================================
 bool CPostProcess :: DrawFilmGrain( void )
 {
-	// Fetch screen contents
-	FetchScreen(&m_pScreenRTT);
-	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	if (!m_useFBOs)
+	{
+		FetchScreen(&m_pScreenRTT);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+
+		// Bind the blur rectangle texture
+		gGLExtF.glActiveTexture(GL_TEXTURE1_ARB);
+		glEnable(GL_TEXTURE_RECTANGLE);
+		R_BindRectangleTexture(GL_TEXTURE1_ARB, m_pBlurScreenTexture->gl_index);
+	}
+	else
+	{
+		FetchScreen(&m_pScreenFBO);
+		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
+		R_Bind2DTexture(GL_TEXTURE1_ARB, m_blurScreenFBO.ptexture1->gl_index);
+	}
 
 	m_pShader->SetUniform1f(m_attribs.u_timer, rns.time*0.1);
 	if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_GRAIN))
+	{
+		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		return false;
+	}
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	return true;
@@ -426,8 +575,28 @@ bool CPostProcess :: DrawFilmGrain( void )
 //=============================================
 void CPostProcess :: ClearMotionBlur( void )
 {
-	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenTexture->gl_index);
-	glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
+	if (!m_useFBOs)
+	{
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pBlurScreenTexture->gl_index);
+		glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
+	}
+	else
+	{
+		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_blurScreenFBO.fboid);
+		glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, rns.pboundfbo->fboid);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+		gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_blurScreenFBO.fboid);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		gGLExtF.glBlitFramebuffer(0, 0, rns.screenwidth, rns.screenheight, 0, 0, rns.screenwidth, rns.screenheight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
+	}
+
 	m_isFirstFrame = false;
 }
 
@@ -435,18 +604,52 @@ void CPostProcess :: ClearMotionBlur( void )
 // @brief
 //
 //=============================================
-void CPostProcess :: CreateScreenTexture( void )
+void CPostProcess :: CreateBlurScreenTexture( void )
 {
 	// Create the screen texture
-	m_pScreenTexture = CTextureManager::GetInstance()->GenTextureIndex(RS_GAME_LEVEL);
+	m_pBlurScreenTexture = CTextureManager::GetInstance()->GenTextureIndex(RS_GAME_LEVEL);
 
-	glBindTexture(GL_TEXTURE_RECTANGLE, m_pScreenTexture->gl_index);
+	glBindTexture(GL_TEXTURE_RECTANGLE, m_pBlurScreenTexture->gl_index);
 	glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, rns.screenwidth, rns.screenheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 	glBindTexture(GL_TEXTURE_RECTANGLE, 0);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CPostProcess::CreateBlurScreenFBO(void)
+{
+	m_blurScreenFBO.ptexture1 = CTextureManager::GetInstance()->GenTextureIndex(RS_GAME_LEVEL);
+	glBindTexture(GL_TEXTURE_2D, m_blurScreenFBO.ptexture1->gl_index);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rns.screenwidth, rns.screenheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	gGLExtF.glGenFramebuffers(1, &m_blurScreenFBO.fboid);
+	gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_blurScreenFBO.fboid);
+	gGLExtF.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_blurScreenFBO.ptexture1->gl_index, 0);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	GLenum eStatus = gGLExtF.glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (eStatus != GL_FRAMEBUFFER_COMPLETE)
+	{
+		CTextureManager::GetInstance()->DeleteAllocation(m_blurScreenFBO.ptexture1);
+		gGLExtF.glDeleteFramebuffers(1, &m_blurScreenFBO.fboid);
+
+		Sys_ErrorPopup("%s - Motion blur FBO creation failed. Code returned: %d.\n", __FUNCTION__, glGetError());
+		return false;
+	}
+
+	return true;
 }
 
 //=============================================
@@ -476,6 +679,9 @@ bool CPostProcess :: Draw( void )
 			return true;
 	}
 
+	// Set this at start
+	m_useFBOs = (rns.fboused && rns.usehdr) ? true : false;
+
 	m_pVBO->Bind();
 
 	if(!m_pShader->EnableShader())
@@ -485,9 +691,23 @@ bool CPostProcess :: Draw( void )
 	}
 
 	m_pShader->SetUniform1i(m_attribs.u_texture1, 0);
+	m_pShader->SetUniform1i(m_attribs.u_texture1rect, 0);
 	m_pShader->SetUniform1i(m_attribs.u_texture2, 1);
+	m_pShader->SetUniform1i(m_attribs.u_texture2rect, 1);
+
 	m_pShader->SetUniform1f(m_attribs.u_screenwidth, rns.screenwidth);
 	m_pShader->SetUniform1f(m_attribs.u_screenheight, rns.screenheight);
+
+	if (m_useFBOs)
+	{
+		m_pShader->SetUniform2f(m_attribs.u_tcscale, 1.0f, 1.0f);
+		m_pShader->SetUniform2f(m_attribs.u_offsetdivider, rns.screenwidth, rns.screenheight);
+	}
+	else
+	{
+		m_pShader->SetUniform2f(m_attribs.u_tcscale, rns.screenwidth, rns.screenheight);
+		m_pShader->SetUniform2f(m_attribs.u_offsetdivider, 1.0f, 1.0f);
+	}
 
 	m_pShader->EnableAttribute(m_attribs.a_origin);
 	m_pShader->EnableAttribute(m_attribs.a_texcoord);
@@ -501,15 +721,44 @@ bool CPostProcess :: Draw( void )
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
 
-	gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-	glEnable(GL_TEXTURE_RECTANGLE);
+	bool result;
+	if (!m_useFBOs)
+	{
+		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
+		glEnable(GL_TEXTURE_RECTANGLE);
+
+		// Create the texture if needed
+		if (m_motionBlurActive && !m_pBlurScreenTexture)
+			CreateBlurScreenTexture();
+
+		result = m_pShader->SetDeterminator(m_attribs.d_rectangle, TRUE, false);
+	}
+	else
+	{
+		// Create the texture if needed
+		if (m_motionBlurActive && !m_blurScreenFBO.fboid)
+		{
+			if (!CreateBlurScreenFBO())
+			{
+				m_pShader->DisableShader();
+				m_pVBO->UnBind();
+				return false;
+			}
+		}
+
+		result = m_pShader->SetDeterminator(m_attribs.d_rectangle, FALSE, false);
+	}
+
+	if (!result)
+	{
+		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
+		m_pShader->DisableShader();
+		m_pVBO->UnBind();
+		return false;
+	}
 
 	// Set color
 	m_pShader->SetUniform4f(m_attribs.u_color, GL_ONE, GL_ONE, GL_ONE, GL_ONE);
-
-	// Create the texture if needed
-	if(!m_pScreenTexture && m_motionBlurActive)
-		CreateScreenTexture();
 
 	if(m_pCvarPostProcess->GetValue() > 0)
 	{
@@ -518,7 +767,6 @@ bool CPostProcess :: Draw( void )
 		{
 			if(!DrawGamma())
 			{
-				Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 				m_pShader->DisableShader();
 				m_pVBO->UnBind();
 				return false;
@@ -559,7 +807,6 @@ bool CPostProcess :: Draw( void )
 			{
 				if(!DrawDistortion())
 				{
-					Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 					m_pShader->DisableShader();
 					m_pVBO->UnBind();
 					return false;
@@ -571,7 +818,6 @@ bool CPostProcess :: Draw( void )
 			{
 				if(!DrawBlur())
 				{
-					Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 					m_pShader->DisableShader();
 					m_pVBO->UnBind();
 					return false;
@@ -590,7 +836,6 @@ bool CPostProcess :: Draw( void )
 		{
 			if(!DrawMotionBlur())
 			{
-				Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 				m_pShader->DisableShader();
 				m_pVBO->UnBind();
 				return false;
@@ -610,22 +855,30 @@ bool CPostProcess :: Draw( void )
 	{
 		if(!DrawFilmGrain())
 		{
-			Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 			m_pShader->DisableShader();
 			m_pVBO->UnBind();
 			return false;
 		}
 	}
 
-	gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-	glDisable(GL_TEXTURE_RECTANGLE);
-	glDepthMask(GL_TRUE);
-
-	if(m_pScreenRTT)
+	if (!m_useFBOs)
 	{
-		gRTTCache.Free(m_pScreenRTT);
-		m_pScreenRTT = nullptr;
+		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
+		glDisable(GL_TEXTURE_RECTANGLE);
+
+		if (m_pScreenRTT)
+		{
+			gRTTCache.Free(m_pScreenRTT);
+			m_pScreenRTT = nullptr;
+		}
 	}
+	else if(m_pScreenFBO)
+	{
+		gFBOCache.Free(m_pScreenFBO);
+		m_pScreenFBO = nullptr;
+	}
+
+	glDepthMask(GL_TRUE);
 
 	m_pShader->DisableAttribute(m_attribs.a_origin);
 	m_pShader->DisableAttribute(m_attribs.a_texcoord);

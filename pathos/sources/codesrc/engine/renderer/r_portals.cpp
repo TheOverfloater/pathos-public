@@ -39,7 +39,8 @@ CPortalManager::CPortalManager( void ):
 	m_pShader(nullptr),
 	m_pVBO(nullptr),
 	m_pCvarPortalDebug(nullptr),
-	m_numPortalsDrawn(0)
+	m_numPortalsDrawn(0),
+	m_pDepthTexture(nullptr)
 {
 }
 
@@ -95,6 +96,9 @@ void CPortalManager::ClearGame( void )
 		m_portalsArray.clear();
 	}
 
+	if (m_pDepthTexture)
+		m_pDepthTexture = nullptr;
+
 	if(m_pShader)
 	{
 		m_pShader->SetVBO(nullptr);
@@ -136,6 +140,7 @@ bool CPortalManager::InitGL( void )
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texturerect = m_pShader->InitUniform("texture0Rect", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_screenwidth = m_pShader->InitUniform("screenwidth", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_screenheight = m_pShader->InitUniform("screenheight", CGLSLShader::UNIFORM_FLOAT1);
 
@@ -144,13 +149,16 @@ bool CPortalManager::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_projection, "projection", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_modelview, "modelview", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_texture, "texture0", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_texturerect, "texture0Rect", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_screenwidth, "screenwidth", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_screenheight, "screenheight", m_pShader, Sys_ErrorPopup))
 			return false;
 
 		m_attribs.d_fog = m_pShader->GetDeterminatorIndex("fog");
+		m_attribs.d_rectangle = m_pShader->GetDeterminatorIndex("rectangle");
 
-		if(!R_CheckShaderDeterminator(m_attribs.d_fog, "fog", m_pShader, Sys_ErrorPopup))
+		if(!R_CheckShaderDeterminator(m_attribs.d_fog, "fog", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderDeterminator(m_attribs.d_rectangle, "rectangle", m_pShader, Sys_ErrorPopup))
 			return false;
 	}
 
@@ -158,6 +166,18 @@ bool CPortalManager::InitGL( void )
 	{
 		m_pVBO->RebindGL();
 		m_pShader->SetVBO(m_pVBO);
+	}
+
+	if (!m_portalsArray.empty())
+	{
+		for (Uint32 i = 0; i < m_portalsArray.size(); i++)
+		{
+			if (!CreatePortalTexture(m_portalsArray[i]))
+			{
+				Sys_ErrorPopup("%s - Failed to create texture for portal.", __FUNCTION__);
+				return false;
+			}
+		}
 	}
 
 	return true;
@@ -168,21 +188,35 @@ bool CPortalManager::InitGL( void )
 //====================================
 void CPortalManager::ClearGL( void ) 
 {
-	if(!m_portalsArray.empty())
-		m_portalsArray.clear();
-
-	if(m_pVBO)
+	if (!m_portalsArray.empty())
 	{
-		delete m_pVBO;
-		m_pVBO = nullptr;
+		for (Uint32 i = 0; i < m_portalsArray.size(); i++)
+		{
+			cl_portal_t* pportal = m_portalsArray[i];
+			if (pportal->pfbo)
+			{
+				if(pportal->pfbo->fboid)
+					gGLExtF.glDeleteFramebuffers(1, &pportal->pfbo->fboid);
+
+				delete pportal->pfbo;
+				pportal->pfbo = nullptr;
+			}
+		}
 	}
+
+	if (m_pVBO)
+		m_pVBO->ClearGL();
 
 	if(m_pShader)
 	{
 		delete m_pShader;
 		m_pShader = nullptr;
 	}
+
+	if (m_pDepthTexture)
+		m_pDepthTexture = nullptr;
 }
+
 //====================================
 //
 //====================================
@@ -190,21 +224,72 @@ bool CPortalManager::CreatePortalTexture( cl_portal_t* pportal )
 {
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 	
-	// Allocate a new texture
-	pportal->ptexture = pTextureManager->GenTextureIndex(RS_GAME_LEVEL);
+	if (!rns.fboused)
+	{
+		// Allocate a new texture
+		pportal->ptexture = pTextureManager->GenTextureIndex(RS_GAME_LEVEL);
 
-	glEnable(GL_TEXTURE_RECTANGLE);
+		glEnable(GL_TEXTURE_RECTANGLE);
 
-	glBindTexture(GL_TEXTURE_RECTANGLE, pportal->ptexture->gl_index);
-	glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, rns.screenwidth, rns.screenheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glBindTexture(GL_TEXTURE_RECTANGLE, pportal->ptexture->gl_index);
+		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, rns.screenwidth, rns.screenheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-	glDisable(GL_TEXTURE_RECTANGLE);
+		glDisable(GL_TEXTURE_RECTANGLE);
+	}
+	else
+	{
+		CreateDepthTexture();
+
+		// Create refraction image
+		pportal->pfbo = new fbobind_t;
+
+		pportal->pfbo->ptexture1 = pTextureManager->GenTextureIndex(RS_GAME_LEVEL);
+		glBindTexture(GL_TEXTURE_2D, pportal->pfbo->ptexture1->gl_index);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, rns.screenwidth, rns.screenheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+		gGLExtF.glGenFramebuffers(1, &pportal->pfbo->fboid);
+		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, pportal->pfbo->fboid);
+		gGLExtF.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pportal->pfbo->ptexture1->gl_index, 0);
+		gGLExtF.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_pDepthTexture->gl_index, 0);
+
+		GLenum eStatus = gGLExtF.glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (eStatus != GL_FRAMEBUFFER_COMPLETE)
+		{
+			Con_Printf("%s - Framebuffer Object creation failed.\n", __FUNCTION__);
+			delete pportal->pfbo;
+			return false;
+		}
+	}
 
 	return true;
+}
+
+//====================================
+//
+//====================================
+void CPortalManager::CreateDepthTexture( void )
+{
+	if (m_pDepthTexture)
+		return;
+
+	m_pDepthTexture = CTextureManager::GetInstance()->GenTextureIndex(RS_GAME_LEVEL);
+	glBindTexture(GL_TEXTURE_2D, m_pDepthTexture->gl_index);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, rns.screenwidth, rns.screenheight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 //====================================
@@ -346,7 +431,7 @@ void CPortalManager::AllocNewPortal( cl_entity_t* pentity )
 	pportal->start_vertex = m_pVBO->GetVBOSize()/sizeof(portal_vertex_t);
 	pportal->num_vertexes = numverts;
 
-	// Set FBO
+	// Set VBO
 	m_pVBO->Append(pvertexes, sizeof(portal_vertex_t)*numverts, nullptr, 0);
 	delete[] pvertexes;
 
@@ -520,6 +605,9 @@ bool CPortalManager::SetupPortalPass( void )
 	if(pEnvPosPortalEntity->curstate.body != NO_POSITION)
 		gSkyRenderer.SetCurrentSkySet(pEnvPosPortalEntity->curstate.body);
 
+	if (rns.fboused)
+		R_BindFBO(m_pCurrentPortal->pfbo);
+
 	//Completely clear everything
 	glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ONE);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -548,14 +636,22 @@ bool CPortalManager::SetupPortalPass( void )
 //====================================
 void CPortalManager::FinishPortalPass( void ) 
 {
-	gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-	glEnable(GL_TEXTURE_RECTANGLE);
+	if (rns.fboused)
+	{
+		// Unbind any FBO
+		R_BindFBO(nullptr);
+	}
+	else
+	{
+		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
+		glEnable(GL_TEXTURE_RECTANGLE);
 
-	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pCurrentPortal->ptexture->gl_index);
-	glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.view.params.screenwidth, rns.view.params.screenheight, 0);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pCurrentPortal->ptexture->gl_index);
+		glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.view.params.screenwidth, rns.view.params.screenheight, 0);
 
-	gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-	glDisable(GL_TEXTURE_RECTANGLE);
+		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
+		glDisable(GL_TEXTURE_RECTANGLE);
+	}
 
 	// Get the aiment
 	Uint32 envPosPortalEntityIndex = m_pCurrentPortal->pentity->curstate.aiment;
@@ -597,16 +693,25 @@ bool CPortalManager::DrawPortals( void )
 
 	if(rns.fog.settings.active)
 	{
-		result = m_pShader->SetDeterminator(m_attribs.d_fog, 1);
+		result = m_pShader->SetDeterminator(m_attribs.d_fog, 1, false);
 		m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
-		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/((Float)rns.fog.settings.end-(Float)rns.fog.settings.start));
+		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/(static_cast<Float>(rns.fog.settings.end)-static_cast<Float>(rns.fog.settings.start)));
 	}
 	else
 	{
-		result = m_pShader->SetDeterminator(m_attribs.d_fog, 0);
+		result = m_pShader->SetDeterminator(m_attribs.d_fog, 0, false);
 	}
 
 	if(!result)
+	{
+		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
+		m_pShader->DisableShader();
+		m_pVBO->UnBind();
+		return false;
+	}
+
+	result = m_pShader->SetDeterminator(m_attribs.d_rectangle, rns.fboused ? FALSE : TRUE);
+	if (!result)
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		m_pShader->DisableShader();
@@ -618,9 +723,21 @@ bool CPortalManager::DrawPortals( void )
 	gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
 	glEnable(GL_TEXTURE_RECTANGLE);
 
-	m_pShader->SetUniform1i(m_attribs.u_texture, 0);
-	m_pShader->SetUniform1f(m_attribs.u_screenwidth, rns.view.params.screenwidth);
-	m_pShader->SetUniform1f(m_attribs.u_screenheight, rns.view.params.screenheight);
+	if (!rns.fboused)
+		m_pShader->SetUniform1i(m_attribs.u_texture, 0);
+	else
+		m_pShader->SetUniform1i(m_attribs.u_texturerect, 0);
+
+	if (rns.fboused)
+	{
+		m_pShader->SetUniform1f(m_attribs.u_screenwidth, 1.0f);
+		m_pShader->SetUniform1f(m_attribs.u_screenheight, 1.0f);
+	}
+	else
+	{
+		m_pShader->SetUniform1f(m_attribs.u_screenwidth, rns.view.params.screenwidth);
+		m_pShader->SetUniform1f(m_attribs.u_screenheight, rns.view.params.screenheight);
+	}
 
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
@@ -645,7 +762,11 @@ bool CPortalManager::DrawPortals( void )
 		if(!pBindPortal)
 			pBindPortal = m_pCurrentPortal;
 
-		R_BindRectangleTexture(GL_TEXTURE0, pBindPortal->ptexture->gl_index);
+		if(rns.fboused)
+			R_Bind2DTexture(GL_TEXTURE0, pBindPortal->pfbo->ptexture1->gl_index);
+		else
+			R_BindRectangleTexture(GL_TEXTURE0, pBindPortal->ptexture->gl_index);
+
 		R_ValidateShader(m_pShader);
 
 		glDrawArrays(GL_TRIANGLES, m_pCurrentPortal->start_vertex, m_pCurrentPortal->num_vertexes);

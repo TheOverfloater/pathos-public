@@ -213,15 +213,15 @@ namespace Math
 	//=============================================
 	inline void Math::AngleVectors( const Vector& angles, Vector* pforward, Vector* pright, Vector* pup )
 	{
-		Float angle = (Float)(angles[YAW] * (M_PI * 2 / 360));
-		Float sy = sin(angle);
-		Float cy = cos(angle);
-		angle = (Float)(angles[PITCH] * (M_PI * 2 / 360));
-		Float sp = sin(angle);
-		Float cp = cos(angle);
-		angle = (Float)(angles[ROLL] * (M_PI * 2 / 360));
-		Float sr = sin(angle);
-		Float cr = cos(angle);
+		Float angle = static_cast<Float>(angles[YAW] * (M_PI * 2 / 360));
+		const Float sy = sin(angle);
+		const Float cy = cos(angle);
+		angle = static_cast<Float>(angles[PITCH] * (M_PI * 2 / 360));
+		const Float sp = sin(angle);
+		const Float cp = cos(angle);
+		angle = static_cast<Float>(angles[ROLL] * (M_PI * 2 / 360));
+		const Float sr = sin(angle);
+		const Float cr = cos(angle);
 
 		if (pforward)
 		{
@@ -278,15 +278,15 @@ namespace Math
 	//=============================================
 	inline void Math::AngleVectorsTranspose( const Vector& angles, Vector* pforward, Vector* pright, Vector* pup )
 	{
-		Float angle = (Float)(angles[YAW] * (M_PI * 2 / 360));
-		Float sy = sin(angle);
-		Float cy = cos(angle);
-		angle = (Float)(angles[PITCH] * (M_PI * 2 / 360));
-		Float sp = sin(angle);
-		Float cp = cos(angle);
-		angle = (Float)(angles[ROLL] * (M_PI * 2 / 360));
-		Float sr = sin(angle);
-		Float cr = cos(angle);
+		Float angle = static_cast<Float>(angles[YAW] * (M_PI * 2 / 360));
+		const Float sy = sin(angle);
+		const Float cy = cos(angle);
+		angle = static_cast<Float>(angles[PITCH] * (M_PI * 2 / 360));
+		const Float sp = sin(angle);
+		const Float cp = cos(angle);
+		angle = static_cast<Float>(angles[ROLL] * (M_PI * 2 / 360));
+		const Float sr = sin(angle);
+		const Float cr = cos(angle);
 
 		if (pforward)
 		{
@@ -334,9 +334,9 @@ namespace Math
 	{
 		Float _angle;
 		if(angle > 360)
-			_angle = angle - ((Int32)(angle/360))*360;
+			_angle = angle - (static_cast<Int32>(angle/360))*360;
 		else if(angle < 0)
-			_angle = angle + ((Int32)(angle/360) + 1)*360;
+			_angle = angle + (static_cast<Int32>(angle/360) + 1)*360;
 		else
 			_angle = angle;
 
@@ -609,12 +609,12 @@ namespace Math
 	{
 		Vector angles;
 	
-		Float xyDist = sqrtf( forward[0] * forward[0] + forward[1] * forward[1] );
+		const Float xyDist = sqrtf( forward[0] * forward[0] + forward[1] * forward[1] );
 		if ( xyDist > 0.001f )
 		{
 			angles[1] = RAD2DEG( SDL_atan2f( forward[1], forward[0] ) );
 			angles[0] = RAD2DEG( SDL_atan2f( -forward[2], xyDist ) );
-			Float up_z = (left[1] * forward[0]) - (left[0] * forward[1]);
+			const Float up_z = (left[1] * forward[0]) - (left[0] * forward[1]);
 			angles[2] = RAD2DEG( SDL_atan2f( left[2], up_z ) );
 		}
 		else
@@ -649,12 +649,12 @@ namespace Math
 		}
 		else
 		{
-			yaw = (Float)(SDL_atan2(forward[1], forward[0]) * 180/M_PI);
+			yaw = static_cast<Float>(SDL_atan2(forward[1], forward[0]) * 180/M_PI);
 			if(yaw < 0)
 				yaw += 360.0f;
 
-			Float tmp = SDL_sqrt(forward[0]*forward[0]+forward[1]*forward[1]);
-			pitch = (Float)(SDL_atan2(forward[2], tmp)*180/M_PI);
+			const Float tmp = SDL_sqrt(forward[0]*forward[0]+forward[1]*forward[1]);
+			pitch = static_cast<Float>(SDL_atan2(forward[2], tmp)*180/M_PI);
 			if(pitch < 0)
 				pitch += 360.0f;
 		}
@@ -781,7 +781,7 @@ namespace Math
 		Float a = 0;
 		Float b = 0;
 
-		vec4_t quat1;
+		vec4_t quat1 = { 0 };
 		for(Uint32 i = 0; i < 4; i++)
 		{
 			a += (q1[i]-q2[i])*(q1[i]-q2[i]);
@@ -801,13 +801,13 @@ namespace Math
 
 		Float sclq1;
 		Float sclq2;
-		Float cosom = Math::DotProduct4(quat1, q2);
+		const Float cosom = Math::DotProduct4(quat1, q2);
 		if(1.0+cosom > 0.000001f)
 		{
 			if(1.0-cosom > 0.00001f)
 			{
-				Float omega = SDL_acos(cosom);
-				Float sinom = SDL_sin(omega);
+				const Float omega = SDL_acos(cosom);
+				const Float sinom = SDL_sin(omega);
 				sclq1 = SDL_sin((1.0f-interp)*omega)/sinom;
 				sclq2 = SDL_sin(interp*omega)/sinom;
 			}
@@ -925,7 +925,7 @@ namespace Math
 			yawDiffX += 360;
 
 		yawDiffX = SDL_fabs(yawDiffX);
-		Float crossYawX = ((planeAngle[0] * yawDiffX) / 90 - planeAngle[0]);
+		const Float crossYawX = ((planeAngle[0] * yawDiffX) / 90 - planeAngle[0]);
 	
 		Float playerYawY = angles[1] + 90;
 		if (playerYawY > 180) 

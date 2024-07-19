@@ -379,7 +379,7 @@ template <typename T> inline void CLinkedList<T>::pop_iterator( void )
 {
 	assert(!m_pushedIteratorsArray.empty());
 
-	Int32 index = m_pushedIteratorsArray.size()-1;
+	const Int32 index = m_pushedIteratorsArray.size()-1;
 	m_iterator = m_pushedIteratorsArray[index];
 
 	m_pushedIteratorsArray.resize(m_pushedIteratorsArray.size()-1);

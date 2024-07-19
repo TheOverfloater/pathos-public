@@ -33,23 +33,23 @@ static const Vector VEC_DUCK_VIEW = Vector( 0, 0, 12 );
 static const Vector VEC_VIEW = Vector( 0, 0, 32 );
 
 // View punch damping related
-static const Float VIEW_PUNCH_DAMPING = 9.0f;
-static const Float VIEW_PUNCH_SPRING_CONSTANT = 60.0f;
+static constexpr Float VIEW_PUNCH_DAMPING = 9.0f;
+static constexpr Float VIEW_PUNCH_SPRING_CONSTANT = 60.0f;
 
 // Dead view height
-static const Float DEAD_VIEWHEIGHT = 8.0f;
+static constexpr Float DEAD_VIEWHEIGHT = 8.0f;
 
 // Distance between light updates
-static const Float LIGHT_UPDATE_DISTANCE = 8.0f;
+static constexpr Float LIGHT_UPDATE_DISTANCE = 8.0f;
 
 // Minimum velocity value in any direction
-static const Float STOP_EPSILON = 0.1f;
+static constexpr Float STOP_EPSILON = 0.1f;
 
 // Fade speed
-static const Float ENTITY_FADE_SPEED = 70;
+static constexpr Float ENTITY_FADE_SPEED = 70;
 
 // Minimum stamina to jump/sprint
-static const Float PLAYER_MIN_STAMINA = 0.1f;
+static constexpr Float PLAYER_MIN_STAMINA = 0.1f;
 
 // Pickup-able item hull size
 static const Vector ITEM_HULL_MIN = Vector(-24, -24, 0);
@@ -61,74 +61,74 @@ static const Vector WEAPON_GLOW_COLOR = Vector(255, 100, 25);
 static const color24_t BLACK_COLOR = color24_t(0, 0, 0);
 
 // Maximum speed value for motorbike
-static const Float MOTORBIKE_MAX_SPEED = 500.0f;
+static constexpr Float MOTORBIKE_MAX_SPEED = 500.0f;
 // Exhausted player speed
-static const Float PLAYER_EXHAUST_SPEED = 150.0f;
+static constexpr Float PLAYER_EXHAUST_SPEED = 150.0f;
 // Sprinting player speed
-static const Float PLAYER_SPRINT_SPEED = 280.0f;
+static constexpr Float PLAYER_SPRINT_SPEED = 280.0f;
 // Normal player speed
-static const Float PLAYER_NORMAL_SPEED = 210.0f;
+static constexpr Float PLAYER_NORMAL_SPEED = 210.0f;
 // Sneaking/ducking player speed
-static const Float PLAYER_SNEAK_SPEED = 100.0f;
+static constexpr Float PLAYER_SNEAK_SPEED = 100.0f;
 // Swimming player speed
-static const Float PLAYER_SWIM_SPEED = 115.0f;
+static constexpr Float PLAYER_SWIM_SPEED = 115.0f;
 // Ducking multiplier for speed
-static const Float DUCKING_SPEED_MULTIPLIER = 0.4;
+static constexpr Float DUCKING_SPEED_MULTIPLIER = 0.4;
 // Noclip movement speed
-static const Float PLAYER_NOCLIP_SPEED = 600;
+static constexpr Float PLAYER_NOCLIP_SPEED = 600;
 
 // Maximum noise amount
-static const Float PLAYER_MAX_NOISE_LEVEL = 950;
+static constexpr Float PLAYER_MAX_NOISE_LEVEL = 950;
 
 // Step sound delay when on ladder
-static const Float STEPTIME_LADDER = 700.0f;
+static constexpr Float STEPTIME_LADDER = 700.0f;
 // Step sound delay when in water
-static const Float STEPTIME_WATER = 600.0f;
+static constexpr Float STEPTIME_WATER = 600.0f;
 // Normal step time
-static const Float STEPTIME_NORMAL = 520.0f;
+static constexpr Float STEPTIME_NORMAL = 520.0f;
 // Slow walking step time
-static const Float STEPTIME_SLOW = 700.0f;
+static constexpr Float STEPTIME_SLOW = 700.0f;
 // Step time when moving slowly via flag
-static const Float STEPTIME_SLOWMOVE = 720.0f;
+static constexpr Float STEPTIME_SLOWMOVE = 720.0f;
 // Step time when sprinting
-static const Float STEPTIME_SPRINT = 475.0f;
+static constexpr Float STEPTIME_SPRINT = 475.0f;
 
 // Maximum leafnums an entity can hold
-static const Int32 MAX_EDICT_LEAFNUMS = 256;
+static constexpr Int32 MAX_EDICT_LEAFNUMS = 256;
 
 // Max entities on server side(client ones start after this index)
-static const Uint32 MAX_SERVER_ENTITIES = 65535;
+static constexpr Uint32 MAX_SERVER_ENTITIES = 65535;
 // Reserved space mins for client-side identifiers
-static const Uint32 ENTITY_IDENTIFIER_RESERVED_MIN = MAX_SERVER_ENTITIES+1;
+static constexpr Uint32 ENTITY_IDENTIFIER_RESERVED_MIN = MAX_SERVER_ENTITIES+1;
 // Reserved space mins for client-side identifiers
-static const Uint32 ENTITY_IDENTIFIER_RESERVED_MAX = (MAX_SERVER_ENTITIES*2);
+static constexpr Uint32 ENTITY_IDENTIFIER_RESERVED_MAX = (MAX_SERVER_ENTITIES*2);
 
 // Maximum path size
-static const Uint32 MAX_ROUTE_POINTS = 128;
+static constexpr Uint32 MAX_ROUTE_POINTS = 128;
 
 // No precache result
-static const Int32 NO_PRECACHE = -1;
+static constexpr Int32 NO_PRECACHE = -1;
 // No specific player msg destination
-static const Int32 NO_CLIENT_INDEX = -1;
+static constexpr Int32 NO_CLIENT_INDEX = -1;
 // No server precache index
-static const Int32 NO_SERVER_PRECACHE = -1;
+static constexpr Int32 NO_SERVER_PRECACHE = -1;
 // No string value
-static const string_t NO_STRING_VALUE = 0;
+static constexpr string_t NO_STRING_VALUE = 0;
 // No sequence index
-static const Int32 NO_SEQUENCE_VALUE = -1;
+static constexpr Int32 NO_SEQUENCE_VALUE = -1;
 
 // Worldspawn entity index
-static const Int32 WORLDSPAWN_ENTITY_INDEX = 0;
+static constexpr Int32 WORLDSPAWN_ENTITY_INDEX = 0;
 // Host player entity index
-static const Int32 HOST_CLIENT_ENTITY_INDEX = 1;
+static constexpr Int32 HOST_CLIENT_ENTITY_INDEX = 1;
 // World model index
-static const Int32 WORLD_MODEL_INDEX = 1;
+static constexpr Int32 WORLD_MODEL_INDEX = 1;
 // No body value
-static const Int64 NO_BODY_VALUE = -1;
+static constexpr Int64 NO_BODY_VALUE = -1;
 // No body value
-static const Int32 NO_SKIN_VALUE = -1;
+static constexpr Int32 NO_SKIN_VALUE = -1;
 // No position value for generic positions
-static const Int32 NO_POSITION = -1;
+static constexpr Int32 NO_POSITION = -1;
 
 // Path to default footstep file for player
 static const Char FOOTSTEP_SCRIPT_FILE[] = "scripts/footsteps.txt";
@@ -219,9 +219,9 @@ const Char VIEW_BOB_CVAR_NAME[] = "v_viewbob";
 const Char AUTOAIM_CVAR_NAME[] = "sv_autoaim";
 
 // Minimum filter frames for mouse filtering
-static const Uint32 MOUSE_FILTER_MIN_FRAMES = 2;
+static constexpr Uint32 MOUSE_FILTER_MIN_FRAMES = 2;
 // Maximum filter frames for mouse filtering
-static const Uint32 MOUSE_FILTER_MAX_FRAMES = 8;
+static constexpr Uint32 MOUSE_FILTER_MAX_FRAMES = 8;
 
 // Null mins value
 static const Vector NULL_MINS(999999999, 999999999, 999999999);
@@ -229,27 +229,27 @@ static const Vector NULL_MINS(999999999, 999999999, 999999999);
 static const Vector NULL_MAXS(-999999999, -999999999, -999999999);
 
 // env_elight radius multiplier
-static const Float ENV_ELIGHT_RADIUS_MULTIPLIER = 9.5;
+static constexpr Float ENV_ELIGHT_RADIUS_MULTIPLIER = 9.5;
 // Max entities on client side(reserved entities start after this + MAX_SERVER_ENTITIES
-static const Uint32 MAX_CLIENTSIDE_ENTITIES = 65535;
+static constexpr Uint32 MAX_CLIENTSIDE_ENTITIES = 65535;
 // Entity index offset for client-side entities
-static const Uint32 CL_ENTITY_INDEX_BASE = MAX_SERVER_ENTITIES;
+static constexpr Uint32 CL_ENTITY_INDEX_BASE = MAX_SERVER_ENTITIES;
 
 // Max surface extents size
-static const Uint32 MAX_SURFACE_EXTENTS = 1024;
+static constexpr Uint32 MAX_SURFACE_EXTENTS = 1024;
 // Size of a light block(1024x1024 chop size should give 64x64, but we pad by 2)
-static const Uint32 BLOCKLIGHTS_SIZE = (66*66);
+static constexpr Uint32 BLOCKLIGHTS_SIZE = (66*66);
 
 // Default field of view value
-static const Uint32 DEFAULT_FOV_VALUE = 70;
+static constexpr Uint32 DEFAULT_FOV_VALUE = 70;
 // Reference field of view value
-static const Uint32 REFERENCE_FOV_VALUE = 90;
+static constexpr Uint32 REFERENCE_FOV_VALUE = 90;
 
 // No direction value
-static const Int32 DIRECTION_NODIR = -1;
+static constexpr Int32 DIRECTION_NODIR = -1;
 
 // Max rendered entities
-static const Int32 MAX_RENDER_ENTITIES = 4096;
+static constexpr Int32 MAX_RENDER_ENTITIES = 4096;
 
 // Type for print functions
 typedef void (*pfnPrintf_t)( const Char *fmt, ... );
@@ -462,9 +462,9 @@ enum dmg_types_t
 };
 
 // Duration of acid damage
-static const Float ACID_DMG_DURATION = 4.0f;
+static constexpr Float ACID_DMG_DURATION = 4.0f;
 // Acid damage amount
-static const Float ACID_DMG_AMOUNT = 1.0F;
+static constexpr Float ACID_DMG_AMOUNT = 1.0F;
 
 enum skill_level_t
 {
@@ -566,7 +566,7 @@ const Int32 NPC_RELATIONS_TABLE[NB_CLASSIFICATIONS][NB_CLASSIFICATIONS] =
 	/*CLASS_PLAYER*/			{ R_NONE,		R_HATE,			R_ALLY,			R_HATE,					R_ALLY,					R_NEMESIS	},
 	/*CLASS_HUMAN_HOSTILE*/		{ R_NONE,		R_DISLIKE,		R_HATE,			R_ALLY,					R_HATE,					R_NEMESIS	},
 	/*CLASS_HUMAN_FRIENDLY*/	{ R_NONE,		R_HATE,			R_ALLY,			R_HATE,					R_ALLY,					R_NEMESIS	},
-	/*CLASS_UINUSED*/			{ R_NONE,		R_HATE,			R_HATE,			R_HATE,					R_HATE,					R_ALLY		}
+	/*CLASS_UNUSED*/			{ R_NONE,		R_HATE,			R_HATE,			R_HATE,					R_HATE,					R_ALLY		}
 };
 
 enum npcstate_t
@@ -616,27 +616,27 @@ enum force_skillcvar_t
 };
 
 // View field value of 180 degrees or so
-static const Float VIEW_FIELD_FULL = -1.0;
+static constexpr Float VIEW_FIELD_FULL = -1.0;
 // View field of 135 degrees
-static const Float VIEW_FIELD_WIDE = -0.7;
+static constexpr Float VIEW_FIELD_WIDE = -0.7;
 // View field of 45 degrees
-static const Float VIEW_FIELD_MEDIUM = -0.4;
+static constexpr Float VIEW_FIELD_MEDIUM = -0.4;
 // View field of 20 degrees maybe
-static const Float VIEW_FIELD_NARROW = 0.7;
+static constexpr Float VIEW_FIELD_NARROW = 0.7;
 
 // Max clients in a server
-static const Uint32 MAX_PLAYERS = 32;
+static constexpr Uint32 MAX_PLAYERS = 32;
 
 // Blend time between sequence changes
-static const Float VBM_SEQ_BLEND_TIME = 0.3f;
+static constexpr Float VBM_SEQ_BLEND_TIME = 0.3f;
 
 // Zero vector
 static const Vector ZERO_VECTOR = Vector(0, 0, 0);
 
 // Values for lean calculations
-static const Float LEAN_DISTANCE_UP = 15;
-static const Float LEAN_DISTANCE_SIDE = 20;
-static const Double LEAN_TIME = 0.4;
+static constexpr Float LEAN_DISTANCE_UP = 15;
+static constexpr Float LEAN_DISTANCE_SIDE = 20;
+static constexpr Double LEAN_TIME = 0.4;
 
 enum part_msg_types_t
 {
@@ -725,6 +725,7 @@ enum engine_renderfx_t
 {
 	RenderFx_SkyEnt = 70,
 	RenderFx_SkyEntNC,
+	RenderFx_SkyEntScaled,
 	RenderFx_GlowAura = 101,
 	RenderFx_MirrorOnly = 109,
 	RenderFx_SoundOrg,
@@ -853,13 +854,13 @@ struct decalcache_t
 };
 
 // This needs to match with studio.h
-static const Uint32 MAX_CONTROLLERS = 4;
-static const Uint32 MAX_BLENDING	= 2;
+static constexpr Uint32 MAX_CONTROLLERS = 4;
+static constexpr Uint32 MAX_BLENDING	= 2;
 
 // No entity index
-static const entindex_t NO_ENTITY_INDEX = -1;
+static constexpr entindex_t NO_ENTITY_INDEX = -1;
 // No attachment index
-static const Int32 NO_ATTACHMENT_INDEX = -1;
+static constexpr Int32 NO_ATTACHMENT_INDEX = -1;
 
 enum lightstyles_t
 {
@@ -900,4 +901,13 @@ enum usableobject_type_t
 	USABLE_OBJECT_UNUSABLE
 };
 
+enum edict_removed_t
+{
+	EDICT_REMOVED_KILLED = 0,
+	EDICT_REMOVED_GAMECLEAR,
+	EDICT_REMOVED_AT_INIT,
+	EDICT_REMOVED_AT_SPAWN,
+	EDICT_REMOVED_AT_RESTORE,
+	EDICT_REMOVED_CLEAR_CLIENT
+};
 #endif //CONSTANTS_H

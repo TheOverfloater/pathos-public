@@ -197,7 +197,7 @@ const Float *CMatrix::GetInverse( void )
 	m_workingMatrix[15] = m_pCurrentMatrix[0] * m_pCurrentMatrix[5] * m_pCurrentMatrix[10] - m_pCurrentMatrix[0] * m_pCurrentMatrix[6] * m_pCurrentMatrix[9] - m_pCurrentMatrix[4] * m_pCurrentMatrix[1] * m_pCurrentMatrix[10] + m_pCurrentMatrix[4] * m_pCurrentMatrix[2] * m_pCurrentMatrix[9] + m_pCurrentMatrix[8] * m_pCurrentMatrix[1] * m_pCurrentMatrix[6] - m_pCurrentMatrix[8] * m_pCurrentMatrix[2] * m_pCurrentMatrix[5];
 	
 	Float det = m_pCurrentMatrix[0] * m_workingMatrix[0] + m_pCurrentMatrix[1] * m_workingMatrix[4] + m_pCurrentMatrix[2] * m_workingMatrix[8] + m_pCurrentMatrix[3] * m_workingMatrix[12];
-	det = (Float)(1.0 / det);
+	det = static_cast<Float>(1.0 / det);
 
 	for(Uint32 i = 0; i < 16; i++)
 		m_matrixTranspose[i] = m_workingMatrix[i] * det;
@@ -296,10 +296,10 @@ void CMatrix::Translate ( Float x, Float y, Float z )
 void CMatrix::Rotate ( Float angle, Float x, Float y, Float z )
 {
 	Float sinAngle, cosAngle;
-	Float mag = sqrtf(x * x + y * y + z * z);
+	const Float mag = sqrtf(x * x + y * y + z * z);
 
-	sinAngle = sinf ( (Float)(angle * M_PI / 180.0f) );
-	cosAngle = cosf ( (Float)(angle * M_PI / 180.0f) );
+	sinAngle = sinf ( static_cast<Float>(angle * M_PI / 180.0f) );
+	cosAngle = cosf ( static_cast<Float>(angle * M_PI / 180.0f) );
 	if ( mag > 0.0f )
 	{
 		Float xx, yy, zz, xy, yz, zx, xs, ys, zs;
@@ -308,7 +308,7 @@ void CMatrix::Rotate ( Float angle, Float x, Float y, Float z )
 		x /= mag;
 		y /= mag;
 		z /= mag;
-
+		
 		xx = x * x;
 		yy = y * y;
 		zz = z * z;
@@ -382,12 +382,12 @@ void CMatrix::SetFrustum( Float l, Float r, Float b, Float t, Float n, Float f )
 //=============================================
 void CMatrix::Ortho(Float l, Float r, Float b, Float t, Float n, Float f)
 {
-	Float r_l = r - l;
-	Float t_b = t - b;
-	Float f_n = f - n;
-	Float tx = - (r + l) / (r - l);
-	Float ty = - (t + b) / (t - b);
-	Float tz = - (f + n) / (f - n);
+	const Float r_l = r - l;
+	const Float t_b = t - b;
+	const Float f_n = f - n;
+	const Float tx = - (r + l) / (r - l);
+	const Float ty = - (t + b) / (t - b);
+	const Float tz = - (f + n) / (f - n);
 
 	m_workingMatrix[0] = 2.0f / r_l;
 	m_workingMatrix[1] = 0.0f;
@@ -417,7 +417,7 @@ void CMatrix::Ortho(Float l, Float r, Float b, Float t, Float n, Float f)
 //=============================================
 void CMatrix::LookAt( Float eyex, Float eyey, Float eyez, Float centerx, Float centery, Float centerz, Float upx, Float upy, Float upz )
 {
-	Float x[3], y[3], z[3];
+	Float x[3] = {0}, y[3] = {0}, z[3] = {0};
 	Float mag;
 
 	/* Make rotation matrix */

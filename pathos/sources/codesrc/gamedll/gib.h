@@ -61,7 +61,7 @@ public:
 	virtual bool Spawn( void ) override;
 	virtual void DeclareSaveFields( void ) override;
 	virtual Int32 GetEntityFlags( void ) override;
-	virtual void FreeEntity( void ) override;
+	virtual void FreeEntity( edict_removed_t freeMode ) override;
 	virtual bool CanBlackHolePull( void ) const override { return true; };
 
 public:

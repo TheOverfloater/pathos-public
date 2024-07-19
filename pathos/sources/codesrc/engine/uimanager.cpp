@@ -477,10 +477,10 @@ void CUIManager::ReorderWindows( void )
 			Uint32 focusIndex = pWindow->getFocusIndex();
 			
 			if(focusIndex < currentFocusIdx 
-				&& lastNearest < (Int32)focusIndex)
+				&& lastNearest < static_cast<Int32>(focusIndex))
 			{
 				pLastWindow = pWindow;
-				lastNearest = (Int32)focusIndex;
+				lastNearest = static_cast<Int32>(focusIndex);
 			}
 
 			m_windowList.next();
@@ -582,10 +582,10 @@ void CUIManager::DestroyWindow( CUIWindow* pWindow )
 			if(pListWnd != pWindow)
 			{
 				Uint32 focusIndex = pWindow->getFocusIndex();
-				if((Int32)focusIndex > lastHighest || lastHighest == -1)
+				if(static_cast<Int32>(focusIndex) > lastHighest || lastHighest == -1)
 				{
 					pBestWindow = pListWnd;
-					lastHighest = (Int32)focusIndex;
+					lastHighest = static_cast<Int32>(focusIndex);
 				}
 			}
 

@@ -117,3 +117,11 @@ The amount of time I have for Pathos is limited. While I can offer some advise a
 have time available, I cannot fully dedicate myself to helping you with the features
 you want to add. You will need to learn more about OpenGL and C++ if you want to add
 more features to Pathos.
+
+# Question 10)
+>My facially animated models look strange after the latest model, with their faces
+>looking all weird and having the wrong vertices move. What is causing this?
+
+The engine in the July update had the facial flex vertex limit raised, which breaks
+compatibility with previous model compiles. You'll need to recompile the model with
+the latest studiomdl to fix this.

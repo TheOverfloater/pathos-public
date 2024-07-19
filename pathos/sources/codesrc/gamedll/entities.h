@@ -92,7 +92,7 @@ extern void ManageEntityGlobalState( edict_t* pedict, class CBaseEntity* pEntity
 extern void AdjustEntityPositions( edict_t* pedict, Vector prevmins );
 
 extern bool KeyValue( edict_t* pedict, const keyvalue_t& keyvalue );
-extern void FreeEntity( edict_t* pedict );
+extern void FreeEntity( edict_t* pedict, edict_removed_t freeMode );
 extern void OnAimentFreed( edict_t* pedict );
 extern void SetupVisiblity( edict_t* pclient, byte*& ppvs, byte*& ppas );
 extern bool AddPacketEntity( entity_state_t& state, entindex_t entindex, edict_t& entity, const edict_t& client, const byte* pset );

@@ -50,10 +50,13 @@ CGLSLShader::CGLSLShader ( const file_interface_t& fileFuncs, const CGLExtF& glE
 	m_reCheck( false ),
 	m_onDemandLoad( false ),
 	m_useBinaryShaders( false ),
+	m_areUBOsBound( false ),
 	m_isActive( false ),
 	m_bFailed( false ),
 	m_pProgressUpdateCallbackFn(*pfnCallback)
 {
+	memset(m_uniformMatrix, 0, sizeof(m_uniformMatrix));
+
 	if(flags & FL_GLSL_ONDEMAND_LOAD)
 		m_onDemandLoad = true;
 
@@ -89,10 +92,13 @@ CGLSLShader::CGLSLShader ( const file_interface_t& fileFuncs, const CGLExtF& glE
 	m_reCheck( false ),
 	m_onDemandLoad( false ),
 	m_useBinaryShaders( false ),
+	m_areUBOsBound( false ),
 	m_isActive( false ),
 	m_bFailed( false ),
 	m_pProgressUpdateCallbackFn(*pfnCallback)
 {
+	memset(m_uniformMatrix, 0, sizeof(m_uniformMatrix));
+
 	if(flags & FL_GLSL_ONDEMAND_LOAD)
 		m_onDemandLoad = true;
 
@@ -209,6 +215,19 @@ void CGLSLShader::FreeData ( void )
 	if(!m_uniformsArray.empty())
 		m_uniformsArray.clear();
 
+	if(!m_uniformBufferObjectsArray.empty())
+	{
+		for(Uint32 i = 0; i < m_uniformBufferObjectsArray.size(); i++)
+		{
+			glsl_ubo_t& ubo = m_uniformBufferObjectsArray[i];
+			
+			if(ubo.buffer_id)
+				m_glExtF.glDeleteBuffers(1, &ubo.buffer_id);
+		}
+
+		m_uniformBufferObjectsArray.clear();
+	}
+
 	if(m_pDeterminatorValues)
 	{
 		delete[] m_pDeterminatorValues;
@@ -251,7 +270,7 @@ bool CGLSLShader::CompileShader( Uint32 index, glsl_shader_t* pshader, csdshader
 	m_glExtF.glCompileShader(vertex_id);
 
 	// Now get elapsed time
-	g_vertexShaderCompileTotalDuration += (Double)(clock() - beginTime) / CLOCKS_PER_SEC;
+	g_vertexShaderCompileTotalDuration += static_cast<Double>(clock() - beginTime) / CLOCKS_PER_SEC;
 
 	CString basename;
 	Common::Basename(m_shaderFile.c_str(), basename);
@@ -264,8 +283,8 @@ bool CGLSLShader::CompileShader( Uint32 index, glsl_shader_t* pshader, csdshader
 
 	Int32 iStatus = FALSE;
 	m_glExtF.glGetShaderiv(vertex_id, GL_COMPILE_STATUS, &iStatus);
-	g_vertexShaderGetStatusCallTotalDuration += (Double)(clock() - beginTime) / CLOCKS_PER_SEC;
-	Shader_PrintLog(vertex_id, reinterpret_cast<const Char*>(vp), pshaderdata->vertexdatasize, vsOut.c_str(), (iStatus != TRUE) ? true : false);
+	g_vertexShaderGetStatusCallTotalDuration += static_cast<Double>(clock() - beginTime) / CLOCKS_PER_SEC;
+	Shader_PrintLog(vertex_id, vp, pshaderdata->vertexdatasize, vsOut.c_str(), (iStatus != TRUE) ? true : false);
 
 	if(iStatus != TRUE)
 	{
@@ -293,7 +312,7 @@ bool CGLSLShader::CompileShader( Uint32 index, glsl_shader_t* pshader, csdshader
 
 	m_glExtF.glGetShaderiv(fragment_id, GL_COMPILE_STATUS, &iStatus);
 	g_fragmentShaderGetStatusCallTotalDuration += (Double)(clock() - beginTime) / CLOCKS_PER_SEC;
-	Shader_PrintLog(fragment_id, reinterpret_cast<const Char*>(fp), pshaderdata->fragmentdatasize, fsOut.c_str(), (iStatus != TRUE) ? true : false);
+	Shader_PrintLog(fragment_id, fp, pshaderdata->fragmentdatasize, fsOut.c_str(), (iStatus != TRUE) ? true : false);
 
 	if(iStatus != TRUE)
 	{
@@ -325,8 +344,8 @@ bool CGLSLShader::CompileShader( Uint32 index, glsl_shader_t* pshader, csdshader
 
 	if(iStatus != TRUE)
 	{
-		Shader_PrintLog(vertex_id, reinterpret_cast<const Char*>(vp), pshaderdata->vertexdatasize, vsOut.c_str(), true);
-		Shader_PrintLog(fragment_id, reinterpret_cast<const Char*>(fp), pshaderdata->fragmentdatasize, fsOut.c_str(), true);
+		Shader_PrintLog(vertex_id, vp, pshaderdata->vertexdatasize, vsOut.c_str(), true);
+		Shader_PrintLog(fragment_id, fp, pshaderdata->fragmentdatasize, fsOut.c_str(), true);
 
 		m_errorString = "Program " + m_shaderFile + " failed to compile. Log file was written.";
 	}
@@ -625,6 +644,22 @@ bool CGLSLShader::LoadFromBSD( void )
 	const shader_binary_t* pbinaryshaders = reinterpret_cast<const shader_binary_t*>(reinterpret_cast<const byte*>(pBSDHeader) + pBSDHeader->shaderoffset);
 	for(Uint32 i = 0; i < pBSDHeader->numshaders; i++)
 	{
+		// Do not compile disabled states
+		if(!m_disabledStatesArray.empty())
+		{
+			Uint32 j = 0;
+			for(; j < m_disabledStatesArray.size(); j++)
+			{
+				const disabled_state_t& state = m_disabledStatesArray[j];
+				Int32 value = m_determinatorArray[state.dt_index].values[i];
+				if( state.dt_setting == value )
+					break;
+			}
+
+			if(j != m_disabledStatesArray.size())
+				continue;
+		}
+
 		const shader_binary_t* pshaderinfo = &pbinaryshaders[i];
 		
 		Uint32 j = 0;
@@ -650,6 +685,22 @@ bool CGLSLShader::LoadFromBSD( void )
 	Int32 lastPrompt = 0;
 	for(Uint32 i = 0; i < pBSDHeader->numshaders; i++)
 	{
+		// Do not compile disabled states
+		if(!m_disabledStatesArray.empty())
+		{
+			Uint32 j = 0;
+			for(; j < m_disabledStatesArray.size(); j++)
+			{
+				const disabled_state_t& state = m_disabledStatesArray[j];
+				Int32 value = m_determinatorArray[state.dt_index].values[i];
+				if( state.dt_setting == value )
+					break;
+			}
+
+			if(j != m_disabledStatesArray.size())
+				continue;
+		}
+
 		const shader_binary_t* pshaderinfo = &pbinaryshaders[i];
 		const byte* pshaderdata = reinterpret_cast<const byte*>(pBSDHeader) + pshaderinfo->dataoffset;
 
@@ -764,10 +815,10 @@ bool CGLSLShader::CompileCSDShaderData( void )
 			pbinaryshader->datasize = programSize;
 
 			pbuffer->append(nullptr, pbinaryshader->datasize);
-			void *pbinarydest = reinterpret_cast<void*>(reinterpret_cast<byte*>(pbsdheader) + pbinaryshader->dataoffset);
+			void *pbinarydest = reinterpret_cast<byte*>(pbsdheader) + pbinaryshader->dataoffset;
 			m_glExtF.glGetProgramBinary(m_shadersArray[i].program_id, programSize, nullptr, &pbinaryshader->binaryformat, pbinarydest);
 
-			pbuffer->removepointer((void**)&pbinaryshader);
+			pbuffer->removepointer((const void**)&pbinaryshader);
 		}
 
 		// Update client about or progress if needed
@@ -1132,7 +1183,7 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 	CString szToken3;
 
 	Uint32 chunkSize = 0;
-	const Uint32 chunkMaxSize = 65535;
+	constexpr Uint32 chunkMaxSize = 65535;
 	Char *pChunkBuffer = new Char[chunkMaxSize]();
 	if(!pChunkBuffer)
 	{
@@ -1141,7 +1192,7 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 	}
 
 	// Allocate the new chunk
-	(*pchunkptr) = reinterpret_cast<shader_chunk_t*>(Common::ResizeArray((*pchunkptr), sizeof(shader_chunk_t), (*numchunkptr)));
+	(*pchunkptr) = static_cast<shader_chunk_t*>(Common::ResizeArray((*pchunkptr), sizeof(shader_chunk_t), (*numchunkptr)));
 	shader_chunk_t* pchunk = &(*pchunkptr)[(*numchunkptr)];
 	(*numchunkptr)++;
 
@@ -1210,7 +1261,7 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 					}
 
 					// Allocate the new conditional
-					pchunkconditionals = reinterpret_cast<glsl_branchcondition_t*>(Common::ResizeArray(pchunkconditionals, sizeof(glsl_branchcondition_t), numchunkconditionals));
+					pchunkconditionals = static_cast<glsl_branchcondition_t*>(Common::ResizeArray(pchunkconditionals, sizeof(glsl_branchcondition_t), numchunkconditionals));
 					glsl_branchcondition_t *pchunkconditional = &pchunkconditionals[numchunkconditionals];
 					numchunkconditionals++;
 
@@ -1306,7 +1357,7 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 				delete[] pchunkconditionals;
 
 				// Allocate the new chunk, as parts coming after a sub chunk are a new chunk
-				(*pchunkptr) = reinterpret_cast<shader_chunk_t*>(Common::ResizeArray((*pchunkptr), sizeof(shader_chunk_t), (*numchunkptr)));
+				(*pchunkptr) = static_cast<shader_chunk_t*>(Common::ResizeArray((*pchunkptr), sizeof(shader_chunk_t), (*numchunkptr)));
 				pchunk = &(*pchunkptr)[(*numchunkptr)];
 				(*numchunkptr)++;
 
@@ -1524,7 +1575,7 @@ bool CGLSLShader::RecursiveAddChunks( Uint32 id, shader_chunk_t* pchunk, Char* p
 bool CGLSLShader::SpliceScripts( Uint32 id, Char **vsptr, Char **fsptr )
 {
 	// Buffer to write to
-	const Uint32 maxBufferSize = 131072;
+	constexpr Uint32 maxBufferSize = 131072;
 	Char *pstrbuffer = new Char[maxBufferSize];
 	Uint32 buffersize = 0;
 
@@ -1637,6 +1688,16 @@ bool CGLSLShader::CompileShaderVariation( Uint32 index )
 			m_uniformsArray[i].indexes[index] = PROPERTY_UNAVAILABLE;
 		else
 			assert(m_uniformsArray[i].indexes[index] >= 0);
+	}
+
+	// Find uniform blocks in this shader
+	for(Uint32 i = 0; i < m_uniformBufferObjectsArray.size(); i++)
+	{
+		m_uniformBufferObjectsArray[i].blockindexes[index] = m_glExtF.glGetUniformBlockIndex(m_shadersArray[index].program_id, m_uniformBufferObjectsArray[i].name.c_str());
+		if(m_uniformBufferObjectsArray[i].blockindexes[index] == -1)
+			m_uniformBufferObjectsArray[i].blockindexes[index] = PROPERTY_UNAVAILABLE;
+		else
+			assert(m_uniformBufferObjectsArray[i].blockindexes[index] >= 0);
 	}
 
 	// Find attributes in the shader
@@ -1949,6 +2010,18 @@ bool CGLSLShader::EnableShader ( void )
 	m_glExtF.glUseProgram(m_shadersArray[m_shaderIndex].program_id);
 	m_isActive = true;
 
+	// Bind UBOs if any
+	if(!m_areUBOsBound && !m_uniformBufferObjectsArray.empty())
+	{
+		for(Uint32 i = 0; i < m_uniformBufferObjectsArray.size(); i++)
+		{
+			glsl_ubo_t& ubo = m_uniformBufferObjectsArray[i];
+			m_glExtF.glBindBufferBase(GL_UNIFORM_BUFFER, i+1, ubo.buffer_id);
+		}
+
+		m_areUBOsBound = true;
+	}
+
 	if(m_shaderIndex == m_lastIndex)
 		return true;
 
@@ -1990,39 +2063,90 @@ bool CGLSLShader::EnableShader ( void )
 
 	for(Uint32 i = 0; i < m_uniformsArray.size(); i++)
 	{
-		if(!m_uniformsArray[i].sync)
+		glsl_uniform_t& uniform = m_uniformsArray[i];
+
+		if(!uniform.sync)
 			continue;
 
-		if(m_uniformsArray[i].type == UNIFORM_NOSYNC)
+		if(uniform.type == UNIFORM_NOSYNC)
 			continue;
 
-		if(m_uniformsArray[i].indexes[m_shaderIndex] == -1)
+		if(uniform.indexes[m_shaderIndex] == -1)
 			continue;
-
-		switch( m_uniformsArray[i].type )
-		{
-			case UNIFORM_INT1:
-				m_glExtF.glUniform1i(m_uniformsArray[i].indexes[m_shaderIndex],  (GLint)m_uniformsArray[i].flvalue[0][0]);
-				break;
-			case UNIFORM_FLOAT1:
-				m_glExtF.glUniform1f(m_uniformsArray[i].indexes[m_shaderIndex],  m_uniformsArray[i].flvalue[0][0]);
-				break;
-			case UNIFORM_FLOAT2:
-				m_glExtF.glUniform2fv(m_uniformsArray[i].indexes[m_shaderIndex], 1, m_uniformsArray[i].flvalue[0]);
-				break;
-			case UNIFORM_FLOAT3:
-				m_glExtF.glUniform3fv(m_uniformsArray[i].indexes[m_shaderIndex], 1, m_uniformsArray[i].flvalue[0]);
-				break;
-			case UNIFORM_FLOAT4:
-				m_glExtF.glUniform4fv(m_uniformsArray[i].indexes[m_shaderIndex], 1, m_uniformsArray[i].flvalue[0]);
-				break;
-			case UNIFORM_MATRIX4:
-				m_glExtF.glUniformMatrix4fv(m_uniformsArray[i].indexes[m_shaderIndex], 1, GL_FALSE, reinterpret_cast<const GLfloat *>(m_uniformsArray[i].flvalue)); 
-				break;
-		}
+		
+		SyncUniform(uniform);
 	}
 
 	return true;
+}
+
+//=============================================
+// @brief Synchronizes a shader uniform setting
+//
+//=============================================
+void CGLSLShader::SyncUniform( glsl_uniform_t& uniform )
+{
+	Uint32 offset = uniform.stride * m_shaderIndex;
+	Float* pshadervalue = &uniform.shadervalues[offset];
+	Float* pcurrentvalue = &uniform.currentvalues[0];
+
+	switch (uniform.type)
+	{
+		case UNIFORM_INT1:
+		{
+			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride) != 0)
+			{
+				m_glExtF.glUniform1i(uniform.indexes[m_shaderIndex], (GLint)(*pcurrentvalue));
+				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride);
+			}
+		}
+	break;
+		case UNIFORM_FLOAT1:
+		{
+			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride) != 0)
+			{
+				m_glExtF.glUniform1f(uniform.indexes[m_shaderIndex], (*pcurrentvalue));
+				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride);
+			}
+		}
+	break;
+		case UNIFORM_FLOAT2:
+		{
+			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride) != 0)
+			{
+				m_glExtF.glUniform2fv(uniform.indexes[m_shaderIndex], 1, pcurrentvalue);
+				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride);
+			}
+		}
+	break;
+		case UNIFORM_FLOAT3:
+		{
+			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride) != 0)
+			{
+				m_glExtF.glUniform3fv(uniform.indexes[m_shaderIndex], 1, pcurrentvalue);
+				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride);
+			}
+		}
+	break;
+		case UNIFORM_FLOAT4:
+		{
+			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride) != 0)
+			{
+				m_glExtF.glUniform4fv(uniform.indexes[m_shaderIndex], 1, pcurrentvalue);
+				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride);
+			}
+		}
+	break;
+		case UNIFORM_MATRIX4:
+		{
+			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride) != 0)
+			{
+				m_glExtF.glUniformMatrix4fv(uniform.indexes[m_shaderIndex], 1, GL_FALSE, pcurrentvalue);
+				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride);
+			}
+		}
+	break;
+	}
 }
 
 //=============================================
@@ -2031,6 +2155,15 @@ bool CGLSLShader::EnableShader ( void )
 //=============================================
 void CGLSLShader::DisableShader ( void )
 {
+	// Bind UBOs if any
+	if(m_areUBOsBound)
+	{
+		for(Uint32 i = 0; i < m_uniformBufferObjectsArray.size(); i++)
+			m_glExtF.glBindBufferBase(GL_UNIFORM_BUFFER, 1+i, 0);
+
+		m_areUBOsBound = false;
+	}
+
 	// Disable any attribs we might've had active
 #ifdef DONT_USE_VAO
 	for(Uint32 i = 0; i < m_vertexAttribsArray.size(); i++)
@@ -2041,6 +2174,7 @@ void CGLSLShader::DisableShader ( void )
 		DisableAttribute(i);
 	}
 #endif
+
 	m_glExtF.glUseProgram(0);
 	m_isActive = false;
 }
@@ -2090,6 +2224,9 @@ Int32 CGLSLShader::InitAttribute( const Char *szname, Uint32 size, Int32 type, U
 	{
 		for(Uint32 i = 0; i < m_shadersArray.size(); i++)
 		{
+			if (!m_shadersArray[i].program_id)
+				continue;
+
 			newAttrib.indexes[i] = m_glExtF.glGetAttribLocation(m_shadersArray[i].program_id, szname);
 			if(newAttrib.indexes[i] == -1)
 				newAttrib.indexes[i] = PROPERTY_UNAVAILABLE;
@@ -2121,7 +2258,7 @@ Int32 CGLSLShader::InitAttribute( const Char *szname, Uint32 size, Int32 type, U
 
 	newAttrib.name = szname;
 	newAttrib.active = false;
-	newAttrib.pointer = reinterpret_cast<const void *>(pointer);
+	newAttrib.pointer = pointer;
 	newAttrib.stride = stride;
 	newAttrib.type = type;
 	newAttrib.size = size;
@@ -2139,7 +2276,7 @@ Int32 CGLSLShader::InitAttribute( const Char *szname, Uint32 size, Int32 type, U
 void CGLSLShader::SetAttributePointer( Int32 index, const void *pointer )
 {
 	glsl_attrib_t *pattrib = &m_vertexAttribsArray[index];
-	pattrib->pointer = reinterpret_cast<const void *>(pointer);
+	pattrib->pointer = pointer;
 
 	if(pattrib->indexes[m_shaderIndex] != PROPERTY_UNAVAILABLE)
 		m_pVBO->SetAttribPointer(pattrib->indexes[m_shaderIndex], pattrib->size, pattrib->type, pattrib->stride, pattrib->pointer);
@@ -2208,11 +2345,45 @@ Int32 CGLSLShader::InitUniform( const Char *szname, uniform_e type )
 
 	glsl_uniform_t newUniform;
 	newUniform.indexes.resize(m_shadersArray.size());
+	
+	switch(type)
+	{
+	case UNIFORM_INT1:
+		newUniform.stride = 1;
+		break;
+	case UNIFORM_FLOAT1:
+		newUniform.stride = 1;
+		break;
+	case UNIFORM_FLOAT2:
+		newUniform.stride = 2;
+		break;
+	case UNIFORM_FLOAT3:
+		newUniform.stride = 3;
+		break;
+	case UNIFORM_FLOAT4:
+		newUniform.stride = 4;
+		break;
+	case UNIFORM_MATRIX4:
+		newUniform.stride = 16;
+		break;
+	case UNIFORM_NOSYNC:
+	default:
+		break;
+	}
 
+	if(newUniform.stride)
+	{
+		newUniform.shadervalues.resize(newUniform.stride*m_shadersArray.size());
+		newUniform.currentvalues.resize(newUniform.stride);
+	}
+	
 	if(!m_onDemandLoad)
 	{
 		for(Uint32 i = 0; i < m_shadersArray.size(); i++)
 		{
+			if (!m_shadersArray[i].program_id)
+				continue;
+
 			newUniform.indexes[i] = m_glExtF.glGetUniformLocation(m_shadersArray[i].program_id, szname);
 			if(newUniform.indexes[i] == -1)
 				newUniform.indexes[i] = PROPERTY_UNAVAILABLE;
@@ -2248,6 +2419,74 @@ Int32 CGLSLShader::InitUniform( const Char *szname, uniform_e type )
 
 	m_uniformsArray.push_back(newUniform);
 	return (m_uniformsArray.size()-1);
+}
+
+//=============================================
+// @brief Creates a uniform buffer object
+//
+// @param pstrName Name of the UBO
+// @param bufferSize size of the UBO
+// @return The index of the UBO entry
+//=============================================
+Int32 CGLSLShader :: InitUniformBufferObject( const Char* pstrName, Uint32 bufferSize )
+{
+	glsl_ubo_t newUBO;
+	newUBO.name = pstrName;
+	newUBO.blockindexes.resize(m_shadersArray.size());
+
+	if(!m_onDemandLoad)
+	{
+		for(Uint32 i = 0; i < m_shadersArray.size(); i++)
+		{
+			newUBO.blockindexes[i] = m_glExtF.glGetUniformBlockIndex(m_shadersArray[i].program_id, newUBO.name.c_str());
+			if(newUBO.blockindexes[i] == -1)
+				newUBO.blockindexes[i] = PROPERTY_UNAVAILABLE;
+		}
+
+		Uint32 j = 0;
+		for(; j < m_shadersArray.size(); j++)
+		{
+			if(newUBO.blockindexes[j] != PROPERTY_UNAVAILABLE)
+				break;
+		}
+
+		if(j == m_shadersArray.size())
+		{
+			m_errorString << "Uniform buffer object " << newUBO.name.c_str() << " couldn't be found in shader " << m_shaderFile;
+			return PROPERTY_UNAVAILABLE;
+		}
+	}
+	else
+	{
+		// These should already be tested, as on-demand
+		// loading only works after all shaders were
+		// tested to begin with(when the BSS changes)
+		for(Uint32 i = 0; i < m_shadersArray.size(); i++)
+			newUBO.blockindexes[i] = PROPERTY_UNINITIALIZED;
+	}
+
+	// Create the object
+	m_glExtF.glGenBuffers(1, &newUBO.buffer_id);
+	m_glExtF.glBindBuffer(GL_UNIFORM_BUFFER, newUBO.buffer_id);
+	m_glExtF.glBufferData(GL_UNIFORM_BUFFER, bufferSize, NULL, GL_STREAM_DRAW);
+	m_glExtF.glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	// Bind these now when we are creating the UBO
+	Uint32 uboIndex = m_uniformBufferObjectsArray.size();
+	m_glExtF.glBindBufferBase(GL_UNIFORM_BUFFER, uboIndex+1, newUBO.buffer_id);
+
+	for(Uint32 j = 0; j < m_shadersArray.size(); j++)
+	{
+		if(newUBO.blockindexes[j] == -1)
+			continue;
+
+		m_glExtF.glUniformBlockBinding(m_shadersArray[j].program_id, newUBO.blockindexes[j], uboIndex+1);
+	}
+
+	m_glExtF.glBindBufferBase(GL_UNIFORM_BUFFER, uboIndex+1, 0);
+
+	m_uniformBufferObjectsArray.push_back(newUBO);
+	return uboIndex;
 }
 
 //=============================================

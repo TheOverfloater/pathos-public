@@ -1026,6 +1026,11 @@ void CBaseNPC::StartTask( const ai_task_t* pTask )
 			}
 		}
 		break;
+	case AI_TASK_FACE_TOSS_DIR:
+		{
+			m_updateYaw = true;
+		}
+		break;
 	default:
 		{
 			Util::EntityConPrintf(m_pEdict, "No StartTask case for '%d'.\n", (Int32)pTask->task);
@@ -1289,24 +1294,33 @@ void CBaseNPC::RunTask( const ai_task_t* pTask )
 			if(m_pScriptedSequence->GetScriptDelay() <= 0 && !m_pScriptedSequence->IsWaitingToBeTriggered())
 			{
 				script_loop_t loopState = m_pScriptedSequence->GetLoopState();
+				scripted_sequence_anim_t scriptAnim;
 
 				const Char* pstrSequenceName = nullptr;
 				switch(loopState)
 				{
 				case SCRIPT_LOOP_PLAYING_LOOP:
 					pstrSequenceName = m_pScriptedSequence->GetLoopSequenceName();
+					scriptAnim = SCRIPT_SEQ_LOOP;
 					break;
 				case SCRIPT_LOOP_PLAYING_EXIT:
 					pstrSequenceName = m_pScriptedSequence->GetExitSequenceName();
+					scriptAnim = SCRIPT_SEQ_LOOP_EXIT;
 					break;
 				default:
 				case SCRIPT_LOOP_INACTIVE:
 					pstrSequenceName = m_pScriptedSequence->GetPlaySequenceName();
+					scriptAnim = SCRIPT_SEQ_PLAY;
 					break;
 				}
 
 				SetTaskCompleted();
 				m_pScriptedSequence->StartSequence(this, pstrSequenceName, true);
+
+				// The m_pScriptedSequence might be cleared by StartSequence at this point
+				if(m_pScriptedSequence)
+					m_pScriptedSequence->OnScriptedAnimationStart(scriptAnim);
+
 				if(m_isSequenceFinished)
 					ClearSchedule();
 
@@ -1318,6 +1332,13 @@ void CBaseNPC::RunTask( const ai_task_t* pTask )
 		{
 			if(m_isSequenceFinished)
 				m_pScriptedSequence->SetSequenceDone(this);
+		}
+		break;
+	case AI_TASK_FACE_TOSS_DIR:
+		{
+			SetIdealYaw(m_pState->origin + m_tossVelocity * 64);
+			if(IsFacingIdealYaw())
+				SetTaskCompleted();
 		}
 		break;
 	}

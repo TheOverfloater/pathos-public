@@ -24,55 +24,59 @@ All Rights Reserved.
 
 ************************/
 
+#ifndef constexpr
+#define constexpr const
+#endif
+
 // This is used to identify a studiomdl file
-static const Int32 IDSTUDIOHEADER	= (('T'<<24)+('S'<<16)+('D'<<8)+'I');
+static constexpr Int32 IDSTUDIOHEADER	= (('T'<<24)+('S'<<16)+('D'<<8)+'I');
 // Version used by Half-Life 1, JACK, VHE for studiomodels
-static const Uint32 STUDIO_VERSION	= 10;
+static constexpr Uint32 STUDIO_VERSION	= 10;
 
 // Max vertexes supported by VHE
-static const Uint32 MAXSTUDIOVERTS_REF		= 2048;
+static constexpr Uint32 MAXSTUDIOVERTS_REF		= 2048;
 
 // Required by studiomdl(todo: remove after studiomdl rewrite)
-static const Uint32 MAXSTUDIOTRIANGLES		= 16384; 
+static constexpr Uint32 MAXSTUDIOTRIANGLES		= 16384;
 
 // Max vertexes in a submodel supported by studiomdl at the moment(todo: remove after studiomdl rewrite)
-static const Uint32 MAXSTUDIOVERTS			= 8196; 
+static constexpr Uint32 MAXSTUDIOVERTS			= 8196;
 
 // Max sequences in a model(todo: remove after studiomdl rewrite)
-static const Uint32 MAXSTUDIOSEQUENCES		= 256; 
+static constexpr Uint32 MAXSTUDIOSEQUENCES		= 256;
 
 // Max skins a model can have(todo: remove after studiomdl rewrite)
-static const Uint32 MAXSTUDIOSKINS			= 100; 
+static constexpr Uint32 MAXSTUDIOSKINS			= 100;
 
 // Todo: remove after studiomdl rewrite
-static const Uint32 MAXSTUDIOSRCBONES		= 256; 
+static constexpr Uint32 MAXSTUDIOSRCBONES		= 256;
 
 // Max bones in a model
-static const Uint32 MAXSTUDIOBONES			= 128;
+static constexpr Uint32 MAXSTUDIOBONES			= 128;
 
 // Max submodels a bodygroup can have(todo: remove after studiomdl rewrite)
-static const Uint32 MAXSTUDIOMODELS			= 32;
+static constexpr Uint32 MAXSTUDIOMODELS			= 32;
 
 // Max bodygroups a model can have(todo: remove after studiomdl rewrite)
-static const Uint32 MAXSTUDIOBODYPARTS		= 32;
+static constexpr Uint32 MAXSTUDIOBODYPARTS		= 32;
 
 // Max groups a model can have(todo: remove after studiomdl rewrite)
-static const Uint32 MAXSTUDIOGROUPS			= 32;
+static constexpr Uint32 MAXSTUDIOGROUPS			= 32;
 
 // Max sequences a model can have(todo: remove after studiomdl rewrite)
-static const Uint32 MAXSTUDIOANIMATIONS		= 2048;
+static constexpr Uint32 MAXSTUDIOANIMATIONS		= 2048;
 
 // Max meshes a submodel can have(todo: remove after studiomdl rewrite)
-static const Uint32 MAXSTUDIOMESHES			= 32;
+static constexpr Uint32 MAXSTUDIOMESHES			= 32;
 
 // Max events a model can have(todo: remove after studiomdl rewrite)
-static const Uint32 MAXSTUDIOEVENTS			= 1024;
+static constexpr Uint32 MAXSTUDIOEVENTS			= 1024;
 
 // Max pivots a model can have(todo: remove after studiomdl rewrite)
-static const Uint32 MAXSTUDIOPIVOTS			= 256;
+static constexpr Uint32 MAXSTUDIOPIVOTS			= 256;
 
 // Max controllers a model can have(todo: remove after studiomdl rewrite)
-static const Uint32 MAXSTUDIOCONTROLLERS	= 8;
+static constexpr Uint32 MAXSTUDIOCONTROLLERS	= 8;
 
 // Used by studiohdr->flags
 enum studio_flags_t
@@ -130,6 +134,12 @@ enum studio_boneflags_t
 	STUDIO_HAS_CHROME			= (1<<3),
 	STUDIO_DONT_BLEND			= (1<<4),
 	STUDIO_VBMCONTROLLER		= (1<<5)
+};
+
+// Flags for textures
+enum studio_texflags_t
+{
+	STUDIO_NF_CHROME			= (1<<1)
 };
 
 struct studiohdr_t;

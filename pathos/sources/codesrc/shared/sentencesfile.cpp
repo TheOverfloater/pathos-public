@@ -94,7 +94,7 @@ bool CSentencesFile::Init( const byte* pfile )
 
 		// Build entry name
 		CString entryname;
-		entryname << "!" << (Int32)pNewSentence->index;
+		entryname << "!" << static_cast<Int32>(pNewSentence->index);
 
 		pNewSentence->entryname = entryname;
 		m_sentencesArray.push_back(pNewSentence);
@@ -551,7 +551,7 @@ void CSentencesFile::PrecacheGroup( const Char* pstrGroupName )
 	for(Uint32 i = 0; i < pgroup->numsentences; i++)
 	{
 		CString sentname;
-		sentname << pgroup->groupname << (Int32)i;
+		sentname << pgroup->groupname << static_cast<Int32>(i);
 
 		sentence_t* psentence = GetSentenceDefinition(sentname.c_str());
 		if(psentence)
@@ -650,7 +650,7 @@ CSentencesFile::sentence_t* CSentencesFile::GetSentenceDefinition( const Char* p
 	if(pstrSentenceName[0] == '!')
 	{
 		Int32 index = SDL_atoi(pstrSentenceName+1);
-		if(index < 0 || index >= (Int32)m_sentencesArray.size())
+		if(index < 0 || index >= static_cast<Int32>(m_sentencesArray.size()))
 			return nullptr;
 
 		return m_sentencesArray[index];
@@ -675,7 +675,7 @@ CSentencesFile::sentence_t* CSentencesFile::GetSentenceDefinition( const Char* p
 //=============================================
 const CSentencesFile::sentence_t* CSentencesFile::GetSentenceDefinition( Int32 index ) const
 {
-	if(index < 0 || index >= (Int32)m_sentencesArray.size())
+	if(index < 0 || index >= static_cast<Int32>(m_sentencesArray.size()))
 		return nullptr;
 
 	return m_sentencesArray[index];
@@ -693,7 +693,7 @@ const CSentencesFile::sentence_t* CSentencesFile::GetSentenceDefinition( const C
 	if(pstrSentenceName[0] == '!')
 	{
 		Int32 index = SDL_atoi(pstrSentenceName+1);
-		if(index < 0 || index >= (Int32)m_sentencesArray.size())
+		if(index < 0 || index >= static_cast<Int32>(m_sentencesArray.size()))
 			return nullptr;
 
 		return m_sentencesArray[index];
@@ -716,7 +716,7 @@ const CSentencesFile::sentence_t* CSentencesFile::GetSentenceDefinition( const C
 //=============================================
 Float CSentencesFile::GetSentenceDuration( Int32 index )
 {
-	if(index < 0 || index >= (Int32)m_sentencesArray.size())
+	if(index < 0 || index >= static_cast<Int32>(m_sentencesArray.size()))
 		return 0;
 
 	sentence_t* psentence = m_sentencesArray[index];
@@ -744,7 +744,7 @@ Float CSentencesFile::GetSentenceDuration( const Char* pstrSentenceName )
 	if(pstrSentenceName[0] == '!')
 	{
 		Int32 index = SDL_atoi(pstrSentenceName+1);
-		if(index < 0 || index >= (Int32)m_sentencesArray.size())
+		if(index < 0 || index >= static_cast<Int32>(m_sentencesArray.size()))
 			return 0;
 
 		psentence = m_sentencesArray[index];

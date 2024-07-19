@@ -20,9 +20,9 @@ All Rights Reserved.
 #include "cl_main.h"
 
 // Amount of time without messages until we try to reconnect
-static const Float MSG_TIMEOUT_DELAY = 5.0f;
+static constexpr Float MSG_TIMEOUT_DELAY = 5.0f;
 // Reconnect attmept delay time
-static const Float RECONNECT_ATTEMPT_DELAY_TIME = 5.0f;
+static constexpr Float RECONNECT_ATTEMPT_DELAY_TIME = 5.0f;
 
 //=============================================
 // @brief Default constructor
@@ -279,7 +279,7 @@ void CMPNetworking::Poll_Host( void )
 
 		case ENET_EVENT_TYPE_RECEIVE:
 			{
-				Uint32 clientindex = *reinterpret_cast<Uint32*>(netEvent.peer->data);
+				Uint32 clientindex = *static_cast<Uint32*>(netEvent.peer->data);
 				assert(clientindex > 0);
 
 				net_client_t& cl = m_clientsArray[clientindex];
@@ -293,7 +293,7 @@ void CMPNetworking::Poll_Host( void )
 
 		case ENET_EVENT_TYPE_DISCONNECT:
 			{
-				Uint32 clientindex = *reinterpret_cast<Uint32*>(netEvent.peer->data);
+				Uint32 clientindex = *static_cast<Uint32*>(netEvent.peer->data);
 				assert(clientindex > 0);
 
 				ConnectionLost(clientindex);
@@ -533,7 +533,7 @@ bool CMPNetworking::SendUDPMessage( msgdest_t dest, byte* pdata, Uint32 msgsize,
 void CMPNetworking::ReadUDPMessage( net_msgcache_t* pcache, ENetEvent* pevent )
 {
 	byte* psrcdata = pevent->packet->data;
-	Uint32 msgsize = (Uint32)pevent->packet->dataLength;
+	Uint32 msgsize = static_cast<Uint32>(pevent->packet->dataLength);
 
 	// Create new message object
 	m_pCurrentMessage = AllocMsg(pcache);
@@ -594,7 +594,7 @@ void CMPNetworking::SVC_MessageEnd( void )
 		}
 
 		// Set the header data
-		msgheader_t* phdr = (msgheader_t*)((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
+		msgheader_t* phdr = reinterpret_cast<msgheader_t*>((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
 		phdr->msgsize = m_pCurrentMessage->msg_size;
 
 		byte* pdata = (*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset;
@@ -604,7 +604,7 @@ void CMPNetworking::SVC_MessageEnd( void )
 	}
 	else
 	{
-		msgheader_t* phdr = (msgheader_t*)((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
+		msgheader_t* phdr = reinterpret_cast<msgheader_t*>((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
 		phdr->msgsize = m_pCurrentMessage->msg_size;
 
 		byte* pdata = (*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset;
@@ -656,7 +656,7 @@ void CMPNetworking::CLS_MessageEnd( void )
 	net_client_t& cl = m_clientsArray[0];
 
 	// Set the header data
-	msgheader_t* phdr = (msgheader_t*)((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
+	msgheader_t* phdr = reinterpret_cast<msgheader_t*>((*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset);
 	phdr->msgsize = m_pCurrentMessage->msg_size;
 
 	byte* pdata = (*m_pCurrentMessage->pmsg_base) + m_pCurrentMessage->msg_offset;

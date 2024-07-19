@@ -18,6 +18,7 @@ struct fbobind_t;
 struct en_texalloc_t;
 struct cl_entity_t;
 struct mleaf_t;
+struct fbobind_t;
 
 struct cl_portal_t
 {
@@ -44,6 +45,7 @@ struct cl_portal_t
 	Uint32 renderpassidx;
 
 	en_texalloc_t* ptexture;
+	fbobind_t* pfbo;
 
 	byte* pvisset;
 };
@@ -71,7 +73,8 @@ struct portal_attribs
 		u_screenheight(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_fogcolor(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_fogparams(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_fog(CGLSLShader::PROPERTY_UNAVAILABLE)
+		d_fog(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_rectangle(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{}
 
 	Int32 a_vertex;
@@ -80,6 +83,7 @@ struct portal_attribs
 	Int32 u_projection;
 	
 	Int32 u_texture;
+	Int32 u_texturerect;
 	Int32 u_screenwidth;
 	Int32 u_screenheight;
 
@@ -87,6 +91,7 @@ struct portal_attribs
 	Int32 u_fogparams;
 
 	Int32 d_fog;
+	Int32 d_rectangle;
 };
 
 /*
@@ -139,8 +144,9 @@ private:
 	void FinishPortalPass( void );
 
 	// Creates texture for a portal
-	static bool CreatePortalTexture( cl_portal_t* pportal );
-
+	bool CreatePortalTexture( cl_portal_t* pportal );
+	// Creates the shared depth texture
+	void CreateDepthTexture( void );
 private:
 	// Pointer to current portal
 	cl_portal_t *m_pCurrentPortal;
@@ -161,6 +167,9 @@ private:
 
 	// Number of portals drawn
 	Uint32 m_numPortalsDrawn;
+
+	// Shared depth texture
+	en_texalloc_t* m_pDepthTexture;
 
 private:
 	// Portal view params

@@ -14,15 +14,15 @@ All Rights Reserved.
 #include "save_shared.h"
 
 // Savefile version
-static const Int32 SAVE_FILE_VERSION = 1;
+static constexpr Int32 SAVE_FILE_VERSION = 1;
 // Max save file title length
-static const Int32 SAVE_FILE_HEADER_MAX_LENGTH = 64;
+static constexpr Int32 SAVE_FILE_HEADER_MAX_LENGTH = 64;
 // Max generic string length for save files
-static const Int32 SAVE_FILE_FIELD_NAME_MAX_LENGTH = 16;
+static constexpr Int32 SAVE_FILE_FIELD_NAME_MAX_LENGTH = 16;
 // Save file header Id
 static const Char SAVEFILE_HEADER_ID[] = "PSF1";
 // Save header in encoded form
-static const Int32 SAVE_HEADER_ENCODED = (('1'<<24)+('F'<<16)+('S'<<8)+'P');
+static constexpr Int32 SAVE_HEADER_ENCODED = (('1'<<24)+('F'<<16)+('S'<<8)+'P');
 
 struct save_block_t
 {

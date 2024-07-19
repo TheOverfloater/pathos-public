@@ -1,0 +1,10 @@
+$texture
+{
+	$int_width 256
+	$int_height 128
+	$alphatest
+	$nomipmaps
+	$container pathos.wad
+	$material wood
+	$texture diffuse {forest1
+}

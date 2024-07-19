@@ -28,6 +28,8 @@ static const Char MUZZLEFLASH_PARTICLE_SPARKS[] = "engine_muzzleflash_cluster2.t
 static const Char MUZZLEFLASH_PARTICLE_SIMPLE[] = "engine_muzzleflash_cluster3.txt";
 // Muzzleflash particle effect for railgun
 static const Char MUZZLEFLASH_PARTICLE_CANNON[] = "engine_muzzleflash_cluster4.txt";
+// Muzzleflash particle effect for silenced weapons
+static const Char MUZZLEFLASH_PARTICLE_SILENCER[] = "engine_muzzleflash_cluster5.txt";
 // Muzzleflash smoke particle effect
 static const Char MUZZLE_PARTICLE_SMOKE[] = "engine_muzzle_smoke.txt";
 
@@ -42,7 +44,7 @@ static const Char VAPORTRAIL_GLOW_SPRITE[] = "sprites/laserbeam.spr";
 //=============================================
 void EV_MuzzleFlashLight( const Vector& position, Int32 key )
 {
-	Float radius = Common::RandomFloat( 260, 300 );
+	Float radius = Common::RandomFloat( 110, 180 );
 
 	cl_dlight_t *pdl = cl_efxapi.pfnAllocDynamicPointLight( key, 0, false, true, nullptr );
 	pdl->die = cl_engfuncs.pfnGetClientTime() + 0.1;
@@ -74,19 +76,22 @@ void EV_SimpleMuzzleFlash( const Vector& position, const Vector& angles, entinde
 // @brief
 //
 //=============================================
-void EV_AttachmentDirectionMuzzleFlash( const cl_entity_t *pentity, const mstudioevent_t *pevent, Int32 attachment1, Int32 attachment2 )
+void EV_AttachmentDirectionMuzzleFlash( const cl_entity_t *pentity, const Char* pstroptions, Int32 attachment1, Int32 attachment2 )
 {
 	Vector attach1 = pentity->getAttachment(attachment1);
 	Vector attach2 = pentity->getAttachment(attachment2);
 	Vector direction = (attach2 - attach1).Normalize();
 
-	EV_MuzzleFlashLight(attach1, pentity->entindex);
+	if (strcmp(pstroptions, "silencer"))
+		EV_MuzzleFlashLight(attach1, pentity->entindex);
 
 	CString scriptname;
-	if(!strcmp(pevent->options, "sparks"))
+	if(!strcmp(pstroptions, "sparks"))
 		scriptname = MUZZLEFLASH_PARTICLE_SPARKS;
-	else if(!strcmp(pevent->options, "cannon"))
+	else if(!strcmp(pstroptions, "cannon"))
 		scriptname = MUZZLEFLASH_PARTICLE_CANNON;
+	else if (!strcmp(pstroptions, "silencer"))
+		scriptname = MUZZLEFLASH_PARTICLE_SILENCER;
 	else
 		scriptname = MUZZLEFLASH_PARTICLE_REGULAR;
 
@@ -229,7 +234,7 @@ void EV_NPC_StepSound( cl_entity_t *pentity, const Char* pstrsteptype )
 	if(!pmaterial)
 		return;
 
-	if(!qstrcmp(pstrsteptype, "unused") && !qstrcmp(pmaterial->materialname, "concrete"))
+	if(!qstrcmp(pstrsteptype, "enlightened") && !qstrcmp(pmaterial->materialname, "concrete"))
 		return;
 
 	// Determine foot and also set
@@ -282,11 +287,49 @@ void EV_NPC_StepSound_Legacy( cl_entity_t *pentity, const mstudioevent_t *pevent
 void EV_ViewModelMuzzleflash( cl_entity_t* pentity, const mstudioevent_t *pevent, const Vector& position, Int32 attachment )
 {
 	// Create complex muzzleflash
-	EV_AttachmentDirectionMuzzleFlash(pentity, pevent, attachment, attachment+1);
+	EV_AttachmentDirectionMuzzleFlash(pentity, pevent->options, attachment, attachment+1);
 
 	Vector forward;
 	Math::AngleVectors(pentity->curstate.angles, &forward);
 	cl_efxapi.pfnSpawnParticleSystem(pentity->getAttachment(0), forward, PART_SCRIPT_SYSTEM, MUZZLE_PARTICLE_SMOKE, attachment+1, pentity->entindex, attachment, NO_POSITION, PARTICLE_ATTACH_NONE);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void EV_ViewModelMuzzleflash_UserSpecifiedAttachment(cl_entity_t* pentity, const mstudioevent_t* pevent, const Vector& position)
+{
+	const Char* pstrString = pevent->options;
+	const Char* pstrSeparator = qstrstr(pstrString, ";");
+	if (!pstrSeparator)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Event option string '%s' is missing ';' separator.\n", __FUNCTION__, pstrString);
+		return;
+	}
+
+	Uint32 length = pstrSeparator - pstrString;
+	CString attachmentString(pstrString, length);
+	if (attachmentString.empty())
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Event option string '%s' is missing attachment index before ';' separator.\n", __FUNCTION__, pstrString);
+		return;
+	}
+
+	if (!Common::IsNumber(attachmentString.c_str()))
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Attachment string '%s' in event option string '%s' is not a valid number.\n", __FUNCTION__, attachmentString.c_str(), pstrString);
+		return;
+	}
+
+	// Create complex muzzleflash
+	Int32 attachmentIndex = SDL_atoi(attachmentString.c_str());
+	EV_AttachmentDirectionMuzzleFlash(pentity, pstrSeparator+1, attachmentIndex, attachmentIndex + 1);
+
+	Vector forward;
+	Math::AngleVectors(pentity->curstate.angles, &forward);
+
+	cl_efxapi.pfnSpawnParticleSystem(pentity->getAttachment(0), forward, PART_SCRIPT_SYSTEM, MUZZLE_PARTICLE_SMOKE, attachmentIndex + 1, pentity->entindex, attachmentIndex, NO_POSITION, PARTICLE_ATTACH_NONE);
 }
 
 //=============================================

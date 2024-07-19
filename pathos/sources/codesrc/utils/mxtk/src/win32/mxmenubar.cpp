@@ -26,7 +26,8 @@ public:
 
 
 mxMenuBar::mxMenuBar (mxWindow *parent)
-: mxWidget (0, 0, 0, 0, 0)
+: mxWidget (0, 0, 0, 0, 0),
+  d_this(nullptr)
 {
 	void *handle = (void *) CreateMenu ();
 	setHandle (handle);
@@ -51,7 +52,7 @@ mxMenuBar::~mxMenuBar ()
 void
 mxMenuBar::addMenu (const char *item, mxMenu *menu)
 {
-	AppendMenu ((HMENU) getHandle (), MF_POPUP, (UINT) ((mxWidget *) menu)->getHandle (), item);
+	AppendMenu ((HMENU) getHandle (), MF_POPUP, (UINT_PTR) ((mxWidget *) menu)->getHandle (), item);
 }
 
 

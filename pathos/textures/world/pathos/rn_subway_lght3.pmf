@@ -3,6 +3,6 @@ $texture
 	$int_width 64
 	$int_height 16
 	$container pathos.wad
-	$material concrete
+	$material computer
 	$texture diffuse rn_subway_lght3
 }

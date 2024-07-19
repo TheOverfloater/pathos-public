@@ -39,6 +39,7 @@ enum subwayline_t;
 enum activity_t;
 enum deathstate_t;
 enum weaponid_t;
+enum scripted_sequence_anim_t;
 
 struct weaponinfo_t;
 
@@ -100,7 +101,7 @@ public:
 	// Manages a keyvalue
 	virtual bool KeyValue( const keyvalue_t& kv );
 	// Called when the entity is freed
-	virtual void FreeEntity( void );
+	virtual void FreeEntity( edict_removed_t freeMode );
 	// Called when entity is overriding a local entity
 	virtual void OnOverrideEntity( void ) { };
 	// Calld when aiment is freed
@@ -249,6 +250,8 @@ public:
 	virtual bool IsFuncButtonEntity( void ) const { return false; }
 	// Tells if this entity is a trigger_changetarget entity
 	virtual bool IsTriggerChangeTargetEntity( void ) const { return false; }
+	// Tells if this entity is a light_environment entity
+	virtual bool IsLightEnvironment( void ) const { return false; };
 
 	// Triggers targets of this entity
 	virtual void UseTargets( CBaseEntity* pActivator, usemode_t useMode, Float value, string_t target = NO_STRING_VALUE );
@@ -256,33 +259,35 @@ public:
 	// Advances states on diaries
 	virtual void AdvanceState( void ) { }
 	// Sets monitor for an info_monitorcamera entity
-	virtual void AddCameraMonitorEntity( const edict_t* pedict ) { }
+	virtual void AddCameraMonitorEntity( const edict_t* pedict ) { STUBWARNING; }
 	// Gets the entity's illumination
-	virtual Int32 GetIllumination( void ) { return 0; }
+	virtual Int32 GetIllumination( void ) { STUBWARNING; return 0; }
 	// Sets parent door for func_door entities
-	virtual void SetParentDoor( CFuncDoor* pParent ) { }
+	virtual void SetParentDoor( CFuncDoor* pParent ) { STUBWARNING; }
 	// Nudges this ground entity
-	virtual void GroundEntityNudge( bool noExceptions = false ) { }
+	virtual void GroundEntityNudge( bool noExceptions = false ) { STUBWARNING; }
 	// Called when a related entity is removed
-	virtual void ChildEntityRemoved( CBaseEntity* pEntity ) { }
+	virtual void ChildEntityRemoved( CBaseEntity* pEntity ) {}
 	// Sets a door to be forced to close
-	virtual void SetForcedClose( void ) { }
+	virtual void SetForcedClose( void ) { STUBWARNING; }
 	// Reroutes a train to another path_corner
-	virtual void Reroute( CBaseEntity* pTarget, Float speed ) { };
+	virtual void Reroute( CBaseEntity* pTarget, Float speed ) { STUBWARNING;  };
 	// Moves a train to a specified path_corner entity
-	virtual void MoveTrainToPathCorner( CBaseEntity* pPathCorner, CBaseEntity* pTargetingPathCorner ) { };
+	virtual void MoveTrainToPathCorner( CBaseEntity* pPathCorner, CBaseEntity* pTargetingPathCorner ) { STUBWARNING; };
 	// Returns the number of monitors tied to an info_monitorcamera entity
-	virtual Uint32 GetNbCameraMonitors( void ) const { return 0; }
+	virtual Uint32 GetNbCameraMonitors( void ) const { STUBWARNING;  return 0; }
 	// Returns a monitor by it's index
-	virtual const edict_t* GetMonitorByIndex( Uint32 index ) const { return nullptr; }
+	virtual const edict_t* GetMonitorByIndex( Uint32 index ) const { STUBWARNING; return nullptr; }
 	// Checks entity against info_monitorcamera's bounding box
-	virtual bool CheckCameraBBox( const edict_t* pedict ) const { return false; }
+	virtual bool CheckCameraBBox( const edict_t* pedict ) const { STUBWARNING; return false; }
 	// Tells the trigger_multiple to wait
-	virtual void TriggerWait( CBaseEntity* pActivator ) { };
+	virtual void TriggerWait( CBaseEntity* pActivator ) { STUBWARNING; };
 	// Tells the wait time for toggle entities
-	virtual Float GetWaitTime( void ) { return -1; }
+	virtual Float GetWaitTime( void ) { STUBWARNING;  return -1; }
 	// Tells the func_button to become unusable for n seconds
-	virtual void SetPairedButtonDelay( Float delayTime ) { };
+	virtual void SetPairedButtonDelay( Float delayTime ) { STUBWARNING; };
+	// Tells an light_environment to set the cvar values
+	virtual bool SetLightEnvValues( daystage_t daystage ) { STUBWARNING; return false; };
 
 	// Tells if the entity is an envpos_portal entity
 	virtual bool IsEnvPosPortalEntity( void ) const { return false; }
@@ -345,6 +350,9 @@ public:
 
 	// Returns the use reticle mins/maxs
 	virtual void GetUseReticleMinsMaxs( Vector& outMins, Vector& outMaxs, CBaseEntity* pPlayer );
+
+	// Called by NPC on scripted_sequence animation change
+	virtual void OnScriptedAnimationStart( scripted_sequence_anim_t scriptanim ) { STUBWARNING; };
 
 public:
 	//

@@ -413,7 +413,7 @@ void CVBO :: VBOSubBufferData ( Uint32 offset, const void *pdata, Uint32 size )
 
 	if(m_pVBOData)
 	{
-		byte* pdest = reinterpret_cast<byte*>(m_pVBOData) + offset;
+		byte* pdest = static_cast<byte*>(m_pVBOData) + offset;
 		memcpy(pdest, pdata, sizeof(byte)*size);
 	}
 	if(!m_bActive)
@@ -444,7 +444,7 @@ void CVBO::IBOSubBufferData ( Uint32 offset, const void *pdata, Uint32 size )
 
 	if(m_pVBOData)
 	{
-		byte* pdest = reinterpret_cast<byte*>(m_pIBOData) + offset;
+		byte* pdest = static_cast<byte*>(m_pIBOData) + offset;
 		memcpy(pdest, pdata, sizeof(byte)*size);
 	}
 

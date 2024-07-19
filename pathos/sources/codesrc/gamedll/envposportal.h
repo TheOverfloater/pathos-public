@@ -26,7 +26,7 @@ public:
 	virtual bool Spawn( void ) override;
 	virtual void Precache( void ) override;
 	virtual bool Restore( void ) override;
-	virtual void FreeEntity( void ) override;
+	virtual void FreeEntity( edict_removed_t freeMode ) override;
 	virtual void InitEntity( void ) override;
 	virtual void DeclareSaveFields( void ) override;
 	virtual bool KeyValue( const keyvalue_t& kv ) override;

@@ -57,10 +57,11 @@ void CFuncTrackAutoChangeRC::CallUse( CBaseEntity* pActivator, CBaseEntity* pCal
 	{
 		DisableUse();
 
-		if(m_toggleState == TS_AT_TOP)
+		if (m_toggleState == TS_AT_TOP)
 			GoDown();
 		else
 			GoUp();
+
 	}
 }
 
@@ -72,4 +73,24 @@ void CFuncTrackAutoChangeRC::CallBlocked( CBaseEntity* pBlocker )
 {
 	Float damageDealt = m_damageDealt > 0 ? m_damageDealt : DEFAULT_DAMAGE_DEALT;
 	pBlocker->TakeDamage(this, pBlocker, damageDealt, DMG_CRUSH);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CFuncTrackAutoChangeRC::HitBottom(void)
+{
+	CFuncTrackAutoChange::HitBottom();
+	m_targetState = TS_AT_TOP;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CFuncTrackAutoChangeRC::HitTop(void)
+{
+	CFuncTrackAutoChange::HitTop();
+	m_targetState = TS_AT_BOTTOM;
 }

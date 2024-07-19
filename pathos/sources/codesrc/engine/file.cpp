@@ -193,7 +193,7 @@ const byte* FL_LoadFile( const Char* pstrpath, Uint32* psize )
 	}
 
 	SDL_RWseek(pf, 0, RW_SEEK_END);
-	Int32 size = (Int32)SDL_RWtell(pf);
+	Int32 size = static_cast<Int32>(SDL_RWtell(pf));
 	SDL_RWseek(pf, 0, RW_SEEK_SET);
 
 	byte* pbuffer = new byte[size+1];
@@ -219,7 +219,7 @@ const byte* FL_LoadFile( const Char* pstrpath, Uint32* psize )
 		Double duration = timeEnd - timeBegin;
 
 		CString str;
-		str << "Read file in " << (Float)duration << " seconds, " << size << " bytes." << NEWLINE;
+		str << "Read file in " << static_cast<Float>(duration) << " seconds, " << size << " bytes." << NEWLINE;
 		ens.pfileiologfile->Write(str.c_str());
 	}
 
@@ -261,7 +261,7 @@ const byte* FL_LoadFileFromRoot( const Char* pstrpath, Uint32* psize )
 	}
 
 	SDL_RWseek(pf, 0, RW_SEEK_END);
-	Int32 size = (Int32)SDL_RWtell(pf);
+	Int32 size = static_cast<Int32>(SDL_RWtell(pf));
 	SDL_RWseek(pf, 0, RW_SEEK_SET);
 
 	byte* pbuffer = new byte[size+1];
@@ -287,7 +287,7 @@ const byte* FL_LoadFileFromRoot( const Char* pstrpath, Uint32* psize )
 		Double duration = timeEnd - timeBegin;
 
 		CString str;
-		str << "Read file in " << (Float)duration << " seconds, " << size << " bytes." << NEWLINE;
+		str << "Read file in " << static_cast<Float>(duration) << " seconds, " << size << " bytes." << NEWLINE;
 		ens.pfileiologfile->Write(str.c_str());
 	}
 

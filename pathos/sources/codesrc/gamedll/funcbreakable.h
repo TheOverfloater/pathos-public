@@ -27,7 +27,7 @@ public:
 
 public:
 	// Spawn object types count
-	static const Uint32 SPAWN_OBJECT_TYPES_COUNT = 24;
+	static const Uint32 SPAWN_OBJECT_TYPES_COUNT = 6;
 	// Object types spawned by breakable
 	static const Char* SPAWN_OBJECT_TYPES[SPAWN_OBJECT_TYPES_COUNT];
 	// Wood gibs model file

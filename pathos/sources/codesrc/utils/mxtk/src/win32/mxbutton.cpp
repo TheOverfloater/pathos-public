@@ -24,7 +24,7 @@ public:
 
 
 
-mxButton::mxButton (mxWindow *parent, int x, int y, int w, int h, const char *label, int id)
+mxButton::mxButton (mxWindow *parent, int x, int y, int w, int h, const char *label, __int64 id)
 : mxWidget (parent, x, y, w, h, label)
 {
 	if (!parent)
@@ -38,7 +38,7 @@ mxButton::mxButton (mxWindow *parent, int x, int y, int w, int h, const char *la
 				(HMENU) id, (HINSTANCE) GetModuleHandle (NULL), NULL);
 	
 	SendMessage ((HWND) handle, WM_SETFONT, (WPARAM) (HFONT) GetStockObject (ANSI_VAR_FONT), MAKELPARAM (TRUE, 0));
-	SetWindowLong ((HWND) handle, GWL_USERDATA, (LONG) this);
+	SetWindowLongPtr ((HWND) handle, GWL_USERDATA, (LONG_PTR) this);
 
 	setType (MX_BUTTON);
 	setHandle (handle);

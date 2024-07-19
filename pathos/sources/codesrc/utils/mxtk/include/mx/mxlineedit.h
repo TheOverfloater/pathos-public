@@ -36,7 +36,7 @@ public:
 	enum { Normal, ReadOnly, Password };
 
 	// CREATORS
-	mxLineEdit (mxWindow *parent, int x, int y, int w, int h, const char *label = 0, int id = 0, int style = 0);
+	mxLineEdit (mxWindow *parent, int x, int y, int w, int h, const char *label = 0, __int64 id = 0, int style = 0);
 	virtual ~mxLineEdit ();
 
 	// MANIPULATORS

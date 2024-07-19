@@ -25,20 +25,21 @@ inline CString& CString::operator=(const CString& str)
 
 		if(m_pString)
 		{
-			delete[] m_pString;
+			if(m_pString != EMPTY_STRING)
+				delete[] m_pString;	
+
 			m_pString = nullptr;
 		}
 
 		if(!psrc)
 		{
-			m_pString = new Char;
-			(*m_pString) = '\0';
+			m_pString = EMPTY_STRING;
 			m_stringLength = 0;
 
 			return (*this);
 		}
 
-		Uint32 strlength = str.length();
+		const Uint32 strlength = str.length();
 		m_pString = new Char[strlength+1];
 		qstrcpy(m_pString, psrc);
 		m_stringLength = strlength;
@@ -311,16 +312,18 @@ inline void CString::Append(const Char* psrc)
 {
 	if(psrc)
 	{
-		Uint32 srclength = qstrlen(psrc);
-		Uint32 newlength = srclength + m_stringLength;
+		const Uint32 srclength = qstrlen(psrc);
+		const Uint32 newlength = srclength + m_stringLength;
 
 		Char* pstrNew = new Char[newlength+1];
-		if(m_pString)
+		if(m_pString && m_pString != EMPTY_STRING)
 			sprintf(pstrNew, "%s%s", m_pString, psrc);
 		else
 			qstrcpy(pstrNew, psrc);
 
-		delete m_pString;
+		if(m_pString != EMPTY_STRING)
+			delete m_pString;
+
 		m_pString = pstrNew;
 		m_stringLength = newlength;
 	}
@@ -333,15 +336,17 @@ inline void CString::Append(const Char* psrc)
 //=============================================
 inline void CString::Append(Char c)
 {
-	Uint32 newlength = m_stringLength+1;
+	const Uint32 newlength = m_stringLength+1;
 
 	Char* pstrNew = new Char[newlength+1];
-	if(m_pString)
+	if(m_pString && m_pString != EMPTY_STRING)
 		sprintf(pstrNew, "%s%c", m_pString, c);
 	else
 		sprintf(pstrNew, "%c", c);
 
-	delete[] m_pString;
+	if(m_pString != EMPTY_STRING)
+		delete m_pString; 
+
 	m_pString = pstrNew;
 	m_stringLength = newlength;
 }
@@ -354,18 +359,20 @@ inline void CString::Append(Char c)
 inline void CString::Append(Int32 i)
 {
 	static Char convBuffer[64];
-	sprintf(convBuffer, "%d", i);
-	Int32 strlength = qstrlen(convBuffer);
+	sprintf_s(convBuffer, "%d", i);
+	const Int32 strlength = qstrlen(convBuffer);
 
-	Uint32 newlength = m_stringLength+strlength;
+	const Uint32 newlength = m_stringLength+strlength;
 
 	Char* pstrNew = new Char[newlength+1];
-	if(m_pString)
+	if(m_pString && m_pString != EMPTY_STRING)
 		sprintf(pstrNew, "%s%s", m_pString, convBuffer);
 	else
 		sprintf(pstrNew, "%s", convBuffer);
 
-	delete[] m_pString;
+	if(m_pString != EMPTY_STRING)
+		delete m_pString;
+
 	m_pString = pstrNew;
 	m_stringLength = newlength;
 }
@@ -378,18 +385,20 @@ inline void CString::Append(Int32 i)
 inline void CString::Append(Uint32 i)
 {
 	static Char convBuffer[64];
-	sprintf(convBuffer, "%d", (Int32)i);
-	Int32 strlength = qstrlen(convBuffer);
+	sprintf_s(convBuffer, "%d", static_cast<Int32>(i));
+	const Int32 strlength = qstrlen(convBuffer);
 
-	Uint32 newlength = m_stringLength+strlength;
+	const Uint32 newlength = m_stringLength+strlength;
 
 	Char* pstrNew = new Char[newlength+1];
-	if(m_pString)
+	if(m_pString && m_pString != EMPTY_STRING)
 		sprintf(pstrNew, "%s%s", m_pString, convBuffer);
 	else
 		sprintf(pstrNew, "%s", convBuffer);
 
-	delete[] m_pString;
+	if(m_pString != EMPTY_STRING)
+		delete m_pString;
+
 	m_pString = pstrNew;
 	m_stringLength = newlength;
 }
@@ -402,18 +411,20 @@ inline void CString::Append(Uint32 i)
 inline void CString::Append(Float f)
 {
 	static Char convBuffer[64];
-	sprintf(convBuffer, "%f", f);
+	sprintf_s(convBuffer, "%f", f);
 
-	Int32 strlength = qstrlen(convBuffer);
-	Uint32 newlength = m_stringLength+strlength;
+	const Int32 strlength = qstrlen(convBuffer);
+	const Uint32 newlength = m_stringLength+strlength;
 
 	Char* pstrNew = new Char[newlength+1];
-	if(m_pString)
+	if(m_pString && m_pString != EMPTY_STRING)
 		sprintf(pstrNew, "%s%s", m_pString, convBuffer);
 	else
 		sprintf(pstrNew, "%s", convBuffer);
 
-	delete[] m_pString;
+	if(m_pString != EMPTY_STRING)
+		delete m_pString;
+
 	m_pString = pstrNew;
 	m_stringLength = newlength;
 }
@@ -426,18 +437,20 @@ inline void CString::Append(Float f)
 inline void CString::Append(Double d)
 {
 	static Char convBuffer[64];
-	sprintf(convBuffer, "%9.9lf", d);
+	sprintf_s(convBuffer, "%9.9lf", d);
 
-	Int32 strlength = qstrlen(convBuffer);
-	Uint32 newlength = m_stringLength+strlength;
+	const Int32 strlength = qstrlen(convBuffer);
+	const Uint32 newlength = m_stringLength+strlength;
 
 	Char* pstrNew = new Char[newlength+1];
-	if(m_pString)
+	if(m_pString && m_pString != EMPTY_STRING)
 		sprintf(pstrNew, "%s%s", m_pString, convBuffer);
 	else
 		sprintf(pstrNew, "%s", convBuffer);
 
-	delete[] m_pString;
+	if(m_pString != EMPTY_STRING)
+		delete m_pString;
+
 	m_pString = pstrNew;
 	m_stringLength = newlength;
 }
@@ -474,7 +487,7 @@ inline Uint32 CString::length( void ) const
 //=============================================
 inline bool CString::empty( void ) const
 {
-	return (!m_stringLength || !m_pString || m_pString[0] == '\0');
+	return (!m_stringLength || !m_pString || m_pString == EMPTY_STRING);
 }
 
 //=============================================
@@ -494,15 +507,14 @@ inline const Char* CString::c_str( void ) const
 //=============================================
 inline void CString::clear( void )
 {
-	if(m_stringLength == 0 && m_pString && m_pString[0] == '\0')
+	if(m_stringLength == 0 && m_pString && m_pString == EMPTY_STRING)
 		return;
 
 	m_stringLength = 0;
-	if(m_pString)
+	if(m_pString && m_pString != EMPTY_STRING)
 		delete[] m_pString;
 
-	m_pString = new Char;
-	*m_pString = '\0';
+	m_pString = EMPTY_STRING;
 }
 
 //=============================================
@@ -511,7 +523,7 @@ inline void CString::clear( void )
 //=============================================
 inline void CString::assign( const Char* pstr, Uint32 num )
 {
-	if(m_pString)
+	if(m_pString && m_pString != EMPTY_STRING)
 		delete[] m_pString;
 
 	m_pString = new Char[num+1];
@@ -552,7 +564,7 @@ inline Int32 CString::find( Uint32 offset, const Char* psubstr )
 	assert(offset < m_stringLength);
 	const Char* pstrbegin = m_pString + offset;
 
-	Uint32 substrlength = qstrlen(psubstr);
+	const Uint32 substrlength = qstrlen(psubstr);
 	const Char* pstr = pstrbegin;
 	while(*pstr != '\0')
 	{
@@ -581,7 +593,7 @@ inline void CString::erase( Uint32 begin, Uint32 numremove )
 {
 	assert(begin < m_stringLength && (begin+numremove) <= m_stringLength);
 
-	Uint32 newsize = m_stringLength - numremove;
+	const Uint32 newsize = m_stringLength - numremove;
 	Char* pstrnew = new Char[newsize+1];
 
 	Uint32 srcindex = 0;
@@ -593,7 +605,7 @@ inline void CString::erase( Uint32 begin, Uint32 numremove )
 	}
 
 	// Copy trailing if present
-	Uint32 end = begin + numremove;
+	const Uint32 end = begin + numremove;
 	if(end < m_stringLength)
 	{
 		srcindex = end;
@@ -607,7 +619,9 @@ inline void CString::erase( Uint32 begin, Uint32 numremove )
 	// Terminate string
 	pstrnew[dstindex] = '\0';
 
-	delete[] m_pString;
+	if(m_pString && m_pString != EMPTY_STRING)
+		delete[] m_pString;
+
 	m_pString = pstrnew;
 	m_stringLength = dstindex;
 }
@@ -633,7 +647,9 @@ inline void CString::insert( Uint32 begin, const Char* pstrsubstr )
 	m_stringLength = m_stringLength+substrlength;
 	pstrnew[m_stringLength] = '\0';
 
-	delete[] m_pString;
+	if(m_pString && m_pString != EMPTY_STRING)
+		delete[] m_pString;
+
 	m_pString = pstrnew;
 }
 

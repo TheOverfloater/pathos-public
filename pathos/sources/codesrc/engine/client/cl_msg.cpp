@@ -57,91 +57,119 @@ bool CL_ReadMessages( void )
 		if(reader.HasError())
 			Con_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
 
-		switch(cmd)
+		switch (cmd)
 		{
 		case svc_nop:
+			{
+			}
 			break;
-
 		case svc_clcommand:
-			CL_ParseClientCommand();
+			{
+				CL_ParseClientCommand();
+			}
 			break;
-
 		case svc_serverinfo:
-			if(!CL_ParseServerInfo())
-				return false;
+			{
+				if (!CL_ParseServerInfo())
+					return false;
+			}
 			break;
-
+		case svc_lightenvinfo:
+			{
+				if (!CL_ParseLightEnvInfo())
+					return false;
+			}
+			break;
 		case svc_clientdata:
-			if(!CL_ReadClientData())
-				return false;
+			{
+				if (!CL_ReadClientData())
+					return false;
+			}
 			break;
-
 		case svc_movevars:
-			CL_ReadMoveVars();
+			{
+				if (!CL_ReadMoveVars())
+					return false;
+			}
 			break;
-
 		case svc_sndengine:
-			CL_ReadSoundEngineMessage();
+			{
+				CL_ReadSoundEngineMessage();
+			}
 			break;
-
 		case svc_registerusermsg:
-			CL_RegisterUserMessage();
+			{
+				CL_RegisterUserMessage();
+			}
 			break;
-
 		case svc_usermsg:
-			CL_ReadUserMessage();
+			{
+				CL_ReadUserMessage();
+			}
 			break;
-
 		case svc_heartbeat:
-			CL_ParseHeartBeat();
+			{
+				CL_ParseHeartBeat();
+			}
 			break;
-
 		case svc_setvangles:
-			CL_ParseViewSetAngles();
+			{
+				CL_ParseViewSetAngles();
+			}
 			break;
-
 		case svc_addavelocity:
-			CL_ParseAddAVelocity();
+			{
+				CL_ParseAddAVelocity();
+			}
 			break;
-
 		case svc_packetentities:
-			if(!CL_ReadPacketEntities())
-				return false;
+			{
+				if (!CL_ReadPacketEntities())
+					return false;
+			}
 			break;
-
 		case svc_print:
-			Con_Printf(reader.ReadString());
+			{
+				Con_Printf(reader.ReadString());
+			}
 			break;
-
 		case svc_disconnect:
-			CL_DisconnectMsg();
-			return false;
-			break;
-
-		case svc_resources:
-			if(!CL_ReadResourceMessage())
+			{
+				CL_DisconnectMsg();
 				return false;
+			}
 			break;
-
+		case svc_resources:
+			{
+				if (!CL_ReadResourceMessage())
+					return false;
+			}
+			break;
 		case svc_consistency:
-			CL_FileConsistencyMsg();
+			{
+				CL_FileConsistencyMsg();
+			}
 			break;
-
 		case svc_setpause:
-			cls.paused = (reader.ReadByte() == 1) ? true : false;
+			{
+				cls.paused = (reader.ReadByte() == 1) ? true : false;
+			}
 			break;
-
 		case svc_precacheparticlescript:
-			CL_ReadParticlePrecacheMessage();
+			{
+				CL_ReadParticlePrecacheMessage();
+			}
 			break;
-
 		case svc_precachedecal:
-			CL_ReadDecalPrecacheMessage();
+			{
+				CL_ReadDecalPrecacheMessage();
+			}
 			break;
-
 		case svc_bad:
 		default:
-			Con_Printf("%s - svc_bad.\n", __FUNCTION__);
+			{
+				Con_Printf("%s - svc_bad.\n", __FUNCTION__);
+			}
 			break;
 		}
 	}
@@ -242,12 +270,6 @@ bool CL_ParseServerInfo( void )
 
 	// Parse skybox name
 	cls.skyname = reader.ReadString();
-	cls.skyvec.x = reader.ReadFloat();
-	cls.skyvec.y = reader.ReadFloat();
-	cls.skyvec.z = reader.ReadFloat();
-	cls.skycolor.x = reader.ReadFloat();
-	cls.skycolor.y = reader.ReadFloat();
-	cls.skycolor.z = reader.ReadFloat();
 
 	for(Uint32 i = 0; i < MAX_MAP_HULLS; i++)
 	{
@@ -278,7 +300,33 @@ bool CL_ParseServerInfo( void )
 //=============================================
 //
 //=============================================
-void CL_ReadMoveVars( void )
+bool CL_ParseLightEnvInfo(void)
+{
+	CMSGReader& reader = cls.netinfo.reader;
+
+	cls.skyvec.x = reader.ReadFloat();
+	cls.skyvec.y = reader.ReadFloat();
+	cls.skyvec.z = reader.ReadFloat();
+	cls.skycolor.x = reader.ReadFloat();
+	cls.skycolor.y = reader.ReadFloat();
+	cls.skycolor.z = reader.ReadFloat();
+
+	if (reader.HasError())
+	{
+		Con_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+		return false;
+	}
+
+	// Reset lighting on entities
+	CL_ResetLighting();
+
+	return true;
+}
+
+//=============================================
+//
+//=============================================
+bool CL_ReadMoveVars( void )
 {
 	CMSGReader& reader = cls.netinfo.reader;
 
@@ -302,11 +350,12 @@ void CL_ReadMoveVars( void )
 	if(reader.HasError())
 	{
 		Con_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
-		return;
+		return false;
 	}
 
 	// Set in cls too
 	cls.maxclients = cls.pminfo.movevars.maxclients;
+	return true;
 }
 
 //=============================================
@@ -472,7 +521,7 @@ bool CL_ReadPacketEntities( void )
 		Uint32 identifier = reader.ReadUint32();
 
 		// Filter for bad messages
-		if(entindex >= (Int32)cls.entities.size())
+		if(entindex >= static_cast<entindex_t>(cls.entities.size()))
 		{
 			Con_Printf("CL_ReadPacketEntities - svc_bad.\n", __FUNCTION__);
 			return false;
@@ -585,8 +634,8 @@ bool CL_ReadPacketEntities( void )
 		if(updateMask & U_BASICS1)
 		{
 			state.modelindex = reader.ReadInt32();
-			state.movetype = (movetype_t)reader.ReadInt32();
-			state.solid = (solid_t)reader.ReadInt32();
+			state.movetype = static_cast<movetype_t>(reader.ReadInt32());
+			state.solid = static_cast<solid_t>(reader.ReadInt32());
 			state.groupinfo = reader.ReadInt32();
 		}
 
@@ -626,8 +675,8 @@ bool CL_ReadPacketEntities( void )
 		if(updateMask & U_RENDERINFO)
 		{
 			state.scale = reader.ReadFloat();
-			state.rendertype = (rendertype_t)reader.ReadInt32();
-			state.rendermode = (rendermode_t)reader.ReadInt32();
+			state.rendertype = static_cast<rendertype_t>(reader.ReadInt32());
+			state.rendermode = static_cast<rendermode_t>(reader.ReadInt32());
 			state.renderamt = reader.ReadFloat();
 			state.renderfx = reader.ReadInt32();
 			state.numsegments = reader.ReadUint32();
@@ -648,7 +697,7 @@ bool CL_ReadPacketEntities( void )
 			state.buttons = reader.ReadInt32();
 			state.oldbuttons = reader.ReadInt32();
 			state.flags = reader.ReadUint64();
-			state.waterlevel = (waterlevel_t)reader.ReadInt32();
+			state.waterlevel = static_cast<waterlevel_t>(reader.ReadInt32());
 			state.fov = reader.ReadFloat();
 		}
 
@@ -857,7 +906,7 @@ void CL_ReadUserMessage( void )
 	Int32 msgindex = msgid - 1;
 
 	// Look it up
-	if((Int32)cls.netinfo.usermsgfunctions.size() <= msgindex)
+	if(static_cast<Int32>(cls.netinfo.usermsgfunctions.size()) <= msgindex)
 	{
 		Con_EPrintf("%s - Message with bogus id %d received.\n", __FUNCTION__, msgid);
 		return;
@@ -892,7 +941,7 @@ void CL_ReadParticlePrecacheMessage( void )
 	CMSGReader& reader = cls.netinfo.reader;
 
 	const Char* pstrfilepath = reader.ReadString();
-	part_script_type_t type = (part_script_type_t)reader.ReadByte();
+	part_script_type_t type = static_cast<part_script_type_t>(reader.ReadByte());
 
 	if(reader.HasError())
 	{
@@ -911,7 +960,7 @@ void CL_ReadDecalPrecacheMessage( void )
 	CMSGReader& reader = cls.netinfo.reader;
 
 	CString name = reader.ReadString();
-	decalcache_type_t type = (decalcache_type_t)reader.ReadByte();
+	decalcache_type_t type = static_cast<decalcache_type_t>(reader.ReadByte());
 
 	for(Uint32 i = 0; i < cls.netinfo.decalcache.size(); i++)
 	{
@@ -959,7 +1008,7 @@ void CL_RegisterUserMessage( void )
 
 	// See if this message is already registered
 	Int32 index = msgid - 1;
-	if(index < (Int32)cls.netinfo.usermsgfunctions.size())
+	if(index < static_cast<Int32>(cls.netinfo.usermsgfunctions.size()))
 	{
 		cl_usermsgfunction_t& msg = cls.netinfo.usermsgfunctions[index];
 		if(qstrcmp(msg.name, pstrMsgName) || msg.id != msgid)
@@ -974,7 +1023,7 @@ void CL_RegisterUserMessage( void )
 	usermsgfuncname << "MsgFunc_" << pstrMsgName;
 
 	// Load function pointer
-	pfnCLUserMsg_t pFunction = reinterpret_cast<pfnCLUserMsg_t>(SDL_LoadFunction(cls.pdllhandle, usermsgfuncname.c_str()));
+	pfnCLUserMsg_t pFunction = static_cast<pfnCLUserMsg_t>(SDL_LoadFunction(cls.pdllhandle, usermsgfuncname.c_str()));
 	if(!pFunction)
 	{
 		// Add the entry anyway, but warn the client
@@ -1177,7 +1226,7 @@ void CL_ReadSoundEngineMessage( void )
 			Int32 svindex = reader.ReadInt16();
 			entindex_t entindex = reader.ReadInt16();
 			byte channel = reader.ReadByte();
-			snd_effects_t effect = (snd_effects_t)reader.ReadByte();
+			snd_effects_t effect = static_cast<snd_effects_t>(reader.ReadByte());
 			Float duration = reader.ReadSmallFloat();
 			Float targetvalue = reader.ReadFloat();
 

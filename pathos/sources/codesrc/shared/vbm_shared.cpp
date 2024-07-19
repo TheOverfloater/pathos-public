@@ -40,8 +40,8 @@ void VBM_CalculateBoneAdjustments( const studiohdr_t* phdr, Float dadt, Float* p
 			{
 				if(SDL_fabs(pcontroller1[i]-pcontroller2[i]) > 128.0f)
 				{
-					Int32 a = ((Int32)pcontroller1[i]+128)%256;
-					Int32 b = ((Int32)pcontroller2[i]+128)%256;
+					Int32 a = (static_cast<Int32>(pcontroller1[i])+128)%256;
+					Int32 b = (static_cast<Int32>(pcontroller2[i])+128)%256;
 
 					value = (a*dadt + b*(1.0f-dadt)) * (360.0f/256.0f) + pbonecontroller->start;
 				}
@@ -58,7 +58,7 @@ void VBM_CalculateBoneAdjustments( const studiohdr_t* phdr, Float dadt, Float* p
 		}
 		else
 		{
-			value = (Float)mouth/64.0f;
+			value = static_cast<Float>(mouth)/64.0f;
 			clamp(value, 0.0f, 1.0f);
 
 			value = (1.0-value) * pbonecontroller->start + value*pbonecontroller->end;
@@ -235,17 +235,17 @@ void VBM_CalculateBonePosition( Int32 frame, Float interpolant, const mstudiobon
 			if (panimvalue->num.valid > j)
 			{
 				if (panimvalue->num.valid > j + 1)
-					outpos[i] += ((Double)panimvalue[j+1].value * (1.0 - interpolant) + interpolant * (Double)panimvalue[j+2].value) * pbone->scale[i];
+					outpos[i] += (static_cast<Double>(panimvalue[j+1].value) * (1.0 - interpolant) + interpolant * static_cast<Double>(panimvalue[j+2].value)) * pbone->scale[i];
 				else
-					outpos[i] += (Double)panimvalue[j+1].value * pbone->scale[i];
+					outpos[i] += static_cast<Double>(panimvalue[j+1].value) * pbone->scale[i];
 			}
 			else
 			{
 				// are we at the end of the repeating values section and there'interpolant another section with data?
 				if (panimvalue->num.total <= j + 1)
-					outpos[i] += ((Double)panimvalue[panimvalue->num.valid].value * (1.0 - interpolant) + interpolant * (Double)panimvalue[panimvalue->num.valid + 2].value) * pbone->scale[i];
+					outpos[i] += (static_cast<Double>(panimvalue[panimvalue->num.valid].value) * (1.0 - interpolant) + interpolant * static_cast<Double>(panimvalue[panimvalue->num.valid + 2].value)) * pbone->scale[i];
 				else
-					outpos[i] += (Double)panimvalue[panimvalue->num.valid].value * pbone->scale[i];
+					outpos[i] += static_cast<Double>(panimvalue[panimvalue->num.valid].value) * pbone->scale[i];
 			}
 		}
 
@@ -273,7 +273,7 @@ Float VBM_EstimateFrame( const mstudioseqdesc_t* pseqdesc, const entity_state_t&
 	if(pseqdesc->flags & STUDIO_LOOPING)
 	{
 		if(pseqdesc->numframes > 1)
-			frame -= (Int32)(frame/(pseqdesc->numframes - 1))*(pseqdesc->numframes - 1);
+			frame -= static_cast<Int32>(frame/(pseqdesc->numframes - 1))*(pseqdesc->numframes - 1);
 
 		if(frame < 0)
 			frame += (pseqdesc->numframes - 1);
@@ -304,7 +304,7 @@ bool VBM_HasTransparentParts( vbmheader_t* pvbmheader, Uint64 body, Int32 skin )
 	for(Int32 i = 0; i < pvbmheader->numbodyparts; i++)
 	{
 		vbmbodypart_t* pbodypart = pvbmheader->getBodyPart(i);
-		Uint32 index = (body / pbodypart->base) % pbodypart->numsubmodels;
+		const Uint32 index = (body / pbodypart->base) % pbodypart->numsubmodels;
 
 		vbmsubmodel_t* psubmodel = pbodypart->getSubmodel(pvbmheader, index);
 
@@ -330,7 +330,7 @@ void VBM_NormalizeWeights( Float* pflweights, Uint32 maxweights )
 	for(Uint32 i = 0; i < maxweights; i++)
 		totalweight += pflweights[i];
 
-	Float scale = 1.0f/totalweight;
+	const Float scale = 1.0f/totalweight;
 	for(Uint32 i = 0; i < maxweights; i++)
 	{
 		if(pflweights[i] > 0)
@@ -370,12 +370,12 @@ void VBM_CalculateRotations( const studiohdr_t* phdr, Float time, Float animtime
 		_frame = -0.01f;
 
 	// Calculate interpolant value
-	Int32 intframe = (Int32)(_frame);
-	Float dadt = VBM_EstimateInterpolant(time, animtime, prevanimtime);
-	Float interp = _frame - intframe;
+	const Int32 intframe = static_cast<Int32>(_frame);
+	const Float dadt = VBM_EstimateInterpolant(time, animtime, prevanimtime);
+	const Float interp = _frame - intframe;
 	
 	// Estimate controller values
-	Float controlleradj[MAXSTUDIOCONTROLLERS];
+	Float controlleradj[MAXSTUDIOCONTROLLERS] = { 0 };
 	for(Uint32 i = 0; i < MAXSTUDIOCONTROLLERS; i++)
 		controlleradj[i] = 0;
 
@@ -447,12 +447,12 @@ bool VBM_MeshBonesCompatible( vbmmesh_t *pgrp1, vbmmesh_t *pgrp2, vbmheader_t* p
 	const Int16 *pskinref = pvbm->getSkinFamilies();
 	for(Int32 i = 0; i < pvbm->numskinfamilies; i++)
 	{
-		Int32 skinoffs = pvbm->numskinref * i;
-		vbmtexture_t *ptexture1 = pvbm->getTexture(pskinref[skinoffs + pgrp1->skinref]);
-		vbmtexture_t *ptexture2 = pvbm->getTexture(pskinref[skinoffs + pgrp2->skinref]);
+		const Int32 skinoffs = pvbm->numskinref * i;
+		const vbmtexture_t *ptexture1 = pvbm->getTexture(pskinref[skinoffs + pgrp1->skinref]);
+		const vbmtexture_t *ptexture2 = pvbm->getTexture(pskinref[skinoffs + pgrp2->skinref]);
 
-		en_material_t* pmaterial1 = pfnFindMaterialScriptByIndex(ptexture1->index);
-		en_material_t* pmaterial2 = pfnFindMaterialScriptByIndex(ptexture2->index);
+		const en_material_t* pmaterial1 = pfnFindMaterialScriptByIndex(ptexture1->index);
+		const en_material_t* pmaterial2 = pfnFindMaterialScriptByIndex(ptexture2->index);
 		if(!pmaterial1 || !pmaterial2)
 			return true;
 
@@ -595,7 +595,7 @@ Float VBM_SetController( const cache_model_t* pmodel, Uint32 controllerindex, Fl
 
 	// get pointer to studio data
 	const vbmcache_t* pcache = pmodel->getVBMCache();
-	studiohdr_t* pstudiohdr = pcache->pstudiohdr;
+	const studiohdr_t* pstudiohdr = pcache->pstudiohdr;
 	if(!pstudiohdr)
 	{
 		pfnCon_Printf("%s - Called on model '%s' which has no valid studio data.\n", __FUNCTION__, pmodel->name.c_str());
@@ -603,12 +603,12 @@ Float VBM_SetController( const cache_model_t* pmodel, Uint32 controllerindex, Fl
 	}
 
 	// Get bone controller
-	const mstudiobonecontroller_t* pbonecontrollers = reinterpret_cast<const mstudiobonecontroller_t*>(reinterpret_cast<byte*>(pstudiohdr) + pstudiohdr->bonecontrollerindex);
+	const mstudiobonecontroller_t* pbonecontrollers = reinterpret_cast<const mstudiobonecontroller_t*>(reinterpret_cast<const byte*>(pstudiohdr) + pstudiohdr->bonecontrollerindex);
 
 	Int32 i = 0;
 	for(; i < pstudiohdr->numbonecontrollers; i++)
 	{
-		if(pbonecontrollers[i].index == (Int32)controllerindex)
+		if(pbonecontrollers[i].index == static_cast<Int32>(controllerindex))
 			break;
 	}
 
@@ -630,9 +630,9 @@ Float VBM_SetController( const cache_model_t* pmodel, Uint32 controllerindex, Fl
 		else
 		{
 			if(value > 360)
-				value -= (Int32)(value/360.0)*360.0;
+				value -= static_cast<Int32>((value/360.0)*360.0);
 			else if(value < 0)
-				value += (Int32)((value/-360.0)+1)*360.0;
+				value += static_cast<Int32>(((value/-360.0)+1)*360.0);
 		}
 	}
 

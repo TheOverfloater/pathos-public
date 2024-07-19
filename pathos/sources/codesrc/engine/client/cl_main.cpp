@@ -57,11 +57,11 @@ CCVar* g_pCvarName;
 CCVar* g_pCvarPredictiton;
 
 // Time before we try reconnecting again
-static const Float RECONNECT_DELAY_TIME = 5.0f;
+static constexpr Float RECONNECT_DELAY_TIME = 5.0f;
 // Max attempts at reconnecting
-static const Uint32 MAX_CONNECTION_RETRIES = 4;
+static constexpr Uint32 MAX_CONNECTION_RETRIES = 4;
 // Amount of time we wait without getting messages, before sending a heartbeat to the server
-static const Float HEARTBEAT_DELAY_TIME = 2.5f;
+static constexpr Float HEARTBEAT_DELAY_TIME = 2.5f;
 
 //
 // Client dll engine functions
@@ -185,7 +185,7 @@ bool CL_Init( void )
 	}
 
 	// Init the gamedll interface
-	pfnClientDLLInit_t pfnCLDLLInit = reinterpret_cast<pfnClientDLLInit_t>(SDL_LoadFunction(cls.pdllhandle, "ClientDLL_Init"));
+	pfnClientDLLInit_t pfnCLDLLInit = static_cast<pfnClientDLLInit_t>(SDL_LoadFunction(cls.pdllhandle, "ClientDLL_Init"));
 	if(!pfnCLDLLInit)
 	{
 		Sys_ErrorPopup("Failed to hook 'ClientDLL_Init' in client dll.\n");
@@ -234,10 +234,10 @@ bool CL_Init( void )
 
 	// Init cvars
 	CString defaultfovvalue;
-	defaultfovvalue << (Int32)DEFAULT_FOV_VALUE;
+	defaultfovvalue << static_cast<Int32>(DEFAULT_FOV_VALUE);
 
 	CString referencefovvalue;
-	referencefovvalue << (Int32)REFERENCE_FOV_VALUE;
+	referencefovvalue << static_cast<Int32>(REFERENCE_FOV_VALUE);
 
 	g_pCvarDefaultFOV = Engine_CreateCVar(CVAR_FLOAT, FL_CV_CLIENT, DEFAULT_FOV_CVAR_NAME, defaultfovvalue.c_str(), "Default field of view value.");
 	g_pCvarReferenceFOV = Engine_CreateCVar(CVAR_FLOAT, FL_CV_CLIENT, REFERENCE_FOV_CVAR_NAME, referencefovvalue.c_str(), "Reference field of view value.");
@@ -1164,7 +1164,7 @@ void CL_SetFlexScript( entindex_t entindex, const Char* pstrscript )
 		return;
 	}
 
-	cl_entity_t* pentity = CL_GetEntityByIndex((Uint32)entindex);
+	cl_entity_t* pentity = CL_GetEntityByIndex(static_cast<Uint32>(entindex));
 	if(!pentity || !pentity->pmodel || pentity->pmodel->type != MOD_VBM)
 	{
 		Con_DPrintf("%s - Could not get entity for script '%s'.\n", __FUNCTION__, pstrscript);

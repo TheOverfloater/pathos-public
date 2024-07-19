@@ -73,7 +73,7 @@ bool CMenuParticles::Init( void )
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 
 	// Determine which texture to use
-	Float aspectRatio = (Float)gWindow.GetWidth()/(Float)gWindow.GetHeight();
+	Float aspectRatio = static_cast<Float>(gWindow.GetWidth())/ static_cast<Float>(gWindow.GetHeight());
 	if(aspectRatio > 1.5)
 		m_pBgAlphaTexture = pTextureManager->LoadTexture("menu/background_widescreen_alpha.dds", RS_WINDOW_LEVEL, TX_FL_NOMIPMAPS);
 	else
@@ -194,10 +194,10 @@ bool CMenuParticles::Draw( void )
 
 	// Set matrices
 	rns.view.modelview.LoadIdentity();
-	rns.view.modelview.Scale(1.0f/(Float)rns.screenwidth,1.0f/(Float)rns.screenheight, 1.0);
+	rns.view.modelview.Scale(1.0f/ static_cast<Float>(rns.screenwidth),1.0f/ static_cast<Float>(rns.screenheight), 1.0);
 
 	rns.view.projection.LoadIdentity();
-	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, (Float)0.1, 100);
+	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, 0.1f, 100);
 
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
@@ -217,9 +217,9 @@ bool CMenuParticles::Draw( void )
 		Float alpha = pParticle->alpha * pParticle->mainalpha;
 
 		Float tc0x = pParticle->texcoords[0];
-		Float tc1x = pParticle->texcoords[0] + ((Float)pParticle->width / (Float)m_pParticleTexture->width);
+		Float tc1x = pParticle->texcoords[0] + (static_cast<Float>(pParticle->width) / static_cast<Float>(m_pParticleTexture->width));
 		Float tc0y = pParticle->texcoords[1];
-		Float tc1y = pParticle->texcoords[1] + ((Float)pParticle->height / (Float)m_pParticleTexture->height);
+		Float tc1y = pParticle->texcoords[1] + (static_cast<Float>(pParticle->height) / static_cast<Float>(m_pParticleTexture->height));
 
 		Float up = (pParticle->height * pParticle->scale) * 0.5;
 		Float down = -up;
@@ -280,7 +280,7 @@ void CMenuParticles::Think( void )
 
 	// Determine number of particles to spawn based on variation
 	Uint32 spawnFrequency = PARTICLE_SPAWN_FREQ + SDL_fabs(SDL_sin(ens.time)*0.5*PARTICLE_SPAWN_VARIATION);
-	Double spawnInterval = 1.0f / (Double)spawnFrequency;
+	Double spawnInterval = 1.0f / static_cast<Double>(spawnFrequency);
 
 	// Determine how many should've been spawned since last time
 	Double elapsedTime = ens.time - m_lastSpawnTime;
@@ -437,8 +437,8 @@ bool CMenuParticles::SpawnParticle( Float xcoord, Float ycoord, bool noinfade )
 	pParticle->velocity.x = Common::RandomFloat(-20, 20);
 	pParticle->velocity.y = Common::RandomFloat(-10, 10);
 
-	pParticle->texcoords[0] = (pParticle->width * Common::RandomLong(0, 3))/(Float)m_pParticleTexture->width;
-	pParticle->texcoords[1] = (pParticle->height * Common::RandomLong(0, 3))/(Float)m_pParticleTexture->height;
+	pParticle->texcoords[0] = (pParticle->width * Common::RandomLong(0, 3))/static_cast<Float>(m_pParticleTexture->width);
+	pParticle->texcoords[1] = (pParticle->height * Common::RandomLong(0, 3))/ static_cast<Float>(m_pParticleTexture->height);
 
 	m_particlesList.add(pParticle);
 	return true;

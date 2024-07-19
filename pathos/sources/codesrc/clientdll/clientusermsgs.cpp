@@ -124,10 +124,10 @@ MSGFN MsgFunc_CreateGenericDecal( const Char* pstrName, const byte* pdata, Uint3
 
 		if(flags & FL_DECAL_DIE_FADE)
 			fadetime = reader.ReadSmallFloat();
-
-		if(flags & FL_DECAL_GROW)
-			growthtime = reader.ReadSmallFloat();
 	}
+
+	if(flags & FL_DECAL_GROW)
+		growthtime = reader.ReadSmallFloat();
 
 	if(reader.HasError())
 	{
@@ -1423,6 +1423,8 @@ MSGFN MsgFunc_CreateGameUIWindow( const Char* pstrName, const byte* pdata, Uint3
 
 			// Read flags
 			Int32 flags = reader.ReadByte();
+			// Read line index
+			Int32 lineIndex = reader.ReadByte();
 
 			if(reader.HasError())
 			{
@@ -1438,7 +1440,7 @@ MSGFN MsgFunc_CreateGameUIWindow( const Char* pstrName, const byte* pdata, Uint3
 				return true;
 			}
 
-			if(!pWindow->initData(scriptfilepath.c_str(), flags))
+			if(!pWindow->initData(scriptfilepath.c_str(), flags, lineIndex))
 			{
 				cl_engfuncs.pfnCon_EPrintf("%s - Failed to initialize 'CGameUISubwayWindow'.\n", __FUNCTION__);
 				return true;

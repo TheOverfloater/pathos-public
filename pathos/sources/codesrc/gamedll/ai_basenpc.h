@@ -636,7 +636,7 @@ protected:
 	void StopMovement( void );
 
 	// Drops an item/weapon
-	CBaseEntity* DropItem( const Char* pstrClassName, const Vector& itemPosition, const Vector& itemAngles );
+	CBaseEntity* DropItem( weaponid_t weaponId, Uint32 attachmentIndex, bool wasGibbed );
 
 	// Checks clear damage list for any dmg bit that needs to be cleared
 	void ProcessClearDamageList( void );
@@ -1255,6 +1255,9 @@ protected:
 
 	// True if yaw should be updated
 	bool						m_updateYaw;
+
+	// For any tossed object
+	Vector						m_tossVelocity;
 
 	// Best sound we're investigating
 	// This needs to be separate from

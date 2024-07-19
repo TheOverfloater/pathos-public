@@ -54,7 +54,7 @@ All Rights Reserved.
 typedef bool (*pfnGameDLLInit_t)( Uint32 version, gdll_funcs_t& dllFuncs, const gdll_engfuncs_t& engFuncs, const trace_interface_t& traceFuncs, const file_interface_t& fileFuncs, gamevars_t& gamevars );
 
 // String buffer allocation size
-static const Uint32 STRINGBUFFER_ALLOC_SIZE = 512;
+static constexpr Uint32 STRINGBUFFER_ALLOC_SIZE = 512;
 
 // Server state object
 serverstate_t svs;
@@ -242,7 +242,7 @@ bool SV_Init( void )
 	}
 
 	// Init the gamedll interface
-	pfnGameDLLInit_t pfnGDLLInit = reinterpret_cast<pfnGameDLLInit_t>(SDL_LoadFunction(svs.pdllhandle, "GameDLL_Init"));
+	pfnGameDLLInit_t pfnGDLLInit = static_cast<pfnGameDLLInit_t>(SDL_LoadFunction(svs.pdllhandle, "GameDLL_Init"));
 	if(!pfnGDLLInit)
 	{
 		Sys_ErrorPopup("Failed to hook 'GameDLL_Init' in game dll.\n");
@@ -607,7 +607,7 @@ bool SV_SpawnGame( const Char* pstrLevelName, const Char* pstrSaveFile, const Ch
 	svs.maxclients = g_psv_maxplayers->GetValue();
 	if(svs.maxclients < 0 || svs.maxclients > MAX_PLAYERS)
 	{
-		Con_EPrintf("%s - Invalid %s setting %d.\n", __FUNCTION__, g_psv_maxplayers->GetName(), (Int32)g_psv_maxplayers->GetValue());
+		Con_EPrintf("%s - Invalid %s setting %d.\n", __FUNCTION__, g_psv_maxplayers->GetName(), static_cast<Int32>(g_psv_maxplayers->GetValue()));
 		return false;
 	}
 
@@ -959,8 +959,8 @@ void SV_ClearClient( sv_client_t& client )
 		client.packet.entities[i] = entity_state_t();
 
 	// Release entity data
-	svs.dllfuncs.pfnFreeEntity(client.pedict);
-	gEdicts.FreeEdict(client.pedict);
+	gEdicts.FreeEdict(client.pedict, EDICT_REMOVED_CLEAR_CLIENT);
+
 	client.pedict->state.flags |= (FL_DORMANT|FL_CLIENT);
 	client.pedict = nullptr;
 
@@ -1162,7 +1162,7 @@ void SV_PlayerThink( edict_t* pedict, Double clienttimebase )
 	}
 
 	if(pedict->state.flags & FL_KILLME)
-		gEdicts.FreeEdict(pedict);
+		gEdicts.FreeEdict(pedict, EDICT_REMOVED_KILLED);
 }
 
 //=============================================
@@ -1382,7 +1382,7 @@ void SV_UpdateClients( void )
 				reason = "Failure during file transfer";
 				break;
 			case SVCL_INCONSISTENT_FILE:
-				reason = "Inconsistent detected in enforced file";
+				reason = "Inconsistency detected in an enforced file";
 				break;
 			}
 
@@ -1723,7 +1723,7 @@ bool SV_SpawnClient( sv_client_t& cl )
 //=============================================
 const Char* SV_TraceTexture( Int32 groundentity, const Vector& start, const Vector& end )
 {
-	if(groundentity < 0 || groundentity >= (Int32)gEdicts.GetNbEdicts())
+	if(groundentity < 0 || groundentity >= static_cast<Int32>(gEdicts.GetNbEdicts()))
 	{
 		Con_Printf("%s - Bogus entity index %d.\n", __FUNCTION__, groundentity);
 		return nullptr;
@@ -2056,7 +2056,7 @@ bool SV_GetBonePositionByIndex( edict_t* pedict, Uint32 boneindex, Vector& posit
 	}
 
 	// Find the bone
-	if(boneindex >= (Uint32)pstudiohdr->numbones)
+	if(boneindex >= static_cast<Uint32>(pstudiohdr->numbones))
 	{
 		Con_Printf("%s - Bone index %d is out of range.\n", __FUNCTION__, boneindex);
 		return false;
@@ -2104,7 +2104,7 @@ bool SV_GetAttachment( edict_t* pedict, Uint32 index, Vector& position )
 	const vbmcache_t* pcache = pmodel->getVBMCache();
 	const studiohdr_t* pstudiohdr = pcache->pstudiohdr;
 
-	if((Int32)index >= pstudiohdr->numattachments)
+	if(static_cast<Int32>(index) >= pstudiohdr->numattachments)
 	{
 		Con_Printf("%s - Model '%s' has %d attachments, index %d is out of bounds.\n", __FUNCTION__, pmodel->name.c_str(), pstudiohdr->numattachments, index);
 		return false;
@@ -2188,7 +2188,7 @@ void SV_PrecacheGeneric( const Char* pstrresourcename )
 Float SV_GetSoundDuration( const Char* pstrfilename, Uint32 pitch ) 
 {
 	// Calculate pitch adjustment
-	Float pitchmod = (Float)pitch/(Float)PITCH_NORM;
+	Float pitchmod = static_cast<Float>(pitch)/static_cast<Float>(PITCH_NORM);
 
 	// Look it up in precache list
 	for(Uint32 i = 0; i < svs.sndcache.size(); i++)
@@ -2246,7 +2246,7 @@ Float SV_GetOGGFileDuration( const Char* pstrfilename )
 	oggCallbacks.tell_func = AR_tellOgg;
 
 	OggVorbis_File stream = OggVorbis_File();
-	Int32 openResult = ov_open_callbacks(reinterpret_cast<void *>(pogg), &stream, nullptr, 0, oggCallbacks);
+	Int32 openResult = ov_open_callbacks(pogg, &stream, nullptr, 0, oggCallbacks);
 	if(openResult < 0)
 	{
 		Con_Printf("%s - Could not open '%s' for streaming.\n", __FUNCTION__, pstrfilename);
@@ -2297,8 +2297,8 @@ Float SV_GetWAVFileDuration( const Char* pstrfilename )
 		return 0;
 	}
 
-	const byte *pbegin = reinterpret_cast<const byte*>(pfile) + 12;
-	const byte *pend = reinterpret_cast<const byte*>(pfile) + filesize;
+	const byte *pbegin = pfile + 12;
+	const byte *pend = pfile + filesize;
 
 	Uint32 numchannels = 0;
 	Uint32 samplerate = 0;
@@ -2587,7 +2587,7 @@ void SV_PerformLevelChange( const Char* pstrlevelname, const Char* pstrlandmarkn
 	const mleaf_t* pleaf = nullptr;
 	for(Uint32 i = 0; i < 4; i++)
 	{
-		Vector testPosition = svs.levelchangeinfo.landmarkposition + Vector(0, 0, (Float)i);
+		Vector testPosition = svs.levelchangeinfo.landmarkposition + Vector(0, 0, static_cast<Float>(i));
 		pleaf = Mod_PointInLeaf(testPosition, (*ens.pworld));
 		if(!pleaf || pleaf->contents != CONTENTS_SOLID)
 			break;
@@ -2602,8 +2602,11 @@ void SV_PerformLevelChange( const Char* pstrlevelname, const Char* pstrlandmarkn
 		return;
 	}
 
-	// Retrieve VIS ptr
+	// Retrieve VIS ptr and copy it to temp buffer
 	const byte* ppvs = Mod_LeafPVS(ppvsbuffer, ens.visbuffersize, (*pleaf), (*ens.pworld));
+
+	// Allow game DLL to modify PVS used for transition
+	svs.dllfuncs.pfnAdjustLandmarkPVSData(plandmarkedict, ppvsbuffer, ens.visbuffersize);
 
 	// Collect entities to transition
 	if(!svs.dllfuncs.pfnGetTransitioningEntities(ppvs,
@@ -2655,7 +2658,7 @@ void SV_PerformLevelChange( const Char* pstrlevelname, const Char* pstrlandmarkn
 			const mleaf_t* pdecalleaf = nullptr;
 			for(Uint32 i = 0; i < 4; i++)
 			{
-				Vector testPosition = decal.origin + Vector(0, 0, (Float)i);
+				Vector testPosition = decal.origin + Vector(0, 0, static_cast<Float>(i));
 				pdecalleaf = Mod_PointInLeaf(testPosition, (*ens.pworld));
 				if(!pdecalleaf || pdecalleaf->contents != CONTENTS_SOLID)
 					break;
@@ -2793,7 +2796,7 @@ bool SV_IsTransitionDecalValid( saveddecal_t& decal )
 	const mleaf_t* pdecalleaf = nullptr;
 	for(Uint32 i = 0; i < 4; i++)
 	{
-		Vector testPosition = decal.origin + Vector(0, 0, (Float)i);
+		Vector testPosition = decal.origin + Vector(0, 0, static_cast<Float>(i));
 		pdecalleaf = Mod_PointInLeaf(testPosition, (*ens.pworld));
 		if(!pdecalleaf || pdecalleaf->contents != CONTENTS_SOLID)
 			break;
@@ -2916,13 +2919,13 @@ Int32 SV_NewCheckClient( Int32 check )
 	Int32 _check = clamp(check, 1, (Int32)svs.maxclients);
 
 	Int32 i = 1;
-	if(_check != (Int32)svs.maxclients)
+	if(_check != static_cast<Int32>(svs.maxclients))
 		i = _check + 1;
 
 	edict_t* pedict = nullptr;
 	while(true)
 	{
-		if(i == (Int32)(svs.maxclients+1))
+		if(i == static_cast<Int32>(svs.maxclients+1))
 			i = 1;
 
 		pedict = gEdicts.GetEdict(i);

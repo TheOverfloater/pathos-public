@@ -1,0 +1,7 @@
+$texture
+{
+	$int_width 32
+	$int_height 32
+	$material dirt
+	$texture diffuse world/pathos/out_dirtsand3_sm.tga
+}

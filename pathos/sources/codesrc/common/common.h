@@ -68,15 +68,15 @@ template <typename T> class CArray;
 #endif
 
 // NAN mask
-static const Int32 NANMASK = 0x7F800000;
+static constexpr Int32 NANMASK = 0x7F800000;
 
 // Valid slash used in paths
-static const Char PATH_SLASH_CHAR = '/';
+static constexpr Char PATH_SLASH_CHAR = '/';
 
 // Maximum line length
-static const Uint32 MAX_LINE_LENGTH = 4096;
+static constexpr Uint32 MAX_LINE_LENGTH = 4096;
 // Maximum parse length
-static const Uint32 MAX_PARSE_LENGTH = 256;
+static constexpr Uint32 MAX_PARSE_LENGTH = 256;
 
 // Resource levels
 enum rs_level_t

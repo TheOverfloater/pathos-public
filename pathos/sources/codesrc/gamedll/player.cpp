@@ -2864,14 +2864,24 @@ void CPlayerEntity::SpawnSubwayWindow( subwayline_t type, CTriggerSubwayControll
 
 	CString scriptfilepath;
 	scriptfilepath << GAMEUI_SCRIPT_BASE_PATH << PATH_SLASH_CHAR << SUBWAYWINDOW_SCRIPT_SUBFOLDER_NAME << PATH_SLASH_CHAR << "subway";
-	if(type == SUBWAYLINE_BERGEN_ECKHART)
-		scriptfilepath << "1" << ".txt";
-	else if(type == SUBWAYLINE_KASSAR_STILLWELL)
-		scriptfilepath << "2" << ".txt";
-	else
+
+	switch(type)
 	{
-		gd_engfuncs.pfnClientPrintf(m_pEdict, "Unknown subway line specified.\n");
-		return;
+	case SUBWAYLINE_BERGEN_ECKHART:
+		scriptfilepath << "_bergen_eckhart.txt";
+		break;
+	case SUBWAYLINE_KASSAR_STILLWELL:
+		scriptfilepath << "_kassar_stillwell.txt";
+		break;
+	case SUBWAYLINE_MARSHALL_LYNE:
+		scriptfilepath << "_marshall_lyne.txt";
+		break;
+	default:
+		{
+			gd_engfuncs.pfnClientPrintf(m_pEdict, "Unknown subway line specified.\n");
+			return;
+		}
+		break;
 	}
 
 	// Write message to client
@@ -2879,6 +2889,7 @@ void CPlayerEntity::SpawnSubwayWindow( subwayline_t type, CTriggerSubwayControll
 		gd_engfuncs.pfnMsgWriteByte(GAMEUI_SUBWAYWINDOW);
 		gd_engfuncs.pfnMsgWriteString(scriptfilepath.c_str());
 		gd_engfuncs.pfnMsgWriteByte(flags);
+		gd_engfuncs.pfnMsgWriteByte(type);
 	gd_engfuncs.pfnUserMessageEnd();
 
 	// Remember this

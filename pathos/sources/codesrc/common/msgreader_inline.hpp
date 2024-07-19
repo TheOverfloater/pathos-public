@@ -67,7 +67,7 @@ byte CMSGReader::ReadByte( void )
 	}
 
 	const byte *pdata = m_pMessageData + m_readOffset;
-	byte value = (*pdata);
+	const byte value = (*pdata);
 	m_readOffset++;
 
 	return value;
@@ -89,7 +89,7 @@ Char CMSGReader::ReadChar( void )
 	}
 
 	const byte *pdata = m_pMessageData + m_readOffset;
-	Char value = (Char)(*pdata);
+	const Char value = static_cast<Char>(*pdata);
 	m_readOffset++;
 
 	return value;
@@ -111,7 +111,7 @@ Int16 CMSGReader::ReadInt16( void )
 	}
 
 	const byte *pdata = m_pMessageData + m_readOffset;
-	Int16 value = Common::ByteToInt16(pdata);
+	const Int16 value = Common::ByteToInt16(pdata);
 	m_readOffset += sizeof(Int16);
 
 	return value;
@@ -133,7 +133,7 @@ Uint16 CMSGReader::ReadUint16( void )
 	}
 
 	const byte *pdata = m_pMessageData + m_readOffset;
-	Uint16 value = Common::ByteToUint16(pdata);
+	const Uint16 value = Common::ByteToUint16(pdata);
 	m_readOffset += sizeof(Uint16);
 
 	return value;
@@ -155,7 +155,7 @@ Int32 CMSGReader::ReadInt32( void )
 	}
 
 	const byte *pdata = m_pMessageData + m_readOffset;
-	Int32 value = Common::ByteToInt32(pdata);
+	const Int32 value = Common::ByteToInt32(pdata);
 	m_readOffset += sizeof(Int32);
 
 	return value;
@@ -177,7 +177,7 @@ Uint32 CMSGReader::ReadUint32( void )
 	}
 
 	const byte *pdata = m_pMessageData + m_readOffset;
-	Uint32 value = Common::ByteToUint32(pdata);
+	const Uint32 value = Common::ByteToUint32(pdata);
 	m_readOffset += sizeof(Uint32);
 
 	return value;
@@ -199,7 +199,7 @@ Int64 CMSGReader::ReadInt64( void )
 	}
 
 	const byte *pdata = m_pMessageData + m_readOffset;
-	Int64 value = Common::ByteToInt64(pdata);
+	const Int64 value = Common::ByteToInt64(pdata);
 	m_readOffset += sizeof(Int64);
 
 	return value;
@@ -221,7 +221,7 @@ Uint64 CMSGReader::ReadUint64( void )
 	}
 
 	const byte *pdata = m_pMessageData + m_readOffset;
-	Uint64 value = Common::ByteToUint64(pdata);
+	const Uint64 value = Common::ByteToUint64(pdata);
 	m_readOffset += sizeof(Uint64);
 
 	return value;
@@ -236,7 +236,7 @@ Float CMSGReader::ReadSmallFloat( void )
 	if(!m_errorString.empty())
 		return 0;
 
-	Int16 value = ReadInt16();
+	const Int16 value = ReadInt16();
 	return value * (1.0f/8.0f);
 }
 
@@ -299,7 +299,7 @@ const Char* CMSGReader::ReadString( void )
 		return "";
 
 	// Read string size
-	Uint16 strlength = ReadUint16();
+	const Uint16 strlength = ReadUint16();
 
 	if(!m_errorString.empty())
 		return "";
@@ -310,7 +310,7 @@ const Char* CMSGReader::ReadString( void )
 		return 0;
 	}
 
-	const Char *pdata = (Char*)(m_pMessageData + m_readOffset);
+	const Char *pdata = reinterpret_cast<const Char*>(m_pMessageData + m_readOffset);
 	m_readOffset += strlength;
 	return pdata;
 }

@@ -156,7 +156,7 @@ CMDLViewer::~CMDLViewer( void )
 //=============================================
 void CMDLViewer::InitGLWindow( CGLWindow* pWindow )
 {
-	SetWindowLong((HWND)pWindow->getHandle(), GWL_EXSTYLE, WS_EX_CLIENTEDGE);
+	SetWindowLongPtr((HWND)pWindow->getHandle(), GWL_EXSTYLE, WS_EX_CLIENTEDGE);
 }
 
 //=============================================

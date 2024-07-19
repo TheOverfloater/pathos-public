@@ -16,7 +16,7 @@ All Rights Reserved.
 #include "dlight.h"
 
 // Max number of dynlight visents
-static const Uint32 DLIGHT_VISENTS_ALLOCSIZE = 256;
+static constexpr Uint32 DLIGHT_VISENTS_ALLOCSIZE = 256;
 
 enum vsmshadertype_t
 {

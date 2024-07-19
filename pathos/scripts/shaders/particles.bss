@@ -3,9 +3,14 @@ $global_determinator num_point_lights 0 4
 $global_determinator num_proj_lights 0 4
 $global_determinator type 0 1
 $global_determinator alphatest 0 2
+$global_determinator rectangle 0 1
 $invalid_state 2 type 1 1 num_point_lights 1 4
 $invalid_state 2 type 1 1 num_proj_lights 1 4
 $invalid_state 2 alphatest 1 2 type 1 1
+$invalid_state 2 rectangle 1 1 num_point_lights 1 4
+$invalid_state 2 rectangle 1 1 num_proj_lights 1 4
+$invalid_state 2 alphatest 1 2 rectangle 1 1
+$invalid_state 2 rectangle 1 1 type 0 0
 $shader_vertex $begin
 #version 130
 
@@ -81,8 +86,16 @@ uniform sampler2D proj_lights_1_texture;
 uniform sampler2D proj_lights_2_texture;
 uniform sampler2D proj_lights_3_texture;
 
+$branch rectangle == 0
+$begin
+uniform sampler2D scrtexture0;
+uniform sampler2D scrtexture1;
+$end
+$branch rectangle == 1
+$begin
 uniform sampler2DRect rtexture0;
 uniform sampler2DRect rtexture1;
+$end
 
 uniform vec3 point_lights_0_origin;
 uniform vec3 point_lights_0_color;
@@ -226,9 +239,20 @@ void main()
 	$branch type == 1
 	$begin
 		float DIST_POWER = -0.02;
-		vec3 dudvcolor = (2.0 * texture (rtexture0, ps_texcoord).xyz) - 1.0;
-		vec2 fetch_tc = vec2(ps_texcoord.x + dudvcolor.x*DIST_POWER*scrsize.x, ps_texcoord.y + dudvcolor.y*DIST_POWER*scrsize.y);
-		vec4 finalColor = texture(rtexture1, fetch_tc);
+		vec2 texcoord = vec2(ps_texcoord.x*scrsize.x, ps_texcoord.y*scrsize.y);
+	
+		$branch rectangle == 0
+		$begin
+			vec3 dudvcolor = (2.0 * texture (scrtexture0, texcoord).xyz) - 1.0;
+			vec2 fetch_tc = vec2(texcoord.x + dudvcolor.x*DIST_POWER*scrsize.x, texcoord.y + dudvcolor.y*DIST_POWER*scrsize.y);
+			vec4 finalColor = texture(scrtexture1, fetch_tc);
+		$end
+		$branch rectangle == 1
+		$begin
+			vec3 dudvcolor = (2.0 * texture (rtexture0, texcoord).xyz) - 1.0;
+			vec2 fetch_tc = vec2(texcoord.x + dudvcolor.x*DIST_POWER*scrsize.x, texcoord.y + dudvcolor.y*DIST_POWER*scrsize.y);
+			vec4 finalColor = texture(rtexture1, fetch_tc);
+		$end		
 	$end
 	
 	$branch fog == 1

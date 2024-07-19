@@ -316,7 +316,7 @@ Float CL_TraceModel( Int32 entity, const Vector& start, const Vector& end, hull_
 //=============================================
 const Char* CL_TraceTexture( Int32 groundentity, const Vector& start, const Vector& end )
 {
-	if(groundentity < 0 || groundentity >= (Int32)cls.entities.size())
+	if(groundentity < 0 || groundentity >= static_cast<Int32>(cls.entities.size()))
 	{
 		Con_Printf("%s - Bogus entity index %d.\n", __FUNCTION__, groundentity);
 		return nullptr;

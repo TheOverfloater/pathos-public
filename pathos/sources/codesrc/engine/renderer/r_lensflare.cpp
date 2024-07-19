@@ -205,10 +205,10 @@ bool CLensFlareRenderer::DrawLensFlares( void )
 	}
 
 	m_projectionMatrix.LoadIdentity();
-	m_projectionMatrix.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, (Float)0.1, 100);
+	m_projectionMatrix.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, 0.1f, 100);
 
 	m_modelViewMatrix.LoadIdentity();
-	m_modelViewMatrix.Scale(1.0f/(Float)rns.screenwidth, 1.0f/(Float)rns.screenheight, 1.0);
+	m_modelViewMatrix.Scale(1.0f/ static_cast<Float>(rns.screenwidth), 1.0f/ static_cast<Float>(rns.screenheight), 1.0);
 
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
@@ -315,7 +315,7 @@ bool CLensFlareRenderer::DrawLensFlare( Int32 key, const Vector& origin, const V
 
 	Float fadeX = 1.0;
 	if(screenPosition.x < rns.screenwidth * 0.1)
-		fadeX = screenPosition.x / (Float)screenXFadeMins;
+		fadeX = screenPosition.x / static_cast<Float>(screenXFadeMins);
 	else if(screenPosition.x > screenXFadeMaxs)
 		fadeX = 1.0 - ((screenPosition.x - screenXFadeMaxs) / (rns.screenwidth - screenXFadeMaxs));
 
@@ -324,7 +324,7 @@ bool CLensFlareRenderer::DrawLensFlare( Int32 key, const Vector& origin, const V
 
 	Float fadeY = 1.0;
 	if(screenPosition.y < rns.screenheight * 0.1)
-		fadeY = screenPosition.y / (Float)screenYFadeMins;
+		fadeY = screenPosition.y / static_cast<Float>(screenYFadeMins);
 	else if(screenPosition.y > screenYFadeMaxs)
 		fadeY = 1.0 - ((screenPosition.y - screenYFadeMaxs) / (rns.screenheight - screenYFadeMaxs));
 
@@ -340,8 +340,7 @@ bool CLensFlareRenderer::DrawLensFlare( Int32 key, const Vector& origin, const V
 		glowstate, useQueries,
 		traceAll, isSun, 
 		portalSun, m_viewMatrix, 
-		reinterpret_cast<void*>(this), 
-		LF_PreRender, LF_DrawFunction );
+		this, LF_PreRender, LF_DrawFunction );
 
 	if(occlusionFactor <= 0)
 		return false;
@@ -497,6 +496,7 @@ void CLensFlareRenderer::SetSunFlare( entindex_t entindex, bool active, Float pi
 	pflare->roll = roll;
 	pflare->scale = scale;
 	pflare->color = color;
+	pflare->entindex = entindex;
 
 	if(pflare->color.IsZero())
 		pflare->color = Vector(255, 255, 255);
@@ -512,7 +512,7 @@ void CLensFlareRenderer::SetSunFlare( entindex_t entindex, bool active, Float pi
 //====================================
 void LF_PreRender( void* pContext )
 {
-	reinterpret_cast<CLensFlareRenderer*>(pContext)->PreDrawFunction();
+	static_cast<CLensFlareRenderer*>(pContext)->PreDrawFunction();
 }
 
 //====================================
@@ -520,5 +520,5 @@ void LF_PreRender( void* pContext )
 //====================================
 void LF_DrawFunction( void* pContext, const Vector& origin )
 {
-	reinterpret_cast<CLensFlareRenderer*>(pContext)->DrawFunction(origin);
+	static_cast<CLensFlareRenderer*>(pContext)->DrawFunction(origin);
 }

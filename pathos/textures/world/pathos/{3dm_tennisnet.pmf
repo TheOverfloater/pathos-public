@@ -1,0 +1,9 @@
+$texture
+{
+	$int_width 128
+	$int_height 128
+	$alphatest
+	$container pathos.wad
+	$material grate
+	$texture diffuse {3dm_tennisnet
+}

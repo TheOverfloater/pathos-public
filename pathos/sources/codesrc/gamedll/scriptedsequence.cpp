@@ -30,6 +30,10 @@ CScriptedSequence::CScriptedSequence( edict_t* pedict ):
 	m_loopSequence(NO_STRING_VALUE),
 	m_exitSequence(NO_STRING_VALUE),
 	m_npcName(NO_STRING_VALUE),
+	m_onPlaySeqTarget(NO_STRING_VALUE),
+	m_onLoopSeqTarget(NO_STRING_VALUE),
+	m_onLoopExitSeqTarget(NO_STRING_VALUE),
+	m_seqTriggerFlags(0),
 	m_lastSequence(NO_SEQUENCE_VALUE),
 	m_moveToSetting(SCRIPT_MOVETO_NO),
 	m_radius(0),
@@ -63,6 +67,9 @@ void CScriptedSequence::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_playSequence, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_loopSequence, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_exitSequence, EFIELD_STRING));
+	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_onPlaySeqTarget, EFIELD_STRING));
+	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_onLoopSeqTarget, EFIELD_STRING));
+	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_onLoopExitSeqTarget, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_npcName, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_moveToSetting, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_radius, EFIELD_FLOAT));
@@ -73,6 +80,7 @@ void CScriptedSequence::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_playLoop, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_targetEntity, EFIELD_EHANDLE));
 	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_customSoundMask, EFIELD_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CScriptedSequence, m_seqTriggerFlags, EFIELD_INT32));
 }
 
 //=============================================
@@ -99,6 +107,21 @@ bool CScriptedSequence::KeyValue( const keyvalue_t& kv )
 	else if(!qstrcmp(kv.keyname, "m_iszExit"))
 	{
 		m_exitSequence = gd_engfuncs.pfnAllocString(kv.value);
+		return true;
+	}
+	else if(!qstrcmp(kv.keyname, "onplayseqtarget"))
+	{
+		m_onPlaySeqTarget = gd_engfuncs.pfnAllocString(kv.value);
+		return true;
+	}
+	else if(!qstrcmp(kv.keyname, "onloopseqtarget"))
+	{
+		m_onLoopSeqTarget = gd_engfuncs.pfnAllocString(kv.value);
+		return true;
+	}
+	else if(!qstrcmp(kv.keyname, "onloopexitseqtarget"))
+	{
+		m_onLoopExitSeqTarget = gd_engfuncs.pfnAllocString(kv.value);
 		return true;
 	}
 	else if(!qstrcmp(kv.keyname, "m_iszEntity"))
@@ -371,6 +394,9 @@ void CScriptedSequence::ScriptEntityCancel( CScriptedSequence* pScripted )
 
 	pScriptNPC->SetScriptState(AI_SCRIPT_STATE_CLEANUP);
 	pScriptNPC->CleanupScriptedSequence();
+
+	// Clear this
+	m_seqTriggerFlags = 0;
 }
 
 //=============================================
@@ -451,6 +477,9 @@ void CScriptedSequence::SetSequenceDone( CBaseEntity* pNPC )
 	// Clean up the NPC
 	pNPC->CleanupScriptedSequence();
 	FixScriptNPCSchedule(pNPC);
+
+	// Clear this
+	m_seqTriggerFlags = 0;
 
 	UseTargets(nullptr, USE_TOGGLE, 0);
 	m_playLoop = SCRIPT_LOOP_INACTIVE;
@@ -892,4 +921,38 @@ void CScriptedSequence::ClearTargetEntity( void )
 		return;
 
 	m_targetEntity.reset();
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CScriptedSequence::OnScriptedAnimationStart( scripted_sequence_anim_t scriptanim )
+{
+	if(m_seqTriggerFlags & (1<<(Int32)scriptanim))
+		return;
+
+	string_t strTarget = NO_STRING_VALUE;
+	switch(scriptanim)
+	{
+	case SCRIPT_SEQ_PLAY:
+		strTarget = m_onPlaySeqTarget;
+		break;
+	case SCRIPT_SEQ_LOOP:
+		strTarget = m_onLoopSeqTarget;
+		break;
+	case SCRIPT_SEQ_LOOP_EXIT:
+		strTarget = m_onLoopExitSeqTarget;
+		break;
+	}
+
+	if(strTarget == NO_STRING_VALUE)
+		return;
+
+	const Char* pstrTarget = gd_engfuncs.pfnGetString(strTarget);
+	if(!pstrTarget)
+		return;
+
+	Util::FireTargets(pstrTarget, this, this, USE_TOGGLE, 0);
+	m_seqTriggerFlags |= (1<<(Int32)scriptanim);
 }

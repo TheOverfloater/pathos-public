@@ -316,7 +316,7 @@ bool SV_NPC_MoveStep( edict_t* pedict, const Vector& move, bool relink, bool non
 //=============================================
 bool SV_NPC_StepDirection( edict_t* pedict, Float yaw, Float dist )
 {
-	Float _yaw = yaw * (M_PI*2.0f)/360.0f;
+	const Float _yaw = yaw * (M_PI*2.0f)/360.0f;
 
 	Vector move;
 	move[0] = SDL_cos(_yaw)*dist;

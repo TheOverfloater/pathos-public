@@ -133,6 +133,8 @@ void CEnvParticleSystem::SendInitMessage( const CBaseEntity* pPlayer )
 		return;
 	else if(m_isActive && m_wasSent)
 		return;
+	
+	entindex_t targetEntityIndex = GetTargetEntityIndex();
 
 	if(!m_isActive)
 	{
@@ -142,7 +144,7 @@ void CEnvParticleSystem::SendInitMessage( const CBaseEntity* pPlayer )
 			gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.removeparticlesystem, nullptr, nullptr);
 
 		gd_engfuncs.pfnMsgWriteInt32(GetEntityIndex());
-		gd_engfuncs.pfnMsgWriteInt32(GetEntityIndex());
+		gd_engfuncs.pfnMsgWriteInt32(targetEntityIndex);
 		gd_engfuncs.pfnMsgWriteByte(TRUE);
 		gd_engfuncs.pfnUserMessageEnd();
 	}
@@ -162,13 +164,40 @@ void CEnvParticleSystem::SendInitMessage( const CBaseEntity* pPlayer )
 		for(Uint32 i = 0; i < 3; i++)
 			gd_engfuncs.pfnMsgWriteSmallFloat(forward[i]*360.0f);
 
+		Int32 attachmentIndex;
+		Int32 attachmentFlags;
+		if(targetEntityIndex == GetEntityIndex())
+		{
+			attachmentIndex = 0;
+			attachmentFlags = PARTICLE_ATTACH_NONE;
+		}
+		else
+		{
+			attachmentIndex = 0;
+			attachmentFlags = PARTICLE_ATTACH_TO_PARENT;
+
+			switch(m_pState->skin)
+			{
+			case ATTACHMODE_ENTITY_ORIGIN:
+				break;
+			case ATTACHMODE_MODEL_ATTACHMENT:
+				attachmentIndex = m_pState->body;
+				attachmentFlags |= PARTICLE_ATTACH_TO_ATTACHMENT;
+				break;
+			case ATTACHMODE_VECTOR_FROM_ATTACHMENTS:
+				attachmentIndex = m_pState->body;
+				attachmentFlags |= PARTICLE_ATTACH_ATTACHMENT_VECTOR;
+				break;
+			}
+		}
+
 		gd_engfuncs.pfnMsgWriteByte(m_pState->frags);
 		gd_engfuncs.pfnMsgWriteString(gd_engfuncs.pfnGetString(m_pFields->message));
 		gd_engfuncs.pfnMsgWriteInt32(GetEntityIndex());
-		gd_engfuncs.pfnMsgWriteInt32(GetEntityIndex());
-		gd_engfuncs.pfnMsgWriteByte(0);
+		gd_engfuncs.pfnMsgWriteInt32(targetEntityIndex);
+		gd_engfuncs.pfnMsgWriteByte(attachmentIndex);
 		gd_engfuncs.pfnMsgWriteInt16(NO_POSITION);
-		gd_engfuncs.pfnMsgWriteByte(PARTICLE_ATTACH_NONE);
+		gd_engfuncs.pfnMsgWriteByte(attachmentFlags);
 		gd_engfuncs.pfnUserMessageEnd();
 	}
 
@@ -176,4 +205,30 @@ void CEnvParticleSystem::SendInitMessage( const CBaseEntity* pPlayer )
 
 	if(m_isActive && HasSpawnFlag(FL_REMOVE_ON_FIRE))
 		Util::RemoveEntity(this);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+entindex_t CEnvParticleSystem::GetTargetEntityIndex( void )
+{
+	if(m_pFields->target == NO_STRING_VALUE)
+		return GetEntityIndex();
+
+	const Char* pstrEntityName = gd_engfuncs.pfnGetString(m_pFields->target);
+	edict_t* pedict = Util::FindEntityByTargetName(nullptr, pstrEntityName);
+	if(!pedict)
+	{
+		Util::EntityConPrintf(m_pEdict, "Particle system target entity '%s' not found.\n", pstrEntityName);
+		return GetEntityIndex();
+	}
+
+	if(!pedict->state.modelindex)
+	{
+		Util::EntityConPrintf(m_pEdict, "Particle system target entity '%s' has no model set.\n", pstrEntityName);
+		return GetEntityIndex();
+	}
+
+	return pedict->entindex;
 }

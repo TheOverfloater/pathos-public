@@ -26,8 +26,12 @@ public:
 
 
 
-mxSlider::mxSlider (mxWindow *parent, int x, int y, int w, int h, int id, int style, bool ticks)
-: mxWidget (parent, x, y, w, h)
+mxSlider::mxSlider (mxWindow *parent, int x, int y, int w, int h, __int64 id, int style, bool ticks)
+: mxWidget (parent, x, y, w, h),
+  d_this(nullptr),
+	m_max(0),
+	m_min(0),
+	m_ticks(0)
 {
 	if (!parent)
 		return;
@@ -48,7 +52,7 @@ mxSlider::mxSlider (mxWindow *parent, int x, int y, int w, int h, int id, int st
 				(HMENU) id, (HINSTANCE) GetModuleHandle (NULL), NULL);
 	
 	SendMessage ((HWND) handle, WM_SETFONT, (WPARAM) (HFONT) GetStockObject (ANSI_VAR_FONT), MAKELPARAM (TRUE, 0));
-	SetWindowLong ((HWND) handle, GWL_USERDATA, (LONG) this);
+	SetWindowLongPtr ((HWND) handle, GWL_USERDATA, (LONG_PTR) this);
 
 	setHandle (handle);
 	setType (MX_SLIDER);

@@ -11,9 +11,10 @@ All Rights Reserved.
 #define GLOW_AURA_H
 
 #include "r_rttcache.h"
+#include "r_fbocache.h"
 
 // Maximum entities rendered for glow
-static const Uint32 MAX_AURA_ENTITIES	= 32;
+static constexpr Uint32 MAX_AURA_ENTITIES	= 32;
 
 enum glow_shaders_t
 {
@@ -48,7 +49,9 @@ struct aura_attribs
 		u_screensize(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_texture0(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_scrntexture(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_type(CGLSLShader::PROPERTY_UNAVAILABLE)
+		u_scrntexturerect(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_type(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_rectangle(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{}
 
 	Int32 a_origin;
@@ -62,8 +65,10 @@ struct aura_attribs
 
 	Int32 u_texture0;
 	Int32 u_scrntexture;
+	Int32 u_scrntexturerect;
 
 	Int32 d_type;
+	Int32 d_rectangle;
 };
 
 /*
@@ -118,6 +123,14 @@ private:
 	rtt_texture_t* m_pWhiteRTT;
 	rtt_texture_t* m_pColorsRTT;
 	rtt_texture_t* m_pBlurRTT;
+
+	// FBO objects
+	CFBOCache::cache_fbo_t* m_pSolidFBO;
+	CFBOCache::cache_fbo_t* m_pColorFBO;
+	CFBOCache::cache_fbo_t* m_pBlurFBO;
+
+	// TRUE if we should use FBOs
+	bool m_useFBOs;
 
 private:
 	// Cvar controlling glow aura

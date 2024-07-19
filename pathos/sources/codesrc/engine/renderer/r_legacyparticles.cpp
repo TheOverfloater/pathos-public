@@ -42,8 +42,8 @@ CLegacyParticles gLegacyParticles;
 //====================================
 Int32 Legacy_SortParticles( const void* p1, const void* p2 )
 {
-	CLegacyParticles::particle_t **pp1 = (CLegacyParticles::particle_t **)p1;
-	CLegacyParticles::particle_t **pp2 = (CLegacyParticles::particle_t **)p2;
+	const CLegacyParticles::particle_t **pp1 = static_cast<const CLegacyParticles::particle_t **>(const_cast<void*>(p1));
+	const CLegacyParticles::particle_t **pp2 = static_cast<const CLegacyParticles::particle_t **>(const_cast<void*>(p2));
 
 	Float length1 = ((*pp1)->origin - rns.view.v_origin).Length();
 	Float length2 = ((*pp2)->origin - rns.view.v_origin).Length();
@@ -525,7 +525,7 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 		case trail_rocket:
 			{
 				pnew->ramp = Common::RandomLong(0, 3);
-				pnew->color = PARTICLE_RAMP3[(Uint32)pnew->ramp];
+				pnew->color = PARTICLE_RAMP3[static_cast<Uint32>(pnew->ramp)];
 				pnew->type = pt_fire;
 				pnew->die = cls.cl_time + 0.1;
 
@@ -536,7 +536,7 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 		case trail_smoke:
 			{
 				pnew->ramp = Common::RandomLong(2, 5);
-				pnew->color = PARTICLE_RAMP3[(Uint32)pnew->ramp];
+				pnew->color = PARTICLE_RAMP3[static_cast<Uint32>(pnew->ramp)];
 				pnew->type = pt_fire;
 				pnew->die = cls.cl_time + 0.1;
 
@@ -672,7 +672,7 @@ void CLegacyParticles::UpdateParticles( void )
 				if(pnext->ramp >= 6)
 					pnext->die = -1;
 				else
-					pnext->color = PARTICLE_RAMP3[(Uint32)pnext->ramp];
+					pnext->color = PARTICLE_RAMP3[static_cast<Uint32>(pnext->ramp)];
 
 				// Apply gravity
 				pnext->velocity[2] += cls.frametime * particle_gravity * gravity;
@@ -684,7 +684,7 @@ void CLegacyParticles::UpdateParticles( void )
 				if(pnext->ramp >= 8)
 					pnext->die = -1;
 				else
-					pnext->color = PARTICLE_RAMP1[(Uint32)pnext->ramp];
+					pnext->color = PARTICLE_RAMP1[static_cast<Uint32>(pnext->ramp)];
 
 				// Speed it up a bit
 				for(Uint32 i = 0; i < 3; i++)
@@ -700,7 +700,7 @@ void CLegacyParticles::UpdateParticles( void )
 				if(pnext->ramp >= 8)
 					pnext->die = -1;
 				else
-					pnext->color = PARTICLE_RAMP2[(Uint32)pnext->ramp];
+					pnext->color = PARTICLE_RAMP2[static_cast<Uint32>(pnext->ramp)];
 
 				// Speed it up a bit
 				for(Uint32 i = 0; i < 3; i++)
@@ -796,8 +796,8 @@ bool CLegacyParticles::DrawParticles( void )
 	}
 
 	// Compensate for texture size
-	Float texscalex = (8.0/(Float)m_pParticleTexture->width) / 1.0f;
-	Float texscaley = (8.0/(Float)m_pParticleTexture->width) / 1.0f;
+	Float texscalex = (8.0/static_cast<Float>(m_pParticleTexture->width)) / 1.0f;
+	Float texscaley = (8.0/static_cast<Float>(m_pParticleTexture->width)) / 1.0f;
 
 	// Sort by distance
 	qsort(&m_pSortedParticles[0], m_nbSortedParticles, sizeof(particle_t*), Legacy_SortParticles);
@@ -823,7 +823,7 @@ bool CLegacyParticles::DrawParticles( void )
 			colorindex = 0;
 
 		color24_t* pcolor = &m_pColorPalette[colorindex];
-		Vector color = Vector((Float)pcolor->r/255.0f, (Float)pcolor->g/255.0f, (Float)pcolor->b/255.0f);
+		Vector color = Vector(static_cast<Float>(pcolor->r)/255.0f, static_cast<Float>(pcolor->g)/255.0f, static_cast<Float>(pcolor->b)/255.0f);
 
 		// Draw first triangle
 		Vector vpoint = pnext->origin - forward * 0.01 + up * scale * texscaley;
