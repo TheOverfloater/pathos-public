@@ -9,7 +9,7 @@ Released under the MIT license
 Answer:
 You cannot directly move your mod to Pathos from Half-Life 1, as the two engines,
 while similar, do not support eachother's binaries. Also running the GoldSrc client
-and engine binaries would be a violation of the terms of the Half-Life SDK. Your
+and server binaries would be a violation of the terms of the Half-Life SDK. Your
 only legal option is to take the Pathos server and client binaries, and recode the
 features you want in your mod.
 You also cannot use any Half-Life 1 content legally in Pathos, so if you do need to
@@ -47,7 +47,8 @@ By referencing, I mean that I examined the code in these codebases, and created 
 own, unique versions of these for features I needed to replicate. The reason why I
 referenced these is, that I had to replicate behavior similar enough that 13 years
 of content developed for my Half-Life mod would behave the same under the new engine
-code. I had to maintain compatibility to not have to throw work out.
+code. I had to maintain compatibility to not have to throw work out or rework the
+entire already existing campaign and/or models.
 Realistically I could not afford to write a completely new engine, and then also to
 modify and adjust over 83 levels that have been created over the years. Navigation
 code, NPC behavior and navigation, and the behavior of entities that are also there
@@ -71,7 +72,8 @@ different than what the HLSDK has. It's still custom code, but it behaves simila
 to what the HLSDK has.
 Why? Same answer I can share above: I had to maintain similar, or the same behavior
 in order to not have to rework NPC navigation on over 83 levels. Even then I still
-spent a major amount of time fixing issues with NPCs when it came to this.
+spent a major amount of time fixing issues with NPCs when it came to this, which
+caused the code to end up being still quite different.
 
 # Question 7)
 > That is all fine and dandy, but can you actually prove that Pathos is legal?
@@ -91,12 +93,12 @@ which I failed to do so.
 
 The second feedback came when I managed to speak with a person who had some contact
 with some people at Valve. From what I was told, they did take a look at the source
-code and were concerned about whether it used HLSDK code, however they also ended up
+code and were concerned about whether it used HLSDK code, however they ended up
 realizing that while the code was similar to some degree, it was not the same code,
 and thus did not consider it to be a problem.
 
 So in the end the legality of Pathos will never be cleared to 100%, but what I can
-in fact tell you is that I did my best to avoid any legal issues, and that Valve as
+in fact tell you is that I did my best to avoid any legal issues, and that Valve, as
 far as they are concerned, do not have any problems with Pathos.
 
 # Question 8)
@@ -105,7 +107,7 @@ far as they are concerned, do not have any problems with Pathos.
 Answer:
 Pathos's set of features expands based on whether I have time to work on them or
 not, and I cannot just take up any request for new features. Outside of Pathos I am
-still developing my own videogame based on Pathos, and I also have a full-time job
+still developing my own video game based on Pathos, and I also have a full-time job
 and other life priorities that I need to attend to. If you want a feature in Pathos,
 you will most likely need to pick up the code yourself and add it.
 
