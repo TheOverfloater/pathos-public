@@ -121,3 +121,12 @@
  - Fix black hole render routines being run even if no black holes are present.
  - Fix FBO cache causing first-frame bug with black holes and other effects.
  - Fix post-process breaking motion blur after level change or save load.
+ 
+- 2024 July 21st:
+  - Fix cheap refraction being broken with HDR enabled
+  - Fix minlight being broken when particles are in a totally dark area.
+  - Add missing "secondary_color" option to lighting flags in particle scripts.
+  - Add new "mix_secondary_color" option to lighting flags in particle scripts.
+  - Fix potential, rare crash when creating decals on VBM models and add safeguards.
+  - Fix NPCs not sensing players who are made partially visible by leaning.
+  - Fix shader uniform value caching for uniforms that set arrays of input values.

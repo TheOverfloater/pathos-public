@@ -3246,7 +3246,7 @@ Uint64 CBaseNPC::GetNPCVisibilityBits( CBaseEntity* pEntity, bool checkGlass )
 	// Get eye position
 	Vector eyePosition = GetEyePosition();
 	// Check first without adding lean
-	Vector otherEyePosition = pEntity->GetEyePosition();
+	Vector otherEyePosition = pEntity->GetEyePosition(true);
 
 	if(pEntity->IsPlayer())
 	{

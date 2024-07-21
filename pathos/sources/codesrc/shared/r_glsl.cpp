@@ -2086,7 +2086,7 @@ bool CGLSLShader::EnableShader ( void )
 //=============================================
 void CGLSLShader::SyncUniform( glsl_uniform_t& uniform )
 {
-	Uint32 offset = uniform.stride * m_shaderIndex;
+	Uint32 offset = uniform.stride * uniform.elementcount * m_shaderIndex;
 	Float* pshadervalue = &uniform.shadervalues[offset];
 	Float* pcurrentvalue = &uniform.currentvalues[0];
 
@@ -2094,55 +2094,55 @@ void CGLSLShader::SyncUniform( glsl_uniform_t& uniform )
 	{
 		case UNIFORM_INT1:
 		{
-			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride) != 0)
+			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount) != 0)
 			{
-				m_glExtF.glUniform1i(uniform.indexes[m_shaderIndex], (GLint)(*pcurrentvalue));
-				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride);
+				m_glExtF.glUniform1i(uniform.indexes[m_shaderIndex], (*pcurrentvalue));
+				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount);
 			}
 		}
 	break;
 		case UNIFORM_FLOAT1:
 		{
-			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride) != 0)
+			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount) != 0)
 			{
-				m_glExtF.glUniform1f(uniform.indexes[m_shaderIndex], (*pcurrentvalue));
-				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride);
+				m_glExtF.glUniform1fv(uniform.indexes[m_shaderIndex], uniform.elementcount, pcurrentvalue);
+				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount);
 			}
 		}
 	break;
 		case UNIFORM_FLOAT2:
 		{
-			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride) != 0)
+			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount) != 0)
 			{
-				m_glExtF.glUniform2fv(uniform.indexes[m_shaderIndex], 1, pcurrentvalue);
-				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride);
+				m_glExtF.glUniform2fv(uniform.indexes[m_shaderIndex], uniform.elementcount, pcurrentvalue);
+				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount);
 			}
 		}
 	break;
 		case UNIFORM_FLOAT3:
 		{
-			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride) != 0)
+			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount) != 0)
 			{
-				m_glExtF.glUniform3fv(uniform.indexes[m_shaderIndex], 1, pcurrentvalue);
-				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride);
+				m_glExtF.glUniform3fv(uniform.indexes[m_shaderIndex], uniform.elementcount, pcurrentvalue);
+				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount);
 			}
 		}
 	break;
 		case UNIFORM_FLOAT4:
 		{
-			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride) != 0)
+			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount) != 0)
 			{
-				m_glExtF.glUniform4fv(uniform.indexes[m_shaderIndex], 1, pcurrentvalue);
-				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride);
+				m_glExtF.glUniform4fv(uniform.indexes[m_shaderIndex], uniform.elementcount, pcurrentvalue);
+				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount);
 			}
 		}
 	break;
 		case UNIFORM_MATRIX4:
 		{
-			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride) != 0)
+			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount) != 0)
 			{
-				m_glExtF.glUniformMatrix4fv(uniform.indexes[m_shaderIndex], 1, GL_FALSE, pcurrentvalue);
-				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride);
+				m_glExtF.glUniformMatrix4fv(uniform.indexes[m_shaderIndex], uniform.elementcount, GL_FALSE, pcurrentvalue);
+				memcpy(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount);
 			}
 		}
 	break;
@@ -2335,7 +2335,7 @@ void CGLSLShader::SetVBO( CVBO *pVBO )
 // @param type Type of the uniform to initialize
 // @return Index of the uniform in the array
 //=============================================
-Int32 CGLSLShader::InitUniform( const Char *szname, uniform_e type )
+Int32 CGLSLShader::InitUniform( const Char *szname, uniform_e type, Uint32 elementcount)
 {
 	for(Uint32 i = 0; i < m_uniformsArray.size(); i++)
 	{
@@ -2345,7 +2345,11 @@ Int32 CGLSLShader::InitUniform( const Char *szname, uniform_e type )
 
 	glsl_uniform_t newUniform;
 	newUniform.indexes.resize(m_shadersArray.size());
-	
+	if(type != UNIFORM_INT1)
+		newUniform.elementcount = elementcount;
+	else
+		newUniform.elementcount = 1;
+
 	switch(type)
 	{
 	case UNIFORM_INT1:
@@ -2373,8 +2377,8 @@ Int32 CGLSLShader::InitUniform( const Char *szname, uniform_e type )
 
 	if(newUniform.stride)
 	{
-		newUniform.shadervalues.resize(newUniform.stride*m_shadersArray.size());
-		newUniform.currentvalues.resize(newUniform.stride);
+		newUniform.shadervalues.resize(newUniform.stride*m_shadersArray.size()*elementcount);
+		newUniform.currentvalues.resize(newUniform.stride*elementcount);
 	}
 	
 	if(!m_onDemandLoad)

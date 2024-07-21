@@ -1630,7 +1630,10 @@ void CBSPRenderer::FlagIfDynamicLighted( const Vector& mins, const Vector& maxs 
 		&& gWaterShader.GetWaterQualitySetting() > CWaterShader::WATER_QUALITY_NO_REFLECT_REFRACT)
 	{
 		const water_settings_t* pwatersettings = gWaterShader.GetActiveSettings();
-		if(pwatersettings && pwatersettings->causticscale > 0 && pwatersettings->causticstrength > 0)
+		if(pwatersettings 
+			&& !pwatersettings->cheaprefraction 
+			&& pwatersettings->causticscale > 0 
+			&& pwatersettings->causticstrength > 0)
 		{
 			m_addMulti = true;
 			return;
@@ -3109,7 +3112,10 @@ bool CBSPRenderer::DrawFinal( void )
 	if(rns.inwater && g_pCvarCaustics->GetValue() >= 1)
 	{
 		const water_settings_t *psettings = gWaterShader.GetActiveSettings();
-		if(psettings && psettings->causticscale > 0 && psettings->causticstrength > 0)
+		if(psettings 
+			&& !psettings->cheaprefraction 
+			&& psettings->causticscale > 0 
+			&& psettings->causticstrength > 0)
 		{
 			GLfloat splane[4] = {static_cast<Float>(0.005)*psettings->causticscale, static_cast<Float>(0.0025)*psettings->causticscale, 0.0, 0.0};
 			GLfloat tplane[4] = {0.0, static_cast<Float>(0.005)*psettings->causticscale, static_cast<Float>(0.0025)*psettings->causticscale, 0.0};

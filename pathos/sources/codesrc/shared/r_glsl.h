@@ -129,7 +129,8 @@ public:
 		glsl_uniform_t():
 			type(UNIFORM_UNDEFINED),
 			stride(0),
-			sync(false)
+			sync(false),
+			elementcount(0)
 			{}
 
 		CString name;
@@ -140,6 +141,8 @@ public:
 
 		CArray<Int16> indexes;
 		Uint32 stride;
+
+		Uint32 elementcount;
 
 		bool sync;
 	};
@@ -413,7 +416,7 @@ public:
 
 public:
 	// Initializes a uniform
-	Int32 InitUniform( const Char *szname, uniform_e type );
+	Int32 InitUniform( const Char *szname, uniform_e type, Uint32 elementcount = 1 );
 	// Creates a uniform buffer object
 	Int32 InitUniformBufferObject( const Char* pstrName, Uint32 bufferSize );
 	// Initializes a vertex attribute

@@ -27,6 +27,8 @@ inline void CGLSLShader :: SetUniformMatrix4fv( Int32 index, const Float *matrix
 
 	assert(index >= 0 && index < m_uniformsArray.size());
 	glsl_uniform_t* puniform = &m_uniformsArray[index];
+	assert(puniform->elementcount == 1);
+
 	R_SetMatrixData(matrix, &m_uniformMatrix[0][0], transpose);
 
 	if(puniform->type != UNIFORM_NOSYNC)
@@ -73,6 +75,11 @@ inline void CGLSLShader :: SetUniform1i ( Int32 index, Int32 x )
 
 	assert(index >= 0 && index < m_uniformsArray.size());
 	glsl_uniform_t* puniform = &m_uniformsArray[index];
+	assert(puniform->elementcount == 1);
+
+	// SetUniform1i cannot have an elementcount > 1
+	if (puniform->elementcount > 1)
+		return;
 
 	if(puniform->type != UNIFORM_NOSYNC)
 	{
@@ -119,6 +126,11 @@ inline void CGLSLShader :: SetUniform1f ( Int32 index, Float x )
 
 	assert(index >= 0 && index < m_uniformsArray.size());
 	glsl_uniform_t* puniform = &m_uniformsArray[index];
+	assert(puniform->elementcount == 1);
+
+	// Functions that don't use pointers as parameters cannot be of elementcount > 1
+	if (puniform->elementcount > 1)
+		return;
 
 	if(puniform->type != UNIFORM_NOSYNC)
 	{
@@ -166,6 +178,11 @@ inline void CGLSLShader :: SetUniform2f ( Int32 index, Float x, Float y )
 
 	assert(index >= 0 && index < m_uniformsArray.size());
 	glsl_uniform_t* puniform = &m_uniformsArray[index];
+	assert(puniform->elementcount == 1);
+
+	// Functions that don't use pointers as parameters cannot be of elementcount > 1
+	if (puniform->elementcount > 1)
+		return;
 
 	if(puniform->type != UNIFORM_NOSYNC)
 	{
@@ -216,6 +233,11 @@ inline void CGLSLShader :: SetUniform3f ( Int32 index, Float x, Float y, Float z
 
 	assert(index >= 0 && index < m_uniformsArray.size());
 	glsl_uniform_t* puniform = &m_uniformsArray[index];
+	assert(puniform->elementcount == 1);
+
+	// Functions that don't use pointers as parameters cannot be of elementcount > 1
+	if (puniform->elementcount > 1)
+		return;
 
 	if(puniform->type != UNIFORM_NOSYNC)
 	{
@@ -268,6 +290,11 @@ inline void CGLSLShader :: SetUniform4f ( Int32 index, Float x, Float y, Float z
 
 	assert(index >= 0 && index < m_uniformsArray.size());
 	glsl_uniform_t* puniform = &m_uniformsArray[index];
+	assert(puniform->elementcount == 1);
+
+	// Functions that don't use pointers as parameters cannot be of elementcount > 1
+	if (puniform->elementcount > 1)
+		return;
 
 	if(puniform->type != UNIFORM_NOSYNC)
 	{
@@ -313,42 +340,56 @@ inline void CGLSLShader :: SetUniform4f ( Int32 index, Float x, Float y, Float z
 // @param v Pointer to the array of floats
 // @param num Number of float4s to upload
 //=============================================
-inline void CGLSLShader :: SetUniform4fv ( Int32 index, const Float *v, Uint32 num )
+inline void CGLSLShader::SetUniform4fv(Int32 index, const Float* v, Uint32 num)
 {
-	if(index == PROPERTY_UNAVAILABLE)
+	if (index == PROPERTY_UNAVAILABLE)
 		return;
 
 	assert(index >= 0 && index < m_uniformsArray.size());
 	glsl_uniform_t* puniform = &m_uniformsArray[index];
-	
-	if(puniform->type != UNIFORM_NOSYNC)
-	{
-		assert(puniform->stride == 4);
-		Float* pvalues = &puniform->currentvalues[0];
-		if(pvalues[0] == v[0]&& pvalues[1] == v[1]
-			&& pvalues[2] == v[2] && pvalues[3] == v[3]
-			&& puniform->sync)
-			return;
 
-		pvalues[0] = v[0]; 
-		pvalues[1] = v[1]; 
-		pvalues[2] = v[2]; 
-		pvalues[3] = v[3]; 
-	}
-
-	if(puniform->indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
+	if (num > puniform->elementcount)
 		return;
 
-	if(m_isActive)
+	bool update = false;
+	if (puniform->type != UNIFORM_NOSYNC)
 	{
-		if(puniform->type != UNIFORM_NOSYNC)
+		assert(puniform->stride == 4);
+
+		Uint32 i = 0;
+		for (; i < puniform->elementcount; i++)
+		{
+			Float* pvalues = &puniform->currentvalues[puniform->stride * i];
+			const Float* pinput = &v[puniform->stride * i];
+
+			if (pvalues[0] != pinput[0] || pvalues[1] != pinput[1]
+				|| pvalues[2] != pinput[2] || pvalues[3] != pinput[3])
+				break;
+		}
+
+		if (i != puniform->elementcount)
+		{
+			memcpy(&puniform->currentvalues[0], v, sizeof(Float) * puniform->stride * puniform->elementcount);
+			update = true;
+		}
+	}
+
+	if (!update && puniform->sync)
+		return;
+
+	if (puniform->indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
+		return;
+
+	if (m_isActive)
+	{
+		if (puniform->type != UNIFORM_NOSYNC)
 		{
 			const Float* pvalues = &puniform->currentvalues[0];
-			Float* ptargetvalues = &puniform->shadervalues[0] + puniform->stride * m_shaderIndex;
-			if(memcmp(ptargetvalues, pvalues, sizeof(Float)*puniform->stride) != 0)
+			Float* ptargetvalues = &puniform->shadervalues[0] + puniform->stride * puniform->elementcount * m_shaderIndex;
+			if (memcmp(ptargetvalues, pvalues, sizeof(Float) * puniform->stride * puniform->elementcount) != 0)
 			{
 				m_glExtF.glUniform4fv(puniform->indexes[m_shaderIndex], num, v);
-				memcpy(ptargetvalues, pvalues, sizeof(Float)*puniform->stride);
+				memcpy(ptargetvalues, pvalues, sizeof(Float) * puniform->stride * puniform->elementcount);
 			}
 		}
 		else

@@ -717,6 +717,10 @@ bool CParticleEngine::ReadField( script_definition_t* pdefinition, const Char* p
 				pdefinition->lighting_flags = PARTICLE_LIGHTCHECK_NONE;
 			else if(!qstrcmp(token, "nodynlights"))
 				pdefinition->lighting_flags |= PARTICLE_LIGHTCHECK_NO_DYNLIGHTS;
+			else if(!qstrcmp(token, "secondary_color"))
+				pdefinition->lighting_flags |= PARTICLE_LIGHTCHECK_SCOLOR;
+			else if(!qstrcmp(token, "mix_secondary_color"))
+				pdefinition->lighting_flags |= PARTICLE_LIGHTCHECK_MIXS;
 			else
 				Con_Printf("%s - Unrecognized flag '%s' for field '%s'.\n", __FUNCTION__, token, pstrField);
 		}
@@ -1778,8 +1782,13 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 
 				if(pdefinition->minlight)
 				{
-					if(illum < pdefinition->minlight)
-						Math::VectorScale(pparticle->lightcol, pdefinition->minlight/illum, pparticle->lightcol);
+					if (illum < pdefinition->minlight)
+					{
+						if (illum > 0)
+							Math::VectorScale(pparticle->lightcol, pdefinition->minlight / illum, pparticle->lightcol);
+						else
+							pparticle->lightcol = Vector(pdefinition->minlight, pdefinition->minlight, pdefinition->minlight);
+					}
 				}
 
 				if(pdefinition->maxlight)
@@ -2211,8 +2220,13 @@ Vector CParticleEngine::LightForParticle( cl_particle_t *pparticle )
 
 		if(pdefinition->minlight)
 		{
-			if(illum < pdefinition->minlight)
-				Math::VectorScale(color, pdefinition->minlight/illum, color);
+			if (illum < pdefinition->minlight)
+			{
+				if (illum > 0)
+					Math::VectorScale(color, pdefinition->minlight / illum, color);
+				else
+					color = Vector(pdefinition->minlight, pdefinition->minlight, pdefinition->minlight);
+			}
 		}
 
 		if(pdefinition->maxlight)
@@ -2691,19 +2705,18 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 	//
 	// See if we need to blend colors
 	// 
-	if(!(pdefinition->lighting_flags & PARTICLE_LIGHTCHECK_NORMAL))
+	if (!(pdefinition->lighting_flags & PARTICLE_LIGHTCHECK_NORMAL) && (pdefinition->transitiontime > 0 || pdefinition->transitiontime > 0))
 	{
-		if((pparticle->secondarydelay < rns.time) && (rns.time < (pparticle->secondarydelay + pparticle->secondarytime)))
+		if ((pparticle->secondarydelay < rns.time) && (rns.time < (pparticle->secondarydelay + pparticle->secondarytime)))
 		{
-			Float fulltime = (pparticle->secondarydelay+pparticle->secondarytime) - rns.time;
-			Float coldelta = fulltime/pparticle->secondarytime;
+			Float fulltime = (pparticle->secondarydelay + pparticle->secondarytime) - rns.time;
+			Float coldelta = fulltime / pparticle->secondarytime;
 
-			pparticle->color[0] = pparticle->scolor[0]*(1.0 - coldelta) + pdefinition->primarycolor[0]*coldelta;
-			pparticle->color[1] = pparticle->scolor[1]*(1.0 - coldelta) + pdefinition->primarycolor[1]*coldelta;
-			pparticle->color[2] = pparticle->scolor[2]*(1.0 - coldelta) + pdefinition->primarycolor[2]*coldelta;
+			pparticle->color[0] = pparticle->scolor[0] * (1.0 - coldelta) + pdefinition->primarycolor[0] * coldelta;
+			pparticle->color[1] = pparticle->scolor[1] * (1.0 - coldelta) + pdefinition->primarycolor[1] * coldelta;
+			pparticle->color[2] = pparticle->scolor[2] * (1.0 - coldelta) + pdefinition->primarycolor[2] * coldelta;
 		}
 	}
-
 
 	//
 	// Spawn tracer particles
@@ -3029,22 +3042,31 @@ void CParticleEngine::BatchParticle( cl_particle_t *pparticle, Float flup, Float
 			LightForParticle(pparticle);
 			Math::VectorCopy(pparticle->lightcol, pparticle->scolor);
 		}
-
-		if(pdefinition->lighting_flags & PARTICLE_LIGHTCHECK_MIXP)
-		{
-			pparticle->color = LightForParticle(pparticle);
-			pparticle->color.x = pparticle->color.x*pdefinition->primarycolor.x;
-			pparticle->color.y = pparticle->color.y*pdefinition->primarycolor.y;
-			pparticle->color.z = pparticle->color.z*pdefinition->primarycolor.z;
-		}
-
-		if(pdefinition->lighting_flags & PARTICLE_LIGHTCHECK_INTENSITY)
+		else if (pdefinition->lighting_flags & PARTICLE_LIGHTCHECK_INTENSITY)
 		{
 			Vector color = LightForParticle(pparticle);
-			Float avg = (color[0]+color[1]+color[2])/3;
-			pparticle->color.x = pdefinition->primarycolor.x*avg;
-			pparticle->color.y = pdefinition->primarycolor.y*avg;
-			pparticle->color.z = pdefinition->primarycolor.z*avg;
+			Float avg = (color[0] + color[1] + color[2]) / 3;
+			pparticle->color.x = pdefinition->primarycolor.x * avg;
+			pparticle->color.y = pdefinition->primarycolor.y * avg;
+			pparticle->color.z = pdefinition->primarycolor.z * avg;
+		}
+		else
+		{
+			if (pdefinition->lighting_flags & PARTICLE_LIGHTCHECK_MIXS)
+			{
+				LightForParticle(pparticle);
+				pparticle->scolor.x = pparticle->lightcol.x * pdefinition->secondarycolor.x;
+				pparticle->scolor.y = pparticle->lightcol.y * pdefinition->secondarycolor.y;
+				pparticle->scolor.z = pparticle->lightcol.z * pdefinition->secondarycolor.z;
+			}
+
+			if (pdefinition->lighting_flags & PARTICLE_LIGHTCHECK_MIXP)
+			{
+				pparticle->color = LightForParticle(pparticle);
+				pparticle->color.x = pparticle->color.x * pdefinition->primarycolor.x;
+				pparticle->color.y = pparticle->color.y * pdefinition->primarycolor.y;
+				pparticle->color.z = pparticle->color.z * pdefinition->primarycolor.z;
+			}
 		}
 	}
 
