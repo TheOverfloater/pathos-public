@@ -34,8 +34,6 @@ const Float CWaterShader::DEFAULT_PHONG_EXPONENT = 16.0f;
 // Default phong exponent value
 const Float CWaterShader::DEFAULT_SPECULAR_FACTOR = 2.0;
 
-// Water shader normalmap texture path
-const Char CWaterShader::WATER_NORMALMAP_PATH[] = "general/watershader.tga";
 // Script base path
 const Char CWaterShader::WATER_SCRIPT_BASEPATH[] = "scripts/water/";
 // Default water script name
@@ -83,7 +81,6 @@ CWaterShader::CWaterShader( void ):
 	m_numPasses(0),
 	m_drawCounter(0),
 	m_waterQuality(WATER_QUALITY_FULL),
-	m_pNormalTexture(nullptr),
 	m_pShader(nullptr),
 	m_pVBO(nullptr),
 	m_pDepthTexture(nullptr)
@@ -288,10 +285,10 @@ void CWaterShader::ClearGL( void )
 //====================================
 //
 //====================================
-bool CWaterShader::InitGame( void ) 
+bool CWaterShader::InitGame(void)
 {
 	Int32 waterQuality = static_cast<Int32>(m_pCvarWaterQuality->GetValue());
-	switch(waterQuality)
+	switch (waterQuality)
 	{
 	case 0:
 		m_waterQuality = WATER_QUALITY_NO_REFLECT_REFRACT;
@@ -305,18 +302,22 @@ bool CWaterShader::InitGame( void )
 		break;
 	}
 
+	LoadScripts();
+
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 
-	// Load texture
-	m_pNormalTexture = pTextureManager->LoadTexture(WATER_NORMALMAP_PATH, RS_GAME_LEVEL);
-	if(!m_pNormalTexture)
+	for (size_t i = 0; i < m_waterSettingsArray.size(); ++i)
 	{
-		m_pNormalTexture = pTextureManager->GetDummyTexture();
-		Con_EPrintf("%s - Couldn't load '%s'.\n", __FUNCTION__, WATER_NORMALMAP_PATH);
+		water_settings_t& settings = m_waterSettingsArray[i];
+
+		settings.pNormalTexture = pTextureManager->LoadTexture(settings.normalmappath.c_str(), RS_GAME_LEVEL);
+		if (!settings.pNormalTexture)
+		{
+			settings.pNormalTexture = pTextureManager->GetDummyTexture();
+			Con_EPrintf("%s - Couldn't load '%s'.\n", __FUNCTION__, settings.normalmappath.c_str());
+		}
 	}
 
-	// Load scripts
-	LoadScripts();
 	return true;
 }
 
@@ -553,6 +554,8 @@ void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *pset
 			psettings->refractonly = true;
 		else if(!qstrcmp(szField, "cheaprefraction"))
 			psettings->cheaprefraction = true;
+		else if (!qstrcmp(szField, "normalmap"))
+			psettings->normalmappath = szValue;
 		else
 			Con_Printf("%s - Unknown field '%s' in '%s'\n", __FUNCTION__, szField, pstrFilename);
 	}
@@ -1606,8 +1609,8 @@ bool CWaterShader::DrawWater( bool skybox )
 	m_pShader->SetUniform1i(m_attribs.u_lightmap, 1);
 	m_pShader->SetUniform1i(m_attribs.u_refract, 2);
 	m_pShader->SetUniform1i(m_attribs.u_reflect, 3);
-
-	R_Bind2DTexture(GL_TEXTURE0, m_pNormalTexture->palloc->gl_index);
+	const water_settings_t* psettings = GetWaterSettings(m_pCurrentWater);
+	R_Bind2DTexture(GL_TEXTURE0, psettings->pNormalTexture->palloc->gl_index);
 
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());

@@ -71,7 +71,7 @@ struct cl_water_t
 
 struct water_settings_t
 {
-	water_settings_t():
+	water_settings_t() :
 		causticscale(0),
 		causticstrength(0),
 		causticstimescale(0),
@@ -87,7 +87,7 @@ struct water_settings_t
 		phongexponent(0),
 		refractonly(false),
 		cheaprefraction(false)
-		{}
+	{}
 
 	fog_settings_t fogparams;
 	Float causticscale;
@@ -105,6 +105,9 @@ struct water_settings_t
 	Float phongexponent;
 	bool refractonly;
 	bool cheaprefraction;
+
+	CString normalmappath;
+	en_texture_t* pNormalTexture;
 };
 
 struct water_vertex_t
@@ -228,8 +231,6 @@ public:
 	static const Float DEFAULT_PHONG_EXPONENT;
 	// Default phong exponent value
 	static const Float DEFAULT_SPECULAR_FACTOR;
-	// Water shader normalmap texture path
-	static const Char WATER_NORMALMAP_PATH[];
 	// Script base path
 	static const Char WATER_SCRIPT_BASEPATH[];
 	// Default water script name
@@ -352,9 +353,6 @@ private:
 	water_quality_t m_waterQuality;
 
 private:
-	// Normalmap texture for water surface
-	en_texture_t *m_pNormalTexture;
-
 	// View params for water
 	ref_params_t m_waterParams;
 	// Saved fog state
