@@ -190,4 +190,3 @@
   - Modify mission objectives code to use string_t CArray dynamic array instead of fixed-sizeo one.
   - Fix weapon code to properly play pickup animations if player picks up a matching weapon with the clip empty.
   - Modify same ammo types shared by weapons to be single pools of ammo instead of separate.
-  - 
