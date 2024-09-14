@@ -308,13 +308,36 @@ void CSpriteRenderer::BatchSprites( cl_entity_t* entitiesArray, Uint32 numEntiti
 		if(!pEntity->curstate.scale)
 			pEntity->curstate.scale = 1;
 
-		if(pEntity->curstate.renderfx == RenderFx_SkyEnt && !rns.water_skydraw
-			|| pEntity->curstate.renderfx != RenderFx_SkyEnt && rns.water_skydraw
-			|| pEntity->curstate.renderfx == RenderFx_SkyEntScaled && !rns.water_skydraw
-			|| pEntity->curstate.renderfx != RenderFx_SkyEntScaled && rns.water_skydraw
-			|| pEntity->curstate.renderfx == RenderFx_SkyEntNC
-			|| pEntity->curstate.renderfx == RenderFx_InPortalEntity && !rns.portalpass
-			|| pEntity->curstate.renderfx != RenderFx_InPortalEntity && rns.portalpass)
+		// Handle skydraw specially
+		if (rns.water_skydraw)
+		{
+			if (pEntity->curstate.renderfx != RenderFx_SkyEnt
+				&& pEntity->curstate.renderfx != RenderFx_SkyEntScaled)
+				continue;
+		}
+		else
+		{
+			if (pEntity->curstate.renderfx == RenderFx_SkyEnt
+				|| pEntity->curstate.renderfx == RenderFx_SkyEntScaled)
+				continue;
+		}
+
+		// Handle portals specially
+		if (rns.portalpass)
+		{
+			if (pEntity->curstate.renderfx != RenderFx_InPortalEntity
+				&& pEntity->curstate.renderfx != RenderFx_InPortalScaledModel)
+				continue;
+		}
+		else
+		{
+			if (pEntity->curstate.renderfx == RenderFx_InPortalEntity
+				|| pEntity->curstate.renderfx == RenderFx_InPortalScaledModel)
+				continue;
+		}
+
+		// Never allow no-depth cull entities to be rendered here
+		if (pEntity->curstate.renderfx == RenderFx_SkyEntNC)
 			continue;
 
 		if(R_IsSpecialRenderEntity(*pEntity))

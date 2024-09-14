@@ -12,7 +12,6 @@ All Rights Reserved.
 
 #include "screenfade.h"
 #include "r_rttcache.h"
-#include "r_fbocache.h"
 
 enum pp_shadertypes_t
 {
@@ -23,7 +22,11 @@ enum pp_shadertypes_t
 	SHADER_MBLUR,
 	SHADER_ENVFADE,
 	SHADER_GRAIN,
-	SHADER_NORMAL
+	SHADER_NORMAL,
+	SHADER_BLOOM_DARKEN,
+	SHADER_BLOOM_APPLY,
+	SHADER_BLOOM_BLUR_H,
+	SHADER_BLOOM_BLUR_V
 };
 
 struct pp_shader_attribs
@@ -39,10 +42,13 @@ struct pp_shader_attribs
 		u_screenheight(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_timer(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_offsetdivider(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_texture1(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_texture1rect(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_texture2(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_texture2rect(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_darken_steps(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_brighten_multiplier(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_blur_brightness(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_blur_radius(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_brightness_treshold(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_origin(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_texcoord(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_type(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -62,10 +68,14 @@ struct pp_shader_attribs
 	Int32	u_timer;
 	Int32	u_offsetdivider;
 
-	Int32	u_texture1;
 	Int32	u_texture1rect;
-	Int32	u_texture2;
 	Int32	u_texture2rect;
+
+	Int32	u_darken_steps;
+	Int32	u_brighten_multiplier;
+	Int32	u_blur_brightness;
+	Int32	u_blur_radius;
+	Int32	u_brightness_treshold;
 
 	Int32	a_origin;
 	Int32	a_texcoord;
@@ -117,19 +127,17 @@ private:
 	bool DrawFade( screenfade_t& fade );
 	// Draws screen film grain
 	bool DrawFilmGrain( void );
+	// Draw bloom
+	bool DrawBloom( void );
 
 	// Fetches screen contents
 	static void FetchScreen( rtt_texture_t** ptarget );
-	// Fetches screen contents for FBO
-	static bool FetchScreen( CFBOCache::cache_fbo_t** ptarget );
 
 	// Creates motion blur texture
 	void ClearMotionBlur( void );
 
 	// Creates the screen texture
 	void CreateBlurScreenTexture( void );
-	// Creates the screen texture
-	bool CreateBlurScreenFBO(void);
 
 public:
 	// Toggle motion blur effect message
@@ -162,8 +170,6 @@ private:
 	// Gaussian blur alpha
 	Float			m_gaussianBlurAlpha;
 
-	// TRUE if we should use FBOs
-	bool			m_useFBOs;
 private:
 	// Screenfade information
 	screenfade_t	m_fadeLayersArray[MAX_FADE_LAYERS];
@@ -178,16 +184,24 @@ private:
 	CCVar*			m_pCvarFilmGrain;
 	// Postporcess cvar
 	CCVar*			m_pCvarPostProcess;
+	// Bloom cvar
+	CCVar*			m_pCvarBloom;
+	// Bloom darken steps cvar
+	CCVar*			m_pCvarBloomDarkenSteps;
+	// Bloom darken brightness multiplier cvar
+	CCVar*			m_pCvarBloomDarkenMultiplier;
+	// Bloom blur steps cvar
+	CCVar*			m_pCvarBloomBlurSteps;
+	// Bloom brighten multiplier cvar
+	CCVar*			m_pCvarBloomBrightenMultiplier;
+	// Bloom darken steps cvar
+	CCVar*			m_pCvarBloomBrightnessTreshold;
 
 	// Screen RTT
 	rtt_texture_t*	m_pScreenRTT;
-	// Screen FBO
-	CFBOCache::cache_fbo_t* m_pScreenFBO;
 
 	// Screen texture pointer
 	en_texalloc_t*	m_pBlurScreenTexture;
-	// Screen FBO
-	fbobind_t m_blurScreenFBO;
 
 	// Shader attributes
 	pp_shader_attribs m_attribs;

@@ -57,7 +57,10 @@ bool CSkillData::Init( void )
 	g_skillcvars.skillNPCSig552Bullet = RegisterSkillCVar("sk_sig552_bullet");
 	g_skillcvars.skillNPCBuckshotBullet = RegisterSkillCVar("sk_buckshot_bullet");
 	g_skillcvars.skillNPC9MMBullet = RegisterSkillCVar("sk_9mm_bullet");
-
+	g_skillcvars.skillExplodeGibBurnDmg = RegisterSkillCVar("sk_gib_explode_burn_dmg");
+	g_skillcvars.skillExplodeGibDmgDelay = RegisterSkillCVar("sk_gib_explode_dmg_delay");
+	g_skillcvars.skillExplodeGibDmgRadius = RegisterSkillCVar("sk_gib_explode_dmg_radius");
+	
 	// Throwable damages
 	g_skillcvars.skillGrenadeDmg = RegisterSkillCVar("sk_grenade_dmg");
 	g_skillcvars.skillGrenadeRadius = RegisterSkillCVar("sk_grenade_radius");

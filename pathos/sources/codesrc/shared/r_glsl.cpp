@@ -276,7 +276,7 @@ bool CGLSLShader::CompileShader( Uint32 index, glsl_shader_t* pshader, csdshader
 	Common::Basename(m_shaderFile.c_str(), basename);
 
 	CString vsOut;
-	vsOut << "logs/" << basename << "_" << (Int32)index << "_vs";
+	vsOut << "logs/" << basename << "_" << static_cast<Int32>(index) << "_vs";
 
 	// Get start clock
 	beginTime = clock();
@@ -302,16 +302,16 @@ bool CGLSLShader::CompileShader( Uint32 index, glsl_shader_t* pshader, csdshader
 	m_glExtF.glCompileShader(fragment_id);
 		
 	// Now get elapsed time
-	g_fragmentShaderCompileTotalDuration += (Double)(clock() - beginTime) / CLOCKS_PER_SEC;
+	g_fragmentShaderCompileTotalDuration += static_cast<Double>(clock() - beginTime) / CLOCKS_PER_SEC;
 
 	CString fsOut;
-	fsOut << "logs/" << basename << "_" << (Int32)index << "_fs";
+	fsOut << "logs/" << basename << "_" << static_cast<Int32>(index) << "_fs";
 
 	// Get start clock
 	beginTime = clock();
 
 	m_glExtF.glGetShaderiv(fragment_id, GL_COMPILE_STATUS, &iStatus);
-	g_fragmentShaderGetStatusCallTotalDuration += (Double)(clock() - beginTime) / CLOCKS_PER_SEC;
+	g_fragmentShaderGetStatusCallTotalDuration += static_cast<Double>(clock() - beginTime) / CLOCKS_PER_SEC;
 	Shader_PrintLog(fragment_id, fp, pshaderdata->fragmentdatasize, fsOut.c_str(), (iStatus != TRUE) ? true : false);
 
 	if(iStatus != TRUE)
@@ -330,16 +330,16 @@ bool CGLSLShader::CompileShader( Uint32 index, glsl_shader_t* pshader, csdshader
 	m_glExtF.glLinkProgram(pshader->program_id);
 
 	// Now get elapsed time
-	g_shaderLinkTotalDuration += (Double)(clock() - beginTime) / CLOCKS_PER_SEC;
+	g_shaderLinkTotalDuration += static_cast<Double>(clock() - beginTime) / CLOCKS_PER_SEC;
 
 	CString progOut;
-	progOut << "logs/" << basename << "_" << (Int32)index << "_prog";
+	progOut << "logs/" << basename << "_" << static_cast<Int32>(index) << "_prog";
 
 	// Get start clock
 	beginTime = clock();
 
 	m_glExtF.glGetProgramiv(pshader->program_id, GL_LINK_STATUS, &iStatus);
-	g_shaderLinkGetStatusCallDuration += (Double)(clock() - beginTime) / CLOCKS_PER_SEC;
+	g_shaderLinkGetStatusCallDuration += static_cast<Double>(clock() - beginTime) / CLOCKS_PER_SEC;
 	Program_PrintLog(pshader->program_id, progOut.c_str());
 
 	if(iStatus != TRUE)
@@ -665,11 +665,11 @@ bool CGLSLShader::LoadFromBSD( void )
 		Uint32 j = 0;
 		for(; j < nbBinaryFormats; j++)
 		{
-			if((GLint)pshaderinfo->binaryformat == binaryFormats[j])
+			if(static_cast<GLint>(pshaderinfo->binaryformat) == binaryFormats[j])
 				break;
 		}
 
-		if(j == (Uint32)nbBinaryFormats)
+		if(j == static_cast<Uint32>(nbBinaryFormats))
 		{
 			m_fileInterface.pfnFreeFile(pFile);
 			return false;
@@ -754,7 +754,7 @@ bool CGLSLShader::CompileCSDShaderData( void )
 		// Create buffer object
 		pbuffer = new CBuffer(sizeof(byte)*TEMP_FILE_BUFFER_SIZE);
 		pbsdheader = reinterpret_cast<bsd_header_t*>(pbuffer->getbufferdata());
-		pbuffer->addpointer((void**)&pbsdheader);
+		pbuffer->addpointer(reinterpret_cast<void**>(&pbsdheader));
 		pbuffer->append(nullptr, sizeof(bsd_header_t));
 
 		pbsdheader->id = BSD_HEADER_ENCODED;
@@ -767,7 +767,7 @@ bool CGLSLShader::CompileCSDShaderData( void )
 		Uint32 datasize = sizeof(shader_binary_t) * pbsdheader->numshaders;
 		pbuffer->append(nullptr, datasize);
 		pbinaryshaders = reinterpret_cast<shader_binary_t*>(reinterpret_cast<byte*>(pbsdheader) + pbsdheader->shaderoffset);
-		pbuffer->addpointer((void**)&pbinaryshaders);
+		pbuffer->addpointer(reinterpret_cast<void**>(&pbinaryshaders));
 	}
 
 	Int32 promptSpacing = 1;
@@ -805,7 +805,7 @@ bool CGLSLShader::CompileCSDShaderData( void )
 		if(pbinaryshaders)
 		{
 			shader_binary_t* pbinaryshader = &pbinaryshaders[i];
-			pbuffer->addpointer((void**)&pbinaryshader);
+			pbuffer->addpointer(reinterpret_cast<void**>(&pbinaryshader));
 
 			// Get binary data size
 			GLint programSize = 0;
@@ -1187,7 +1187,7 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 	Char *pChunkBuffer = new Char[chunkMaxSize]();
 	if(!pChunkBuffer)
 	{
-		m_errorString << "Failed to allocate " << (Int32)chunkMaxSize << " bytes for " << m_shaderFile;
+		m_errorString << "Failed to allocate " << static_cast<Int32>(chunkMaxSize) << " bytes for " << m_shaderFile;
 		return false;
 	}
 
@@ -1387,7 +1387,7 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 
 		if(chunkSize == chunkMaxSize)
 		{
-			m_errorString << "Shader script " << m_shaderFile << " << too long, max is " << (Int32)chunkMaxSize << " characters";
+			m_errorString << "Shader script " << m_shaderFile << " << too long, max is " << static_cast<Int32>(chunkMaxSize) << " characters";
 			delete[] pChunkBuffer;
 			return false;
 		}
@@ -1543,7 +1543,7 @@ bool CGLSLShader::RecursiveAddChunks( Uint32 id, shader_chunk_t* pchunk, Char* p
 {
 	if((*size) + pchunk->isize >= maxBufferSize)
 	{
-		m_errorString << "Exceeded maxBufferSize(" << (Int32)maxBufferSize << ") in shader " << m_shaderFile;
+		m_errorString << "Exceeded maxBufferSize(" << static_cast<Int32>(maxBufferSize) << ") in shader " << m_shaderFile;
 		return false;
 	}
 
@@ -1732,14 +1732,14 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 
 	if(nbShaders >= MAX_VARIATIONS)
 	{
-		m_errorString << CString("nbShaders > ") << (Int32)MAX_VARIATIONS << " in " << m_shaderFile;
+		m_errorString << CString("nbShaders > ") << static_cast<Int32>(MAX_VARIATIONS) << " in " << m_shaderFile;
 		return false;
 	}
 
 	// Get the temp buffer for writing the file
 	CBuffer csdBuffer(TEMP_FILE_BUFFER_SIZE);
 	csdheader_t* pheader = reinterpret_cast<csdheader_t*>(csdBuffer.getbufferdata());
-	csdBuffer.addpointer((void**)&pheader);
+	csdBuffer.addpointer(reinterpret_cast<void**>(&pheader));
 
 	// Set values
 	csdBuffer.append(nullptr, sizeof(csdheader_t));
@@ -1760,7 +1760,7 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 	csdBuffer.append(nullptr, sizeof(csdshaderdata_t)*nbShaders);
 
 	csdshaderdata_t* poutshaders = reinterpret_cast<csdshaderdata_t*>(reinterpret_cast<byte*>(pheader) + pheader->shaderdataoffset);
-	csdBuffer.addpointer((void**)&poutshaders);
+	csdBuffer.addpointer(reinterpret_cast<void**>(&poutshaders));
 
 	for(Uint32 i = 0; i < nbShaders; i++)
 	{
@@ -1797,7 +1797,7 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 		csdBuffer.append(nullptr, sizeof(csddeterminator_t)*pheader->numdeterminators);
 
 		csddeterminator_t* pdeterminators = reinterpret_cast<csddeterminator_t*>(reinterpret_cast<byte *>(pheader) + pheader->determinatoroffset);
-		csdBuffer.addpointer((void**)&pdeterminators);
+		csdBuffer.addpointer(reinterpret_cast<void**>(&pdeterminators));
 
 		for(Uint32 i = 0; i < m_determinatorArray.size(); i++)
 		{
@@ -2554,7 +2554,7 @@ bool CGLSLShader :: VerifyDeterminators ( void )
 
 		if(j == m_determinatorArray.size())
 		{
-			if(m_shaderIndex == (Int32)i)
+			if(m_shaderIndex == static_cast<Int32>(i))
 				return true;
 
 			m_shaderIndex = i;

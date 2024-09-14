@@ -12,6 +12,8 @@ All Rights Reserved.
 
 #include "cmd_shared.h"
 
+struct edict_t;
+
 // Maximum character length of a command
 #define MAX_COMMAND_LENGTH	128
 // Allocation size of the command buffer
@@ -127,4 +129,6 @@ public:
 	bool m_breakExecution;
 };
 extern CCommandManager gCommands;
+
+extern edict_t* SV_GetInvokerPlayer( void );
 #endif 

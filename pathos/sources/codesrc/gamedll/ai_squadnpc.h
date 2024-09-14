@@ -79,8 +79,6 @@ public:
 	virtual void ForgetPlayer( CBaseEntity* pPlayer ) override;
 	// Declares save-restore fields
 	virtual void DeclareSaveFields( void ) override;
-	// Adds a new enemy
-	virtual void PushEnemy( CBaseEntity* pEnemy, const Vector& lastPosition, const Vector& lastAngles ) override;
 	// Allows squad members to validate a cover position
 	virtual bool ValidateCover( const Vector& coverPosition ) override;
 	// Returns the ideal NPC state
@@ -99,10 +97,6 @@ public:
 	virtual void SetSquadLeader( CBaseEntity* pSquadLeader ) override;
 	// Removes a member of the squad
 	virtual void RemoveSquadMember( CBaseEntity* pRemoveNPC ) override;
-	// Sets the last enemy sight time
-	virtual void SetLastEnemySightTime( Double time ) override;
-	// Sets the last enemy sight time
-	virtual Double GetLastEnemySightTime( void ) override;
 	// Sets whether the enemy has eluded us
 	virtual void SetEnemyEluded( bool enemyEluded ) override;
 	// Tells whether the enemy has eluded us
@@ -156,8 +150,6 @@ protected:
 
 	// Squad slots
 	Uint64			m_squadSlots;
-	// Last enemy sight time
-	Double			m_lastEnemySightTime;
 	// TRUE if enemy eluded us
 	bool			m_enemyEluded;
 

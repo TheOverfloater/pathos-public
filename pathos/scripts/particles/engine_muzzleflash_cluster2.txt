@@ -1,5 +1,6 @@
 $clusterscript
 {
+	$script engine_muzzleflash_sparks.txt
 	$script engine_muzzleflash1.txt
 	$script engine_muzzleflash2.txt
 	$script engine_muzzleflash3.txt

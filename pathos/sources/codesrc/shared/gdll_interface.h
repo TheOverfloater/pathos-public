@@ -54,6 +54,7 @@ struct gdll_funcs_t
 	void			(*pfnDispatchBlocked)( edict_t* pedict, edict_t* pOther );
 	void			(*pfnDispatchCrossedWater)( edict_t* pedict, bool entering );
 	void			(*pfnDispatchDeclareSaveFields)( edict_t* pedict );
+	void			(*pfnDispatchReleaseSaveFields)( edict_t* pedict );
 	bool			(*pfnShouldCollide)( edict_t* pedict, edict_t* pOther );
 	void			(*pfnSetAbsBox)( edict_t* pedict );
 	bool			(*pfnRunEntityPhysics)( edict_t* pedict );
@@ -95,6 +96,7 @@ struct gdll_funcs_t
 	void			(*pfnBeginLoadSave)( bool isLoadSave, bool isTransitionSave, bool isTransitionLoad, const Vector* pLandmarkOffset, const CArray<entindex_t>& entityIndexArray );
 	bool			(*pfnReadEntityStateData)( edict_t* pedict, const Char* fieldname, const byte* pdata, Uint32 datasize, Uint32 blockindex, bool istransferglobalentity );
 	bool			(*pfnReadEntityFieldData)( edict_t* pedict, const Char* fieldname, const byte* pdata, Uint32 datasize, Uint32 blockindex, bool istransferglobalentity );
+	bool			(*pfnPrepareEntityClassData)( edict_t* pedict, const Char* fieldname, Uint32 numblocks, bool istransferglobalentity );
 	bool			(*pfnReadEntityClassData)( edict_t* pedict, const Char* fieldname, const byte* pdata, Uint32 datasize, Uint32 blockindex, bool istransferglobalentity );
 	edict_t*		(*pfnFindGlobalEntity)( const Char* pstrClassname, const Char* pstrGlobalName );
 	void			(*pfnAdjustEntityPositions)( edict_t* pedict, Vector prevmins );
@@ -182,6 +184,7 @@ struct gdll_engfuncs_t
 
 	void					(*pfnSaveWriteBool)( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
 	void					(*pfnSaveWriteByte)( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
+	void					(*pfnSaveWriteBitset)( const Char* fieldname, const byte* pdata, Uint32 numberofbits, entfieldtype_t fieldtype );
 	void					(*pfnSaveWriteChar)( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
 	void					(*pfnSaveWriteInt16)( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
 	void					(*pfnSaveWriteUint16)( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
@@ -217,10 +220,12 @@ struct gdll_engfuncs_t
 	void					(*pfnMsgWriteBuffer)( const byte* pdata, Uint32 size );
 	void					(*pfnMsgWriteString)( const Char* pdata );
 	void					(*pfnMsgWriteEntindex)( entindex_t entindex );
+	void					(*pfnMsgWriteBitSet)( const byte* pdataarray, Uint32 numbits, Uint32 numbytes );
 
 	void					(*pfnServerCommand)( const Char* pstrCmd );
 	void					(*pfnClientCommand)( edict_t* pclient, const Char* pstrCmd );
 	void					(*pfnCreateCommand)( const Char* name, cmdfunc_t pfn, const Char* description );
+	edict_t*				(*pfnGetInvokerPlayer)( void );
 
 	bool					(*pfnGetBonePositionByName)( edict_t* pedict, const Char* pstrbonename, Vector& position );
 	bool					(*pfnGetBonePositionByIndex)( edict_t* pedict, Uint32 boneindex, Vector& position );

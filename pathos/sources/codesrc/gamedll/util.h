@@ -120,7 +120,7 @@ namespace Util
 	extern void FixGroundEntities( const CBaseEntity* pGroundEntity, bool noDropToFloor = false );
 	extern const Char* GetDebrisSound( breakmaterials_t material );
 	extern void PrecacheDebrisSounds( breakmaterials_t material );
-	extern bool IsDataEmpty( const byte* pdata, Uint16 size );
+	extern bool IsDataEmpty( const byte* pdata, Uint32 size );
 	extern void CreateRicochetEffect( const Vector& position, const Vector& normal );
 	extern void PrecacheFlexScript( flextypes_t npctype, const Char* pstrscriptname );
 	extern bool IsInViewCone( const Vector& origin, const Vector& angles, Float fieldOfView, const Vector& position );

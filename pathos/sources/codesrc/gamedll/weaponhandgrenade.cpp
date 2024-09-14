@@ -35,7 +35,7 @@ const Char CWeaponHandGrenade::WEAPON_VIEWMODEL[] = "models/v_grenade.mdl";
 // Weapon weight
 const Int32 CWeaponHandGrenade::WEAPON_WEIGHT = 80;
 // Weapon slot
-const Int32 CWeaponHandGrenade::WEAPON_SLOT = 4;
+const Int32 CWeaponHandGrenade::WEAPON_SLOT = 5;
 // Weapon slot position
 const Int32 CWeaponHandGrenade::WEAPON_SLOT_POSITION = 0;
 // Default ammo for weapon

@@ -14,13 +14,8 @@ All Rights Reserved.
 
 enum objectivesbuttonevent_t
 {
-	OBJ_BUTTON_1 = 0,
-	OBJ_BUTTON_2,
-	OBJ_BUTTON_3,
-	OBJ_BUTTON_4,
-	OBJ_BUTTON_5,
-	OBJ_BUTTON_6,
-	OBJ_BUTTON_EXIT
+	OBJ_BUTTON_EXIT = 0,
+	OBJ_BUTTON_0,
 };
 
 /*
@@ -54,13 +49,13 @@ public:
 	};
 
 public:
-	// Object x inset for login window
+	// Object x inset for objectives window
 	static const Uint32 OBJECTIVESWINDOW_TAB_X_INSET;
-	// Object y inset for login window
+	// Object y inset for objectives window
 	static const Uint32 OBJECTIVESWINDOW_TAB_Y_INSET;
-	// Object y spacing for login window
+	// Object y spacing for objectives window
 	static const Uint32 OBJECTIVESWINDOW_TAB_X_SPACING;
-	// Object x spacing for login window
+	// Object x spacing for objectives window
 	static const Uint32 OBJECTIVESWINDOW_TAB_Y_SPACING;
 	// Text inset for objectives window
 	static const Uint32 OBJECTIVESWINDOW_TAB_TEXT_INSET;
@@ -96,9 +91,9 @@ public:
 	void think( void ) override;
 
 	// Initializes the data
-	bool initData( const CArray<CString>& objectivesArray, const Char* pstrActiveObjectiveName, Int16& newObjectivesBitflags );
+	bool initData( const CArray<CString>& objectivesArray, const Char* pstrActiveObjectiveName, Int32& newObjectivesBitflags );
 	// Returns the current window information
-	void getInformation( CArray<CString>& objectivesArray, CString& activeObjectiveName, Int16& newObjectivesBitflags ) const;
+	void getInformation( CArray<CString>& objectivesArray, CString& activeObjectiveName, Int32& newObjectivesBitflags ) const;
 	// Returns the type of the window
 	virtual gameui_windows_t getWindowType( void ) const override { return GAMEUI_OBJECTIVESWINDOW; }
 
@@ -118,7 +113,36 @@ private:
 	// Currently selected objective button
 	button_t* m_pCurrentObjective;
 	// Bitflags marking which entries are new
-	Int16 m_newObjectivesBitflags;
+	Int32 m_newObjectivesBitflags;
+
+	// Edge thickness used
+	Float m_usedEdgeThickness;
+	// Button base X position used
+	Uint32 m_buttonXPos;
+	// Button base Y position used
+	Uint32 m_buttonYPos;
+
+	// Button width used
+	Uint32 m_buttonWidth;
+	// Button height used
+	Uint32 m_buttonHeight;
+
+	// Info surface height used
+	Uint32 m_infoSurfaceHeight;
+	// Text inset used
+	Uint32 m_textInset;
+	// Tab Y inset used
+	Uint32 m_tabYSpacing;
+	// Tab width
+	Uint32 m_tabWidth;
+
+	// Button tab
+	CGameUIScrollableSurface* m_pButtonsTab;
+	// Info tab
+	CGameUISurface* m_pInfoTab;
+
+	// Font set used
+	const font_set_t* m_pFontSet;
 };
 
 /*
@@ -130,8 +154,8 @@ CGameUIObjectivesWindowExitCallbackEvent
 class CGameUIObjectivesWindowCallbackEvent : public CGameUICallbackEvent
 {
 public:
-	CGameUIObjectivesWindowCallbackEvent( CGameUIObjectivesWindow* pLoginWindow, Uint32 type ):
-		m_pObjectivesWindow(pLoginWindow),
+	CGameUIObjectivesWindowCallbackEvent( CGameUIObjectivesWindow* pWindow, Uint32 type ):
+		m_pWindow(pWindow),
 		m_eventType((objectivesbuttonevent_t)type)
 	{ 
 	};
@@ -147,7 +171,7 @@ public:
 
 private:
 	// Text window object
-	CGameUIObjectivesWindow* m_pObjectivesWindow;
+	CGameUIObjectivesWindow* m_pWindow;
 	// Event type
 	objectivesbuttonevent_t m_eventType;
 };

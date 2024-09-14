@@ -130,3 +130,64 @@
   - Fix potential, rare crash when creating decals on VBM models and add safeguards.
   - Fix NPCs not sensing players who are made partially visible by leaning.
   - Fix shader uniform value caching for uniforms that set arrays of input values.
+
+- 2024 September 14th:
+  - Add missing entries for knife to hud script.
+  - Add support for displaying ammo counts for item/ammo/weapon pickup history.
+  - Add "Documents" viewer Game UI feature.
+  - Add muzzleflash particle script for silenced weapons.
+  - Remove HDR feature due to severe performance issues caused by FBO blitting.
+  - Add experimental Bloom post-process feature to Pathos.
+  - Add missing schema definition for screen text.
+  - Add explosion gibbing burn damage to gibs.
+  - Make pressing Escape key while in a Game UI window always close the window.
+  - Add support for Bitsets to client/server User Message system.
+  - Add support for custom colors to AI awareness bar.
+  - Added GameUIScrollableSurface class.
+  - Add support for 32 mission objectives max in Objectives Window.
+  - Fix view model snapping issue when exiting ladders due to view model lag.
+  - Expand CBitSet class to cover all basic bitset operations/checks/features.
+  - Fix issue with flashlight disappearing for 1 frame after exiting ladders.
+  - Hide engine command _set_hrtf from users.
+  - Improve overdarkening feature used by lightmaps.
+  - Fix it so that the "stopmusic" command completely clears music, no longer letting it continue on reload.
+  - Add engine function to server to allow retrieval of the invoking player edict on an issued command.
+  - Fix issues with engine render code not filtering skybox/portal entities properly when rendering.
+  - Fix issue with alpha to coverage corrupting the menu when used with legacy transparents enabled.
+  - Fix engine to use R_BindCubemapTexture for all cubemap texture binds now.
+  - Fix dynamic lights set to not be culled by the main view frustum still being culled regardless.
+  - Fix lightstyle for dynlights being broken if shadows are disabled via cvar.
+  - Add safeguard against problematic angle values in dynamic light code.
+  - Change usable object glow aura color from blue to green for better visibility.
+  - Remove more C-style casts in favor of C++ ones.
+  - Modify any rectangle texture binds to use R_BindRectangleTexture instead.
+  - Fix an issue with portal surfaces not always binding the rectangle texture properly.
+  - Fix decal generation code memory corruption issue with bone index arrays.
+  - Add support for dynamic-sized CArray<> basic variable types to the save-restore system.
+  - Add support for CBitSet to the save-restore system.
+  - Optimize memory used by entities by only declaring save-restore field data when being saved/restored.
+  - Add data sync issue on level change with player prediction when on moving entities.
+  - Fix MSG_SNDENGINE_OGG message reading channel as unsigned and not letting all chanels be specified.
+  - Fix prediction being run on client even when local server is halted.
+  - Add error message to schema loader if file is not found.
+  - Fix issue with SDL_INIT_VIDEO not being called in the right order, not allowing context version to be set.
+  - Modify NPC AI code to use CBitSet for AI bitflags instead of Uint64.
+  - Expand AI lean/enemy awareness code to support awareness levels for multiple entities.
+  - Fix crash issue in NPC enemy awareness code.
+  - Modify NPC code to support determining whether to proritize enemies that can be melee attacked.
+  - Modify Patrol NPC code to clear the patrol history far more infrequently when errors occur.
+  - Modify some schedule names to feature the names of the base classes.
+  - Added support in ambient_oggstream to fade out/stop a specific music track played by another such entity.
+  - Add index/name consistency check to player weapon type enums/definitions arrays.
+  - Add index/name consistency check to sequence activity type enums/definitions arrays.
+  - Add index/name consistency check to bullet type enums/definitions arrays.
+  - Fix light_environments on levels not using alternate lightmaps not being setting env lighting values at all.
+  - Improve materials definition script code to be more efficient with memory.
+  - Add feature for spawning entities with "give" command that allows givin them targetnames using a third parameter.
+  - Modify saved passcode system in player code to rely on dynamically sized string_t CArray type.
+  - Modify weapon pickup code to leave empty weapons behind in special cases.
+  - Add new HUD weapon slot for submachine guns.
+  - Modify mission objectives code to use string_t CArray dynamic array instead of fixed-sizeo one.
+  - Fix weapon code to properly play pickup animations if player picks up a matching weapon with the clip empty.
+  - Modify same ammo types shared by weapons to be single pools of ammo instead of separate.
+  - 

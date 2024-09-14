@@ -168,7 +168,6 @@ bool CCubemapManager::InitGame( void )
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_CUBE_MAP_SEAMLESS, GL_TRUE);
 
 		for (int j = 0; j < 6; j++)
 		{
@@ -702,7 +701,6 @@ bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRe
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_CUBE_MAP_SEAMLESS, GL_TRUE);
 
 		for (Uint32 j = 0; j < 6; j++)
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, 0, GL_RGB, m_cubemapsArray[i].width, m_cubemapsArray[i].height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
@@ -751,32 +749,13 @@ bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRe
 			glDisable(GL_BLEND);
 
 			CFBOCache::cache_fbo_t* pCubemapFBO = nullptr;
-			if (rns.fboused && rns.usehdr)
-			{
-				pCubemapFBO = gFBOCache.Alloc(m_cubemapsArray[i].width, m_cubemapsArray[i].height, true);
-				if (!pCubemapFBO)
-				{
-					Con_Printf("%s - Failed to get FBO for cubemap rendering with width %d, height %d.\n", __FUNCTION__, m_cubemapsArray[i].width, m_cubemapsArray[i].height);
-					result = false;
-					break;
-				}
-
-				R_BindFBO(&pCubemapFBO->fbo);
-			}
-
+	
 			// Draw everything
 			result = R_Draw(viewParams);
 			if (!result)
 			{
 				gFBOCache.Free(pCubemapFBO);
 				break;
-			}
-
-			if (rns.fboused && rns.usehdr)
-			{
-				assert(pCubemapFBO != nullptr);
-				gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, pCubemapFBO->fbo.fboid);
-				glReadBuffer(GL_COLOR_ATTACHMENT0);
 			}
 
 			// Save it into the buffer
@@ -788,17 +767,8 @@ bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRe
 			TGA_Write(pdest, 3, m_cubemapsArray[i].width, m_cubemapsArray[i].height, filepath.c_str(), FL_GetInterface(), Con_EPrintf);
 
 			// Save it to the OGL texture too
-			gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemapsArray[i].palloc->gl_index);
-
+			R_BindCubemapTexture(GL_TEXTURE0_ARB, m_cubemapsArray[i].palloc->gl_index);
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, 0, GL_RGB, m_cubemapsArray[i].width, m_cubemapsArray[i].height, FALSE, GL_RGB, GL_UNSIGNED_BYTE, pdest);
-
-			if (rns.fboused && rns.usehdr)
-			{
-				// Unbind FBO and free it
-				R_BindFBO(nullptr);
-				gFBOCache.Free(pCubemapFBO);
-			}
 		}
 
 		// Restore projection

@@ -174,7 +174,10 @@ const CTextSchemas::textschema_t* CTextSchemas::LoadSchema( const Char* schemaFi
 
 	const byte* pfile = FL_LoadFile(path.c_str(), nullptr);
 	if(!pfile)
+	{
+		Con_EPrintf("%s - Could not load schema definition file '%s'.\n", __FUNCTION__, schemaFileName);
 		return nullptr;
+	}
 
 	textschema_t schema;
 	schema.filename = schemaFileName;

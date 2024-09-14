@@ -25,6 +25,9 @@ struct skillcvars_t
 		skillNPCSig552Bullet(SKILLCVAR_UNDEFINED),
 		skillNPCBuckshotBullet(SKILLCVAR_UNDEFINED),
 		skillNPC9MMBullet(SKILLCVAR_UNDEFINED),
+		skillExplodeGibBurnDmg(SKILLCVAR_UNDEFINED),
+		skillExplodeGibDmgDelay(SKILLCVAR_UNDEFINED),
+		skillExplodeGibDmgRadius(SKILLCVAR_UNDEFINED),
 		skillGrenadeDmg(SKILLCVAR_UNDEFINED),
 		skillGrenadeRadius(SKILLCVAR_UNDEFINED),
 		skillReplicaHealth(SKILLCVAR_UNDEFINED),
@@ -75,6 +78,9 @@ struct skillcvars_t
 	Int32 skillGrenadeDmg;
 	Int32 skillGrenadeRadius;
 
+	Int32 skillExplodeGibBurnDmg;
+	Int32 skillExplodeGibDmgDelay;
+	Int32 skillExplodeGibDmgRadius;
 	Int32 skillReplicaHealth;
 	Int32 skillReplicaKickDmg;
 	Int32 skillReplicaPellets;

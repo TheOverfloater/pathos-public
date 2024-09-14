@@ -33,9 +33,14 @@ SLOT_FULL_SECONDARY
 The secondary weapon slot is full.
 }
 
+SLOT_FULL_SUBMACHINE
+{
+The submachine gun weapon slot is full
+}
+
 SLOT_FULL_PRIMARY
 {
-The primary weapon slot is full
+The assault weapon slot is full
 }
 
 SLOT_FULL_HEAVY

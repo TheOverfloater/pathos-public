@@ -13,8 +13,10 @@ All Rights Reserved.
 #include "ai_basenpc.h"
 #include "activity.h"
 
-// Script break conditions
-const Uint64 CScriptedSequence::SCRIPT_BREAK_CONDITIONS = (AI_COND_LIGHT_DAMAGE|AI_COND_HEAVY_DAMAGE|AI_COND_SEE_ENEMY|AI_COND_HEAR_SOUND|AI_COND_SEE_HOSTILE_NPC);
+// Script break condition bits
+const Uint32 CScriptedSequence::SCRIPT_BREAK_CONDITIONS_BITS[] = {AI_COND_LIGHT_DAMAGE, AI_COND_HEAVY_DAMAGE, AI_COND_SEE_ENEMY, AI_COND_HEAR_SOUND, AI_COND_SEE_HOSTILE_NPC};
+// Script break condition bitset
+const CBitSet CScriptedSequence::SCRIPT_BREAK_CONDITIONS(AI_COND_BITSET_SIZE, SCRIPT_BREAK_CONDITIONS_BITS, PT_ARRAYSIZE(SCRIPT_BREAK_CONDITIONS_BITS));
 
 // Link the entity to it's class
 LINK_ENTITY_TO_CLASS(scripted_sequence, CScriptedSequence);
@@ -880,9 +882,9 @@ Uint64 CScriptedSequence::GetInterruptSoundMask( void )
 // @brief
 //
 //=============================================
-Uint64 CScriptedSequence::GetIgnoreConditions( void )
+CBitSet CScriptedSequence::GetIgnoreConditions( void )
 {
-	Uint64 ingoreConditionMask = SCRIPT_BREAK_CONDITIONS;
+	CBitSet ingoreConditionMask = SCRIPT_BREAK_CONDITIONS;
 	ingoreConditionMask &= ~GetScriptBreakingAIConditions();
 	return ingoreConditionMask;
 }
@@ -891,21 +893,25 @@ Uint64 CScriptedSequence::GetIgnoreConditions( void )
 // @brief
 //
 //=============================================
-Uint64 CScriptedSequence::GetScriptBreakingAIConditions( void )
+CBitSet CScriptedSequence::GetScriptBreakingAIConditions( void )
 {
-	Uint64 conditionMask = AI_COND_NONE;
+	CBitSet conditionMask(AI_COND_BITSET_SIZE);
 	if(CanInterrupt())
 	{
 		// Remove these conditions
-		conditionMask |= (AI_COND_LIGHT_DAMAGE|AI_COND_HEAVY_DAMAGE);
+		conditionMask.set(AI_COND_LIGHT_DAMAGE);
+		conditionMask.set(AI_COND_HEAVY_DAMAGE);
 
 		// Set "sounds can interrupt" conditions
 		if(HasSpawnFlag(FL_SOUNDS_CAN_INTERRUPT))
-			conditionMask |= AI_COND_HEAR_SOUND;
+			conditionMask.set(AI_COND_HEAR_SOUND);
 
 		// Set "sounds can interrupt" conditions
 		if(HasSpawnFlag(FL_ENEMIES_CAN_INTERRUPT))
-			conditionMask |= (AI_COND_SEE_ENEMY|AI_COND_SEE_HOSTILE_NPC);
+		{
+			conditionMask.set(AI_COND_SEE_ENEMY);
+			conditionMask.set(AI_COND_SEE_HOSTILE_NPC);
+		}
 	}
 
 	return conditionMask;

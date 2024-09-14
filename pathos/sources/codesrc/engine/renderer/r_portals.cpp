@@ -229,7 +229,8 @@ bool CPortalManager::CreatePortalTexture( cl_portal_t* pportal )
 		// Allocate a new texture
 		pportal->ptexture = pTextureManager->GenTextureIndex(RS_GAME_LEVEL);
 
-		glEnable(GL_TEXTURE_RECTANGLE);
+		GLint textureBound;
+		glGetIntegerv(GL_TEXTURE_BINDING_RECTANGLE, &textureBound);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE, pportal->ptexture->gl_index);
 		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -238,7 +239,7 @@ bool CPortalManager::CreatePortalTexture( cl_portal_t* pportal )
 		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, rns.screenwidth, rns.screenheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-		glDisable(GL_TEXTURE_RECTANGLE);
+		glBindTexture(GL_TEXTURE_RECTANGLE, textureBound);
 	}
 	else
 	{
@@ -643,14 +644,8 @@ void CPortalManager::FinishPortalPass( void )
 	}
 	else
 	{
-		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-		glEnable(GL_TEXTURE_RECTANGLE);
-
-		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pCurrentPortal->ptexture->gl_index);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pCurrentPortal->ptexture->gl_index, true);
 		glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.view.params.screenwidth, rns.view.params.screenheight, 0);
-
-		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-		glDisable(GL_TEXTURE_RECTANGLE);
 	}
 
 	// Get the aiment
@@ -719,10 +714,6 @@ bool CPortalManager::DrawPortals( void )
 		return false;
 	}
 
-	// Enable rectangle textures
-	gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-	glEnable(GL_TEXTURE_RECTANGLE);
-
 	if (!rns.fboused)
 		m_pShader->SetUniform1i(m_attribs.u_texture, 0);
 	else
@@ -781,10 +772,6 @@ bool CPortalManager::DrawPortals( void )
 
 	// Clear any binds
 	R_ClearBinds();
-
-	// Disable rectangle textures
-	gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-	glDisable(GL_TEXTURE_RECTANGLE);
 
 	return result;
 }

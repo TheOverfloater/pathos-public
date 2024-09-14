@@ -140,6 +140,7 @@ static cldll_engfuncs_t CLIENTDLL_ENGINE_FUNCTION_TABLE =
 	CL_Msg_WriteBuffer,				//pfnMsgWriteBuffer
 	CL_Msg_WriteString,				//pfnMsgWriteString
 	CL_Msg_WriteEntindex,			//pfnMsgWriteEntindex
+	CL_Msg_WriteBitSet,				//pfnMsgWriteBitSet
 	Engine_CreateCVar,				//pfnCreateCVar
 	Engine_CreateCVarCallback,		//pfnCreateCVarCallback
 	Engine_GetCVarPointer,			//pfnGetCVarPointer

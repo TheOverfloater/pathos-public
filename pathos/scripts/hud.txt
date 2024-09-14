@@ -65,14 +65,24 @@ $weapon
 }
 $item
 {
+	name "weapon_knife"
+	weaponid WEAPON_KNIFE
+	description "KA-BAR Knife"
+}
+$item
+{
 	name "ammo_glock_clip"
 	description "9mm Glock Ammo"
+	unitname_plural "rounds"
+	unitname_singular "round"
 }
 $item
 {
 	name "weapon_glock"
 	weaponid WEAPON_GLOCK
 	description "Glock 17"
+	unitname_plural "rounds"
+	unitname_singular "round"
 }
 $item
 {

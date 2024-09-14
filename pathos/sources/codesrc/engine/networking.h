@@ -368,6 +368,8 @@ public:
 	void WriteBuffer( const byte* pdata, Uint32 size );
 	// Writes a buffer of bytes
 	void WriteString( const Char* pstring );
+	// Writes a bitset
+	void WriteBitSet( const byte* pdataarray, Uint32 numbits, Uint32 numbytes );
 
 protected:
 	// Checks if the buffer used by the message needs to be resized

@@ -143,19 +143,24 @@ ai_task_t taskListScheduleCloneSoldierTakeTacticalPosition[] =
 	AITASK(AI_TASK_FACE_ENEMY,							0)
 };
 
+Uint32 interruptBitsScheduleCloneSoldierTakeTacticalPosition[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_HEARD_ENEMY_NEW_POSITION,
+	AI_COND_IN_DANGER
+};
+
 const CAISchedule scheduleCloneSoldierTakeTacticalPosition(
 	// Task list
 	taskListScheduleCloneSoldierTakeTacticalPosition, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleCloneSoldierTakeTacticalPosition),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_CAN_RANGE_ATTACK1 |
-	AI_COND_HEARD_ENEMY_NEW_POSITION |
-	AI_COND_IN_DANGER,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleCloneSoldierTakeTacticalPosition, PT_ARRAYSIZE(interruptBitsScheduleCloneSoldierTakeTacticalPosition)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -178,39 +183,59 @@ ai_task_t taskListScheduleCloneSoldierAmbushEnemy[] =
 	AITASK(AI_TASK_FACE_ENEMY,								0)
 };
 
+Uint32 interruptBitsScheduleCloneSoldierAmbushEnemy[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_IN_DANGER,
+	AI_COND_HEARD_ENEMY_NEW_POSITION,
+	AI_COND_HEAR_SOUND,
+	AI_COND_SHOOT_VECTOR_VALID,
+	AI_COND_ENEMY_DEAD
+};
+
+Uint32 specialInterruptBitsScheduleCloneSoldierAmbushEnemy[] =
+{
+	AI_COND_SHOOT_VECTOR_VALID
+};
+
+Uint32 specialInterruptExceptionBitsScheduleCloneSoldierAmbushEnemy[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_IN_DANGER,
+	AI_COND_HEARD_ENEMY_NEW_POSITION,
+	AI_COND_HEAR_SOUND,
+	AI_COND_ENEMY_DEAD
+};
+
 const CAISchedule scheduleCloneSoldierAmbushEnemy(
 	// Task list
 	taskListScheduleCloneSoldierAmbushEnemy, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleCloneSoldierAmbushEnemy),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_CAN_ATTACK |
-	AI_COND_IN_DANGER |
-	AI_COND_HEARD_ENEMY_NEW_POSITION |
-	AI_COND_HEAR_SOUND |
-	AI_COND_SHOOT_VECTOR_VALID|
-	AI_COND_ENEMY_DEAD,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleCloneSoldierAmbushEnemy, PT_ARRAYSIZE(interruptBitsScheduleCloneSoldierAmbushEnemy)),
 	// Inverse condition mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Special interrupt schedule
 	AI_SCHED_FACE_ENEMY,
 	// Special interrupt condition mask
-	AI_COND_SHOOT_VECTOR_VALID,
+	CBitSet(AI_COND_BITSET_SIZE, specialInterruptBitsScheduleCloneSoldierAmbushEnemy, PT_ARRAYSIZE(specialInterruptBitsScheduleCloneSoldierAmbushEnemy)),
 	// Special interrupt exception mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_IN_DANGER |
-	AI_COND_HEARD_ENEMY_NEW_POSITION |
-	AI_COND_HEAR_SOUND |
-	AI_COND_ENEMY_DEAD,
+	CBitSet(AI_COND_BITSET_SIZE, specialInterruptExceptionBitsScheduleCloneSoldierAmbushEnemy, PT_ARRAYSIZE(specialInterruptExceptionBitsScheduleCloneSoldierAmbushEnemy)),
 	// Special interrupt requirement mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -227,19 +252,29 @@ ai_task_t taskListScheduleCloneSoldierIdleSweep[] =
 	AITASK(AI_TASK_WAIT,								2)
 };
 
+Uint32 interruptBitsScheduleCloneSoldierIdleSweep[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_IN_DANGER,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleCloneSoldierIdleSweep(
 	// Task list
 	taskListScheduleCloneSoldierIdleSweep, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleCloneSoldierIdleSweep),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_CAN_ATTACK |
-	AI_COND_IN_DANGER |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleCloneSoldierIdleSweep, PT_ARRAYSIZE(interruptBitsScheduleCloneSoldierIdleSweep)),
 	// Sound mask
 	AI_SOUND_DANGER |
 	AI_SOUND_WORLD |
@@ -264,17 +299,27 @@ ai_task_t taskListScheduleCloneSoldierHideAndWait[] =
 	AITASK(AI_TASK_WAIT_FACE_ENEMY_INDEFINITE,			0)
 };
 
+Uint32 interruptBitsScheduleCloneSoldierHideAndWait[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2
+};
+
 const CAISchedule scheduleCloneSoldierHideAndWait(
 	// Task list
 	taskListScheduleCloneSoldierHideAndWait, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleCloneSoldierHideAndWait),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_CAN_ATTACK,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleCloneSoldierHideAndWait, PT_ARRAYSIZE(interruptBitsScheduleCloneSoldierHideAndWait)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -357,7 +402,11 @@ bool CNPCCloneSoldier::Spawn( void )
 	m_attackType = NPC_TYPE_SUPPORT;
 
 	// Set capabilities
-	m_capabilityBits |= (AI_CAP_SQUAD|AI_CAP_HEAR|AI_CAP_TURN_HEAD|AI_CAP_GROUP_DOORS|AI_CAP_ATTACK_BLEND_SEQ);
+	SetCapability(AI_CAP_SQUAD);
+	SetCapability(AI_CAP_HEAR);
+	SetCapability(AI_CAP_TURN_HEAD);
+	SetCapabilities(AI_CAP_GROUP_DOORS);
+	SetCapability(AI_CAP_ATTACK_BLEND_SEQ);
 
 	if(!CPlayerEntity::IsUsingCheatCommand())
 	{
@@ -500,7 +549,7 @@ void CNPCCloneSoldier::HandleAnimationEvent( const mstudioevent_t* pevent )
 	case NPC_AE_RELOAD:
 		{
 			m_ammoLoaded = m_clipSize;
-			ClearConditions(AI_COND_NO_AMMO_LOADED);
+			ClearCondition(AI_COND_NO_AMMO_LOADED);
 		}
 		break;
 	case NPC_AE_KICK:
@@ -630,23 +679,24 @@ const CAISchedule* CNPCCloneSoldier::GetSchedule( void )
 	m_sentence = NPC_SENT_NONE;
 
 	// Run away from danger sounds
-	if(CheckConditions(AI_COND_HEAR_SOUND) && m_pBestSound && (m_pBestSound->typeflags & AI_SOUND_DANGER))
+	if(CheckCondition(AI_COND_HEAR_SOUND) && m_pBestSound && (m_pBestSound->typeflags & AI_SOUND_DANGER))
 		return GetScheduleByIndex(AI_SCHED_TAKE_COVER_FROM_BEST_SOUND);
 
 	// Dodge any dangerous enemies
-	if(m_dangerousEnemy && CheckConditions(AI_COND_DANGEROUS_ENEMY_CLOSE) && !HasMemory(AI_MEMORY_DODGE_ENEMY_FAILED))
+	if(m_dangerousEnemy && CheckCondition(AI_COND_DANGEROUS_ENEMY_CLOSE) && !HasMemory(AI_MEMORY_DODGE_ENEMY_FAILED))
 		return GetScheduleByIndex(AI_SCHED_DODGE_ENEMY);
 
 	switch(m_npcState)
 	{
 	case NPC_STATE_COMBAT:
 		{
-			if(CheckConditions(AI_COND_ENEMY_DEAD))
+			// If we got grabbed and then released, flee
+			if(CheckCondition(AI_COND_ENEMY_DEAD))
 			{
 				// Call base class to manage dead enemies
 				return CPatrolNPC::GetSchedule();
 			}
-			else if(CheckConditions(AI_COND_NEW_ENEMY) && IsInSquad())
+			else if(CheckCondition(AI_COND_NEW_ENEMY) && IsInSquad())
 			{
 				CBaseEntity* pSquadLeader = GetSquadLeader();
 				if(pSquadLeader)
@@ -668,11 +718,11 @@ const CAISchedule* CNPCCloneSoldier::GetSchedule( void )
 
 				return GetCombatSchedule();
 			}
-			else if(CheckConditions(AI_COND_NO_AMMO_LOADED))
+			else if(CheckCondition(AI_COND_NO_AMMO_LOADED))
 			{
 				return GetReloadSchedule();
 			}
-			else if(CheckConditions(AI_COND_LIGHT_DAMAGE))
+			else if(CheckCondition(AI_COND_LIGHT_DAMAGE))
 			{
 				if(Common::RandomLong(0, 99) <= 90 && m_enemy 
 					&& (GetNavigablePosition()-m_enemy->GetNavigablePosition()).Length() < NPC_MIN_ENEMY_DISTANCE)
@@ -690,12 +740,12 @@ const CAISchedule* CNPCCloneSoldier::GetSchedule( void )
 					return GetScheduleByIndex(AI_SCHED_SMALL_FLINCH);
 				}
 			}
-			else if(CheckConditions(AI_COND_CAN_MELEE_ATTACK1))
+			else if(CheckCondition(AI_COND_CAN_MELEE_ATTACK1))
 			{
 				return GetScheduleByIndex(AI_SCHED_MELEE_ATTACK1);
 			}
-			else if(CheckConditions(AI_COND_CAN_RANGE_ATTACK2)
-				&& (!CheckConditions(AI_COND_SEE_ENEMY) 
+			else if(CheckCondition(AI_COND_CAN_RANGE_ATTACK2)
+				&& (!CheckCondition(AI_COND_SEE_ENEMY) 
 				|| (m_pState->origin - m_enemyLastKnownPosition).Length() > NPC_MIN_GRENADE_DISTANCE))
 			{
 				if(CanSpeak())
@@ -706,12 +756,12 @@ const CAISchedule* CNPCCloneSoldier::GetSchedule( void )
 
 				return GetScheduleByIndex(AI_SCHED_RANGE_ATTACK2);
 			}
-			else if(CheckConditions(AI_COND_CAN_RANGE_ATTACK1))
+			else if(CheckCondition(AI_COND_CAN_RANGE_ATTACK1))
 			{
 				if(IsInSquad())
 				{
 					CBaseEntity* pSquadLeader = GetSquadLeader();
-					if(pSquadLeader && pSquadLeader->HasEnemyEluded() && !CheckConditions(AI_COND_ENEMY_FACING_ME))
+					if(pSquadLeader && pSquadLeader->HasEnemyEluded() && !CheckCondition(AI_COND_ENEMY_FACING_ME))
 					{
 						pSquadLeader->SetEnemyEluded(false);
 						return GetScheduleByIndex(AI_SQUADNPC_SCHED_FOUND_ENEMY);
@@ -720,11 +770,11 @@ const CAISchedule* CNPCCloneSoldier::GetSchedule( void )
 
 				return GetCombatSchedule();
 			}
-			else if(CheckConditions(AI_COND_ENEMY_OCCLUDED))
+			else if(CheckCondition(AI_COND_ENEMY_OCCLUDED))
 			{
 				if(m_attackType == NPC_TYPE_OFFENSIVE)
 				{
-					if(CheckConditions(AI_COND_CAN_RANGE_ATTACK2))
+					if(CheckCondition(AI_COND_CAN_RANGE_ATTACK2))
 					{
 						if(CanSpeak())
 						{
@@ -734,7 +784,7 @@ const CAISchedule* CNPCCloneSoldier::GetSchedule( void )
 
 						return GetScheduleByIndex(AI_SCHED_RANGE_ATTACK2);
 					}
-					else if(!CheckConditions(AI_COND_ENEMY_NOT_FOUND))
+					else if(!CheckCondition(AI_COND_ENEMY_NOT_FOUND))
 					{
 						if(CanSpeak())
 						{
@@ -758,7 +808,7 @@ const CAISchedule* CNPCCloneSoldier::GetSchedule( void )
 						Spoke();
 					}
 
-					if(!HasMemory(AI_MEMORY_SOUGHT_TACTICAL) && !CheckConditions(AI_COND_ENEMY_NOT_FOUND))
+					if(!HasMemory(AI_MEMORY_SOUGHT_TACTICAL) && !CheckCondition(AI_COND_ENEMY_NOT_FOUND))
 					{
 						SetMemory(AI_MEMORY_SOUGHT_TACTICAL);
 						return GetScheduleByIndex(AI_CLONE_SOLDIER_SCHED_TAKE_TACTICAL_POSITION);
@@ -780,7 +830,7 @@ const CAISchedule* CNPCCloneSoldier::GetSchedule( void )
 					}
 				}
 			}
-			else if(CheckConditions(AI_COND_SEE_ENEMY) && !CheckConditions(AI_COND_CAN_RANGE_ATTACK1))
+			else if(CheckCondition(AI_COND_SEE_ENEMY) && !CheckCondition(AI_COND_CAN_RANGE_ATTACK1))
 			{
 				if(!m_enemy->IsNPCDangerous())
 					return GetCombatSchedule();
@@ -794,7 +844,7 @@ const CAISchedule* CNPCCloneSoldier::GetSchedule( void )
 		{
 			if(!HasSpawnFlag(FL_NPC_PRISONER))
 			{
-				if(CheckConditions(AI_COND_HEAR_SOUND))
+				if(CheckCondition(AI_COND_HEAR_SOUND))
 				{
 					if(m_pBestSound && (m_pBestSound->typeflags & AI_SOUND_DANGER))
 						return GetScheduleByIndex(AI_SCHED_TAKE_COVER_FROM_BEST_SOUND);
@@ -1090,7 +1140,7 @@ void CNPCCloneSoldier::EmitIdleSound( void )
 void CNPCCloneSoldier::CheckAmmo( void )
 {
 	if(!m_ammoLoaded)
-		SetConditions(AI_COND_NO_AMMO_LOADED);
+		SetCondition(AI_COND_NO_AMMO_LOADED);
 }
 
 //=============================================
@@ -1132,7 +1182,7 @@ Vector CNPCCloneSoldier::GetGunPosition( stance_t stance )
 //=============================================
 bool CNPCCloneSoldier::CanCheckAttacks( void ) const
 {
-	if(!CheckConditions(AI_COND_ENEMY_TOO_FAR))
+	if(!CheckCondition(AI_COND_ENEMY_TOO_FAR))
 		return true;
 	else
 		return false;
@@ -1144,7 +1194,7 @@ bool CNPCCloneSoldier::CanCheckAttacks( void ) const
 //=============================================
 bool CNPCCloneSoldier::CheckRangeAttack1( Float dp, Float distance )
 {
-	if(CheckConditions(AI_COND_ENEMY_OCCLUDED|AI_COND_FRIENDLY_FIRE) || dp < NPC_FIRING_ANGLE_TRESHOLD || distance > m_firingDistance)
+	if((CheckCondition(AI_COND_ENEMY_OCCLUDED) || CheckCondition(AI_COND_FRIENDLY_FIRE)) || dp < NPC_FIRING_ANGLE_TRESHOLD || distance > m_firingDistance)
 		return false;
 
 	if(!m_enemy->IsPlayer() && distance < NPC_KICK_TRESHOLD_DISTANCE && m_enemy->GetSize().z > NPC_ENEMY_MIN_KICK_SIZE)
@@ -1194,8 +1244,8 @@ bool CNPCCloneSoldier::CheckMeleeAttack1( Float dp, Float distance )
 //=============================================
 void CNPCCloneSoldier::PreScheduleThink( void )
 {
-	if(CheckConditions(AI_COND_ENEMY_OCCLUDED) 
-		&& !CheckConditions(AI_COND_ENEMY_NOT_FOUND) 
+	if(CheckCondition(AI_COND_ENEMY_OCCLUDED) 
+		&& !CheckCondition(AI_COND_ENEMY_NOT_FOUND) 
 		&& HasMemory(AI_MEMORY_SOUGHT_TACTICAL))
 		ClearMemory(AI_MEMORY_SOUGHT_TACTICAL);
 
@@ -1297,15 +1347,15 @@ void CNPCCloneSoldier::StartTask( const ai_task_t* pTask )
 
 			if(!result)
 			{
-				if(m_capabilityBits & (AI_CAP_RANGE_ATTACK1|AI_CAP_RANGE_ATTACK2)
-					&& !CheckConditions(AI_COND_CAN_RANGE_ATTACK1|AI_COND_CAN_RANGE_ATTACK2)
+				if((HasCapability(AI_CAP_RANGE_ATTACK1) || HasCapability(AI_CAP_RANGE_ATTACK2))
+					&& !CheckCondition(AI_COND_CAN_RANGE_ATTACK1) && !CheckCondition(AI_COND_CAN_RANGE_ATTACK2)
 					&& GetLateralShootingPosition(m_enemyLastKnownPosition + enemyViewOffset))
 				{
 					Util::EntityConDPrintf(m_pEdict, "Found lateral shooting position.\n");
 					SetTaskCompleted();
 				}
-				else if(m_capabilityBits & (AI_CAP_RANGE_ATTACK1|AI_CAP_RANGE_ATTACK2)
-					&& !CheckConditions(AI_COND_CAN_RANGE_ATTACK1|AI_COND_CAN_RANGE_ATTACK2)
+				else if((HasCapability(AI_CAP_RANGE_ATTACK1) || HasCapability(AI_CAP_RANGE_ATTACK2))
+					&& !CheckCondition(AI_COND_CAN_RANGE_ATTACK1) && !CheckCondition(AI_COND_CAN_RANGE_ATTACK2)
 					&& GetClosestShootingPosition(m_enemyLastKnownPosition))
 				{
 					Util::EntityConDPrintf(m_pEdict, "Found closest shooting position.\n");
@@ -1318,8 +1368,8 @@ void CNPCCloneSoldier::StartTask( const ai_task_t* pTask )
 				else
 				{
 					// Mark enemy as not found
-					if(!CheckConditions(AI_COND_SEE_ENEMY))
-						SetConditions(AI_COND_ENEMY_NOT_FOUND);
+					if(!CheckCondition(AI_COND_SEE_ENEMY))
+						SetCondition(AI_COND_ENEMY_NOT_FOUND);
 
 					Util::EntityConDPrintf(m_pEdict, "AI_CLONE_SOLDIER_TASK_GET_AMBUSH_PATH failed.\n");
 					SetTaskFailed(false);
@@ -1353,15 +1403,15 @@ void CNPCCloneSoldier::StartTask( const ai_task_t* pTask )
 			bool isPartialCover = false;
 			if(!BuildTacticalRoute(m_enemy, m_enemyLastKnownPosition, m_enemyLastKnownAngles, enemyViewOffset, NPC_MIN_ENEMY_DISTANCE, NPC_MAX_TACTICALPOS_DISTANCE, isPartialCover))
 			{
-				if(m_capabilityBits & (AI_CAP_RANGE_ATTACK1|AI_CAP_RANGE_ATTACK2)
-					&& !CheckConditions(AI_COND_CAN_RANGE_ATTACK1|AI_COND_CAN_RANGE_ATTACK2)
+				if((HasCapability(AI_CAP_RANGE_ATTACK1) || HasCapability(AI_CAP_RANGE_ATTACK2))
+					&& !CheckCondition(AI_COND_CAN_RANGE_ATTACK1) && !CheckCondition(AI_COND_CAN_RANGE_ATTACK2)
 					&& GetLateralShootingPosition(m_enemyLastKnownPosition + enemyViewOffset))
 				{
 					Util::EntityConDPrintf(m_pEdict, "Found lateral shooting position.\n");
 					SetTaskCompleted();
 				}
-				else if(m_capabilityBits & (AI_CAP_RANGE_ATTACK1|AI_CAP_RANGE_ATTACK2)
-					&& !CheckConditions(AI_COND_CAN_RANGE_ATTACK1|AI_COND_CAN_RANGE_ATTACK2)
+				else if((HasCapability(AI_CAP_RANGE_ATTACK1) || HasCapability(AI_CAP_RANGE_ATTACK2))
+					&& !CheckCondition(AI_COND_CAN_RANGE_ATTACK1) && !CheckCondition(AI_COND_CAN_RANGE_ATTACK2)
 					&& GetClosestShootingPosition(m_enemyLastKnownPosition))
 				{
 					Util::EntityConDPrintf(m_pEdict, "Found closest shooting position.\n");
@@ -1370,13 +1420,14 @@ void CNPCCloneSoldier::StartTask( const ai_task_t* pTask )
 				else if(BuildNearestVisibleRoute(m_enemyLastKnownPosition, enemyViewOffset, NPC_MIN_ENEMY_DISTANCE, m_firingDistance))
 				{
 					// Try and build a nearby visible route
+					StartDangerCheck(m_enemyLastKnownPosition, m_enemy, false);
 					SetTaskCompleted();
 				}
 				else
 				{
 					// Mark enemy as not found
-					if(!CheckConditions(AI_COND_SEE_ENEMY))
-						SetConditions(AI_COND_ENEMY_NOT_FOUND);
+					if(!CheckCondition(AI_COND_SEE_ENEMY))
+						SetCondition(AI_COND_ENEMY_NOT_FOUND);
 
 					Util::EntityConDPrintf(m_pEdict, "AI_CLONE_SOLDIER_TASK_GET_TACTICAL_POSITION failed.\n");
 					SetTaskFailed(false);
@@ -1443,9 +1494,9 @@ void CNPCCloneSoldier::Decapitate( bool spawnHeadGib )
 // @brief Returns the conditions to ignore
 //
 //=============================================
-Uint64 CNPCCloneSoldier::GetIgnoreConditions( void )
+CBitSet CNPCCloneSoldier::GetIgnoreConditions( void )
 {
-	Uint64 ignoreConditions = CPatrolNPC::GetIgnoreConditions();
+	CBitSet ignoreConditions = CPatrolNPC::GetIgnoreConditions();
 	if(CheckConditions(AI_COND_CAN_ATTACK) && !m_takeAttackChance)
 		ignoreConditions |= AI_COND_CAN_ATTACK;
 
@@ -1867,9 +1918,9 @@ const CAISchedule* CNPCCloneSoldier::GetCombatSchedule( void )
 	// Set to this by default
 	m_takeAttackChance = true;
 
-	if( m_attackType == NPC_TYPE_OFFENSIVE || CheckConditions(AI_COND_IN_DANGER) )
+	if( m_attackType == NPC_TYPE_OFFENSIVE || CheckCondition(AI_COND_IN_DANGER) )
 	{
-		if(CheckConditions(AI_COND_CAN_RANGE_ATTACK1))
+		if(CheckCondition(AI_COND_CAN_RANGE_ATTACK1))
 		{
 			// Enemy is really close and can be attacked
 			return GetScheduleByIndex( AI_SCHED_RANGE_ATTACK1 );
@@ -1877,7 +1928,7 @@ const CAISchedule* CNPCCloneSoldier::GetCombatSchedule( void )
 		else if((m_enemy->GetNavigablePosition() - GetNavigablePosition()).Length() > NPC_MIN_AMBUSH_DISTANCE_DISTANCE)
 		{
 			// Enemy is not too near, so try and find an ambush spot
-			if(CheckConditions(AI_COND_ENEMY_NAVIGABLE))
+			if(CheckCondition(AI_COND_ENEMY_NAVIGABLE))
 			{
 				// Just ambush the player, preferably from behind
 				m_takeAttackChance = false;
@@ -1894,7 +1945,7 @@ const CAISchedule* CNPCCloneSoldier::GetCombatSchedule( void )
 				return GetScheduleByIndex( AI_SCHED_STANDOFF );
 			}
 		}
-		else if(CheckConditions(AI_COND_ENEMY_NAVIGABLE))
+		else if(CheckCondition(AI_COND_ENEMY_NAVIGABLE))
 		{
 			// Seek out a position where we can fire from with cover
 			return GetScheduleByIndex( AI_CLONE_SOLDIER_SCHED_TAKE_TACTICAL_POSITION );
@@ -1908,7 +1959,7 @@ const CAISchedule* CNPCCloneSoldier::GetCombatSchedule( void )
 	else if( m_attackType == NPC_TYPE_SUPPORT )
 	{
 		float enemyDist = (m_pState->origin - m_enemyLastKnownPosition).Length2D();
-		if( CheckConditions(AI_COND_CAN_RANGE_ATTACK1) && (enemyDist < NPC_MIN_ENEMY_DISTANCE || HasMemory(AI_MEMORY_SOUGHT_TACTICAL)) )
+		if( CheckCondition(AI_COND_CAN_RANGE_ATTACK1) && (enemyDist < NPC_MIN_ENEMY_DISTANCE || HasMemory(AI_MEMORY_SOUGHT_TACTICAL)) )
 		{
 			// Enemy is really close and can be attacked, or
 			// we've already sought a tactical position before
@@ -1918,7 +1969,7 @@ const CAISchedule* CNPCCloneSoldier::GetCombatSchedule( void )
 		{
 			CBaseEntity *pLeader = GetSquadLeader();
 
-			if( pLeader && !CheckConditions(AI_COND_SEE_ENEMY) && (g_pGameVars->time - pLeader->GetLastEnemySightTime()) > Common::RandomFloat(7, 10) )
+			if( pLeader && !CheckCondition(AI_COND_SEE_ENEMY) && (g_pGameVars->time - pLeader->GetLastEnemySightTime()) > Common::RandomFloat(7, 10) )
 			{
 				// If the enemy's been out of sight for a while, ambush
 				m_takeAttackChance = false;
@@ -1933,7 +1984,7 @@ const CAISchedule* CNPCCloneSoldier::GetCombatSchedule( void )
 				// Try and find a path that gives us more coverage
 				return GetScheduleByIndex( AI_CLONE_SOLDIER_SCHED_TAKE_TACTICAL_POSITION );
 			}
-			else if(CheckConditions(AI_COND_CAN_RANGE_ATTACK1))
+			else if(CheckCondition(AI_COND_CAN_RANGE_ATTACK1))
 			{
 				// Enemy is really close and can be attacked, or
 				// we've already sought a tactical position before
@@ -2064,6 +2115,5 @@ void CNPCCloneSoldier::DropWeapon( bool wasGibbed )
 	// These weapons have been cut from the public release
 	weaponid_t weaponId = WEAPON_NONE;
 
-	if(weaponId != WEAPON_NONE)
-		DropItem(weaponId, NPC_WEAPON_ATTACHMENT_INDEX, wasGibbed);
+	DropItem(weaponId, NPC_WEAPON_ATTACHMENT_INDEX, wasGibbed);
 }

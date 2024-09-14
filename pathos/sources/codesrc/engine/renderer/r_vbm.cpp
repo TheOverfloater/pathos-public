@@ -460,7 +460,6 @@ bool CVBMRenderer::InitGL( void )
 		m_attribs.d_bumpmapping = m_pShader->GetDeterminatorIndex("bumpmapping");
 		m_attribs.d_numdlights = m_pShader->GetDeterminatorIndex("numdlights");
 		m_attribs.d_use_ubo = m_pShader->GetDeterminatorIndex("use_ubo");
-		m_attribs.d_rectangle = m_pShader->GetDeterminatorIndex("rectangle");
 
 		if(!R_CheckShaderDeterminator(m_attribs.d_numlights, "num_lights", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_chrome, "chrome", m_pShader, Sys_ErrorPopup)
@@ -470,8 +469,7 @@ bool CVBMRenderer::InitGL( void )
 			|| !R_CheckShaderDeterminator(m_attribs.d_specular, "specular", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_luminance, "luminance", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_bumpmapping, "bumpmapping", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_use_ubo, "use_ubo", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_rectangle, "rectangle", m_pShader, Sys_ErrorPopup))
+			|| !R_CheckShaderDeterminator(m_attribs.d_use_ubo, "use_ubo", m_pShader, Sys_ErrorPopup))
 			return false;
 
 		for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
@@ -1144,32 +1142,11 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 
 			if(i != m_pVBMHeader->numtextures)
 			{
-				if (rns.fboused && rns.usehdr)
-				{
-					m_pScreenFBO = gFBOCache.Alloc(rns.screenwidth, rns.screenheight, false);
-					if (!m_pScreenFBO)
-					{
-						Con_EPrintf("%s - Failed to allocate FBO for rendering the scope.\n", __FUNCTION__);
-						return false;
-					}
-
-					gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, rns.pboundfbo->fboid);
-					gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_pScreenFBO->fbo.fboid);
-					glClear(GL_COLOR_BUFFER_BIT);
-
-					gGLExtF.glBlitFramebuffer(0, 0, rns.view.viewsize_x, rns.view.viewsize_y, 0, 0, rns.view.viewsize_x, rns.view.viewsize_y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-					gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
-				}
-				else
-				{
-					// Grab the screen texture
-					m_pScreenTexture = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
-					glBindTexture(GL_TEXTURE_RECTANGLE, m_pScreenTexture->palloc->gl_index);
-					glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
-
-					// Unbind texture
-					glBindTexture(GL_TEXTURE_RECTANGLE, 0);
-				}
+				// Grab the screen texture
+				m_pScreenTexture = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
+				R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenTexture->palloc->gl_index, true);
+				glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
+				R_BindRectangleTexture(GL_TEXTURE0_ARB, 0);
 			}
 		}
 	}
@@ -2838,25 +2815,9 @@ bool CVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, b
 		Float flscale = pmaterial->scale / g_pCvarReferenceFOV->GetValue();
 		m_pShader->SetUniform1f(m_attribs.u_scope_scale, flscale);
 
-		if (rns.fboused && rns.usehdr)
-		{
-			if (!m_pShader->SetDeterminator(m_attribs.d_rectangle, FALSE, false))
-				return false;
-
-			m_pShader->SetUniform2f(m_attribs.u_scope_scrsize, 1.0f, 1.0f);
-			R_Bind2DTexture(GL_TEXTURE1_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
-			m_pShader->SetUniform1i(m_attribs.u_texture1, 1);
-		}
-		else
-		{
-			if (!m_pShader->SetDeterminator(m_attribs.d_rectangle, TRUE, false))
-				return false;
-
-			m_pShader->SetUniform2f(m_attribs.u_scope_scrsize, rns.screenwidth, rns.screenheight);
-			gGLExtF.glActiveTexture(GL_TEXTURE1_ARB);
-			glBindTexture(GL_TEXTURE_RECTANGLE, m_pScreenTexture->palloc->gl_index);
-			m_pShader->SetUniform1i(m_attribs.u_rectangle, 1);
-		}
+		m_pShader->SetUniform2f(m_attribs.u_scope_scrsize, rns.screenwidth, rns.screenheight);
+		R_BindRectangleTexture(GL_TEXTURE1_ARB, m_pScreenTexture->palloc->gl_index);
+		m_pShader->SetUniform1i(m_attribs.u_rectangle, 1);
 	}
 
 	// Verify the settings
@@ -2923,12 +2884,6 @@ bool CVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, b
 	{
 		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 		gGLExtF.glSampleCoverage(1.0, GL_FALSE);
-	}
-
-	if ((pmaterial->flags & TX_FL_SCOPE) && (!rns.fboused || !rns.usehdr))
-	{
-		if (!m_pShader->SetDeterminator(m_attribs.d_rectangle, FALSE, false))
-			return false;
 	}
 
 	return true;
@@ -3160,6 +3115,8 @@ bool CVBMRenderer::DrawLights( bool specularPass )
 					R_BindCubemapTexture(GL_TEXTURE0+texunit, pdlight->getCubeShadowMap()->pfbo->ptexture1->gl_index);
 					texunit++;
 
+					glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
 					// Set up world-space matrix
 					pmatrix.LoadIdentity();
 					pmatrix.Rotate(-90,  1, 0, 0);// put X going down
@@ -3275,6 +3232,8 @@ bool CVBMRenderer::DrawLights( bool specularPass )
 			{
 				R_BindCubemapTexture(GL_TEXTURE0+texunit, 0);
 				texunit++;
+
+				glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 			}
 
 			batch.lightslist.next();
@@ -3306,7 +3265,6 @@ bool CVBMRenderer::DrawLights( bool specularPass )
 		return false;
 
 	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
-	gGLExtF.glActiveTexture(GL_TEXTURE0);
 
 	return true;
 }
@@ -4323,7 +4281,7 @@ bool CVBMRenderer::DecalTriangle( vbmdecal_t* pdecal, vbm_decal_mesh_t*& pmesh, 
 	}
 
 	Uint32 numadd = 0;
-	byte addbones[MAX_VBM_BONEWEIGHTS];
+	byte addbones[MAX_SHADER_BONES];
 	for (Uint32 i = 0; i < 3; i++)
 	{
 		for (Uint32 j = 0; j < MAX_VBM_BONEWEIGHTS; j++)
@@ -4347,7 +4305,7 @@ bool CVBMRenderer::DecalTriangle( vbmdecal_t* pdecal, vbm_decal_mesh_t*& pmesh, 
 					break;
 			}
 
-			if (k == pmesh->numbones && (Uint32)l == numadd)
+			if (k == pmesh->numbones && static_cast<Uint32>(l) == numadd)
 			{
 				addbones[numadd] = boneindex;
 				numadd++;
@@ -4356,22 +4314,18 @@ bool CVBMRenderer::DecalTriangle( vbmdecal_t* pdecal, vbm_decal_mesh_t*& pmesh, 
 	}
 
 	// Determine how many new bones we'll have
-	if(pmesh->numbones)
+	if(pmesh->numbones && (pmesh->numbones + numadd) > MAX_SHADER_BONES)
 	{
-		// If we went over the limit of bones, create a new mesh
-		if((pmesh->numbones + numadd) > MAX_SHADER_BONES) 
-		{
-			// Finalize the mesh
-			FinalizeDecalMesh(pdecal, pmesh, curstart);
+		// Finalize the mesh
+		FinalizeDecalMesh(pdecal, pmesh, curstart);
 			
-			// Allocate a new mesh
-			pmesh = new vbm_decal_mesh_t;
-			pdecal->meshes.push_back(pmesh);
-		}
+		// Allocate a new mesh
+		pmesh = new vbm_decal_mesh_t;
+		pdecal->meshes.push_back(pmesh);
 	}
 
 	// Add it if it's not
-	assert(pmesh->numbones + numadd < MAX_SHADER_BONES);
+	assert(pmesh->numbones + numadd <= MAX_SHADER_BONES);
 	if (numadd > 0)
 	{
 		void* pnewbuffer = Common::ResizeArray(pmesh->pbones, sizeof(byte), pmesh->numbones, numadd);
@@ -5209,14 +5163,36 @@ bool CVBMRenderer::DrawNormal( void )
 		if(pEntity->curstate.effects & EF_VIEWONLY)
 			continue;
 
-		if(pEntity->curstate.renderfx == RenderFx_SkyEnt && !rns.water_skydraw
-			|| pEntity->curstate.renderfx != RenderFx_SkyEnt && rns.water_skydraw
-			|| pEntity->curstate.renderfx == RenderFx_SkyEntScaled && !rns.water_skydraw
-			|| pEntity->curstate.renderfx != RenderFx_SkyEntScaled && rns.water_skydraw
-			|| ((pEntity->curstate.renderfx == RenderFx_InPortalEntity ||
-			pEntity->curstate.renderfx == RenderFx_InPortalScaledModel) && !rns.portalpass)
-			|| (rns.portalpass && (pEntity->curstate.renderfx != RenderFx_InPortalEntity 
-			&& pEntity->curstate.renderfx != RenderFx_InPortalScaledModel)))
+		// Handle skydraw specially
+		if (rns.water_skydraw)
+		{
+			if (pEntity->curstate.renderfx != RenderFx_SkyEnt
+				&& pEntity->curstate.renderfx != RenderFx_SkyEntScaled)
+				continue;
+		}
+		else
+		{
+			if (pEntity->curstate.renderfx == RenderFx_SkyEnt
+				|| pEntity->curstate.renderfx == RenderFx_SkyEntScaled)
+				continue;
+		}
+
+		// Handle portals specially
+		if (rns.portalpass)
+		{
+			if (pEntity->curstate.renderfx != RenderFx_InPortalEntity
+				&& pEntity->curstate.renderfx != RenderFx_InPortalScaledModel)
+				continue;
+		}
+		else
+		{
+			if (pEntity->curstate.renderfx == RenderFx_InPortalEntity
+				|| pEntity->curstate.renderfx == RenderFx_InPortalScaledModel)
+				continue;
+		}
+
+		// Never allow no-depth cull entities to be rendered here
+		if (pEntity->curstate.renderfx == RenderFx_SkyEntNC)
 			continue;
 
 		if(pEntity->pmodel->type != MOD_VBM)
@@ -5271,14 +5247,36 @@ bool CVBMRenderer::DrawTransparent( void )
 		if(pEntity->curstate.effects & EF_VIEWONLY)
 			continue;
 
-		if(pEntity->curstate.renderfx == RenderFx_SkyEnt && !rns.water_skydraw
-			|| pEntity->curstate.renderfx != RenderFx_SkyEnt && rns.water_skydraw
-			|| pEntity->curstate.renderfx == RenderFx_SkyEntScaled && !rns.water_skydraw
-			|| pEntity->curstate.renderfx != RenderFx_SkyEntScaled && rns.water_skydraw
-			|| ((pEntity->curstate.renderfx == RenderFx_InPortalEntity ||
-			pEntity->curstate.renderfx == RenderFx_InPortalScaledModel) && !rns.portalpass)
-			|| (rns.portalpass && (pEntity->curstate.renderfx != RenderFx_InPortalEntity 
-			&& pEntity->curstate.renderfx != RenderFx_InPortalScaledModel)))
+		// Handle skydraw specially
+		if (rns.water_skydraw)
+		{
+			if (pEntity->curstate.renderfx != RenderFx_SkyEnt
+				&& pEntity->curstate.renderfx != RenderFx_SkyEntScaled)
+				continue;
+		}
+		else
+		{
+			if (pEntity->curstate.renderfx == RenderFx_SkyEnt
+				|| pEntity->curstate.renderfx == RenderFx_SkyEntScaled)
+				continue;
+		}
+
+		// Handle portals specially
+		if (rns.portalpass)
+		{
+			if (pEntity->curstate.renderfx != RenderFx_InPortalEntity
+				&& pEntity->curstate.renderfx != RenderFx_InPortalScaledModel)
+				continue;
+		}
+		else
+		{
+			if (pEntity->curstate.renderfx == RenderFx_InPortalEntity
+				|| pEntity->curstate.renderfx == RenderFx_InPortalScaledModel)
+				continue;
+		}
+
+		// Never allow no-depth cull entities to be rendered here
+		if (pEntity->curstate.renderfx == RenderFx_SkyEntNC)
 			continue;
 
 		if(pEntity->pmodel->type != MOD_VBM)

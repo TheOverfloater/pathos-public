@@ -55,21 +55,26 @@ ai_task_t taskListSchedulePatrolNPCPatrol[] =
 	AITASK(AI_TASK_WAIT,						2)
 };
 
+Uint32 interruptBitsSchedulePatrolNPCPatrol[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_FEAR,
+	AI_COND_IN_DANGER,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_BLOCKING_PATH,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_SUSPICIOUS,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule schedulePatrolNPCPatrol(
 	// Task list
 	taskListSchedulePatrolNPCPatrol, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListSchedulePatrolNPCPatrol),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_SEE_FEAR |
-	AI_COND_IN_DANGER |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_BLOCKING_PATH |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_SUSPICIOUS |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsSchedulePatrolNPCPatrol, PT_ARRAYSIZE(interruptBitsSchedulePatrolNPCPatrol)),
 	// Sound mask
 	AI_SOUND_DANGER |
 	AI_SOUND_COMBAT |
@@ -91,21 +96,26 @@ ai_task_t taskListSchedulePatrolNPCPatrolFail[] =
 	AITASK(AI_TASK_SET_ACTIVITY,				(Float)ACT_IDLE)
 };
 
+Uint32 interruptBitsSchedulePatrolNPCPatrolFail[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_FEAR,
+	AI_COND_IN_DANGER,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_BLOCKING_PATH,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_SUSPICIOUS,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule schedulePatrolNPCPatrolFail(
 	// Task list
 	taskListSchedulePatrolNPCPatrolFail, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListSchedulePatrolNPCPatrolFail),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_SEE_FEAR |
-	AI_COND_IN_DANGER |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_BLOCKING_PATH |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_SUSPICIOUS |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsSchedulePatrolNPCPatrolFail, PT_ARRAYSIZE(interruptBitsSchedulePatrolNPCPatrolFail)),
 	// Sound mask
 	AI_SOUND_DANGER |
 	AI_SOUND_COMBAT |
@@ -123,14 +133,19 @@ ai_task_t taskListSchedulePatrolNPCPatrolPrompt[] =
 	AITASK(AI_PATROLNPC_TASK_PATROL_FLUSH,		0)
 };
 
+Uint32 interruptBitsSchedulePatrolNPCPatrolPrompt[] =
+{
+	AI_COND_SCHEDULE_DONE,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule schedulePatrolNPCPatrolPrompt(
 	// Task list
 	taskListSchedulePatrolNPCPatrolPrompt, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListSchedulePatrolNPCPatrolPrompt),
 	// AI interrupt mask
-	AI_COND_SCHEDULE_DONE |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsSchedulePatrolNPCPatrolPrompt, PT_ARRAYSIZE(interruptBitsSchedulePatrolNPCPatrolPrompt)),
 	// Sound mask
 	AI_SOUND_DANGER |
 	AI_SOUND_COMBAT |
@@ -295,7 +310,9 @@ const CAISchedule* CPatrolNPC::GetSchedule( void )
 	case NPC_STATE_ALERT:
 	case NPC_STATE_IDLE:
 		{
-			if(ShouldPatrol() && m_nextPatrolTime <= g_pGameVars->time && !CheckConditions(AI_COND_BLOCKING_PATH|AI_COND_HEAR_SOUND))
+			if(ShouldPatrol() && m_nextPatrolTime <= g_pGameVars->time 
+				&& !CheckCondition(AI_COND_BLOCKING_PATH) 
+				&& !CheckCondition(AI_COND_HEAR_SOUND))
 			{
 				// Set time now, so NPC won't try to patrol every frame in case of a failure
 				m_nextPatrolTime = g_pGameVars->time + Common::RandomFloat(2, 3);
@@ -682,7 +699,7 @@ bool CPatrolNPC::BuildPatrolPath( Float minDistance, Float maxDistance )
 
 	if(lastClosestNodeIndex == NO_POSITION)
 	{
-		pSquadLeader->ClearPatrolHistory();
+		pSquadLeader->PatrolErrorPrompt(this);
 		return false;
 	}
 

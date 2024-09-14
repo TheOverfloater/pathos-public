@@ -113,6 +113,7 @@ extern void UserMSG_Msg_WriteUint16( usermsgdata_t& msgdata, Uint16 value );
 extern void UserMSG_Msg_WriteInt16( usermsgdata_t& msgdata, Int16 value );
 extern void UserMSG_Msg_WriteChar( usermsgdata_t& msgdata, Char value );
 extern void UserMSG_Msg_WriteByte( usermsgdata_t& msgdata, byte value );
+extern void UserMSG_Msg_WriteBitSet( usermsgdata_t& msgdata, const byte* pdataarray, Uint32 numbits, Uint32 numbytes );
 extern void UserMSG_Msg_CheckBuffer( usermsgdata_t& msgdata, Uint32 size );
 extern void UserMSG_UserMessageBegin( CArray<usermsg_t>& usermsgarray, usermsgdata_t& msgdata, msgdest_t dest, Int32 msgid, const Vector* porigin, const edict_t* pedict );
 extern Int32 UserMSG_RegisterUserMessage( CArray<usermsg_t>& usermsgarray, const Char* pstrMsgName, Int32 msgsize );

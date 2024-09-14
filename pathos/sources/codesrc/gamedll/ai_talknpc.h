@@ -149,7 +149,7 @@ public:
 	// Plays a scripted_sentence
 	virtual void PlayScriptedSentence( const Char* pstrSentenceName, Float duration, Float volume, Float attenuation, Float timeOffset, bool subtitleOnlyInRadius, bool isConcurrent, CBaseEntity* pListener, CBaseEntity* pPlayer = nullptr ) override;
 	// Returns the conditions to ignore
-	virtual Uint64 GetIgnoreConditions( void ) override;
+	virtual CBitSet GetIgnoreConditions( void ) override;
 	// Returns a schedule by it's index
 	virtual const CAISchedule* GetScheduleByIndex( Int32 scheduleIndex ) override;
 	// Starts a task

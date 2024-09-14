@@ -208,23 +208,6 @@ list "FramebufferObjectsList"
 	$rowheight 32
 	$flags align_top align_left
 }
-text "HighDynamicRangeLabel"
-{
-	$text "High Dynamic Range"
-	$originx 330
-	$originy 232
-	$flags align_top align_left
-}
-list "HighDynamicRangeList"
-{
-	$schema "indentedwindow.txt"
-	$width 225
-	$height 32
-	$originx 330
-	$originy 256
-	$rowheight 32
-	$flags align_top align_left
-}
 list "AdvancedTabList"
 {
 	$schema "indentedwindow.txt"

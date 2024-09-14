@@ -32,6 +32,7 @@ public:
 			{
 			}
 
+		Int32 bullettypeindex;
 		Float penetrationdepth;
 		Uint32 maxpenetration;
 		Uint32 penetrationchance;
@@ -49,6 +50,7 @@ public:
 			ricochetdmgfalloff(0)
 			{}
 
+		Int32 bullettypeindex;
 		Float maxangle;
 		Float maxdeviation;
 		Uint32 ricochetchance;
@@ -62,6 +64,28 @@ public:
 			scripttype(PART_SCRIPT_SYSTEM)
 			{
 			}
+
+		const penetration_t* getPenetrationInfo(bullet_types_t bulletType) const
+		{
+			for (Uint32 i = 0; i < penetrationinfos.size(); i++)
+			{
+				if (penetrationinfos[i].bullettypeindex == bulletType)
+					return &penetrationinfos[i];
+			}
+
+			return nullptr;
+		}
+
+		const ricochetinfo_t* getRicochetInfo(bullet_types_t bulletType) const
+		{
+			for (Uint32 i = 0; i < ricochetinfos.size(); i++)
+			{
+				if (ricochetinfos[i].bullettypeindex == bulletType)
+					return &ricochetinfos[i];
+			}
+
+			return nullptr;
+		}
 
 		CString materialname;
 		CString decalgroup;

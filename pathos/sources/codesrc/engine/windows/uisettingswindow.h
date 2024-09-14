@@ -407,25 +407,6 @@ public:
 
 /*
 =================================
-CUIHighDynamicRangeSelectEvent
-
-=================================
-*/
-class CUIHighDynamicRangeSelectEvent : public CUISettingsEventBase
-{
-public:
-	explicit CUIHighDynamicRangeSelectEvent(CUISettingsWindow* pWindow) :
-		CUISettingsEventBase(pWindow)
-	{ };
-	virtual ~CUIHighDynamicRangeSelectEvent(void) { };
-
-public:
-	// Performs the action
-	virtual void PerformAction(Float param);
-};
-
-/*
-=================================
 CUISettingsWindow
 
 =================================
@@ -662,8 +643,6 @@ public:
 	void SelectAntiAliasSetting( Int32 msaaSetting );
 	// Selects a vsync setitng
 	void SelectVerticalSyncSetting( Int32 setting );
-	// Selects an HDR setitng
-	void SelectHighDynamicRangeSetting( Int32 setting );
 	// Selects an FBO setting
 	void SelectFramebufferObjectsSetting( Int32 setting );
 

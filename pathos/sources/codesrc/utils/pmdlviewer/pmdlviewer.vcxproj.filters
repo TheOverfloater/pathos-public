@@ -85,6 +85,9 @@
     <ClCompile Include="..\..\common\md5.cpp">
       <Filter>src\shared</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\shared\activitymappings.cpp">
+      <Filter>src\shared</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include=".\viewerstate.h">

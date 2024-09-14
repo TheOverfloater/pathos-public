@@ -33,7 +33,7 @@ CCommandManager::CCommandManager( void ):
 	m_cmdBufSize(CMDBUF_ALLOC_SIZE),
 	m_cmdBufUsageLength(0),
 	m_numArgs(0),
-	m_invokerPlayerIndex(-1),
+	m_invokerPlayerIndex(NO_CLIENT_INDEX),
 	m_breakExecution(false)
 {
 	m_pCommandBuffer = new Char[m_cmdBufSize];
@@ -557,4 +557,21 @@ void CCommandManager::SetInvokerPlayerIndex( Int32 index )
 Int32 CCommandManager::GetInvokerPlayerIndex( void ) const
 {
 	return m_invokerPlayerIndex;
+}
+
+//=============================================
+// @brief Get the invoker player entity
+//
+//=============================================
+edict_t* SV_GetInvokerPlayer( void )
+{
+	Int32 playerIndex = gCommands.GetInvokerPlayerIndex();
+	if(playerIndex == NO_CLIENT_INDEX)
+	{
+		Con_Printf("%s - Not invoked by a client.\n", __FUNCTION__);
+		return nullptr;
+	}
+
+	edict_t* pedict = svs.clients[playerIndex].pedict;
+	return pedict;
 }

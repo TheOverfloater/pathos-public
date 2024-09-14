@@ -230,9 +230,6 @@ bool SV_InitPrivateData( edict_t* pedict, const Char* pstrClassname )
 	// Call the function
 	pfn(pedict);
 
-	// Call to declare save fields
-	svs.dllfuncs.pfnDispatchDeclareSaveFields(pedict);
-
 	return true;
 }
 

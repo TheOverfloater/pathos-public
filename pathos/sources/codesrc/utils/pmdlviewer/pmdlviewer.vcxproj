@@ -350,6 +350,7 @@
     <ClCompile Include="..\..\common\md5.cpp" />
     <ClCompile Include="..\..\common\r_common.cpp" />
     <ClCompile Include="..\..\common\tga.cpp" />
+    <ClCompile Include="..\..\shared\activitymappings.cpp" />
     <ClCompile Include="..\..\shared\flexmanager.cpp" />
     <ClCompile Include="..\..\shared\r_basicdraw.cpp" />
     <ClCompile Include="..\..\shared\r_glextf.cpp" />

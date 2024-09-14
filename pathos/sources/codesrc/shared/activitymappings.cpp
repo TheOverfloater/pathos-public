@@ -7,14 +7,13 @@ All Rights Reserved.
 ===============================================
 */
 
-#ifndef ACTIVITYMAPPINGS_H
-#define ACTIVITYMAPPINGS_H
-
+#include "includes.h"
 #include "activity.h"
 
 #define DEFINE_ACTIVITY( activity ) { activity, #activity }
 
-activity_mapping_t ACTIVITYMAP[] = 
+// Define the activity map
+activity_mapping_t ACTIVITYMAP[] =
 {
 	DEFINE_ACTIVITY(ACT_RESET),
 	DEFINE_ACTIVITY(ACT_IDLE),
@@ -112,4 +111,36 @@ activity_mapping_t ACTIVITYMAP[] =
 	DEFINE_ACTIVITY(ACT_UNUSED12),
 	0, ""
 };
-#endif //ACTIVITYMAPPINGS_H
+
+//=============================================
+// @brief
+//
+//=============================================
+bool Activity_CheckActivityMapConsinstency( pfnCon_Printf_t pfnCon_Printf )
+{
+	// Check concinstency on activity mappings
+	Uint32 activityMapSize = sizeof(ACTIVITYMAP);
+	Uint32 mapSize = activityMapSize / sizeof(activity_mapping_t);
+	mapSize -= 1; // do not count last empty one
+
+	if (mapSize != NB_ACTIVITIES)
+	{
+		pfnCon_Printf("%s - ACTIVITYMAP has inconsistent size(%d expected, got %d instead)\n",
+			__FUNCTION__, NB_ACTIVITIES, mapSize);
+		return false;
+	}
+
+	bool failedConsistencyCheck = false;
+	for (Int32 i = 0; i < NB_ACTIVITIES; i++)
+	{
+		if (ACTIVITYMAP[i].type != i)
+		{
+			pfnCon_Printf("%s - Inconsistent activity mappings defined, type '%s' expected to have index %d, has %d instead.\n",
+				__FUNCTION__, ACTIVITYMAP[i].name, i, ACTIVITYMAP[i].type);
+
+			failedConsistencyCheck = true;
+		}
+	}
+
+	return failedConsistencyCheck ? false : true;
+}

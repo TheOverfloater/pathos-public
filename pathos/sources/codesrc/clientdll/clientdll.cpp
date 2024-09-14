@@ -587,6 +587,9 @@ bool CL_IsEscapeKeyOverridden( void )
 	if(gSayText.IsInInputMode())
 		return true;
 
+	if(gGameUIManager.HasActiveWindows())
+		return true;
+
 	return false;
 }
 

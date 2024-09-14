@@ -448,18 +448,24 @@ namespace Common
 	//=============================================
 	void FixVector( Float* pflVector )
 	{
+		Vector in(pflVector);
+		Common::NormalizeAngles(in);
+
 		for(Uint32 i = 0; i < 3; i++)
 		{
-			if(pflVector[i] == 0) pflVector[i] = 0.1;
-			if(pflVector[i] == 90) pflVector[i] = 89.9;
-			if(pflVector[i] == 180) pflVector[i] = 179.9;
-			if(pflVector[i] == 270) pflVector[i] = 269.9;
-			if(pflVector[i] == 360) pflVector[i] = 559.9;
-			if(pflVector[i] == -90) pflVector[i] = -89.9;
-			if(pflVector[i] == -180) pflVector[i] = -179.9;
-			if(pflVector[i] == -270) pflVector[i] = -269.9;
-			if(pflVector[i] == -360) pflVector[i] = -359.9;
+			if(in[i] == 0) in[i] = 0.001;
+			if(in[i] == 90) in[i] = 89.999;
+			if(in[i] == 180) in[i] = 179.999;
+			if(in[i] == 270) in[i] = 269.999;
+			if(in[i] == 360) in[i] = 359.999;
+			if(in[i] == -90) in[i] = -89.999;
+			if(in[i] == -180) in[i] = -179.999;
+			if(in[i] == -270) in[i] = -269.999;
+			if(in[i] == -360) in[i] = -359.999;
 		}
+
+		for (Uint32 i = 0; i < 3; i++)
+			pflVector[i] = in[i];
 	}
 
 	//=============================================

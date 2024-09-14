@@ -474,7 +474,7 @@ private:
 	// Retreives the texture animation for a texture
 	mtexture_t *TextureAnimation( mtexture_t *pbase, Uint32 frame );
 	// Binds textures for rendering in single-pass mode
-	bool BindTextures( bsp_texture_t* phandle, cubemapinfo_t* pcubemapinfo, cubemapinfo_t* pprevcubemap, GLuint& cubemapUnit );
+	bool BindTextures( bsp_texture_t* phandle, cubemapinfo_t* pcubemapinfo, cubemapinfo_t* pprevcubemap, GLuint& cubemapUnit, bool& alphaToCoverageEnabled );
 	// Calculates fog cordinate for special fog
 	Float CalcFogCoord( Float z );
 

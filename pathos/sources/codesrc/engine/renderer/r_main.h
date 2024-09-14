@@ -279,7 +279,6 @@ struct renderer_state_t
 		usevisorigin(false),
 		validateshaders(false),
 		msaa(false),
-		usehdr(false),
 		fboblitsupported(false),
 		pvisbuffer(nullptr),
 		psecondaryvisbuffer(nullptr),
@@ -368,8 +367,6 @@ struct renderer_state_t
 	bool validateshaders;
 	// true if using MSAA
 	bool msaa;
-	// true if HDR is enabled
-	bool usehdr;
 	// true if fbo blit is supported
 	bool fboblitsupported;
 
@@ -555,11 +552,6 @@ extern Int32 R_SortEntities( const void* p1, const void* p2 );
 
 extern void R_AddShaderForLoading( CGLSLShader* pShader );
 extern bool R_PerformPendingShaderLoads( void );
-
-extern bool R_InitMainScreenFBO( void );
-extern void R_DeleteMainScreenFBO( void );
-extern void R_PerformMainScreenBlit( void );
-extern void R_BindMainScreenFBO( void );
 
 extern void Cmd_PasteDecal( void );
 extern void Cmd_CreateSprite( void );

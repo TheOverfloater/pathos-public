@@ -68,6 +68,8 @@ public:
 	void ResetViewRoll( void );
 	// Resets view idling
 	void ResetViewIdle( void );
+	// Resets view model lag
+	void ResetViewModelLag( void );
 
 	// Calculates the view model angle
 	void CalcViewModelAngle( cl_entity_t* pviewmodel, const ref_params_t& params );

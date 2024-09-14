@@ -452,30 +452,40 @@ en_texture_t* CGameHUD::GetIconTextureByName( const Char* pstrName )
 // @brief Returns an item description by name
 //
 //=============================================
-const Char* CGameHUD::GetItemDescriptionByName( const Char* pstrName )
+bool CGameHUD::GetItemDescriptionByName( const Char* pstrName, CString& outDescription, CString& outUnitName, bool singular )
 {
 	for(Uint32 i = 0; i < m_itemInfoArray.size(); i++)
 	{
-		if(!qstrcmp(m_itemInfoArray[i].name, pstrName))
-			return m_itemInfoArray[i].description.c_str();
+		const hud_iteminfo_t& info = m_itemInfoArray[i];
+		if (!qstrcmp(info.name, pstrName))
+		{
+			outDescription = info.description.c_str();
+			outUnitName = singular ? info.unitname_singular : info.unitname_plural;
+			return true;
+		}
 	}
 
-	return "NA";
+	return false;
 }
 
 //=============================================
 // @brief Returns an item description by weapon id
 //
 //=============================================
-const Char* CGameHUD::GetItemDescriptionByWeaponId( weaponid_t weaponid )
+bool CGameHUD::GetItemDescriptionByWeaponId( weaponid_t weaponid, CString& outDescription, CString& outUnitName, bool singular )
 {
-	for(Uint32 i = 0; i < m_itemInfoArray.size(); i++)
+	for (Uint32 i = 0; i < m_itemInfoArray.size(); i++)
 	{
-		if(m_itemInfoArray[i].weaponid == weaponid)
-			return m_itemInfoArray[i].description.c_str();
+		const hud_iteminfo_t& info = m_itemInfoArray[i];
+		if (info.weaponid == weaponid)
+		{
+			outDescription = info.description.c_str();
+			outUnitName = singular ? info.unitname_singular : info.unitname_plural;
+			return true;
+		}
 	}
 
-	return "NA";
+	return false;
 }
 
 //=============================================
@@ -1210,9 +1220,14 @@ bool CGameHUD::DrawCrosshair( void )
 	Float mod = (1/(tan(M_PI/180*(90/2))));
 	Int32 dir = ((vspread.Length() * coordX) / 500) * mod;
 
-	Float in_barsize = gHUDDraw.ScaleX(9);
-	Float out_barsize = gHUDDraw.ScaleX(6);
-	
+	Uint32 in_barsize = gHUDDraw.ScaleX(9);
+	if(in_barsize % 2 == 0)
+		in_barsize += 1;
+
+	Uint32 out_barsize = gHUDDraw.ScaleX(6);
+	if(out_barsize % 2 == 0)
+		out_barsize += 1;
+
 	Vector crosshairColor;
 	if(m_isOnTarget)
 		crosshairColor = HUD_COLOR_RED;
@@ -1223,7 +1238,7 @@ bool CGameHUD::DrawCrosshair( void )
 	gHUDDraw.SetColor(crosshairColor, 255);
 
 	gHUDDraw.SetSize(in_barsize, 1);
-	gHUDDraw.SetOrigin(coordX+1-in_barsize/2, coordY);
+	gHUDDraw.SetOrigin(coordX-in_barsize/2, coordY);
 	if(!gHUDDraw.DrawQuad(nullptr))
 		return false;
 
@@ -1429,7 +1444,7 @@ bool CGameHUD::DrawWeaponList( void )
 // @brief
 //
 //=============================================
-bool CGameHUD::DrawTab_Bar( Float x, Float y, Char *sztext, en_texture_t *picon, Float bar, Int32 width, Float alpha, Float *ox, Float *oy, bool reverseColor ) 
+bool CGameHUD::DrawTab_Bar( Float x, Float y, Char *sztext, en_texture_t *picon, Float bar, Int32 width, Float alpha, Float *ox, Float *oy, bool reverseColor, color24_t* pcolor )
 {
 	Float cur_x = x;
 	Float cur_y = y;
@@ -1449,19 +1464,28 @@ bool CGameHUD::DrawTab_Bar( Float x, Float y, Char *sztext, en_texture_t *picon,
 
 	// Draw icon
 	bool shouldFlash = false;
-	if(!reverseColor)
-		shouldFlash = (bar > 25) ? false : true;
-	else
-		shouldFlash = (bar < 75) ? false : true;
 
-	if(!shouldFlash)
+	if (!pcolor || !pcolor->r && !pcolor->g && !pcolor->b)
 	{
-		gHUDDraw.SetColor(HUD_COLOR_WHITE * alpha, 255);
+		if (!reverseColor)
+			shouldFlash = (bar > 25) ? false : true;
+		else
+			shouldFlash = (bar < 75) ? false : true;
+
+		if (!shouldFlash)
+		{
+			gHUDDraw.SetColor(HUD_COLOR_WHITE * alpha, 255);
+		}
+		else
+		{
+			Float flalpha = SDL_fabs(SDL_sin(fltime * 4));
+			gHUDDraw.SetColor(HUD_COLOR_RED * (0.25 + flalpha * 0.75) * alpha, 255);
+		}
 	}
 	else
 	{
-		Float flalpha = SDL_fabs(SDL_sin(fltime*4));
-		gHUDDraw.SetColor(HUD_COLOR_RED*(0.25+flalpha*0.75) * alpha, 255);
+		Vector customColor = Vector(pcolor->r, pcolor->g, pcolor->b);
+		gHUDDraw.SetColor(customColor * alpha, 255);
 	}
 
 	Float edge = 0;
@@ -1518,18 +1542,26 @@ bool CGameHUD::DrawTab_Bar( Float x, Float y, Char *sztext, en_texture_t *picon,
 	// Draw full
 	if(bar > 0)
 	{
-		if(shouldFlash)
+		if (!pcolor || !pcolor->r && !pcolor->g && !pcolor->b)
 		{
-			Vector vColor;
-			Float flsin = SDL_fabs(SDL_sin(fltime*4));
-			Math::VectorScale(HUD_COLOR_RED, flsin, vColor);
-			Math::VectorMA(vColor, 1.0-flsin, HUD_COLOR_WHITE, vColor);
-			gHUDDraw.SetColor(vColor, 255 * alpha);
+			if (shouldFlash)
+			{
+				Vector vColor;
+				Float flsin = SDL_fabs(SDL_sin(fltime * 4));
+				Math::VectorScale(HUD_COLOR_RED, flsin, vColor);
+				Math::VectorMA(vColor, 1.0 - flsin, HUD_COLOR_WHITE, vColor);
+				gHUDDraw.SetColor(vColor, 255 * alpha);
+			}
+			else
+			{
+				gHUDDraw.SetColor(HUD_COLOR_WHITE, 255 * alpha);
+			}
 		}
 		else
 		{
-			gHUDDraw.SetColor(HUD_COLOR_WHITE, 255 * alpha);
-		}	
+			Vector customColor = Vector(pcolor->r, pcolor->g, pcolor->b);
+			gHUDDraw.SetColor(customColor * alpha, 255);
+		}
 
 		Float size = bar_size*(bar/100);
 		gHUDDraw.SetOrigin(bar_x, cur_y+bar_edge);
@@ -2042,9 +2074,10 @@ void CGameHUD::SetMovementNoise( Float noise )
 // @brief
 //
 //=============================================
-void CGameHUD::SetNPCAwareness( Float awareness )
+void CGameHUD::SetNPCAwareness( Float awareness, color24_t& color )
 {
 	m_npcAwareness = awareness;
+	m_npcAwarenessColor = color;
 }
 
 //=============================================
@@ -2417,6 +2450,10 @@ bool CGameHUD::LoadHUDScript( void )
 				newItem.description = "NA";
 			}
 
+			// Get unit names, which are not mandatory fields
+			newItem.unitname_singular = GetValueForKey(infoPairArray, "unitname_singular");
+			newItem.unitname_plural = GetValueForKey(infoPairArray, "unitname_plural");
+
 			m_itemInfoArray.push_back(newItem);
 		}
 		else
@@ -2520,9 +2557,9 @@ void CGameHUD::AmmoPickup( const Char* pstrentityname, Uint32 count )
 // @brief
 //
 //=============================================
-void CGameHUD::WeaponPickup( Int32 id )
+void CGameHUD::WeaponPickup( Int32 id, Uint32 ammoCount)
 {
-	m_pHistory->AddElement(CHUDHistory::HISTORY_WEAPON, id);
+	m_pHistory->AddElement(CHUDHistory::HISTORY_WEAPON, id, ammoCount);
 }
 
 //=============================================
@@ -2796,7 +2833,7 @@ bool CGameHUD::DrawNPCAwarenessTab( void )
 	Float tabFullness = m_npcAwareness*100;
 
 	// Draw speed tab
-	return DrawTab_Bar(x, y, nullptr, m_pAwarenessIcon, tabFullness, TAB_MOVENOISE_SIZE_X, 1.0, nullptr, nullptr, true);
+	return DrawTab_Bar(x, y, nullptr, m_pAwarenessIcon, tabFullness, TAB_MOVENOISE_SIZE_X, 1.0, nullptr, nullptr, true, tabFullness > 0 ? &m_npcAwarenessColor : nullptr);
 }
 
 //=============================================
@@ -3570,15 +3607,23 @@ void CHUDHistory::AddElement( Uint32 type, Uint32 id, Uint32 count )
 		return;
 
 	weaponid_t weaponId = (weaponid_t)id;
-	const Char* pstrDescription = m_hud.GetItemDescriptionByWeaponId(weaponId);
-	if(!pstrDescription)
+	CString description;
+	CString unitname;
+
+	if (!m_hud.GetItemDescriptionByWeaponId(weaponId, description, unitname, (count > 0) ? false : true))
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Item '%s' has no $item definition set in '%s'.\n", __FUNCTION__, WEAPONMAPPINGS[weaponId].name, CGameHUD::HUD_DESCRIPTION_SCRIPT_PATH);
 		return;
+	}
+
+	CString finalDescription;
+	finalDescription << description;
+	if (count > 0 && !unitname.empty())
+		finalDescription << "(" << count << " " << unitname << ")";
 
 	hudhistory_t newhistory;
-	newhistory.count = count;
-	newhistory.description = pstrDescription;
+	newhistory.description = finalDescription;
 	newhistory.die = cl_engfuncs.pfnGetClientTime() + HUD_HISTORY_DRAW_TIME;
-	newhistory.hascount = (type == HISTORY_AMMO) ? true : false;
 
 	m_historyList.add(newhistory);
 }
@@ -3592,15 +3637,23 @@ void CHUDHistory::AddElement( Uint32 type, const Char* pstrname, Uint32 count )
 	if(type == HISTORY_AMMO && !count)
 		return;
 
-	const Char* pstrDescription = m_hud.GetItemDescriptionByName(pstrname);
-	if(!pstrDescription)
+	CString description;
+	CString unitname;
+
+	if (!m_hud.GetItemDescriptionByName(pstrname, description, unitname, (count > 0) ? false : true))
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Item '%s' has no $item definition set in '%s'.\n", __FUNCTION__, pstrname, CGameHUD::HUD_DESCRIPTION_SCRIPT_PATH);
 		return;
+	}
+
+	CString finalDescription;
+	finalDescription << description;
+	if (count > 0 && !unitname.empty())
+		finalDescription << "(" << count << " " << unitname << ")";
 
 	hudhistory_t newhistory;
-	newhistory.count = count;
-	newhistory.description = pstrDescription;
+	newhistory.description = finalDescription;
 	newhistory.die = cl_engfuncs.pfnGetClientTime() + HUD_HISTORY_DRAW_TIME;
-	newhistory.hascount = (type == HISTORY_AMMO) ? true : false;
 
 	m_historyList.add(newhistory);
 }

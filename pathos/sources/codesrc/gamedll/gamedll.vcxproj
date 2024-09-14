@@ -187,10 +187,12 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\cbitset.cpp" />
     <ClCompile Include="..\common\common.cpp" />
     <ClCompile Include="..\common\crc32.cpp" />
     <ClCompile Include="..\common\cstring.cpp" />
     <ClCompile Include="..\common\logfile.cpp" />
+    <ClCompile Include="..\shared\activitymappings.cpp" />
     <ClCompile Include="..\shared\decallist.cpp" />
     <ClCompile Include="..\shared\flexmanager.cpp" />
     <ClCompile Include="..\shared\playermove.cpp" />
@@ -445,6 +447,8 @@
     <ClInclude Include="..\common\cache_model.h" />
     <ClInclude Include="..\common\carray.h" />
     <ClInclude Include="..\common\carray_inline.hpp" />
+    <ClInclude Include="..\common\cbitset.h" />
+    <ClInclude Include="..\common\cbitset_inline.hpp" />
     <ClInclude Include="..\common\clinkedlist.h" />
     <ClInclude Include="..\common\clinkedlist_inline.hpp" />
     <ClInclude Include="..\common\common.h" />
@@ -461,7 +465,6 @@
     <ClInclude Include="..\common\vector_inline.hpp" />
     <ClInclude Include="..\engine\brushmodel.h" />
     <ClInclude Include="..\shared\activity.h" />
-    <ClInclude Include="..\shared\activitymappings.h" />
     <ClInclude Include="..\shared\blackhole_shared.h" />
     <ClInclude Include="..\shared\brushmodel_shared.h" />
     <ClInclude Include="..\shared\gdll_interface.h" />

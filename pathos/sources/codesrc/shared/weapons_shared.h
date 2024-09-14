@@ -12,6 +12,10 @@ All Rights Reserved.
 
 #include "constants.h"
 
+#ifndef pfnCon_Printf_t
+typedef void (*pfnCon_Printf_t)( const Char* fmt, ... );
+#endif pfnCon_Printf_t
+
 // Default recoil degradation
 static const Float DEFAULT_RECOIL_DEGRADE	= 0.5f;
 // Default recoil limit
@@ -51,7 +55,7 @@ static const Char AMMOTYPE_22LR_NAME[] = ".22LR";
 // .50 AE ammotype name
 static const Char AMMOTYPE_50AE_NAME[] = ".50AE";
 // NATO 5.56 ammotype name for Sig552
-static const Char AMMOTYPE_556_SIG552_NAME[] = "5.56_Sig552";
+static const Char AMMOTYPE_556_NAME[] = "5.56";
 // Buckshot ammotype name for M249
 static const Char AMMOTYPE_BUCKSHOT_NAME[] = "Buckshot";
 // NATO 5.56 ammotype name for M249
@@ -66,7 +70,7 @@ static const Char AMMOTYPE_MK2GRENADE_NAME[] = "Mk2Grenade";
 static const Char AMMOTYPE_URANIUM_NAME[] = "U238 AP";
 
 // Maximum 9mm ammo
-static const Uint32 MAX_9MM_AMMO = 85;
+static const Uint32 MAX_9MM_AMMO = 150;
 // Maximum .45 SW ammo
 static const Uint32 MAX_45SW_AMMO = 96;
 // Maximum .22 LR ammo
@@ -74,7 +78,7 @@ static const Uint32 MAX_22LR_AMMO = 128;
 // Maximum .50 AE ammo
 static const Uint32 MAX_50AE_AMMO = 21;
 // Maximum Sig552 5.56 ammo
-static const Uint32 MAX_556_SG552_AMMO = 150;
+static const Uint32 MAX_556_AMMO = 200;
 // Maximum buckshot ammo
 static const Uint32 MAX_BUCKSHOT_AMMO = 54;
 // Maximum M249 5.56 ammo
@@ -94,9 +98,9 @@ static const Uint32 MAX_WEAPONS = 32;
 static const Uint32 MAX_AMMO_TYPES = 32;
 
 // Max slot positions
-static const Uint32 MAX_SLOT_POSITIONS		= 5;
+static const Uint32 MAX_SLOT_POSITIONS		= 6;
 // Max weapon slots
-static const Uint32 MAX_WEAPON_SLOTS		= 5;
+static const Uint32 MAX_WEAPON_SLOTS		= 6;
 
 // Gun loud volume
 static const Uint32 GUN_VOLUME_LOUD = 4096;
@@ -125,6 +129,7 @@ static const Uint32 WEAPON_SLOT_LIMITS[MAX_SLOT_POSITIONS] =
 {
 	1, // Melee slot
 	3, // Pistol slot
+	1, // Submachine gun slot
 	2, // Primary weapon slot
 	2, // Large weapon slot
 	1 // Explosive weapon slot
@@ -243,5 +248,5 @@ static const Float AUTOAIM_DEGREES_VALUES [] =
 
 // Returns cone size for weapon based on params
 extern Vector Weapon_GetConeSize( Int32 coneindex, Vector leanoffset = ZERO_VECTOR, Vector velocity = ZERO_VECTOR, Vector punchangles = ZERO_VECTOR );
-
+extern bool Weapon_CheckAmmoTypeMapConsinstency( pfnCon_Printf_t pfnCon_Printf );
 #endif //WEAPONS_SHARED_H

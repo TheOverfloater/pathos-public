@@ -39,9 +39,6 @@ extern void CmdEnd( edict_t* pclient );
 extern void PM_PlayStepSound( entindex_t entindex, const Char* pstrMaterialName, bool stepleft, Float volume, const Vector& origin );
 extern void PM_PlaySound( entindex_t entindex, Int32 channel, const Char* psample, Float volume, Float attenuation, Int32 pitch, Int32 flags );
 
-// Maximum saved keypad id/keypad code mappings
-static const Uint32 MAX_SAVED_PASSCODES = 128;
-
 /*
 =======================
 CPlayerEntity
@@ -82,13 +79,15 @@ public:
 		npc_awarenessinfo_t():
 			awareness(0),
 			lasttime(0),
-			timeoutdelay(0)
+			timeoutdelay(0),
+			leanawareness(false)
 			{}
 
 		CEntityHandle pnpc;
 		Float awareness;
 		Double lasttime;
 		Float timeoutdelay;
+		bool leanawareness;
 	};
 
 	struct music_data_t
@@ -293,7 +292,7 @@ public:
 	// Drops active weapon
 	virtual void DropCurrentWeapon( void ) override;
 	// Gives an item by clasname
-	virtual void GiveItemByName( const Char* pstrClassname, Uint32 amount, bool removeunneeded ) override;
+	virtual void GiveItemByName( const Char* pstrClassname, const Char* pstrTargetName, Uint32 amount, bool removeunneeded ) override;
 	// Selects the last weapon used
 	virtual void SelectPreviousWeapon( void ) override;
 
@@ -491,6 +490,8 @@ public:
 	void RemoveWeaponBit( Int64 weaponid );
 	// Checks if the player has the named weapon
 	bool HasPlayerWeapon( const Char* pstrWeaponClassName ) const;
+	// Returns a weapon by classname
+	const CPlayerWeapon* GetPlayerWeaponByClassName( const Char* pstrWeaponClassName ) const;
 	// Returns the drop position for weapons
 	Vector GetWeaponDropPosition( void );
 
@@ -562,7 +563,7 @@ public:
 
 public:
 	// Set NPC awareness
-	virtual void SetNPCAwareness( Float awareness, CBaseEntity* pNPC, Float timeoutDelay ) override;
+	virtual void SetNPCAwareness( Float awareness, CBaseEntity* pNPC, Float timeoutDelay, bool isLeanAwareness ) override;
 	// Think function for NPC awareness
 	void NPCAwarenessThink( void );
 
@@ -633,6 +634,8 @@ public:
 
 	// Spawns an objectives window
 	virtual void SpawnObjectivesWindow( void ) override;
+	// Spawns the documents window
+	virtual void SpawnDocumentsWindow( void ) override;
 
 public:
 	// Sets countdown timer
@@ -691,9 +694,10 @@ private:
 	bool						m_hasActiveUIWindows;
 
 	// Keypad id-> keypad code mappings
-	string_t					m_savedPasscodes[MAX_SAVED_PASSCODES];
-	// Number of saved codes
-	Uint32						m_numSavedPasscodes;
+	CArray<string_t>			m_savedPasscodesArray;
+
+	// Array of documents collected
+	CArray<string_t>			m_savedDocumentsArray;
 
 private:
 	// True if force holster is enabled
@@ -952,12 +956,16 @@ private:
 	Float						m_highestAwarenessLevel;
 	// Current highest awareness level on client
 	Float						m_clientHighestAwarenessLevel;
+	// Current highest awareness color
+	color24_t					m_highestAwarenessColor;
+	// Current highest awareness color on client
+	color24_t					m_clientHighestAwarenessColor;
 
 private:
 	// Array of active objectives
-	string_t					m_objectivesArray[GAMEUI_MAX_OBJECTIVES];
+	CArray<string_t>			m_objectivesArray;
 	// Flags indicating which objective is new/changed
-	Int16						m_objectivesNewFlags;
+	Int32						m_objectivesNewFlags;
 	// Last time an objective was added
 	Double						m_lastObjectiveAddTime;
 

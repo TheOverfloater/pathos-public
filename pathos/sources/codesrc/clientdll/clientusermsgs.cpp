@@ -36,6 +36,7 @@ All Rights Reserved.
 #include "gameuisubwaywindow.h"
 #include "gameuitextwindow.h"
 #include "gameuiobjectiveswindow.h"
+#include "gameuidocumentswindow.h"
 
 //=============================================
 // @brief
@@ -1071,6 +1072,7 @@ MSGFN MsgFunc_WeaponPickup( const Char* pstrName, const byte* pdata, Uint32 msgs
 {
 	CMSGReader reader(pdata, msgsize);
 	Int32 id = reader.ReadByte();
+	Uint32 ammocount = reader.ReadByte();
 
 	if(reader.HasError())
 	{
@@ -1078,7 +1080,7 @@ MSGFN MsgFunc_WeaponPickup( const Char* pstrName, const byte* pdata, Uint32 msgs
 		return false;
 	}
 
-	gHUD.WeaponPickup(id);
+	gHUD.WeaponPickup(id, ammocount);
 	return true;
 }
 
@@ -1452,7 +1454,7 @@ MSGFN MsgFunc_CreateGameUIWindow( const Char* pstrName, const byte* pdata, Uint3
 			// Read nb of objectives
 			Uint32 nbObjectives = reader.ReadByte();
 			// Read new objective bits
-			Int16 newObjectiveBits = reader.ReadByte();
+			Int32 newObjectiveBits = reader.ReadInt32();
 
 			// Read each objective in
 			CArray<CString> objectivesArray;
@@ -1483,6 +1485,46 @@ MSGFN MsgFunc_CreateGameUIWindow( const Char* pstrName, const byte* pdata, Uint3
 			}
 
 			if(!pWindow->initData(objectivesArray, nullptr, newObjectiveBits))
+			{
+				cl_engfuncs.pfnCon_EPrintf("%s - Failed to initialize 'CGameUIObjectivesWindow'.\n", __FUNCTION__);
+				return true;
+			}
+		}
+		break;
+	case GAMEUI_DOCUMENTSWINDOW:
+		{
+			// Read nb of objectives
+			Uint32 nbDocuments = reader.ReadInt16();
+
+			// Read each objective in
+			CArray<CString> documentsArray;
+			for(Uint32 i = 0; i < nbDocuments; i++)
+			{
+				const Char* pString = reader.ReadString();
+				if(!qstrlen(pString))
+				{
+					cl_engfuncs.pfnCon_EPrintf("%s - No identifier specified for 'CGameUIObjectivesWindow' objective at index %d.\n", __FUNCTION__, i);
+					return true;
+				}
+
+				documentsArray.push_back(pString);
+			}
+
+			if(reader.HasError())
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+				return false;
+			}
+
+			// Spawn the window
+			CGameUIDocumentsWindow* pWindow = reinterpret_cast<CGameUIDocumentsWindow*>(gGameUIManager.SpawnWindow(type));
+			if(!pWindow)
+			{
+				cl_engfuncs.pfnCon_EPrintf("%s - Failed to create 'CGameUIObjectivesWindow'.\n", __FUNCTION__);
+				return true;
+			}
+
+			if(!pWindow->initData(documentsArray, nullptr))
 			{
 				cl_engfuncs.pfnCon_EPrintf("%s - Failed to initialize 'CGameUIObjectivesWindow'.\n", __FUNCTION__);
 				return true;
@@ -2244,13 +2286,18 @@ MSGFN MsgFunc_NPCAwareness( const Char* pstrName, const byte* pdata, Uint32 msgs
 	CMSGReader reader(pdata, msgsize);
 	Float awareness = (Float)reader.ReadSmallFloat();
 
+	color24_t color;
+	color.r = reader.ReadByte();
+	color.g = reader.ReadByte();
+	color.b = reader.ReadByte();
+
 	if(reader.HasError())
 	{
 		cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
 		return false;
 	}
 
-	gHUD.SetNPCAwareness(awareness);
+	gHUD.SetNPCAwareness(awareness, color);
 	return true;
 }
 

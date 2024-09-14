@@ -1,4 +1,3 @@
-$global_determinator rectangle 0 1
 $shader_vertex $begin
 #version 130
 
@@ -25,20 +24,10 @@ $shader_fragment
 $determinator type 0 3
 $begin
 #version 130
-$branch rectangle == 1
-$begin
-	#extension GL_ARB_texture_rectangle : enable
-$end
+#extension GL_ARB_texture_rectangle : enable
 
 uniform sampler2D texture0;
-$branch rectangle == 0
-$begin
-	uniform sampler2D scrntexture;
-$end
-$branch rectangle == 1
-$begin
-	uniform sampler2DRect scrntexturerect;
-$end
+uniform sampler2DRect scrntexturerect;
 
 uniform float size;
 
@@ -78,28 +67,12 @@ void main()
 	$branch type == 2
 	$begin
 		vec4 auracolor = texture(texture0, ps_texcoord);
-		$branch rectangle == 1
-		$begin
-			vec4 shcolor = texture(scrntexturerect, ps_rtexcoord);
-		$end
-		$branch rectangle == 0
-		$begin
-			vec4 shcolor = texture(scrntexture, ps_rtexcoord);
-		$end
-		
+		vec4 shcolor = texture(scrntexturerect, ps_rtexcoord);
 		oColor = auracolor*(1.0-shcolor.x);
-		
 	$end
 	$branch type == 3
 	$begin
-		$branch rectangle == 1
-		$begin
-			oColor = texture(scrntexturerect, ps_rtexcoord);
-		$end
-		$branch rectangle == 0
-		$begin
-			oColor = texture(scrntexture, ps_rtexcoord);
-		$end
+		oColor = texture(scrntexturerect, ps_rtexcoord);
 	$end
 }
 $end

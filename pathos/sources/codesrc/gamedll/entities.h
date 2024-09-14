@@ -85,6 +85,7 @@ extern void DispatchBlocked( edict_t* pedict, edict_t* pother );
 extern void DispatchCrossedWater( edict_t* pedict, bool entering );
 extern bool DispatchRestore( edict_t* pedict, bool istransferglobalentity );
 extern void DispatchDeclareSaveFields( edict_t* pedict );
+extern void DispatchReleaseSaveFields( edict_t* pedict );
 extern bool ShouldCollide( edict_t* pedict, edict_t* pOther );
 extern void SetAbsBox( edict_t* pedict );
 extern bool RunEntityPhysics( edict_t* pedict );
@@ -104,6 +105,7 @@ extern void SendEntityInitMessages( edict_t* pPlayer );
 extern void	BeginLoadSave( bool isLoadSave, bool isTransitionSave, bool isTransitionLoad, const Vector* pLandmarkOffset, const CArray<entindex_t>& entityIndexArray );
 extern bool ReadEntityStateData( edict_t* pedict, const Char* fieldname, const byte* pdata, Uint32 datasize, Uint32 blockindex, bool istransferglobalentity );
 extern bool ReadEntityFieldData( edict_t* pedict, const Char* fieldname, const byte* pdata, Uint32 datasize, Uint32 blockindex, bool istransferglobalentity );
+extern bool PrepareEntityClassData( edict_t* pedict, const Char* fieldname, Uint32 numblocks, bool istransferglobalentity );
 extern bool ReadEntityClassData( edict_t* pedict, const Char* fieldname, const byte* pdata, Uint32 datasize, Uint32 blockindex, bool istransferglobalentity );
 #ifdef _DEBUG
 extern entity_data_desc_t CheckSaveField( entity_data_desc_t desc, Uint64 typesize, Int32 count, const Char* pstrObjectName, const Char* pstrVariableName );
@@ -113,8 +115,8 @@ extern edict_t* FindEntityByString( edict_t* pStartEntity, const Char* pstrField
 extern edict_t* FindGlobalEntity( const Char* pstrClassname, const Char* pstrGlobalName );
 
 // Global entity fields
-#define EFIELD_GLOBAL		(1<<0)
-#define EFIELD_SAVE_ALWAYS	(1<<1)
+#define EFIELD_GLOBAL			(1<<0)
+#define EFIELD_SAVE_ALWAYS		(1<<1)
 
 // Macros for entity fields
 #ifdef _DEBUG
@@ -124,8 +126,8 @@ extern edict_t* FindGlobalEntity( const Char* pstrClassname, const Char* pstrGlo
 #endif
 
 // Used to define entity fields
-#define DEFINE_DATA_FIELD(objtype, fieldname, fieldtype)				EFIELD(objtype, fieldname, fieldtype, 1, 0)
-#define DEFINE_DATA_FIELD_FLAGS(objtype, fieldname, fieldtype, flags)	EFIELD(objtype, fieldname, fieldtype, 1, flags)
-#define DEFINE_DATA_FIELD_GLOBAL(objtype, fieldname, fieldtype)			EFIELD(objtype, fieldname, fieldtype, 1, EFIELD_GLOBAL)
-#define DEFINE_DATA_FIELD_ARRAY(objtype, fieldname, fieldtype, count)	EFIELD(objtype, fieldname, fieldtype, count, 0)
+#define DEFINE_DATA_FIELD(objtype, fieldname, fieldtype)						EFIELD(objtype, fieldname, fieldtype, 1, 0)
+#define DEFINE_DATA_FIELD_FLAGS(objtype, fieldname, fieldtype, flags)			EFIELD(objtype, fieldname, fieldtype, 1, flags)
+#define DEFINE_DATA_FIELD_GLOBAL(objtype, fieldname, fieldtype)					EFIELD(objtype, fieldname, fieldtype, 1, EFIELD_GLOBAL)
+#define DEFINE_DATA_FIELD_ARRAY(objtype, fieldname, fieldtype, count)			EFIELD(objtype, fieldname, fieldtype, count, 0)
 #endif //ENTITIES_H

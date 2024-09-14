@@ -11,7 +11,6 @@ All Rights Reserved.
 #include "gd_includes.h"
 #include "animatingentity.h"
 #include "vbmutils.h"
-#include "activitymappings.h"
 #include "ai_basenpc.h"
 
 //=============================================

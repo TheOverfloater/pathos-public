@@ -19,6 +19,7 @@ enum globalstate_state_t;
 
 extern void Save_WriteBool( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
 extern void Save_WriteByte( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
+extern void Save_WriteBitset( const Char* fieldname, const byte* pdata, Uint32 numberofbits, entfieldtype_t fieldtype );
 extern void Save_WriteChar( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
 extern void Save_WriteInt16( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
 extern void Save_WriteUint16( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
@@ -110,6 +111,8 @@ public:
 	void WriteBool( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
 	// Writes a integer values to the output
 	void WriteByte( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
+	// Writes bitset bytes to the output
+	void WriteBitset( const Char* fieldname, const byte* pdata, Uint32 numberofbits, entfieldtype_t fieldtype );
 	// Writes a integer values to the output
 	void WriteChar( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype );
 	// Writes a integer values to the output

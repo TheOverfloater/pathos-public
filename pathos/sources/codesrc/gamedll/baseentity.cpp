@@ -121,6 +121,18 @@ void CBaseEntity::DeclareSaveFields( void )
 // @brief
 //
 //=============================================
+void CBaseEntity::ReleaseSaveFields( void )
+{
+	if(m_saveFieldsList.empty())
+		return;
+
+	m_saveFieldsList.clear();
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 void CBaseEntity::MakeEntityDormant( void )
 {
 	m_pState->flags |= FL_DORMANT;
@@ -364,65 +376,605 @@ void CBaseEntity::DeclareSaveField( entity_data_desc_t desc )
 // @brief
 //
 //=============================================
+bool CBaseEntity::GetEntityFieldDataForSave( const entity_data_desc_t& field, byte*& dataPtr, Uint32& fieldSize )
+{
+	// Get pointer to the object in the class data
+	byte* pdata = (reinterpret_cast<byte*>(this) + field.offset);
+
+	switch (field.type)
+	{
+	case EFIELD_FLOAT:
+	case EFIELD_DOUBLE:
+	case EFIELD_STRING:
+	case EFIELD_ENTINDEX:
+	case EFIELD_ENTPOINTER:
+	case EFIELD_EDICT:
+	case EFIELD_ENTSTATE:
+	case EFIELD_EHANDLE:
+	case EFIELD_VECTOR:
+	case EFIELD_COORD:
+	case EFIELD_INT16:
+	case EFIELD_UINT16:
+	case EFIELD_INT32:
+	case EFIELD_UINT32:
+	case EFIELD_INT64:
+	case EFIELD_UINT64:
+	case EFIELD_FUNCPTR:
+	case EFIELD_BOOLEAN:
+	case EFIELD_BYTE:
+	case EFIELD_CHAR:
+	case EFIELD_TIME:
+	case EFIELD_MODELNAME:
+	case EFIELD_SOUNDNAME:
+		{
+			dataPtr = pdata;
+			fieldSize = field.size;
+		}
+		break;
+	case EFIELD_CARRAY_FLOAT:
+		{
+			CArray<Float>& arrayObject = (*reinterpret_cast<CArray<Float>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_DOUBLE:
+		{
+			CArray<Double>& arrayObject = (*reinterpret_cast<CArray<Double>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_STRING:
+		{
+			CArray<string_t>& arrayObject = (*reinterpret_cast<CArray<string_t>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_ENTINDEX:
+		{
+			CArray<entindex_t>& arrayObject = (*reinterpret_cast<CArray<entindex_t>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_ENTPOINTER:
+		{
+			CArray<CBaseEntity*>& arrayObject = (*reinterpret_cast<CArray<CBaseEntity*>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_EDICT:
+		{
+			CArray<edict_t*>& arrayObject = (*reinterpret_cast<CArray<edict_t*>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_ENTSTATE:
+		{
+			CArray<entity_state_t*>& arrayObject = (*reinterpret_cast<CArray<entity_state_t*>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_EHANDLE:
+		{
+			CArray<CEntityHandle>& arrayObject = (*reinterpret_cast<CArray<CEntityHandle>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_VECTOR:
+		{
+			CArray<Vector>& arrayObject = (*reinterpret_cast<CArray<Vector>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_COORD:
+		{
+			CArray<Vector>& arrayObject = (*reinterpret_cast<CArray<Vector>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_INT16:
+		{
+			CArray<Int16>& arrayObject = (*reinterpret_cast<CArray<Int16>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_UINT16:
+		{
+			CArray<Uint16>& arrayObject = (*reinterpret_cast<CArray<Uint16>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_INT32:
+		{
+			CArray<Int32>& arrayObject = (*reinterpret_cast<CArray<Int32>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_UINT32:
+		{
+			CArray<Uint32>& arrayObject = (*reinterpret_cast<CArray<Uint32>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_INT64:
+		{
+			CArray<Int64>& arrayObject = (*reinterpret_cast<CArray<Int64>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_UINT64:
+		{
+			CArray<Uint64>& arrayObject = (*reinterpret_cast<CArray<Uint64>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_BOOLEAN:
+		{
+			CArray<bool>& arrayObject = (*reinterpret_cast<CArray<bool>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	case EFIELD_CARRAY_TIME:
+		{
+			CArray<Double>& arrayObject = (*reinterpret_cast<CArray<Double>*>(pdata));
+			if(arrayObject.empty())
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+				fieldSize = arrayObject.size();
+			}
+		}
+		break;
+	default:
+	case EFIELD_CBITSET:
+		{
+			CBitSet& bitSetObject = (*reinterpret_cast<CBitSet*>(pdata));
+			if(bitSetObject.size() <= 0)
+			{
+				dataPtr = nullptr;
+				fieldSize = 0;
+			}
+			else
+			{
+				dataPtr = reinterpret_cast<byte*>(bitSetObject.getData());
+				fieldSize = bitSetObject.size();
+			}
+		}
+		break;
+	case EFIELD_UNDEFINED:
+		{
+			dataPtr = nullptr;
+			fieldSize = 0;
+			return false;
+		}
+		break;
+	}
+
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CBaseEntity::GetEntityFieldDataForRestore( const entity_data_desc_t& field, byte*& dataPtr, Uint32 arrayIndex, Uint32 dataSize )
+{
+	// Get pointer to the object in the class data
+	byte* pdata = (reinterpret_cast<byte*>(this) + field.offset);
+
+	switch (field.type)
+	{
+	case EFIELD_FLOAT:
+	case EFIELD_DOUBLE:
+	case EFIELD_STRING:
+	case EFIELD_ENTINDEX:
+	case EFIELD_ENTPOINTER:
+	case EFIELD_EDICT:
+	case EFIELD_ENTSTATE:
+	case EFIELD_EHANDLE:
+	case EFIELD_VECTOR:
+	case EFIELD_COORD:
+	case EFIELD_INT16:
+	case EFIELD_UINT16:
+	case EFIELD_INT32:
+	case EFIELD_UINT32:
+	case EFIELD_INT64:
+	case EFIELD_UINT64:
+	case EFIELD_FUNCPTR:
+	case EFIELD_BOOLEAN:
+	case EFIELD_BYTE:
+	case EFIELD_CHAR:
+	case EFIELD_TIME:
+	case EFIELD_MODELNAME:
+	case EFIELD_SOUNDNAME:
+		{
+			dataPtr = pdata;
+		}
+		break;
+	case EFIELD_CARRAY_FLOAT:
+		{
+			CArray<Float>& arrayObject = (*reinterpret_cast<CArray<Float>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_DOUBLE:
+		{
+			CArray<Double>& arrayObject = (*reinterpret_cast<CArray<Double>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_STRING:
+		{
+			CArray<string_t>& arrayObject = (*reinterpret_cast<CArray<string_t>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_ENTINDEX:
+		{
+			CArray<entindex_t>& arrayObject = (*reinterpret_cast<CArray<entindex_t>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_ENTPOINTER:
+		{
+			CArray<CBaseEntity*>& arrayObject = (*reinterpret_cast<CArray<CBaseEntity*>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_EDICT:
+		{
+			CArray<edict_t*>& arrayObject = (*reinterpret_cast<CArray<edict_t*>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_ENTSTATE:
+		{
+			CArray<entity_state_t*>& arrayObject = (*reinterpret_cast<CArray<entity_state_t*>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_EHANDLE:
+		{
+			CArray<CEntityHandle>& arrayObject = (*reinterpret_cast<CArray<CEntityHandle>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_VECTOR:
+		{
+			CArray<Vector>& arrayObject = (*reinterpret_cast<CArray<Vector>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_COORD:
+		{
+			CArray<Vector>& arrayObject = (*reinterpret_cast<CArray<Vector>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_INT16:
+		{
+			CArray<Int16>& arrayObject = (*reinterpret_cast<CArray<Int16>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_UINT16:
+		{
+			CArray<Uint16>& arrayObject = (*reinterpret_cast<CArray<Uint16>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_INT32:
+		{
+			CArray<Int32>& arrayObject = (*reinterpret_cast<CArray<Int32>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_UINT32:
+		{
+			CArray<Uint32>& arrayObject = (*reinterpret_cast<CArray<Uint32>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_INT64:
+		{
+			CArray<Int64>& arrayObject = (*reinterpret_cast<CArray<Int64>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_UINT64:
+		{
+			CArray<Uint64>& arrayObject = (*reinterpret_cast<CArray<Uint64>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_BOOLEAN:
+		{
+			CArray<bool>& arrayObject = (*reinterpret_cast<CArray<bool>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CARRAY_TIME:
+		{
+			CArray<Double>& arrayObject = (*reinterpret_cast<CArray<Double>*>(pdata));
+			assert(arrayObject.size() > arrayIndex);
+			dataPtr = reinterpret_cast<byte*>(&arrayObject[0]);
+		}
+		break;
+	case EFIELD_CBITSET:
+		{
+			CBitSet& bitsetObject = (*reinterpret_cast<CBitSet*>(pdata));
+			assert(bitsetObject.size() == dataSize);
+			dataPtr = reinterpret_cast<byte*>(bitsetObject.getData());
+		}
+		break;
+	default:
+	case EFIELD_UNDEFINED:
+		{
+			dataPtr = nullptr;
+			return false;
+		}
+		break;
+	}
+
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 {
 	m_saveFieldsList.begin();
 	while(!m_saveFieldsList.end())
 	{
 		entity_data_desc_t& field = m_saveFieldsList.get();
-		byte* pdata = (reinterpret_cast<byte *>(this) + field.offset);
 
+		// Get field data from class
+		byte* pdata;
+		Uint32 fieldsize;
+		if (!GetEntityFieldDataForSave(field, pdata, fieldsize))
+		{
+			gd_engfuncs.pfnCon_EPrintf("Error: Failed to get data for field '%s' for CBaseEntity.\n", field.fieldname.c_str());
+			m_saveFieldsList.next();
+			continue;
+		}
+
+		if(!pdata || !fieldsize)
+		{
+			m_saveFieldsList.next();
+			continue;
+		}
+
+		// Manage based on type
 		switch(field.type)
 		{
 		case EFIELD_FLOAT:
+		case EFIELD_CARRAY_FLOAT:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Float)*field.size))
+				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Float)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteFloat(field.fieldname.c_str(), pdata, field.size, field.type); 
+				gd_engfuncs.pfnSaveWriteFloat(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_DOUBLE:
+		case EFIELD_CARRAY_DOUBLE:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Double)*field.size))
+				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Double)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteDouble(field.fieldname.c_str(), pdata, field.size, field.type); 
+				gd_engfuncs.pfnSaveWriteDouble(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_ENTINDEX:
+		case EFIELD_CARRAY_ENTINDEX:
 			{
 				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS))
 				{
 					Uint32 i = 0;
-					for(; i < field.size; i++)
+					for(; i < fieldsize; i++)
 					{
 						const entindex_t* pvalue = reinterpret_cast<entindex_t*>(pdata)+i;
 						if(*pvalue != NO_ENTITY_INDEX)
 							break;
 					}
 
-					if(i == field.size)
+					if(i == fieldsize)
 					{
 						m_saveFieldsList.next();
 						continue;
 					}
 				}
 
-				gd_engfuncs.pfnSaveWriteEntindex(field.fieldname.c_str(), pdata, field.size, field.type); 
+				gd_engfuncs.pfnSaveWriteEntindex(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_ENTPOINTER:
+		case EFIELD_CARRAY_ENTPOINTER:
 			{
 				bool hasData = false;
-				entindex_t *ptempbuffer = new entindex_t[field.size];
-				for(Uint32 j = 0; j < field.size; j++)
+				entindex_t *ptempbuffer = new entindex_t[fieldsize];
+				for(Uint32 j = 0; j < fieldsize; j++)
 				{
 					CBaseEntity* pEntity = (reinterpret_cast<CBaseEntity**>(pdata))[j];
 					if(pEntity)
@@ -441,15 +993,16 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteEntindex(field.fieldname.c_str(), reinterpret_cast<byte*>(ptempbuffer), field.size, field.type);
+				gd_engfuncs.pfnSaveWriteEntindex(field.fieldname.c_str(), reinterpret_cast<byte*>(ptempbuffer), fieldsize, field.type);
 				delete[] ptempbuffer;
 			}
 			break;
 		case EFIELD_EDICT:
+		case EFIELD_CARRAY_EDICT:
 			{
 				bool hasData = false;
-				entindex_t *ptempbuffer = new entindex_t[field.size];
-				for(Uint32 j = 0; j < field.size; j++)
+				entindex_t *ptempbuffer = new entindex_t[fieldsize];
+				for(Uint32 j = 0; j < fieldsize; j++)
 				{
 					edict_t* pEntity = (reinterpret_cast<edict_t**>(pdata))[j];
 					if(pEntity)
@@ -468,15 +1021,16 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteEntindex(field.fieldname.c_str(), reinterpret_cast<byte*>(ptempbuffer), field.size, field.type);
+				gd_engfuncs.pfnSaveWriteEntindex(field.fieldname.c_str(), reinterpret_cast<byte*>(ptempbuffer), fieldsize, field.type);
 				delete[] ptempbuffer;
 			}
 			break;
 		case EFIELD_ENTSTATE:
+		case EFIELD_CARRAY_ENTSTATE:
 			{
 				bool hasData = false;
-				entindex_t *ptempbuffer = new entindex_t[field.size];
-				for(Uint32 j = 0; j < field.size; j++)
+				entindex_t *ptempbuffer = new entindex_t[fieldsize];
+				for(Uint32 j = 0; j < fieldsize; j++)
 				{
 					entity_state_t* pEntity = (reinterpret_cast<entity_state_t**>(pdata))[j];
 					if(pEntity)
@@ -495,15 +1049,16 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteEntindex(field.fieldname.c_str(), reinterpret_cast<byte*>(ptempbuffer), field.size, field.type);
+				gd_engfuncs.pfnSaveWriteEntindex(field.fieldname.c_str(), reinterpret_cast<byte*>(ptempbuffer), fieldsize, field.type);
 				delete[] ptempbuffer;
 			}
 			break;
 		case EFIELD_EHANDLE:
+		case EFIELD_CARRAY_EHANDLE:
 			{
 				bool hasData = false;
-				entindex_t *ptempbuffer = new entindex_t[field.size];
-				for(Uint32 j = 0; j < field.size; j++)
+				entindex_t *ptempbuffer = new entindex_t[fieldsize];
+				for(Uint32 j = 0; j < fieldsize; j++)
 				{
 					CEntityHandle* pEntity = reinterpret_cast<CEntityHandle*>(pdata) + j;
 					if(*pEntity)
@@ -522,103 +1077,111 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteEntindex(field.fieldname.c_str(), reinterpret_cast<byte*>(ptempbuffer), field.size, field.type);
+				gd_engfuncs.pfnSaveWriteEntindex(field.fieldname.c_str(), reinterpret_cast<byte*>(ptempbuffer), fieldsize, field.type);
 				delete[] ptempbuffer;
 			}
 			break;
 		case EFIELD_VECTOR:
+		case EFIELD_CARRAY_VECTOR:
 			{
 				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS))
 				{
 					Uint32 i = 0;
-					for(; i < field.size; i++)
+					for(; i < fieldsize; i++)
 					{
 						const Vector* pvalue = reinterpret_cast<Vector*>(pdata)+i;
 						if(!pvalue->IsZero())
 							break;
 					}
 
-					if(i == field.size)
+					if(i == fieldsize)
 					{
 						m_saveFieldsList.next();
 						continue;
 					}
 				}
 
-				gd_engfuncs.pfnSaveWriteVector(field.fieldname.c_str(), pdata, field.size, field.type);
+				gd_engfuncs.pfnSaveWriteVector(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_COORD:
+		case EFIELD_CARRAY_COORD:
 			{
 				// Coord should always be written, because when restored, we need this entry to do so, and
 				// entities like brush models can have zero origins that are still valid positions
-				gd_engfuncs.pfnSaveWriteCoord(field.fieldname.c_str(), pdata, field.size, field.type);
+				gd_engfuncs.pfnSaveWriteCoord(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_INT16:
+		case EFIELD_CARRAY_INT16:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int16)*field.size))
+				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int16)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteInt16(field.fieldname.c_str(), pdata, field.size, field.type);
+				gd_engfuncs.pfnSaveWriteInt16(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_UINT16:
+		case EFIELD_CARRAY_UINT16:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Uint16)*field.size))
+				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Uint16)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteUint16(field.fieldname.c_str(), pdata, field.size, field.type);
+				gd_engfuncs.pfnSaveWriteUint16(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_INT32:
+		case EFIELD_CARRAY_INT32:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int32)*field.size))
+				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int32)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteInt32(field.fieldname.c_str(), pdata, field.size, field.type);
+				gd_engfuncs.pfnSaveWriteInt32(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_UINT32:
+		case EFIELD_CARRAY_UINT32:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Uint32)*field.size))
+				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Uint32)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteUint32(field.fieldname.c_str(), pdata, field.size, field.type);
+				gd_engfuncs.pfnSaveWriteUint32(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_INT64:
+		case EFIELD_CARRAY_INT64:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int64)*field.size))
+				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int64)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteInt64(field.fieldname.c_str(), pdata, field.size, field.type);
+				gd_engfuncs.pfnSaveWriteInt64(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_UINT64:
+		case EFIELD_CARRAY_UINT64:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Uint64)*field.size))
+				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Uint64)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteUint64(field.fieldname.c_str(), pdata, field.size, field.type);
+				gd_engfuncs.pfnSaveWriteUint64(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_FUNCPTR:
@@ -646,71 +1209,85 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 			}
 			break;
 		case EFIELD_BOOLEAN:
+		case EFIELD_CARRAY_BOOLEAN:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(bool)*field.size))
+				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(bool)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteBool(field.fieldname.c_str(), pdata, field.size, field.type);
+				gd_engfuncs.pfnSaveWriteBool(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_BYTE:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(byte)*field.size))
+				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(byte)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteByte(field.fieldname.c_str(), pdata, field.size, field.type);
+				gd_engfuncs.pfnSaveWriteByte(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_CHAR:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Char)*field.size))
+				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Char)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteChar(field.fieldname.c_str(), pdata, field.size, field.type);
+				gd_engfuncs.pfnSaveWriteChar(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_TIME:
+		case EFIELD_CARRAY_TIME:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Double)*field.size))
+				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Double)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
 				}
 
-				gd_engfuncs.pfnSaveWriteTime(field.fieldname.c_str(), pdata, field.size, field.type); 
+				gd_engfuncs.pfnSaveWriteTime(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		case EFIELD_STRING:
+		case EFIELD_CARRAY_STRING:
 		case EFIELD_MODELNAME:
 		case EFIELD_SOUNDNAME:
 			{
 				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS))
 				{
 					Uint32 i = 0;
-					for(; i < field.size; i++)
+					for(; i < fieldsize; i++)
 					{
 						string_t stringIndex = Common::ByteToUint32(reinterpret_cast<byte *>(pdata) + sizeof(string_t)*i);
 						if(stringIndex != NO_STRING_VALUE)
 							break;
 					}
 
-					if(i == field.size)
+					if(i == fieldsize)
 					{
 						m_saveFieldsList.next();
 						continue;
 					}
 				}
 
-				gd_engfuncs.pfnSaveWriteString(field.fieldname.c_str(), pdata, field.size, field.type);
+				gd_engfuncs.pfnSaveWriteString(field.fieldname.c_str(), pdata, fieldsize, field.type);
+			}
+			break;
+		case EFIELD_CBITSET:
+			{
+				if(fieldsize <= 0)
+				{
+					m_saveFieldsList.next();
+					continue;
+				}
+
+				gd_engfuncs.pfnSaveWriteBitset(field.fieldname.c_str(), pdata, fieldsize, field.type);
 			}
 			break;
 		default:
@@ -720,6 +1297,243 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 
 		m_saveFieldsList.next();
 	}
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CBaseEntity::PrepareEntityClassData( const Char* fieldname, Uint32 numblocks, bool istransferglobalentity )
+{
+	m_saveFieldsList.begin();
+	while(!m_saveFieldsList.end())
+	{
+		entity_data_desc_t& field = m_saveFieldsList.get();
+		if(!qstrcmp(fieldname, field.fieldname))
+		{
+			// Do not modify global fields of transitioning entities
+			if(istransferglobalentity && (field.flags & EFIELD_GLOBAL))
+				return true;
+
+			// Get pointer to the object in the class data
+			byte* pdata = (reinterpret_cast<byte*>(this) + field.offset);
+
+			switch (field.type)
+			{
+			case EFIELD_FLOAT:
+			case EFIELD_DOUBLE:
+			case EFIELD_STRING:
+			case EFIELD_ENTINDEX:
+			case EFIELD_ENTPOINTER:
+			case EFIELD_EDICT:
+			case EFIELD_ENTSTATE:
+			case EFIELD_EHANDLE:
+			case EFIELD_VECTOR:
+			case EFIELD_COORD:
+			case EFIELD_INT16:
+			case EFIELD_UINT16:
+			case EFIELD_INT32:
+			case EFIELD_UINT32:
+			case EFIELD_INT64:
+			case EFIELD_UINT64:
+			case EFIELD_FUNCPTR:
+			case EFIELD_BOOLEAN:
+			case EFIELD_BYTE:
+			case EFIELD_CHAR:
+			case EFIELD_TIME:
+			case EFIELD_MODELNAME:
+			case EFIELD_SOUNDNAME:
+				{
+					// Nothing to do here
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_FLOAT:
+				{
+					CArray<Float>& arrayObject = (*reinterpret_cast<CArray<Float>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_DOUBLE:
+				{
+					CArray<Double>& arrayObject = (*reinterpret_cast<CArray<Double>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_STRING:
+				{
+					CArray<string_t>& arrayObject = (*reinterpret_cast<CArray<string_t>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_ENTINDEX:
+				{
+					CArray<entindex_t>& arrayObject = (*reinterpret_cast<CArray<entindex_t>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_ENTPOINTER:
+				{
+					CArray<CBaseEntity*>& arrayObject = (*reinterpret_cast<CArray<CBaseEntity*>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_EDICT:
+				{
+					CArray<edict_t*>& arrayObject = (*reinterpret_cast<CArray<edict_t*>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_ENTSTATE:
+				{
+					CArray<entity_state_t*>& arrayObject = (*reinterpret_cast<CArray<entity_state_t*>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_EHANDLE:
+				{
+					CArray<CEntityHandle>& arrayObject = (*reinterpret_cast<CArray<CEntityHandle>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_VECTOR:
+				{
+					CArray<Vector>& arrayObject = (*reinterpret_cast<CArray<Vector>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_COORD:
+				{
+					CArray<Vector>& arrayObject = (*reinterpret_cast<CArray<Vector>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_INT16:
+				{
+					CArray<Int16>& arrayObject = (*reinterpret_cast<CArray<Int16>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_UINT16:
+				{
+					CArray<Uint16>& arrayObject = (*reinterpret_cast<CArray<Uint16>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_INT32:
+				{
+					CArray<Int32>& arrayObject = (*reinterpret_cast<CArray<Int32>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_UINT32:
+				{
+					CArray<Uint32>& arrayObject = (*reinterpret_cast<CArray<Uint32>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_INT64:
+				{
+					CArray<Int64>& arrayObject = (*reinterpret_cast<CArray<Int64>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_UINT64:
+				{
+					CArray<Uint64>& arrayObject = (*reinterpret_cast<CArray<Uint64>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_BOOLEAN:
+				{
+					CArray<bool>& arrayObject = (*reinterpret_cast<CArray<bool>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CARRAY_TIME:
+				{
+					CArray<Double>& arrayObject = (*reinterpret_cast<CArray<Double>*>(pdata));
+					if(arrayObject.size() < numblocks)
+						arrayObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			case EFIELD_CBITSET:
+				{
+					CBitSet& bitsetObject = (*reinterpret_cast<CBitSet*>(pdata));
+					if(bitsetObject.size() < numblocks)
+						bitsetObject.resize(numblocks);
+
+					return true;
+				}
+				break;
+			default:
+			case EFIELD_UNDEFINED:
+				{
+					gd_engfuncs.pfnCon_EPrintf("%s - Field '%s' has an invalid field type.\n", __FUNCTION__, fieldname);
+					return false;
+				}
+				break;
+			}
+		}
+		m_saveFieldsList.next();
+	}
+
+	// Manage any missing fields
+	gd_engfuncs.pfnCon_EPrintf("%s - Field '%s' not found in entity class data.\n", __FUNCTION__, fieldname);
+	return true;
 }
 
 //=============================================
@@ -738,33 +1552,40 @@ bool CBaseEntity::ReadEntityClassData( const Char* fieldname, const byte* pdata,
 			if(istransferglobalentity && (field.flags & EFIELD_GLOBAL))
 				return true;
 
-			assert(blockindex < field.size);
+			// Retrieve pointer to data
+			byte* pdestdata;
+			if(!GetEntityFieldDataForRestore(field, pdestdata, blockindex, datasize))
+			{
+				gd_engfuncs.pfnCon_EPrintf("%s - Couldn't get restore data for field '%s' for CBaseEntity.\n", __FUNCTION__, fieldname);
+				return false;
+			}
 
 			switch(field.type)
 			{
 			case EFIELD_CHAR:
 				{
-					Char *pDestPtr = reinterpret_cast<Char*>(reinterpret_cast<byte*>(this) + field.offset);
+					Char *pDestPtr = reinterpret_cast<Char*>(pdestdata);
 					memcpy(pDestPtr, pdata, sizeof(byte)*field.size);
 				}
 				break;
 			case EFIELD_BYTE:
 				{
-					byte *pDestPtr = (reinterpret_cast<byte*>(this) + field.offset);
-					memcpy(pDestPtr, pdata, sizeof(byte)*field.size);
+					memcpy(pdestdata, pdata, sizeof(byte)*field.size);
 				}
 				break;
 			case EFIELD_ENTINDEX:
+			case EFIELD_CARRAY_ENTINDEX:
 				{
 					entindex_t entindex = Common::ByteToInt32(pdata);
 					if(entindex != NO_ENTITY_INDEX)
 						entindex = (*g_saveRestoreData.pentityindexarray)[entindex];
 
-					entindex_t *pDestPtr = reinterpret_cast<entindex_t *>(reinterpret_cast<byte*>(this) + field.offset) + blockindex;
+					entindex_t *pDestPtr = reinterpret_cast<entindex_t *>(pdestdata) + blockindex;
 					(*pDestPtr) = entindex;
 				}
 				break;
 			case EFIELD_ENTPOINTER:
+			case EFIELD_CARRAY_ENTPOINTER:
 				{
 					entindex_t entindex = Common::ByteToInt32(pdata);
 					if(entindex == NO_ENTITY_INDEX)
@@ -777,11 +1598,12 @@ bool CBaseEntity::ReadEntityClassData( const Char* fieldname, const byte* pdata,
 					edict_t* pEdict = gd_engfuncs.pfnGetEdictByIndex(realindex);
 					CBaseEntity* pEntity = CBaseEntity::GetClass(pEdict);
 
-					CBaseEntity **pDestPtr = reinterpret_cast<CBaseEntity **>(reinterpret_cast<byte*>(this) + field.offset) + blockindex;
+					CBaseEntity **pDestPtr = reinterpret_cast<CBaseEntity **>(pdestdata) + blockindex;
 					(*pDestPtr) = pEntity;
 				}
 				break;
 			case EFIELD_EDICT:
+			case EFIELD_CARRAY_EDICT:
 				{
 					entindex_t entindex = Common::ByteToInt32(pdata);
 					if(entindex == NO_ENTITY_INDEX)
@@ -793,11 +1615,12 @@ bool CBaseEntity::ReadEntityClassData( const Char* fieldname, const byte* pdata,
 
 					edict_t* pEdict = gd_engfuncs.pfnGetEdictByIndex(realindex);
 
-					edict_t** pDestPtr = reinterpret_cast<edict_t**>(reinterpret_cast<byte *>(this) + field.offset) + blockindex;
+					edict_t** pDestPtr = reinterpret_cast<edict_t**>(pdestdata) + blockindex;
 					(*pDestPtr) = pEdict;
 				}
 				break;
 			case EFIELD_ENTSTATE:
+			case EFIELD_CARRAY_ENTSTATE:
 				{
 					entindex_t entindex = Common::ByteToInt32(pdata);
 					if(entindex == NO_ENTITY_INDEX)
@@ -809,11 +1632,12 @@ bool CBaseEntity::ReadEntityClassData( const Char* fieldname, const byte* pdata,
 
 					edict_t* pEdict = gd_engfuncs.pfnGetEdictByIndex(realindex);
 
-					entity_state_t** pEntStatePtr = reinterpret_cast<entity_state_t**>(reinterpret_cast<byte *>(this) + field.offset) + blockindex;
+					entity_state_t** pEntStatePtr = reinterpret_cast<entity_state_t**>(pdestdata) + blockindex;
 					(*pEntStatePtr) = &pEdict->state;
 				}
 				break;
 			case EFIELD_EHANDLE:
+			case EFIELD_CARRAY_EHANDLE:
 				{
 					entindex_t entindex = Common::ByteToInt32(pdata);
 					if(entindex == NO_ENTITY_INDEX)
@@ -825,95 +1649,107 @@ bool CBaseEntity::ReadEntityClassData( const Char* fieldname, const byte* pdata,
 
 					edict_t* pEdict = gd_engfuncs.pfnGetEdictByIndex(realindex);
 
-					CEntityHandle* pEntityHandlePtr = reinterpret_cast<CEntityHandle*>(reinterpret_cast<byte *>(this) + field.offset) + blockindex;
+					CEntityHandle* pEntityHandlePtr = reinterpret_cast<CEntityHandle*>(pdestdata) + blockindex;
 					(*pEntityHandlePtr) = CBaseEntity::GetClass(pEdict);
 				}
 				break;
 			case EFIELD_TIME:
+			case EFIELD_CARRAY_TIME:
 				{
 					Double timeValue = Common::ByteToDouble(pdata);
 					if(g_saveRestoreData.transitionsave && timeValue != 0)
 						timeValue += g_pGameVars->time;
 
-					byte* pdest = (reinterpret_cast<byte *>(this) + field.offset) + blockindex * sizeof(Double);
+					byte* pdest = pdestdata + blockindex * sizeof(Double);
 					memcpy(pdest, &timeValue, sizeof(Double));
 				}
 				break;
 			case EFIELD_FLOAT:
+			case EFIELD_CARRAY_FLOAT:
 				{
 					Float floatValue = Common::ByteToFloat(pdata);
-					byte* pdest = (reinterpret_cast<byte *>(this) + field.offset) + blockindex * sizeof(Float);
+					byte* pdest = pdestdata + blockindex * sizeof(Float);
 					memcpy(pdest, &floatValue, sizeof(Float));
 				}
 				break;
 			case EFIELD_DOUBLE:
+			case EFIELD_CARRAY_DOUBLE:
 				{
 					Double doubleValue = Common::ByteToDouble(pdata);
-					byte* pdest = (reinterpret_cast<byte *>(this) + field.offset) + blockindex * sizeof(Double);
+					byte* pdest = pdestdata + blockindex * sizeof(Double);
 					memcpy(pdest, &doubleValue, sizeof(Double));
 				}
 				break;
 			case EFIELD_INT16:
+			case EFIELD_CARRAY_INT16:
 				{
 					Int16 intValue = Common::ByteToInt16(pdata);
-					(*(reinterpret_cast<Int16*>(reinterpret_cast<byte *>(this) + field.offset) + blockindex)) = intValue;
+					(*(reinterpret_cast<Int16*>(pdestdata) + blockindex)) = intValue;
 				}
 				break;
 			case EFIELD_UINT16:
+			case EFIELD_CARRAY_UINT16:
 				{
 					Uint16 intValue = Common::ByteToUint16(pdata);
-					(*(reinterpret_cast<Uint16*>(reinterpret_cast<byte *>(this) + field.offset) + blockindex)) = intValue;
+					(*(reinterpret_cast<Uint16*>(pdestdata) + blockindex)) = intValue;
 				}
 				break;
 			case EFIELD_INT32:
+			case EFIELD_CARRAY_INT32:
 				{
 					Int32 intValue = Common::ByteToInt32(pdata);
-					(*(reinterpret_cast<Int32*>(reinterpret_cast<byte *>(this) + field.offset) + blockindex)) = intValue;
+					(*(reinterpret_cast<Int32*>(pdestdata) + blockindex)) = intValue;
 				}
 				break;
 			case EFIELD_UINT32:
+			case EFIELD_CARRAY_UINT32:
 				{
 					Uint32 intValue = Common::ByteToUint32(pdata);
-					(*(reinterpret_cast<Uint32*>(reinterpret_cast<byte *>(this) + field.offset) + blockindex)) = intValue;
+					(*(reinterpret_cast<Uint32*>(pdestdata) + blockindex)) = intValue;
 				}
 				break;
 			case EFIELD_INT64:
+			case EFIELD_CARRAY_INT64:
 				{
 					Int64 intValue = Common::ByteToInt64(pdata);
-					(*(reinterpret_cast<Int64*>(reinterpret_cast<byte *>(this) + field.offset) + blockindex)) = intValue;
+					(*(reinterpret_cast<Int64*>(pdestdata) + blockindex)) = intValue;
 				}
 				break;
 			case EFIELD_UINT64:
+			case EFIELD_CARRAY_UINT64:
 				{
 					Uint64 intValue = Common::ByteToUint64(pdata);
-					(*(reinterpret_cast<Uint64*>(reinterpret_cast<byte *>(this) + field.offset) + blockindex)) = intValue;
+					(*(reinterpret_cast<Uint64*>(pdestdata) + blockindex)) = intValue;
 				}
 				break;
 			case EFIELD_VECTOR:
+			case EFIELD_CARRAY_VECTOR:
 				{
 					Vector vecValue = *reinterpret_cast<const Vector*>(pdata);
-					(*(reinterpret_cast<Vector*>(reinterpret_cast<byte *>(this) + field.offset) + blockindex)) = vecValue;
+					(*(reinterpret_cast<Vector*>(pdestdata) + blockindex)) = vecValue;
 				}
 				break;
 			case EFIELD_COORD:
+			case EFIELD_CARRAY_COORD:
 				{
 					Vector vecValue = *reinterpret_cast<const Vector*>(pdata);
 					if(g_saveRestoreData.transitionsave)
 						Math::VectorAdd(vecValue, g_saveRestoreData.landmarkOffset, vecValue);
 
-					(*(reinterpret_cast<Vector*>(reinterpret_cast<byte *>(this) + field.offset) + blockindex)) = vecValue;
+					(*(reinterpret_cast<Vector*>(pdestdata) + blockindex)) = vecValue;
 				}
 				break;
 			case EFIELD_BOOLEAN:
+			case EFIELD_CARRAY_BOOLEAN:
 				{
 					bool boolValue = ((*pdata) == 0) ? false : true;
-					(*(reinterpret_cast<bool*>(reinterpret_cast<byte *>(this) + field.offset) + blockindex)) = boolValue;
+					(*(reinterpret_cast<bool*>(pdestdata) + blockindex)) = boolValue;
 				}
 				break;
 			case EFIELD_FUNCPTR:
 				{
 					CString value(reinterpret_cast<const Char*>(pdata), datasize);
-					void** pfnPtr = reinterpret_cast<void**>(reinterpret_cast<byte *>(this) + field.offset);
+					void** pfnPtr = reinterpret_cast<void**>(pdestdata);
 
 					if(value.empty())
 						(*pfnPtr) = nullptr;
@@ -924,14 +1760,22 @@ bool CBaseEntity::ReadEntityClassData( const Char* fieldname, const byte* pdata,
 			case EFIELD_MODELNAME:
 			case EFIELD_SOUNDNAME:
 			case EFIELD_STRING:
+			case EFIELD_CARRAY_STRING:
 				{
 					CString value(reinterpret_cast<const Char*>(pdata), datasize);
-					string_t& str = (*(reinterpret_cast<string_t*>(reinterpret_cast<byte *>(this) + field.offset) + blockindex));
+					string_t& str = (*(reinterpret_cast<string_t*>(pdestdata) + blockindex));
 					str = gd_engfuncs.pfnAllocString(value.c_str());
 				}
 				break;
+			case EFIELD_CBITSET:
+				{
+					// Get destination bitset
+					Uint32 bitsetByteCount = SDL_ceil((Float)datasize / (Float)CBitSet::NB_BITS_IN_BYTE);
+					memcpy(pdestdata, pdata, sizeof(byte)*bitsetByteCount);
+				}
+				break;
 			default:
-				gd_engfuncs.pfnCon_EPrintf("Error: Invalid field type %d for keyvalue '%s' for CBaseEntity.\n", field.type, fieldname);
+				gd_engfuncs.pfnCon_EPrintf("%s - Invalid field type %d for keyvalue '%s' for CBaseEntity.\n", __FUNCTION__, field.type, fieldname);
 				return false;
 			}
 
@@ -942,8 +1786,8 @@ bool CBaseEntity::ReadEntityClassData( const Char* fieldname, const byte* pdata,
 	}
 
 	// Manage any missing fields
-	gd_engfuncs.pfnCon_EPrintf("Error: Field '%s' not found in entity class data.\n", fieldname);
-	return false;
+	gd_engfuncs.pfnCon_EPrintf("%s - Field '%s' not found in entity class data.\n", __FUNCTION__, fieldname);
+	return true;
 }
 
 //=============================================

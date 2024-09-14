@@ -83,7 +83,7 @@ CPlayerWeapon::CPlayerWeapon( edict_t* pedict ):
 	m_viewModelSkin(0),
 	m_isRetired(false),
 	m_isForcedToRetire(false),
-	m_isDeployed(false),
+	m_dontBlendNextDeploy(false),
 	m_inReload(false),
 	m_inDual(false),
 	m_makeImpactSound(false),
@@ -124,7 +124,6 @@ void CPlayerWeapon::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerWeapon, m_viewModelSkin, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerWeapon, m_isRetired, EFIELD_BOOLEAN));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerWeapon, m_isForcedToRetire, EFIELD_BOOLEAN));
-	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerWeapon, m_isDeployed, EFIELD_BOOLEAN));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerWeapon, m_defaultAmmo, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerWeapon, m_recoilMultiplier, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerWeapon, m_inDual, EFIELD_BOOLEAN));
@@ -207,18 +206,17 @@ void CPlayerWeapon::AddToPlayer( CPlayerEntity* pPlayer )
 	if(!m_ammoType)
 		m_ammoType = CPlayerWeapon::GetAmmoTypeIndex(GetAmmoTypeName());
 
-	// Extract ammo from this weapon
-	ExtractAmmo(this);
-
-	// Reset this
-	m_isDeployed = false;
-
-	if(!HasSpawnFlag(FL_WEAPON_NO_NOTICE))
+	// Tell player about ammo
+	if (!HasSpawnFlag(FL_WEAPON_NO_NOTICE))
 	{
 		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.hudweaponpickup, nullptr, m_pPlayer->GetEdict());
-			gd_engfuncs.pfnMsgWriteByte(m_weaponId);
+		gd_engfuncs.pfnMsgWriteByte(m_weaponId);
+		gd_engfuncs.pfnMsgWriteByte(m_defaultAmmo);
 		gd_engfuncs.pfnUserMessageEnd();
 	}
+
+	// Extract ammo from this weapon
+	ExtractAmmo(this);
 }
 
 //=============================================
@@ -326,7 +324,7 @@ bool CPlayerWeapon::DefaultDeploy( const Char* pstrviewmodel, const Char* pstrse
 	m_pPlayer->SetViewModel(pstrviewmodel);
 
 	// Set weapon animation
-	SetWeaponAnimation(pstrsequence, body, skin);
+	SetWeaponAnimation(pstrsequence, body, skin, m_dontBlendNextDeploy ? false : true);
 
 	// Set time
 	Float sequencetime = GetSequenceTime(pstrsequence);
@@ -337,6 +335,7 @@ bool CPlayerWeapon::DefaultDeploy( const Char* pstrviewmodel, const Char* pstrse
 	// Reset these
 	m_isForcedToRetire = false;
 	m_recoilMultiplier = 1.0;
+	m_dontBlendNextDeploy = false;
 
 	// Kill any particle systems on the view model
 	if(m_pPlayer)
@@ -411,8 +410,9 @@ bool CPlayerWeapon::AddAmmo( Int32 count, const Char* pstrname, Int32 maxclip, I
 		m_clip = WEAPON_NO_CLIP;
 		ammoid = m_pPlayer->GiveAmmo(count, pstrname, maxcarry, true, pWeapon);
 	}
-	else if(m_clip == 0)
+	else if(!m_clip)
 	{
+		Uint32 prevClip = m_clip;
 		Int32 clipgive = m_clip+count;
 		if(clipgive > maxclip)
 			clipgive = maxclip;
@@ -420,11 +420,36 @@ bool CPlayerWeapon::AddAmmo( Int32 count, const Char* pstrname, Int32 maxclip, I
 		clipgive -= m_clip;
 		m_clip += clipgive;
 
-		ammoid = m_pPlayer->GiveAmmo(count-clipgive, pstrname, maxcarry, true, pWeapon);
+		// We need ammoid regardless
+		Uint32 numgive = count - clipgive;
+		if (numgive)
+			ammoid = m_pPlayer->GiveAmmo(count - clipgive, pstrname, maxcarry, true, pWeapon);
+		else
+			ammoid = CPlayerWeapon::GetAmmoTypeIndex(pstrname);
 
-		// Re-deploy gun
-		if(m_isDeployed)
-			Deploy();
+		// Play sound and add hud msg if needed
+		if (!pWeapon->HasSpawnFlag(CPlayerWeapon::FL_WEAPON_NO_NOTICE)
+			&& numgive == 0 && clipgive != 0 && pWeapon != this)
+		{
+			Util::EmitEntitySound(m_pPlayer, AMMO_PICKUP_SOUND, SND_CHAN_ITEM);
+
+			// Notify of ammo pickup
+			gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.hudammopickup, nullptr, m_pPlayer->GetEdict());
+			gd_engfuncs.pfnMsgWriteString(pWeapon->GetClassName());
+			gd_engfuncs.pfnMsgWriteByte(clipgive);
+			gd_engfuncs.pfnUserMessageEnd();
+
+			// If we are replacing the player's gun, act accordingly
+			if (prevClip == 0 && m_pPlayer->GetActiveWeapon() == this)
+			{
+				// Act as if new gun got picked up
+				m_firstDraw = true;
+				m_dontBlendNextDeploy = true;
+
+				// Re-deploy the gun
+				Deploy();
+			}
+		}
 	}
 	else
 	{
@@ -657,10 +682,6 @@ void CPlayerWeapon::PostThink( void )
 		// Clear this
 		if(m_firstDraw)
 			m_firstDraw = false;
-
-		// Clear this
-		if(m_isDeployed)
-			m_isDeployed = true;
 
 		// Degrade recoil
 		DegradeRecoil();
@@ -1071,7 +1092,7 @@ const Char* CPlayerWeapon::GetWeaponName( void )
 // @brief
 //
 //=============================================
-Int32 CPlayerWeapon::GetMaxClip( void )
+Int32 CPlayerWeapon::GetMaxClip( void ) const
 {
 	assert(m_weaponId >= 0 && m_weaponId < NUM_WEAPONS);
 	return WEAPON_INFO_LIST[m_weaponId].maxclip;

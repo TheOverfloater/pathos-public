@@ -72,7 +72,7 @@ CDefaultView::CDefaultView( void ):
 	m_lastBobTime(0),
 	m_verticalBob(0),
 	m_lateralBob(0),
-	m_flLastViewModelLagTime(0),
+	m_flLastViewModelLagTime(-1),
 	m_breathingTime(0),
 	m_currentViewRoll(0),
 	m_leanTime(0),
@@ -206,6 +206,14 @@ void CDefaultView::ResetViewRoll( void )
 void CDefaultView::ResetViewIdle( void )
 {
 	m_breathingTime = -1;
+}
+
+//====================================
+//
+//====================================
+void CDefaultView::ResetViewModelLag( void )
+{
+	m_flLastViewModelLagTime = -1;
 }
 
 //====================================
@@ -1195,11 +1203,7 @@ void CDefaultView::SetupFlashlightForType( const ref_params_t& params, Float* ps
 
 		if(pEntity == cl_engfuncs.pfnGetLocalPlayer())
 		{
-			cl_entity_t *pView = gViewModel.GetViewModel();
-			if(!pView || !pView->pmodel)
-				continue;
-
-			mlight_t* pel = cl_efxapi.pfnAllocEntityLight(pView->entindex, 0.1, 3);
+			mlight_t* pel = cl_efxapi.pfnAllocEntityLight(pEntity->entindex, 0.1, 3);
 
 			pel->origin = vOrigin;
 			pel->color = Vector(0.75, 0.75, 0.9)*pstrengths[i];

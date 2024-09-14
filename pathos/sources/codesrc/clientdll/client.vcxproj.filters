@@ -165,6 +165,12 @@
     <ClCompile Include="clshared.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="gameuidocumentswindow.cpp">
+      <Filter>Source Files\gameui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\cbitset.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="clientdll.h">
@@ -391,6 +397,15 @@
     </ClInclude>
     <ClInclude Include="clshared.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gameuidocumentswindow.h">
+      <Filter>Header Files\gameui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\cbitset.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\cbitset_inline.hpp">
+      <Filter>Header Files\common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

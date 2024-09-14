@@ -71,6 +71,8 @@ public:
 	inline const Char* ReadString( void );
 	// Reads a buffer
 	inline const byte* ReadBuffer( Uint32 size );
+	// Reads a bitset
+	inline CBitSet ReadBitSet( void );
 
 private:
 	// Message data pointer

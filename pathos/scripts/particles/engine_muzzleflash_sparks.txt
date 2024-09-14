@@ -1,0 +1,21 @@
+$particlescript
+{
+	$shape point
+	$min_velocity 70.000000
+	$max_velocity 80.000000
+	$max_offset 30.000000
+	$fade_in_time 0.050000
+	$fade_out_delay 0.100000
+	$lifetime 0.200000
+	$primary_color 150 150 150
+	$scale 0.020000
+	$scale_variation 0.0100000
+	$scale_damping -2.000000
+	$particles_on_spawn 5
+	$rendermode additive
+	$alpha 0.800000
+	$gravity 0.3
+	$alignment tiled
+	$texture muzzleflash
+	$rotate_z_speed 1.000000
+}

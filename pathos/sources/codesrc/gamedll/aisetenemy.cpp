@@ -102,5 +102,5 @@ void CAISetEnemy::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemod
 		return;
 	}
 
-	pTargetEntity->PushEnemy(pEnemyEntity, pEnemyEntity->GetNavigablePosition(), pEnemyEntity->GetAngles());
+	pTargetEntity->PushEnemy(pEnemyEntity, pEnemyEntity->GetNavigablePosition(), pEnemyEntity->GetAngles(), g_pGameVars->time);
 }

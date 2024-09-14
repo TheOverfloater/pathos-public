@@ -692,7 +692,7 @@ bool CBasicVBMRenderer::InitShader( void )
 	{
 		CString uniformname;
 		uniformname << "bones[" << (Int32)i*3 << "]";
-		m_attribs.boneindexes[i] = m_pShader->InitUniform(uniformname.c_str(), CGLSLShader::UNIFORM_NOSYNC);
+		m_attribs.boneindexes[i] = m_pShader->InitUniform(uniformname.c_str(), CGLSLShader::UNIFORM_NOSYNC, 3);
 		if(!R_CheckShaderUniform(m_attribs.boneindexes[i], uniformname.c_str(), m_pShader, m_pfnErrorPopup))
 			return false;
 	}

@@ -33,7 +33,7 @@ inline const ai_task_t& CAISchedule::GetTaskByIndex( Uint32 index ) const
 // @brief
 //
 //=============================================
-inline Uint64 CAISchedule::GetInterruptMask( void ) const
+inline const CBitSet& CAISchedule::GetInterruptMask( void ) const
 {
 	return m_aiCondInterruptMask;
 }
@@ -42,7 +42,7 @@ inline Uint64 CAISchedule::GetInterruptMask( void ) const
 // @brief
 //
 //=============================================
-inline Uint64 CAISchedule::GetInverseInterruptMask( void ) const
+inline const CBitSet& CAISchedule::GetInverseInterruptMask( void ) const
 {
 	return m_aiCondInverseInterruptMask;
 }
@@ -60,7 +60,7 @@ inline Int32 CAISchedule::GetSpecialInterruptScheduleIndex( void ) const
 // @brief
 //
 //=============================================
-inline Uint64 CAISchedule::GetSpecialInterruptMask( void ) const
+inline const CBitSet& CAISchedule::GetSpecialInterruptMask( void ) const
 {
 	return m_specialInterruptConditionMask;
 }
@@ -69,7 +69,7 @@ inline Uint64 CAISchedule::GetSpecialInterruptMask( void ) const
 // @brief
 //
 //=============================================
-inline Uint64 CAISchedule::GetSpecialInterruptExceptionMask( void ) const
+inline const CBitSet& CAISchedule::GetSpecialInterruptExceptionMask( void ) const
 {
 	return m_specialInterruptExceptionMask;
 }
@@ -78,7 +78,7 @@ inline Uint64 CAISchedule::GetSpecialInterruptExceptionMask( void ) const
 // @brief
 //
 //=============================================
-inline Uint64 CAISchedule::GetSpecialInterruptRequirementMask( void ) const
+inline const CBitSet& CAISchedule::GetSpecialInterruptRequirementMask( void ) const
 {
 	return m_specialInterruptRequirementMask;
 }

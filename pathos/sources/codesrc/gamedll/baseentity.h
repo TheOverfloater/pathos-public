@@ -40,6 +40,7 @@ enum activity_t;
 enum deathstate_t;
 enum weaponid_t;
 enum scripted_sequence_anim_t;
+enum ai_condition_bits_t;
 
 struct weaponinfo_t;
 
@@ -432,8 +433,6 @@ public:
 	virtual bool IsNPCDangerous( void ) const { return false; }
 	// Tells if the entity is aware of the entity in the param
 	virtual bool IsNPCAwareOf( CBaseEntity* pNPC ) const { return false; }
-	// Tells if the NPC has the param ent as an enemy
-	virtual bool IsEnemyOfNPC( CBaseEntity* pNPC ) const { return false; }
 	// Tells if the entity is an enemy of this entity
 	virtual bool IsEnemyOf( CBaseEntity* pNPC ) const { return false; }
 	// Tells if the NPC is aware of another one as an enemy
@@ -450,23 +449,33 @@ public:
 	virtual void SetLastActivityTime( Double time ) { STUBWARNING; };
 	// Returns the ideal activity
 	virtual Int32 GetIdealActivity( void ) { STUBWARNING; return ACT_RESET; };
-	// Clears AI conditions
-	virtual void ClearConditions( Uint64 conditionBits ) { STUBWARNING; };
-	// Sets AI conditions
-	virtual void SetConditions( Uint64 conditionBits ) { STUBWARNING; };
+
+	// Clears an AI condition
+	virtual void ClearCondition( Uint32 conditionBit ) { STUBWARNING; };
+	// Clears AI conditions specified in a bitset
+	virtual void ClearConditions( const CBitSet& conditionBitSet ) { STUBWARNING; };
+	// Sets an AI condition
+	virtual void SetCondition( Uint32 conditionBit ) { STUBWARNING; };
+	// Sets AI conditions specified in a bitset
+	virtual void SetConditions( const CBitSet& conditionBitSet ) { STUBWARNING; };
 	// Checks conditions
-	virtual bool CheckConditions( Uint64 conditionBits ) const { STUBWARNING; return false; };
+	virtual bool CheckCondition( Uint32 conditionBit ) const { STUBWARNING; return false; };
+	// Checks conditions specified in a bitset
+	virtual bool CheckConditions( const CBitSet& conditionBitSet ) const { STUBWARNING; return false; };
+
 	// Adds a new enemy
-	virtual void PushEnemy( CBaseEntity* pEnemy, const Vector& lastPosition, const Vector& lastAngles ) { STUBWARNING; };
+	virtual void PushEnemy( CBaseEntity* pEnemy, const Vector& lastPosition, const Vector& lastAngles, Double lastSightTime ) { STUBWARNING; };
 	// Sets the current enemy
 	virtual void SetEnemy( CBaseEntity* pEnemy ) { STUBWARNING; };
-	// Sets the last time the player was sighted
-	virtual void SetLastPlayerSightTime( Double time ) { STUBWARNING; };
+	// Sets the last time the enemy was sighted
+	virtual void SetLastEnemySightTime( Double time ) { STUBWARNING; };
+	// Sets the last enemy sight time
+	virtual Double GetLastEnemySightTime( void ) { STUBWARNING; return 0; };
 	// Forgets the player
 	virtual void ForgetPlayer( CBaseEntity* pPlayer ) { STUBWARNING; };
 
 	// Set memory bits
-	virtual void SetMemory( Uint64 memoryBits ) { STUBWARNING; };
+	virtual void SetMemory( Uint32 memoryBit ) { STUBWARNING; };
 	// Sets current activity for npcs
 	virtual void SetCurrentActivity( enum activity_t activity ) { STUBWARNING; };
 	// Exits the current scripted_sequence
@@ -477,6 +486,9 @@ public:
 	virtual bool CanPlaySequence( bool disregardState, script_interrupt_level_t interruptLevel ) { STUBWARNING; return false; };
 	// Tells if the entity can play a scripted sentence
 	virtual bool CanPlaySentence( bool disregardState ) { STUBWARNING; return false; }
+
+	// Tells if an NPC has a specific capability
+	virtual bool HasCapability( Uint32 capabilityBits ) const {  STUBWARNING; return false; }
 
 	// Performs pfnWalkMove on the entity
 	bool WalkMove( Float yaw, Float dist, enum walkmove_t movemode );
@@ -531,10 +543,9 @@ public:
 	virtual void RemovePulledNPC( CBaseEntity* pNPC ) { };
 
 	// Tells if NPC should favor ranged attacks versus melee
-	virtual bool FavorRangedAttacks( void ) const { return false; }
-
-	// Tells if NPC is an infectous NPC
-	virtual bool IsInfectiousNPC( void ) const { return false; }
+	virtual bool FavorRangedAttacks( CBaseEntity* pTarget ) const { return false; }
+	// Tells if NPC prefers targeting enemies it can directly walk to
+	virtual bool FavorDirectlyReachableEnemies( void ) const { return false; }
 
 public:
 	//
@@ -554,11 +565,7 @@ public:
 	// Sets the enemy's last known position and angles
 	virtual void SetEnemyInfo( const Vector& enemyLKP, const Vector& enemyLKA ) { STUBWARNING; };
 	// Gets the enemy information
-	virtual void GetEnemyInfo( Vector& enemyLKP, Vector& enemyLKA ) { STUBWARNING; };
-	// Sets the last enemy sight time
-	virtual void SetLastEnemySightTime( Double time ) { STUBWARNING; };
-	// Sets the last enemy sight time
-	virtual Double GetLastEnemySightTime( void ) { STUBWARNING; return 0; };
+	virtual void GetEnemyInfo( Vector& enemyLKP, Vector& enemyLKA, Double& enemyLST ) { STUBWARNING; };
 	// Sets whether the enemy has eluded us
 	virtual void SetEnemyEluded( bool enemyEluded ) { STUBWARNING; };
 	// Tells whether the enemy has eluded us
@@ -664,7 +671,7 @@ public:
 	// Drops active weapon
 	virtual void DropCurrentWeapon( void ) { STUBWARNING; };
 	// Gives an item by clasname
-	virtual void GiveItemByName( const Char* pstrClassname, Uint32 amount, bool removeunneeded ) { STUBWARNING; };
+	virtual void GiveItemByName( const Char* pstrClassname, const Char* pstrTargetName, Uint32 amount, bool removeunneeded ) { STUBWARNING; };
 	// Selects the last weapon used
 	virtual void SelectPreviousWeapon( void ) { STUBWARNING; };
 	// Tells if the entity is a player
@@ -685,7 +692,7 @@ public:
 	virtual void SetDialougeDuration( Float duration ) { STUBWARNING; }
 
 	// Set NPC awareness
-	virtual void SetNPCAwareness( Float awareness, CBaseEntity* pNPC, Float timeoutDelay ) { STUBWARNING; };
+	virtual void SetNPCAwareness( Float awareness, CBaseEntity* pNPC, Float timeoutDelay, bool isLeanAwareness ) { STUBWARNING; };
 
 	// Adds a medkit to the player
 	virtual bool AddMedkit( const Char* pstrClassname, bool noNotice ) { STUBWARNING; return false; };
@@ -785,6 +792,8 @@ public:
 	virtual void RemoveMissionObjective( const Char* pstrObjectiveIdentifier, bool notify ) { STUBWARNING; };
 	// Spawns an objectives window
 	virtual void SpawnObjectivesWindow( void ) { STUBWARNING; };
+	// Spawns the documents window
+	virtual void SpawnDocumentsWindow( void ) { STUBWARNING; };
 
 	// Sets countdown timer
 	virtual void SetCountdownTimer( Float duration, const Char* pstrTitle ) { STUBWARNING; };
@@ -1144,14 +1153,18 @@ public:
 	void SaveEntityClassData( bool istransitionsave );
 	// Reads entity class data
 	bool ReadEntityClassData( const Char* fieldname, const byte* pdata, Uint32 datasize, Uint32 blockindex, bool istransferglobalentity );
+	// Prepare arrays for reading saves
+	bool PrepareEntityClassData( const Char* fieldname, Uint32 numblocks, bool istransferglobalentity );
 
 public:
 	// Retreive class data for an edict
 	static CBaseEntity* GetClass( edict_t* pedict );
 	// Retreive class data for an edict
 	static const CBaseEntity* GetClass( const edict_t* pedict );
-	// Calls for classes and their children
+	// Calls for classes and their children to declare save fields
 	virtual void DeclareSaveFields( void );
+	// Calls release save fields
+	void ReleaseSaveFields( void );
 
 #ifdef _DEBUG
 public:
@@ -1180,6 +1193,10 @@ protected:
 protected:
 	// Only managed by base class
 	void DeclareSaveField( entity_data_desc_t desc );
+	// Sets field size and ptr based on field data for saving
+	bool GetEntityFieldDataForSave( const entity_data_desc_t& field, byte*& dataPtr, Uint32& fieldSize );
+	// Sets pointer and allocates array position for restore
+	bool GetEntityFieldDataForRestore( const entity_data_desc_t& field, byte*& dataPtr, Uint32 arrayIndex, Uint32 dataSize );
 
 public:
 	// Creates a new entity

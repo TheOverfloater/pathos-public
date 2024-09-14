@@ -35,6 +35,8 @@ CGLExtF::CGLExtF ( void ):
 	glGenRenderbuffers(nullptr),
 	glBindRenderbuffer(nullptr),
 	glRenderbufferStorage(nullptr),
+	glRenderbufferStorageMultisample(nullptr),
+	glTexStorage2DMultisample(nullptr),
 	glFramebufferRenderbuffer(nullptr),
 	glFramebufferTexture2D(nullptr),
 	glCheckFramebufferStatus(nullptr),
@@ -164,8 +166,10 @@ bool CGLExtF::GetFunctions ( void )
 	glBindRenderbuffer						= reinterpret_cast<PFNGLBINDRENDERBUFFERPROC>(GetFunction("glBindRenderbuffer"));
 	glRenderbufferStorage					= reinterpret_cast<PFNGLRENDERBUFFERSTORAGEPROC>(GetFunction("glRenderbufferStorage"));
 	glRenderbufferStorageMultisample 		= reinterpret_cast<PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC>(GetFunction("glRenderbufferStorageMultisample"));
+	glTexStorage2DMultisample				= reinterpret_cast<PFNGLTEXSTORAGE2DMULTISAMPLEPROC>(GetFunction("glTexStorage2DMultisample"));
 	glFramebufferRenderbuffer				= reinterpret_cast<PFNGLFRAMEBUFFERRENDERBUFFERPROC>(GetFunction("glFramebufferRenderbuffer"));
 	glFramebufferTexture2D					= reinterpret_cast<PFNGLFRAMEBUFFERTEXTURE2DPROC>(GetFunction("glFramebufferTexture2D"));
+	glFramebufferTexture					= reinterpret_cast<PFNGLFRAMEBUFFERTEXTUREPROC>(GetFunction("glFramebufferTexture"));
 	glCheckFramebufferStatus				= reinterpret_cast<PFNGLCHECKFRAMEBUFFERSTATUSPROC>(GetFunction("glCheckFramebufferStatus"));
 	glBindFramebuffer						= reinterpret_cast<PFNGLBINDFRAMEBUFFERPROC>(GetFunction("glBindFramebuffer"));
 	glGenFramebuffers						= reinterpret_cast<PFNGLGENFRAMEBUFFERSPROC>(GetFunction("glGenFramebuffers"));

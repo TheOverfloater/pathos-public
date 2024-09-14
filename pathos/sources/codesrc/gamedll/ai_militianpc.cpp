@@ -55,35 +55,55 @@ ai_task_t taskListScheduleMilitiaNPCEstablishLineOfFire[] =
 	AITASK(AI_TASK_FACE_ENEMY,								0)
 };
 
+Uint32 interruptBitsScheduleMilitiaNPCEstablishLineOfFire[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_IN_DANGER,
+	AI_COND_HEARD_ENEMY_NEW_POSITION,
+	AI_COND_HEAR_SOUND,
+	AI_COND_SHOOT_VECTOR_VALID
+};
+
+Uint32 specialInterruptBitsScheduleMilitiaNPCEstablishLineOfFire[] =
+{
+	AI_COND_SHOOT_VECTOR_VALID
+};
+
+Uint32 specialInterruptExceptionBitsScheduleMilitiaNPCEstablishLineOfFire[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_IN_DANGER,
+	AI_COND_HEARD_ENEMY_NEW_POSITION,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleMilitiaNPCEstablishLineOfFire(
 	// Task list
 	taskListScheduleMilitiaNPCEstablishLineOfFire, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleMilitiaNPCEstablishLineOfFire),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_CAN_ATTACK |
-	AI_COND_IN_DANGER |
-	AI_COND_HEARD_ENEMY_NEW_POSITION |
-	AI_COND_HEAR_SOUND |
-	AI_COND_SHOOT_VECTOR_VALID,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleMilitiaNPCEstablishLineOfFire, PT_ARRAYSIZE(interruptBitsScheduleMilitiaNPCEstablishLineOfFire)),
 	// Inverse interrupt mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Special interrupt schedule
 	AI_SCHED_FACE_ENEMY,
 	// Special interrupt mask
-	AI_COND_SHOOT_VECTOR_VALID,
+	CBitSet(AI_COND_BITSET_SIZE, specialInterruptBitsScheduleMilitiaNPCEstablishLineOfFire, PT_ARRAYSIZE(specialInterruptBitsScheduleMilitiaNPCEstablishLineOfFire)),
 	// Special interrupt exception mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_IN_DANGER |
-	AI_COND_HEARD_ENEMY_NEW_POSITION |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, specialInterruptExceptionBitsScheduleMilitiaNPCEstablishLineOfFire, PT_ARRAYSIZE(specialInterruptExceptionBitsScheduleMilitiaNPCEstablishLineOfFire)),
 	// Special interrupt requirement mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name

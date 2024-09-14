@@ -124,14 +124,6 @@ private:
 	rtt_texture_t* m_pColorsRTT;
 	rtt_texture_t* m_pBlurRTT;
 
-	// FBO objects
-	CFBOCache::cache_fbo_t* m_pSolidFBO;
-	CFBOCache::cache_fbo_t* m_pColorFBO;
-	CFBOCache::cache_fbo_t* m_pBlurFBO;
-
-	// TRUE if we should use FBOs
-	bool m_useFBOs;
-
 private:
 	// Cvar controlling glow aura
 	CCVar* m_pCvarGlowAura;

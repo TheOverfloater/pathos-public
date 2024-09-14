@@ -725,6 +725,23 @@ void CNetworking::WriteString( const Char* pstring )
 // @brief
 //
 //=============================================
+void CNetworking::WriteBitSet( const byte* pdataarray, Uint32 numbits, Uint32 numbytes )
+{
+	if(!m_pCurrentMessage)
+		return;
+
+	// Write the number of bits
+	WriteUint32(numbits);
+	// Write the number of bytes
+	WriteUint32(numbytes);
+	// Write the array of bytes
+	WriteBuffer(pdataarray, numbytes);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 void CNetworking::CheckBuffer( net_msg_t& msg, Uint32 size )
 {
 	Uint32 finalSize = msg.msg_offset + msg.msg_size + size;

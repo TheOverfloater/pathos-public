@@ -280,7 +280,7 @@ Vector CTriggerVacuum::GetPullPosition( CBaseEntity* pPlayer, const Vector& play
 	}
 
 	static Int32 nodeIndexes[MAX_ROUTE_POINTS];
-	Uint32 numNodes = gNodeGraph.GetShortestPath(myNodeIndex, playerNodeIndex, hullType, CBaseNPC::AI_CAP_NONE, nodeIndexes);
+	Uint32 numNodes = gNodeGraph.GetShortestPath(myNodeIndex, playerNodeIndex, hullType, CBitSet(CBaseNPC::AI_CAP_BITS_COUNT), nodeIndexes);
 	if(!numNodes)
 	{
 		m_pTestHullNPC->MakeInert();

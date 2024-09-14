@@ -285,7 +285,17 @@ bool ClientCommand( edict_t* pclient )
 			return true;
 		}
 
-		pClientEntity->GiveItemByName(gd_engfuncs.pfnCmd_Argv(1), 1, false);
+		if(gd_engfuncs.pfnCmd_Argc() < 2)
+		{
+			gd_engfuncs.pfnClientPrintf(pclient, "give usage: give <entity name> (optional)<targetname to use>.\n");
+			return true;
+		}	
+		
+		CString targetName;
+		if(gd_engfuncs.pfnCmd_Argc() >= 3)
+			targetName = gd_engfuncs.pfnCmd_Argv(2);
+
+		pClientEntity->GiveItemByName(gd_engfuncs.pfnCmd_Argv(1), targetName.c_str(), 1, false);
 		return true;
 	}
 	else if(!qstrcmp(pstrCmd, "drop"))
@@ -332,6 +342,11 @@ bool ClientCommand( edict_t* pclient )
 	else if(!qstrcmp(pstrCmd, "objectives"))
 	{
 		pClientEntity->SpawnObjectivesWindow();
+		return true;
+	}
+	else if(!qstrcmp(pstrCmd, "documents"))
+	{
+		pClientEntity->SpawnDocumentsWindow();
 		return true;
 	}
 	else
@@ -452,7 +467,6 @@ CPlayerEntity::CPlayerEntity( edict_t* pedict ):
 	m_pSubwayController(nullptr),
 	m_subwayFlags(0),
 	m_hasActiveUIWindows(false),
-	m_numSavedPasscodes(0),
 	m_forceHolster(false),
 	m_isInDreamSequence(false),
 	m_forceSlowMove(false),
@@ -548,9 +562,6 @@ CPlayerEntity::CPlayerEntity( edict_t* pedict ):
 	m_delayedGlobalTriggerTarget(NO_STRING_VALUE),
 	m_isOnTarget(false)
 {
-	for(Uint32 i = 0; i < MAX_SAVED_PASSCODES; i++)
-		m_savedPasscodes[i] = NO_STRING_VALUE;
-
 	for(Uint32 i = 0; i < NUM_TIMEBASED_DMG; i++)
 	{
 		m_timeBasedDmgTime[i] = 0;
@@ -562,9 +573,6 @@ CPlayerEntity::CPlayerEntity( edict_t* pedict ):
 		m_ammoCounts[i] = 0;
 		m_clientAmmoCounts[i] = 0;
 	}
-
-	for(Uint32 i = 0; i < GAMEUI_MAX_OBJECTIVES; i++)
-		m_objectivesArray[i] = NO_STRING_VALUE;
 }
 
 //=============================================
@@ -625,8 +633,8 @@ void CPlayerEntity::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_walkedSlowBeforeWeaponSlowdown, EFIELD_BOOLEAN));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_previousWeaponSlowdownState, EFIELD_BOOLEAN));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_saveGameTitle, EFIELD_STRING));
-	DeclareSaveField(DEFINE_DATA_FIELD_ARRAY(CPlayerEntity, m_savedPasscodes, EFIELD_STRING, MAX_SAVED_PASSCODES));
-	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_numSavedPasscodes, EFIELD_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_savedPasscodesArray, EFIELD_CARRAY_STRING));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_savedDocumentsArray, EFIELD_CARRAY_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_lastWaterDamageTime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_lastWaterDamage, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_underwaterTime, EFIELD_TIME));
@@ -661,8 +669,8 @@ void CPlayerEntity::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_tapeTrackDuration, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_tapeTitleColor, EFIELD_VECTOR));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_tapePlaybackAlpha, EFIELD_FLOAT));
-	DeclareSaveField(DEFINE_DATA_FIELD_ARRAY(CPlayerEntity, m_objectivesArray, EFIELD_STRING, GAMEUI_MAX_OBJECTIVES));
-	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_objectivesNewFlags, EFIELD_INT16));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_objectivesArray, EFIELD_CARRAY_STRING));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_objectivesNewFlags, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_countdownTimerEndTime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_countdownTimerTitle, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_delayedGlobalTriggerTime, EFIELD_TIME));
@@ -2661,13 +2669,20 @@ void CPlayerEntity::UpdateClientData( void )
 	}
 
 	// Update npc awareness
-	if(m_highestAwarenessLevel != m_clientHighestAwarenessLevel)
+	if(m_highestAwarenessLevel != m_clientHighestAwarenessLevel
+		|| m_clientHighestAwarenessColor.r != m_highestAwarenessColor.r
+		|| m_clientHighestAwarenessColor.g != m_highestAwarenessColor.g
+		|| m_clientHighestAwarenessColor.b != m_highestAwarenessColor.b)
 	{
 		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.npcawareness, nullptr, m_pEdict);
 			gd_engfuncs.pfnMsgWriteSmallFloat(m_highestAwarenessLevel);
+			gd_engfuncs.pfnMsgWriteByte(m_highestAwarenessColor.r);
+			gd_engfuncs.pfnMsgWriteByte(m_highestAwarenessColor.g);
+			gd_engfuncs.pfnMsgWriteByte(m_highestAwarenessColor.b);
 		gd_engfuncs.pfnUserMessageEnd();
 
 		m_clientHighestAwarenessLevel = m_highestAwarenessLevel;
+		m_clientHighestAwarenessColor = m_highestAwarenessColor;
 	}
 
 	// Check for weapon updates
@@ -2724,9 +2739,9 @@ void CPlayerEntity::AddPasscode( const Char* pstrid, const Char* pstrpasscode )
 	}
 
 	// Make sure it's not already in
-	for(Uint32 i = 0; i < m_numSavedPasscodes; i++)
+	for(Uint32 i = 0; i < m_savedPasscodesArray.size(); i++)
 	{
-		const Char* pstrentry = gd_engfuncs.pfnGetString(m_savedPasscodes[i]);
+		const Char* pstrentry = gd_engfuncs.pfnGetString(m_savedPasscodesArray[i]);
 		const Char* pstrseparator = qstrstr(pstrentry, ";");
 		if(!pstrseparator)
 			continue; // shouldn't happen
@@ -2739,19 +2754,14 @@ void CPlayerEntity::AddPasscode( const Char* pstrid, const Char* pstrpasscode )
 			return;
 	}
 
-	if(m_numSavedPasscodes >= MAX_SAVED_PASSCODES)
-	{
-		gd_engfuncs.pfnClientPrintf(m_pEdict, "Exceeded MAX_SAVED_PASSCODES.\n");
-		return;
-	}
-
 	// Add a new entry
 	CString entry;
 	entry << pstrid << ";" << pstrpasscode;
 
 	// Save it
-	m_savedPasscodes[m_numSavedPasscodes] = gd_engfuncs.pfnAllocString(entry.c_str());
-	m_numSavedPasscodes++;
+	Uint32 insertIndex = m_savedPasscodesArray.size();
+	m_savedPasscodesArray.resize(m_savedPasscodesArray.size()+1);
+	m_savedPasscodesArray[insertIndex] = gd_engfuncs.pfnAllocString(entry.c_str());
 }
 
 //=============================================
@@ -2763,12 +2773,12 @@ const Char* CPlayerEntity::GetPasscodeForId( const Char* pstrid )
 	if(!pstrid)
 		return nullptr;
 
-	for(Uint32 i = 0; i < m_numSavedPasscodes; i++)
+	for(Uint32 i = 0; i < m_savedPasscodesArray.size(); i++)
 	{
-		if(m_savedPasscodes[i] == NO_STRING_VALUE)
+		if(m_savedPasscodesArray[i] == NO_STRING_VALUE)
 			continue;
 
-		const Char* pstrentry = gd_engfuncs.pfnGetString(m_savedPasscodes[i]);
+		const Char* pstrentry = gd_engfuncs.pfnGetString(m_savedPasscodesArray[i]);
 		const Char* pstrseparator = qstrstr(pstrentry, ";");
 		if(!pstrseparator)
 			continue; // shouldn't happen
@@ -2790,12 +2800,12 @@ const Char* CPlayerEntity::GetPasscodeForId( const Char* pstrid )
 //=============================================
 void CPlayerEntity::DumpAllCodes( void )
 {
-	for(Uint32 i = 0; i < m_numSavedPasscodes; i++)
+	for(Uint32 i = 0; i < m_savedPasscodesArray.size(); i++)
 	{
-		if(m_savedPasscodes[i] == NO_STRING_VALUE)
+		if(m_savedPasscodesArray[i] == NO_STRING_VALUE)
 			continue;
 
-		const Char* pstrentry = gd_engfuncs.pfnGetString(m_savedPasscodes[i]);
+		const Char* pstrentry = gd_engfuncs.pfnGetString(m_savedPasscodesArray[i]);
 		const Char* pstrseparator = qstrstr(pstrentry, ";");
 		if(!pstrseparator)
 			continue; // shouldn't happen
@@ -2919,6 +2929,34 @@ void CPlayerEntity::SpawnTextWindow( const Char* pstrfilepath, const Char* pstrp
 		else
 			gd_engfuncs.pfnMsgWriteByte(FALSE);
 	gd_engfuncs.pfnUserMessageEnd();
+
+	// See if we need to add it to the saved documents array
+	Uint32 i = 0;
+	for(; i < m_savedDocumentsArray.size(); i++)
+	{
+		CString textFileEntry = gd_engfuncs.pfnGetString(m_savedDocumentsArray[i]);
+
+		CString textFilePath;
+		Int32 semicolonPosition = textFileEntry.find(0, ";");
+		if(semicolonPosition != -1)
+			textFilePath.assign(textFileEntry.c_str(), semicolonPosition);
+		else
+			textFilePath = textFileEntry;
+
+		if(!qstrcmp(textFilePath, pstrfilepath))
+			break;
+	}
+
+	// Add it if it's missing
+	if(i == m_savedDocumentsArray.size())
+	{
+		CString textFileEntry;
+		textFileEntry << pstrfilepath;
+		if(pstrid)
+			textFileEntry << ';' << pstrid;
+
+		m_savedDocumentsArray.push_back(gd_engfuncs.pfnAllocString(textFileEntry.c_str()));
+	}
 
 	m_hasActiveUIWindows = true;
 }
@@ -3056,7 +3094,7 @@ void CPlayerEntity::ManageGameUIEvent( CMSGReader& reader )
 		{
 			const Char* pstrObjectiveIdentifier = reader.ReadString();
 
-			for(Uint32 i = 0; i < GAMEUI_MAX_OBJECTIVES; i++)
+			for(Uint32 i = 0; i < m_objectivesArray.size(); i++)
 			{
 				if(m_objectivesArray[i] == NO_STRING_VALUE)
 					break;
@@ -3422,7 +3460,7 @@ bool CPlayerEntity::HasAnyWeapons( void ) const
 // @brief
 //
 //=============================================
-void CPlayerEntity::GiveItemByName( const Char* pstrClassname, Uint32 amount, bool removeunneeded )
+void CPlayerEntity::GiveItemByName( const Char* pstrClassname, const Char* pstrTargetName, Uint32 amount, bool removeunneeded )
 {
 	if(!AreCheatsEnabled())
 		return;
@@ -3445,6 +3483,9 @@ void CPlayerEntity::GiveItemByName( const Char* pstrClassname, Uint32 amount, bo
 		Vector angles = m_pState->angles;
 		angles[ROLL] = angles[PITCH] = 0;
 		pItem->SetAngles(angles);
+
+		if(pstrTargetName && qstrlen(pstrTargetName))
+			pItem->SetTargetName(pstrTargetName);
 
 		// For debugging on NPCs
 		m_cheatCommandUsed = true;
@@ -3633,16 +3674,16 @@ void CPlayerEntity::ManageCheatImpulseCommands( Int32 impulse )
 	{
 	case PLAYER_CHEATCODE_ALLWEAPONS:
 		{
-			GiveItemByName("item_kevlar", 5, true);
-			GiveItemByName("item_healthkit", 5, true);
-			GiveItemByName("item_shoulderlight", 1, true);
+			GiveItemByName("item_kevlar", "", 5, true);
+			GiveItemByName("item_healthkit", "", 5, true);
+			GiveItemByName("item_shoulderlight", "", 1, true);
 
-			GiveItemByName("weapon_knife", 1, true);
-			GiveItemByName("weapon_glock", 1, true);
-			GiveItemByName("ammo_glock_clip", 4, true);
-			GiveItemByName("item_glock_silencer", 1, true);
-			GiveItemByName("item_glock_flashlight", 1, true);
-			GiveItemByName("weapon_handgrenade", 4, true);
+			GiveItemByName("weapon_knife", "", 1, true);
+			GiveItemByName("weapon_glock", "", 1, true);
+			GiveItemByName("ammo_glock_clip", "", 4, true);
+			GiveItemByName("item_glock_silencer", "", 1, true);
+			GiveItemByName("item_glock_flashlight", "", 1, true);
+			GiveItemByName("weapon_handgrenade", "", 4, true);
 		}
 		break;
 	case PLAYER_CHEATCODE_DUMP_CODES:
@@ -3867,15 +3908,17 @@ Int32 CPlayerEntity::GiveAmmo( Int32 amount, const Char* pstrammoname, Int32 max
 	m_ammoCounts[ammoindex] += numadd;
 
 	// Play sound if needed
-	if(!pentity->HasSpawnFlag(CPlayerWeapon::FL_WEAPON_NO_NOTICE))
+	if (!pentity->HasSpawnFlag(CPlayerWeapon::FL_WEAPON_NO_NOTICE))
+	{
 		Util::EmitEntitySound(this, AMMO_PICKUP_SOUND, SND_CHAN_ITEM);
 
-	if(display)
-	{
-		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.hudammopickup, nullptr, m_pEdict);
+		if (display)
+		{
+			gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.hudammopickup, nullptr, m_pEdict);
 			gd_engfuncs.pfnMsgWriteString(pentity->GetClassName());
 			gd_engfuncs.pfnMsgWriteByte(numadd);
-		gd_engfuncs.pfnUserMessageEnd();
+			gd_engfuncs.pfnUserMessageEnd();
+		}
 	}
 
 	return ammoindex;
@@ -4005,8 +4048,9 @@ bool CPlayerEntity::CanHaveWeapon( CPlayerWeapon* pWeapon ) const
 	{
 		if(!CanHaveAmmo(pstrAmmoType, pWeapon->GetMaxAmmo()))
 		{
-			if(HasPlayerWeapon(pWeapon->GetClassName()))
-				return false;
+			const CPlayerWeapon* pOtherWeapon = GetPlayerWeaponByClassName(pWeapon->GetClassName());
+			if(pOtherWeapon)
+				return (pOtherWeapon->GetClip() == 0) ? true : false;
 		}
 	}
 	else
@@ -4024,8 +4068,32 @@ bool CPlayerEntity::CanHaveWeapon( CPlayerWeapon* pWeapon ) const
 //=============================================
 bool CPlayerEntity::AddPlayerWeapon( CPlayerWeapon* pWeapon )
 {
-	if(!CanPickupWeapon(pWeapon->GetHUDSlot(), (weaponid_t)pWeapon->GetId()))
+	if (!CanPickupWeapon(pWeapon->GetHUDSlot(), (weaponid_t)pWeapon->GetId()))
+	{
+		// Try and extract ammo, but leave gun behind
+		if (pWeapon->GetDefaultAmmo() > 0)
+		{
+			const Char* pstrAddAmmoType = pWeapon->GetAmmoTypeName();
+			if (pstrAddAmmoType && qstrlen(pstrAddAmmoType))
+			{
+				// See if we can find an equipped weapon with the same ammo type
+				CPlayerWeapon* pPlayerWeapon = m_pWeaponsList;
+				while (pPlayerWeapon)
+				{
+					const Char* pstrAmmoType = pPlayerWeapon->GetAmmoTypeName();
+					if (!qstrcmp(pstrAmmoType, pstrAddAmmoType))
+					{
+						pWeapon->ExtractAmmo(pPlayerWeapon);
+						break;
+					}
+
+					pPlayerWeapon = pPlayerWeapon->GetNextWeapon();
+				}
+			}
+		}
+
 		return false;
+	}
 
 	CPlayerWeapon* pPlayerWeapon = m_pWeaponsList;
 	while(pPlayerWeapon)
@@ -4691,12 +4759,15 @@ bool CPlayerEntity::CanPickupWeapon( Int32 slot, weaponid_t weaponid )
 				Util::ShowMessage("SLOT_FULL_SECONDARY", this);
 				break;
 			case 2:
-				Util::ShowMessage("SLOT_FULL_PRIMARY", this);
+				Util::ShowMessage("SLOT_FULL_SUBMACHINE", this);
 				break;
 			case 3:
-				Util::ShowMessage("SLOT_FULL_HEAVY", this);
+				Util::ShowMessage("SLOT_FULL_PRIMARY", this);
 				break;
 			case 4:
+				Util::ShowMessage("SLOT_FULL_HEAVY", this);
+				break;
+			case 5:
 				Util::ShowMessage("SLOT_FULL_EXPLOSIVE", this);
 				break;
 			}
@@ -4843,6 +4914,27 @@ bool CPlayerEntity::HasPlayerWeapon( const Char* pstrWeaponClassName ) const
 	{
 		if(!qstrcmp(pNext->GetClassName(), pstrWeaponClassName))
 			return true;
+
+		pNext = pNext->GetNextWeapon();
+	}
+
+	return false;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+const CPlayerWeapon* CPlayerEntity::GetPlayerWeaponByClassName( const Char* pstrWeaponClassName ) const
+{
+	if(!m_pWeaponsList)
+		return false;
+
+	CPlayerWeapon* pNext = m_pWeaponsList;
+	while(pNext)
+	{
+		if(!qstrcmp(pNext->GetClassName(), pstrWeaponClassName))
+			return pNext;
 
 		pNext = pNext->GetNextWeapon();
 	}
@@ -5140,7 +5232,7 @@ void CPlayerEntity::LadderThink( void )
 // @brief
 //
 //=============================================
-void CPlayerEntity::SetNPCAwareness( Float awareness, CBaseEntity* pNPC, Float timeoutDelay )
+void CPlayerEntity::SetNPCAwareness( Float awareness, CBaseEntity* pNPC, Float timeoutDelay, bool isLeanAwareness )
 {
 	if(!m_npcAwarenessList.empty())
 	{
@@ -5154,6 +5246,7 @@ void CPlayerEntity::SetNPCAwareness( Float awareness, CBaseEntity* pNPC, Float t
 				{
 					info.awareness = awareness;
 					info.lasttime = g_pGameVars->time;
+					info.leanawareness = isLeanAwareness;
 					return;
 				}
 				else
@@ -5175,6 +5268,7 @@ void CPlayerEntity::SetNPCAwareness( Float awareness, CBaseEntity* pNPC, Float t
 	info.pnpc = pNPC;
 	info.timeoutdelay = timeoutDelay;
 	info.lasttime = g_pGameVars->time;
+	info.leanawareness = isLeanAwareness;
 
 	m_npcAwarenessList.add(info);
 }
@@ -5202,11 +5296,12 @@ void CPlayerEntity::NPCAwarenessThink( void )
 			m_npcAwarenessList.next();
 			continue;
 		}
-		else if(!m_highestAwarenessLevel || (info.pnpc->GetEnemy() == this && info.pnpc->CheckConditions(AI_COND_SEE_CLIENT)))
+		else if(!m_highestAwarenessLevel || (info.pnpc->GetEnemy() == this && info.pnpc->CheckCondition(AI_COND_SEE_CLIENT)))
 		{
-			if(info.lasttime > lasthighesttime || info.awareness > m_highestAwarenessLevel)
+			if(info.lasttime > lasthighesttime || info.awareness > m_highestAwarenessLevel )
 			{
 				m_highestAwarenessLevel = info.awareness;
+				m_highestAwarenessColor = info.leanawareness ? LEAN_AWARENESS_BAR_COLOR : FULL_AWARENESS_BAR_COLOR;
 				lasthighesttime = info.lasttime;
 			}
 		}
@@ -6092,14 +6187,16 @@ void CPlayerEntity::StopMusic( const Char* pstrFilename, Int32 channel, Float fa
 	for(Int32 i = 0; i < NB_MUSIC_CHANNELS; i++)
 	{
 		music_data_t& track = m_musicPlaybackInfoArray[i];
-		if(track.channel == channel)
+
+		const Char* pstrTrackName = gd_engfuncs.pfnGetString(track.filename);
+		if(channel == MUSIC_CHANNEL_ALL || track.channel == channel && (!pstrFilename || !qstrlen(pstrFilename) || !qstrcmp(pstrTrackName, pstrFilename)))
 		{
+			gd_engfuncs.pfnStopMusic(m_pEdict->clientindex, pstrTrackName, track.channel, fadeTime);
+
 			track.filename = NO_STRING_VALUE;
 			track.begintime = 0;
 			track.flags = 0;
 			track.channel = 0;
-
-			gd_engfuncs.pfnStopMusic(m_pEdict->clientindex, pstrFilename, channel, fadeTime);
 		}
 	}
 }
@@ -6317,30 +6414,26 @@ void CPlayerEntity::AddMissionObjective( const Char* pstrObjectiveIdentifier, bo
 	if(!pstrObjectiveIdentifier || !qstrlen(pstrObjectiveIdentifier))
 		return;
 
-	Uint32 nbObjectives = 0;
-	for(Uint32 i = 0; i < GAMEUI_MAX_OBJECTIVES; i++)
+	for(Uint32 i = 0; i < m_objectivesArray.size(); i++)
 	{
-		if(m_objectivesArray[i] == NO_STRING_VALUE)
-			break;
-
 		const Char* pstrCheckObjective = gd_engfuncs.pfnGetString(m_objectivesArray[i]);
 		if(!qstrcmp(pstrCheckObjective, pstrObjectiveIdentifier))
 		{
 			gd_engfuncs.pfnCon_Printf("%s - Objective '%s' already in list.\n", __FUNCTION__, pstrObjectiveIdentifier);
 			return;
 		}
-
-		nbObjectives++;
 	}
 
-	if(nbObjectives >= GAMEUI_MAX_OBJECTIVES)
+	if(m_objectivesArray.size() >= MAX_PLAYER_OBJECTIVES)
 	{
-		gd_engfuncs.pfnCon_EPrintf("%s - Exceeded GAMEUI_MAX_OBJECTIVES.\n", __FUNCTION__);
+		gd_engfuncs.pfnCon_Printf("%s - Cannot add objective '%s', exceeded MAX_PLAYER_OBJECTIVES(%d).\n", __FUNCTION__, pstrObjectiveIdentifier, MAX_PLAYER_OBJECTIVES);
 		return;
 	}
 
-	Int16 shiftedNewBitFlags = 0;
-	for(Uint32 i = (GAMEUI_MAX_OBJECTIVES-1); i > 0; i--)
+	m_objectivesArray.resize(m_objectivesArray.size()+1);
+
+	Int32 shiftedNewBitFlags = 0;
+	for(Uint32 i = (m_objectivesArray.size()-1); i > 0; i--)
 	{
 		if(m_objectivesArray[i-1] == NO_STRING_VALUE)
 			continue;
@@ -6375,11 +6468,8 @@ void CPlayerEntity::RemoveMissionObjective( const Char* pstrObjectiveIdentifier,
 		return;
 
 	Uint32 i = 0;
-	for(; i < GAMEUI_MAX_OBJECTIVES; i++)
+	for(; i < m_objectivesArray.size(); i++)
 	{
-		if(m_objectivesArray[i] == NO_STRING_VALUE)
-			continue;
-
 		const Char* pstrCheckObjective = gd_engfuncs.pfnGetString(m_objectivesArray[i]);
 		if(!qstrcmp(pstrCheckObjective, pstrObjectiveIdentifier))
 		{
@@ -6388,7 +6478,7 @@ void CPlayerEntity::RemoveMissionObjective( const Char* pstrObjectiveIdentifier,
 		}
 	}
 
-	if(i == GAMEUI_MAX_OBJECTIVES)
+	if(i == m_objectivesArray.size())
 	{
 		gd_engfuncs.pfnCon_Printf("%s - Objective '%s' not in list.\n", __FUNCTION__, pstrObjectiveIdentifier);
 		return;
@@ -6399,10 +6489,10 @@ void CPlayerEntity::RemoveMissionObjective( const Char* pstrObjectiveIdentifier,
 
 	// Re-sort objectives array
 	Uint32 newNbObjectives = 0;
-	string_t sortedObjectivesArray[GAMEUI_MAX_OBJECTIVES];
-	Int16 sortedObjectivesNewFlags = 0;
+	CArray<string_t> sortedObjectivesArray(m_objectivesArray.size()-1);
+	Int32 sortedObjectivesNewFlags = 0;
 
-	for(i = 0; i < GAMEUI_MAX_OBJECTIVES; i++)
+	for(i = 0; i < m_objectivesArray.size(); i++)
 	{
 		if(m_objectivesArray[i] == NO_STRING_VALUE)
 			continue;
@@ -6414,14 +6504,8 @@ void CPlayerEntity::RemoveMissionObjective( const Char* pstrObjectiveIdentifier,
 		newNbObjectives++;
 	}
 
-	i = 0;
-	for(; i < newNbObjectives; i++)
-		m_objectivesArray[i] = sortedObjectivesArray[i];
-
-	for(; i < GAMEUI_MAX_OBJECTIVES; i++)
-		m_objectivesArray[i] = NO_STRING_VALUE;
-
-	newNbObjectives = sortedObjectivesNewFlags;
+	m_objectivesArray = sortedObjectivesArray;
+	m_objectivesNewFlags = sortedObjectivesNewFlags;
 
 	if(notify && m_lastObjectiveAddTime != g_pGameVars->time)
 	{
@@ -6441,22 +6525,73 @@ void CPlayerEntity::RemoveMissionObjective( const Char* pstrObjectiveIdentifier,
 //=============================================
 void CPlayerEntity::SpawnObjectivesWindow( void )
 {
-	Uint32 nbObjectives = 0;
-	for(Uint32 i = 0; i < GAMEUI_MAX_OBJECTIVES; i++)
-	{
-		if(m_objectivesArray[i] == NO_STRING_VALUE)
-			break;
+	// Write message to client
+	gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.creategameuiwindow, nullptr, m_pEdict);
+		gd_engfuncs.pfnMsgWriteByte(GAMEUI_OBJECTIVESWINDOW);
+		gd_engfuncs.pfnMsgWriteByte(m_objectivesArray.size());
+		gd_engfuncs.pfnMsgWriteInt32(m_objectivesNewFlags);
+		for(Uint32 i = 0; i < m_objectivesArray.size(); i++)
+			gd_engfuncs.pfnMsgWriteString(gd_engfuncs.pfnGetString(m_objectivesArray[i]));
+	gd_engfuncs.pfnUserMessageEnd();
 
-		nbObjectives++;
+	m_hasActiveUIWindows = true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CPlayerEntity::SpawnDocumentsWindow( void )
+{
+	CArray<CString> documentsList;
+
+	for(Uint32 i = 0; i < m_savedDocumentsArray.size(); i++)
+	{
+		CString fileEntry = gd_engfuncs.pfnGetString(m_savedDocumentsArray[i]);
+
+		// Check for the code
+		CString finalEntry;
+		Int32 semicolonPosition = fileEntry.find(0, ";");
+		if(semicolonPosition != -1)
+		{
+			finalEntry.assign(fileEntry.c_str(), semicolonPosition);
+
+			Uint32 codeIdLength = fileEntry.length() - semicolonPosition - 1;
+			CString textFileCodeId(fileEntry.c_str() + semicolonPosition + 1, codeIdLength);
+			
+			// Try and find the code in our stored list
+			for(Uint32 j = 0; j < m_savedPasscodesArray.size(); j++)
+			{
+				CString storedPassCodeEntry = gd_engfuncs.pfnGetString(m_savedPasscodesArray[j]);
+				semicolonPosition = storedPassCodeEntry.find(0, ";");
+				if(semicolonPosition == -1)
+					continue;
+
+				CString storedPassCodeId(storedPassCodeEntry.c_str(), semicolonPosition);
+				if(!qstrcmp(storedPassCodeId, textFileCodeId))
+				{
+					Uint32 codeLength = storedPassCodeEntry.length() - semicolonPosition - 1;
+					CString passcode(storedPassCodeEntry.c_str() + semicolonPosition + 1, codeLength);
+					finalEntry << ';' << passcode;
+					break;
+				}
+			}
+		}
+		else
+		{
+			// Just straight up use the entry
+			finalEntry = fileEntry;
+		}
+
+		documentsList.push_back(finalEntry);
 	}
 
 	// Write message to client
 	gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.creategameuiwindow, nullptr, m_pEdict);
-		gd_engfuncs.pfnMsgWriteByte(GAMEUI_OBJECTIVESWINDOW);
-		gd_engfuncs.pfnMsgWriteByte(nbObjectives);
-		gd_engfuncs.pfnMsgWriteByte(m_objectivesNewFlags);
-		for(Uint32 i = 0; i < nbObjectives; i++)
-			gd_engfuncs.pfnMsgWriteString(gd_engfuncs.pfnGetString(m_objectivesArray[i]));
+		gd_engfuncs.pfnMsgWriteByte(GAMEUI_DOCUMENTSWINDOW);
+		gd_engfuncs.pfnMsgWriteInt16(documentsList.size());
+		for(Uint32 i = 0; i < documentsList.size(); i++)
+			gd_engfuncs.pfnMsgWriteString(documentsList[i].c_str());
 	gd_engfuncs.pfnUserMessageEnd();
 
 	m_hasActiveUIWindows = true;

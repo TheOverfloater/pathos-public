@@ -538,7 +538,7 @@ bool CMenu::DrawMenuBackground( CBasicDraw* pDraw )
 
 		if(m_pBlendToTexture->flags & TX_FL_RECTANGLE)
 		{
-			glBindTexture(GL_TEXTURE_RECTANGLE, 0);
+			R_BindRectangleTexture(GL_TEXTURE0_ARB, 0);
 			if(!pDraw->DisableRectangleTexture())
 				return false;
 		}
@@ -593,7 +593,7 @@ bool CMenu::DrawMenuBackground( CBasicDraw* pDraw )
 
 		if(m_pCurrentBackgroundTexture->flags & TX_FL_RECTANGLE)
 		{
-			glBindTexture(GL_TEXTURE_RECTANGLE, 0);
+			R_BindRectangleTexture(GL_TEXTURE0_ARB, 0);
 			if(!pDraw->DisableRectangleTexture())
 				return false;
 		}

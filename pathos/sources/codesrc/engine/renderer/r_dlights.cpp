@@ -751,12 +751,11 @@ bool CDynamicLightManager::CreateCubemapFBO( shadowmap_t& shadowmap )
 		shadowmap.pfbo->ptexture1 = CTextureManager::GetInstance()->GenTextureIndex(RS_GAME_LEVEL);
 
 	glBindTexture(GL_TEXTURE_CUBE_MAP, shadowmap.pfbo->ptexture1->gl_index);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_CUBE_MAP_SEAMLESS, GL_TRUE);
 
 	for (Int32 j = 0; j < 6; j++)
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, 0, GL_RGBA16, GetCubeShadowmapSize(), GetCubeShadowmapSize(), 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -1033,20 +1032,23 @@ void CDynamicLightManager::UpdateLights( void )
 			}
 		}
 
-		// Build mins/maxs
-		Vector mins, maxs;
-		for(Int32 i = 0; i < 3; i++)
+		if (!dl->nomaincull)
 		{
-			mins[i] = dl->origin[i] - dl->radius;
-			maxs[i] = dl->origin[i] + dl->radius;
-		}
+			// Build mins/maxs
+			Vector mins, maxs;
+			for (Int32 i = 0; i < 3; i++)
+			{
+				mins[i] = dl->origin[i] - dl->radius;
+				maxs[i] = dl->origin[i] + dl->radius;
+			}
 
-		// Check frustum
-		R_SetFrustum(rns.view.frustum, rns.view.v_origin, rns.view.v_angles, rns.view.fov, rns.view.viewsize_x, rns.view.viewsize_y, true);
-		if(rns.view.frustum.CullBBox(mins, maxs))
-		{
-			m_dlightsList.next();
-			continue;
+			// Check frustum
+			R_SetFrustum(rns.view.frustum, rns.view.v_origin, rns.view.v_angles, rns.view.fov, rns.view.viewsize_x, rns.view.viewsize_y, true);
+			if (rns.view.frustum.CullBBox(mins, maxs))
+			{
+				m_dlightsList.next();
+				continue;
+			}
 		}
 
 		if(ShouldRedrawShadowMap(dl, dl->psceneinfo, true))
@@ -1089,12 +1091,10 @@ bool CDynamicLightManager::DrawPasses( void )
 	if(g_pCvarDynamicLights->GetValue() < 1)
 		return true;
 
-	// Update static lights and set vis too
+	// Update static lights
 	UpdateLights();
+	// And set vis too
 	SetVIS();
-
-	// Animate lightstyles
-	AnimateStyles();
 
 	// Holds our main view frustum params
 	CFrustum mainFrustum;
@@ -1131,9 +1131,7 @@ bool CDynamicLightManager::DrawPasses( void )
 			}
 		}
 
-		if(rns.fboblitsupported && m_pCvarShadowmapBlit->GetValue() >= 1 && !dl->isStatic()
-			&& (dl->psceneinfo->drawframe == rns.framecount_main
-			|| dl->psceneinfo_nonstatic->drawframe == rns.framecount_main))
+		if(rns.fboblitsupported && m_pCvarShadowmapBlit->GetValue() >= 1 && !dl->isStatic())
 		{
 			// Draw static part if needed
 			if(dl->psceneinfo->drawframe == rns.framecount_main)
@@ -1225,8 +1223,11 @@ bool CDynamicLightManager::DrawShadowMapPasses( cl_dlight_t *dl, cl_entity_t** p
 //====================================
 bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pvisents, Int32 numentities, bool isfinal )
 {
-	rns.view.frustum.SetFrustum(dl->angles, dl->origin, dl->cone_size, dl->radius);
-	Math::VectorCopy(dl->angles, rns.view.v_angles);
+	Vector fixedangles = dl->angles;
+	Common::FixVector(fixedangles);
+
+	rns.view.frustum.SetFrustum(fixedangles, dl->origin, dl->cone_size, dl->radius);
+	Math::VectorCopy(fixedangles, rns.view.v_angles);
 	Math::VectorCopy(dl->origin, rns.view.v_origin);
 
 	// If not static, blitting is enabled, and is the final, then blit from
@@ -1240,7 +1241,6 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
 		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 		gGLExtF.glBlitFramebuffer(0, 0, shadowmapSize, shadowmapSize, 0, 0, shadowmapSize, shadowmapSize, GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
@@ -1274,14 +1274,11 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 
 	// Asscawks
 	Vector vforward, vtarget;
-	Vector vangles = dl->angles;
-	Common::FixVector(vangles);
-
-	Math::AngleVectors(vangles, &vforward, nullptr, nullptr);
+	Math::AngleVectors(fixedangles, &vforward, nullptr, nullptr);
 	Math::VectorMA(dl->origin, dl->radius, vforward, vtarget);
 
 	rns.view.modelview.LoadIdentity();
-	rns.view.modelview.LookAt(dl->origin[0], dl->origin[1], dl->origin[2], vtarget[0], vtarget[1], vtarget[2], 0, 0, Common::IsPitchReversed(dl->angles[PITCH]) ? -1 : 1);
+	rns.view.modelview.LookAt(dl->origin[0], dl->origin[1], dl->origin[2], vtarget[0], vtarget[1], vtarget[2], 0, 0, Common::IsPitchReversed(fixedangles[PITCH]) ? -1 : 1);
 
 	// Advance frame count here
 	rns.framecount++;
@@ -1385,20 +1382,22 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 		}
 		else
 		{
-			// Update - Don't render, but rather just use a direct blit
-			gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, m_renderFBO.fboid);
-			gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dl->pshadowmap->pfbo->fboid);
+			// just copy
+			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, dl->pshadowmap->pfbo->fboid);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			Uint32 shadowmapSize = GetShadowmapSize();
+			if (!m_pVSMShader->SetDeterminator(m_vsmAttribs.d_type, VSM_SHADER_COPY))
+			{
+				Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
+				m_pVSMShader->DisableShader();
+				m_pVSMVBO->UnBind();
+				return false;
+			}
 
-			glReadBuffer(GL_COLOR_ATTACHMENT0);
-			glDrawBuffer(GL_COLOR_ATTACHMENT0);
-			glClear(GL_COLOR_BUFFER_BIT);
+			R_Bind2DTexture(GL_TEXTURE0, m_renderFBO.ptexture1->gl_index);
+			R_ValidateShader(m_pVSMShader);
 
-			// Only copy color
-			gGLExtF.glBlitFramebuffer(0, 0, shadowmapSize, shadowmapSize, 0, 0, shadowmapSize, shadowmapSize, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, 0),
-			gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 
 			R_BindFBO(nullptr);
 		}
@@ -1420,6 +1419,7 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 //====================================
 bool CDynamicLightManager::DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int32 index, cl_entity_t** pvisents, Int32 numentities, bool isfinal )
 {
+	Common::FixVector(vangles);
 	rns.view.frustum.SetFrustum(vangles, dl->origin, 90, dl->radius);
 	Math::VectorCopy(dl->origin, rns.view.v_origin);
 	Math::VectorCopy(vangles, rns.view.v_angles);
@@ -1569,20 +1569,20 @@ bool CDynamicLightManager::DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int
 		}
 		else
 		{
-			// Update - Don't render, but rather just use a direct blit
-			gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, m_cubeRenderFBO.fboid);
-			gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dl->psmcubemap->pfbo->fboid);
+			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, dl->psmcubemap->pfbo->fboid);
+			gGLExtF.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + index, dl->psmcubemap->pfbo->ptexture1->gl_index, 0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			Uint32 shadowmapSize = GetCubeShadowmapSize();
+			if (!m_pVSMShader->SetDeterminator(m_vsmAttribs.d_type, VSM_SHADER_COPY))
+			{
+				Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
+				return false;
+			}
 
-			glReadBuffer(GL_COLOR_ATTACHMENT0);
-			glDrawBuffer(GL_COLOR_ATTACHMENT0);
-			glClear(GL_COLOR_BUFFER_BIT);
+			R_Bind2DTexture(GL_TEXTURE0, m_cubeRenderFBO.ptexture1->gl_index);
+			R_ValidateShader(m_pVSMShader);
 
-			// Only copy color
-			gGLExtF.glBlitFramebuffer(0, 0, shadowmapSize, shadowmapSize, 0, 0, shadowmapSize, shadowmapSize, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, 0),
-			gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 			
 			R_BindFBO(nullptr);
 		}
@@ -1627,6 +1627,9 @@ void CDynamicLightManager::FreeDynamicLight( cl_dlight_t* pdlight, bool ignoreSt
 //====================================
 bool CDynamicLightManager::Update( void )
 {
+	// Animate lightstyles
+	AnimateStyles();
+
 	// Check for any FBO updates
 	if(!CheckFBOs())
 		return false;

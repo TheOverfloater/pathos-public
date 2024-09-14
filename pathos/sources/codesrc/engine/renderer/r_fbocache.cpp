@@ -158,6 +158,9 @@ CFBOCache::cache_fbo_t* CFBOCache::Alloc(Uint32 width, Uint32 height, bool depth
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 	assert(pTextureManager != nullptr);
 
+	GLint textureBound;
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &textureBound);
+
 	// Create screen texture
 	pnew->fbo.ptexture1 = pTextureManager->GenTextureIndex(RS_WINDOW_LEVEL);
 	glBindTexture(GL_TEXTURE_2D, pnew->fbo.ptexture1->gl_index);
@@ -186,10 +189,6 @@ CFBOCache::cache_fbo_t* CFBOCache::Alloc(Uint32 width, Uint32 height, bool depth
 		gGLExtF.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, pnew->fbo.pdepth->gl_index, 0);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-	if(rns.pboundfbo)
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
-	else
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	GLenum eStatus = gGLExtF.glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (eStatus != GL_FRAMEBUFFER_COMPLETE)
@@ -206,6 +205,13 @@ CFBOCache::cache_fbo_t* CFBOCache::Alloc(Uint32 width, Uint32 height, bool depth
 		delete pnew;
 		return nullptr;
 	}
+
+	if (rns.pboundfbo)
+		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
+	else
+		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glBindTexture(GL_TEXTURE_2D, textureBound);
 
 	return pnew;
 }

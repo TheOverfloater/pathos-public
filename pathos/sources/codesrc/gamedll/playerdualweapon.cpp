@@ -66,6 +66,7 @@ bool CPlayerDualWeapon::AddFullAmmoDual( CPlayerWeapon* pcheckweapon )
 		// Tell client
 		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.hudweaponpickup, nullptr, m_pPlayer->GetEdict());
 			gd_engfuncs.pfnMsgWriteByte(m_weaponId);
+			gd_engfuncs.pfnMsgWriteByte(m_leftClip);
 		gd_engfuncs.pfnUserMessageEnd();
 	}
 
@@ -84,8 +85,9 @@ bool CPlayerDualWeapon::AddAmmo( Int32 count, const Char* pstrname, Int32 maxcli
 		m_clip = WEAPON_NO_CLIP;
 		ammoid = m_pPlayer->GiveAmmo(count, pstrname, maxcarry, true, pWeapon);
 	}
-	else if(m_clip == 0)
+	else if(!m_clip)
 	{
+		Uint32 prevClip = m_clip;
 		Int32 clipgive = m_clip+count;
 		if(clipgive > maxclip)
 			clipgive = maxclip;
@@ -122,14 +124,38 @@ bool CPlayerDualWeapon::AddAmmo( Int32 count, const Char* pstrname, Int32 maxcli
 				if(leftgive > 0 && !pWeapon->HasSpawnFlag(CPlayerWeapon::FL_WEAPON_NO_NOTICE))
 					Util::EmitEntitySound(m_pPlayer, AMMO_PICKUP_SOUND, SND_CHAN_ITEM);
 			}
-		
 		}
 
-		ammoid = m_pPlayer->GiveAmmo(count-clipgive, pstrname, maxcarry, true, pWeapon);
+		// We need ammoid regardless
+		Uint32 numgive = count - clipgive;
+		if (numgive)
+			ammoid = m_pPlayer->GiveAmmo(count - clipgive, pstrname, maxcarry, true, pWeapon);
+		else
+			ammoid = CPlayerWeapon::GetAmmoTypeIndex(pstrname);
 
-		// Re-deploy gun
-		if(m_isDeployed)
-			Deploy();
+		// Play sound and add hud msg if needed
+		if (!pWeapon->HasSpawnFlag(CPlayerWeapon::FL_WEAPON_NO_NOTICE)
+			&& numgive == 0 && clipgive != 0 && pWeapon != this)
+		{
+			Util::EmitEntitySound(m_pPlayer, AMMO_PICKUP_SOUND, SND_CHAN_ITEM);
+
+			// Notify of ammo pickup
+			gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.hudammopickup, nullptr, m_pPlayer->GetEdict());
+			gd_engfuncs.pfnMsgWriteString(pWeapon->GetClassName());
+			gd_engfuncs.pfnMsgWriteByte(clipgive);
+			gd_engfuncs.pfnUserMessageEnd();
+
+			// If we are replacing the player's gun, act accordingly
+			if (prevClip == 0 && m_pPlayer->GetActiveWeapon() == this)
+			{
+				// Act as if new gun got picked up
+				m_firstDraw = true;
+				m_dontBlendNextDeploy = true;
+
+				// Re-deploy the gun
+				Deploy();
+			}
+		}
 	}
 	else
 	{
@@ -146,6 +172,7 @@ bool CPlayerDualWeapon::AddAmmo( Int32 count, const Char* pstrname, Int32 maxcli
 				// Tell client
 				gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.hudweaponpickup, nullptr, m_pPlayer->GetEdict());
 					gd_engfuncs.pfnMsgWriteByte(m_weaponId);
+					gd_engfuncs.pfnMsgWriteByte(count);
 				gd_engfuncs.pfnUserMessageEnd();
 
 				// Play sound

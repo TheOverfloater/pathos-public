@@ -162,6 +162,11 @@ Int32 CBaseNPC::g_lastCoverSearchNodeIndex = 0;
 // Last active idle search node
 Int32 CBaseNPC::g_lastActiveIdleSearchNodeIndex = 0;
 
+// Door group bits
+const Uint32 CBaseNPC::AI_CAP_DOORS_GROUP_BITS[] = {AI_CAP_USE, AI_CAP_AUTO_OPEN_DOORS, AI_CAP_OPEN_DOORS};
+// Door group bitset
+const CBitSet CBaseNPC::AI_CAP_GROUP_DOORS(AI_CAP_BITS_COUNT, AI_CAP_DOORS_GROUP_BITS, PT_ARRAYSIZE(AI_CAP_DOORS_GROUP_BITS));
+
 //=============================================
 // @brief Constructor
 //
@@ -188,10 +193,10 @@ CBaseNPC::CBaseNPC( edict_t* pedict ):
 	m_currentScheduleIndex(0),
 	m_lookDistance(0),
 	m_firingDistance(0),
-	m_aiConditionBits(0),
-	m_memoryBits(0),
-	m_capabilityBits(0),
-	m_disabledCapabilityBits(0),
+	m_aiConditionBits(AI_COND_BITSET_SIZE),
+	m_memoryBits(AI_MEMORY_BITSET_SIZE),
+	m_capabilityBits(AI_CAP_BITS_COUNT),
+	m_disabledCapabilityBits(AI_CAP_BITS_COUNT),
 	m_damageBits(0),
 	m_lastDamageAmount(0),
 	m_enemyBodyTarget(BODYTARGET_CENTER),
@@ -215,12 +220,10 @@ CBaseNPC::CBaseNPC( edict_t* pedict ):
 	m_bloodColor(0),
 	m_talkTime(0),
 	m_pBestSound(nullptr),
-	m_lastLeanSightTime(0),
-	m_leanAwareness(0),
 	m_valuesParsed(false),
 	m_forceSkillCvar(FORCE_SKILL_OFF),
 	m_lastClearNode(0),
-	m_lastPlayerSightTime(0),
+	m_lastEnemySightTime(0),
 	m_deathDamageBits(0),
 	m_deathExplodeTime(0),
 	m_deathMode(DEATH_NORMAL),
@@ -267,18 +270,22 @@ void CBaseNPC::DeclareSaveFields( void )
 	// Unfortunately I can't solve this in a for loop
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[0].lastknownorigin, EFIELD_COORD));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[0].lastknownangles, EFIELD_VECTOR));
+	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[0].lastsighttime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[0].enemy, EFIELD_EHANDLE));
 
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[1].lastknownorigin, EFIELD_COORD));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[1].lastknownangles, EFIELD_VECTOR));
+	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[1].lastsighttime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[1].enemy, EFIELD_EHANDLE));
 
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[2].lastknownorigin, EFIELD_COORD));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[2].lastknownangles, EFIELD_VECTOR));
+	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[2].lastsighttime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[2].enemy, EFIELD_EHANDLE));
 
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[3].lastknownorigin, EFIELD_COORD));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[3].lastknownangles, EFIELD_VECTOR));
+	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[3].lastsighttime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_backedUpEnemies[3].enemy, EFIELD_EHANDLE));
 
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_fieldOfView, EFIELD_FLOAT));
@@ -292,18 +299,16 @@ void CBaseNPC::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_idealNPCState, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_taskStatus, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_currentScheduleIndex, EFIELD_INT32));
-	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_aiConditionBits, EFIELD_UINT64));
+	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_aiConditionBits, EFIELD_CBITSET));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_lastPosition, EFIELD_COORD));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_hintNodeIndex, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_maximumHealth, EFIELD_FLOAT));
 
-	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_leanAwareness, EFIELD_FLOAT));
-	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_lastLeanSightTime, EFIELD_TIME));
-
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_ammoLoaded, EFIELD_UINT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_clipSize, EFIELD_UINT32));
-	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_capabilityBits, EFIELD_UINT64));
-	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_memoryBits, EFIELD_UINT64));
+	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_capabilityBits, EFIELD_CBITSET));
+	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_disabledCapabilityBits, EFIELD_CBITSET));
+	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_memoryBits, EFIELD_CBITSET));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_damageBits, EFIELD_UINT64));
 
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_bloodColor, EFIELD_INT32));
@@ -324,7 +329,7 @@ void CBaseNPC::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_forceSkillCvar, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_pScriptedSequence, EFIELD_ENTPOINTER));
 
-	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_lastPlayerSightTime, EFIELD_TIME));
+	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_lastEnemySightTime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_deathMode, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_dontDropWeapons, EFIELD_BOOLEAN));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_talkTime, EFIELD_TIME));
@@ -400,7 +405,7 @@ bool CBaseNPC::Restore( void )
 
 	// Reset the conditions if we've got no enemy
 	if(!m_enemy)
-		m_aiConditionBits = AI_COND_NONE;
+		m_aiConditionBits.reset();
 
 	if(m_pState->deadstate == DEADSTATE_DEAD)
 		m_pState->forcehull = HULL_POINT;
@@ -455,7 +460,7 @@ Float CBaseNPC::GetHearingSensitivity( void )
 //=============================================
 void CBaseNPC::SetIdealHeadAngles( Float pitch, Float yaw )
 {
-	if(!(m_capabilityBits & AI_CAP_TURN_HEAD))
+	if(!HasCapability(AI_CAP_TURN_HEAD))
 		return;
 
 	if(!SetIdealHeadYaw(yaw))
@@ -493,7 +498,7 @@ void CBaseNPC::SetIdealHeadAngles( Float pitch, Float yaw )
 //=============================================
 bool CBaseNPC::SetIdealHeadYaw( Float yaw )
 {
-	if(!(m_capabilityBits & AI_CAP_TURN_HEAD))
+	if(!HasCapability(AI_CAP_TURN_HEAD))
 		return false;
 
 	Float _yaw = yaw;
@@ -537,7 +542,7 @@ bool CBaseNPC::SetIdealHeadYaw( Float yaw )
 void CBaseNPC::UpdateHeadControllers( void )
 {
 	// Apply head turning on yaw
-	if(m_capabilityBits & AI_CAP_TURN_HEAD)
+	if(HasCapability(AI_CAP_TURN_HEAD))
 	{
 		Float currentyaw = Math::AngleMod(m_headYaw);
 		if(currentyaw != m_idealHeadYaw)
@@ -570,7 +575,7 @@ void CBaseNPC::UpdateHeadControllers( void )
 	}
 
 	// Apply head turning on pitch
-	if(m_capabilityBits & AI_CAP_TURN_HEAD_PITCH)
+	if(HasCapability(AI_CAP_TURN_HEAD_PITCH))
 	{
 		Float currentpitch = Math::AngleMod(m_headPitch);
 		if(currentpitch != m_idealHeadPitch)
@@ -677,7 +682,7 @@ void CBaseNPC::UpdateBestSound( void )
 void CBaseNPC::HearSounds( void )
 {
 	// Clear sound condition
-	ClearConditions(AI_COND_HEAR_SOUND);
+	ClearCondition(AI_COND_HEAR_SOUND);
 	// Clear sound list
 	m_soundTypes = 0;
 
@@ -802,11 +807,11 @@ bool CBaseNPC::ProcessHeardSound( ai_sound_t& sound, Uint64 soundMask )
 	// If enemy, and not seen, then update position
 	if(sound.emitter == m_enemy 
 		&& !(sound.emitter->GetFlags() & FL_NOTARGET) 
-		&& !CheckConditions(AI_COND_SEE_ENEMY))
+		&& !CheckCondition(AI_COND_SEE_ENEMY))
 	{
 		const Vector& soundPosition = sound.emitter->GetNavigablePosition();
 		if((m_enemyLastKnownPosition - soundPosition).Length2D() > NPC_ENEMY_UPDATE_DISTANCE)
-			SetConditions(AI_COND_HEARD_ENEMY_NEW_POSITION);
+			SetCondition(AI_COND_HEARD_ENEMY_NEW_POSITION);
 
 		m_enemyLastKnownPosition = soundPosition;
 		m_enemyLastKnownAngles = sound.emitter->GetAngles();
@@ -821,14 +826,21 @@ bool CBaseNPC::ProcessHeardSound( ai_sound_t& sound, Uint64 soundMask )
 		return false;
 
 	// Mark that we've heard a sound
-	SetConditions(AI_COND_HEAR_SOUND);
+	SetCondition(AI_COND_HEAR_SOUND);
 	// Set typeflags
 	m_soundTypes |= sound.typeflags;
 
 	// Update lean awareness if it's a combat sound
-	if(sound.typeflags & (AI_SOUND_COMBAT|AI_SOUND_PLAYER))
-		m_leanAwareness += NPC_HEAR_LEAN_AWARENESS_GAIN*m_thinkIntervalTime;
+	if (sound.typeflags & (AI_SOUND_COMBAT | AI_SOUND_PLAYER) && sound.emitter && sound.emitter->IsPlayer())
+	{
+		enemyawareness_t* pawareness = GetEnemyPartialAwarenessInfo(sound.emitter);
+		assert(pawareness != nullptr);
 
+		pawareness->awareness += NPC_HEAR_LEAN_AWARENESS_GAIN * m_thinkIntervalTime;
+		pawareness->lastsighttime = g_pGameVars->time;
+		if (pawareness->awareness > 1.0)
+			pawareness->awareness = 1.0;
+	}
 	return true;
 }
 
@@ -1262,7 +1274,7 @@ void CBaseNPC::Killed( CBaseEntity* pAttacker, gibbing_t gibbing, deathmode_t de
 	m_idealNPCState = NPC_STATE_DEAD;
 
 	// This is for AI triggers
-	SetConditions(AI_COND_LIGHT_DAMAGE);
+	SetCondition(AI_COND_LIGHT_DAMAGE);
 
 	// Tell our owner that we died
 	if(m_pState->owner != NO_ENTITY_INDEX)
@@ -1288,9 +1300,10 @@ void CBaseNPC::Killed( CBaseEntity* pAttacker, gibbing_t gibbing, deathmode_t de
 
 	// Remember enemy
 	m_enemy = pAttacker;
+	m_killer = pAttacker;
 
 	if(m_enemy && m_enemy->IsPlayer())
-		m_enemy->SetNPCAwareness(0, this, 0);
+		m_enemy->SetNPCAwareness(0, this, 0, false);
 
 	// Explode in a few seconds
 	if(deathMode == DEATH_NORMAL
@@ -1393,7 +1406,7 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 	{
 		if(m_pScriptedSequence && m_pScriptedSequence->HasSpawnFlag(CScriptedSequence::FL_OVERRIDE_STATE|CScriptedSequence::FL_NO_INTERRUPTIONS))
 		{
-			SetConditions(AI_COND_LIGHT_DAMAGE);
+			SetCondition(AI_COND_LIGHT_DAMAGE);
 			return false;
 		}
 	}
@@ -1446,7 +1459,7 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 		{
 			if(pInflictor)
 			{
-				if(!m_enemy || pInflictor == m_enemy || !CheckConditions(AI_COND_SEE_ENEMY))
+				if(!m_enemy || pInflictor == m_enemy || !CheckCondition(AI_COND_SEE_ENEMY))
 					m_enemyLastKnownPosition = pInflictor->GetOrigin();
 			}
 			else
@@ -1457,17 +1470,17 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 
 			// Push this enemy instantly
 			if(!(pAttacker->GetFlags() & FL_NOTARGET))
-				PushEnemy(pAttacker, m_enemyLastKnownPosition, pInflictor->GetAngles());
+				PushEnemy(pAttacker, m_enemyLastKnownPosition, pInflictor->GetAngles(), g_pGameVars->time);
 
 			SetIdealYaw(m_enemyLastKnownPosition);
 		}
 
 		// Set damage conditions
 		if(_dmgAmount >= NPC_LIGHT_DAMAGE_TRESHOLD)
-			SetConditions(AI_COND_LIGHT_DAMAGE);
+			SetCondition(AI_COND_LIGHT_DAMAGE);
 
 		if(_dmgAmount >= NPC_HEAVY_DAMAGE_TRESHOLD)
-			SetConditions(AI_COND_HEAVY_DAMAGE);
+			SetCondition(AI_COND_HEAVY_DAMAGE);
 	}
 
 	return true;
@@ -1630,8 +1643,15 @@ void CBaseNPC::TraceAttack( CBaseEntity* pAttacker, Float damage, const Vector& 
 	if(m_pState->takedamage == TAKEDAMAGE_YES)
 	{
 		// Pop lean awareness to full if we got damaged
-		if(m_leanAwareness < 1.0)
-			m_leanAwareness = 1.0;
+		if (pAttacker && pAttacker->IsPlayer())
+		{
+			enemyawareness_t* pawareness = GetEnemyPartialAwarenessInfo(pAttacker);
+			assert(pawareness != nullptr);
+
+			pawareness->lastsighttime = g_pGameVars->time;
+			if (pawareness->awareness < 1.0)
+				pawareness->awareness = 1.0;
+		}
 
 		m_lastHitGroup = tr.hitgroup;
 		if(_dmgAmount >= 1.0)
@@ -1728,32 +1748,32 @@ void CBaseNPC::StartNPC( void )
 {
 	// See if range attacks exists as animations
 	if(CAnimatingEntity::FindActivity(ACT_RANGE_ATTACK1) != NO_SEQUENCE_VALUE)
-		m_capabilityBits |= AI_CAP_RANGE_ATTACK1;
+		SetCapability(AI_CAP_RANGE_ATTACK1);
 
 	if(CAnimatingEntity::FindActivity(ACT_RANGE_ATTACK2) != NO_SEQUENCE_VALUE)
-		m_capabilityBits |= AI_CAP_RANGE_ATTACK2;
+		SetCapability(AI_CAP_RANGE_ATTACK2);
 
 	// See if range attacks exists as animations
 	if(CAnimatingEntity::FindActivity(ACT_MELEE_ATTACK1) != NO_SEQUENCE_VALUE)
-		m_capabilityBits |= AI_CAP_MELEE_ATTACK1;
+		SetCapability(AI_CAP_MELEE_ATTACK1);
 
 	if(CAnimatingEntity::FindActivity(ACT_MELEE_ATTACK2) != NO_SEQUENCE_VALUE)
-		m_capabilityBits |= AI_CAP_MELEE_ATTACK2;
+		SetCapability(AI_CAP_MELEE_ATTACK2);
 
 	// See if range attacks exists as animations
 	if(CAnimatingEntity::FindActivity(ACT_SPECIAL_ATTACK1) != NO_SEQUENCE_VALUE)
-		m_capabilityBits |= AI_CAP_SPECIAL_ATTACK1;
+		SetCapability(AI_CAP_SPECIAL_ATTACK1);
 
 	if(CAnimatingEntity::FindActivity(ACT_SPECIAL_ATTACK2) != NO_SEQUENCE_VALUE)
-		m_capabilityBits |= AI_CAP_SPECIAL_ATTACK2;
+		SetCapability(AI_CAP_SPECIAL_ATTACK2);
 
 	// Check for medkit pickups
 	if(CAnimatingEntity::FindActivity(ACT_USE_MEDKIT) != NO_SEQUENCE_VALUE)
-		m_capabilityBits |= AI_CAP_USE_MEDKITS;
+		SetCapability(AI_CAP_USE_MEDKITS);
 
 	// Check for flex support
 	if(GetModelFlags() & STUDIO_MF_HAS_FLEXES)
-		m_capabilityBits |= AI_CAP_EXPRESSIONS;
+		SetCapability(AI_CAP_EXPRESSIONS);
 
 	if(m_pState->movetype != MOVETYPE_FLY 
 		&& m_pState->movetype != MOVETYPE_NONE 
@@ -1840,27 +1860,40 @@ void CBaseNPC::CallNPCDeadThink( void )
 // @brief
 //
 //=============================================
-Uint64 CBaseNPC::GetIgnoreConditions( void )
+CBitSet CBaseNPC::GetIgnoreConditions( void )
 {
-	Uint64 ignoreConditions = 0;
+	CBitSet ignoreConditions(AI_COND_BITSET_SIZE);
 	if(m_npcState == NPC_STATE_SCRIPT && m_pScriptedSequence)
 		ignoreConditions |= m_pScriptedSequence->GetIgnoreConditions();
 
 	if(HasMemory(AI_MEMORY_DODGE_ENEMY_FAILED))
-		ignoreConditions |= AI_COND_DANGEROUS_ENEMY_CLOSE;
+		ignoreConditions.set(AI_COND_DANGEROUS_ENEMY_CLOSE);
 
 	if(m_npcState == NPC_STATE_SCRIPT)
 	{
 		if(m_triggerCondition1 == AI_TRIGGER_TAKEDAMAGE || m_triggerCondition2 == AI_TRIGGER_TAKEDAMAGE)
-			ignoreConditions &= ~(AI_COND_LIGHT_DAMAGE|AI_COND_HEAVY_DAMAGE);
-		
+		{
+			ignoreConditions.reset(AI_COND_LIGHT_DAMAGE);
+			ignoreConditions.reset(AI_COND_HEAVY_DAMAGE);
+		}
+
 		if(m_triggerCondition1 == AI_TRIGGER_HEAR_WORLD || m_triggerCondition2 == AI_TRIGGER_HEAR_WORLD
 			|| m_triggerCondition1 == AI_TRIGGER_HEAR_PLAYER || m_triggerCondition2 == AI_TRIGGER_HEAR_PLAYER
 			|| m_triggerCondition1 == AI_TRIGGER_HEAR_COMBAT || m_triggerCondition2 == AI_TRIGGER_HEAR_COMBAT)
-			ignoreConditions &= ~AI_COND_HEAR_SOUND;
+			ignoreConditions.reset(AI_COND_HEAR_SOUND);
 	}
 
 	return ignoreConditions;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+CBitSet CBaseNPC::GetScheduleChangeKeptConditions( void )
+{
+	CBitSet result(AI_COND_BITSET_SIZE);
+	return result; 
 }
 
 //=============================================
@@ -2203,7 +2236,7 @@ void CBaseNPC::CleanupScriptedSequence( void )
 		m_idealNPCState = NPC_STATE_DEAD;
 
 		// Trigger any AI conditions
-		SetConditions(AI_COND_LIGHT_DAMAGE);
+		SetCondition(AI_COND_LIGHT_DAMAGE);
 		m_pState->deadstate = DEADSTATE_DYING;
 		CheckAITriggers();
 		m_pState->deadstate = DEADSTATE_NONE;
@@ -2302,7 +2335,7 @@ void CBaseNPC::GibNPC( void )
 	CGib::SpawnRandomGibs(this, Common::RandomLong(4, 8), pCenter, randomMinvel, randomMaxvel);
 
 	if(m_enemy && m_enemy->IsPlayer())
-		m_enemy->SetNPCAwareness(0, this, 0);
+		m_enemy->SetNPCAwareness(0, this, 0, false);
 
 	// Spawn particles for gibbing
 	SpawnGibbedParticles();
@@ -2336,6 +2369,16 @@ void CBaseNPC::OnGibSpawnCallback( CBaseEntity* pGib )
 
 		Int32 lightystyle = (Common::RandomLong(0, 1) == 1) ? LS_FLICKER_A : LS_FLICKER_B;
 		Util::CreateDynamicLight(pGib->GetOrigin(), 128, 255, 192, 64, 10, 64, 6, (FL_DLIGHT_NOSHADOWS|FL_DLIGHT_FOLLOW_ENTITY|FL_DLIGHT_USE_LIGHTSTYLES), pGib->GetEntityIndex(), NO_POSITION, lightystyle);
+
+		// Create bbox for prolonged dmg
+		Float burnDmg = gSkillData.GetSkillCVarSetting(g_skillcvars.skillExplodeGibBurnDmg);
+		Float dmgDelay = gSkillData.GetSkillCVarSetting(g_skillcvars.skillExplodeGibDmgDelay);
+		Float dmgRadius = gSkillData.GetSkillCVarSetting(g_skillcvars.skillExplodeGibDmgRadius);
+
+		Vector mins(-dmgRadius, -dmgRadius, -dmgRadius);
+		Vector maxs(dmgRadius, dmgRadius, dmgRadius);
+
+		CTimeDamage::CreateTimeDamageBox(m_killer, pGib->GetOrigin(), mins, maxs, DMG_BURN, dmgDelay, burnDmg, 5, pGib);
 	}
 }
 
@@ -2417,7 +2460,7 @@ void CBaseNPC::ChangeYaw( Double timeInterval )
 		m_pState->angles[YAW] = Math::AngleMod(currentYaw+yawMove);
 
 		// Turn head in desired direction if we can turn heads
-		if(m_capabilityBits & AI_CAP_TURN_HEAD)
+		if(HasCapability(AI_CAP_TURN_HEAD))
 		{
 			Float headYaw = m_pState->idealyaw - m_pState->angles[YAW];
 			if(headYaw > 180.0f)
@@ -2519,78 +2562,126 @@ Float CBaseNPC::VectorToPitch( const Vector& direction ) const
 // @brief
 //
 //=============================================
-void CBaseNPC::ClearConditions( Uint64 conditionBits )
+void CBaseNPC::ClearCondition( Uint32 conditionBit )
 {
-	// This is done for AI triggers
-	Uint64 _conditionBits = conditionBits;
-	if(_conditionBits & AI_COND_HEAR_SOUND)
-		_conditionBits &= ~AI_COND_HEAR_SOUND;
-
-	m_aiConditionBits &= ~_conditionBits;
+	m_aiConditionBits.reset(conditionBit);
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-void CBaseNPC::SetConditions( Uint64 conditionBits )
+void CBaseNPC::ClearConditions( const CBitSet& conditionBitSet )
 {
-	m_aiConditionBits |= conditionBits;
+	m_aiConditionBits &= ~conditionBitSet;
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-bool CBaseNPC::CheckConditions( Uint64 conditionBits ) const
+void CBaseNPC::SetCondition( Uint32 conditionBit )
 {
-	return (m_aiConditionBits & conditionBits) ? true : false;
+	m_aiConditionBits.set(conditionBit);
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-void CBaseNPC::SetMemory( Uint64 memoryBits )
+void CBaseNPC::SetConditions( const CBitSet& conditionBitSet )
 {
-	m_memoryBits |= memoryBits;
+	m_aiConditionBits |= conditionBitSet;
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-void CBaseNPC::ClearMemory( Uint64 memoryBits )
+bool CBaseNPC::CheckCondition( Uint32 conditionBit ) const
 {
-	m_memoryBits &= ~memoryBits;
+	return m_aiConditionBits.test(conditionBit);
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-bool CBaseNPC::HasMemory( Uint64 memoryBits ) const
+bool CBaseNPC::CheckConditions( const CBitSet& conditionBitSet ) const
 {
-	return (m_memoryBits & memoryBits) ? true : false;
+	return (m_aiConditionBits & conditionBitSet).any() ? true : false;
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-void CBaseNPC::SetCapabilities( Uint64 capabilityBits )
+void CBaseNPC::SetMemory( Uint32 memoryBit )
 {
-	m_capabilityBits |= capabilityBits;
+	m_memoryBits.set(memoryBit);
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-bool CBaseNPC::HasCapabilities( Uint64 capabilityBits ) const
+void CBaseNPC::ClearMemory( Uint32 memoryBit )
 {
-	Uint64 bitMask = (m_capabilityBits & capabilityBits) & ~m_disabledCapabilityBits;
-	return (bitMask) ? true : false;
+	m_memoryBits.reset(memoryBit);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CBaseNPC::HasMemory( Uint32 memoryBit ) const
+{
+	return (m_memoryBits.test(memoryBit)) ? true : false;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CBaseNPC::SetCapability( Uint32 capabilityBit )
+{
+	m_capabilityBits.set(capabilityBit);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CBaseNPC::SetCapabilities( const CBitSet& capabilityBitSet )
+{
+	m_capabilityBits |= capabilityBitSet;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CBaseNPC::DisableCapability( Uint32 capabilityBit )
+{
+	m_disabledCapabilityBits.set(capabilityBit);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CBaseNPC::RemoveCapability( Uint32 capabilityBit )
+{
+	m_capabilityBits.reset(capabilityBit);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CBaseNPC::HasCapability( Uint32 capabilityBit ) const
+{
+	return (m_capabilityBits.test(capabilityBit) && !m_disabledCapabilityBits.test(capabilityBit)) ? true : false;
 }
 
 //=============================================
@@ -2718,9 +2809,9 @@ void CBaseNPC::RunAI( void )
 	MaintainSchedule();
 
 	// Clear hurt conditions so AI doesn't get stuck
-	ClearConditions(AI_COND_LIGHT_DAMAGE);
-	ClearConditions(AI_COND_HEAVY_DAMAGE);
-	ClearConditions(AI_COND_HEARD_ENEMY_NEW_POSITION);
+	ClearCondition(AI_COND_LIGHT_DAMAGE);
+	ClearCondition(AI_COND_HEAVY_DAMAGE);
+	ClearCondition(AI_COND_HEARD_ENEMY_NEW_POSITION);
 }
 
 //=============================================
@@ -2824,13 +2915,13 @@ bool CBaseNPC::CheckAITrigger( Int32 triggerCondition )
 	{
 	case AI_TRIGGER_SEE_PLAYER_ANGRY_AT_PLAYER:
 		{
-			if(m_enemy && m_enemy->IsPlayer() && CheckConditions(AI_COND_SEE_ENEMY))
+			if(m_enemy && m_enemy->IsPlayer() && CheckCondition(AI_COND_SEE_ENEMY))
 				return true;
 		}
 		break;
 	case AI_TRIGGER_TAKEDAMAGE:
 		{
-			if(CheckConditions(AI_COND_LIGHT_DAMAGE|AI_COND_HEAVY_DAMAGE))
+			if(CheckCondition(AI_COND_LIGHT_DAMAGE) || CheckCondition(AI_COND_HEAVY_DAMAGE))
 				return true;
 		}
 		break;
@@ -2848,31 +2939,31 @@ bool CBaseNPC::CheckAITrigger( Int32 triggerCondition )
 		break;
 	case AI_TRIGGER_HEAR_WORLD:
 		{
-			if(CheckConditions(AI_COND_HEAR_SOUND) && (m_soundTypes & AI_SOUND_WORLD))
+			if(CheckCondition(AI_COND_HEAR_SOUND) && (m_soundTypes & AI_SOUND_WORLD))
 				return true;
 		}
 		break;
 	case AI_TRIGGER_HEAR_PLAYER:
 		{
-			if(CheckConditions(AI_COND_HEAR_SOUND) && (m_soundTypes & AI_SOUND_PLAYER))
+			if(CheckCondition(AI_COND_HEAR_SOUND) && (m_soundTypes & AI_SOUND_PLAYER))
 				return true;
 		}
 		break;
 	case AI_TRIGGER_HEAR_COMBAT:
 		{
-			if(CheckConditions(AI_COND_HEAR_SOUND) && (m_soundTypes & AI_SOUND_COMBAT))
+			if(CheckCondition(AI_COND_HEAR_SOUND) && (m_soundTypes & AI_SOUND_COMBAT))
 				return true;
 		}
 		break;
 	case AI_TRIGGER_SEE_PLAYER_UNCONDITIONAL:
 		{
-			if(CheckConditions(AI_COND_SEE_CLIENT))
+			if(CheckCondition(AI_COND_SEE_CLIENT))
 				return true;
 		}
 		break;
 	case AI_TRIGGER_SEE_PLAYER_NOT_IN_COMBAT:
 		{
-			if(CheckConditions(AI_COND_SEE_CLIENT)
+			if(CheckCondition(AI_COND_SEE_CLIENT)
 				&& m_npcState != NPC_STATE_COMBAT
 				&& m_npcState != NPC_STATE_SCRIPT)
 				return true;
@@ -2880,7 +2971,7 @@ bool CBaseNPC::CheckAITrigger( Int32 triggerCondition )
 		break;
 	case AI_TRIGGER_SEE_ENEMY:
 		{
-			if(m_enemy && CheckConditions(AI_COND_SEE_ENEMY))
+			if(m_enemy && CheckCondition(AI_COND_SEE_ENEMY))
 				return true;
 		}
 		break;
@@ -2972,7 +3063,7 @@ void CBaseNPC::PlayScriptedSentence( const Char* pstrSentenceName, Float duratio
 {
 	PlaySentence(pstrSentenceName, duration, volume, attenuation, timeOffset, subtitleOnlyInRadius, pPlayer);
 
-	if(m_capabilityBits & AI_CAP_EXPRESSIONS && pstrSentenceName && qstrlen(pstrSentenceName) > 0)
+	if(HasCapability(AI_CAP_EXPRESSIONS) && pstrSentenceName && qstrlen(pstrSentenceName) > 0)
 		PlayFlexScript(pstrSentenceName);
 }
 
@@ -3015,7 +3106,7 @@ void CBaseNPC::SetNPCState( npcstate_t state )
 	if(state == NPC_STATE_IDLE && m_enemy)
 	{
 		m_enemy.reset();
-		Util::EntityConPrintf(m_pEdict, "Enemy was stripped.\n");
+		Util::EntityConPrintf(m_pEdict, "Enemy was stripped when changing to idle AI state.\n");
 	}
 
 	m_npcState = state;
@@ -3031,24 +3122,24 @@ void CBaseNPC::SetNPCState( npcstate_t state )
 //=============================================
 npcstate_t CBaseNPC::GetIdealNPCState( void )
 {
-	Uint64 conditions = GetScheduleFlags();
+	CBitSet conditions = GetScheduleFlags();
 
 	switch(m_npcState)
 	{
 	case NPC_STATE_IDLE:
 		{
-			if(conditions & AI_COND_NEW_ENEMY)
+			if(conditions.test(AI_COND_NEW_ENEMY))
 			{
 				// We have a new enemy, so switch to combat
 				m_idealNPCState = NPC_STATE_COMBAT;
 			}
-			else if(conditions & (AI_COND_LIGHT_DAMAGE|AI_COND_HEAVY_DAMAGE))
+			else if(conditions.test(AI_COND_LIGHT_DAMAGE) || conditions.test(AI_COND_HEAVY_DAMAGE))
 			{
 				// We got hit, so face the direction of the attack
 				SetIdealYaw(-m_lastAttackVector, false);
 				m_idealNPCState = NPC_STATE_ALERT;
 			}
-			else if(conditions & AI_COND_HEAR_SOUND)
+			else if(conditions.test(AI_COND_HEAR_SOUND))
 			{
 				if(m_pBestSound)
 				{
@@ -3061,12 +3152,12 @@ npcstate_t CBaseNPC::GetIdealNPCState( void )
 		break;
 	case NPC_STATE_ALERT:
 		{
-			if(conditions & (AI_COND_NEW_ENEMY|AI_COND_SEE_ENEMY))
+			if(conditions.test(AI_COND_NEW_ENEMY) || conditions.test(AI_COND_SEE_ENEMY))
 			{
 				// We have a new enemy, so switch to combat
 				m_idealNPCState = NPC_STATE_COMBAT;
 			}
-			else if(conditions & AI_COND_HEAR_SOUND)
+			else if(conditions.test(AI_COND_HEAR_SOUND))
 			{
 				m_idealNPCState = NPC_STATE_ALERT;
 
@@ -3078,8 +3169,8 @@ npcstate_t CBaseNPC::GetIdealNPCState( void )
 	case NPC_STATE_COMBAT:
 		{
 			// Clear this condition when in combat
-			if(CheckConditions(AI_COND_BLOCKING_PATH))
-				ClearConditions(AI_COND_BLOCKING_PATH);
+			if(CheckCondition(AI_COND_BLOCKING_PATH))
+				ClearCondition(AI_COND_BLOCKING_PATH);
 
 			// This shouldn't happen
 			if(!m_enemy)
@@ -3097,15 +3188,15 @@ npcstate_t CBaseNPC::GetIdealNPCState( void )
 		break;
 	case NPC_STATE_SCRIPT:
 		{
-			if(!m_pScriptedSequence || conditions & (AI_COND_TASK_FAILED|m_pScriptedSequence->GetScriptBreakingAIConditions()))
+			if(!m_pScriptedSequence || conditions.test(AI_COND_TASK_FAILED) || (conditions & m_pScriptedSequence->GetScriptBreakingAIConditions()).any())
 				ExitScriptedSequence();
 		}
 		break;
 	}
 
 	// If we were previously in danger and now we're idle, clear it
-	if(m_idealNPCState == NPC_STATE_IDLE && CheckConditions(AI_COND_IN_DANGER))
-		ClearConditions(AI_COND_IN_DANGER);
+	if(m_idealNPCState == NPC_STATE_IDLE && CheckCondition(AI_COND_IN_DANGER))
+		ClearCondition(AI_COND_IN_DANGER);
 
 	return (npcstate_t)m_idealNPCState;
 }
@@ -3123,69 +3214,48 @@ npcstate_t CBaseNPC::GetNPCState( void )
 // @brief
 //
 //=============================================
-void CBaseNPC::UpdateAwareness( Uint64 sightBits )
+void CBaseNPC::UpdatePartialAwareness( enemyawareness_t* pAwarenessinfo, Uint64 sightBits )
 {
+	assert(pAwarenessinfo != nullptr);
+	assert(pAwarenessinfo->entity != nullptr);
+
+	CBaseEntity* pEntity = pAwarenessinfo->entity;
+	if (!pEntity->IsPlayer())
+	{
+		assert(false);
+		return;
+	}
+
 	if(sightBits & AI_SIGHTED_PLAYER_LEAN)
 	{
-		if(m_leanAwareness < 1.0)
+		if(pAwarenessinfo->awareness < 1.0)
 		{
-			m_sightedHostileNPCsList.begin();
-			while(!m_sightedHostileNPCsList.end())
+			Vector playerDir = (pEntity->GetEyePosition() - m_pState->origin).Normalize();
+
+			Vector forward;
+			Math::AngleVectors(m_pState->angles, &forward);
+			Float dp = Math::DotProduct(playerDir, forward);
+			dp = clamp(dp, 0.0, 1.0);
+
+			if(dp > 0.5)
 			{
-				CBaseEntity* pEntity = m_sightedHostileNPCsList.get();
-				if(!pEntity->IsPlayer())
-				{
-					m_sightedHostileNPCsList.next();
-					continue;
-				}
+				pAwarenessinfo->awareness += m_thinkIntervalTime*(1.0f/GetLeanAwarenessTime())*dp;
+				if(pAwarenessinfo->awareness > 1.0)
+					pAwarenessinfo->awareness = 1.0;
 
-				Vector playerDir = (pEntity->GetEyePosition() - m_pState->origin).Normalize();
-
-				Vector forward;
-				Math::AngleVectors(m_pState->angles, &forward);
-				Float dp = Math::DotProduct(playerDir, forward);
-				dp = clamp(dp, 0.0, 1.0);
-
-				if(dp > 1.0)
-				{
-					m_leanAwareness += m_thinkIntervalTime*(1.0f/GetLeanAwarenessTime())*dp;
-					if(m_leanAwareness > 1.0)
-						m_leanAwareness = 1.0;
-				}
-
-				// If not aware, set this as npc awareness
-				if(!IsAwareOf(pEntity))
-					pEntity->SetNPCAwareness(m_leanAwareness, this, NPC_LEANAWARENESS_TIMEOUT);
-
-				break;
+				pAwarenessinfo->lastsighttime = g_pGameVars->time;
 			}
+
+			// If not aware, set this as npc awareness
+			if(!IsAwareOf(pEntity))
+				pEntity->SetNPCAwareness(pAwarenessinfo->awareness, this, NPC_LEANAWARENESS_TIMEOUT, true);
 		}
 		else if(sightBits & AI_SIGHTED_PLAYER_FULL)
 		{
 			// Set lean awareness to full
-			m_leanAwareness = 1.0;
-		}
-	}
-
-	if(m_leanAwareness > 0 && (m_lastLeanSightTime+NPC_LEANAWARENESS_TIMEOUT) <= g_pGameVars->time)
-	{
-		m_leanAwareness = 0;
-		m_lastLeanSightTime = 0;
-	}
-
-	if((sightBits & AI_SIGHTED_PLAYER_FULL) || (sightBits & AI_SIGHTED_PLAYER_LEAN) && m_leanAwareness >= 1.0)
-	{
-		m_sightedHostileNPCsList.begin();
-		while(!m_sightedHostileNPCsList.end())
-		{
-			CBaseEntity* pEntity = m_sightedHostileNPCsList.get();
-			if(pEntity->IsPlayer())
-			{
-				pEntity->SetNPCAwareness(1.0, this, NPC_COMBATSTATE_TIMEOUT);
-				break;
-			}
-
-			m_sightedHostileNPCsList.next();
+			pAwarenessinfo->awareness = 1.0;
+			pAwarenessinfo->lastsighttime = g_pGameVars->time;
+			pEntity->SetNPCAwareness(1.0, this, NPC_COMBATSTATE_TIMEOUT, false);
 		}
 	}
 }
@@ -3194,7 +3264,48 @@ void CBaseNPC::UpdateAwareness( Uint64 sightBits )
 // @brief
 //
 //=============================================
-bool CBaseNPC::ShouldSeeNPC( Uint64 sightBits, CBaseEntity* pEntity )
+CBaseNPC::enemyawareness_t* CBaseNPC::GetEnemyPartialAwarenessInfo( CBaseEntity* pEntity )
+{
+	if (!m_enemyPartialAwarenessList.empty())
+	{
+		m_enemyPartialAwarenessList.begin();
+		while (!m_enemyPartialAwarenessList.end())
+		{
+			enemyawareness_t& awareness = m_enemyPartialAwarenessList.get();
+			if (!awareness.entity)
+			{
+				m_enemyPartialAwarenessList.remove(m_enemyPartialAwarenessList.get_link());
+				m_enemyPartialAwarenessList.next();
+				continue;
+			}
+
+			if (awareness.entity.get() == pEntity->GetEdict())
+				return &awareness;
+
+			m_enemyPartialAwarenessList.next();
+		}
+	}
+
+	enemyawareness_t& awareness = m_enemyPartialAwarenessList.add({})->_val;
+	awareness.entity = pEntity;
+
+	return &awareness;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+CBaseNPC::enemyawareness_t* CBaseNPC::GetEnemyAwarenessInfo(CBaseEntity* pEntity)
+{
+	return nullptr;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CBaseNPC::ShouldSeeNPC( Uint64 sightBits, CBaseEntity* pEntity, enemyawareness_t* pPartialAwareness, enemyawareness_t* pEnemyAwareness )
 {
 	if(pEntity->GetEffectFlags() & EF_NODRAW)
 		return false;
@@ -3223,7 +3334,7 @@ bool CBaseNPC::ShouldSeeNPC( Uint64 sightBits, CBaseEntity* pEntity )
 		else if(sightBits & AI_SIGHTED_PLAYER_LEAN)
 		{
 			// Make fully visible if lean awareness is full
-			return (m_leanAwareness == 1.0) ? true : false;
+			return (pPartialAwareness && pPartialAwareness->awareness == 1.0) ? true : false;
 		}
 	}
 	else if(sightBits & AI_SIGHTED_NPC)
@@ -3239,14 +3350,14 @@ bool CBaseNPC::ShouldSeeNPC( Uint64 sightBits, CBaseEntity* pEntity )
 // @brief
 //
 //=============================================
-Uint64 CBaseNPC::GetNPCVisibilityBits( CBaseEntity* pEntity, bool checkGlass )
+Uint64 CBaseNPC::GetNPCVisibilityBits( CBaseEntity* pEntity, bool checkGlass, enemyawareness_t** pAwarenessPtr )
 {
 	trace_t tr;
 	Uint64 sightBits = 0;
 	// Get eye position
 	Vector eyePosition = GetEyePosition();
 	// Check first without adding lean
-	Vector otherEyePosition = pEntity->GetEyePosition(true);
+	Vector otherEyePosition = pEntity->GetEyePosition(false);
 
 	if(pEntity->IsPlayer())
 	{
@@ -3329,10 +3440,19 @@ Uint64 CBaseNPC::GetNPCVisibilityBits( CBaseEntity* pEntity, bool checkGlass )
 
 			if((tr.noHit() || tr.hitentity == pEntity->GetEntityIndex()) && !tr.allSolid() && !tr.startSolid())
 			{
-				if(m_leanAwareness < 1.0)
-					sightBits |= AI_SIGHTED_PLAYER_LEAN;
-				else
-					sightBits |= AI_SIGHTED_PLAYER_FULL;
+				// Mark as being visible leaning only
+				sightBits |= AI_SIGHTED_PLAYER_LEAN;
+
+				enemyawareness_t* pAwareness = nullptr;
+				if (pAwarenessPtr)
+				{
+					if (!(*pAwarenessPtr))
+						(*pAwarenessPtr) = GetEnemyPartialAwarenessInfo(pEntity);
+
+					pAwareness = (*pAwarenessPtr);
+					if (pAwareness->awareness >= 1.0)
+						sightBits |= AI_SIGHTED_PLAYER_FULL;
+				}
 			}
 		}
 	}
@@ -3426,10 +3546,16 @@ bool CBaseNPC::IsInView( const Vector& position ) const
 void CBaseNPC::Look( void )
 {
 	// Clear any previous conditions related to seeing
-	ClearConditions(AI_COND_SEE_HATE|AI_COND_SEE_DISLIKE|AI_COND_SEE_ENEMY|AI_COND_SEE_FEAR|AI_COND_SEE_NEMESIS|AI_COND_SEE_CLIENT|AI_COND_SEE_HOSTILE_NPC);
+	ClearCondition(AI_COND_SEE_HATE);
+	ClearCondition(AI_COND_SEE_DISLIKE);
+	ClearCondition(AI_COND_SEE_ENEMY);
+	ClearCondition(AI_COND_SEE_FEAR);
+	ClearCondition(AI_COND_SEE_NEMESIS);
+	ClearCondition(AI_COND_SEE_CLIENT);
+	ClearCondition(AI_COND_SEE_HOSTILE_NPC);
 
 	// Sighted enemy AI conditions
-	Uint64 sightConditions = 0;
+	CBitSet sightConditions(AI_COND_BITSET_SIZE);
 	// Sighted enemy bits
 	Uint64 sightBits = 0;
 
@@ -3439,6 +3565,9 @@ void CBaseNPC::Look( void )
 
 	if(!m_sightedFriendlyNPCsList.empty())
 		m_sightedFriendlyNPCsList.clear();
+
+	if (!m_partiallySightedHostileNPCsList.empty())
+		m_partiallySightedHostileNPCsList.clear();
 
 	// Only see enemies if prisoner flag is not set
 	if(!HasSpawnFlag(FL_NPC_PRISONER))
@@ -3493,20 +3622,32 @@ void CBaseNPC::Look( void )
 				continue;
 
 			// Get visibility bits
-			Uint64 visibilityBits = GetNPCVisibilityBits(pEntity);
-			
-			// Add sight bits
+			enemyawareness_t* pPartialAwareness = nullptr;
+			Uint64 visibilityBits = GetNPCVisibilityBits(pEntity, false, &pPartialAwareness);
+			if ((visibilityBits & AI_SIGHTED_PLAYER_LEAN))
+			{
+				// Add to partially aware NPC list
+				m_partiallySightedHostileNPCsList.add(pEntity);
+				
+				// Update awareness stats
+				UpdatePartialAwareness(pPartialAwareness, visibilityBits);
+			}
+
+			// Let child classes update this
+			enemyawareness_t* pEnemyAwareness = nullptr;
 			if(relationship != R_ALLY && relationship != R_NONE && relationship != R_FRIEND)
 			{
-				sightBits |= visibilityBits;
+				// Only call this on non-friendlies
+				UpdateAwareness(pEntity, pPartialAwareness, &pEnemyAwareness, visibilityBits);
 
-				if(!ShouldSeeNPC(visibilityBits, pEntity))
+				sightBits |= visibilityBits;
+				if(!ShouldSeeNPC(visibilityBits, pEntity, pPartialAwareness, pEnemyAwareness))
 					continue;
 			}
 			else
 			{
 				// Call non-derived function for friendlies
-				if(!CBaseNPC::ShouldSeeNPC(visibilityBits, pEntity))
+				if(!CBaseNPC::ShouldSeeNPC(visibilityBits, pEntity, pPartialAwareness, pEnemyAwareness))
 					continue;
 			}
 
@@ -3514,54 +3655,78 @@ void CBaseNPC::Look( void )
 			if(relationship != R_ALLY && relationship != R_NONE && relationship != R_FRIEND)
 			{
 				m_sightedHostileNPCsList.add(pEntity);
-				sightConditions |= AI_COND_SEE_HOSTILE_NPC;
+				sightConditions.set(AI_COND_SEE_HOSTILE_NPC);
 			}
 			else
 				m_sightedFriendlyNPCsList.add(pEntity);
 
-			// Manage player sighting
-			if(pEntity->IsPlayer())
-			{
-				// Update sighting time for player on leader
-				CBaseEntity* pLeader = GetSquadLeader();
-				if(pLeader)
-					pLeader->SetLastPlayerSightTime(g_pGameVars->time);
+			// Update sighting time for enemy on squad leader
+			CBaseEntity* pLeader = GetSquadLeader();
+			if(pLeader && pLeader != this && pLeader->GetEnemy() == pEntity)
+				pLeader->SetLastEnemySightTime(g_pGameVars->time);
 
+			if (pEntity->IsPlayer())
+			{
 				// Remember if we saw a player
-				sightConditions |= AI_COND_SEE_CLIENT;
+				sightConditions.set(AI_COND_SEE_CLIENT);
 			}
 			
 			// Check if we saw our enemy
 			if(pEntity == m_enemy)
-				sightConditions |= AI_COND_SEE_ENEMY;
+				sightConditions.set(AI_COND_SEE_ENEMY);
 
 			// Add flags based on relation
 			switch(relationship)
 			{
 			case R_NEMESIS:
-				sightConditions |= AI_COND_SEE_NEMESIS;
+				sightConditions.set(AI_COND_SEE_NEMESIS);
 				break;
 			case R_HATE:
-				sightConditions |= AI_COND_SEE_HATE;
+				sightConditions.set(AI_COND_SEE_HATE);
 				break;
 			case R_DISLIKE:
-				sightConditions |= AI_COND_SEE_DISLIKE;
+				sightConditions.set(AI_COND_SEE_DISLIKE);
 				break;
 			case R_ALLY:
 				break;
 			default:
-				if(GetClassification() != CLASS_NONE && pEntity->GetClassification() != CLASS_NONE)
-					Util::EntityConPrintf(m_pEdict, "Couldn't assess '%s'.\n", pEntity->GetClassName());
+				{
+					if (GetClassification() != CLASS_NONE && pEntity->GetClassification() != CLASS_NONE)
+						Util::EntityConPrintf(m_pEdict, "Couldn't assess '%s'.\n", pEntity->GetClassName());
+				}
 				break;
 			}
 		}
 	}
 
-	// Update awareness on leaning, etc
-	UpdateAwareness(sightBits);
-
 	// Set the conditions based on what we saw
 	SetConditions(sightConditions);
+
+	// See if we can clear any awareness infos from the entity
+	if (!m_enemyPartialAwarenessList.empty())
+	{
+		m_enemyPartialAwarenessList.begin();
+		while (!m_enemyPartialAwarenessList.end())
+		{
+			enemyawareness_t& awareness = m_enemyPartialAwarenessList.get();
+			if (!awareness.entity)
+			{
+				m_enemyPartialAwarenessList.remove(m_enemyPartialAwarenessList.get_link());
+				m_enemyPartialAwarenessList.next();
+				continue;
+			}
+
+			if (!IsAwareOf(awareness.entity) && (awareness.lastsighttime + NPC_LEANAWARENESS_TIMEOUT) < g_pGameVars->time)
+			{
+				if (awareness.entity->IsPlayer())
+					awareness.entity->SetNPCAwareness(0, this, 0, false);
+
+				m_enemyPartialAwarenessList.remove(m_enemyPartialAwarenessList.get_link());
+			}
+
+			m_enemyPartialAwarenessList.next();
+		}
+	}
 }
 
 //=============================================
@@ -3888,58 +4053,58 @@ void CBaseNPC::CheckAttacks( CBaseEntity* pTargetEntity, Float distance )
 	Float dp = Math::DotProduct(dirToEnemy, forward);
 
 	// Check range attack 1
-	if(HasCapabilities(AI_CAP_RANGE_ATTACK1|AI_CAP_RANGE_ATTACK2))
+	if(HasCapability(AI_CAP_RANGE_ATTACK1) || HasCapability(AI_CAP_RANGE_ATTACK2))
 	{
 		// Check for friendly fire
 		if(!CheckFriendlyFire())
-			SetConditions(AI_COND_FRIENDLY_FIRE);
+			SetCondition(AI_COND_FRIENDLY_FIRE);
 
 		// Do a cheap check first
-		if(FavorRangedAttacks()
+		if(FavorRangedAttacks(pTargetEntity)
 			&& IsInView(pTargetEntity->GetEyePosition()) 
 			&& IsEnemyShootable((*pTargetEntity), false, true))
-			SetConditions(AI_COND_SHOOT_VECTOR_VALID);
+			SetCondition(AI_COND_SHOOT_VECTOR_VALID);
 
-		if(HasCapabilities(AI_CAP_RANGE_ATTACK1))
+		if(HasCapability(AI_CAP_RANGE_ATTACK1))
 		{
 			if(CheckRangeAttack1(dp, distance))
-				SetConditions(AI_COND_CAN_RANGE_ATTACK1);
+				SetCondition(AI_COND_CAN_RANGE_ATTACK1);
 		}
 
 		// Check range attack 2
-		if(HasCapabilities(AI_CAP_RANGE_ATTACK2))
+		if(HasCapability(AI_CAP_RANGE_ATTACK2))
 		{
 			if(CheckRangeAttack2(dp, distance))
-				SetConditions(AI_COND_CAN_RANGE_ATTACK2);
+				SetCondition(AI_COND_CAN_RANGE_ATTACK2);
 		}
 	}
 
 	// Check melee attack 1
-	if(HasCapabilities(AI_CAP_MELEE_ATTACK1))
+	if(HasCapability(AI_CAP_MELEE_ATTACK1))
 	{
 		if(CheckMeleeAttack1(dp, distance))
-			SetConditions(AI_COND_CAN_MELEE_ATTACK1);
+			SetCondition(AI_COND_CAN_MELEE_ATTACK1);
 	}
 
 	// Check melee attack 2
-	if(HasCapabilities(AI_CAP_MELEE_ATTACK2))
+	if(HasCapability(AI_CAP_MELEE_ATTACK2))
 	{
 		if(CheckMeleeAttack2(dp, distance))
-			SetConditions(AI_COND_CAN_MELEE_ATTACK2);
+			SetCondition(AI_COND_CAN_MELEE_ATTACK2);
 	}
 
 	// Check special attack 1
-	if(HasCapabilities(AI_CAP_SPECIAL_ATTACK1))
+	if(HasCapability(AI_CAP_SPECIAL_ATTACK1))
 	{
 		if(CheckSpecialAttack1(dp, distance))
-			SetConditions(AI_COND_CAN_SPECIAL_ATTACK1);
+			SetCondition(AI_COND_CAN_SPECIAL_ATTACK1);
 	}
 
 	// Check special attack 2
-	if(HasCapabilities(AI_CAP_SPECIAL_ATTACK2))
+	if(HasCapability(AI_CAP_SPECIAL_ATTACK2))
 	{
 		if(CheckSpecialAttack2(dp, distance))
-			SetConditions(AI_COND_CAN_SPECIAL_ATTACK2);
+			SetCondition(AI_COND_CAN_SPECIAL_ATTACK2);
 	}
 }
 
@@ -3993,7 +4158,7 @@ bool CBaseNPC::CheckFriendlyFire( void )
 //=============================================
 bool CBaseNPC::CanCheckAttacks( void ) const
 {
-	if(CheckConditions(AI_COND_SEE_ENEMY) && !CheckConditions(AI_COND_ENEMY_TOO_FAR))
+	if(CheckCondition(AI_COND_SEE_ENEMY) && !CheckCondition(AI_COND_ENEMY_TOO_FAR))
 		return true;
 	else
 		return false;
@@ -4005,7 +4170,7 @@ bool CBaseNPC::CanCheckAttacks( void ) const
 //=============================================
 bool CBaseNPC::CanRangeAttack( void ) const
 {
-	if(m_capabilityBits & (AI_CAP_RANGE_ATTACK1|AI_CAP_RANGE_ATTACK2))
+	if(HasCapability(AI_CAP_RANGE_ATTACK1) || HasCapability(AI_CAP_RANGE_ATTACK2))
 		return true;
 	else
 		return false;
@@ -4020,12 +4185,14 @@ void CBaseNPC::ForgetPlayer( CBaseEntity* pPlayer )
 	assert(pPlayer != nullptr);
 
 	// Clear player info
-	pPlayer->SetNPCAwareness(0.0, this, NPC_COMBATSTATE_TIMEOUT);
+	pPlayer->SetNPCAwareness(0.0, this, NPC_COMBATSTATE_TIMEOUT, false);
 
 	if(pPlayer == m_enemy)
 	{
-		SetConditions(AI_COND_ENEMY_DEAD);
-		ClearConditions(AI_COND_SEE_ENEMY|AI_COND_ENEMY_OCCLUDED|AI_COND_ENEMY_NAVIGABLE);
+		SetCondition(AI_COND_ENEMY_DEAD);
+		ClearCondition(AI_COND_SEE_ENEMY);
+		ClearCondition(AI_COND_ENEMY_OCCLUDED);
+		ClearCondition(AI_COND_ENEMY_NAVIGABLE);
 	}
 	else
 	{
@@ -4035,12 +4202,33 @@ void CBaseNPC::ForgetPlayer( CBaseEntity* pPlayer )
 			{
 				m_backedUpEnemies[i].lastknownangles.Clear();
 				m_backedUpEnemies[i].lastknownorigin.Clear();
+				m_backedUpEnemies[i].lastsighttime = 0;
 				m_backedUpEnemies[i].enemy.reset();
 			}
 		}
 	}
 
-	m_lastPlayerSightTime = 0;
+	if (!m_enemyPartialAwarenessList.empty())
+	{
+		m_enemyPartialAwarenessList.begin();
+		while (!m_enemyPartialAwarenessList.end())
+		{
+			enemyawareness_t& awareness = m_enemyPartialAwarenessList.get();
+			if (!awareness.entity)
+			{
+				m_enemyPartialAwarenessList.remove(m_enemyPartialAwarenessList.get_link());
+				m_enemyPartialAwarenessList.next();
+				continue;
+			}
+
+			if (awareness.entity.get() == pPlayer->GetEdict())
+				m_enemyPartialAwarenessList.remove(m_enemyPartialAwarenessList.get_link());
+
+			m_enemyPartialAwarenessList.next();
+		}
+	}
+
+	m_lastEnemySightTime = 0;
 }
 
 //=============================================
@@ -4069,7 +4257,7 @@ void CBaseNPC::StartDangerCheck( const Vector& dangerPosition, CBaseEntity* pDan
 void CBaseNPC::ExamineDangers( void )
 {
 	// Only if we're taking cover, and we're not in danger
-	if(!HasMemory(AI_MEMORY_CHECKING_DANGERS) || CheckConditions(AI_COND_IN_DANGER))
+	if(!HasMemory(AI_MEMORY_CHECKING_DANGERS) || CheckCondition(AI_COND_IN_DANGER))
 		return;
 
 	// If we have an enemy, prefer him
@@ -4150,7 +4338,7 @@ void CBaseNPC::ExamineDangers( void )
 	if(m_dangerExposure >= NPC_MAX_DANGER_TIME)
 	{
 		ClearMemory(AI_MEMORY_CHECKING_DANGERS);
-		SetConditions(AI_COND_IN_DANGER);
+		SetCondition(AI_COND_IN_DANGER);
 	}
 }
 
@@ -5148,19 +5336,10 @@ CBaseEntity* CBaseNPC::GetBestVisibleEnemy( void )
 			Vector enemyOrigin = pEnemy->GetNavigablePosition();
 			Float enemyDist = ( enemyOrigin - m_pState->origin ).Length();
 
-			// Try to dodge dangerous enemies
-			if( pEnemy->IsInfectiousNPC() && enemyDist < NPC_DANGEROUS_ENEMY_MIN_DISTANCE && !pEnemy->IsMoving() && enemyDist > 64 && pEnemy->IsEnemyOf(this) )
-			{
-				if(!(GetIgnoreConditions() & AI_COND_DANGEROUS_ENEMY_CLOSE))
-					SetConditions(AI_COND_DANGEROUS_ENEMY_CLOSE);
-
-				m_dangerousEnemy = pEnemy;
-			}
-
 			// Only check if we have ranged attacks
 			bool isShootable = false;
-			if(CanRangeAttack())
-				isShootable = IsEnemyShootable( *pEnemy, true, false );
+			if(CanRangeAttack() && FavorRangedAttacks(pEnemy))
+				isShootable = IsEnemyShootable( (*pEnemy), true, false );
 
 			//Insert this one if the category has no enemies, or it's closer than the last one
 			if(!categorizedEnemies[enemyRelation] 
@@ -5194,19 +5373,24 @@ CBaseEntity* CBaseNPC::GetBestVisibleEnemy( void )
 		{
 			// We already have a potential enemy, but if this guy is more hated, first make sure
 			// it can actually be reached or shot at
-			if( CanRangeAttack() && (isShootable == lastShootable || !lastShootable && isShootable) )
+			if( CanRangeAttack() && FavorRangedAttacks(bestEnemy) 
+				&& (isShootable == lastShootable || !lastShootable && isShootable) )
 			{
 				// Choose an enemy we can shoot
-				lastBestEnemy = bestEnemy;
-				lastShootable = isShootable;
-				lastReachable = false;
-
+				bool isReachable = false;
 				if(SDL_fabs(m_pState->origin.z - vecOrigin.z) < VEC_HUMAN_HULL_MAX[2])
 				{
 					// Only do localmove tests on entities around our height for performance reasons
 					localmove_t moveResult = CheckLocalMove( m_pState->origin, vecOrigin, bestEnemy, nullptr);
 					if( moveResult > LOCAL_MOVE_RESULT_FAILURE )
-						lastReachable = true;
+						isReachable = true;
+				}
+
+				if (!FavorDirectlyReachableEnemies() || isReachable)
+				{
+					lastBestEnemy = bestEnemy;
+					lastShootable = isShootable;
+					lastReachable = isReachable;
 				}
 			}
 			else if(abs(m_pState->origin.z - vecOrigin.z) < NPC_TRIANGULATION_MAX_HEIGHT)
@@ -5275,15 +5459,17 @@ bool CBaseNPC::CheckEnemy( void )
 	// Check visibility on the enemy
 	Uint64 visibilityBits = GetNPCVisibilityBits(m_enemy, false);
 	if(visibilityBits == AI_SIGHTED_NOTHING)
-		SetConditions(AI_COND_ENEMY_OCCLUDED);
+		SetCondition(AI_COND_ENEMY_OCCLUDED);
 	else
-		ClearConditions(AI_COND_ENEMY_OCCLUDED);
+		ClearCondition(AI_COND_ENEMY_OCCLUDED);
 
 	// Check if enemy died
 	if(!m_enemy->IsAlive())
 	{
-		SetConditions(AI_COND_ENEMY_DEAD);
-		ClearConditions(AI_COND_SEE_ENEMY|AI_COND_ENEMY_OCCLUDED|AI_COND_ENEMY_NAVIGABLE);
+		SetCondition(AI_COND_ENEMY_DEAD);
+		ClearCondition(AI_COND_SEE_ENEMY);
+		ClearCondition(AI_COND_ENEMY_OCCLUDED);
+		ClearCondition(AI_COND_ENEMY_NAVIGABLE);
 		return false;
 	}
 
@@ -5311,37 +5497,35 @@ bool CBaseNPC::CheckEnemy( void )
 			enemyDistance1 = enemyDistance2;
 	}
 
-	if(!CheckConditions(AI_COND_ENEMY_OCCLUDED) && !(m_enemy->GetFlags() & FL_NOTARGET)
+	if(!CheckCondition(AI_COND_ENEMY_OCCLUDED) && !(m_enemy->GetFlags() & FL_NOTARGET)
 		&& (!CEnvFog::GetFogEndDistance() || enemyDistance1 < m_lookDistance) &&
-		(CheckConditions(AI_COND_SEE_ENEMY) || enemyDistance1 <= NPC_MINIMUM_ENEMY_DISTANCE))
+		(CheckCondition(AI_COND_SEE_ENEMY) || enemyDistance1 <= NPC_MINIMUM_ENEMY_DISTANCE))
 	{
 		// Update enemy's last known position
 		m_enemyLastKnownAngles = m_enemy->GetAngles();
 		m_enemyLastKnownPosition = m_enemy->GetNavigablePosition();
 		updatedEnemy = true;
 		
-		// Update player sighting time if it's a client
-		if(m_enemy->IsPlayer())
-		{
-			CBaseEntity* pLeader = GetSquadLeader();
-			if(pLeader)
-				pLeader->SetLastPlayerSightTime(g_pGameVars->time);
+		// Update enemy sighting on squad leader
+		CBaseEntity* pLeader = GetSquadLeader();
+		if(pLeader && pLeader != this && pLeader->GetEnemy() == m_enemy)
+			pLeader->SetLastEnemySightTime(g_pGameVars->time);
 
-			// Update awareness about player
-			m_enemy->SetNPCAwareness(1.0, this, NPC_COMBATSTATE_TIMEOUT);
-		}
+		// Update awareness about player
+		if (m_enemy->IsPlayer())
+			m_enemy->SetNPCAwareness(1.0, this, NPC_COMBATSTATE_TIMEOUT, false);
 
 		// We've found the enemy, so clear this
-		ClearConditions(AI_COND_ENEMY_NOT_FOUND);
+		ClearCondition(AI_COND_ENEMY_NOT_FOUND);
 
 		// Do extra stuff if enemy is visible
-		if(CheckConditions(AI_COND_SEE_ENEMY))
+		if(CheckCondition(AI_COND_SEE_ENEMY))
 		{
 			// Check if enemy is facing me
 			if(m_enemy->IsInView(this))
-				SetConditions(AI_COND_ENEMY_FACING_ME);
+				SetCondition(AI_COND_ENEMY_FACING_ME);
 			else
-				ClearConditions(AI_COND_ENEMY_FACING_ME);
+				ClearCondition(AI_COND_ENEMY_FACING_ME);
 
 			// Trail the enemy's position a bit
 			if(!m_enemy->GetVelocity().IsZero())
@@ -5351,7 +5535,7 @@ bool CBaseNPC::CheckEnemy( void )
 	else
 	{
 		// Check if we've heard our enemy
-		if(m_pBestSound && CheckConditions(AI_COND_HEAR_SOUND) 
+		if(m_pBestSound && CheckCondition(AI_COND_HEAR_SOUND) 
 			&& m_pBestSound->emitter == m_enemy)
 		{
 			// Update enemy's last known position if we heard a sound from him
@@ -5361,15 +5545,15 @@ bool CBaseNPC::CheckEnemy( void )
 
 			// Update awareness about player
 			if(m_enemy->IsPlayer())
-				m_enemy->SetNPCAwareness(1.0, this, NPC_COMBATSTATE_TIMEOUT);
+				m_enemy->SetNPCAwareness(1.0, this, NPC_COMBATSTATE_TIMEOUT, false);
 
 			// We've found the enemy, so clear this
-			ClearConditions(AI_COND_ENEMY_NOT_FOUND);
+			ClearCondition(AI_COND_ENEMY_NOT_FOUND);
 		}
 
 		if(!updatedEnemy)
 		{
-			if(!CheckConditions(AI_COND_SEE_ENEMY))
+			if(!CheckCondition(AI_COND_SEE_ENEMY))
 			{
 				// See if we can expire the player awareness
 				if(m_enemy->IsPlayer() && !HasSpawnFlag(FL_NPC_DONT_FORGET_PLAYER))
@@ -5377,7 +5561,7 @@ bool CBaseNPC::CheckEnemy( void )
 					CBaseEntity* pSquadLeader = GetSquadLeader();
 					if(pSquadLeader && (pSquadLeader == this || pSquadLeader->GetEnemy() != m_enemy))
 					{
-						if((m_lastPlayerSightTime + NPC_COMBATSTATE_TIMEOUT) < g_pGameVars->time)
+						if((m_lastEnemySightTime + NPC_COMBATSTATE_TIMEOUT) < g_pGameVars->time)
 						{
 							ForgetPlayer(m_enemy);
 							return false;
@@ -5386,7 +5570,7 @@ bool CBaseNPC::CheckEnemy( void )
 				}
 
 				// Check for missing enemy if not timed out yet
-				if(!CheckConditions(AI_COND_ENEMY_NOT_FOUND))
+				if(!CheckCondition(AI_COND_ENEMY_NOT_FOUND))
 				{
 					Float enemyLKPDistance = (m_enemyLastKnownPosition - m_pState->origin).Length2D();
 					if(enemyLKPDistance < NPC_STEP_SIZE)
@@ -5396,7 +5580,7 @@ bool CBaseNPC::CheckEnemy( void )
 							|| Util::CheckTraceLine(GetEyePosition(), enemyLookOrigin, true, true, m_pEdict))
 						{
 							// Enemy not found, so start looking around
-							SetConditions(AI_COND_ENEMY_NOT_FOUND);
+							SetCondition(AI_COND_ENEMY_NOT_FOUND);
 						}
 					}
 				}
@@ -5404,16 +5588,16 @@ bool CBaseNPC::CheckEnemy( void )
 			else
 			{
 				// Enemy is here, so clear this condition
-				ClearConditions(AI_COND_ENEMY_NOT_FOUND);
+				ClearCondition(AI_COND_ENEMY_NOT_FOUND);
 			}
 		}
 	}
 
 	// Set AI_COND_ENEMY_TOO_FAR based on distance to enemy
 	if(enemyDistance1 > m_firingDistance)
-		SetConditions(AI_COND_ENEMY_TOO_FAR);
+		SetCondition(AI_COND_ENEMY_TOO_FAR);
 	else
-		ClearConditions(AI_COND_ENEMY_TOO_FAR);
+		ClearCondition(AI_COND_ENEMY_TOO_FAR);
 
 	// See if enemy is navigable
 	if(ShouldCheckEnemyNavigability())
@@ -5422,19 +5606,23 @@ bool CBaseNPC::CheckEnemy( void )
 		if(distanceChange > NAVIGABILITY_CHECK_MIN_DISTANCE_CHANGE)
 		{
 			if(CheckRoute(m_pState->origin, m_enemyLastKnownPosition, m_enemy))
-				SetConditions(AI_COND_ENEMY_NAVIGABLE);
+				SetCondition(AI_COND_ENEMY_NAVIGABLE);
 			else
-				ClearConditions(AI_COND_ENEMY_NAVIGABLE);
+				ClearCondition(AI_COND_ENEMY_NAVIGABLE);
 
 			m_lastNavigabilityCheckPosition = m_enemyLastKnownPosition;
 		}
 	}
 
 	// Clear previous attack conditions
-	ClearConditions(AI_COND_CAN_RANGE_ATTACK1|AI_COND_CAN_RANGE_ATTACK2
-		|AI_COND_CAN_MELEE_ATTACK1|AI_COND_CAN_MELEE_ATTACK2
-		|AI_COND_CAN_SPECIAL_ATTACK1|AI_COND_CAN_SPECIAL_ATTACK2
-		|AI_COND_FRIENDLY_FIRE|AI_COND_SHOOT_VECTOR_VALID);
+	ClearCondition(AI_COND_CAN_RANGE_ATTACK1);
+	ClearCondition(AI_COND_CAN_RANGE_ATTACK2);
+	ClearCondition(AI_COND_CAN_MELEE_ATTACK1);
+	ClearCondition(AI_COND_CAN_MELEE_ATTACK2);
+	ClearCondition(AI_COND_CAN_SPECIAL_ATTACK1);
+	ClearCondition(AI_COND_CAN_SPECIAL_ATTACK2);
+	ClearCondition(AI_COND_FRIENDLY_FIRE);
+	ClearCondition(AI_COND_SHOOT_VECTOR_VALID);
 
 	// Check attacks opportunistically
 	if(CanCheckAttacks())
@@ -5482,7 +5670,7 @@ bool CBaseNPC::CheckEnemy( void )
 // @brief
 //
 //=============================================
-void CBaseNPC::PushEnemy( CBaseEntity* pEnemy, const Vector& lastPosition, const Vector& lastAngles )
+void CBaseNPC::PushEnemy( CBaseEntity* pEnemy, const Vector& lastPosition, const Vector& lastAngles, Double lastSightTime )
 {
 	// Ignore if null, or if it's the main enemy
 	if(!pEnemy)
@@ -5496,12 +5684,9 @@ void CBaseNPC::PushEnemy( CBaseEntity* pEnemy, const Vector& lastPosition, const
 	if(pEnemy == m_enemy)
 	{
 		// If it's a player, update last sight time on leader
-		if(m_enemy->IsPlayer())
-		{
-			CBaseEntity* pLeader = GetSquadLeader();
-			if(pLeader)
-				pLeader->SetLastPlayerSightTime(g_pGameVars->time);
-		}
+		CBaseEntity* pLeader = GetSquadLeader();
+		if(pLeader && pLeader != this && pLeader->GetEnemy() == pEnemy)
+			pLeader->SetLastEnemySightTime(lastSightTime);
 
 		return;
 	}
@@ -5513,12 +5698,9 @@ void CBaseNPC::PushEnemy( CBaseEntity* pEnemy, const Vector& lastPosition, const
 		if(m_backedUpEnemies[i].enemy == reinterpret_cast<const CBaseEntity*>(pEnemy))
 		{
 			// If it's a player, update last sight time on leader
-			if(pEnemy->IsPlayer())
-			{
-				CBaseEntity* pLeader = GetSquadLeader();
-				if(pLeader)
-					pLeader->SetLastPlayerSightTime(g_pGameVars->time);
-			}
+			CBaseEntity* pLeader = GetSquadLeader();
+			if (pLeader && pLeader != this && pLeader->GetEnemy() == pEnemy)
+				pLeader->SetLastEnemySightTime(lastSightTime);
 
 			return;
 		}
@@ -5535,14 +5717,12 @@ void CBaseNPC::PushEnemy( CBaseEntity* pEnemy, const Vector& lastPosition, const
 	newEnemy.enemy = pEnemy;
 	newEnemy.lastknownangles = lastAngles;
 	newEnemy.lastknownorigin = lastPosition;
+	newEnemy.lastsighttime = lastSightTime;
 
 	// If it's a player, update last sight time on leader
-	if(m_enemy && m_enemy->IsPlayer())
-	{
-		CBaseEntity* pLeader = GetSquadLeader();
-		if(pLeader)
-			pLeader->SetLastPlayerSightTime(g_pGameVars->time);
-	}
+	CBaseEntity* pLeader = GetSquadLeader();
+	if(pLeader && pLeader != this && pLeader->GetEnemy() == pEnemy)
+		pLeader->SetLastEnemySightTime(g_pGameVars->time);
 }
 
 //=============================================
@@ -5560,11 +5740,12 @@ bool CBaseNPC::PopEnemy( void )
 			{
 				// Forget player if it's been too long
 				if(m_backedUpEnemies[i].enemy->IsPlayer() 
-					&& (m_lastPlayerSightTime + NPC_COMBATSTATE_TIMEOUT) < g_pGameVars->time)
+					&& (m_backedUpEnemies[i].lastsighttime + NPC_COMBATSTATE_TIMEOUT) < g_pGameVars->time)
 				{
 					m_backedUpEnemies[i].enemy.reset();
 					m_backedUpEnemies[i].lastknownangles.Clear();
 					m_backedUpEnemies[i].lastknownorigin.Clear();
+					m_backedUpEnemies[i].lastsighttime = 0;
 					continue;
 				}
 			}
@@ -5574,6 +5755,7 @@ bool CBaseNPC::PopEnemy( void )
 				m_enemy = m_backedUpEnemies[i].enemy;
 				m_enemyLastKnownPosition = m_backedUpEnemies[i].lastknownorigin;
 				m_enemyLastKnownAngles = m_backedUpEnemies[i].lastknownangles;
+				m_lastEnemySightTime = m_backedUpEnemies[i].lastsighttime;
 				return true;
 			}
 			else
@@ -5582,6 +5764,7 @@ bool CBaseNPC::PopEnemy( void )
 				m_backedUpEnemies[i].enemy.reset();
 				m_backedUpEnemies[i].lastknownangles.Clear();
 				m_backedUpEnemies[i].lastknownorigin.Clear();
+				m_backedUpEnemies[i].lastsighttime = 0;
 			}
 		}
 	}
@@ -5596,7 +5779,7 @@ bool CBaseNPC::PopEnemy( void )
 bool CBaseNPC::GetNextEnemy( void )
 {
 	/// Clear this always
-	ClearConditions(AI_COND_DANGEROUS_ENEMY_CLOSE);
+	ClearCondition(AI_COND_DANGEROUS_ENEMY_CLOSE);
 
 	if(m_dangerousEnemy)
 		m_dangerousEnemy.reset();
@@ -5604,41 +5787,41 @@ bool CBaseNPC::GetNextEnemy( void )
 	// Pointer to enemy
 	CBaseEntity* pNewEnemy = nullptr;
 
-	if(CheckConditions(AI_COND_SEE_HATE|AI_COND_SEE_DISLIKE|AI_COND_SEE_NEMESIS))
+	if(CheckCondition(AI_COND_SEE_HATE) 
+		|| CheckCondition(AI_COND_SEE_DISLIKE) 
+		|| CheckCondition(AI_COND_SEE_NEMESIS))
 	{
 		// Get the most optimal best enemy
 		pNewEnemy = GetBestVisibleEnemy();
 
 		if(pNewEnemy != m_enemy && pNewEnemy && m_pSchedule)
 		{
-			if(m_pSchedule->GetInterruptMask() & AI_COND_NEW_ENEMY)
+			if(m_pSchedule->GetInterruptMask().test(AI_COND_NEW_ENEMY))
 			{
 				// Remember our old enemy's position and angles
 				if(m_enemy)
-					PushEnemy(m_enemy, m_enemyLastKnownPosition, m_enemyLastKnownAngles);
+					PushEnemy(m_enemy, m_enemyLastKnownPosition, m_enemyLastKnownAngles, g_pGameVars->time);
 
-				SetConditions(AI_COND_NEW_ENEMY);
+				SetCondition(AI_COND_NEW_ENEMY);
 
 				m_enemy = pNewEnemy;
 				m_enemyLastKnownPosition = m_enemy->GetNavigablePosition();
 				m_enemyLastKnownAngles = m_enemy->GetAngles();
-
-				if(pNewEnemy->IsPlayer())
-					m_lastPlayerSightTime = g_pGameVars->time;
+				m_lastEnemySightTime = g_pGameVars->time;
 			}
 
 			// Push enemy's owner if he is a valid enemy
 			CBaseEntity* pEnemyOwner = pNewEnemy->GetOwner();
 			if(pEnemyOwner && pEnemyOwner->IsNPC() && GetRelationship(pEnemyOwner) != R_NONE)
-				PushEnemy(pEnemyOwner, m_enemyLastKnownPosition, m_enemyLastKnownAngles);
+				PushEnemy(pEnemyOwner, m_enemyLastKnownPosition, m_enemyLastKnownAngles, g_pGameVars->time);
 		}
 	}
 
 	// Try and dig out an old enemy
 	if(!m_enemy && PopEnemy())
 	{
-		if(m_pSchedule && m_pSchedule->GetInterruptMask() & AI_COND_NEW_ENEMY)
-			SetConditions(AI_COND_NEW_ENEMY);
+		if(m_pSchedule && m_pSchedule->GetInterruptMask().test(AI_COND_NEW_ENEMY))
+			SetCondition(AI_COND_NEW_ENEMY);
 	}
 
 	// Tell if we have an enemy or not
@@ -5814,7 +5997,7 @@ void CBaseNPC::SetActivity( Int32 activity )
 		m_lastActivityTime = g_pGameVars->time;
 
 		// If activity is an attack one, then set blending
-		if(m_enemy && (m_capabilityBits & AI_CAP_ATTACK_BLEND_SEQ)
+		if(m_enemy && HasCapability(AI_CAP_ATTACK_BLEND_SEQ)
 			&& (activity == ACT_RANGE_ATTACK1 || activity == ACT_RANGE_ATTACK2
 			|| activity == ACT_MELEE_ATTACK1 || activity == ACT_MELEE_ATTACK2
 			|| activity == ACT_SPECIAL_ATTACK1 || activity == ACT_SPECIAL_ATTACK2))
@@ -6311,7 +6494,7 @@ bool CBaseNPC::UpdateRoute( CBaseEntity* pTargetEntity, const Vector& destinatio
 
 	// If following an enemy, skip updates if he's not visible
 	if(m_movementGoalEntity && m_movementGoalEntity == m_enemy
-		&& !(CheckConditions(AI_COND_SEE_ENEMY) || !CheckConditions(AI_COND_ENEMY_OCCLUDED)))
+		&& !(CheckCondition(AI_COND_SEE_ENEMY) || !CheckCondition(AI_COND_ENEMY_OCCLUDED)))
 		return true;
 
 	// Find the last node
@@ -7509,12 +7692,12 @@ void CBaseNPC::SetPathBlocked( CBaseEntity* pBlockedEntity, const Vector& destin
 		return;
 
 	// If we already are blocking someone, don't change
-	if(m_blockedNPC && CheckConditions(AI_COND_BLOCKING_PATH))
+	if(m_blockedNPC && CheckCondition(AI_COND_BLOCKING_PATH))
 		return;
 
 	m_blockedNPC = pBlockedEntity;
 	m_blockedNPCDestination = destination;
-	SetConditions(AI_COND_BLOCKING_PATH);
+	SetCondition(AI_COND_BLOCKING_PATH);
 }
 
 //=============================================
@@ -7922,7 +8105,7 @@ bool CBaseNPC::HandleBlockage( CBaseEntity* pBlocker, CBaseEntity* pTargetEntity
 #endif
 		// Wait for any moving entity
 		if( pBlocker->IsMoving() 
-			&& !CheckConditions(AI_COND_BLOCKING_PATH) 
+			&& !CheckCondition(AI_COND_BLOCKING_PATH) 
 			&& m_npcState != NPC_STATE_SCRIPT 
 			&& m_npcState != NPC_STATE_COMBAT )
 		{
@@ -8048,7 +8231,7 @@ flextypes_t CBaseNPC::GetFlexNPCType( void )
 void CBaseNPC::UpdateExpressions( void )
 {
 	// Only do this if we have expression abilities
-	if(!(m_capabilityBits & AI_CAP_EXPRESSIONS))
+	if(!HasCapability(AI_CAP_EXPRESSIONS))
 		return;
 
 	// Probably after a reload, wait a bit
@@ -8144,7 +8327,7 @@ void CBaseNPC::PlayFlexScript( const Char* pstrSentenceName )
 		return;
 
 	// Only do this if we have expression abilities
-	if(!(m_capabilityBits & AI_CAP_EXPRESSIONS))
+	if(!HasCapability(AI_CAP_EXPRESSIONS))
 		return;
 
 	if(!pstrSentenceName || !qstrlen(pstrSentenceName))
@@ -8214,9 +8397,9 @@ void CBaseNPC::NPCThink( void )
 
 	// Set onground condition
 	if(m_pState->flags & FL_ONGROUND)
-		ClearConditions(AI_COND_NOT_ONGROUND);
+		ClearCondition(AI_COND_NOT_ONGROUND);
 	else
-		SetConditions(AI_COND_NOT_ONGROUND);
+		SetCondition(AI_COND_NOT_ONGROUND);
 
 	// Check for gibbing from explode death mode
 	if(m_deathMode == DEATH_EXPLODE 
@@ -8581,10 +8764,11 @@ void CBaseNPC::SetEnemyInfo( const Vector& enemyLKP, const Vector& enemyLKA )
 // @brief Gets the enemy information
 //
 //=============================================
-void CBaseNPC::GetEnemyInfo( Vector& enemyLKP, Vector& enemyLKA )
+void CBaseNPC::GetEnemyInfo( Vector& enemyLKP, Vector& enemyLKA, Double& enemyLST )
 {
 	enemyLKP = m_enemyLastKnownPosition;
 	enemyLKA = m_enemyLastKnownAngles;
+	enemyLST = m_lastEnemySightTime;
 }
 
 //=============================================
@@ -8602,12 +8786,21 @@ void CBaseNPC::SetEnemy( CBaseEntity* pEnemy )
 }
 
 //=============================================
-// @brief Sets the last time the player was sighted
+// @brief Sets the last time the enemy was sighted
 //
 //=============================================
-void CBaseNPC::SetLastPlayerSightTime( Double time )
+void CBaseNPC::SetLastEnemySightTime( Double time )
 {
-	m_lastPlayerSightTime = time;
+	m_lastEnemySightTime = time;
+}
+
+//=============================================
+// @brief Sets the last enemy sight time
+//
+//=============================================
+Double CBaseNPC::GetLastEnemySightTime( void )
+{
+	return m_lastEnemySightTime;
 }
 
 //=============================================
@@ -8727,7 +8920,7 @@ Float CBaseNPC::CalculateCoverage( const Vector& lookOrigin, const Vector& lookO
 //=============================================
 const CAISchedule* CBaseNPC::GetReloadSchedule( void )
 {
-	if(!CheckConditions(AI_COND_IN_DANGER) && m_enemy)
+	if(!CheckCondition(AI_COND_IN_DANGER) && m_enemy)
 	{
 		// See if our coverage warrants actually hiding
 		Vector enemyEyePosition = m_enemy->GetEyePosition();

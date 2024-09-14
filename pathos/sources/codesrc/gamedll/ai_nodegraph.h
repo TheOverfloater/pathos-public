@@ -415,10 +415,10 @@ public:
 	Int32 GetNumNodes( void ) const;
 	Int32 GetNumTempNodes( void ) const;
 
-	static capability_indexes_t GetCapabilityIndex( Uint64 capabilityBits );
+	static capability_indexes_t GetCapabilityIndex( const CBitSet& capabilityBitSet );
 
 public:
-	bool HandleLinkEntity( Int32 nodeIndex, Int32 entityIndex, Uint64 capabilityBits, node_querytype_t queryType, const CBaseEntity* pNPC ) const;
+	bool HandleLinkEntity( Int32 nodeIndex, Int32 entityIndex, const CBitSet& capabilityBitSet, node_querytype_t queryType, const CBaseEntity* pNPC ) const;
 
 	const node_t* GetNode( Int32 nodeIndex );
 	const node_link_t* GetNodeLink( Int32 nodeIndex, Int32 linkIndex );
@@ -429,9 +429,9 @@ public:
 	Int32 GetNearestNode( const Vector& position, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity = nullptr, Float minDistance = -1, const CNodeIgnoreList* pIgnoreList = nullptr );
 	Int32 GetNearestNode( const Vector& position, Uint64 nodeTypes, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity = nullptr, Float minDistance = -1, const CNodeIgnoreList* pIgnoreList = nullptr );
 	Int32 GetNearestNode( const Vector& position );
-	Int32 GetShortestPath( Int32 startNode, Int32 endNode, node_hull_types_t hullType, Uint64 capabilityBits, Int32 *pNodeIndexArray, const CBaseEntity* pNPC = nullptr, const CBaseEntity* pTargetEntity = nullptr, const CNodeIgnoreList* pIgnoreList = nullptr, const CBaseEntity* pViewCheckNPC = nullptr );
-	Float GetPathLength( Int32 startNode, Int32 endNode, node_hull_types_t hullType, Uint64 capabilityMask );
-	bool IsValidCoverPath( Int32 startNode, Int32 endNode, node_hull_types_t hullType, Uint64 capabilityMask, const CBaseEntity* pNPC, const CBaseEntity* pThreatEntity );
+	Int32 GetShortestPath( Int32 startNode, Int32 endNode, node_hull_types_t hullType, const CBitSet& capabilityBitSet, Int32 *pNodeIndexArray, const CBaseEntity* pNPC = nullptr, const CBaseEntity* pTargetEntity = nullptr, const CNodeIgnoreList* pIgnoreList = nullptr, const CBaseEntity* pViewCheckNPC = nullptr );
+	Float GetPathLength( Int32 startNode, Int32 endNode, node_hull_types_t hullType, const CBitSet& capabilityBitSet );
+	bool IsValidCoverPath( Int32 startNode, Int32 endNode, node_hull_types_t hullType, const CBitSet& capabilityBitSet, const CBaseEntity* pNPC, const CBaseEntity* pThreatEntity );
 	void ShowNearestNodeBBox( const Vector& position, node_hull_types_t hullType );
 
 public:

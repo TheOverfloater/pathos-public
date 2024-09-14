@@ -41,7 +41,6 @@ CWindow::CWindow( void ):
 	m_bIsMSAAEnabled(false),
 	m_areFBOsSupported(false),
 	m_areFBOsEnabled(false),
-	m_isHDREnabled(false),
 	m_bWindowActive(false),
 	m_bWindowInitialized(false),
 	m_pSDLWindow(nullptr),
@@ -76,7 +75,7 @@ CWindow::~CWindow( void )
 // Class: CWindow
 // Function: Init
 //=============================================
-bool CWindow::GetOpenGLInfo(Int32& maxMSAA, bool& fboSupported, bool& hdrSupported)
+bool CWindow::GetOpenGLInfo(Int32& maxMSAA, bool& fboSupported)
 {
 	// Create the temporary window
 	SDL_Window* pTempWindow = SDL_CreateWindow(ens.gametitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
@@ -94,29 +93,20 @@ bool CWindow::GetOpenGLInfo(Int32& maxMSAA, bool& fboSupported, bool& hdrSupport
 	}
 
 	// Now check the extensions
-	PFNGLGETSTRINGIPROC glGetStringi = (PFNGLGETSTRINGIPROC)wglGetProcAddress("glGetStringi");
+	PFNGLGETSTRINGIPROC glGetStringi = reinterpret_cast<PFNGLGETSTRINGIPROC>(wglGetProcAddress("glGetStringi"));
 	if (!glGetStringi)
 	{
 		SDL_DestroyWindow(pTempWindow);
 		return false;
 	}
 
-	bool checkHDRExtensions = false;
-	PFNGLCLAMPCOLORPROC glClampColor = reinterpret_cast<PFNGLCLAMPCOLORPROC>(wglGetProcAddress("glClampColor"));
-	if (glClampColor)
-		checkHDRExtensions = true;
-
 	GLint numExtensions;
 	glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
 
 	// reset to default
 	fboSupported = false;
-	hdrSupported = false;
 
 	bool msaaSupported = false;
-	bool fboMSAASupported = false;
-	bool fboBlitSupported = false;
-	bool halfFloatPixelSupported = false;
 
 	Int32 i = 0;
 	for (; i < numExtensions; i++)
@@ -135,27 +125,6 @@ bool CWindow::GetOpenGLInfo(Int32& maxMSAA, bool& fboSupported, bool& hdrSupport
 			fboSupported = true;
 			continue;
 		}
-
-		if (checkHDRExtensions)
-		{
-			if (!fboMSAASupported && !qstrcicmp(pstrExtension, "GL_EXT_framebuffer_multisample"))
-			{
-				fboMSAASupported = true;
-				continue;
-			}
-
-			if (!fboBlitSupported && !qstrcicmp(pstrExtension, "GL_EXT_framebuffer_blit"))
-			{
-				fboBlitSupported = true;
-				continue;
-			}
-
-			if (!halfFloatPixelSupported && !qstrcicmp(pstrExtension, "GL_ARB_half_float_pixel"))
-			{
-				halfFloatPixelSupported = true;
-				continue;
-			}
-		}
 	}
 
 	if (msaaSupported)
@@ -173,9 +142,6 @@ bool CWindow::GetOpenGLInfo(Int32& maxMSAA, bool& fboSupported, bool& hdrSupport
 		// No MSAA
 		maxMSAA = 0;
 	}
-
-	if (fboMSAASupported && fboBlitSupported && halfFloatPixelSupported)
-		hdrSupported = true;
 
 	SDL_GL_DeleteContext(tempContext);
 	SDL_DestroyWindow(pTempWindow);
@@ -267,12 +233,6 @@ bool CWindow::Init( void )
 		yPos = SDL_WINDOWPOS_CENTERED;
 	}
 
-	if(SDL_Init(SDL_INIT_VIDEO))
-	{
-		Sys_ErrorPopup("SDL_Init for SDL_INIT_VIDEO returned an error: %s", SDL_GetError());
-		return false;
-	}
-
 	// Set default(off) value for multisample
 	if(!m_multiSampleSettingsArray.empty())
 		m_multiSampleSettingsArray.clear();
@@ -281,8 +241,7 @@ bool CWindow::Init( void )
 
 	// Set up multisampling
 	Int32 maxMultiSample = 0;
-	bool isHDRSupported = false;
-	if (!GetOpenGLInfo(maxMultiSample, m_areFBOsSupported, isHDRSupported))
+	if (!GetOpenGLInfo(maxMultiSample, m_areFBOsSupported))
 	{
 		Sys_ErrorPopup("Failed to fetch required OpenGL parameters at startup.");
 		return false;
@@ -326,41 +285,6 @@ bool CWindow::Init( void )
 		}
 	}
 
-	// Get HDR state
-	if (!m_areFBOsEnabled || !isHDRSupported)
-	{
-		// Make sure to reset this
-		ens.requestedHDRSetting = -1;
-
-		m_isHDREnabled = gConfig.GetInt(GetConfigGroup(), "HighDynamicRange");
-		if (m_isHDREnabled)
-		{
-			gConfig.SetValue(GetConfigGroup(), "HighDynamicRange", FALSE, true);
-			m_isHDREnabled = false;
-		}
-	}
-	else if (ens.requestedHDRSetting != -1)
-	{
-		bool requestEnable = ens.requestedHDRSetting == 0 ? false : true;
-		if (requestEnable != m_isHDREnabled)
-		{
-			gConfig.SetValue(GetConfigGroup(), "HighDynamicRange", requestEnable ? 1 : 0, true);
-			m_isHDREnabled = requestEnable;
-		}
-
-		// Make sure to reset this
-		ens.requestedFBOSetting = -1;
-	}
-	else
-	{
-		m_isHDREnabled = gConfig.GetInt(GetConfigGroup(), "HighDynamicRange");
-		if (gConfig.GetStatus() != CONF_ERR_NONE)
-		{
-			m_isHDREnabled = true;
-			gConfig.SetValue(GetConfigGroup(), "HighDynamicRange", TRUE, true);
-		}
-	}
-
 	// Get current MSAA setting
 	Int32 currentMSAASetting = GetCurrentMSAASetting();
 	Int32 msaaSettingValue;
@@ -378,7 +302,7 @@ bool CWindow::Init( void )
 
 	m_bIsMSAAEnabled = (msaaSettingValue != 0) ? true : false;
 
-	if(msaaSettingValue != 0 && !m_isHDREnabled)
+	if(msaaSettingValue != 0)
 	{
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, msaaSettingValue);
@@ -407,7 +331,7 @@ bool CWindow::Init( void )
 		return false;
 	}
 
-	if(msaaSettingValue != 0 && !m_isHDREnabled)
+	if(msaaSettingValue != 0)
 		glEnable(GL_MULTISAMPLE);
 	else
 		glDisable(GL_MULTISAMPLE);

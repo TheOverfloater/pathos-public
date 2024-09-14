@@ -51,6 +51,7 @@ extern void GetSaveGameTitle( Char* pstrBuffer, Int32 maxlength );
 extern bool InconsistentFile( const Char* pstrFilename );
 extern bool AreCheatsEnabled( void );
 extern void DumpCheatCodes( void );
+extern void StopMusic( void );
 extern void AdjustLandmarkPVSData( edict_t* pLandmarkEdict, byte* pPVS, Uint32 pvsBufferSize );
 extern void SetConnectionSaveFile( const Char* pstrLevelName, const Char* pstrLandmarkName, const Char* pstrSaveFileName );
 extern void PrecacheResources( void );

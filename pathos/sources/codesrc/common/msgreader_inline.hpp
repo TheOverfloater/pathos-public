@@ -335,4 +335,35 @@ const byte* CMSGReader::ReadBuffer( Uint32 size )
 	return pdata;
 }
 
+//=============================================
+// @brief
+//
+//=============================================
+CBitSet CMSGReader::ReadBitSet( void )
+{
+	if(!m_errorString.empty())
+		return CBitSet();
+
+	Uint32 numBits = ReadUint32();
+	if(!m_errorString.empty())
+		return CBitSet();
+
+	Uint32 numBytes = ReadUint32();
+	if(!m_errorString.empty())
+		return CBitSet();
+
+	// Do a consistency check with CBitSet
+	Uint32 fullBytesCount = SDL_ceil(static_cast<Float>(numBits) / static_cast<Float>(CBitSet::NB_BITS_IN_BYTE));
+	if(fullBytesCount != numBytes)
+	{
+		m_errorString << "CBitSet consistency check failed: Expected " << fullBytesCount << " bytes for " << numBits << " bits, message specified " << numBytes << " bytes instead";
+		return CBitSet();
+	}
+
+	const byte* pDataArray = ReadBuffer(numBytes);
+	if(!m_errorString.empty())
+		return CBitSet();
+
+	return CBitSet(pDataArray, numBits);
+}
 #endif //MSGREADER_INLINE_HPP

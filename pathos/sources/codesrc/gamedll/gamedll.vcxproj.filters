@@ -1001,9 +1001,6 @@
     <ClInclude Include="..\shared\activity.h">
       <Filter>Header Files\shared</Filter>
     </ClInclude>
-    <ClInclude Include="..\shared\activitymappings.h">
-      <Filter>Header Files\shared</Filter>
-    </ClInclude>
     <ClInclude Include="usermsgs.h">
       <Filter>Header Files</Filter>
     </ClInclude>

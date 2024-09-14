@@ -26,29 +26,48 @@ static const Char AUTOSAVE_FILE_NAME[] = "autosave";
 enum entfieldtype_t
 {
 	EFIELD_UNDEFINED = -1,
-	EFIELD_FLOAT,		// A float vlaue
-	EFIELD_DOUBLE,		// Double precision float
-	EFIELD_STRING,		// CString object
-	EFIELD_ENTINDEX,	// Server side entindex
-	EFIELD_ENTPOINTER,	// Entity private data pointer
-	EFIELD_EDICT,		// Edict pointer
-	EFIELD_ENTSTATE,	// Entvars pointer
-	EFIELD_EHANDLE,		// Entity handle
-	EFIELD_VECTOR,		// Standard vector object
-	EFIELD_COORD,		// Coordinate vector(fixed up at level transition)
-	EFIELD_INT16,		// Signed 16-bit integer value
-	EFIELD_UINT16,		// Unsigned 16-bit integer value
-	EFIELD_INT32,		// Signed 32-bit integer value
-	EFIELD_UINT32,		// Unsigned 32-bit integer
-	EFIELD_INT64,		// Signed 64-bit integer value
-	EFIELD_UINT64,		// Unsigned 64-bit integer value
-	EFIELD_FUNCPTR,		// Function pointer for private data
-	EFIELD_BOOLEAN,		// Boolean value
-	EFIELD_BYTE,		// A single byte
-	EFIELD_CHAR,		// A single character
-	EFIELD_TIME,		// Time value(fixed up at level transition)
-	EFIELD_MODELNAME,	// Model name(needs precache)
-	EFIELD_SOUNDNAME,	// Sound name(needs precache)
+	EFIELD_FLOAT,				// A float vlaue
+	EFIELD_DOUBLE,				// Double precision float
+	EFIELD_STRING,				// string_t object
+	EFIELD_ENTINDEX,			// Server side entindex
+	EFIELD_ENTPOINTER,			// Entity private data pointer
+	EFIELD_EDICT,				// Edict pointer
+	EFIELD_ENTSTATE,			// Entvars pointer
+	EFIELD_EHANDLE,				// Entity handle
+	EFIELD_VECTOR,				// Standard vector object
+	EFIELD_COORD,				// Coordinate vector(fixed up at level transition)
+	EFIELD_INT16,				// Signed 16-bit integer value
+	EFIELD_UINT16,				// Unsigned 16-bit integer value
+	EFIELD_INT32,				// Signed 32-bit integer value
+	EFIELD_UINT32,				// Unsigned 32-bit integer
+	EFIELD_INT64,				// Signed 64-bit integer value
+	EFIELD_UINT64,				// Unsigned 64-bit integer value
+	EFIELD_FUNCPTR,				// Function pointer for private data
+	EFIELD_BOOLEAN,				// Boolean value
+	EFIELD_BYTE,				// A single byte
+	EFIELD_CHAR,				// A single character
+	EFIELD_TIME,				// Time value(fixed up at level transition)
+	EFIELD_MODELNAME,			// Model name(needs precache)
+	EFIELD_SOUNDNAME,			// Sound name(needs precache)
+	EFIELD_CARRAY_FLOAT,		// CArray of floats
+	EFIELD_CARRAY_DOUBLE,		// CArray of double precision float
+	EFIELD_CARRAY_STRING,		// CArray of string_t objects
+	EFIELD_CARRAY_ENTINDEX,		// CArray of server side entindexes
+	EFIELD_CARRAY_ENTPOINTER,	// CArray of entity private data pointers
+	EFIELD_CARRAY_EDICT,		// CArray of edict pointers
+	EFIELD_CARRAY_ENTSTATE,		// CArray of entvars pointers
+	EFIELD_CARRAY_EHANDLE,		// CArray of entity handles
+	EFIELD_CARRAY_VECTOR,		// CArray of vector objects
+	EFIELD_CARRAY_COORD,		// CArray of coordinate vectors(fixed up at level transition)
+	EFIELD_CARRAY_INT16,		// CArray of signed 16-bit integer value
+	EFIELD_CARRAY_UINT16,		// CArray of unsigned 16-bit integer value
+	EFIELD_CARRAY_INT32,		// CArray of signed 32-bit integer value
+	EFIELD_CARRAY_UINT32,		// CArray of unsigned 32-bit integer
+	EFIELD_CARRAY_INT64,		// CArray of signed 64-bit integer value
+	EFIELD_CARRAY_UINT64,		// CArray of unsigned 64-bit integer value
+	EFIELD_CARRAY_BOOLEAN,		// CArray of boolean values
+	EFIELD_CARRAY_TIME,			// CArray of time values(fixed up at level transition)
+	EFIELD_CBITSET,
 
 	NB_FIELDTYPES
 };

@@ -18,9 +18,9 @@ All Rights Reserved.
 class CAISchedule
 {
 public:
-	CAISchedule( ai_task_t* pTasks, Uint32 nbTasks, Uint64 conditionMask, Uint64 soundMask, const Char* pstrName );
-	CAISchedule( ai_task_t* pTasks, Uint32 nbTasks, Uint64 conditionMask, Uint64 inverseConditionMask, Uint64 soundMask, const Char* pstrName );
-	CAISchedule( ai_task_t* pTasks, Uint32 nbTasks, Uint64 conditionMask, Uint64 inverseConditionMask, Int32 specialInterruptSchedule, Uint64 specialInterruptConditionMask, Uint64 specialInterruptExceptionMask, Uint64 specialInterruptRequirementMask, Uint64 soundMask, const Char* pstrName );
+	CAISchedule( ai_task_t* pTasks, Uint32 nbTasks, const CBitSet& conditionMask, Uint64 soundMask, const Char* pstrName );
+	CAISchedule( ai_task_t* pTasks, Uint32 nbTasks, const CBitSet& conditionMask, const CBitSet& inverseConditionMask, Uint64 soundMask, const Char* pstrName );
+	CAISchedule( ai_task_t* pTasks, Uint32 nbTasks, const CBitSet& conditionMask, const CBitSet& inverseConditionMask, Int32 specialInterruptSchedule, const CBitSet& specialInterruptConditionMask, const CBitSet& specialInterruptExceptionMask, const CBitSet& specialInterruptRequirementMask, Uint64 soundMask, const Char* pstrName );
 	~CAISchedule();
 
 public:
@@ -29,17 +29,17 @@ public:
 	// Returns a task for an index
 	inline const ai_task_t& GetTaskByIndex( Uint32 index ) const;
 	// Returns the condition interrupt mask
-	inline Uint64 GetInterruptMask( void ) const;
+	inline const CBitSet& GetInterruptMask( void ) const;
 	// Returns the inverse condition interrupt mask
-	inline Uint64 GetInverseInterruptMask( void ) const;
+	inline const CBitSet& GetInverseInterruptMask( void ) const;
 	// Returns the special interrupt schedule index
 	inline Int32 GetSpecialInterruptScheduleIndex( void ) const;
 	// Returns the special condition interrupt mask
-	inline Uint64 GetSpecialInterruptMask( void ) const;
+	inline const CBitSet& GetSpecialInterruptMask( void ) const;
 	// Returns the special condition interrupt exception mask
-	inline Uint64 GetSpecialInterruptExceptionMask( void ) const;
+	inline const CBitSet& GetSpecialInterruptExceptionMask( void ) const;
 	// Returns the special condition interrupt exception mask
-	inline Uint64 GetSpecialInterruptRequirementMask( void ) const;
+	inline const CBitSet& GetSpecialInterruptRequirementMask( void ) const;
 	// Returns the smell mask
 	inline Uint64 GetSoundMask( void ) const;
 	// Returns the name for the task
@@ -49,17 +49,17 @@ private:
 	// Array of tasks
 	CArray<ai_task_t> m_tasksArray;
 	// AI condition interrupt mask
-	Uint64 m_aiCondInterruptMask;
+	CBitSet m_aiCondInterruptMask;
 	// AI condition inverse interrupt mask
-	Uint64 m_aiCondInverseInterruptMask;
+	CBitSet m_aiCondInverseInterruptMask;
 	// Special interrupt schedule index
 	Int32 m_specialInterruptSchedule;
 	// Special interrupt schedule condition mask
-	Uint64 m_specialInterruptConditionMask;
+	CBitSet m_specialInterruptConditionMask;
 	// Special interrupt schedule exception mask
-	Uint64 m_specialInterruptExceptionMask;
+	CBitSet m_specialInterruptExceptionMask;
 	// Special interrupt requirement mask
-	Uint64 m_specialInterruptRequirementMask;
+	CBitSet m_specialInterruptRequirementMask;
 	// Sound mask
 	Uint64 m_soundMask;
 	// Name of the schedule

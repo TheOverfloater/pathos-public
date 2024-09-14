@@ -45,10 +45,6 @@ CGlowAura::CGlowAura( void ):
 	m_pWhiteRTT(nullptr),
 	m_pColorsRTT(nullptr),
 	m_pBlurRTT(nullptr),
-	m_pSolidFBO(nullptr),
-	m_pColorFBO(nullptr),
-	m_pBlurFBO(nullptr),
-	m_useFBOs(nullptr),
 	m_pCvarGlowAura(nullptr)
 {
 	memset(m_pEntities, 0, sizeof(m_pEntities));
@@ -111,7 +107,6 @@ bool CGlowAura::InitGL( void )
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_texture0 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_scrntexture = m_pShader->InitUniform("scrntexture", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_scrntexturerect = m_pShader->InitUniform("scrntexturerect", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_size = m_pShader->InitUniform("size", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_screensize = m_pShader->InitUniform("screensize", CGLSLShader::UNIFORM_FLOAT2);
@@ -119,17 +114,14 @@ bool CGlowAura::InitGL( void )
 		if(!R_CheckShaderUniform(m_attribs.u_modelview, "modelview", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_projection, "projection", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_texture0, "texture0", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_scrntexture, "scrntexture", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_scrntexturerect, "scrntexturerect", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_size, "size", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_screensize, "screensize", m_pShader, Sys_ErrorPopup))
 			return false;
 
 		m_attribs.d_type = m_pShader->GetDeterminatorIndex("type");
-		m_attribs.d_rectangle = m_pShader->GetDeterminatorIndex("rectangle");
 
-		if(!R_CheckShaderDeterminator(m_attribs.d_type, "type", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_rectangle, "rectangle", m_pShader, Sys_ErrorPopup))
+		if(!R_CheckShaderDeterminator(m_attribs.d_type, "type", m_pShader, Sys_ErrorPopup))
 			return false;
 	}
 
@@ -233,13 +225,6 @@ void CGlowAura::GetEntities( void )
 //====================================
 bool CGlowAura::DrawSolid( void )
 {
-	if(m_useFBOs)
-	{
-		// Bind main FBO and set color attachment 1 as target
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
-		glDrawBuffer(GL_COLOR_ATTACHMENT1);
-	}
-
 	// Clear the color buffer and begin rendering
 	glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -254,31 +239,11 @@ bool CGlowAura::DrawSolid( void )
 		}
 	}
 
-	if (!m_useFBOs)
-	{
-		// Save it to the white RTT
-		m_pWhiteRTT = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
+	// Save it to the white RTT
+	m_pWhiteRTT = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
 
-		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pWhiteRTT->palloc->gl_index);
-		glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
-	}
-	else
-	{
-		// First blit over to the solid FBO
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_pSolidFBO->fbo.fboid);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
-
-		gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, rns.pboundfbo->fboid);
-		glReadBuffer(GL_COLOR_ATTACHMENT1);
-
-		gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_pSolidFBO->fbo.fboid);
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		// Perform blit
-		gGLExtF.glBlitFramebuffer(0, 0, rns.screenwidth, rns.screenheight, 0, 0, rns.screenwidth, rns.screenheight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	}
+	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pWhiteRTT->palloc->gl_index, true);
+	glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
 
 	return true;
 }
@@ -288,21 +253,6 @@ bool CGlowAura::DrawSolid( void )
 //====================================
 bool CGlowAura::DrawColors( void )
 {
-	if (m_useFBOs)
-	{
-		m_pSolidFBO = gFBOCache.Alloc(rns.screenwidth, rns.screenheight, false);
-		if (!m_pSolidFBO)
-		{
-			Sys_ErrorPopup("Failed to create FBO for rendering aura mask.");
-			gVBMRenderer.FinishAuraPass();
-			return false;
-		}
-
-		// Bind main FBO and set color attachment 1 as target
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
-		glDrawBuffer(GL_COLOR_ATTACHMENT1);
-	}
-
 	// Now clear again and draw the colors
 	glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -331,9 +281,9 @@ bool CGlowAura::DrawColors( void )
 		}
 		else
 		{
-			color[0] = 0.1;
-			color[1] = 0.25;
-			color[2] = 0.9;
+			color[0] = 0.0;
+			color[1] = 1.0;
+			color[2] = 0.0;
 		}
 
 		if(!gVBMRenderer.DrawAura(m_pEntities[i], color, alpha))
@@ -347,54 +297,11 @@ bool CGlowAura::DrawColors( void )
 	glDisable(GL_BLEND);
 	glDisable(GL_POLYGON_OFFSET_FILL);	
 
-	if (!m_useFBOs)
-	{
-		// Save it to the color RTT
-		m_pColorsRTT = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
+	// Save it to the color RTT
+	m_pColorsRTT = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
 
-		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pColorsRTT->palloc->gl_index);
-		glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
-	}
-	else
-	{
-		// First blit over to the solid FBO
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_pSolidFBO->fbo.fboid);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
-
-		gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, rns.pboundfbo->fboid);
-		glReadBuffer(GL_COLOR_ATTACHMENT1);
-
-		gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_pSolidFBO->fbo.fboid);
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		// Perform blit
-		gGLExtF.glBlitFramebuffer(0, 0, rns.screenwidth, rns.screenheight, 0, 0, rns.screenwidth, rns.screenheight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-		// Now resize our texture to the aura size
-		m_pColorFBO = gFBOCache.Alloc(AURA_RESOLUTION, AURA_RESOLUTION, false);
-		if (!m_pColorFBO)
-		{
-			Sys_ErrorPopup("Failed to create FBO for blurring aura colors.");
-			gVBMRenderer.FinishAuraPass();
-			return false;
-		}
-
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_pColorFBO->fbo.fboid);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
-
-		gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, m_pSolidFBO->fbo.fboid);
-		glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-		gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_pColorFBO->fbo.fboid);
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		// Blit over the color buffer
-		gGLExtF.glBlitFramebuffer(0, 0, rns.screenwidth, rns.screenheight, 0, 0, AURA_RESOLUTION, AURA_RESOLUTION, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	}
+	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pColorsRTT->palloc->gl_index, true);
+	glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
 
 	return true;
 }
@@ -404,41 +311,25 @@ bool CGlowAura::DrawColors( void )
 //====================================
 bool CGlowAura::BlurTexture( void )
 {	
-	if (!m_useFBOs)
-	{
-		// Resize the color texture to the proper resolution
-		glViewport(0, 0, AURA_RESOLUTION, AURA_RESOLUTION);
-		glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
-		glClear(GL_COLOR_BUFFER_BIT);
+	// Resize the color texture to the proper resolution
+	glViewport(0, 0, AURA_RESOLUTION, AURA_RESOLUTION);
+	glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
+	glClear(GL_COLOR_BUFFER_BIT);
 
-		if (!m_pShader->SetDeterminator(m_attribs.d_type, glowaura_texture))
-			return false;
+	if (!m_pShader->SetDeterminator(m_attribs.d_type, glowaura_texture))
+		return false;
 
-		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pColorsRTT->palloc->gl_index);
-		m_pShader->SetUniform1i(m_attribs.u_scrntexture, 0);
+	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pColorsRTT->palloc->gl_index);
+	m_pShader->SetUniform1i(m_attribs.u_scrntexturerect, 0);
 
-		R_ValidateShader(m_pShader);
+	R_ValidateShader(m_pShader);
 
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		// Allocate the blur 1 target and fetch to it
-		m_pBlurRTT = gRTTCache.Alloc(AURA_RESOLUTION, AURA_RESOLUTION);
-		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pBlurRTT->palloc->gl_index);
-		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, AURA_RESOLUTION, AURA_RESOLUTION, 0);
-	}
-	else
-	{
-		// Allocate and bind the blur FBO
-		m_pBlurFBO = gFBOCache.Alloc(AURA_RESOLUTION, AURA_RESOLUTION, false);
-		if (!m_pBlurFBO)
-		{
-			Sys_ErrorPopup("Failed to create FBO for blurring aura texture.");
-			return false;
-		}
-
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_pBlurFBO->fbo.fboid);
-		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pColorFBO->fbo.ptexture1->gl_index);
-	}
+	// Allocate the blur 1 target and fetch to it
+	m_pBlurRTT = gRTTCache.Alloc(AURA_RESOLUTION, AURA_RESOLUTION);
+	R_Bind2DTexture(GL_TEXTURE0_ARB, m_pBlurRTT->palloc->gl_index);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, AURA_RESOLUTION, AURA_RESOLUTION, 0);
 
 	glViewport(0, 0, AURA_RESOLUTION, AURA_RESOLUTION);
 
@@ -457,28 +348,9 @@ bool CGlowAura::BlurTexture( void )
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	if (!m_useFBOs)
-	{
-		// Fetch to the RTT
-		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pBlurRTT->palloc->gl_index);
-		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, AURA_RESOLUTION, AURA_RESOLUTION, 0);
-	}
-	else
-	{
-		// Clear the target FBO
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_pColorFBO->fbo.fboid);
-		glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		// Blit over to the color FBO and use it for rendering
-		gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, m_pBlurFBO->fbo.fboid);
-		gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_pColorFBO->fbo.fboid);
-		gGLExtF.glBlitFramebuffer(0, 0, AURA_RESOLUTION, AURA_RESOLUTION, 0, 0, AURA_RESOLUTION, AURA_RESOLUTION, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, m_pBlurFBO->fbo.fboid);
-		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pColorFBO->fbo.ptexture1->gl_index);
-	}
+	// Fetch to the RTT
+	R_Bind2DTexture(GL_TEXTURE0_ARB, m_pBlurRTT->palloc->gl_index);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, AURA_RESOLUTION, AURA_RESOLUTION, 0);
 
 	//
 	// Blur the resized texture horizontally
@@ -493,22 +365,9 @@ bool CGlowAura::BlurTexture( void )
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
-	if (!m_useFBOs)
-	{
-		// Bind it to the blur1 target
-		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pBlurRTT->palloc->gl_index);
-		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, AURA_RESOLUTION, AURA_RESOLUTION, 0);
-	}
-	else
-	{
-		// Blit over to the color FBO
-		gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, m_pBlurFBO->fbo.fboid);
-		gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_pColorFBO->fbo.fboid);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		gGLExtF.glBlitFramebuffer(0, 0, AURA_RESOLUTION, AURA_RESOLUTION, 0, 0, AURA_RESOLUTION, AURA_RESOLUTION, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	}
+	// Bind it to the blur1 target
+	R_Bind2DTexture(GL_TEXTURE0_ARB, m_pBlurRTT->palloc->gl_index);
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, AURA_RESOLUTION, AURA_RESOLUTION, 0);
 
 	return true;
 }
@@ -518,36 +377,21 @@ bool CGlowAura::BlurTexture( void )
 //====================================
 bool CGlowAura::DrawFinal( void )
 {
-	if (!m_useFBOs)
-	{
-		// Enable rectangles, GLSL needs it
-		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-		glEnable(GL_TEXTURE_RECTANGLE);
-	}
-	else
-	{
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-	}
-
 	// Restore viewport
 	glViewport(0, 0, rns.screenwidth, rns.screenheight);
 
-	if (!m_useFBOs)
-	{
-		//
-		// Restore the screen contents
-		//
-		if (!m_pShader->SetDeterminator(m_attribs.d_type, glowaura_texture))
-			return false;
+	//
+	// Restore the screen contents
+	//
+	if (!m_pShader->SetDeterminator(m_attribs.d_type, glowaura_texture))
+		return false;
 
-		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
-		m_pShader->SetUniform1i(m_attribs.u_scrntexture, 0);
+	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	m_pShader->SetUniform1i(m_attribs.u_scrntexturerect, 0);
 
-		R_ValidateShader(m_pShader);
+	R_ValidateShader(m_pShader);
 
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-	}
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	//
 	// Draw the auras
@@ -558,23 +402,11 @@ bool CGlowAura::DrawFinal( void )
 	if(!m_pShader->SetDeterminator(m_attribs.d_type, glowaura_combine))
 		return false;
 
-	if (!m_useFBOs)
-	{
-		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-		glBindTexture(GL_TEXTURE_RECTANGLE, m_pWhiteRTT->palloc->gl_index);
-		m_pShader->SetUniform1i(m_attribs.u_scrntexturerect, 0);
+	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pWhiteRTT->palloc->gl_index);
+	m_pShader->SetUniform1i(m_attribs.u_scrntexturerect, 0);
 
-		R_Bind2DTexture(GL_TEXTURE1_ARB, m_pBlurRTT->palloc->gl_index);
-		m_pShader->SetUniform1i(m_attribs.u_texture0, 1);
-	}
-	else
-	{
-		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pSolidFBO->fbo.ptexture1->gl_index);
-		m_pShader->SetUniform1i(m_attribs.u_scrntexture, 0);
-
-		R_Bind2DTexture(GL_TEXTURE1_ARB, m_pBlurFBO->fbo.ptexture1->gl_index);
-		m_pShader->SetUniform1i(m_attribs.u_texture0, 1);
-	}
+	R_Bind2DTexture(GL_TEXTURE1_ARB, m_pBlurRTT->palloc->gl_index);
+	m_pShader->SetUniform1i(m_attribs.u_texture0, 1);
 
 	R_ValidateShader(m_pShader);
 
@@ -595,10 +427,9 @@ bool CGlowAura::DrawAuras( void )
 
 	// We cannot draw to any other renderpasses
 	// than main
-	if (!rns.mainframe || rns.fboused && rns.usehdr 
-		&& rns.pboundfbo != &rns.mainfbo)
+	if (!rns.mainframe)
 	{
-		Con_Printf("%s - Glow aura can only be rendered into the main screen FBO.\n", __FUNCTION__);
+		Con_Printf("%s - Glow aura can only be rendered into the main screen.\n", __FUNCTION__);
 		return true;
 	}
 
@@ -608,19 +439,9 @@ bool CGlowAura::DrawAuras( void )
 	if(!m_iNumEntities)
 		return true;
 
-	m_useFBOs = (rns.fboused && rns.usehdr) ? true : false;
-
-	// Save the screen texture and clear the color buffer
-	if (!m_useFBOs)
-	{
-		// Enable the rectangle texture
-		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-		glEnable(GL_TEXTURE_RECTANGLE);
-
-		m_pScreenRTT = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
-		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
-		glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
-	}
+	m_pScreenRTT = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
+	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index, true);
+	glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
 
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL);
@@ -630,7 +451,6 @@ bool CGlowAura::DrawAuras( void )
 	{
 		Sys_ErrorPopup("Rendering error: %s.", gVBMRenderer.GetShaderErrorString());
 		gRTTCache.Free(m_pScreenRTT);
-		glDisable(GL_TEXTURE_RECTANGLE);
 		glDepthMask(GL_TRUE);
 		return false;
 	}
@@ -642,7 +462,6 @@ bool CGlowAura::DrawAuras( void )
 	if(!DrawColors())
 	{
 		gRTTCache.Free(m_pScreenRTT);
-		glDisable(GL_TEXTURE_RECTANGLE);
 		glDepthMask(GL_TRUE);
 		return false;
 	}
@@ -651,7 +470,6 @@ bool CGlowAura::DrawAuras( void )
 	if (!DrawSolid())
 	{
 		gRTTCache.Free(m_pScreenRTT);
-		glDisable(GL_TEXTURE_RECTANGLE);
 		glDepthMask(GL_TRUE);
 		return false;
 	}
@@ -675,23 +493,11 @@ bool CGlowAura::DrawAuras( void )
 		return false;
 	}
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_rectangle, m_useFBOs ? FALSE : TRUE))
-	{
-		m_pShader->DisableShader();
-		return false;
-	}
-
 	m_pShader->SetUniform1i(m_attribs.u_texture0, 0);
-	if(m_useFBOs)
-		m_pShader->SetUniform1i(m_attribs.u_scrntexture, 0);
-	else
-		m_pShader->SetUniform1i(m_attribs.u_scrntexturerect, 0);
+	m_pShader->SetUniform1i(m_attribs.u_scrntexturerect, 0);
 
 	m_pShader->SetUniform1f(m_attribs.u_size, AURA_RESOLUTION);
-	if (m_useFBOs)
-		m_pShader->SetUniform2f(m_attribs.u_screensize, 1.0f, 1.0f);
-	else
-		m_pShader->SetUniform2f(m_attribs.u_screensize, rns.screenwidth, rns.screenheight);
+	m_pShader->SetUniform2f(m_attribs.u_screensize, rns.screenwidth, rns.screenheight);
 
 	rns.view.modelview.PushMatrix();
 	rns.view.modelview.LoadIdentity();
@@ -730,60 +536,29 @@ bool CGlowAura::DrawAuras( void )
 	m_pShader->DisableShader();
 	m_pVBO->UnBind();
 
-	if (!m_useFBOs)
+	// Free the RTT textures for reuse
+	if (m_pScreenRTT)
 	{
-		// Disable the rectangle texture
-		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-		glDisable(GL_TEXTURE_RECTANGLE);
-
-		// Free the RTT textures for reuse
-		if (m_pScreenRTT)
-		{
-			gRTTCache.Free(m_pScreenRTT);
-			m_pScreenRTT = nullptr;
-		}
-
-		if (m_pWhiteRTT)
-		{
-			gRTTCache.Free(m_pWhiteRTT);
-			m_pWhiteRTT = nullptr;
-		}
-
-		if (m_pColorsRTT)
-		{
-			gRTTCache.Free(m_pColorsRTT);
-			m_pColorsRTT = nullptr;
-		}
-
-		if (m_pBlurRTT)
-		{
-			gRTTCache.Free(m_pBlurRTT);
-			m_pBlurRTT = nullptr;
-		}
+		gRTTCache.Free(m_pScreenRTT);
+		m_pScreenRTT = nullptr;
 	}
-	else
+
+	if (m_pWhiteRTT)
 	{
-		if (m_pSolidFBO)
-		{
-			gFBOCache.Free(m_pSolidFBO);
-			m_pSolidFBO = nullptr;
-		}
+		gRTTCache.Free(m_pWhiteRTT);
+		m_pWhiteRTT = nullptr;
+	}
 
-		if (m_pColorFBO)
-		{
-			gFBOCache.Free(m_pColorFBO);
-			m_pColorFBO = nullptr;
-		}
+	if (m_pColorsRTT)
+	{
+		gRTTCache.Free(m_pColorsRTT);
+		m_pColorsRTT = nullptr;
+	}
 
-		if (m_pBlurFBO)
-		{
-			gFBOCache.Free(m_pBlurFBO);
-			m_pBlurFBO = nullptr;
-		}
-
-		gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
-		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-		glReadBuffer(GL_COLOR_ATTACHMENT0);
+	if (m_pBlurRTT)
+	{
+		gRTTCache.Free(m_pBlurRTT);
+		m_pBlurRTT = nullptr;
 	}
 
 	// Clear any binds

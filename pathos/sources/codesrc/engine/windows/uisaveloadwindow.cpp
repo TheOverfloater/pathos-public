@@ -58,8 +58,8 @@ const Char CUISaveLoadWindow::DELETE_SAVE_BUTTON_OBJ_NAME[] = "DeleteSaveButton"
 //=============================================
 static Int32 SortSaves( const void* p1, const void* p2 )
 {
-	const CUISaveLoadWindow::save_file_t *psave1 = reinterpret_cast<const CUISaveLoadWindow::save_file_t*>(const_cast<const void*>(p1));
-	const CUISaveLoadWindow::save_file_t *psave2 = reinterpret_cast<const CUISaveLoadWindow::save_file_t*>(const_cast<const void*>(p2));
+	const CUISaveLoadWindow::save_file_t *psave1 = static_cast<const CUISaveLoadWindow::save_file_t*>(const_cast<const void*>(p1));
+	const CUISaveLoadWindow::save_file_t *psave2 = static_cast<const CUISaveLoadWindow::save_file_t*>(const_cast<const void*>(p2));
 
 	if(!qstrlen(psave1->filepath))
 		return -1;

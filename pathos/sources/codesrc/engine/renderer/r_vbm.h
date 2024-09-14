@@ -249,8 +249,7 @@ struct vbm_attribs
 		d_luminance(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_bumpmapping(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_numdlights(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_use_ubo(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_rectangle(CGLSLShader::PROPERTY_UNAVAILABLE)
+		d_use_ubo(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{
 			for(Uint32 i = 0; i < MAX_SHADER_BONES; i++)
 				boneindexes[i] = 0;
@@ -325,7 +324,6 @@ struct vbm_attribs
 	Int32 d_bumpmapping;
 	Int32 d_numdlights;
 	Int32 d_use_ubo;
-	Int32 d_rectangle;
 	
 	vbm_dlight_attribs_t dlights[MAX_BATCH_LIGHTS];
 };

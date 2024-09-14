@@ -53,19 +53,24 @@ ai_task_t taskListScheduleWanderNPCWander[] =
 	AITASK(AI_TASK_WAIT,								4)
 };
 
+Uint32 interruptBitsScheduleWanderNPCWander[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_FEAR,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_BLOCKING_PATH,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleWanderNPCWander(
 	// Task list
 	taskListScheduleWanderNPCWander, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleWanderNPCWander),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_SEE_FEAR |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_BLOCKING_PATH |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleWanderNPCWander, PT_ARRAYSIZE(interruptBitsScheduleWanderNPCWander)),
 	// Sound mask
 	AI_SOUND_DANGER |
 	AI_SOUND_COMBAT, 
@@ -87,19 +92,24 @@ ai_task_t taskListScheduleWanderNPCFindSittingSpot[] =
 	AITASK(AI_TASK_SET_SCHEDULE,						(Float)AI_WANDERNPC_SCHED_SIT)
 };
 
+Uint32 interruptBitsScheduleWanderNPCFindSittingSpot[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_FEAR,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_BLOCKING_PATH,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleWanderNPCFindSittingSpot(
 	// Task list
 	taskListScheduleWanderNPCFindSittingSpot, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleWanderNPCFindSittingSpot),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_SEE_FEAR |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_BLOCKING_PATH |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleWanderNPCFindSittingSpot, PT_ARRAYSIZE(interruptBitsScheduleWanderNPCFindSittingSpot)),
 	// Sound mask
 	AI_SOUND_DANGER |
 	AI_SOUND_COMBAT, 
@@ -124,19 +134,24 @@ ai_task_t taskListScheduleWanderNPCWalkToWindow[] =
 	AITASK(AI_WANDERNPC_TASK_RANDOM_WAIT,				0)
 };
 
+Uint32 interruptBitsScheduleWanderNPCWalkToWindow[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_FEAR,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_BLOCKING_PATH,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleWanderNPCWalkToWindow(
 	// Task list
 	taskListScheduleWanderNPCWalkToWindow, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleWanderNPCWalkToWindow),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_SEE_FEAR |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_BLOCKING_PATH |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleWanderNPCWalkToWindow, PT_ARRAYSIZE(interruptBitsScheduleWanderNPCWalkToWindow)),
 	// Sound mask
 	AI_SOUND_DANGER |
 	AI_SOUND_COMBAT, 
@@ -161,13 +176,18 @@ ai_task_t taskListScheduleWanderNPCSit[] =
 	AITASK(AI_TASK_PLAY_SEQUENCE,						(Float)ACT_STAND)
 };
 
+Uint32 interruptBitsScheduleWanderNPCSit[] =
+{
+	AI_COND_SCHEDULE_DONE
+};
+
 const CAISchedule scheduleWanderNPCSit(
 	// Task list
 	taskListScheduleWanderNPCSit, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleWanderNPCSit),
 	// AI interrupt mask
-	AI_COND_SCHEDULE_DONE,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleWanderNPCSit, PT_ARRAYSIZE(interruptBitsScheduleWanderNPCSit)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -192,19 +212,24 @@ ai_task_t taskListScheduleWanderNPCFindPlayer[] =
 	AITASK(AI_TASK_WAIT,								5)
 };
 
+Uint32 interruptBitsScheduleWanderNPCFindPlayer[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_FEAR,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_BLOCKING_PATH,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleWanderNPCFindPlayer(
 	// Task list
 	taskListScheduleWanderNPCFindPlayer, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleWanderNPCFindPlayer),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_SEE_FEAR |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_BLOCKING_PATH |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleWanderNPCFindPlayer, PT_ARRAYSIZE(interruptBitsScheduleWanderNPCFindPlayer)),
 	// Sound mask
 	AI_SOUND_DANGER |
 	AI_SOUND_COMBAT, 
@@ -286,7 +311,7 @@ bool CWanderNPC::KeyValue( const keyvalue_t& kv )
 void CWanderNPC::InitNPC( void )
 {
 	m_nextWanderTime = g_pGameVars->time + Common::RandomFloat(30, 70);
-	m_lastPlayerSightTime = g_pGameVars->time;
+	m_lastEnemySightTime = g_pGameVars->time;
 
 	m_tirednessFactor = 0;
 	m_wanderDestinationNodeIndex = NO_POSITION;
@@ -311,9 +336,9 @@ const CAISchedule* CWanderNPC::GetSchedule( void )
 				return GetScheduleByIndex(AI_WANDERNPC_SCHED_SIT);
 			}
 			else if(m_shouldWander && (m_nextWanderTime < g_pGameVars->time) 
-				&& Common::RandomLong(0, 3) == 1 && !CheckConditions(AI_COND_PLAYER_CLOSE))
+				&& Common::RandomLong(0, 3) == 1 && !CheckCondition(AI_COND_PLAYER_CLOSE))
 			{
-				if(!CheckConditions(AI_COND_SEE_CLIENT) && (g_pGameVars->time - m_wanderLastPlayerSightTime) > WANDERNPC_PLAYER_ABSENCE_TIME_TRESHOLD)
+				if(!CheckCondition(AI_COND_SEE_CLIENT) && (g_pGameVars->time - m_wanderLastPlayerSightTime) > WANDERNPC_PLAYER_ABSENCE_TIME_TRESHOLD)
 				{
 					Float playerSeekChance = (g_pGameVars->time - m_wanderLastPlayerSightTime)/WANDERNPC_PLAYER_ABSENCE_TIME_TRESHOLD;
 					if(Common::RandomFloat(0, 4) <= playerSeekChance)
@@ -401,7 +426,7 @@ void CWanderNPC::RunAI( void )
 			m_tirednessFactor = maxTiredness;
 	}
 
-	if(CheckConditions(AI_COND_SEE_CLIENT))
+	if(CheckCondition(AI_COND_SEE_CLIENT))
 		m_wanderLastPlayerSightTime = g_pGameVars->time;
 
 	CTalkNPC::RunAI();
@@ -418,9 +443,9 @@ void CWanderNPC::PreScheduleThink( void )
 	{
 		Float playerDistance = (pPlayer->GetOrigin()-m_pState->origin).Length2D();
 		if(playerDistance < WANDERNPC_PLAYER_CLOSE_DISTANCE)
-			SetConditions(AI_COND_PLAYER_CLOSE);
+			SetCondition(AI_COND_PLAYER_CLOSE);
 		else
-			ClearConditions(AI_COND_PLAYER_CLOSE);
+			ClearCondition(AI_COND_PLAYER_CLOSE);
 	}
 
 	CTalkNPC::PreScheduleThink();

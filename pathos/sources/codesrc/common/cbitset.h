@@ -20,11 +20,14 @@ class CBitSet
 {
 public:
 	// Number of bits in a byte
-	static const Uint32 NB_BITS_IN_INT = 8*sizeof(Int32);
+	static const Uint32 NB_BITS_IN_BYTE = 8*sizeof(byte);
 
 public:
 	CBitSet( void );
 	explicit CBitSet( Uint32 size );
+	CBitSet( const CBitSet& src );
+	CBitSet( const byte* pdataarray, Uint32 numbits );
+	CBitSet( Uint32 bitsetSize, const Uint32 inputBits[], Uint32 arraySize );
 	~CBitSet( void );
 
 public:
@@ -44,16 +47,51 @@ public:
 	inline void resize( Uint32 size );
 	// Tells the count of set bits
 	inline Uint32 count( void ) const;
-	// Tells the size of the bitset
-	inline Uint32 size( void ) const;
+	// Sets all bits in the bitset
+	inline void setall( void );
+	// Clears all bits in the bitset
+	inline void reset( void );
 	// Clears the bitset
 	inline void clear( void );
 
+public:
+	// Implements assignment operator
+	inline CBitSet& operator = ( const CBitSet& other );
+	// Implements the bitset OR operator
+	inline CBitSet operator | ( const CBitSet& other ) const;
+	// Implements the bitset OR assignment operator
+	inline CBitSet& operator |= ( const CBitSet& other );
+	// Implements the bitset AND operator
+	inline CBitSet operator & ( const CBitSet& other ) const;
+	// Implements the bitset AND assignment operator
+	inline CBitSet& operator &= ( const CBitSet& other );
+
+	// Implements the bitset inverse operator
+	inline CBitSet operator ~ ( void ) const;
+
+	// Implements equality check operator
+	inline bool operator == ( const CBitSet& other );
+	// Implements non-equality check operator
+	inline bool operator != ( const CBitSet& other );
+
+public:
+	// Get raw bitset data
+	byte* getData( void );
+	// Get raw bitset data
+	const byte* getDataConst( void ) const;
+	// Tells the size of the bitset
+	inline Uint32 size( void ) const;
+	// Tells the number of bytes in the bitset
+	inline Uint32 numbytes( void ) const;
+
 private:
 	// Array of bits
-	Int32* m_pDataArray;
+	byte* m_pDataArray;
 	// Number of bits allocated for
 	Uint32 m_numBits;
+	// Number of bytes
+	Uint32 m_numBytes;
 };
+
 #include "cbitset_inline.hpp"
 #endif //CBITSET_H

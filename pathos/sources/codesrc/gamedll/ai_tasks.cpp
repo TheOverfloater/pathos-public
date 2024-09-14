@@ -27,7 +27,7 @@ bool CBaseNPC::IsTaskComplete( void ) const
 //=============================================
 void CBaseNPC::SetTaskFailed( bool allowRetry )
 {
-	SetConditions(AI_COND_TASK_FAILED);
+	SetCondition(AI_COND_TASK_FAILED);
 	if(allowRetry)
 		m_taskStatus = TASK_STATUS_FAILED;
 	else
@@ -40,7 +40,7 @@ void CBaseNPC::SetTaskFailed( bool allowRetry )
 //=============================================
 void CBaseNPC::SetTaskCompleted( void )
 {
-	if(CheckConditions(AI_COND_TASK_FAILED))
+	if(CheckCondition(AI_COND_TASK_FAILED))
 		return;
 
 	m_taskStatus = TASK_STATUS_COMPLETE;
@@ -176,7 +176,7 @@ void CBaseNPC::StartTask( const ai_task_t* pTask )
 		break;
 	case AI_TASK_CLEAR_BLOCK_STATUS:
 		{
-			ClearConditions(AI_COND_BLOCKING_PATH);
+			ClearCondition(AI_COND_BLOCKING_PATH);
 			m_blockedNPC.reset();
 			SetTaskCompleted();
 		}
@@ -522,7 +522,7 @@ void CBaseNPC::StartTask( const ai_task_t* pTask )
 			Float targetDistance = (targetPosition - m_pState->origin).Length();
 			if(targetDistance < pTask->param)
 			{
-				ClearConditions(AI_COND_FOLLOW_TARGET_TOO_FAR);
+				ClearCondition(AI_COND_FOLLOW_TARGET_TOO_FAR);
 				SetTaskCompleted();
 			}
 			else
@@ -655,15 +655,15 @@ void CBaseNPC::StartTask( const ai_task_t* pTask )
 				{
 					SetTaskCompleted();
 				}
-				else if(m_capabilityBits & (AI_CAP_RANGE_ATTACK1|AI_CAP_RANGE_ATTACK2)
-					&& !CheckConditions(AI_COND_CAN_RANGE_ATTACK1|AI_COND_CAN_RANGE_ATTACK2)
+				else if((HasCapability(AI_CAP_RANGE_ATTACK1) || HasCapability(AI_CAP_RANGE_ATTACK2))
+					&& !CheckCondition(AI_COND_CAN_RANGE_ATTACK1) && !CheckCondition(AI_COND_CAN_RANGE_ATTACK2)
 					&& GetLateralShootingPosition(m_enemyLastKnownPosition + enemyCenterOffset))
 				{
 					Util::EntityConDPrintf(m_pEdict, "Found a lateral shooting position.\n");
 					SetTaskCompleted();
 				}
-				else if(m_capabilityBits & (AI_CAP_RANGE_ATTACK1|AI_CAP_RANGE_ATTACK2)
-					&& !CheckConditions(AI_COND_CAN_RANGE_ATTACK1|AI_COND_CAN_RANGE_ATTACK2)
+				else if((HasCapability(AI_CAP_RANGE_ATTACK1) || HasCapability(AI_CAP_RANGE_ATTACK2))
+					&& !CheckCondition(AI_COND_CAN_RANGE_ATTACK1) && !CheckCondition(AI_COND_CAN_RANGE_ATTACK2)
 					&& GetClosestShootingPosition(m_enemyLastKnownPosition + enemyCenterOffset))
 				{
 					Util::EntityConDPrintf(m_pEdict, "Found a closer shooting position.\n");
@@ -672,8 +672,8 @@ void CBaseNPC::StartTask( const ai_task_t* pTask )
 				else
 				{
 					// Set enemy as not found it we can't see him
-					if(!CheckConditions(AI_COND_SEE_ENEMY))
-						SetConditions(AI_COND_ENEMY_NOT_FOUND);
+					if(!CheckCondition(AI_COND_SEE_ENEMY))
+						SetCondition(AI_COND_ENEMY_NOT_FOUND);
 
 					SetTaskFailed(false);
 				}
@@ -1215,7 +1215,7 @@ void CBaseNPC::RunTask( const ai_task_t* pTask )
 			// Check if we're in the range
 			if(targetDistance < pTask->param)
 			{
-				ClearConditions(AI_COND_FOLLOW_TARGET_TOO_FAR);
+				ClearCondition(AI_COND_FOLLOW_TARGET_TOO_FAR);
 				SetTaskCompleted();
 				ClearRoute();
 			}

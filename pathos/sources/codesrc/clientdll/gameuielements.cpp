@@ -64,6 +64,9 @@ void CGameUIObject::setParent( CGameUIObject* pparent )
 
 	// Re-adjust position
 	adjustPosition();
+
+	// Make sure to call this
+	m_pParent->childPostAdjustPosition(this);
 }
 
 //====================================
@@ -1075,7 +1078,8 @@ CGameUITextTab::CGameUITextTab( Int32 flags, const font_set_t* pfontset, Uint32 
 	if(!m_pFontSet)
 		m_pFontSet = gGameUIManager.GetDefaultFontSet();
 
-	m_pScroller = new CGameUIScroller(CGameUIObject::FL_NONE, CGameUIObject::FL_SCROLL_V, edgethickness, color, highlightcolor, highlightcolor, m_pFontSet->fontsize, 16, m_height - m_edgeThickness*2, 0, m_edgeThickness);
+	Uint32 edgeThicknessCount = (m_flags & CGameUIObject::FL_NO_BOTTOM_BORDER) ? 1 : 2;
+	m_pScroller = new CGameUIScroller(CGameUIObject::FL_NONE, CGameUIObject::FL_SCROLL_V, edgethickness, color, highlightcolor, highlightcolor, m_pFontSet->fontsize, 16, m_height - edgeThicknessCount, 0, m_edgeThickness);
 	m_pScroller->setParent(this);
 }
 
@@ -1133,6 +1137,9 @@ void CGameUITextTab::initData( const byte* pdata, Uint32 datasize )
 	// Set the text to display
 	m_displayText.assign(reinterpret_cast<const Char*>(pdata), datasize);
 	updateRangeSize();
+	
+	// Reset to beginning
+	m_pScroller->resetScrollerPosition();
 }
 
 //====================================
@@ -1203,7 +1210,7 @@ void CGameUITextTab::updateRangeSize( void )
 //=============================================
 bool CGameUITextTab::mouseWheelEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool keyDown, Int32 scroll )
 {
-	if(keyDown && m_pScroller->moveScroller(button, scroll))
+	if(keyDown && isVisible() && m_pScroller->moveScroller(button, scroll))
 		return true;
 	else
 		return false;
@@ -1232,6 +1239,19 @@ bool CGameUITextTab::keyEvent( Int32 button, Int16 mod, bool keyDown )
 	default:
 		return false;
 	}
+}
+
+//====================================
+//
+//====================================
+void CGameUITextTab::think( void )
+{
+	// Call base class to manage this
+	CGameUISurface::think();
+
+	// Set us as the input focus if the mouse is over us
+	if(isMouseOver())
+		setInputFocusObject(this);
 }
 
 //====================================
@@ -1418,7 +1438,8 @@ bool CGameUIWindow::mouseWheelEvent( Int32 mouseX, Int32 mouseY, Int32 button, b
 		return false;
 
 	// Allow input focus object to take any inputs first
-	if(m_pInputFocusObject && m_pInputFocusObject->mouseWheelEvent(mouseX, mouseY, button, keyDown, scroll))
+	if(m_pInputFocusObject && m_pInputFocusObject->isVisible() 
+		&& m_pInputFocusObject->mouseWheelEvent(mouseX, mouseY, button, keyDown, scroll))
 		return true;
 
 	// If not, allow others to take the input
@@ -1938,6 +1959,18 @@ bool CGameUIScroller::moveScroller( Int32 button, Int32 scrollAmount )
 }
 
 //=============================================
+// @brief Resets the position of the scroller
+//
+//=============================================
+void CGameUIScroller::resetScrollerPosition( void )
+{
+	m_pDragButton->setPosition(0);
+	readjustDragButton();
+
+	m_pParent->setOffsetValue(0);
+}
+
+//=============================================
 // @brief Sets the source text array to render text from
 //
 //=============================================
@@ -2358,4 +2391,449 @@ bool CGameUITextInputTab::draw( void )
 
 	// Call base class to handle rendering
 	return CGameUIObject::draw();
+}
+
+//=============================================
+// @brief Constructor
+//
+//=============================================
+CGameUIScrollableSurface::CGameUIScrollableSurface( Int32 flags, Uint32 edgethickness, const color32_t& color, const color32_t& bgcolor, const color32_t& highlightcolor, const font_set_t* pFont, Int32 originx, Int32 originy, Uint32 width, Uint32 height, Uint32 postspacing ) :
+	CGameUIObject(flags, originx, originy, width, height),
+	m_pSurface(nullptr),
+	m_pScroller(nullptr),
+	m_scrollOffset(0),
+	m_baseYOffset(0),
+	m_borderEdgeThickness(0),
+	m_baseHeight(height),
+	m_postElementSpacing(postspacing),
+	m_pFont(pFont)
+{
+	m_pSurface = new CGameUISurface(flags, edgethickness, color, bgcolor, 0, 0, width, height);
+	m_pSurface->setParent(this);
+
+	Int32 scrollerFlags = CGameUIObject::FL_NONE;
+	if (m_flags & CGameUIObject::FL_SCROLL_REVERSE)
+		scrollerFlags |= CGameUIObject::FL_SCROLL_REVERSE;
+
+	Uint32 edgeThicknessCount = (m_flags & CGameUIObject::FL_NO_BOTTOM_BORDER) ? 1 : 2;
+	m_pScroller = new CGameUIScroller(scrollerFlags, CGameUIObject::FL_SCROLL_V, edgethickness, color, highlightcolor, highlightcolor, m_pFont->fontsize, 16, m_height - edgethickness * edgeThicknessCount, 0, edgethickness);
+	m_pScroller->setParent(this);
+}
+
+//=============================================
+// @brief Destructor
+//
+//=============================================
+CGameUIScrollableSurface::~CGameUIScrollableSurface(void)
+{
+}
+
+//=============================================
+// @brief Sets the offset value for the element
+//
+//=============================================
+void CGameUIScrollableSurface::setOffsetValue( Float offset )
+{
+	m_scrollOffset = offset;
+}
+
+//====================================
+//
+//====================================
+bool CGameUIScrollableSurface::mouseWheelEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool keyDown, Int32 scroll )
+{
+	if (keyDown && isVisible() && m_pScroller->moveScroller(button, scroll))
+		return true;
+	else
+		return false;
+}
+
+//====================================
+//
+//====================================
+bool CGameUIScrollableSurface::mouseButtonEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool keyDown )
+{
+	if(!m_isVisible)
+		return false;
+
+	if(!isInteractive())
+		return false;
+
+	if(keyDown && !isMouseOver(mouseX, mouseY))
+		return false;
+
+	if(m_pChildrenArray.empty())
+		return false;
+
+	// Offset in modelview by the offset
+	Int32 minusCoverage = m_height - m_baseHeight + m_baseYOffset;
+	if (minusCoverage < 0)
+		minusCoverage = 0;
+
+	Int32 offsetAmount = minusCoverage * m_scrollOffset;
+
+	// Prioritize interactives first
+	for(Uint32 i = 0; i < m_pChildrenArray.size(); i++)
+	{
+		CGameUIObject* pObject = m_pChildrenArray[i];
+		if (!pObject->isInteractive())
+			continue;
+
+		if(pObject->getFlags() & FL_DRAW_LINKED_HIGHLIGHT_ONLY)
+		{
+			CGameUIObject* pLinkedObject = pObject->getLinkedObject();
+			if(!pLinkedObject->isMouseOver())
+				continue;
+		}
+
+		Int32 savedOriginX = 0;
+		Int32 savedOriginY = 0;
+		if (shouldShiftChild(pObject))
+		{
+			if (!isChildVisible(pObject, offsetAmount))
+				continue;
+
+			// Get current origin
+			pObject->getPosition(savedOriginX, savedOriginY);
+			// Set new origin and test
+			pObject->setPosition(savedOriginX, savedOriginY + m_baseYOffset - offsetAmount);
+		}
+
+		bool bResult = pObject->mouseButtonEvent(mouseX, mouseY, button, keyDown);
+
+		// Restore it
+		if (shouldShiftChild(pObject))
+			pObject->setPosition(savedOriginX, savedOriginY);
+
+		if (bResult)
+			return false;
+	}
+
+	// Now handle non-interactives
+	for (Uint32 i = 0; i < m_pChildrenArray.size(); i++)
+	{
+		CGameUIObject* pObject = m_pChildrenArray[i];
+		if (pObject->isInteractive())
+			continue;
+
+		if (pObject->getFlags() & FL_DRAW_LINKED_HIGHLIGHT_ONLY)
+		{
+			CGameUIObject* pLinkedObject = pObject->getLinkedObject();
+			if (!pLinkedObject->isMouseOver())
+				continue;
+		}
+
+		Int32 savedOriginX = 0;
+		Int32 savedOriginY = 0;
+		if (shouldShiftChild(pObject))
+		{
+			if (!isChildVisible(pObject, offsetAmount))
+				continue;
+
+			// Get current origin
+			pObject->getPosition(savedOriginX, savedOriginY);
+			// Set new origin and test
+			pObject->setPosition(savedOriginX, savedOriginY + m_baseYOffset - offsetAmount);
+		}
+
+		bool bResult = pObject->mouseButtonEvent(mouseX, mouseY, button, keyDown);
+
+		// Restore it
+		if (shouldShiftChild(pObject))
+			pObject->setPosition(savedOriginX, savedOriginY);
+
+		if (bResult)
+			return false;
+	}
+
+	return false;
+}
+
+//====================================
+//
+//====================================
+void CGameUIScrollableSurface::think( void )
+{
+	if(m_pChildrenArray.empty())
+		return;
+
+	// Set us as the input focus if the mouse is over us
+	if(isMouseOver())
+		setInputFocusObject(this);
+
+	// Offset in modelview by the offset
+	Int32 minusCoverage = m_height - m_baseHeight + m_baseYOffset;
+	if (minusCoverage < 0)
+		minusCoverage = 0;
+
+	Int32 offsetAmount = minusCoverage * m_scrollOffset;
+
+	for (Uint32 i = 0; i < m_pChildrenArray.size(); i++)
+	{
+		CGameUIObject* pObject = m_pChildrenArray[i];
+
+		Int32 savedOriginX = 0;
+		Int32 savedOriginY = 0;
+
+		if (pObject->isInteractive() && shouldShiftChild(pObject))
+		{
+			if (!isChildVisible(pObject, offsetAmount))
+				continue;
+
+			pObject->getPosition(savedOriginX, savedOriginY);
+			pObject->setPosition(savedOriginX, savedOriginY + m_baseYOffset - offsetAmount);
+		}
+
+		pObject->think();
+
+		if (pObject->isInteractive() && shouldShiftChild(pObject))
+			pObject->setPosition(savedOriginX, savedOriginY);
+	}
+}
+
+//====================================
+//
+//====================================
+bool CGameUIScrollableSurface::draw( void )
+{
+	if(!m_isVisible)
+		return true;
+
+	if(m_pChildrenArray.empty())
+		return true;
+
+	// Draw non-scrolling elements first
+	for(Uint32 i = 0; i < m_pChildrenArray.size(); i++)
+	{
+		CGameUIObject* pObject = m_pChildrenArray[i];
+		if (shouldShiftChild(pObject))
+			continue;
+
+		if(pObject->getFlags() & FL_DRAW_LINKED_HIGHLIGHT_ONLY)
+		{
+			CGameUIObject* pLinkedObject = pObject->getLinkedObject();
+			if(!pLinkedObject->isMouseOver())
+				continue;
+		}
+
+		if(!pObject->isVisible())
+			continue;
+
+		if(!pObject->draw())
+			return false;
+	}
+
+	// Get the parent's size to set up the scissor
+	Int32 absX, absY;
+	m_pSurface->getAbsolutePosition(absX, absY);
+
+	Uint32 width, height;
+	m_pSurface->getSize(width, height);
+
+	Uint32 scrwidth, scrheight;
+	cl_renderfuncs.pfnGetScreenSize(scrwidth, scrheight);
+
+	Int32 originY = static_cast<Int32>(scrheight) - absY - height;
+
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(absX + 2, originY + 2, width - 4, height - 4);
+
+	// Offset in modelview by the offset
+	Int32 minusCoverage = m_height - m_baseHeight + m_baseYOffset;
+	if (minusCoverage < 0)
+		minusCoverage = 0;
+
+	Int32 offsetAmount = minusCoverage * m_scrollOffset;
+
+	// Draw scrolling elements now
+	for (Uint32 i = 0; i < m_pChildrenArray.size(); i++)
+	{
+		CGameUIObject* pObject = m_pChildrenArray[i];
+		if (!shouldShiftChild(pObject))
+			continue;
+
+		if (pObject->getFlags() & FL_DRAW_LINKED_HIGHLIGHT_ONLY)
+		{
+			CGameUIObject* pLinkedObject = pObject->getLinkedObject();
+			if (!pLinkedObject->isMouseOver())
+				continue;
+		}
+
+		if (!pObject->isVisible())
+			continue;
+		
+		Int32 savedOriginX, savedOriginY;
+		pObject->getPosition(savedOriginX, savedOriginY);
+
+		pObject->setPosition(savedOriginX, savedOriginY + m_baseYOffset - offsetAmount);
+		if (!pObject->draw())
+			return false;
+
+		pObject->setPosition(savedOriginX, savedOriginY);
+	}
+
+	glDisable(GL_SCISSOR_TEST);
+
+	return true;
+}
+
+//====================================
+//
+//====================================
+bool CGameUIScrollableSurface::shouldShiftChild( CGameUIObject* pChild )
+{
+	if (pChild == m_pScroller
+		|| pChild == m_pSurface)
+		return false;
+
+	return true;
+}
+
+//====================================
+//
+//====================================
+bool CGameUIScrollableSurface::isChildVisible( CGameUIObject* pChild, Int32 offsetAmount )
+{
+	Int32 xPos, yPos;
+	pChild->getPosition(xPos, yPos);
+	yPos -= offsetAmount;
+	yPos += m_baseYOffset;
+
+	Uint32 width, height;
+	pChild->getSize(width, height);
+
+	// Get the size and location of the background
+	Int32 surfX, surfY;
+	m_pSurface->getPosition(surfX, surfY);
+
+	Uint32 surfWidth, surfHeight;
+	m_pSurface->getSize(surfWidth, surfHeight);
+
+	if (xPos >= surfX + static_cast<Int32>(surfWidth))
+		return false;
+	else if (xPos + static_cast<Int32>(width) < surfX)
+		return false;
+	else if (yPos >= surfY + static_cast<Int32>(surfHeight))
+		return false;
+	else if (yPos + static_cast<Int32>(height) < surfY)
+		return false;
+
+	return true;
+}
+
+//====================================
+//
+//====================================
+bool CGameUIScrollableSurface::isMouseOver( Int32 mousex, Int32 mousey )
+{
+	Uint32 surfWidth, surfHeight;
+	m_pSurface->getSize(surfWidth, surfHeight);
+
+	Int32 absX, absY;
+	getAbsolutePosition(absX, absY);
+
+	if (absX > mousex)
+		return false;
+	if (absX + static_cast<Int32>(surfWidth) < mousex)
+		return false;
+	if (absY > mousey)
+		return false;
+	if (absY + static_cast<Int32>(surfHeight) + static_cast<Int32>(m_baseYOffset) < mousey)
+		return false;
+
+	return true;
+}
+
+//====================================
+//
+//====================================
+bool CGameUIScrollableSurface::isMouseOver( void )
+{
+	Uint32 surfWidth, surfHeight;
+	m_pSurface->getSize(surfWidth, surfHeight);
+
+	Int32 absX, absY;
+	getAbsolutePosition(absX, absY);
+
+	Int32 mousex, mousey;
+	cl_engfuncs.pfnGetMousePosition(mousex, mousey);
+
+	if (absX > mousex)
+		return false;
+	if (absX + static_cast<Int32>(surfWidth) < mousex)
+		return false;
+	if (absY > mousey)
+		return false;
+	if (absY + static_cast<Int32>(surfHeight) + static_cast<Int32>(m_baseYOffset) < mousey)
+		return false;
+
+	return true;
+}
+
+//====================================
+//
+//====================================
+bool CGameUIScrollableSurface::isMouseOverChild( CGameUIObject* pChild )
+{
+	if (!isMouseOver())
+		return false;
+
+	Uint32 i = 0;
+	for (; m_pChildrenArray.size(); i++)
+	{
+		if (m_pChildrenArray[i] == pChild)
+			break;
+	}
+
+	if (i == m_pChildrenArray.size())
+		return false;
+
+	// Offset in modelview by the offset
+	Int32 minusCoverage = m_height - m_baseHeight + m_baseYOffset;
+	if (minusCoverage < 0)
+		minusCoverage = 0;
+
+	Int32 offsetAmount = minusCoverage * m_scrollOffset;
+
+	Int32 savedOriginX = 0;
+	Int32 savedOriginY = 0;
+
+	if (pChild->isInteractive() && shouldShiftChild(pChild))
+	{
+		if (!isChildVisible(pChild, offsetAmount))
+			return false;
+
+		pChild->getPosition(savedOriginX, savedOriginY);
+		pChild->setPosition(savedOriginX, savedOriginY + m_baseYOffset - offsetAmount);
+	}
+
+	bool result = pChild->isMouseOver();
+
+	if (pChild->isInteractive() && shouldShiftChild(pChild))
+		pChild->setPosition(savedOriginX, savedOriginY);
+
+	return result;
+}
+
+//====================================
+//
+//====================================
+void CGameUIScrollableSurface::childPostAdjustPosition( CGameUIObject* pchild )
+{
+	// See if we need to be expanded
+	Int32 xPos, yPos;
+	pchild->getPosition(xPos, yPos);
+
+	Int32 adjustH = 0;
+	Int32 endH = yPos + pchild->getHeight();
+	if (endH > (Int32)m_height)
+	{
+		adjustH = endH - m_height;
+		adjustH += m_postElementSpacing;
+	}
+
+	m_height += adjustH;
+
+	if (m_pScroller)
+		m_pScroller->setFullRange(m_height + m_baseYOffset);
 }

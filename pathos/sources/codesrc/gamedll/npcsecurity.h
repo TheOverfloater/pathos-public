@@ -160,7 +160,7 @@ public:
 	// Return bullet type used by NPC
 	virtual bullet_types_t GetBulletType( void ) override;
 	// Tells if NPC should favor ranged attacks versus melee
-	virtual bool FavorRangedAttacks( void ) const override { return true; }
+	virtual bool FavorRangedAttacks( CBaseEntity* pTarget ) const override { return true; }
 
 private:
 	// TRUE if gun is drawn

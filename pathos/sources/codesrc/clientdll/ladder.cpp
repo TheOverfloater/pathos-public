@@ -284,6 +284,7 @@ void CLadder::Think( void )
 			{
 				gDefaultView.ResetViewIdle();
 				gDefaultView.ResetViewRoll();
+				gDefaultView.ResetViewModelLag();
 
 				m_viewEntity.pmodel = nullptr;
 				m_viewEntity.curstate.modelindex = 0;

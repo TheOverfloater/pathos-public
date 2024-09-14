@@ -496,32 +496,61 @@ bool CSaveRestore::LoadSaveData( const save_header_t* pheader, const Vector* pla
 
 			CString fieldname(reinterpret_cast<const Char*>(&pstringbuffer[pfieldnameblock->dataoffset]), pfieldnameblock->datasize);
 
-			if(pfield->datatype == EFIELD_BYTE || pfield->datatype == EFIELD_CHAR)
+			switch(pfield->datatype)
 			{
-				// These types are read all at once
-				const save_block_t* pdatablock = &pdatablocks[pfield->blockindex];
-				const byte* pblockdata = &pdatabuffer[pdatablock->dataoffset];
-
-				if(!svs.dllfuncs.pfnReadEntityStateData(pedict, fieldname.c_str(), pblockdata, pdatablock->datasize, 0, istransferglobal))
+			case EFIELD_BYTE:
+			case EFIELD_CHAR:
 				{
-					Con_EPrintf("%s - Failure while reading entity class data for entity %d.\n", __FUNCTION__, pentity->entityindex);
-					return false;
-				}
-			}
-			else
-			{
-				for(Int32 k = 0; k < pfield->numblocks; k++)
-				{
-					const save_block_t* pdatablock = &pdatablocks[pfield->blockindex + k];
+					// These types are read all at once
+					const save_block_t* pdatablock = &pdatablocks[pfield->blockindex];
 					const byte* pblockdata = &pdatabuffer[pdatablock->dataoffset];
 
-					// Extract the name of the field
-					if(!svs.dllfuncs.pfnReadEntityStateData(pedict, fieldname.c_str(), pblockdata, pdatablock->datasize, k, istransferglobal))
+					if(!svs.dllfuncs.pfnReadEntityStateData(pedict, fieldname.c_str(), pblockdata, pdatablock->datasize, 0, istransferglobal))
 					{
-						Con_EPrintf("%s - Failure while reading entity state data for entity %d.\n", __FUNCTION__, pentity->entityindex);
+						Con_EPrintf("%s - Failure while reading entity class data for entity %d.\n", __FUNCTION__, pentity->entityindex);
 						return false;
 					}
 				}
+				break;
+			case EFIELD_FLOAT:
+			case EFIELD_DOUBLE:
+			case EFIELD_ENTINDEX:
+			case EFIELD_ENTPOINTER:
+			case EFIELD_EDICT:
+			case EFIELD_ENTSTATE:
+			case EFIELD_EHANDLE:
+			case EFIELD_VECTOR:
+			case EFIELD_COORD:
+			case EFIELD_INT16:
+			case EFIELD_UINT16:
+			case EFIELD_INT32:
+			case EFIELD_UINT32:
+			case EFIELD_INT64:
+			case EFIELD_UINT64:
+			case EFIELD_FUNCPTR:
+			case EFIELD_BOOLEAN:
+			case EFIELD_TIME:
+				{
+					for(Int32 k = 0; k < pfield->numblocks; k++)
+					{
+						const save_block_t* pdatablock = &pdatablocks[pfield->blockindex + k];
+						const byte* pblockdata = &pdatabuffer[pdatablock->dataoffset];
+
+						// Extract the name of the field
+						if(!svs.dllfuncs.pfnReadEntityStateData(pedict, fieldname.c_str(), pblockdata, pdatablock->datasize, k, istransferglobal))
+						{
+							Con_EPrintf("%s - Failure while reading entity class data for entity %d.\n", __FUNCTION__, pentity->entityindex);
+							return false;
+						}
+					}
+				}
+				break;
+			default:
+				{
+					Con_EPrintf("%s - Invalid or unsupported field type %d specified for entity state field '%s'.\n", __FUNCTION__, pentity->entityindex, fieldname.c_str());
+					return false;
+				}
+				break;
 			}
 		}
 
@@ -532,6 +561,14 @@ bool CSaveRestore::LoadSaveData( const save_header_t* pheader, const Vector* pla
 			const save_block_t* pfieldnameblock = &pstringblocks[pfield->fieldnameindex];
 
 			CString fieldname(reinterpret_cast<const Char*>(&pstringbuffer[pfieldnameblock->dataoffset]), pfieldnameblock->datasize);
+
+			if(pfield->datatype != EFIELD_STRING
+				&& pfield->datatype != EFIELD_MODELNAME
+				&& pfield->datatype != EFIELD_SOUNDNAME)
+			{
+				Con_EPrintf("%s - Invalid or unsupported field type %d specified for entity saved field '%s'.\n", __FUNCTION__, pentity->entityindex, fieldname.c_str());
+				return false;
+			}
 
 			for(Int32 k = 0; k < pfield->numblocks; k++)
 			{
@@ -550,7 +587,9 @@ bool CSaveRestore::LoadSaveData( const save_header_t* pheader, const Vector* pla
 			}
 		}
 
-		// Set entity class data
+		// Tell server to prep the save fields for restoring class data
+		svs.dllfuncs.pfnDispatchDeclareSaveFields(pedict);
+
 		for(Int32 j = 0; j < pentity->classdata_numfields; j++)
 		{
 			const save_field_t* pfield = &pfields[pentity->classdata_startindex + j];
@@ -559,44 +598,78 @@ bool CSaveRestore::LoadSaveData( const save_header_t* pheader, const Vector* pla
 			// Extract the name of the field
 			CString fieldname(reinterpret_cast<const Char*>(&pstringbuffer[pfieldnameblock->dataoffset]), pfieldnameblock->datasize);
 
-			if(pfield->datatype == EFIELD_BYTE || pfield->datatype == EFIELD_CHAR)
+			switch(pfield->datatype)
 			{
-				// These types are read all at once
-				const save_block_t* pdatablock = &pdatablocks[pfield->blockindex];
-				const byte* pblockdata = &pdatabuffer[pdatablock->dataoffset];
-
-				if(!svs.dllfuncs.pfnReadEntityClassData(pedict, fieldname.c_str(), pblockdata, pdatablock->datasize, 0, istransferglobal))
+			case EFIELD_CBITSET:
 				{
-					Con_EPrintf("%s - Failure while reading entity class data for entity %d.\n", __FUNCTION__, pentity->entityindex);
-					return false;
-				}
-			}
-			else
-			{
-				for(Int32 k = 0; k < pfield->numblocks; k++)
-				{
-					const save_block_t* pdatablock = nullptr; 
-					const byte* pblockdata = nullptr;
-					if(pfield->datatype == EFIELD_MODELNAME || pfield->datatype == EFIELD_SOUNDNAME || pfield->datatype == EFIELD_STRING || pfield->datatype == EFIELD_FUNCPTR)
+					// Allow server to prep the data
+					if(!svs.dllfuncs.pfnPrepareEntityClassData(pedict, fieldname.c_str(), pfield->numblocks, istransferglobal))
 					{
-						pdatablock = &pstringblocks[pfield->blockindex + k];
-						if(pdatablock->dataoffset == -1 || !pdatablock->datasize)
-							continue;
-
-						pblockdata = &pstringbuffer[pdatablock->dataoffset];
-					}
-					else
-					{
-						pdatablock = &pdatablocks[pfield->blockindex + k];
-						pblockdata = &pdatabuffer[pdatablock->dataoffset];
+						Con_EPrintf("%s - Failure while preparing entity class data for entity %d.\n", __FUNCTION__, pentity->entityindex);
+						return false;
 					}
 
-					if(!svs.dllfuncs.pfnReadEntityClassData(pedict, fieldname.c_str(), pblockdata, pdatablock->datasize, k, istransferglobal))
+					// In case of CBitSet, the numblocks variable tells the number of bits specified
+					const save_block_t* pdatablock = &pdatablocks[pfield->blockindex];
+					const byte* pblockdata = &pdatabuffer[pdatablock->dataoffset];
+
+					if(!svs.dllfuncs.pfnReadEntityClassData(pedict, fieldname.c_str(), pblockdata, pfield->numblocks, 0, istransferglobal))
 					{
 						Con_EPrintf("%s - Failure while reading entity class data for entity %d.\n", __FUNCTION__, pentity->entityindex);
 						return false;
 					}
 				}
+				break;
+			case EFIELD_BYTE:
+			case EFIELD_CHAR:
+				{
+					// These types are read all at once
+					const save_block_t* pdatablock = &pdatablocks[pfield->blockindex];
+					const byte* pblockdata = &pdatabuffer[pdatablock->dataoffset];
+
+					if(!svs.dllfuncs.pfnReadEntityClassData(pedict, fieldname.c_str(), pblockdata, pdatablock->datasize, 0, istransferglobal))
+					{
+						Con_EPrintf("%s - Failure while reading entity class data for entity %d.\n", __FUNCTION__, pentity->entityindex);
+						return false;
+					}
+				}
+				break;
+			default:
+				{
+					// Allow server to prep the data
+					if(!svs.dllfuncs.pfnPrepareEntityClassData(pedict, fieldname.c_str(), pfield->numblocks, istransferglobal))
+					{
+						Con_EPrintf("%s - Failure while preparing entity class data for entity %d.\n", __FUNCTION__, pentity->entityindex);
+						return false;
+					}
+
+					for(Int32 k = 0; k < pfield->numblocks; k++)
+					{
+						const save_block_t* pdatablock = nullptr; 
+						const byte* pblockdata = nullptr;
+						if(pfield->datatype == EFIELD_MODELNAME || pfield->datatype == EFIELD_SOUNDNAME || pfield->datatype == EFIELD_STRING 
+							|| pfield->datatype == EFIELD_CARRAY_STRING || pfield->datatype == EFIELD_FUNCPTR)
+						{
+							pdatablock = &pstringblocks[pfield->blockindex + k];
+							if(pdatablock->dataoffset == -1 || !pdatablock->datasize)
+								continue;
+
+							pblockdata = &pstringbuffer[pdatablock->dataoffset];
+						}
+						else
+						{
+							pdatablock = &pdatablocks[pfield->blockindex + k];
+							pblockdata = &pdatabuffer[pdatablock->dataoffset];
+						}
+
+						if(!svs.dllfuncs.pfnReadEntityClassData(pedict, fieldname.c_str(), pblockdata, pdatablock->datasize, k, istransferglobal))
+						{
+							Con_EPrintf("%s - Failure while reading entity class data for entity %d.\n", __FUNCTION__, pentity->entityindex);
+							return false;
+						}
+					}
+				}
+				break;
 			}
 		}
 
@@ -621,6 +694,9 @@ bool CSaveRestore::LoadSaveData( const save_header_t* pheader, const Vector* pla
 		// This is required for brushents without an origin brush
 		if(isTransitionLoad && pentity->isglobalentity)
 			svs.dllfuncs.pfnAdjustEntityPositions(pedict, pentity->mins);
+
+		// Tell server to release the save fields for restoring
+		svs.dllfuncs.pfnDispatchReleaseSaveFields(pedict);
 	}
 
 	// Transitions manage this manually
@@ -1331,10 +1407,16 @@ void CSaveRestore::SaveEntity( edict_t* pedict, save_edict_info_t& saveinfo )
 	svs.dllfuncs.pfnSaveEntityFieldsData(pedict, m_isTransitionSave);
 	saveinfo.fieldsdata_numfields = m_numEdictFields - saveinfo.fieldsdata_startindex;
 
+	// Tell server to prep the class-specific save fields for saving data
+	svs.dllfuncs.pfnDispatchDeclareSaveFields(pedict);
+
 	// Save entity class data
 	saveinfo.classdata_startindex = m_numEdictFields;
 	svs.dllfuncs.pfnSaveEntityClassData(pedict, m_isTransitionSave);
 	saveinfo.classdata_numfields = m_numEdictFields - saveinfo.classdata_startindex;
+
+	// Tell server to release the class-specific save fields
+	svs.dllfuncs.pfnDispatchReleaseSaveFields(pedict);
 }
 
 //=============================================
@@ -1518,6 +1600,22 @@ void CSaveRestore::WriteByte( const Char* fieldname, const byte* pdata, Uint32 f
 	// With byte arrays, just write it out in one big chunk
 	SaveToDataBuffer(pdata, sizeof(byte)*fieldsize);
 	pfield->numblocks = 1;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CSaveRestore::WriteBitset( const Char* fieldname, const byte* pdata, Uint32 numberofbits, entfieldtype_t fieldtype )
+{
+	save_field_t* pfield = SaveField(fieldname, fieldtype, m_numSaveDataBlocks);
+	if(!pfield)
+		return;
+
+	// With byte arrays, just write it out in one big chunk
+	Uint32 bitsetByteCount = static_cast<Uint32>(SDL_ceil(static_cast<Float>(numberofbits) / static_cast<Float>(CBitSet::NB_BITS_IN_BYTE)));
+	SaveToDataBuffer(pdata, sizeof(byte)*bitsetByteCount);
+	pfield->numblocks = numberofbits;
 }
 
 //=============================================
@@ -1893,6 +1991,15 @@ void Save_WriteBool( const Char* fieldname, const byte* pdata, Uint32 fieldsize,
 void Save_WriteByte( const Char* fieldname, const byte* pdata, Uint32 fieldsize, entfieldtype_t fieldtype )
 {
 	gSaveRestore.WriteByte(fieldname, pdata, fieldsize, fieldtype);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void Save_WriteBitset( const Char* fieldname, const byte* pdata, Uint32 numberofbits, entfieldtype_t fieldtype )
+{
+	gSaveRestore.WriteBitset(fieldname, pdata, numberofbits, fieldtype);
 }
 
 //=============================================

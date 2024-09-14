@@ -2182,7 +2182,7 @@ namespace Util
 	// @brief
 	//
 	//=============================================
-	bool IsDataEmpty( const byte* pdata, Uint16 size )
+	bool IsDataEmpty( const byte* pdata, Uint32 size )
 	{
 		for(Uint16 i = 0; i < size; i++)
 		{

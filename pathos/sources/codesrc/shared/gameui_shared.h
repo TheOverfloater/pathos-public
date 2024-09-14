@@ -18,8 +18,8 @@ static const Char SUBWAYWINDOW_SCRIPT_SUBFOLDER_NAME[] = "subway";
 // Max keypad code length
 static const Uint32 MAX_PASSCODE_LENGTH = 32;
 
-// Max number of objectives
-static const Uint32 GAMEUI_MAX_OBJECTIVES = 6;
+// Max objectives a player can have, due to Int32 being used for the new objective flag stuff
+static const Uint64 MAX_PLAYER_OBJECTIVES = 32;
 
 // Flags for subway
 enum subwayflags_t
@@ -50,6 +50,7 @@ enum gameui_windows_t
 	GAMEUI_LOGINWINDOW,
 	GAMEUI_SUBWAYWINDOW,
 	GAMEUI_OBJECTIVESWINDOW,
+	GAMEUI_DOCUMENTSWINDOW,
 	GAMEUI_KILLWINDOWS
 };
 

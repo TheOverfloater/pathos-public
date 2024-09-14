@@ -383,39 +383,23 @@ bool CBlackHoleRenderer::DrawBlackHoles( void )
 
 	m_pShader->EnableAttribute(m_attribs.a_vertex);
 
-	m_pShader->SetUniform1i(m_attribs.u_texture, 0);
 	m_pShader->SetUniform1i(m_attribs.u_texturerect, 0);
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
 	
 	m_pShader->SetUniform2f(m_attribs.u_screensize, rns.view.viewsize_x, rns.view.viewsize_y);
 
-	gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-	glEnable(GL_TEXTURE_RECTANGLE_ARB);
-
 	rtt_texture_t* pTexture = nullptr;
 	CFBOCache::cache_fbo_t* pFBO = nullptr;
 
-	if (rns.fboused && rns.usehdr)
+	pTexture = gRTTCache.Alloc(rns.view.viewsize_x, rns.view.viewsize_y, true);
+	if (!pTexture)
 	{
-		pFBO = gFBOCache.Alloc(rns.view.viewsize_x, rns.view.viewsize_y, false);
-		if (!pFBO)
-		{
-			Sys_ErrorPopup("%s - Failed to get FBO.", __FUNCTION__);
-			return false;
-		}
-	}
-	else
-	{
-		pTexture = gRTTCache.Alloc(rns.view.viewsize_x, rns.view.viewsize_y, true);
-		if (!pTexture)
-		{
-			Sys_ErrorPopup("%s - Failed to get screen texture.", __FUNCTION__);
-			return false;
-		}
+		Sys_ErrorPopup("%s - Failed to get screen texture.", __FUNCTION__);
+		return false;
 	}
 
-	if (!m_pShader->SetDeterminator(m_attribs.d_rectangle, (rns.fboused && rns.usehdr) ? FALSE : TRUE))
+	if (!m_pShader->SetDeterminator(m_attribs.d_rectangle, TRUE))
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		return false;
@@ -442,24 +426,9 @@ bool CBlackHoleRenderer::DrawBlackHoles( void )
 		if(screenCoords[3] <= 0)
 			continue;
 
-		if (rns.fboused && rns.usehdr)
-		{
-			// Blit over the color buffer
-			gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, rns.pboundfbo->fboid);
-			gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pFBO->fbo.fboid);
-			glClear(GL_COLOR_BUFFER_BIT);
-
-			gGLExtF.glBlitFramebuffer(0, 0, rns.view.viewsize_x, rns.view.viewsize_y, 0, 0, rns.view.viewsize_x, rns.view.viewsize_y, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
-
-			R_Bind2DTexture(GL_TEXTURE0_ARB, pFBO->fbo.ptexture1->gl_index);
-		}
-		else
-		{
-			// Get current screen contents
-			R_BindRectangleTexture(GL_TEXTURE0_ARB, pTexture->palloc->gl_index);
-			glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.view.viewsize_x, rns.view.viewsize_y, 0);
-		}
+		// Get current screen contents
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, pTexture->palloc->gl_index, true);
+		glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.view.viewsize_x, rns.view.viewsize_y, 0);
 
 		// Calculate uniform values
 		Float distance = (rns.view.v_origin-origin).Length();
@@ -524,9 +493,6 @@ bool CBlackHoleRenderer::DrawBlackHoles( void )
 		gFBOCache.Free(pFBO);
 		pFBO = nullptr;
 	}
-
-	gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
-	glDisable(GL_TEXTURE_RECTANGLE_ARB);
 
 	m_pShader->DisableShader();
 	m_pVBO->UnBind();

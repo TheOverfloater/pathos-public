@@ -199,6 +199,7 @@ struct cldll_engfuncs_t
 	void					(*pfnMsgWriteBuffer)( const byte* pdata, Uint32 size );
 	void					(*pfnMsgWriteString)( const Char* pdata );
 	void					(*pfnMsgWriteEntindex)( entindex_t entindex );
+	void					(*pfnMsgWriteBitSet)( const byte* pdataarray, Uint32 numbits, Uint32 numbytes );
 
 	CCVar*					(*pfnCreateCVar)( cvar_type_t type, Int32 flags, const Char* pstrName, const Char* pstrValue, const Char* pstrDescription );
 	CCVar*					(*pfnCreateCVarCallback)( cvar_type_t type, Int32 flags, const Char* pstrName, const Char* pstrValue, const Char* pstrDescription, pfnCVarCallback_t pfnCallback );

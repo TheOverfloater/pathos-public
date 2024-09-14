@@ -25,74 +25,100 @@ All Rights Reserved.
 #include "weapons_shared.h"
 
 // AI Conditions can't be enums, because they go over 32 bits
-static const Uint64 AI_COND_NONE						= 0;
-static const Uint64 AI_COND_NO_AMMO_LOADED				= (1ULL<<0);
-static const Uint64 AI_COND_SEE_HATE					= (1ULL<<1);
-static const Uint64 AI_COND_SEE_FEAR					= (1ULL<<2);
-static const Uint64 AI_COND_SEE_DISLIKE					= (1ULL<<3);
-static const Uint64 AI_COND_SEE_ENEMY					= (1ULL<<4);
-static const Uint64 AI_COND_ENEMY_OCCLUDED				= (1ULL<<5);
-static const Uint64 AI_COND_SMELL_FOOD					= (1ULL<<6);
-static const Uint64 AI_COND_ENEMY_TOO_FAR				= (1ULL<<7);
-static const Uint64 AI_COND_LIGHT_DAMAGE				= (1ULL<<8);
-static const Uint64 AI_COND_HEAVY_DAMAGE				= (1ULL<<9);
-static const Uint64 AI_COND_CAN_RANGE_ATTACK1			= (1ULL<<10);
-static const Uint64 AI_COND_CAN_RANGE_ATTACK2			= (1ULL<<11);
-static const Uint64 AI_COND_CAN_MELEE_ATTACK1			= (1ULL<<12);
-static const Uint64 AI_COND_CAN_MELEE_ATTACK2			= (1ULL<<13);
-static const Uint64 AI_COND_FOLLOW_TARGET_TOO_FAR		= (1ULL<<14);
-static const Uint64 AI_COND_PROVOKED					= (1ULL<<15);
-static const Uint64 AI_COND_NEW_ENEMY					= (1ULL<<16);
-static const Uint64 AI_COND_HEAR_SOUND					= (1ULL<<17);
-static const Uint64 AI_COND_SMELL						= (1ULL<<18);
-static const Uint64 AI_COND_ENEMY_FACING_ME				= (1ULL<<19);
-static const Uint64 AI_COND_ENEMY_DEAD					= (1ULL<<20);
-static const Uint64 AI_COND_SEE_CLIENT					= (1ULL<<21);
-static const Uint64 AI_COND_SEE_NEMESIS					= (1ULL<<22);
-static const Uint64 AI_COND_ENEMY_NOT_FOUND				= (1ULL<<23);
-static const Uint64 AI_COND_ENEMY_UNREACHABLE			= (1ULL<<24);
-static const Uint64 AI_COND_IN_DANGER					= (1ULL<<25);
-static const Uint64 AI_COND_DANGEROUS_ENEMY_CLOSE		= (1ULL<<26);
-static const Uint64 AI_COND_BLOCKING_PATH				= (1ULL<<27);
-static const Uint64 AI_COND_TASK_FAILED					= (1ULL<<28);
-static const Uint64 AI_COND_SCHEDULE_DONE				= (1ULL<<29);
-static const Uint64 AI_COND_CLIENT_UNSEEN				= (1ULL<<30);
-static const Uint64 AI_COND_PLAYER_CLOSE				= (1ULL<<31);
-static const Uint64 AI_COND_FRIENDLY_FIRE				= (1ULL<<32);
-static const Uint64 AI_COND_ENEMY_NAVIGABLE				= (1ULL<<33);
-static const Uint64 AI_COND_ELOF_FAILED					= (1ULL<<34);
-static const Uint64 AI_COND_HEARD_ENEMY_NEW_POSITION	= (1ULL<<35);
-static const Uint64 AI_COND_RESERVED1					= (1ULL<<36);
-static const Uint64	AI_COND_RESERVED2					= (1ULL<<37);
-static const Uint64 AI_COND_RESERVED3					= (1ULL<<38);
-static const Uint64	AI_COND_RESERVED4					= (1ULL<<39);
-static const Uint64	AI_COND_NOT_ONGROUND				= (1ULL<<40);
-static const Uint64 AI_COND_SHOOT_VECTOR_VALID			= (1ULL<<41);
-static const Uint64 AI_COND_CAN_SPECIAL_ATTACK1			= (1ULL<<42);
-static const Uint64 AI_COND_CAN_SPECIAL_ATTACK2			= (1ULL<<43);
-static const Uint64 AI_COND_SEE_HOSTILE_NPC				= (1ULL<<44);
-static const Uint64 AI_COND_CAN_ATTACK					= (AI_COND_CAN_RANGE_ATTACK1|AI_COND_CAN_RANGE_ATTACK2|AI_COND_CAN_MELEE_ATTACK1|AI_COND_CAN_MELEE_ATTACK2|AI_COND_CAN_SPECIAL_ATTACK1|AI_COND_CAN_SPECIAL_ATTACK2);
-static const Uint64 AI_SCRIPT_BREAK_CONDITIONS			= (AI_COND_LIGHT_DAMAGE|AI_COND_HEAVY_DAMAGE|AI_COND_HEAR_SOUND|AI_COND_SEE_ENEMY|AI_COND_SEE_HOSTILE_NPC);
+enum ai_condition_bits_t
+{
+	AI_COND_NO_AMMO_LOADED = 0,
+	AI_COND_SEE_HATE,
+	AI_COND_SEE_FEAR,
+	AI_COND_SEE_DISLIKE,
+	AI_COND_SEE_ENEMY,
+	AI_COND_ENEMY_OCCLUDED,
+	AI_COND_SMELL_FOOD,
+	AI_COND_ENEMY_TOO_FAR,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_FOLLOW_TARGET_TOO_FAR,
+	AI_COND_PROVOKED,
+	AI_COND_NEW_ENEMY,
+	AI_COND_HEAR_SOUND,
+	AI_COND_SMELL,
+	AI_COND_ENEMY_FACING_ME,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_SEE_CLIENT,
+	AI_COND_SEE_NEMESIS,
+	AI_COND_ENEMY_NOT_FOUND,
+	AI_COND_ENEMY_UNREACHABLE,
+	AI_COND_IN_DANGER,
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_BLOCKING_PATH,
+	AI_COND_TASK_FAILED,
+	AI_COND_SCHEDULE_DONE,
+	AI_COND_CLIENT_UNSEEN,
+	AI_COND_PLAYER_CLOSE,
+	AI_COND_FRIENDLY_FIRE,
+	AI_COND_ENEMY_NAVIGABLE,
+	AI_COND_ELOF_FAILED,
+	AI_COND_HEARD_ENEMY_NEW_POSITION,
+	AI_COND_RESERVED1,
+	AI_COND_RESERVED2,
+	AI_COND_RESERVED3,
+	AI_COND_RESERVED4,
+	AI_COND_NOT_ONGROUND,
+	AI_COND_SHOOT_VECTOR_VALID,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_SEE_HOSTILE_NPC,
+
+	AI_COND_BITSET_SIZE = 64
+};
+
+static const Uint32 AI_COND_CAN_ATTACK_BITS[] = 
+{
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2
+};
+static const CBitSet AI_COND_CAN_ATTACK(AI_COND_BITSET_SIZE, AI_COND_CAN_ATTACK_BITS, PT_ARRAYSIZE(AI_COND_CAN_ATTACK_BITS));
+
+static const Uint32 AI_SCRIPT_BREAK_CONDITIONS_BITS[] = 
+{
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_HEAR_SOUND,
+	AI_COND_SEE_ENEMY,
+	AI_COND_SEE_HOSTILE_NPC
+};
+static const CBitSet AI_SCRIPT_BREAK_CONDITIONS(AI_COND_BITSET_SIZE, AI_SCRIPT_BREAK_CONDITIONS_BITS, PT_ARRAYSIZE(AI_SCRIPT_BREAK_CONDITIONS_BITS));
 
 enum ai_memory_t
 {
-	AI_MEMORY_PROVOKED				= (1<<0),
-	AI_MEMORY_IN_COVER				= (1<<1),
-	AI_MEMORY_SUSPICIOUS			= (1<<2),
-	AI_MEMORY_PATH_FINISHED			= (1<<3),
-	AI_MEMORY_ON_PATH				= (1<<4),
-	AI_MEMORY_MOVE_FAILED			= (1<<5),
-	AI_MEMORY_FLINCHED				= (1<<6),
-	AI_MEMORY_KILLED				= (1<<7),
-	AI_MEMORY_SOUGHT_TACTICAL		= (1<<8),
-	AI_MEMORY_DODGE_ENEMY_FAILED	= (1<<9),
-	AI_MEMORY_SAW_MEDKIT			= (1<<10),
-	AI_MEMORY_CHECKING_DANGERS		= (1<<12),
-	AI_MEMORY_SAW_NPC				= (1<<13),
-	AI_MEMORY_SAW_PLAYER			= (1<<14),
-	AI_MEMORY_SIGNALLED				= (1<<15),
-	AI_MEMORY_DISTURBED				= (1<<16),
-	AI_MEMORY_HIDING_SPOT_NOT_FOUND	= (1<<17)
+	AI_MEMORY_PROVOKED = 0,
+	AI_MEMORY_IN_COVER,
+	AI_MEMORY_SUSPICIOUS,
+	AI_MEMORY_PATH_FINISHED,
+	AI_MEMORY_ON_PATH,
+	AI_MEMORY_MOVE_FAILED,
+	AI_MEMORY_FLINCHED,
+	AI_MEMORY_KILLED,
+	AI_MEMORY_SOUGHT_TACTICAL,
+	AI_MEMORY_DODGE_ENEMY_FAILED,
+	AI_MEMORY_SAW_MEDKIT,
+	AI_MEMORY_GRABBED,
+	AI_MEMORY_CHECKING_DANGERS,
+	AI_MEMORY_UNUSED1,
+	AI_MEMORY_UNUSED2,
+	AI_MEMORY_UNUSED3,
+	AI_MEMORY_UNUSED4,
+	AI_MEMORY_HIDING_SPOT_NOT_FOUND,
+
+	AI_MEMORY_BITSET_SIZE = 64
 };
 
 enum bodytarget_t
@@ -258,36 +284,44 @@ public:
 		AI_TRIGGER_HEAR_COMBAT,
 		AI_TRIGGER_SEE_PLAYER_UNCONDITIONAL,
 		AI_TRIGGER_SEE_PLAYER_NOT_IN_COMBAT,
-		AI_TRIGGER_SEE_ENEMY
+		AI_TRIGGER_SEE_ENEMY,
+		AI_TRIGGER_KILLED_BY_PLAYER
 	};
 	enum ai_capabilities_t
 	{
-		AI_CAP_NONE				= 0,
-		AI_CAP_DUCK				= (1<<0),
-		AI_CAP_JUMP				= (1<<1),
-		AI_CAP_STRAFE			= (1<<2),
-		AI_CAP_SQUAD			= (1<<3),
-		AI_CAP_SWIM				= (1<<4),
-		AI_CAP_CLIMB			= (1<<5),
-		AI_CAP_USE				= (1<<6),
-		AI_CAP_HEAR				= (1<<7),
-		AI_CAP_AUTO_OPEN_DOORS	= (1<<8),
-		AI_CAP_OPEN_DOORS		= (1<<9),
-		AI_CAP_RANGE_ATTACK1	= (1<<10),
-		AI_CAP_RANGE_ATTACK2	= (1<<11),
-		AI_CAP_MELEE_ATTACK1	= (1<<12),
-		AI_CAP_MELEE_ATTACK2	= (1<<13),
-		AI_CAP_FLY				= (1<<14),
-		AI_CAP_EXPRESSIONS		= (1<<17),
-		AI_CAP_USE_MEDKITS		= (1<<18),
-		AI_CAP_TURN_HEAD		= (1<<19),
-		AI_CAP_TURN_HEAD_PITCH	= (1<<20),
-		AI_CAP_ATTACK_BLEND_SEQ	= (1<<21),
-		AI_CAP_SPECIAL_ATTACK1	= (1<<22),
-		AI_CAP_SPECIAL_ATTACK2	= (1<<23),
+		AI_CAP_DUCK = 0,
+		AI_CAP_JUMP,
+		AI_CAP_STRAFE,
+		AI_CAP_SQUAD,
+		AI_CAP_SWIM,
+		AI_CAP_CLIMB,
+		AI_CAP_USE,
+		AI_CAP_HEAR,
+		AI_CAP_AUTO_OPEN_DOORS,
+		AI_CAP_OPEN_DOORS,
+		AI_CAP_RANGE_ATTACK1,
+		AI_CAP_RANGE_ATTACK2,
+		AI_CAP_MELEE_ATTACK1,
+		AI_CAP_MELEE_ATTACK2,
+		AI_CAP_FLY,
+		AI_CAP_UNUSED1,
+		AI_CAP_UNUSED2,
+		AI_CAP_EXPRESSIONS,
+		AI_CAP_USE_MEDKITS,
+		AI_CAP_TURN_HEAD,
+		AI_CAP_TURN_HEAD_PITCH,
+		AI_CAP_ATTACK_BLEND_SEQ,
+		AI_CAP_SPECIAL_ATTACK1,
+		AI_CAP_SPECIAL_ATTACK2,
 
-		AI_CAP_GROUP_DOORS		= (AI_CAP_USE|AI_CAP_AUTO_OPEN_DOORS|AI_CAP_OPEN_DOORS)
+		AI_CAP_BITS_COUNT		= 64
 	};
+
+	// Door group bits
+	static const Uint32 CBaseNPC::AI_CAP_DOORS_GROUP_BITS[];
+	// Door group bitset
+	static const CBitSet CBaseNPC::AI_CAP_GROUP_DOORS;
+
 	enum movementflag_t
 	{
 		MF_NONE					= 0,
@@ -369,9 +403,14 @@ public:
 protected:
 	struct enemy_info_t
 	{
+		enemy_info_t() :
+			lastsighttime(0)
+		{}
+
 		CEntityHandle enemy;
 		Vector lastknownorigin;
 		Vector lastknownangles;
+		Double lastsighttime;
 	};
 
 	struct route_point_t
@@ -395,6 +434,18 @@ protected:
 
 		Int32 dmgbit;
 		Double time;
+	};
+
+	struct enemyawareness_t
+	{
+		enemyawareness_t():
+			lastsighttime(0),
+			awareness(0)
+		{}
+
+		CEntityHandle entity;
+		Double lastsighttime;
+		Float awareness;
 	};
 
 public:
@@ -518,22 +569,33 @@ public:
 	// Sets the enemy's last known position and angles
 	virtual void SetEnemyInfo( const Vector& enemyLKP, const Vector& enemyLKA ) override;
 	// Gets the enemy information
-	virtual void GetEnemyInfo( Vector& enemyLKP, Vector& enemyLKA ) override;
-	// Sets the last time the player was sighted
-	virtual void SetLastPlayerSightTime( Double time ) override;
+	virtual void GetEnemyInfo( Vector& enemyLKP, Vector& enemyLKA, Double& enemyLST ) override;
+	// Sets the last time the enemy was sighted
+	virtual void SetLastEnemySightTime( Double time ) override;
+	// Sets the last enemy sight time
+	virtual Double GetLastEnemySightTime( void ) override;
 
-	// Clears AI conditions
-	virtual void ClearConditions( Uint64 conditionBits ) override;
-	// Sets AI conditions
-	virtual void SetConditions( Uint64 conditionBits ) override;
+	// Clears an AI condition
+	virtual void ClearCondition( Uint32 conditionBit ) override;
+	// Clears AI conditions specified in a bitset
+	virtual void ClearConditions( const CBitSet& conditionBitSet ) override;
+	// Sets an AI condition
+	virtual void SetCondition( Uint32 conditionBit ) override;
+	// Sets AI conditions specified in a bitset
+	virtual void SetConditions( const CBitSet& conditionBitSet ) override;
 	// Checks conditions
-	virtual bool CheckConditions( Uint64 conditionBits ) const override;
+	virtual bool CheckCondition( Uint32 conditionBit ) const override;
+	// Checks conditions specified in a bitset
+	virtual bool CheckConditions( const CBitSet& conditionBitSet ) const override;
 
 	// Set memory bits
-	virtual void SetMemory( Uint64 memoryBits ) override;
+	virtual void SetMemory( Uint32 memoryBit ) override;
+
+	// Tells if the NPC has the specified capabilities
+	virtual bool HasCapability( Uint32 capabilityBit ) const override;
 
 	// Adds a new enemy
-	virtual void PushEnemy( CBaseEntity* pEnemy, const Vector& lastPosition, const Vector& lastAngles ) override;
+	virtual void PushEnemy( CBaseEntity* pEnemy, const Vector& lastPosition, const Vector& lastAngles, Double lastSightTime ) override;
 	// Sets the current enemy
 	virtual void SetEnemy( CBaseEntity* pEnemy ) override;
 
@@ -801,7 +863,7 @@ protected:
 	// Tells if the current schedule
 	bool IsScheduleValid( void );
 	// Returns the current schedule's flags
-	Uint64 GetScheduleFlags( void ) const;
+	CBitSet GetScheduleFlags( void ) const;
 	// Tells if the npc has an active schedule
 	bool HasActiveSchedule( void ) const;
 	// Tells if schedule is finished
@@ -823,7 +885,7 @@ protected:
 	// Returns the firing coverage for a targer position
 	Float GetFiringCoverage( const Vector& shootOrigin, const Vector& targetPosition, const Vector& firingCone );
 	// Returns visibility bits for an NPC/player
-	Uint64 GetNPCVisibilityBits( CBaseEntity* pEntity, bool checkGlass = false );
+	Uint64 GetNPCVisibilityBits( CBaseEntity* pEntity, bool checkGlass = false, enemyawareness_t** pAwarenessPtr = nullptr );
 	// Returns an entity we can kick
 	CBaseEntity* GetKickEntity( Float checkDistance );
 	// Calculates coverage for a position
@@ -872,14 +934,18 @@ protected:
 
 protected:
 	// Clears the memory of specified bits
-	void ClearMemory( Uint64 memoryBits );
+	void ClearMemory( Uint32 memoryBit );
 	// Tells if we have the specified memory bits
-	bool HasMemory( Uint64 memoryBits ) const;
+	bool HasMemory( Uint32 memoryBit ) const;
 
 	// Sets capability bits
-	void SetCapabilities( Uint64 capabilityBits );
-	// Tells if the NPC has the specified capabilities
-	bool HasCapabilities( Uint64 capabilityBits ) const;
+	void SetCapability( Uint32 capabilityBit );
+	// Sets capability bits
+	void SetCapabilities( const CBitSet& capabilityBitSet );
+	// Disables a capability bit
+	void DisableCapability( Uint32 capabilityBit );
+	// Removes a capability
+	void RemoveCapability( Uint32 capabilityBit );
 
 protected:
 	// Initializes the NPC
@@ -924,7 +990,9 @@ protected:
 	virtual void RunSenses( void );
 
 	// Updates the awareness factor
-	virtual void UpdateAwareness( Uint64 sightBits );
+	virtual void UpdatePartialAwareness( enemyawareness_t* pAwarenessinfo, Uint64 sightBits );
+	// Updates the awareness factor
+	virtual void UpdateAwareness( CBaseEntity* pEntity, enemyawareness_t* pPartialAwareness, enemyawareness_t** pEnemyAwarenessPtr, Uint64 sightBits ) { };
 	// Returns the time time to be aware of a player who's leaning
 	virtual Float GetLeanAwarenessTime( void );
 
@@ -986,9 +1054,9 @@ protected:
 	virtual activity_t GetStoppedActivity( void );
 
 	// Returns the conditions to ignore
-	virtual Uint64 GetIgnoreConditions( void );
+	virtual CBitSet GetIgnoreConditions( void );
 	// Get any conditions to be kept when changing schedules
-	virtual Uint64 GetScheduleChangeKeptConditions( void ) { return AI_COND_NONE; }
+	virtual CBitSet GetScheduleChangeKeptConditions( void );
 
 	// Checks the ammo capacity
 	virtual void CheckAmmo( void ) { }
@@ -1008,9 +1076,14 @@ protected:
 	// Processes a sound heard
 	virtual bool ProcessHeardSound( ai_sound_t& sound, Uint64 soundMask );
 	// Tells if we should see an NPC
-	virtual bool ShouldSeeNPC( Uint64 sightBits, CBaseEntity* pEntity );
+	virtual bool ShouldSeeNPC( Uint64 sightBits, CBaseEntity* pEntity, enemyawareness_t* pPartialAwareness, enemyawareness_t* pEnemyAwareness );
 	// Tells if NPC should check navigability
 	virtual bool ShouldCheckEnemyNavigability( void ) { return false; }
+
+	// Returns the awareness info for a sighted enemy
+	virtual enemyawareness_t* GetEnemyAwarenessInfo( CBaseEntity* pEntity );
+	// Returns the partial awareness info for a sighted enemy
+	virtual enemyawareness_t* GetEnemyPartialAwarenessInfo( CBaseEntity* pEntity );
 
 	// Updates visibility and shooting distances
 	virtual void UpdateDistances( void );
@@ -1084,13 +1157,13 @@ protected:
 
 protected:
 	// Array of AI condition flags
-	Uint64						m_aiConditionBits;
+	CBitSet						m_aiConditionBits;
 	// Memory contents	
-	Uint64						m_memoryBits;
+	CBitSet						m_memoryBits;
 	// Capability bits
-	Uint64						m_capabilityBits;
+	CBitSet						m_capabilityBits;
 	// Capability bits
-	Uint64						m_disabledCapabilityBits;
+	CBitSet						m_disabledCapabilityBits;
 	// Damage bits taken
 	Uint64						m_damageBits;
 	// Last damage amount we took
@@ -1102,6 +1175,8 @@ protected:
 
 	// Current enemy
 	CEntityHandle				m_enemy;
+	// The NPC/entity who killed us
+	CEntityHandle				m_killer;
 
 	// Enemy last known position
 	Vector						m_enemyLastKnownPosition;
@@ -1184,11 +1259,6 @@ protected:
 	// Current best sound
 	ai_sound_t*					m_pBestSound;
 
-	// Last time we saw a leaning player
-	Double						m_lastLeanSightTime;
-	// Leaning awareness
-	Float						m_leanAwareness;
-
 	// TRUE if values were parsed
 	bool						m_valuesParsed;
 
@@ -1202,8 +1272,8 @@ protected:
 	// Blocked NPC's goal
 	Vector						m_blockedNPCDestination;
 
-	// Last player sight time
-	Double						m_lastPlayerSightTime;
+	// Last enemy sight time, only used if enemy is a player
+	Double						m_lastEnemySightTime;
 
 	// Death mode
 	Int32						m_deathMode;
@@ -1240,10 +1310,15 @@ protected:
 	// Last navigability check position
 	Vector						m_lastNavigabilityCheckPosition;
 
+	// List of enemy partial awareness stats
+	CLinkedList<enemyawareness_t> m_enemyPartialAwarenessList;
+
 	// Linked list of enemies we can see
 	CLinkedList<CEntityHandle>	m_sightedHostileNPCsList;
 	// Linked list of friendlies we can see
 	CLinkedList<CEntityHandle>	m_sightedFriendlyNPCsList;
+	// Linked list of partially visible enemies
+	CLinkedList<CEntityHandle>	m_partiallySightedHostileNPCsList;
 
 	// Cinematic entity
 	CScriptedSequence*			m_pScriptedSequence;

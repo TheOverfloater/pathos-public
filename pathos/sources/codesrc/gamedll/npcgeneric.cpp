@@ -59,7 +59,7 @@ bool CNPCGeneric::Spawn( void )
 		break;
 	}
 
-	if(m_notSolid)
+	if (!m_notSolid)
 		m_pState->solid = SOLID_SLIDEBOX;
 	else
 		m_pState->solid = SOLID_NOT;
@@ -73,7 +73,7 @@ bool CNPCGeneric::Spawn( void )
 	m_npcState = NPC_STATE_NONE;
 
 	// Set capabilities
-	m_capabilityBits |= AI_CAP_GROUP_DOORS;
+	SetCapabilities(AI_CAP_GROUP_DOORS);
 
 	// Legacy support(TODO: Get rid of this)
 	if(m_pState->renderfx == NPC_GENERIC_MIRROR_ONLY_FX_VALUE)

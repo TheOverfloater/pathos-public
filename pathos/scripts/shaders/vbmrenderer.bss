@@ -6,7 +6,6 @@ $global_determinator dlight1_shadow 0 1
 $global_determinator dlight2_shadow 0 1
 $global_determinator dlight3_shadow 0 1
 $global_determinator use_ubo 0 1
-$global_determinator rectangle 0 1
 $shader_vertex 
 $determinator chrome 0 1
 $determinator flex 0 1
@@ -268,18 +267,6 @@ $invalid_state 2 numdlights 1 4 num_lights 1 6
 $invalid_state 2 numdlights 1 4 alphatest 1 1
 $invalid_state 1 shadertype 4 4
 $invalid_state 1 shadertype 6 6
-$invalid state 2 shadertype 0 12 rectangle 1 1
-$invalid state 2 shadertype 14 17 rectangle 1 1
-$invalid_state 2 dlight0_shadow 1 1 rectangle 1 1
-$invalid_state 2 dlight1_shadow 1 1 rectangle 1 1
-$invalid_state 2 dlight2_shadow 1 1 rectangle 1 1
-$invalid_state 2 dlight3_shadow 1 1 rectangle 1 1
-$invalid_state 2 bumpmapping 1 1 rectangle 1 1
-$invalid_state 2 specular 1 1 rectangle 1 1
-$invalid_state 2 luminance 1 1 rectangle 1 1
-$invalid_state 2 alphatest 1 1 rectangle 1 1
-$invalid_state 2 num_lights 1 6 rectangle 1 1
-$invalid_state 2 chrome 1 1 rectangle 1 1
 
 $begin
 $branch use_ubo == 1
@@ -294,10 +281,7 @@ $end
 
 uniform sampler2D texture0;
 uniform sampler2D texture1;
-$branch rectangle == 1
-$begin
-	uniform sampler2DRect rectangle;
-$end
+uniform sampler2DRect rectangle;
 
 uniform vec3 skylight_ambient;
 uniform vec3 skylight_diffuse;
@@ -956,7 +940,7 @@ void main()
 	// Normal single pass rendering
 	$branch shadertype == 0 || shadertype == 1
 	$begin
-		//finalColor = clamp(finalColor, 0.0, 1.0); // To prevent multipass inconsistencies
+		finalColor = clamp(finalColor, 0.0, 1.0); // To prevent multipass inconsistencies
 		vec4 textureColor = texture(texture0, ps_texcoord1);
 		finalColor = finalColor*textureColor + specularColor;
 		finalColor.xyz *= 2;
@@ -1177,14 +1161,7 @@ void main()
 		texcoord.y *= scope_scrsize.y;
 
 		vec4 texcolor = texture(texture0, ps_texcoord1);
-		$branch rectangle == 1
-		$begin
-			vec4 rectcolor = texture(rectangle, texcoord);
-		$end
-		$branch rectangle == 0
-		$begin
-			vec4 rectcolor = texture(texture1, texcoord);
-		$end
+		vec4 rectcolor = texture(rectangle, texcoord);
 		
 		finalColor = mix(rectcolor, texcolor*finalColor, texcolor.w);
 	$end

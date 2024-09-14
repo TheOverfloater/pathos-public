@@ -185,16 +185,11 @@ private:
 	struct hudhistory_t
 	{
 		hudhistory_t():
-			die(0),
-			hascount(false),
-			count(0)
+			die(0)
 			{}
 
 		Float die;
 		CString description;
-
-		bool hascount;
-		Uint32 count;
 	};
 
 public:
@@ -369,6 +364,8 @@ public:
 		CString name;
 		weaponid_t weaponid;
 		CString description;
+		CString unitname_singular;
+		CString unitname_plural;
 	};
 
 	struct hud_infopair_t
@@ -448,7 +445,7 @@ public:
 	// Manages an ammo pickup event
 	void AmmoPickup( const Char* pstrentityname, Uint32 count );
 	// Manages a weapon pickup event
-	void WeaponPickup( Int32 id );
+	void WeaponPickup( Int32 id, Uint32 ammoCount );
 	// Manages an item pickup event
 	void ItemPickup( const Char* pstrentityname );
 	// Sets active state for HUD
@@ -458,7 +455,7 @@ public:
 	// Sets the movement noise
 	void SetMovementNoise( Float noise );
 	// Sets the movement noise
-	void SetNPCAwareness( Float awareness );
+	void SetNPCAwareness( Float awareness, color24_t& color );
 	// Sets new objective flag
 	void SetNewObjective( bool newObjective );
 	// Sets usable object mins/maxs
@@ -470,7 +467,7 @@ public:
 
 private:
 	// Draws a bar tab
-	bool DrawTab_Bar( Float x, Float y, Char *sztext, en_texture_t *picon, Float bar, Int32 width, Float alpha, Float *ox = nullptr, Float *oy = nullptr, bool reverseColor = false );
+	bool DrawTab_Bar( Float x, Float y, Char *sztext, en_texture_t *picon, Float bar, Int32 width, Float alpha, Float *ox = nullptr, Float *oy = nullptr, bool reverseColor = false, color24_t* pcolor = nullptr );
 	// Draws the weapon tab
 	bool DrawWeaponTab( void );
 	// Draws the healthkit tab
@@ -505,9 +502,9 @@ private:
 	// Returns an icon texture by name 
 	en_texture_t* GetIconTextureByName( const Char* pstrName );
 	// Returns an item description by name
-	const Char* GetItemDescriptionByName( const Char* pstrName );
+	bool GetItemDescriptionByName( const Char* pstrName, CString& outDescription, CString& outUnitName, bool singular );
 	// Returns an item description by weapon id
-	const Char* GetItemDescriptionByWeaponId( weaponid_t weaponid );
+	bool GetItemDescriptionByWeaponId( weaponid_t weaponid, CString& outDescription, CString& outUnitName, bool singular );
 	// Returns a weapon info structure based on id
 	const hud_weaponinfo_t* GetWeaponInfoById( weaponid_t weaponid );
 	// Returns a weapon icon texture based on id
@@ -594,6 +591,7 @@ private:
 
 	Float	m_movementNoise;
 	Float	m_npcAwareness;
+	color24_t m_npcAwarenessColor;
 
 	bool	m_newObjective;
 

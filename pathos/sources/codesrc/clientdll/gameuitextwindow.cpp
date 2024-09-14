@@ -125,13 +125,6 @@ void CGameUITextWindow::initWindow( const font_set_t* pTitleFont, const font_set
 //====================================
 bool CGameUITextWindow::initData( const Char* pstrtextfilepath, const Char* pstrPassCode )
 {
-	const byte* pfile = cl_filefuncs.pfnLoadFile(pstrtextfilepath, nullptr);
-	if(!pfile)
-	{
-		cl_engfuncs.pfnCon_Printf("%s - Could not load file '%s'.\n", __FUNCTION__, pstrtextfilepath);
-		return false;
-	}
-
 	// Title text
 	CString titletext;
 	// Font set name
@@ -143,150 +136,10 @@ bool CGameUITextWindow::initData( const Char* pstrtextfilepath, const Char* pstr
 	// Text color
 	color32_t textcolor = GAMEUIWINDOW_DEFAULT_TEXT_COLOR;
 
-	// First get all options
-	CString token;
-	const Char* pstr = reinterpret_cast<const Char*>(pfile);
-	while(pstr)
-	{
-		// Parse the token
-		pstr = Common::Parse(pstr, token);
-		if(!pstr)
-		{
-			cl_engfuncs.pfnCon_Printf("%s - Unexpected end of file in '%s'.\n", __FUNCTION__, pstrtextfilepath);
-			cl_filefuncs.pfnFreeFile(pfile);
-			return false;
-		}
-
-		if(token[0] == '$')
-		{
-			// Read in the next parameter
-			CString paramvalue;
-			pstr = Common::Parse(pstr, paramvalue);
-
-			// Need to handle a parameter
-			if(!qstrcmp(token, "$title"))
-			{
-				// Set title
-				titletext = paramvalue;
-			}
-			else if(!qstrcmp(token, "$textschema"))
-			{
-				// Set the font set name
-				textschema = paramvalue;
-			}
-			else if(!qstrcmp(token, "$titletextschema"))
-			{
-				// Set the font set name
-				titletextschema = paramvalue;
-			}
-			else if(!qstrcmp(token, "$color") || !qstrcmp(token, "$titlecolor"))
-			{
-				if(!Common::IsNumber(paramvalue.c_str()))
-				{
-					cl_engfuncs.pfnCon_Printf("%s - Expected a numerical value for '%s' in '%s', got '%s' instead.\n", __FUNCTION__, token.c_str(), pstrtextfilepath, paramvalue.c_str());
-					cl_filefuncs.pfnFreeFile(pfile);
-					return false;
-				}
-
-				// Read in the g component
-				CString gcomponent;
-				pstr = Common::Parse(pstr, gcomponent);
-				if(!pstr)
-				{
-					cl_engfuncs.pfnCon_Printf("%s - Unexpected end of file in '%s'.\n", __FUNCTION__, pstrtextfilepath);
-					cl_filefuncs.pfnFreeFile(pfile);
-					return false;
-				}
-				if(!Common::IsNumber(gcomponent.c_str()))
-				{
-					cl_engfuncs.pfnCon_Printf("%s - Expected a numerical value for '%s' in '%s', got '%s' instead.\n", __FUNCTION__, token.c_str(), pstrtextfilepath, paramvalue.c_str());
-					cl_filefuncs.pfnFreeFile(pfile);
-					return false;
-				}
-
-				// Read in the b component
-				CString bcomponent;
-				pstr = Common::Parse(pstr, bcomponent);
-				if(!pstr)
-				{
-					cl_engfuncs.pfnCon_Printf("%s - Unexpected end of file in '%s'.\n", __FUNCTION__, pstrtextfilepath);
-					cl_filefuncs.pfnFreeFile(pfile);
-					return false;
-				}
-				if(!Common::IsNumber(bcomponent.c_str()))
-				{
-					cl_engfuncs.pfnCon_Printf("%s - Expected a numerical value for '%s' in '%s', got '%s' instead.\n", __FUNCTION__, token.c_str(), pstrtextfilepath, paramvalue.c_str());
-					cl_filefuncs.pfnFreeFile(pfile);
-					return false;
-				}
-
-				// Read in the a component
-				CString acomponent;
-				pstr = Common::Parse(pstr, acomponent);
-				if(!pstr)
-				{
-					cl_engfuncs.pfnCon_Printf("%s - Unexpected end of file in '%s'.\n", __FUNCTION__, pstrtextfilepath);
-					cl_filefuncs.pfnFreeFile(pfile);
-					return false;
-				}
-				if(!Common::IsNumber(acomponent.c_str()))
-				{
-					cl_engfuncs.pfnCon_Printf("%s - Expected a numerical value for '%s' in '%s', got '%s' instead.\n", __FUNCTION__, token.c_str(), pstrtextfilepath, paramvalue.c_str());
-					cl_filefuncs.pfnFreeFile(pfile);
-					return false;
-				}
-
-				// Assign the color components
-				if(!qstrcmp(token, "$titlecolor"))
-				{
-					titletextcolor.r = SDL_atoi(paramvalue.c_str());
-					titletextcolor.g = SDL_atoi(gcomponent.c_str());
-					titletextcolor.b = SDL_atoi(bcomponent.c_str());
-					titletextcolor.a = SDL_atoi(acomponent.c_str());
-				}
-				else
-				{
-					textcolor.r = SDL_atoi(paramvalue.c_str());
-					textcolor.g = SDL_atoi(gcomponent.c_str());
-					textcolor.b = SDL_atoi(bcomponent.c_str());
-					textcolor.a = SDL_atoi(acomponent.c_str());
-				}
-			}
-			else
-			{
-				cl_engfuncs.pfnCon_Printf("%s - Unknown option '%s' in '%s'.\n", __FUNCTION__, token.c_str(), pstrtextfilepath);
-				continue;
-			}
-		}
-		else if(!qstrcmp(token, "{"))
-		{
-			// Time to read text contents
-			break;
-		}
-		else
-		{
-			cl_engfuncs.pfnCon_Printf("%s - Expected '{' or option starting with '$', got '%s' instead in '%s'.\n", __FUNCTION__, token.c_str(), pstrtextfilepath);
-			cl_filefuncs.pfnFreeFile(pfile);
-			return false;
-		}
-	}
-
-	// Safeguard twice
-	if(qstrcmp(token, "{"))
-	{
-		cl_engfuncs.pfnCon_Printf("%s - Expected '{', got '%s' instead in '%s'.\n", __FUNCTION__, token.c_str(), pstrtextfilepath);
-		cl_filefuncs.pfnFreeFile(pfile);
+	// Process the document to be used
+	CString textcontents;
+	if(!ProcessTextFile(pstrtextfilepath, pstrPassCode, titletext, titletextschema, titletextcolor, textschema, textcolor, textcontents))
 		return false;
-	}
-
-	// Find the ending bracket
-	const Char* pstrend = qstrstr(pstr, "}");
-	if(!pstrend)
-	{
-		cl_engfuncs.pfnCon_Printf("%s - Text file '%s' is missing ending bracket '}'.\n", __FUNCTION__, pstrtextfilepath);
-		cl_filefuncs.pfnFreeFile(pfile);
-		return false;
-	}
 
 	Uint32 screenWidth, screenHeight;
 	cl_renderfuncs.pfnGetScreenSize(screenWidth, screenHeight);
@@ -308,21 +161,6 @@ bool CGameUITextWindow::initData( const Char* pstrtextfilepath, const Char* pstr
 
 	// Initialize it
 	initWindow(ptitlefontset, pfontset);
-
-	CString textcontents;
-	Uint32 datasize = (pstrend - pstr);
-	textcontents.assign(pstr, datasize);
-
-	// Release the file
-	cl_filefuncs.pfnFreeFile(pfile);
-
-	// Replace any passcode tokens
-	Int32 tokenoffset = textcontents.find(0, "%passcode%");
-	if(tokenoffset != -1)
-	{
-		textcontents.erase(tokenoffset, 10);
-		textcontents.insert(tokenoffset, pstrPassCode);
-	}
 
 	// Assign the contents
 	m_pTextTab->initData(reinterpret_cast<const byte*>(textcontents.c_str()), textcontents.length());
@@ -371,6 +209,183 @@ void CGameUITextWindow::CloseWindow( void )
 //====================================
 //
 //====================================
+bool CGameUITextWindow::ProcessTextFile( const Char* pstrFilePath, const CString passCode, CString& titleText, CString& titleTextSchema, color32_t& titleTextColor, CString& textSchema, color32_t& textColor, CString& documentText )
+{
+	const byte* pfile = cl_filefuncs.pfnLoadFile(pstrFilePath, nullptr);
+	if(!pfile)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Could not load file '%s'.\n", __FUNCTION__, pstrFilePath);
+		return false;
+	}
+
+	// First get all options
+	CString token;
+	const Char* pstr = reinterpret_cast<const Char*>(pfile);
+	while(pstr)
+	{
+		// Parse the token
+		pstr = Common::Parse(pstr, token);
+		if(!pstr)
+		{
+			cl_engfuncs.pfnCon_Printf("%s - Unexpected end of file in '%s'.\n", __FUNCTION__, pstrFilePath);
+			cl_filefuncs.pfnFreeFile(pfile);
+			return false;
+		}
+
+		if(token[0] == '$')
+		{
+			// Read in the next parameter
+			CString paramvalue;
+			pstr = Common::Parse(pstr, paramvalue);
+
+			// Need to handle a parameter
+			if(!qstrcmp(token, "$title"))
+			{
+				// Set title
+				titleText = paramvalue;
+			}
+			else if(!qstrcmp(token, "$textschema"))
+			{
+				// Set the font set name
+				textSchema = paramvalue;
+			}
+			else if(!qstrcmp(token, "$titletextschema"))
+			{
+				// Set the font set name
+				titleTextSchema = paramvalue;
+			}
+			else if(!qstrcmp(token, "$color") || !qstrcmp(token, "$titlecolor"))
+			{
+				if(!Common::IsNumber(paramvalue.c_str()))
+				{
+					cl_engfuncs.pfnCon_Printf("%s - Expected a numerical value for '%s' in '%s', got '%s' instead.\n", __FUNCTION__, token.c_str(), pstrFilePath, paramvalue.c_str());
+					cl_filefuncs.pfnFreeFile(pfile);
+					return false;
+				}
+
+				// Read in the g component
+				CString gcomponent;
+				pstr = Common::Parse(pstr, gcomponent);
+				if(!pstr)
+				{
+					cl_engfuncs.pfnCon_Printf("%s - Unexpected end of file in '%s'.\n", __FUNCTION__, pstrFilePath);
+					cl_filefuncs.pfnFreeFile(pfile);
+					return false;
+				}
+				if(!Common::IsNumber(gcomponent.c_str()))
+				{
+					cl_engfuncs.pfnCon_Printf("%s - Expected a numerical value for '%s' in '%s', got '%s' instead.\n", __FUNCTION__, token.c_str(), pstrFilePath, paramvalue.c_str());
+					cl_filefuncs.pfnFreeFile(pfile);
+					return false;
+				}
+
+				// Read in the b component
+				CString bcomponent;
+				pstr = Common::Parse(pstr, bcomponent);
+				if(!pstr)
+				{
+					cl_engfuncs.pfnCon_Printf("%s - Unexpected end of file in '%s'.\n", __FUNCTION__, pstrFilePath);
+					cl_filefuncs.pfnFreeFile(pfile);
+					return false;
+				}
+				if(!Common::IsNumber(bcomponent.c_str()))
+				{
+					cl_engfuncs.pfnCon_Printf("%s - Expected a numerical value for '%s' in '%s', got '%s' instead.\n", __FUNCTION__, token.c_str(), pstrFilePath, paramvalue.c_str());
+					cl_filefuncs.pfnFreeFile(pfile);
+					return false;
+				}
+
+				// Read in the a component
+				CString acomponent;
+				pstr = Common::Parse(pstr, acomponent);
+				if(!pstr)
+				{
+					cl_engfuncs.pfnCon_Printf("%s - Unexpected end of file in '%s'.\n", __FUNCTION__, pstrFilePath);
+					cl_filefuncs.pfnFreeFile(pfile);
+					return false;
+				}
+				if(!Common::IsNumber(acomponent.c_str()))
+				{
+					cl_engfuncs.pfnCon_Printf("%s - Expected a numerical value for '%s' in '%s', got '%s' instead.\n", __FUNCTION__, token.c_str(), pstrFilePath, paramvalue.c_str());
+					cl_filefuncs.pfnFreeFile(pfile);
+					return false;
+				}
+
+				// Assign the color components
+				if(!qstrcmp(token, "$titlecolor"))
+				{
+					titleTextColor.r = SDL_atoi(paramvalue.c_str());
+					titleTextColor.g = SDL_atoi(gcomponent.c_str());
+					titleTextColor.b = SDL_atoi(bcomponent.c_str());
+					titleTextColor.a = SDL_atoi(acomponent.c_str());
+				}
+				else
+				{
+					textColor.r = SDL_atoi(paramvalue.c_str());
+					textColor.g = SDL_atoi(gcomponent.c_str());
+					textColor.b = SDL_atoi(bcomponent.c_str());
+					textColor.a = SDL_atoi(acomponent.c_str());
+				}
+			}
+			else
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Unknown option '%s' in '%s'.\n", __FUNCTION__, token.c_str(), pstrFilePath);
+				continue;
+			}
+		}
+		else if(!qstrcmp(token, "{"))
+		{
+			// Time to read text contents
+			break;
+		}
+		else
+		{
+			cl_engfuncs.pfnCon_Printf("%s - Expected '{' or option starting with '$', got '%s' instead in '%s'.\n", __FUNCTION__, token.c_str(), pstrFilePath);
+			cl_filefuncs.pfnFreeFile(pfile);
+			return false;
+		}
+	}
+
+	// Safeguard twice
+	if(qstrcmp(token, "{"))
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Expected '{', got '%s' instead in '%s'.\n", __FUNCTION__, token.c_str(), pstrFilePath);
+		cl_filefuncs.pfnFreeFile(pfile);
+		return false;
+	}
+
+	// Find the ending bracket
+	const Char* pstrend = qstrstr(pstr, "}");
+	if(!pstrend)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Text file '%s' is missing ending bracket '}'.\n", __FUNCTION__, pstrFilePath);
+		cl_filefuncs.pfnFreeFile(pfile);
+		return false;
+	}
+
+	Uint32 datasize = (pstrend - pstr);
+	documentText.assign(pstr, datasize);
+
+	// Release the file
+	cl_filefuncs.pfnFreeFile(pfile);
+
+	// Replace any passcode tokens
+	while(true)
+	{
+		Int32 tokenoffset = documentText.find(0, "%passcode%");
+		if(tokenoffset == -1)
+			break;
+
+		documentText.erase(tokenoffset, 10);
+		documentText.insert(tokenoffset, passCode.c_str());
+	}
+
+	return true;
+}
+
+//====================================
+//
+//====================================
 void CGameUITextWindowExitCallbackEvent::PerformAction( Float param )
 {
 	if(!m_pTextWindow)
@@ -378,3 +393,4 @@ void CGameUITextWindowExitCallbackEvent::PerformAction( Float param )
 
 	m_pTextWindow->CloseWindow();
 }
+

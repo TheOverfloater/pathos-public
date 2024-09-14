@@ -120,7 +120,7 @@ void CAmbientOggStream::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, 
 
 	// Get path to file, it's always needed
 	const Char* pstrFilepath = gd_engfuncs.pfnGetString(m_pFields->message);
-	if(!pstrFilepath || !qstrlen(pstrFilepath))
+	if(!pstrFilepath || !qstrlen(pstrFilepath) || HasSpawnFlag(FL_TURN_OFF_OTHER))
 	{
 		// If no file is specified, just terminate any music playing
 		flags |= OGG_FL_STOP;
@@ -166,7 +166,8 @@ void CAmbientOggStream::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, 
 	}
 
 	// Make sure we don't execute it unnecessarily
-	if(HasSpawnFlag(FL_LOOP_MUSIC) && m_isActive == previousState)
+	if(HasSpawnFlag(FL_LOOP_MUSIC) && (pstrFilepath && qstrlen(pstrFilepath)) 
+		&& (m_isActive == previousState || HasSpawnFlag(FL_TURN_OFF_OTHER)))
 		return;
 
 	if(!(flags & OGG_FL_STOP))

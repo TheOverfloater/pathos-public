@@ -390,3 +390,22 @@ void UserMSG_Msg_WriteEntindex( usermsgdata_t& msgdata, entindex_t entindex )
 	// Is this function even neeeded?
 	UserMSG_Msg_WriteInt32(msgdata, entindex);
 }
+
+//=============================================
+//
+//=============================================
+void UserMSG_Msg_WriteBitSet( usermsgdata_t& msgdata, const byte* pdataarray, Uint32 numbits, Uint32 numbytes )
+{
+	if(msgdata.pusermsg == nullptr)
+	{
+		Con_EPrintf("%s - No message begin called.\n", __FUNCTION__);
+		return;
+	}
+
+	// Tell of the size of the bitset
+	UserMSG_Msg_WriteUint32(msgdata, numbits);
+	// Tell of the number of bytes
+	UserMSG_Msg_WriteUint32(msgdata, numbytes);
+	// Now write it as a buffer
+	UserMSG_Msg_WriteBuffer(msgdata, pdataarray, numbytes);
+}

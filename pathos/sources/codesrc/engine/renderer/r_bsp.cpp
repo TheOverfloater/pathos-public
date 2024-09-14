@@ -1173,14 +1173,36 @@ bool CBSPRenderer::DrawTransparent( void )
 				|| R_IsSpecialRenderEntity(entity))
 				continue;
 
-			if(entity.curstate.renderfx == RenderFx_SkyEnt && !rns.water_skydraw
-				|| entity.curstate.renderfx != RenderFx_SkyEnt && rns.water_skydraw
-				|| entity.curstate.renderfx == RenderFx_SkyEntScaled && !rns.water_skydraw
-				|| entity.curstate.renderfx != RenderFx_SkyEntScaled && rns.water_skydraw
-				|| entity.curstate.renderfx == RenderFx_SkyEntNC
-				|| entity.curstate.renderfx == RenderFx_InPortalEntity
-				|| entity.curstate.renderfx == RenderFx_InPortalEntity && !rns.portalpass
-				|| entity.curstate.renderfx != RenderFx_InPortalEntity && rns.portalpass)
+			// Handle skydraw specially
+			if (rns.water_skydraw)
+			{
+				if (entity.curstate.renderfx != RenderFx_SkyEnt
+					&& entity.curstate.renderfx != RenderFx_SkyEntScaled)
+					continue;
+			}
+			else
+			{
+				if (entity.curstate.renderfx == RenderFx_SkyEnt
+					|| entity.curstate.renderfx == RenderFx_SkyEntScaled)
+					continue;
+			}
+
+			// Handle portals specially
+			if (rns.portalpass)
+			{
+				if (entity.curstate.renderfx != RenderFx_InPortalEntity
+					&& entity.curstate.renderfx != RenderFx_InPortalScaledModel)
+					continue;
+			}
+			else
+			{
+				if (entity.curstate.renderfx == RenderFx_InPortalEntity
+					|| entity.curstate.renderfx == RenderFx_InPortalScaledModel)
+					continue;
+			}
+
+			// Never allow no-depth cull entities to be rendered here
+			if (entity.curstate.renderfx == RenderFx_SkyEntNC)
 				continue;
 
 			result = DrawBrushModel(entity, false);
@@ -1319,13 +1341,36 @@ bool CBSPRenderer::DrawWorld( void )
 			if(!entity.pmodel || entity.pmodel->type != MOD_BRUSH)
 				continue;
 
-			if(entity.curstate.renderfx == RenderFx_SkyEnt && !rns.water_skydraw
-				|| entity.curstate.renderfx != RenderFx_SkyEnt && rns.water_skydraw
-				|| entity.curstate.renderfx == RenderFx_SkyEntScaled && !rns.water_skydraw
-				|| entity.curstate.renderfx != RenderFx_SkyEntScaled && rns.water_skydraw
-				|| entity.curstate.renderfx == RenderFx_SkyEntNC
-				|| entity.curstate.renderfx == RenderFx_InPortalEntity && !rns.portalpass
-				|| entity.curstate.renderfx != RenderFx_InPortalEntity && rns.portalpass)
+			// Handle skydraw specially
+			if (rns.water_skydraw)
+			{
+				if (entity.curstate.renderfx != RenderFx_SkyEnt
+					&& entity.curstate.renderfx != RenderFx_SkyEntScaled)
+					continue;
+			}
+			else
+			{
+				if (entity.curstate.renderfx == RenderFx_SkyEnt
+					|| entity.curstate.renderfx == RenderFx_SkyEntScaled)
+					continue;
+			}
+
+			// Handle portals specially
+			if (rns.portalpass)
+			{
+				if (entity.curstate.renderfx != RenderFx_InPortalEntity
+					&& entity.curstate.renderfx != RenderFx_InPortalScaledModel)
+					continue;
+			}
+			else
+			{
+				if (entity.curstate.renderfx == RenderFx_InPortalEntity
+					|| entity.curstate.renderfx == RenderFx_InPortalScaledModel)
+					continue;
+			}
+
+			// Never allow no-depth cull entities to be rendered here
+			if (entity.curstate.renderfx == RenderFx_SkyEntNC)
 				continue;
 
 			if(R_IsEntityMoved(entity) 
@@ -1356,13 +1401,36 @@ bool CBSPRenderer::DrawWorld( void )
 			if(!entity.pmodel || entity.pmodel->type != MOD_BRUSH)
 				continue;
 
-			if(entity.curstate.renderfx == RenderFx_SkyEnt && !rns.water_skydraw
-				|| entity.curstate.renderfx != RenderFx_SkyEnt && rns.water_skydraw
-				|| entity.curstate.renderfx == RenderFx_SkyEntScaled && !rns.water_skydraw
-				|| entity.curstate.renderfx != RenderFx_SkyEntScaled && rns.water_skydraw
-				|| entity.curstate.renderfx == RenderFx_SkyEntNC
-				|| entity.curstate.renderfx == RenderFx_InPortalEntity && !rns.portalpass
-				|| entity.curstate.renderfx != RenderFx_InPortalEntity && rns.portalpass)
+			// Handle skydraw specially
+			if (rns.water_skydraw)
+			{
+				if (entity.curstate.renderfx != RenderFx_SkyEnt
+					&& entity.curstate.renderfx != RenderFx_SkyEntScaled)
+					continue;
+			}
+			else
+			{
+				if (entity.curstate.renderfx == RenderFx_SkyEnt
+					|| entity.curstate.renderfx == RenderFx_SkyEntScaled)
+					continue;
+			}
+
+			// Handle portals specially
+			if (rns.portalpass)
+			{
+				if (entity.curstate.renderfx != RenderFx_InPortalEntity
+					&& entity.curstate.renderfx != RenderFx_InPortalScaledModel)
+					continue;
+			}
+			else
+			{
+				if (entity.curstate.renderfx == RenderFx_InPortalEntity
+					|| entity.curstate.renderfx == RenderFx_InPortalScaledModel)
+					continue;
+			}
+
+			// Never allow no-depth cull entities to be rendered here
+			if (entity.curstate.renderfx == RenderFx_SkyEntNC)
 				continue;
 
 			if(!R_IsEntityMoved(entity) 
@@ -1718,6 +1786,8 @@ bool CBSPRenderer::DrawFirst( void )
 		cubemapinfo_t* pcubemapinfo = nullptr;
 		cubemapinfo_t* pprevcubemapinfo = nullptr;
 
+		bool alphaToCoverageEnabled = false;
+
 		// rendermode overrides
 		if(m_pCvarLegacyTransparents->GetValue() >= 1 && !m_multiPass 
 			&& (rendermodeext == RENDER_TRANSADDITIVE || rendermodeext == RENDER_TRANSTEXTURE 
@@ -1813,6 +1883,8 @@ bool CBSPRenderer::DrawFirst( void )
 					glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 					gGLExtF.glSampleCoverage(0.5, GL_FALSE);
 				}
+
+				alphaToCoverageEnabled = true;
 			}
 			else
 			{
@@ -1831,7 +1903,7 @@ bool CBSPRenderer::DrawFirst( void )
 			}
 
 			// Set up binds
-			if(!BindTextures(ptexturehandle, pcubemapinfo, pprevcubemapinfo, cubemapUnit))
+			if(!BindTextures(ptexturehandle, pcubemapinfo, pprevcubemapinfo, cubemapUnit, alphaToCoverageEnabled))
 				return false;
 		
 			// Set specular and phong if it's needed
@@ -1860,6 +1932,8 @@ bool CBSPRenderer::DrawFirst( void )
 				m_pShader->SetUniformMatrix4fv(m_attribs.u_modelmatrix, modelMatrix.GetMatrix());
 				m_pShader->SetUniformMatrix4fv(m_attribs.u_inv_modelmatrix, modelMatrix.GetInverse());
 				m_pShader->SetUniform1f(m_attribs.u_cubemapstrength, pmaterial->cubemapstrength);
+
+				glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 			}
 			else if(cubematrixSet)
 			{
@@ -1879,25 +1953,21 @@ bool CBSPRenderer::DrawFirst( void )
 		if(m_pCurrentEntity->curstate.effects & EF_CONVEYOR)
 			m_pShader->SetUniform2f(m_attribs.u_uvoffset, 0, 0);
 
-		if((pmaterial->flags & TX_FL_ALPHATEST && rns.msaa)
-			&& (m_pCvarLegacyTransparents->GetValue() < 1 
-			|| (rendermodeext == RENDER_TRANSALPHA_UNLIT || rendermodeext == RENDER_TRANSALPHA)))
+		if(alphaToCoverageEnabled)
 		{
 			glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 			gGLExtF.glSampleCoverage(1.0, GL_FALSE);
 		}
 
-		glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
-
 		// Reset cubemap bind
 		if(m_isCubemappingSupported && pcubemapinfo && g_pCvarCubemaps->GetValue() > 0)
 		{
-			gGLExtF.glActiveTexture(GL_TEXTURE0_ARB + cubemapUnit);
+			R_BindCubemapTexture(GL_TEXTURE0_ARB + cubemapUnit, 0);
 
 			if(pprevcubemapinfo)
-				gGLExtF.glActiveTexture(GL_TEXTURE0_ARB + cubemapUnit + 1);
+				R_BindCubemapTexture(GL_TEXTURE0_ARB + cubemapUnit + 1, 0);
 
-			gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
+			glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		}
 
 		if(g_pCvarWireFrame->GetValue() >= 1)
@@ -2190,7 +2260,7 @@ mtexture_t *CBSPRenderer::TextureAnimation( mtexture_t *pbase, Uint32 frame )
 // @brief
 //
 //=============================================
-bool CBSPRenderer::BindTextures( bsp_texture_t* phandle, cubemapinfo_t* pcubemapinfo, cubemapinfo_t* pprevcubemap, GLuint& cubemapUnit )
+bool CBSPRenderer::BindTextures( bsp_texture_t* phandle, cubemapinfo_t* pcubemapinfo, cubemapinfo_t* pprevcubemap, GLuint& cubemapUnit, bool& alphaToCoverageEnabled )
 {
 	Uint32 textureIndex = 0;
 	en_material_t* pmaterial = phandle->pmaterial;
@@ -2304,6 +2374,7 @@ bool CBSPRenderer::BindTextures( bsp_texture_t* phandle, cubemapinfo_t* pcubemap
 
 				glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 				gGLExtF.glSampleCoverage(0.5, GL_FALSE);
+				alphaToCoverageEnabled = true;
 			}
 		}
 		else
@@ -2378,8 +2449,6 @@ bool CBSPRenderer::BindTextures( bsp_texture_t* phandle, cubemapinfo_t* pcubemap
 			if(!m_pShader->SetDeterminator(m_attribs.d_cubemaps, CUBEMAPS_ON, false))
 				return false;
 		}
-
-		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
 	}
 	else if(m_isCubemappingSupported)
 	{
@@ -2633,7 +2702,7 @@ bool CBSPRenderer::SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Uint32& 
 		Float flsize = tan((M_PI/360) * pdlight->cone_size);
 		matrix.SetFrustum(-flsize, flsize, -flsize, flsize, 1, pdlight->radius);
 
-		matrix.LookAt(pdlight->origin[0], pdlight->origin[1], pdlight->origin[2], vtarget[0], vtarget[1], vtarget[2], 0, 0, Common::IsPitchReversed(pdlight->angles[PITCH]) ? -1 : 1);
+		matrix.LookAt(pdlight->origin[0], pdlight->origin[1], pdlight->origin[2], vtarget[0], vtarget[1], vtarget[2], 0, 0, Common::IsPitchReversed(angles[PITCH]) ? -1 : 1);
 		matrix.MultMatrix(rns.view.modelview.GetInverse());
 
 		m_pShader->SetUniformMatrix4fv(m_attribs.lights[lightindex].u_light_matrix, matrix.Transpose());
@@ -2672,6 +2741,8 @@ bool CBSPRenderer::SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Uint32& 
 			// set up light matrix
 			m_pShader->EnableSync(m_attribs.lights[lightindex].u_light_matrix);
 			m_pShader->SetUniformMatrix4fv(m_attribs.lights[lightindex].u_light_matrix, matrix.GetMatrix(), true);
+
+			glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		}
 		else
 		{
@@ -2716,6 +2787,8 @@ void CBSPRenderer::FinishLight( cl_dlight_t* pdlight, Uint32& texunit )
 		// binds cubemap texture
 		R_BindCubemapTexture(GL_TEXTURE0+texunit, 0);
 		texunit++;
+
+		glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	}
 }
 
@@ -3046,9 +3119,6 @@ bool CBSPRenderer::DrawLights( bool specular )
 			lightindex++;
 		}
 
-		// Go back to unit 0
-		gGLExtF.glActiveTexture(GL_TEXTURE0);
-
 		// Reset everything
 		for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
 		{
@@ -3351,6 +3421,8 @@ bool CBSPRenderer::DrawFinal( void )
 			texbase++;
 		}
 
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
 		for(Uint32 i = 0; i < m_texturesArray.size(); i++)
 		{
 			if(!m_texturesArray[i].pmodeltexture)
@@ -3414,7 +3486,7 @@ bool CBSPRenderer::DrawFinal( void )
 			texbase++;
 		}
 
-		gGLExtF.glActiveTexture(GL_TEXTURE0_ARB);
+		glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 		m_pShader->DisableAttribute(m_attribs.a_normal);
 		m_pShader->DisableAttribute(m_attribs.a_binormal);
@@ -3661,7 +3733,8 @@ bool CBSPRenderer::DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 nume
 				pEntity->curstate.renderfx == RenderFx_SkyEntNC ||
 				pEntity->curstate.rendertype == RT_WATERSHADER ||
 				pEntity->curstate.rendertype == RT_MIRROR ||
-				pEntity->curstate.rendertype == RT_MONITORENTITY)
+				pEntity->curstate.rendertype == RT_MONITORENTITY ||
+				pEntity->curstate.rendertype == RT_PORTALSURFACE)
 				continue;
 
 			result = DrawBrushModel(*pEntity, true);
@@ -3712,6 +3785,9 @@ bool CBSPRenderer::DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 nume
 				continue;
 
 			if(pEntity->curstate.rendertype == RT_MONITORENTITY)
+				continue;
+
+			if (pEntity->curstate.rendertype == RT_PORTALSURFACE)
 				continue;
 
 			result = BatchBrushModelForVSM(*pEntity, false);

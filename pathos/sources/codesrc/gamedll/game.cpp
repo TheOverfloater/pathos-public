@@ -27,6 +27,7 @@ All Rights Reserved.
 #include "npcclonesoldier.h"
 #include "timedamage.h"
 #include "ai_militianpc.h"
+#include "lightenvironment.h"
 
 // Path to impact effects script
 static const Char MATERIAL_DEFINITIONS_SCRIPT_PATH[] = "scripts/materialdefs.txt";
@@ -82,6 +83,7 @@ bool InitGameObjects( void )
 
 	// Create commands
 	gd_engfuncs.pfnCreateCommand("dumpcheats", DumpCheatCodes, "Dumps cheat codes");
+	gd_engfuncs.pfnCreateCommand(STOP_MUSIC_CMD_NAME, StopMusic, "Stop currently playing music tracks");
 
 	// Create flex manager object
 	if(!g_pFlexManager)
@@ -167,6 +169,17 @@ bool InitGame( void )
 
 	// Reset this
 	CTalkNPC::SetTalkWaitTime(0);
+
+	// Check ALD for light envs
+	CLightEnvironment::CheckALDFile();
+
+	// Check cosistency on ammo type map
+	if (!Weapon_CheckAmmoTypeMapConsinstency(gd_engfuncs.pfnCon_Printf))
+		return false;
+
+	// Check cosistency on activity map
+	if (!Activity_CheckActivityMapConsinstency(gd_engfuncs.pfnCon_Printf))
+		return false;
 
 	return true;
 }
@@ -279,6 +292,25 @@ void DumpCheatCodes( void )
 // @brief
 //
 //=============================================
+void StopMusic( void )
+{
+	edict_t* pClientEdict = gd_engfuncs.pfnGetInvokerPlayer();
+	if(!pClientEdict)
+	{
+		gd_engfuncs.pfnCon_Printf("%s - Failed to get invoker client.\n", __FUNCTION__);
+		return;
+	}
+
+	CBaseEntity* pEntity = CBaseEntity::GetClass(pClientEdict);
+	assert(pEntity != nullptr);
+
+	pEntity->StopMusic("", MUSIC_CHANNEL_ALL, 0);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 void ToggleBikeBlockers( bool enable )
 {
 	for(Int32 i = 0; i < g_pGameVars->numentities; i++)
@@ -347,6 +379,7 @@ void PrecacheGenericResources( void )
 	gd_engfuncs.pfnPrecacheParticleScript("engine_muzzleflash_cluster2.txt", PART_SCRIPT_CLUSTER);
 	gd_engfuncs.pfnPrecacheParticleScript("engine_muzzleflash_cluster3.txt", PART_SCRIPT_CLUSTER);
 	gd_engfuncs.pfnPrecacheParticleScript("engine_muzzleflash_cluster4.txt", PART_SCRIPT_CLUSTER);
+	gd_engfuncs.pfnPrecacheParticleScript("engine_muzzleflash_cluster5.txt", PART_SCRIPT_CLUSTER);
 	gd_engfuncs.pfnPrecacheParticleScript("explosion_cluster.txt", PART_SCRIPT_CLUSTER);
 	gd_engfuncs.pfnPrecacheParticleScript("explosion_underwater_cluster.txt", PART_SCRIPT_CLUSTER);
 	gd_engfuncs.pfnPrecacheParticleScript("spark_cluster.txt", PART_SCRIPT_CLUSTER);
@@ -891,146 +924,163 @@ void FireBullets( Uint32 nbshots,
 				// See if we can ricochet
 				bool bulletRicocheted = false;
 
-				CMaterialDefinitions::ricochetinfo_t& ricochetInfo = pdefinition->ricochetinfos[bulletType];
-				if(ricochetInfo.maxangle > 0 && ricochetInfo.ricochetchance > 0
-					&& ricochetInfo.maxricochets > numRicochets
-					&& Common::RandomLong(1, ricochetInfo.ricochetchance) != 1)
+				const CMaterialDefinitions::ricochetinfo_t* pRicochetInfo = pdefinition->getRicochetInfo(bulletType);
+				if (!pRicochetInfo)
 				{
-					// Get dot product between surface normal and bullet vector
-					Float surfDot = Math::DotProduct(-shootDirection, tr.plane.normal);
-					if(surfDot < ricochetInfo.maxangle)
+					gd_engfuncs.pfnCon_Printf("%s - Material type '%s' has no ricochet info defined for bullet type '%s'.\n",
+						__FUNCTION__, pdefinition->materialname.c_str(), BULLET_TYPE_MAP[bulletType].name);
+				}
+				else
+				{
+					if (pRicochetInfo->maxangle > 0 && pRicochetInfo->ricochetchance > 0
+						&& pRicochetInfo->maxricochets > numRicochets
+						&& Common::RandomLong(1, pRicochetInfo->ricochetchance) != 1)
 					{
-						// Determine deviation
-						Vector deviation(Common::RandomFloat(-ricochetInfo.maxdeviation, ricochetInfo.maxdeviation) * 0.5,
-							Common::RandomFloat(-ricochetInfo.maxdeviation, ricochetInfo.maxdeviation) * 0.5,
-							Common::RandomFloat(-ricochetInfo.maxdeviation, ricochetInfo.maxdeviation) * 0.5);
+						// Get dot product between surface normal and bullet vector
+						Float surfDot = Math::DotProduct(-shootDirection, tr.plane.normal);
+						if (surfDot < pRicochetInfo->maxangle)
+						{
+							// Determine deviation
+							Float maxDevination = pRicochetInfo->maxdeviation;
+							Vector deviation(Common::RandomFloat(-maxDevination, maxDevination) * 0.5,
+								Common::RandomFloat(-maxDevination, maxDevination) * 0.5,
+								Common::RandomFloat(-maxDevination, maxDevination) * 0.5);
 
-						// Reflect bullet direction off wall
-						Vector newDirection;
-						Float proj = Math::DotProduct(shootDirection, tr.plane.normal);
-						Math::VectorMA(shootDirection, -proj*2, tr.plane.normal, newDirection);
-						Math::VectorAdd(newDirection, deviation, shootDirection);
-						Math::VectorNormalize(shootDirection);
+							// Reflect bullet direction off wall
+							Vector newDirection;
+							Float proj = Math::DotProduct(shootDirection, tr.plane.normal);
+							Math::VectorMA(shootDirection, -proj * 2, tr.plane.normal, newDirection);
+							Math::VectorAdd(newDirection, deviation, shootDirection);
+							Math::VectorNormalize(shootDirection);
 
-						// Apply falloff
-						if(ricochetInfo.ricochetdmgfalloff > 0)
-							dmgMultiplier *= (1.0 - ricochetInfo.ricochetdmgfalloff);
+							// Apply falloff
+							if (pRicochetInfo->ricochetdmgfalloff > 0)
+								dmgMultiplier *= (1.0 - pRicochetInfo->ricochetdmgfalloff);
 
-						// Mark as having ricocheted
-						bulletRicocheted = true;
+							// Mark as having ricocheted
+							bulletRicocheted = true;
 
-						// Calculate new positions
-						Vector startPosition = tr.endpos;
-						endPos = startPosition + shootDirection * distance;
+							// Calculate new positions
+							Vector startPosition = tr.endpos;
+							endPos = startPosition + shootDirection * distance;
 
-						// Add ricochet and tracer effect
-						Util::Ricochet(tr.endpos, tr.plane.normal, false);
-						Util::CreateParticles("bullet_tracer.txt", startPosition, shootDirection, PART_SCRIPT_SYSTEM);
+							// Add ricochet and tracer effect
+							Util::Ricochet(tr.endpos, tr.plane.normal, false);
+							Util::CreateParticles("bullet_tracer.txt", startPosition, shootDirection, PART_SCRIPT_SYSTEM);
 
-						if(!ShootTrace(startPosition, endPos, shootDirection, pAttacker, 
-							pAttacker, pWeapon, damage, dmgMultiplier, shotDmgFlags, bulletType, 
-							hitgroup, tr, impactPositions, numImpactPositions, numPenetrations > 0 ? true : false, true, nullptr))
-							break;
+							if (!ShootTrace(startPosition, endPos, shootDirection, pAttacker,
+								pAttacker, pWeapon, damage, dmgMultiplier, shotDmgFlags, bulletType,
+								hitgroup, tr, impactPositions, numImpactPositions, numPenetrations > 0 ? true : false, true, nullptr))
+								break;
 
-						numRicochets++;
+							numRicochets++;
 
-						// Get next entity from trace
-						pHitEntity = Util::GetEntityFromTrace(tr);
+							// Get next entity from trace
+							pHitEntity = Util::GetEntityFromTrace(tr);
 
-						// Only penetrate brushmodels, world or npcs
-						if(!pHitEntity->IsBrushModel() 
-							&& !pHitEntity->IsWorldSpawn()
-							&& !pHitEntity->IsNPC())
-							break;
+							// Only penetrate brushmodels, world or npcs
+							if (!pHitEntity->IsBrushModel()
+								&& !pHitEntity->IsWorldSpawn()
+								&& !pHitEntity->IsNPC())
+								break;
+						}
 					}
 				}
 
 				// Try penetrating if we did not ricochet
 				if(!bulletRicocheted)
 				{
-					const CMaterialDefinitions::penetration_t& penetrationInfo = pdefinition->penetrationinfos[bulletType];
-					if(penetrationChance == -1)
-						penetrationChance = penetrationInfo.penetrationchance;
-					else if(penetrationInfo.chancedecrease > 0)
-						penetrationChance += penetrationInfo.chancedecrease;
-
-					if(penetrationChance > 1 
-						&& Common::RandomLong(1, penetrationChance) != 1)
-						break;
-
-					if(!penetrationInfo.maxpenetration 
-						|| !penetrationInfo.penetrationdepth 
-						|| numPenetrations >= penetrationInfo.maxpenetration)
-						break;
-
-					Vector startPosition;
-					Vector endPosition = tr.endpos;
-					for(Float ldistance = 4.0f; ldistance <= penetrationInfo.penetrationdepth; ldistance += 4.0f)
+					const CMaterialDefinitions::penetration_t* pPenetrationInfo = pdefinition->getPenetrationInfo(bulletType);
+					if (!pPenetrationInfo)
 					{
-						startPosition = tr.endpos + shootDirection* ldistance;
-						if(pHitEntity->IsBrushModel() || pHitEntity->IsWorldSpawn())
-							Util::TraceLine(startPosition, endPosition, true, true, false, true, pAttacker->GetEdict(), tr);
-						else
-							Util::TraceLine(startPosition, endPosition, false, true, pAttacker->GetEdict(), tr);
-
-						if(!tr.startSolid() && !tr.allSolid() && !tr.noHit())
-							break;
-					}
-
-					if(tr.startSolid() || tr.allSolid() || tr.noHit())
-						break;
-
-					bool playSound;
-					if(bulletType == BULLET_NPC_BUCKSHOT)
-					{
-						// Min distance for sound spam
-						const Float minImpactSoundDistance = 128;
-
-						Uint32 j = 0;
-						for(; j < numImpactPositions; j++)
-						{
-							Float sndDistance = (impactPositions[j] - tr.endpos).Length();
-							if(sndDistance < minImpactSoundDistance)
-								break;
-						}
-
-						if(j == numImpactPositions && numImpactPositions < IMPACT_POSITION_MAX)
-						{
-							impactPositions[numImpactPositions] = tr.endpos;
-							numImpactPositions++;
-							playSound = true;
-						}
-						else
-						{
-							playSound = false;
-						}
+						gd_engfuncs.pfnCon_Printf("%s - Material type '%s' has no penetration info defined for bullet type '%s'.\n",
+							__FUNCTION__, pdefinition->materialname.c_str(), BULLET_TYPE_MAP[bulletType].name);
 					}
 					else
 					{
-						playSound = true;
+						if (penetrationChance == -1)
+							penetrationChance = pPenetrationInfo->penetrationchance;
+						else if (pPenetrationInfo->chancedecrease > 0)
+							penetrationChance += pPenetrationInfo->chancedecrease;
+
+						if (penetrationChance > 1
+							&& Common::RandomLong(1, penetrationChance) != 1)
+							break;
+
+						if (!pPenetrationInfo->maxpenetration
+							|| !pPenetrationInfo->penetrationdepth
+							|| numPenetrations >= pPenetrationInfo->maxpenetration)
+							break;
+
+						Vector startPosition;
+						Vector endPosition = tr.endpos;
+						for (Float ldistance = 4.0f; ldistance <= pPenetrationInfo->penetrationdepth; ldistance += 4.0f)
+						{
+							startPosition = tr.endpos + shootDirection * ldistance;
+							if (pHitEntity->IsBrushModel() || pHitEntity->IsWorldSpawn())
+								Util::TraceLine(startPosition, endPosition, true, true, false, true, pAttacker->GetEdict(), tr);
+							else
+								Util::TraceLine(startPosition, endPosition, false, true, pAttacker->GetEdict(), tr);
+
+							if (!tr.startSolid() && !tr.allSolid() && !tr.noHit())
+								break;
+						}
+
+						if (tr.startSolid() || tr.allSolid() || tr.noHit())
+							break;
+
+						bool playSound;
+						if (bulletType == BULLET_NPC_BUCKSHOT)
+						{
+							// Min distance for sound spam
+							const Float minImpactSoundDistance = 128;
+
+							Uint32 j = 0;
+							for (; j < numImpactPositions; j++)
+							{
+								Float sndDistance = (impactPositions[j] - tr.endpos).Length();
+								if (sndDistance < minImpactSoundDistance)
+									break;
+							}
+
+							if (j == numImpactPositions && numImpactPositions < IMPACT_POSITION_MAX)
+							{
+								impactPositions[numImpactPositions] = tr.endpos;
+								numImpactPositions++;
+								playSound = true;
+							}
+							else
+							{
+								playSound = false;
+							}
+						}
+						else
+						{
+							playSound = true;
+						}
+
+						// Create impact effect at exit point
+						Util::CreateImpactEffects(tr, startPosition, true, false, playSound, nullptr);
+
+						startPosition = tr.endpos;
+						if (pPenetrationInfo->damagefalloff < 1.0)
+							dmgMultiplier *= pPenetrationInfo->damagefalloff;
+
+						if (!ShootTrace(startPosition, endPos, shootDirection, pAttacker, pAttacker, pWeapon, damage, dmgMultiplier, shotDmgFlags, bulletType, hitgroup, tr, impactPositions, numImpactPositions, true, false, nullptr))
+							break;
+
+						// Increase penetration count
+						numPenetrations++;
+
+						// Get next entity from trace
+						pHitEntity = Util::GetEntityFromTrace(tr);
+
+						// Only penetrate brushmodels, world or npcs
+						if (!pHitEntity->IsBrushModel()
+							&& !pHitEntity->IsWorldSpawn()
+							&& !pHitEntity->IsNPC())
+							break;
 					}
-
-					// Create impact effect at exit point
-					Util::CreateImpactEffects(tr, startPosition, true, false, playSound, nullptr);
-
-					startPosition = tr.endpos;
-					if(penetrationInfo.damagefalloff < 1.0)
-						dmgMultiplier *= penetrationInfo.damagefalloff;
-
-					if(!ShootTrace(startPosition, endPos, shootDirection, pAttacker, pAttacker, pWeapon, damage, dmgMultiplier, shotDmgFlags, bulletType, hitgroup, tr, impactPositions, numImpactPositions, true, false, nullptr))
-						break;
-
-					// Increase penetration count
-					numPenetrations++;
-
-					// Get next entity from trace
-					pHitEntity = Util::GetEntityFromTrace(tr);
-
-					// Only penetrate brushmodels, world or npcs
-					if(!pHitEntity->IsBrushModel() 
-						&& !pHitEntity->IsWorldSpawn()
-						&& !pHitEntity->IsNPC())
-						break;
 				}
 			}
 		}

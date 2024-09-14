@@ -973,6 +973,7 @@ void CMotorBike::HandleStates( void )
 	{
 		gDefaultView.ResetViewIdle();
 		gDefaultView.ResetViewRoll();
+		gDefaultView.ResetViewModelLag();
 
 		SetSequence(BIKE_ANIM_STANDBY);
 		m_idealAnimState = m_animState = BIKE_STATE_STANDBY;

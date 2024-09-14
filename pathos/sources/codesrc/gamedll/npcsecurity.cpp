@@ -81,13 +81,18 @@ ai_task_t taskListScheduleDrawWeapon[] =
 	AITASK(AI_TASK_PLAY_SEQUENCE_FACE_ENEMY,	(Float)ACT_ARM),
 };
 
+Uint32 interruptBitsScheduleDrawWeapon[] =
+{
+	AI_COND_SCHEDULE_DONE
+};
+
 const CAISchedule scheduleDrawWeapon(
 	// Task list
 	taskListScheduleDrawWeapon, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleDrawWeapon),
 	// AI interrupt mask
-	AI_COND_SCHEDULE_DONE,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleDrawWeapon, PT_ARRAYSIZE(interruptBitsScheduleDrawWeapon)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -220,7 +225,12 @@ bool CNPCSecurity::Spawn( void )
 		SetMemory(AI_MEMORY_PROVOKED);
 
 	// Set capabilities
-	m_capabilityBits |= (AI_CAP_SQUAD|AI_CAP_HEAR|AI_CAP_TURN_HEAD|AI_CAP_TURN_HEAD_PITCH|AI_CAP_GROUP_DOORS|AI_CAP_ATTACK_BLEND_SEQ);
+	SetCapability(AI_CAP_SQUAD);
+	SetCapability(AI_CAP_HEAR);
+	SetCapability(AI_CAP_TURN_HEAD);
+	SetCapability(AI_CAP_TURN_HEAD_PITCH);
+	SetCapabilities(AI_CAP_GROUP_DOORS);
+	SetCapability(AI_CAP_ATTACK_BLEND_SEQ);
 
 	// Initialize the NPC
 	InitNPC();
@@ -363,7 +373,7 @@ void CNPCSecurity::HandleAnimationEvent( const mstudioevent_t* pevent )
 		{
 			Util::EmitEntitySound(this, NPC_GLOCK_RELOAD_SOUND, SND_CHAN_WEAPON);
 			m_ammoLoaded = m_clipSize;
-			ClearConditions(AI_COND_NO_AMMO_LOADED);
+			ClearCondition(AI_COND_NO_AMMO_LOADED);
 		}
 		break;
 	case NPC_AE_SHOOT:
@@ -525,27 +535,34 @@ void CNPCSecurity::RunTask( const ai_task_t* pTask )
 const CAISchedule* CNPCSecurity::GetSchedule( void )
 {
 	// Run away from danger sounds
-	if(CheckConditions(AI_COND_HEAR_SOUND) && m_pBestSound && (m_pBestSound->typeflags & AI_SOUND_DANGER))
+	if(CheckCondition(AI_COND_HEAR_SOUND) && m_pBestSound && (m_pBestSound->typeflags & AI_SOUND_DANGER))
 		return GetScheduleByIndex(AI_SCHED_TAKE_COVER_FROM_BEST_SOUND);
 
 	// Comment on dead enemies
-	if(CheckConditions(AI_COND_ENEMY_DEAD) && CanSpeak())
+	if(CheckCondition(AI_COND_ENEMY_DEAD) && CanSpeak())
 		PlaySentence("SE_KILL", 0, VOL_NORM, ATTN_NORM, 0, true);
 
 	// Dodge any dangerous enemies
-	if(m_dangerousEnemy && CheckConditions(AI_COND_DANGEROUS_ENEMY_CLOSE) && !HasMemory(AI_MEMORY_DODGE_ENEMY_FAILED))
+	if(m_dangerousEnemy && CheckCondition(AI_COND_DANGEROUS_ENEMY_CLOSE) && !HasMemory(AI_MEMORY_DODGE_ENEMY_FAILED))
 		return GetScheduleByIndex(AI_SCHED_DODGE_ENEMY);
 
 	switch(m_npcState)
 	{
 	case NPC_STATE_COMBAT:
 		{
-			if(CheckConditions(AI_COND_ENEMY_DEAD))
+			// If we just got released from a grab, flee
+			if(m_enemy && m_enemy->IsNPCDangerous() 
+				&& (!m_enemy->IsAwareOf(this) || !CheckCondition(AI_COND_SEE_ENEMY) || CheckCondition(AI_COND_ENEMY_OCCLUDED)))
+			{
+				// Let base class managed fleeing the dangerous npc
+				return CWanderNPC::GetSchedule();
+			}
+			else if(CheckCondition(AI_COND_ENEMY_DEAD))
 			{
 				// Let base class managed dead enemy
 				return CWanderNPC::GetSchedule();
 			}
-			else if(CheckConditions(AI_COND_NO_AMMO_LOADED))
+			else if(CheckCondition(AI_COND_NO_AMMO_LOADED))
 			{
 				// Reload where you stand
 				return GetScheduleByIndex(AI_SCHED_RELOAD);
@@ -555,7 +572,7 @@ const CAISchedule* CNPCSecurity::GetSchedule( void )
 				// Draw your gun
 				return GetScheduleByIndex(AI_SCHED_ARM_WEAPON);
 			}
-			else if(CheckConditions(AI_COND_HEAVY_DAMAGE))
+			else if(CheckCondition(AI_COND_HEAVY_DAMAGE))
 			{
 				// Take cover from enemy is hurt too much
 				return GetScheduleByIndex(AI_SCHED_TAKE_COVER_FROM_ENEMY);
@@ -572,7 +589,7 @@ const CAISchedule* CNPCSecurity::GetSchedule( void )
 					StopFollowing(false);
 					break;
 				}
-				else if(!CheckConditions(AI_COND_BLOCKING_PATH))
+				else if(!CheckCondition(AI_COND_BLOCKING_PATH))
 				{
 					// Face the target and follow him
 					return GetScheduleByIndex(AI_TALKNPC_SCHED_TARGET_FACE);
@@ -619,13 +636,13 @@ const CAISchedule* CNPCSecurity::GetScheduleByIndex( Int32 scheduleIndex )
 //=============================================
 bool CNPCSecurity::CheckRangeAttack1( Float dp, Float distance )
 {
-	if(CheckConditions(AI_COND_ENEMY_OCCLUDED))
+	if(CheckCondition(AI_COND_ENEMY_OCCLUDED))
 		return false;
 
-	if(dp < NPC_FIRING_ANGLE_TRESHOLD || CheckConditions(AI_COND_FRIENDLY_FIRE) || distance > m_firingDistance)
+	if(dp < NPC_FIRING_ANGLE_TRESHOLD || CheckCondition(AI_COND_FRIENDLY_FIRE) || distance > m_firingDistance)
 		return false;
 
-	return CheckConditions(AI_COND_SHOOT_VECTOR_VALID);
+	return CheckCondition(AI_COND_SHOOT_VECTOR_VALID);
 }
 
 //=============================================
@@ -635,7 +652,7 @@ bool CNPCSecurity::CheckRangeAttack1( Float dp, Float distance )
 void CNPCSecurity::CheckAmmo( void )
 {
 	if(!m_ammoLoaded)
-		SetConditions(AI_COND_NO_AMMO_LOADED);
+		SetCondition(AI_COND_NO_AMMO_LOADED);
 }
 
 //=============================================

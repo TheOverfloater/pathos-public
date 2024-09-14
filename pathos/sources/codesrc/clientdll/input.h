@@ -29,7 +29,7 @@ enum key_states_t
 struct kbutton_t
 {
 	kbutton_t():
-		state(0)
+		state(KS_UP)
 	{
 		for(Uint32 i = 0; i < MAX_INPUT_KEYS; i++)
 			buttons[i] = SDL_SCANCODE_UNKNOWN;

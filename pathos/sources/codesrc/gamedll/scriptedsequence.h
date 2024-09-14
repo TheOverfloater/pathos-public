@@ -47,7 +47,9 @@ class CScriptedSequence : public CDelayEntity
 {
 public:
 	// Script default break conditions
-	static const Uint64 SCRIPT_BREAK_CONDITIONS;
+	static const Uint32 SCRIPT_BREAK_CONDITIONS_BITS[];
+	// Script default break conditions bitset
+	static const CBitSet SCRIPT_BREAK_CONDITIONS;
 
 public:
 	enum
@@ -60,7 +62,6 @@ public:
 		FL_NO_INTERRUPTIONS		= (1<<5),
 		FL_OVERRIDE_STATE		= (1<<6),
 		FL_NO_SCRIPT_MOVEMENT	= (1<<7),
-		FL_IDLE_BY_TRIGGER		= (1<<8),
 		FL_TRIGGER_IDLE_FIRST	= (1<<9),
 		FL_SEARCH_RADIUS		= (1<<10),
 		FL_SOUNDS_CAN_INTERRUPT	= (1<<11),
@@ -117,8 +118,8 @@ public:
 	const Char* GetLoopSequenceName( void );
 	const Char* GetExitSequenceName( void );
 
-	Uint64 GetIgnoreConditions( void );
-	Uint64 GetScriptBreakingAIConditions( void );
+	CBitSet GetIgnoreConditions( void );
+	CBitSet GetScriptBreakingAIConditions( void );
 	Uint64 GetInterruptSoundMask( void );
 	script_loop_t GetLoopState( void );
 

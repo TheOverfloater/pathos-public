@@ -10,6 +10,10 @@ All Rights Reserved.
 #ifndef ACTIVITY_H
 #define ACTIVITY_H
 
+#ifndef pfnCon_Printf_t
+typedef void (*pfnCon_Printf_t)(const Char* fmt, ...);
+#endif pfnCon_Printf_t
+
 enum activity_t
 {
 	ACT_RESET = 0,
@@ -105,7 +109,10 @@ enum activity_t
 	ACT_RUN_BERSERK,
 	ACT_UNUSED10,
 	ACT_UNUSED11,
-	ACT_UNUSED12
+	ACT_UNUSED12,
+
+	// MUST BE LAST
+	NB_ACTIVITIES
 };
 
 struct activity_mapping_t
@@ -114,4 +121,6 @@ struct activity_mapping_t
 	Char* name;
 };
 extern activity_mapping_t ACTIVITYMAP[];
+
+extern bool Activity_CheckActivityMapConsinstency(pfnCon_Printf_t pfnCon_Printf);
 #endif //ACTIVITY_H

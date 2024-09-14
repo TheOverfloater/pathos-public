@@ -1691,58 +1691,21 @@ bool CWaterShader::DrawWater( bool skybox )
 
 		if(psettings->cheaprefraction || m_waterQuality <= WATER_QUALITY_NO_REFLECT_REFRACT)
 		{
-			if (!rns.fboused || !rns.usehdr)
-			{
-				result = m_pShader->SetDeterminator(m_attribs.d_rectrefract, 1, false);
-				if (!result)
-					break;
+			result = m_pShader->SetDeterminator(m_attribs.d_rectrefract, 1, false);
+			if (!result)
+				break;
 
-				gGLExtF.glActiveTexture(GL_TEXTURE4);
-				glEnable(GL_TEXTURE_RECTANGLE);
+			m_pShader->SetUniform2f(m_attribs.u_rectscale, rns.screenwidth, rns.screenheight);
+			m_pShader->SetUniform1i(m_attribs.u_rectrefract, 4);
 
-				m_pShader->SetUniform2f(m_attribs.u_rectscale, rns.screenwidth, rns.screenheight);
-				m_pShader->SetUniform1i(m_attribs.u_rectrefract, 4);
+			if (!pRTT)
+				pRTT = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
 
-				if (!pRTT)
-					pRTT = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
+			R_BindRectangleTexture(GL_TEXTURE4, pRTT->index, true);
+			glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
 
-				R_BindRectangleTexture(GL_TEXTURE4, pRTT->index);
-				glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
-
-				// Move up one unit
-				textureUnit++;
-			}
-			else
-			{
-				if (!pScreenFBO)
-				{
-					pScreenFBO = gFBOCache.Alloc(rns.view.viewsize_x, rns.view.viewsize_y, false);
-					if (!pScreenFBO)
-					{
-						Sys_ErrorPopup("%s - Failed to get screen FBO for rendering", __FUNCTION__);
-						m_pShader->DisableShader();
-						m_pVBO->UnBind();
-						return false;
-					}
-				}
-
-				gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, pScreenFBO->fbo.fboid);
-				glClear(GL_COLOR_BUFFER_BIT);
-				glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
-
-				gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, rns.pboundfbo->fboid);
-				glReadBuffer(GL_COLOR_ATTACHMENT0);
-
-				gGLExtF.glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pScreenFBO->fbo.fboid);
-				glDrawBuffer(GL_COLOR_ATTACHMENT0);
-				glClear(GL_COLOR_BUFFER_BIT);
-
-				// Blit over the color buffer
-				gGLExtF.glBlitFramebuffer(0, 0, rns.view.viewsize_x, rns.view.viewsize_y, 0, 0, rns.view.viewsize_x, rns.view.viewsize_y, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-				gGLExtF.glBindFramebuffer(GL_FRAMEBUFFER, rns.pboundfbo->fboid);
-
-				R_Bind2DTexture(GL_TEXTURE2, pScreenFBO->fbo.ptexture1->gl_index);
-			}
+			// Move up one unit
+			textureUnit++;
 		}
 		else
 		{
@@ -1825,11 +1788,9 @@ bool CWaterShader::DrawWater( bool skybox )
 
 		if((psettings->cheaprefraction && (psettings->refractonly
 			|| rns.view.v_origin[2] < GetWaterOrigin().z)
-			|| m_waterQuality <= WATER_QUALITY_NO_REFLECT_REFRACT)
-			&& (!rns.fboused || !rns.usehdr))
+			|| m_waterQuality <= WATER_QUALITY_NO_REFLECT_REFRACT))
 		{
 			R_BindRectangleTexture(GL_TEXTURE4, 0);
-			glDisable(GL_TEXTURE_RECTANGLE);
 		}
 	}
 

@@ -372,8 +372,7 @@ bool CSoundEngine::Init( void )
 	}
 
 	gCommands.CreateCommand("playmusic", Cmd_PlayMusic, "Plays a music track");
-	gCommands.CreateCommand(STOP_MUSIC_CMD_NAME, Cmd_StopMusic, "Stops any music tracks");
-	gCommands.CreateCommand("s_sethrtf", Cmd_SetHRTF, "Set HRTF setting");
+	gCommands.CreateCommand(SET_HRTF_CMD_NAME, Cmd_SetHRTF, "Set HRTF setting", CMD_FL_HIDDEN);
 
 	return true;
 }

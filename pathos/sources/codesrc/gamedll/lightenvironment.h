@@ -39,6 +39,9 @@ public:
 	virtual bool SetLightEnvValues( daystage_t daystage ) override;
 
 public:
+	static void CheckALDFile( void );
+
+public:
 	// Sunlight direction
 	Vector m_sunlightDirection;
 	// Sunlight color
@@ -47,6 +50,10 @@ public:
 	Int32 m_sunlightIntensity;
 	// Operational mode of light_env
 	Int32 m_lightEnvMode;
+
+private:
+	// TRUE if we have an ALD file present for the map
+	static bool g_isALDFilePresent;
 };
 
 #endif //LIGHTENVIRONMENT_H

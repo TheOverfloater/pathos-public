@@ -1,4 +1,3 @@
-$global_determinator rectangle 0 1
 $shader_vertex $begin
 #version 130
 
@@ -19,24 +18,23 @@ void main()
 }
 $end
 $shader_fragment 
-$determinator pp_type 0 7
+$determinator pp_type 0 11
 $begin
 #version 130
-$branch rectangle == 1
-$begin
 #extension GL_ARB_texture_rectangle : enable
 uniform sampler2DRect texture0rect;
-$end
-$branch rectangle == 0
-$begin
-uniform sampler2D texture0;
-$end
 
-uniform vec4 color;
+uniform vec4 u_color;
 uniform float screenwidth;
 uniform float screenheight;
 
 uniform vec2 offsetdivider;
+
+uniform float darken_steps;
+uniform float brighten_multiplier;
+uniform float blur_brightness;
+uniform int blur_radius;
+uniform float brightness_treshold;
 
 $branch pp_type == 0
 $begin
@@ -48,14 +46,7 @@ uniform float offset;
 $end
 $branch pp_type == 4
 $begin
-	$branch rectangle == 0
-	$begin
-		uniform sampler2D blurtexture;
-	$end
-	$branch rectangle == 1
-	$begin
-		uniform sampler2DRect blurtextureRect;
-	$end
+	uniform sampler2DRect blurtextureRect;
 $end
 
 in vec2 ps_texcoord;
@@ -151,27 +142,13 @@ $end
 
 vec4 texture0Func( vec2 texcoord )
 {
-$branch rectangle == 1
-$begin
 	return texture(texture0rect, texcoord);
-$end
-$branch rectangle == 0
-$begin
-	return texture(texture0, texcoord);
-$end
 }
 $branch pp_type == 4
 $begin
 	vec4 textureBlurFunc( vec2 texcoord )
 	{
-	$branch rectangle == 1
-	$begin
 		return texture(blurtextureRect, texcoord);
-	$end
-	$branch rectangle == 0
-	$begin
-		return texture(blurtexture, texcoord);
-	$end
 	}
 $end
 void main()
@@ -193,7 +170,7 @@ void main()
 			outcolor += texture0Func(ps_texcoord+vec2(offset[i]/offsetdivider.x, 0))*weight[i];
 			outcolor += texture0Func(ps_texcoord-vec2(offset[i]/offsetdivider.y, 0))*weight[i];
 		}
-		oColor = outcolor * color;
+		oColor = outcolor * u_color * blur_brightness;
 	$end
 	$branch pp_type == 2
 	$begin
@@ -206,46 +183,28 @@ void main()
 			outcolor += texture0Func(ps_texcoord+vec2(0, offset[i]/offsetdivider.x))*weight[i];
 			outcolor += texture0Func(ps_texcoord-vec2(0, offset[i]/offsetdivider.y))*weight[i];
 		}
-		oColor = outcolor * color;
+		oColor = outcolor * u_color * blur_brightness;
 	$end
 	$branch pp_type == 3
 	$begin
-		$branch rectangle == 1
-		$begin
-			vec2 texc = vec2(ps_texcoord.x, ps_texcoord.y);
-			texc.x += (sin(texc.y * 0.03 + offset) * 10) * color.a;
-		$end
-		$branch rectangle == 0
-		$begin
-			vec2 texc = vec2(ps_texcoord.x * screenwidth, ps_texcoord.y * screenheight);
-			texc.x += (sin(texc.y * 0.03 + offset) * 10) * color.a;
-			
-			texc.x = texc.x / screenwidth;
-			texc.y = texc.y / screenheight;
-		$end	
-		
-		oColor = texture0Func(texc) * color;
+		vec2 texc = vec2(ps_texcoord.x, ps_texcoord.y);
+		texc.x += (sin(texc.y * 0.03 + offset) * 10) * u_color.a;	
+	
+		oColor = texture0Func(texc) * u_color;
 	$end
 	$branch pp_type == 4
 	$begin
 		vec4 maintex = texture0Func(ps_texcoord);
 		vec4 blurtex = textureBlurFunc(ps_texcoord);
-		oColor = maintex*(1.0-color.a)+blurtex*(color.a);
+		oColor = maintex*(1.0-u_color.a)+blurtex*(u_color.a);
 	$end
 	$branch pp_type == 5
 	$begin
-		oColor = color;
+		oColor = u_color;
 	$end
 	$branch pp_type == 6
 	$begin
-		$branch rectangle == 0
-		$begin
-			vec2 norm_texcoords = vec2(ps_texcoord.x, ps_texcoord.y);
-		$end
-		$branch rectangle == 1
-		$begin
-			vec2 norm_texcoords = vec2(ps_texcoord.x/screenwidth, ps_texcoord.y/screenheight);
-		$end
+		vec2 norm_texcoords = vec2(ps_texcoord.x/screenwidth, ps_texcoord.y/screenheight);
 		
 		vec3 rotOffset = vec3(1.425,3.892,5.835); //rotation offset values	
 		vec2 rotCoordsR = coordRot(norm_texcoords, timer*0.25 + rotOffset.x);
@@ -274,6 +233,47 @@ void main()
 	$branch pp_type == 7
 	$begin
 		oColor = texture0Func(ps_texcoord);
+	$end
+	$branch pp_type == 8
+	$begin
+		vec3 textureColor = texture0Func(ps_texcoord).xyz * brighten_multiplier;
+		
+		float brightness = dot(textureColor, vec3(0.2126, 0.7152, 0.0722));
+		brightness = clamp(brightness, 0, 1);
+		
+		float amount = (brightness / brightness_treshold);
+		float darken = pow(brightness, darken_steps);
+		
+		oColor.xyz = textureColor*amount*darken;
+		oColor.w = 1.0;
+	$end
+	$branch pp_type == 9
+	$begin
+		oColor = texture0Func(ps_texcoord) * brighten_multiplier;
+	$end
+	$branch pp_type == 10
+	$begin
+		float blur_fraction = 1.0f / blur_radius;
+		
+		vec4 outcolor = texture0Func(ps_texcoord)*blur_fraction;
+		for(int i = 1; i < blur_radius; i++)
+		{
+			outcolor += texture0Func(ps_texcoord+vec2(i/offsetdivider.x, 0))*blur_fraction;
+			outcolor += texture0Func(ps_texcoord-vec2(i/offsetdivider.y, 0))*blur_fraction;
+		}
+		oColor = outcolor * u_color * blur_brightness;
+	$end
+	$branch pp_type == 11
+	$begin
+		float blur_fraction = 1.0f / blur_radius;
+		
+		vec4 outcolor = texture0Func(ps_texcoord)*blur_fraction;
+		for(int i = 1; i < blur_radius; i++)
+		{
+			outcolor += texture0Func(ps_texcoord+vec2(0, i/offsetdivider.x))*blur_fraction;
+			outcolor += texture0Func(ps_texcoord-vec2(0, i/offsetdivider.y))*blur_fraction;
+		}
+		oColor = outcolor * u_color * blur_brightness;
 	$end
 }
 $end

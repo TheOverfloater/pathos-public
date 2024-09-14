@@ -67,4 +67,5 @@ extern void SV_Msg_WriteDouble( Double value );
 extern void SV_Msg_WriteBuffer( const byte* pdata, Uint32 size );
 extern void SV_Msg_WriteString( const Char* pstring );
 extern void SV_Msg_WriteEntindex( entindex_t entindex );
+extern void SV_Msg_WriteBitSet( const byte* pdataarray, Uint32 numbits, Uint32 numbytes );
 #endif //SV_MSG_H

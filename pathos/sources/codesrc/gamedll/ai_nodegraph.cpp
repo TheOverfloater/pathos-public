@@ -2077,7 +2077,7 @@ bool CAINodeGraph::WalkPath( const Vector& startPosition, const Vector& endPosit
 // @brief
 //
 //=============================================
-bool CAINodeGraph::HandleLinkEntity( Int32 nodeIndex, Int32 entityIndex, Uint64 capabilityBits, node_querytype_t queryType, const CBaseEntity* pNPC ) const
+bool CAINodeGraph::HandleLinkEntity( Int32 nodeIndex, Int32 entityIndex, const CBitSet& capabilityBitSet, node_querytype_t queryType, const CBaseEntity* pNPC ) const
 {
 	if(Util::IsNullEntity(entityIndex))
 		return true;
@@ -2102,7 +2102,7 @@ bool CAINodeGraph::HandleLinkEntity( Int32 nodeIndex, Int32 entityIndex, Uint64 
 		Int32 toggleState = pEntity->GetToggleState();
 		if(pEntity->HasSpawnFlag(CFuncDoor::FL_USE_ONLY|CFuncDoor::FL_TOUCH_OPENS) || !pEntity->HasTargetName())
 		{
-			if((capabilityBits & CBaseNPC::AI_CAP_OPEN_DOORS) && !pEntity->HasSpawnFlag(CFuncDoor::FL_NO_NPCS) 
+			if(capabilityBitSet.test(CBaseNPC::AI_CAP_OPEN_DOORS) && !pEntity->HasSpawnFlag(CFuncDoor::FL_NO_NPCS) 
 				|| toggleState == TS_AT_TOP && (pEntity->HasSpawnFlag(CFuncDoor::FL_NO_AUTO_RETURN) || pEntity->GetWaitTime() == -1))
 				return true;
 			else
@@ -2111,7 +2111,7 @@ bool CAINodeGraph::HandleLinkEntity( Int32 nodeIndex, Int32 entityIndex, Uint64 
 		else
 		{
 			if(toggleState == TS_AT_TOP && (pEntity->HasSpawnFlag(CFuncDoor::FL_NO_AUTO_RETURN) || pEntity->GetWaitTime() == -1)
-				|| (capabilityBits & CBaseNPC::AI_CAP_OPEN_DOORS) && (!pEntity->HasSpawnFlag(CFuncDoor::FL_NO_NPCS) || toggleState == TS_AT_TOP && (pEntity->HasSpawnFlag(CFuncDoor::FL_NO_AUTO_RETURN) || pEntity->GetWaitTime() == -1)))
+				|| capabilityBitSet.test(CBaseNPC::AI_CAP_OPEN_DOORS) && (!pEntity->HasSpawnFlag(CFuncDoor::FL_NO_NPCS) || toggleState == TS_AT_TOP && (pEntity->HasSpawnFlag(CFuncDoor::FL_NO_AUTO_RETURN) || pEntity->GetWaitTime() == -1)))
 				return true;
 			else
 				return false; 
@@ -2189,9 +2189,9 @@ void CAINodeGraph::BuildStaticRoutingTables( Int16*& pRouteInfo, Uint32& routeIn
 	{
 		for(Uint32 capability = NODE_CAP_NONE; capability < NB_CAP_INDEXES; capability++)
 		{
-			Uint64 capMask = 0;
+			CBitSet capabilitySet(CBaseNPC::AI_CAP_BITS_COUNT);
 			if(capability == NODE_CAP_DOORS_AND_USE)
-				capMask |= (CBaseNPC::AI_CAP_OPEN_DOORS|CBaseNPC::AI_CAP_AUTO_OPEN_DOORS|CBaseNPC::AI_CAP_USE);
+				capabilitySet |= CBaseNPC::AI_CAP_GROUP_DOORS;
 
 			for(Int32 fromNode = 0; fromNode < (Int32)nbNodes; fromNode++)
 			{
@@ -2206,7 +2206,7 @@ void CAINodeGraph::BuildStaticRoutingTables( Int16*& pRouteInfo, Uint32& routeIn
 					if(pRoutes[NODE_FROM_TO(fromNode, toNode, nbNodes)] != NO_POSITION)
 						continue;
 
-					Uint32 nodeCount = GetShortestPath(fromNode, toNode, (node_hull_types_t)hullType, capMask, pMyPath);
+					Uint32 nodeCount = GetShortestPath(fromNode, toNode, (node_hull_types_t)hullType, capabilitySet, pMyPath);
 					if(nodeCount > 1)
 					{
 						for(Uint32 node = 0; node < nodeCount-1; node++)
@@ -2414,9 +2414,9 @@ void CAINodeGraph::BuildStaticRoutingTables( Int16*& pRouteInfo, Uint32& routeIn
 // @brief
 //
 //=============================================
-CAINodeGraph::capability_indexes_t CAINodeGraph::GetCapabilityIndex( Uint64 capabilityBits )
+CAINodeGraph::capability_indexes_t CAINodeGraph::GetCapabilityIndex( const CBitSet& capabilityBitSet )
 {
-	if(capabilityBits & (CBaseNPC::AI_CAP_OPEN_DOORS|CBaseNPC::AI_CAP_AUTO_OPEN_DOORS|CBaseNPC::AI_CAP_USE))
+	if((capabilityBitSet & CBaseNPC::AI_CAP_GROUP_DOORS).any())
 		return NODE_CAP_DOORS_AND_USE;
 	else
 		return NODE_CAP_NONE;
@@ -2871,7 +2871,7 @@ void CAINodeGraph::ShowAllNodeConnections( void )
 // @brief
 //
 //=============================================
-Int32 CAINodeGraph::GetShortestPath( Int32 startNode, Int32 endNode, node_hull_types_t hullType, Uint64 capabilityBits, Int32 *pNodeIndexArray, const CBaseEntity* pNPC, const CBaseEntity* pTargetEntity, const CNodeIgnoreList* pIgnoreList, const CBaseEntity* pViewCheckNPC )
+Int32 CAINodeGraph::GetShortestPath( Int32 startNode, Int32 endNode, node_hull_types_t hullType, const CBitSet& capabilityBitSet, Int32 *pNodeIndexArray, const CBaseEntity* pNPC, const CBaseEntity* pTargetEntity, const CNodeIgnoreList* pIgnoreList, const CBaseEntity* pViewCheckNPC )
 {
 	if(!IsNodeGraphValid())
 	{
@@ -2976,7 +2976,7 @@ Int32 CAINodeGraph::GetShortestPath( Int32 startNode, Int32 endNode, node_hull_t
 					if(plinkentity->hulltype > hullType)
 						continue;
 
-					if(!HandleLinkEntity(currentNode, plinkentity->entityindex, capabilityBits, GRAPH_QUERY_STATIC, pNPC))
+					if(!HandleLinkEntity(currentNode, plinkentity->entityindex, capabilityBitSet, GRAPH_QUERY_STATIC, pNPC))
 						break;
 				}
 
@@ -3058,7 +3058,7 @@ Int32 CAINodeGraph::GetShortestPath( Int32 startNode, Int32 endNode, node_hull_t
 // @brief
 //
 //=============================================
-Float CAINodeGraph::GetPathLength( Int32 startNode, Int32 endNode, node_hull_types_t hullType, Uint64 capabilityMask )
+Float CAINodeGraph::GetPathLength( Int32 startNode, Int32 endNode, node_hull_types_t hullType, const CBitSet& capabilityBitSet )
 {
 	if(!IsNodeGraphValid())
 	{
@@ -3082,7 +3082,7 @@ Float CAINodeGraph::GetPathLength( Int32 startNode, Int32 endNode, node_hull_typ
 	Int32 maxLoop = m_pNodeHeader->numnodes;
 
 	Int32 currentNode = startNode;
-	capability_indexes_t capabilityIndex = GetCapabilityIndex(capabilityMask);
+	capability_indexes_t capabilityIndex = GetCapabilityIndex(capabilityBitSet);
 
 	while(currentNode != endNode)
 	{
@@ -3198,9 +3198,9 @@ bool CAINodeGraph::CheckNodeBBox( node_t* pnode, const Vector& origin, CBaseEnti
 // @brief
 //
 //=============================================
-bool CAINodeGraph::IsValidCoverPath( Int32 startNode, Int32 endNode, node_hull_types_t hullType, Uint64 capabilityMask, const CBaseEntity* pNPC, const CBaseEntity* pThreatEntity )
+bool CAINodeGraph::IsValidCoverPath( Int32 startNode, Int32 endNode, node_hull_types_t hullType, const CBitSet& capabilityBitSet, const CBaseEntity* pNPC, const CBaseEntity* pThreatEntity )
 {
-	Int32 result = GetShortestPath(startNode, endNode, hullType, capabilityMask, nullptr, pNPC, nullptr, nullptr, pThreatEntity);
+	Int32 result = GetShortestPath(startNode, endNode, hullType, capabilityBitSet, nullptr, pNPC, nullptr, nullptr, pThreatEntity);
 	if(result == 0)
 		return false;
 	else

@@ -342,6 +342,19 @@ void DispatchDeclareSaveFields( edict_t* pedict )
 // @brief
 //
 //=============================================
+void DispatchReleaseSaveFields( edict_t* pedict )
+{
+	if(Util::IsNullEntity(pedict))
+		return;
+
+	CBaseEntity* pEntity = CBaseEntity::GetClass(pedict);
+	pEntity->ReleaseSaveFields();
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 void DispatchCrossedWater( edict_t* pedict, bool entering )
 {
 	switch(Common::RandomLong(0, 2))
@@ -434,6 +447,61 @@ entity_data_desc_t CheckSaveField( entity_data_desc_t desc, Uint64 typesize, Int
 	Uint64 expectedsize;
 	switch(desc.type)
 	{
+	case EFIELD_CARRAY_FLOAT:
+		expectedsize = sizeof(CArray<Float>);
+		break;
+	case EFIELD_CARRAY_DOUBLE:
+		expectedsize = sizeof(CArray<Double>);
+		break;
+	case EFIELD_CARRAY_STRING:
+		expectedsize = sizeof(CArray<string_t>);
+		break;
+	case EFIELD_CARRAY_ENTINDEX:
+		expectedsize = sizeof(CArray<entindex_t>);
+		break;
+	case EFIELD_CARRAY_ENTPOINTER:
+		expectedsize = sizeof(CArray<CBaseEntity*>);
+		break;
+	case EFIELD_CARRAY_EDICT:
+		expectedsize = sizeof(CArray<edict_t*>);
+		break;
+	case EFIELD_CARRAY_ENTSTATE:
+		expectedsize = sizeof(CArray<entity_state_t*>);
+		break;
+	case EFIELD_CARRAY_EHANDLE:
+		expectedsize = sizeof(CArray<CEntityHandle>);
+		break;
+	case EFIELD_CARRAY_VECTOR:
+	case EFIELD_CARRAY_COORD:
+		expectedsize = sizeof(CArray<Vector>);
+		break;
+	case EFIELD_CARRAY_INT16:
+		expectedsize = sizeof(CArray<Int16>);
+		break;
+	case EFIELD_CARRAY_UINT16:
+		expectedsize = sizeof(CArray<Uint16>);
+		break;
+	case EFIELD_CARRAY_INT32:
+		expectedsize = sizeof(CArray<Int32>);
+		break;
+	case EFIELD_CARRAY_UINT32:
+		expectedsize = sizeof(CArray<Uint32>);
+		break;
+	case EFIELD_CARRAY_INT64:
+		expectedsize = sizeof(CArray<Int64>);
+		break;
+	case EFIELD_CARRAY_UINT64:
+		expectedsize = sizeof(CArray<Uint64>);
+		break;
+	case EFIELD_CARRAY_BOOLEAN:
+		expectedsize = sizeof(CArray<bool>);
+		break;
+	case EFIELD_CARRAY_TIME:
+		expectedsize = sizeof(CArray<Double>);
+		break;
+	case EFIELD_CBITSET:
+		expectedsize = sizeof(CBitSet);
+		break;
 	case EFIELD_FLOAT:
 		expectedsize = sizeof(Float);
 		break;
@@ -895,6 +963,24 @@ void SaveEntityState( entity_state_t& es, bool istransitionsave )
 		case EFIELD_STRING:
 		case EFIELD_MODELNAME:
 		case EFIELD_SOUNDNAME:
+		case EFIELD_CARRAY_FLOAT:
+		case EFIELD_CARRAY_DOUBLE:
+		case EFIELD_CARRAY_STRING:
+		case EFIELD_CARRAY_ENTINDEX:
+		case EFIELD_CARRAY_ENTPOINTER:
+		case EFIELD_CARRAY_EDICT:
+		case EFIELD_CARRAY_ENTSTATE:
+		case EFIELD_CARRAY_EHANDLE:
+		case EFIELD_CARRAY_VECTOR:
+		case EFIELD_CARRAY_COORD:
+		case EFIELD_CARRAY_INT16:
+		case EFIELD_CARRAY_UINT16:
+		case EFIELD_CARRAY_INT32:
+		case EFIELD_CARRAY_UINT32:
+		case EFIELD_CARRAY_INT64:
+		case EFIELD_CARRAY_UINT64:
+		case EFIELD_CARRAY_BOOLEAN:
+		case EFIELD_CARRAY_TIME:
 		default:
 			gd_engfuncs.pfnCon_EPrintf("Error: Invalid field type %d for field '%s' for entity_state_t.\n", field.type, field.fieldname.c_str());
 			break;
@@ -957,6 +1043,24 @@ void SaveEntityFields( edict_fields_t& ef, bool istransitionsave )
 		case EFIELD_BYTE:
 		case EFIELD_CHAR:
 		case EFIELD_TIME:
+		case EFIELD_CARRAY_FLOAT:
+		case EFIELD_CARRAY_DOUBLE:
+		case EFIELD_CARRAY_STRING:
+		case EFIELD_CARRAY_ENTINDEX:
+		case EFIELD_CARRAY_ENTPOINTER:
+		case EFIELD_CARRAY_EDICT:
+		case EFIELD_CARRAY_ENTSTATE:
+		case EFIELD_CARRAY_EHANDLE:
+		case EFIELD_CARRAY_VECTOR:
+		case EFIELD_CARRAY_COORD:
+		case EFIELD_CARRAY_INT16:
+		case EFIELD_CARRAY_UINT16:
+		case EFIELD_CARRAY_INT32:
+		case EFIELD_CARRAY_UINT32:
+		case EFIELD_CARRAY_INT64:
+		case EFIELD_CARRAY_UINT64:
+		case EFIELD_CARRAY_BOOLEAN:
+		case EFIELD_CARRAY_TIME:
 		default:
 			gd_engfuncs.pfnCon_EPrintf("Error: Invalid field type %d for field '%s' for edict_fields_t.\n", field.type, field.fieldname.c_str());
 			break;
@@ -1509,6 +1613,19 @@ bool ReadEntityFieldData( edict_t* pedict, const Char* fieldname, const byte* pd
 	// Manage any missing fields
 	gd_engfuncs.pfnCon_EPrintf("Error: Field '%s' not found in entity_fields_t.\n", fieldname);
 	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool PrepareEntityClassData( edict_t* pedict, const Char* fieldname, Uint32 numblocks, bool istransferglobalentity )
+{
+	CBaseEntity* pEntity = CBaseEntity::GetClass(pedict);
+	if(!pEntity)
+		return false;
+
+	return pEntity->PrepareEntityClassData(fieldname, numblocks, istransferglobalentity);
 }
 
 //=============================================

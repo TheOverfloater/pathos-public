@@ -1324,7 +1324,7 @@ void SV_PlayMusic( const Char* pstrPath, Int32 channel, Int32 flags, Float timeO
 
 	svs.netinfo.pnet->WriteByte(MSG_SNDENGINE_OGG);
 		svs.netinfo.pnet->WriteByte(_flags);
-		svs.netinfo.pnet->WriteByte(channel);
+		svs.netinfo.pnet->WriteInt16(channel);
 		svs.netinfo.pnet->WriteString(pstrPath);
 		if(_flags & OGG_FL_FADE_IN)
 			svs.netinfo.pnet->WriteFloat(fadeInTime);
@@ -1379,14 +1379,14 @@ void SV_StopMusic( Int32 dest_player, const Char* pstrFilename, Int32 channel, F
 	if(fadeTime)
 	{
 		svs.netinfo.pnet->WriteByte(OGG_FL_STOP_FADE);
-		svs.netinfo.pnet->WriteByte(channel);
+		svs.netinfo.pnet->WriteInt16(channel);
 		svs.netinfo.pnet->WriteString(pstrFilename);
 		svs.netinfo.pnet->WriteFloat(fadeTime);
 	}
 	else
 	{
 		svs.netinfo.pnet->WriteByte(OGG_FL_STOP);
-		svs.netinfo.pnet->WriteByte(channel);
+		svs.netinfo.pnet->WriteInt16(channel);
 	}
 	svs.netinfo.pnet->SVC_MessageEnd();
 }
@@ -2490,6 +2490,20 @@ void SV_Msg_WriteEntindex( entindex_t entindex )
 
 	// Is this function even neeeded?
 	UserMSG_Msg_WriteEntindex((*svs.netinfo.pcurrentmsg), entindex);
+}
+
+//=============================================
+//
+//=============================================
+void SV_Msg_WriteBitSet( const byte* pdataarray, Uint32 numbits, Uint32 numbytes )
+{
+	if(!svs.netinfo.pcurrentmsg)
+	{
+		Con_Printf("%s - Called with no valid message defined.\n", __FUNCTION__);
+		return;
+	}
+
+	UserMSG_Msg_WriteBitSet((*svs.netinfo.pcurrentmsg), pdataarray, numbits, numbytes);
 }
 
 //=============================================

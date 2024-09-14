@@ -261,7 +261,7 @@ public:
 	virtual void Decapitate( bool spawnHeadGib ) override;
 
 	// Returns the conditions to ignore
-	virtual Uint64 GetIgnoreConditions( void ) override;
+	virtual CBitSet GetIgnoreConditions( void ) override;
 	// Sets the NPC state
 	virtual void SetNPCState( npcstate_t state ) override;
 	// Updates visibility and shooting distances
@@ -288,7 +288,7 @@ public:
 	virtual bullet_types_t GetBulletType( void ) override;
 
 	// Tells if NPC should favor ranged attacks versus melee
-	virtual bool FavorRangedAttacks( void ) const override { return true; }
+	virtual bool FavorRangedAttacks( CBaseEntity* pTarget ) const override { return true; }
 
 public:
 	// Speaks a sentence

@@ -82,3 +82,37 @@ Vector Weapon_GetConeSize( Int32 coneindex, Vector leanoffset, Vector velocity, 
 
 	return cone;
 }
+
+//=============================================
+// @brief
+//
+//=============================================
+bool Weapon_CheckAmmoTypeMapConsinstency( void (*pfnCon_Printf)(const Char* fmt, ...) )
+{
+	// Check consinstency on the bullet type map
+	bool failedConsistencyCheck = false;
+
+	Uint32 bulletMapSize = sizeof(BULLET_TYPE_MAP);
+	Uint32 mapSize = bulletMapSize / sizeof(bullet_typemapping_t);
+	mapSize -= 1; // do not count last empty one
+
+	if (mapSize != NB_BULLET_TYPES)
+	{
+		pfnCon_Printf("%s - BULLET_TYPE_MAP has inconsistent size(%d expected, got %d instead)\n",
+			__FUNCTION__, NB_BULLET_TYPES, mapSize);
+		return false;
+	}
+
+	for (Int32 i = 0; i < NB_BULLET_TYPES; i++)
+	{
+		if (BULLET_TYPE_MAP[i].type != i)
+		{
+			pfnCon_Printf("%s - Inconsistent bullet type mappings defined, type '%s' expected to have index %d, has %d instead.\n",
+				__FUNCTION__, BULLET_TYPE_MAP[i].name, i, BULLET_TYPE_MAP[i].type);
+
+			failedConsistencyCheck = true;
+		}
+	}
+
+	return failedConsistencyCheck ? false : true;
+}

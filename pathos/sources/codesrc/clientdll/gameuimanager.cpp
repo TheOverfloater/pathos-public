@@ -21,6 +21,7 @@ All Rights Reserved.
 #include "gameuikeypadwindow.h"
 #include "gameuisubwaywindow.h"
 #include "gameuiobjectiveswindow.h"
+#include "gameuidocumentswindow.h"
 #include "huddraw.h"
 #include "gameuiwindows_shared.h"
 #include "gameui_shared.h"
@@ -184,6 +185,9 @@ CGameUIWindow* CGameUIManager::SpawnWindow( gameui_windows_t windowtype )
 		break;
 	case GAMEUI_OBJECTIVESWINDOW:
 			pWindow = new CGameUIObjectivesWindow(flags, 0, 0, screenwidth, screenheight);
+		break;
+	case GAMEUI_DOCUMENTSWINDOW:
+			pWindow = new CGameUIDocumentsWindow(flags, 0, 0, screenwidth, screenheight);
 		break;
 	};
 
@@ -366,7 +370,7 @@ void CGameUIManager::RespawnWindow( void )
 			// Get the current window state
 			CString selectedObjective;
 			CArray<CString> objectivesArray;
-			Int16 newObjectiveBits;
+			Int32 newObjectiveBits;
 
 			CGameUIObjectivesWindow* pActiveWindow = reinterpret_cast<CGameUIObjectivesWindow*>(m_pActiveWindow);
 			pActiveWindow->getInformation(objectivesArray, selectedObjective, newObjectiveBits);
@@ -380,6 +384,26 @@ void CGameUIManager::RespawnWindow( void )
 				return;
 
 			pActiveWindow->initData(objectivesArray, selectedObjective.c_str(), newObjectiveBits);
+		}
+		break;
+	case GAMEUI_DOCUMENTSWINDOW:
+		{
+			// Get the current window state
+			CString selectedDocument;
+			CArray<CString> documentFilesArray;
+
+			CGameUIDocumentsWindow* pActiveWindow = reinterpret_cast<CGameUIDocumentsWindow*>(m_pActiveWindow);
+			pActiveWindow->getInformation(documentFilesArray, selectedDocument);
+
+			// Destroy it
+			DestroyActiveWindow();
+
+			// Create a new one
+			pActiveWindow = reinterpret_cast<CGameUIDocumentsWindow*>(SpawnWindow(type));
+			if(!pActiveWindow)
+				return;
+
+			pActiveWindow->initData(documentFilesArray, selectedDocument.c_str());
 		}
 		break;
 	}
@@ -524,6 +548,14 @@ bool CGameUIManager::KeyEvent( Int32 button, Int16 mod, bool keyDown )
 {
 	if(!m_pActiveWindow)
 		return false;
+
+	// Escape key *always* terminates the current window
+	SDL_Keycode sdlKeycode = SDL_GetKeyFromScancode((SDL_Scancode)button);
+	if(sdlKeycode == SDLK_ESCAPE)
+	{
+		DestroyActiveWindow();
+		return true;
+	}
 
 	if(m_pActiveWindow->keyEvent(button, mod, keyDown))
 		return true;

@@ -21,7 +21,8 @@ public:
 	enum
 	{
 		FL_REMOVE_ON_TRIGGER	= (1<<0),
-		FL_LOOP_MUSIC			= (1<<1)
+		FL_LOOP_MUSIC			= (1<<1),
+		FL_TURN_OFF_OTHER		= (1<<2)
 	};
 
 public:

@@ -80,6 +80,7 @@ static gdll_funcs_t GAMEDLL_FUNCTIONS =
 	DispatchBlocked,			//pfnDispatchBlocked
 	DispatchCrossedWater,		//pfnDispatchCrossedWater
 	DispatchDeclareSaveFields,	//pfnDispatchDeclareSaveFields
+	DispatchReleaseSaveFields,	//pfnDispatchReleaseSaveFields
 	ShouldCollide,				//pfnShouldCollide
 	SetAbsBox,					//pfnSetAbsBox
 	RunEntityPhysics,			//pfnRunEntityPhysics
@@ -111,6 +112,7 @@ static gdll_funcs_t GAMEDLL_FUNCTIONS =
 	BeginLoadSave,				//pfnBeginLoadSave
 	ReadEntityStateData,		//pfnReadEntityStateData
 	ReadEntityFieldData,		//pfnReadEntityFieldData
+	PrepareEntityClassData,		//pfnPrepareEntityClassData
 	ReadEntityClassData,		//pfnReadEntityClassData
 	FindGlobalEntity,			//pfnFindGlobalEntity
 	AdjustEntityPositions,		//pfnAdjustEntityPositions

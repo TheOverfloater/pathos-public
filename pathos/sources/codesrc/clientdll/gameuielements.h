@@ -59,8 +59,6 @@ public:
 	void setParent( CGameUIObject* pparent );
 	// Retrieves the parent object
 	CGameUIObject* getParent( void );
-	// Adds a child object
-	void addChild( CGameUIObject* pchild );
 
 	// Sets the position of the object
 	void setPosition( Int32 xcoord, Int32 ycoord );
@@ -85,6 +83,9 @@ public:
 
 	// Returns the object flags
 	Int32 getFlags( void ) const;
+
+	// Adds a child object
+	virtual void addChild(CGameUIObject* pchild);
 
 	// Performs think functions
 	virtual void think( void );
@@ -113,6 +114,8 @@ public:
 	virtual void setOffsetValue( Float offset ) { };
 	// Returns the full range(for scrollers)
 	virtual Uint32 getFullRange( void ) { return 0; }
+	// Sets offset for objects that use it
+	virtual void resetScrollerPosition( void ) { };
 
 	// Sets the game ui object pointer
 	static void SetGameUIManager( CGameUIManager* pGUIManager );
@@ -138,6 +141,9 @@ public:
 
 	// Disables any buttons tied to this object
 	virtual void setButtonsDisabled( bool isDisabled );
+
+	// Called after child has adjusted their position
+	virtual void childPostAdjustPosition( CGameUIObject* pchild ) { };
 
 protected:
 	// Object flags
@@ -380,6 +386,8 @@ public:
 	virtual ~CGameUITextTab( void );
 
 public:
+	// Performs think functions
+	virtual void think( void ) override;
 	// Performs rendering functions
 	virtual bool draw( void ) override;
 	// Initializes the data
@@ -566,6 +574,8 @@ public:
 public:
 	// Queries vif the element is interactive
 	virtual bool isInteractive( void ) override { return true; }
+	// Sets offset for objects that use it
+	virtual void resetScrollerPosition( void ) override;
 
 	// Sets the full range's size
 	virtual void setFullRange( Int32 fullRangeSize );
@@ -584,6 +594,7 @@ public:
 	// Moves the scroller
 	virtual bool moveScroller( Int32 button, Int32 scrollAmount );
 
+
 protected:
 	// Drag button for the scroller
 	CGameUIDragButton* m_pDragButton;
@@ -598,6 +609,7 @@ protected:
 	// Size of a single jump unit
 	Uint32 m_unitSize;
 };
+
 /*
 =================================
 CGameUITextInputTab
@@ -656,4 +668,72 @@ protected:
 	// Callback handler
 	CGameUICallbackEvent* m_pAction;
 };
+
+/*
+=================================
+CGameUIScrollableSurface
+
+=================================
+*/
+class CGameUIScrollableSurface : public CGameUIObject
+{
+public:
+	CGameUIScrollableSurface( Int32 flags, Uint32 edgethickness, const color32_t& color, const color32_t& bgcolor, const color32_t& highlightcolor, const font_set_t* pFont, Int32 originx, Int32 originy, Uint32 width, Uint32 height, Uint32 postspacing );
+	virtual ~CGameUIScrollableSurface( void );
+
+public:
+	// Tells if the object is interactive
+	virtual bool isInteractive( void ) override { return true; }
+
+	// Sets the scroller offset value(only for text tabs/lists
+	virtual void setOffsetValue( Float offset ) override;
+
+	// Manages a mouse wheel event
+	virtual bool mouseWheelEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool keyDown, Int32 scroll ) override;
+	// Manages a mouse button event
+	virtual bool mouseButtonEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool keyDown ) override;
+
+	// Performs think functions
+	virtual void think( void ) override;
+	// Performs rendering functions
+	virtual bool draw( void ) override;
+
+	// Tells if the mouse is over the object
+	virtual bool isMouseOver( Int32 mousex, Int32 mousey ) override;
+	// Tells if the mouse is over the object
+	virtual bool isMouseOver( void ) override;
+
+	// Called after child has adjusted their position
+	virtual void childPostAdjustPosition( CGameUIObject* pchild ) override;
+
+public:
+	// Adjusts the element's size by x and y amount
+	bool adjustSize( void );
+	// TRUE if child should be shifted
+	bool shouldShiftChild( CGameUIObject* pChild );
+	// Tells if child is visible
+	bool isChildVisible( CGameUIObject* pChild, Int32 offsetAmount );
+	// Tells if the mouse is over the object
+	bool isMouseOverChild( CGameUIObject* pChild );
+
+public:
+	// BG surface
+	CGameUISurface* m_pSurface;
+	// Scroller object
+	CGameUIScroller* m_pScroller;
+	// Offset value
+	Float m_scrollOffset;
+	// Base Y offset
+	Uint32 m_baseYOffset;
+	// Edge thickness
+	Uint32 m_borderEdgeThickness;
+	// Base height
+	Uint32 m_baseHeight;
+	// Element after-spacing
+	Uint32 m_postElementSpacing;
+
+	// Font set used
+	const font_set_t* m_pFont;
+};
+
 #endif //GAMEUIELEMENTS_H

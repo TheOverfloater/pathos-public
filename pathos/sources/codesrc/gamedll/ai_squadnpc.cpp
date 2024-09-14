@@ -31,21 +31,26 @@ const Float CSquadNPC::ENEMY_ELUDE_TIME = 5;
 // @brief Found Enemy
 //
 //=============================================
-ai_task_t taskListScheduleFoundEnemy[] = 
+ai_task_t taskListScheduleSquadNPCFoundEnemy[] = 
 {
 	AITASK(AI_TASK_STOP_MOVING,					0),
 	AITASK(AI_TASK_FACE_ENEMY,					0),
 	AITASK(AI_TASK_PLAY_SEQUENCE_FACE_ENEMY,	(Float)ACT_SIGNAL1)
 };
 
-const CAISchedule scheduleFoundEnemy(
+Uint32 interruptBitsScheduleSquadNPCFoundEnemy[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_HEAR_SOUND
+};
+
+const CAISchedule scheduleSquadNPCFoundEnemy(
 	// Task list
-	taskListScheduleFoundEnemy, 
+	taskListScheduleSquadNPCFoundEnemy, 
 	// Number of tasks
-	PT_ARRAYSIZE(taskListScheduleFoundEnemy),
+	PT_ARRAYSIZE(taskListScheduleSquadNPCFoundEnemy),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleSquadNPCFoundEnemy, PT_ARRAYSIZE(interruptBitsScheduleSquadNPCFoundEnemy)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -65,16 +70,26 @@ ai_task_t taskListScheduleSquadNPCCombatFace[] =
 	AITASK(AI_TASK_SET_SCHEDULE,				(Float)AI_SCHED_SWEEP)
 };
 
+Uint32 interruptBitsScheduleSquadNPCCombatFace[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2
+};
+
 const CAISchedule scheduleSquadNPCCombatFace(
 	// Task list
 	taskListScheduleSquadNPCCombatFace, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleSquadNPCCombatFace),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_CAN_ATTACK,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleSquadNPCCombatFace, PT_ARRAYSIZE(interruptBitsScheduleSquadNPCCombatFace)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -85,25 +100,30 @@ const CAISchedule scheduleSquadNPCCombatFace(
 // @brief Signal Suppressing Fire
 //
 //=============================================
-ai_task_t taskListScheduleSignalSuppressingFire[] = 
+ai_task_t taskListScheduleSquadNPCSignalSuppressingFire[] = 
 {
 	AITASK(AI_TASK_STOP_MOVING,					0),
 	AITASK(AI_TASK_FACE_IDEAL,					0),
 	AITASK(AI_TASK_PLAY_SEQUENCE_FACE_ENEMY,	(Float)ACT_SIGNAL2)
 };
 
-const CAISchedule scheduleSignalSuppressingFire(
+Uint32 interruptBitsScheduleSquadNPCSignalSuppressingFire[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_HEAR_SOUND,
+	AI_COND_NO_AMMO_LOADED
+};
+
+const CAISchedule scheduleSquadNPCSignalSuppressingFire(
 	// Task list
-	taskListScheduleSignalSuppressingFire, 
+	taskListScheduleSquadNPCSignalSuppressingFire, 
 	// Number of tasks
-	PT_ARRAYSIZE(taskListScheduleSignalSuppressingFire),
+	PT_ARRAYSIZE(taskListScheduleSquadNPCSignalSuppressingFire),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_HEAR_SOUND |
-	AI_COND_NO_AMMO_LOADED,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleSquadNPCSignalSuppressingFire, PT_ARRAYSIZE(interruptBitsScheduleSquadNPCSignalSuppressingFire)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -114,7 +134,7 @@ const CAISchedule scheduleSignalSuppressingFire(
 // @brief Take cover
 //
 //=============================================
-ai_task_t taskListScheduleTakeCover[] = 
+ai_task_t taskListScheduleSquadNPCTakeCover[] = 
 {
 	AITASK(AI_TASK_STOP_MOVING,					0),
 	AITASK(AI_TASK_SET_FAIL_SCHEDULE,			(Float)AI_SQUADNPC_SCHED_TAKE_COVER_FAILED),
@@ -127,14 +147,19 @@ ai_task_t taskListScheduleTakeCover[] =
 	AITASK(AI_TASK_SET_SCHEDULE,				(Float)AI_SCHED_WAIT_FACE_ENEMY)
 };
 
-const CAISchedule scheduleTakeCover(
+Uint32 interruptBitsScheduleSquadNPCTakeCover[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_IN_DANGER
+};
+
+const CAISchedule scheduleSquadNPCTakeCover(
 	// Task list
-	taskListScheduleTakeCover, 
+	taskListScheduleSquadNPCTakeCover, 
 	// Number of tasks
-	PT_ARRAYSIZE(taskListScheduleTakeCover),
+	PT_ARRAYSIZE(taskListScheduleSquadNPCTakeCover),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_IN_DANGER,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleSquadNPCTakeCover, PT_ARRAYSIZE(interruptBitsScheduleSquadNPCTakeCover)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -154,7 +179,6 @@ const CAISchedule scheduleTakeCover(
 CSquadNPC::CSquadNPC( edict_t* pedict ):
 	CBaseNPC(pedict),
 	m_squadSlots(0),
-	m_lastEnemySightTime(0),
 	m_enemyEluded(false),
 	m_mySlot(0),
 	m_signalledSuppressingFire(false)
@@ -181,7 +205,6 @@ void CSquadNPC::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CSquadNPC, m_squadLeaderNPC, EFIELD_EHANDLE));
 	DeclareSaveField(DEFINE_DATA_FIELD_ARRAY(CSquadNPC, m_squadMembers, EFIELD_EHANDLE, MAX_SQUAD_MEMBERS - 1));
 	DeclareSaveField(DEFINE_DATA_FIELD(CSquadNPC, m_squadSlots, EFIELD_UINT64));
-	DeclareSaveField(DEFINE_DATA_FIELD(CSquadNPC, m_lastEnemySightTime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CSquadNPC, m_enemyEluded, EFIELD_BOOLEAN));
 	DeclareSaveField(DEFINE_DATA_FIELD(CSquadNPC, m_mySlot, EFIELD_UINT64));
 	DeclareSaveField(DEFINE_DATA_FIELD(CSquadNPC, m_signalledSuppressingFire, EFIELD_BOOLEAN));
@@ -194,7 +217,7 @@ void CSquadNPC::DeclareSaveFields( void )
 void CSquadNPC::InitSquad( void )
 {
 	// Don't try if we can't form squads, or are already in one
-	if(!(m_capabilityBits & AI_CAP_SQUAD) || IsInSquad())
+	if(!HasCapability(AI_CAP_SQUAD) || IsInSquad())
 		return;
 
 	// If in a designated squad
@@ -400,36 +423,6 @@ void CSquadNPC::ForgetPlayer( CBaseEntity* pPlayer )
 
 	CBaseNPC::ForgetPlayer(pPlayer);
 }
- 
-//=============================================
-// @brief Sets the last enemy sight time
-//
-//=============================================
-void CSquadNPC::SetLastEnemySightTime( Double time )
-{
-	m_lastEnemySightTime = time;
-}
-
-//=============================================
-// @brief Sets the last enemy sight time
-//
-//=============================================
-Double CSquadNPC::GetLastEnemySightTime( void )
-{
-	return m_lastEnemySightTime;
-}
-
-//=============================================
-// @brief Adds a new enemy
-//
-//=============================================
-void CSquadNPC::PushEnemy( CBaseEntity* pEnemy, const Vector& lastPosition, const Vector& lastAngles )
-{
-	CBaseEntity* pSquadLeader = GetSquadLeader();
-	pSquadLeader->SetLastEnemySightTime(g_pGameVars->time);
-
-	CBaseNPC::PushEnemy(pEnemy, lastPosition, lastAngles);
-}
 
 //=============================================
 // @brief Allows squad members to validate a cover position
@@ -457,7 +450,7 @@ npcstate_t CSquadNPC::GetIdealNPCState( void )
 	case NPC_STATE_IDLE:
 	case NPC_STATE_ALERT:
 		{
-			if(CheckConditions(AI_COND_NEW_ENEMY) && IsInSquad())
+			if(CheckCondition(AI_COND_NEW_ENEMY) && IsInSquad())
 				SetSquadEnemy(m_enemy);
 		}
 		break;
@@ -481,7 +474,7 @@ const CAISchedule* CSquadNPC::GetScheduleByIndex( Int32 scheduleIndex )
 		break;
 	case AI_SQUADNPC_SCHED_FOUND_ENEMY:
 		{
-			return &scheduleFoundEnemy;
+			return &scheduleSquadNPCFoundEnemy;
 		}
 		break;
 	case AI_SQUADNPC_SCHED_COMBAT_FACE:
@@ -501,12 +494,12 @@ const CAISchedule* CSquadNPC::GetScheduleByIndex( Int32 scheduleIndex )
 		{
 			// So we don't call this schedule again
 			m_signalledSuppressingFire = true;
-			return &scheduleSignalSuppressingFire;
+			return &scheduleSquadNPCSignalSuppressingFire;
 		}
 		break;
 	case AI_SQUADNPC_SCHED_TAKE_COVER_FAILED:
 		{
-			if(CheckConditions(AI_COND_CAN_RANGE_ATTACK1))
+			if(CheckCondition(AI_COND_CAN_RANGE_ATTACK1))
 				return GetScheduleByIndex(AI_SCHED_RANGE_ATTACK1);
 			else
 				return GetScheduleByIndex(AI_SCHED_FAIL);
@@ -514,7 +507,7 @@ const CAISchedule* CSquadNPC::GetScheduleByIndex( Int32 scheduleIndex )
 		break;
 	case AI_SQUADNPC_SCHED_TAKE_COVER:
 		{
-			return &scheduleTakeCover;
+			return &scheduleSquadNPCTakeCover;
 		}
 		break;
 	default:
@@ -794,6 +787,9 @@ void CSquadNPC::SetSquadEnemy( CBaseEntity* pEnemy )
 	if(!IsInSquad())
 		return;
 
+	if (!pEnemy->IsAlive())
+		return;
+
 	if(!pEnemy)
 	{
 		Util::EntityConDPrintf(m_pEdict, "%s - Enemy was null.\n", __FUNCTION__);
@@ -817,24 +813,23 @@ void CSquadNPC::SetSquadEnemy( CBaseEntity* pEnemy )
 			continue;
 
 		CBaseEntity* pMemberEnemy = pMember->GetEnemy();
-		if(pMemberEnemy != pEnemy && !pMember->CheckConditions(AI_COND_SEE_ENEMY))
+		if(pMemberEnemy != pEnemy && !pMember->CheckCondition(AI_COND_SEE_ENEMY))
 		{
 			// Remember squad member's enemy if needed
-			if(pMemberEnemy != nullptr)
+			if(pMemberEnemy != nullptr && pMemberEnemy->IsAlive())
 			{
 				// Remember previous enemy
+				Double enemyLastSightTime;
 				Vector enemyLKP, enemyLKA;
-				pMember->GetEnemyInfo(enemyLKP, enemyLKA);
-				pMember->PushEnemy(pMemberEnemy, enemyLKP, enemyLKA);
+				pMember->GetEnemyInfo(enemyLKP, enemyLKA, enemyLastSightTime);
+				pMember->PushEnemy(pMemberEnemy, enemyLKP, enemyLKA, enemyLastSightTime);
 			}
 
 			// Set new enemy
 			pMember->SetEnemy(pEnemy);
 			pMember->SetEnemyInfo(pEnemy->GetNavigablePosition(), pEnemy->GetAngles());
-			pMember->SetConditions(AI_COND_NEW_ENEMY);
-
-			if(pEnemy->IsPlayer())
-				pMember->SetLastPlayerSightTime(g_pGameVars->time);
+			pMember->SetCondition(AI_COND_NEW_ENEMY);
+			pMember->SetLastEnemySightTime(m_lastEnemySightTime);
 		}
 	}
 }
@@ -865,15 +860,17 @@ void CSquadNPC::CopySquadEnemyInfo( void )
 	if(pLeader == this)
 		return;
 
+	Double enemyLastSightTime;
 	Vector enemyPosition, enemyAngles;
-	pLeader->GetEnemyInfo(enemyPosition, enemyAngles);
+	pLeader->GetEnemyInfo(enemyPosition, enemyAngles, enemyLastSightTime);
 
-	if(CheckConditions(AI_COND_ENEMY_NOT_FOUND) 
-		&& !pLeader->CheckConditions(AI_COND_ENEMY_NOT_FOUND))
-		ClearConditions(AI_COND_ENEMY_NOT_FOUND);
+	if(CheckCondition(AI_COND_ENEMY_NOT_FOUND) 
+		&& !pLeader->CheckCondition(AI_COND_ENEMY_NOT_FOUND))
+		ClearCondition(AI_COND_ENEMY_NOT_FOUND);
 
 	m_enemyLastKnownPosition = enemyPosition;
 	m_enemyLastKnownAngles = enemyAngles;
+	m_lastEnemySightTime = enemyLastSightTime;
 }
 
 //=============================================
@@ -1008,7 +1005,7 @@ bool CSquadNPC::CheckGrenadeToss( Double& nextGrenadeCheckTime, bool &tossGrenad
 	}
 
 	Vector targetVector;
-	if(CheckConditions(AI_COND_SEE_ENEMY) || Common::RandomLong(0, 1) == 1)
+	if(CheckCondition(AI_COND_SEE_ENEMY) || Common::RandomLong(0, 1) == 1)
 		targetVector = m_enemy->GetNavigablePosition();
 	else
 		targetVector = m_enemyLastKnownPosition;
@@ -1108,10 +1105,16 @@ void CSquadNPC::PreScheduleThink( void )
 		if(pLeader)
 		{
 			// Update the squad's last sighting time
-			if(CheckConditions(AI_COND_SEE_ENEMY))
+			if (CheckCondition(AI_COND_SEE_ENEMY))
+			{
+				// We just saw the enemy
 				pLeader->SetLastEnemySightTime(g_pGameVars->time);
-			else if(!pLeader->HasEnemyEluded() && (g_pGameVars->time - pLeader->GetLastEnemySightTime()) > ENEMY_ELUDE_TIME)
+			}
+			else if (!pLeader->HasEnemyEluded() && (g_pGameVars->time - pLeader->GetLastEnemySightTime()) > ENEMY_ELUDE_TIME)
+			{
+				// The enemy has eluded us
 				pLeader->SetEnemyEluded(true);
+			}
 		}
 	}
 

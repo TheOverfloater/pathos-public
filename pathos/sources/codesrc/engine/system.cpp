@@ -115,7 +115,7 @@ bool Sys_Init( CArray<CString>* argsArray )
 
 	// Start SDL
 	if(SDL_Init( SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_EVENTS |
-       SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER | SDL_INIT_SENSOR))
+       SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER | SDL_INIT_SENSOR | SDL_INIT_VIDEO))
 	{
 		Sys_ErrorPopup("SDL_Init returned an error: %s", SDL_GetError());
 		return false;
@@ -1021,7 +1021,8 @@ void Sys_Frame( Double frametime )
 	}
 
 	// Run client prediction for local client
-	if(cls.cl_state != CLIENT_INACTIVE)
+	if(cls.cl_state != CLIENT_INACTIVE
+		&& !svs.haltserver)
 	{
 		CL_RunPrediction();
 	}
@@ -1068,12 +1069,16 @@ Int32 Sys_Main( CArray<CString>* argsArray )
 	{
 		Sys_ErrorPopup("Only one instance of this game can be running at a time.");
 		Con_EPrintf("Error during system initialization.\n");
+		ReleaseMutex(hMutex);
+		CloseHandle(hMutex);
 		return -1;
 	}
 
 	if(!Sys_Init( argsArray ))
 	{
 		Con_EPrintf("Error during system initialization.\n");
+		ReleaseMutex(hMutex);
+		CloseHandle(hMutex);
 		return -1;
 	}
 

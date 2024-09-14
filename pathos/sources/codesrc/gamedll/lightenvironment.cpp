@@ -11,6 +11,9 @@ All Rights Reserved.
 #include "gd_includes.h"
 #include "lightenvironment.h"
 
+// TRUE if we have an ALD file present for the map
+bool CLightEnvironment::g_isALDFilePresent = false;
+
 // Link the entity to it's class
 LINK_ENTITY_TO_CLASS(light_environment, CLightEnvironment);
 
@@ -158,29 +161,37 @@ void CLightEnvironment::SendInitMessage( const CBaseEntity* pPlayer )
 //=============================================
 bool CLightEnvironment::SetLightEnvValues( daystage_t daystage )
 {
-	switch (daystage)
+	if (g_isALDFilePresent)
 	{
-	case DAYSTAGE_NIGHTSTAGE:
-	{
-		if (m_lightEnvMode != MODE_NIGHT
-			&& m_lightEnvMode != MODE_DAYLIGHT_RETURN_AND_NIGHT)
-			return false;
+		switch (daystage)
+		{
+		case DAYSTAGE_NIGHTSTAGE:
+		{
+			if (m_lightEnvMode != MODE_NIGHT
+				&& m_lightEnvMode != MODE_DAYLIGHT_RETURN_AND_NIGHT)
+				return false;
+		}
+		break;
+		case DAYSTAGE_DAYLIGHT_RETURN:
+		{
+			if (m_lightEnvMode != MODE_DAYLIGHT_RETURN
+				&& m_lightEnvMode != MODE_DAYLIGHT_RETURN_AND_NIGHT)
+				return false;
+		}
+		break;
+		default:
+		case DAYSTAGE_NORMAL:
+		{
+			if (m_lightEnvMode != MODE_NORMAL)
+				return false;
+		}
+		break;
+		}
 	}
-	break;
-	case DAYSTAGE_DAYLIGHT_RETURN:
+	else if (m_lightEnvMode != MODE_NORMAL)
 	{
-		if (m_lightEnvMode != MODE_DAYLIGHT_RETURN
-			&& m_lightEnvMode != MODE_DAYLIGHT_RETURN_AND_NIGHT)
-			return false;
-	}
-	break;
-	default:
-	case DAYSTAGE_NORMAL:
-	{
-		if (m_lightEnvMode != MODE_NORMAL)
-			return false;
-	}
-	break;
+		// If no ALD is present, ignore anything but normal light_env
+		return false;
 	}
 
 	// Modulate the color like RAD does with gamma adjustments
@@ -200,4 +211,30 @@ bool CLightEnvironment::SetLightEnvValues( daystage_t daystage )
 	gd_engfuncs.pfnSetCVarFloat("sv_skyvec_z", forward.z);
 
 	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CLightEnvironment::CheckALDFile( void )
+{
+	// Reset to default
+	g_isALDFilePresent = false;
+
+	const cache_model_t* pWorld = gd_engfuncs.pfnGetModel(1);
+	if (!pWorld)
+		return;
+
+	CString aldPath = pWorld->name;
+	Uint32 dotPos = aldPath.find(0, ".");
+	if (dotPos == NO_POSITION)
+		return;
+
+	Uint32 eraseCnt = aldPath.length() - dotPos;
+	aldPath.erase(dotPos, eraseCnt);
+	aldPath << ".ald";
+
+	if (gd_filefuncs.pfnFileExists(aldPath.c_str()))
+		g_isALDFilePresent = true;
 }

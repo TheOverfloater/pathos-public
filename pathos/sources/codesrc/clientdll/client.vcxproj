@@ -188,6 +188,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\cbitset.cpp" />
     <ClCompile Include="..\common\cbuffer.cpp" />
     <ClCompile Include="..\common\common.cpp" />
     <ClCompile Include="..\common\crc32.cpp" />
@@ -207,6 +208,7 @@
     <ClCompile Include="clientdll.cpp" />
     <ClCompile Include="clshared.cpp" />
     <ClCompile Include="draw.cpp" />
+    <ClCompile Include="gameuidocumentswindow.cpp" />
     <ClCompile Include="gameuikeypadwindow.cpp" />
     <ClCompile Include="gameuiloginwindow.cpp" />
     <ClCompile Include="gameuiobjectiveswindow.cpp" />
@@ -236,6 +238,8 @@
     <ClInclude Include="..\common\cache_model.h" />
     <ClInclude Include="..\common\carray.h" />
     <ClInclude Include="..\common\carray_inline.hpp" />
+    <ClInclude Include="..\common\cbitset.h" />
+    <ClInclude Include="..\common\cbitset_inline.hpp" />
     <ClInclude Include="..\common\cbuffer.h" />
     <ClInclude Include="..\common\cbuffer_inline.hpp" />
     <ClInclude Include="..\common\clinkedlist.h" />
@@ -282,6 +286,7 @@
     <ClInclude Include="animevents.h" />
     <ClInclude Include="clientdll.h" />
     <ClInclude Include="clshared.h" />
+    <ClInclude Include="gameuidocumentswindow.h" />
     <ClInclude Include="gameuielements.h" />
     <ClInclude Include="draw.h" />
     <ClInclude Include="gameuikeypadwindow.h" />

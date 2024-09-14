@@ -237,7 +237,7 @@ public:
 	// Returns the weapon name
 	const Char* GetWeaponName( void );
 	// Returns the max clip capacity
-	virtual Int32 GetMaxClip( void );
+	virtual Int32 GetMaxClip( void ) const;
 	// Returns the weapon's weight
 	Int32 GetWeight( void );
 	// Returns the weapon flags
@@ -353,8 +353,8 @@ protected:
 	bool	m_isRetired;
 	// True if we're forced to retire
 	bool	m_isForcedToRetire;
-	// True if we've deployed
-	bool	m_isDeployed;
+	// True if we should not blend the next deploy animation
+	bool	m_dontBlendNextDeploy;
 	// True if we're in reload
 	bool	m_inReload;
 	// True if in dual mode

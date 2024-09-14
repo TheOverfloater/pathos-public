@@ -1057,7 +1057,7 @@ void CL_ReadSoundEngineMessage( void )
 			const Char* pstring = nullptr;
 
 			Int32 flags = reader.ReadByte();
-			Int32 channel = reader.ReadByte();
+			Int32 channel = reader.ReadInt16();
 			if(!(flags & OGG_FL_STOP))
 			{
 				pstring = reader.ReadString();
@@ -1254,6 +1254,21 @@ void CL_ReadSoundEngineMessage( void )
 			byte channel = reader.ReadByte();
 
 			gSoundEngine.StopSound(entindex, channel);
+		}
+		break;
+	case MSG_SNDENGINE_STOP_MUSIC:
+		{
+			Int32 musicChannel = reader.ReadInt16();
+			bool menuAlso = reader.ReadByte();
+
+			if(reader.HasError())
+			{
+				Con_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+				return;
+			}
+
+			// Stop music playback
+			gSoundEngine.StopOgg(musicChannel, menuAlso);
 		}
 		break;
 	default:
@@ -1457,4 +1472,13 @@ void CL_Msg_WriteEntindex( entindex_t entindex )
 {
 	// Is this function even neeeded?
 	UserMSG_Msg_WriteEntindex(cls.netinfo.msgdata, entindex);
+}
+
+//=============================================
+//
+//=============================================
+void CL_Msg_WriteBitSet( const byte* pdataarray, Uint32 numbits, Uint32 numbytes )
+{
+	// Is this function even neeeded?
+	UserMSG_Msg_WriteBitSet(cls.netinfo.msgdata, pdataarray, numbits, numbytes);
 }

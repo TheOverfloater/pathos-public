@@ -134,6 +134,7 @@ static gdll_engfuncs_t GAMEDLL_ENGINE_FUNCTIONS =
 	SV_GetString,					//pfnGetString
 	Save_WriteBool,					//pfnSaveWriteBool
 	Save_WriteByte,					//pfnSaveWriteByte
+	Save_WriteBitset,				//pfnSaveWriteBitset
 	Save_WriteChar,					//pfnSaveWriteChar
 	Save_WriteInt16,				//pfnSaveWriteInt16
 	Save_WriteUint16,				//pfnSaveWriteUint16
@@ -167,9 +168,11 @@ static gdll_engfuncs_t GAMEDLL_ENGINE_FUNCTIONS =
 	SV_Msg_WriteBuffer,				//pfnMsgWriteBuffer
 	SV_Msg_WriteString,				//pfnMsgWriteString
 	SV_Msg_WriteEntindex,			//pfnMsgWriteEntindex
+	SV_Msg_WriteBitSet,				//pfnMsgWriteBitSet
 	SV_ServerCommand,				//pfnServerCommand
 	SV_ClientCommand,				//pfnClientCommand
 	Engine_CreateCommand,			//pfnCreateCommand
+	SV_GetInvokerPlayer,			//pfnGetInvokerPlayer
 	SV_GetBonePositionByName,		//pfnGetBonePositionByName
 	SV_GetBonePositionByIndex,		//pfnGetBonePositionByIndex
 	SV_GetAttachment,				//pfnGetAttachment
@@ -925,6 +928,9 @@ bool SV_InitGame( void )
 
 	// Spawn save-restored decals
 	SV_RestoreSavedDecals();
+
+	// Update data on client
+	SV_UpdateClientData();
 
 	// Print load time
 	Double loadtime = Sys_FloatTime() - svs.loadbegintime;
@@ -2444,7 +2450,11 @@ void SV_BeginLevelChange( const Char* pstrOtherLevelName, const Char* pstrLandma
 	gCommands.AddCommand(cmd.c_str());
 
 	// Stop audio playback
-	gCommands.ExecuteCommand(STOP_MUSIC_CMD_NAME, true);
+	svs.netinfo.pnet->SVC_MessageBegin(MSG_ALL, svc_sndengine, nullptr);
+		svs.netinfo.pnet->WriteByte(MSG_SNDENGINE_STOP_MUSIC);
+		svs.netinfo.pnet->WriteInt16(MUSIC_CHANNEL_ALL);
+		svs.netinfo.pnet->WriteByte(FALSE);
+	svs.netinfo.pnet->SVC_MessageEnd();
 }
 
 //=============================================

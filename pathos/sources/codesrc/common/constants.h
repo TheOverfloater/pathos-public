@@ -77,6 +77,11 @@ static constexpr Float DUCKING_SPEED_MULTIPLIER = 0.4;
 // Noclip movement speed
 static constexpr Float PLAYER_NOCLIP_SPEED = 600;
 
+// Lean awareness bar color
+static color24_t LEAN_AWARENESS_BAR_COLOR(255, 160, 0);
+// Lean awareness bar color
+static color24_t FULL_AWARENESS_BAR_COLOR(255, 0, 0);
+
 // Maximum noise amount
 static constexpr Float PLAYER_MAX_NOISE_LEVEL = 950;
 
@@ -209,6 +214,8 @@ const Char MOUSE_FILTER_FRAMES_CVAR_NAME[] = "m_filter_frames";
 const Char MOUSE_REVERSE_CVAR_NAME[] = "m_reverse";
 // Stop music command name
 const Char STOP_MUSIC_CMD_NAME[] = "stopmusic";
+// Set HRTF setting command name
+const Char SET_HRTF_CMD_NAME[] = "_set_hrtf";
 // Gravity cvar name
 const Char GRAVITY_CVAR_NAME[] = "sv_gravity";
 // View roll cvar name

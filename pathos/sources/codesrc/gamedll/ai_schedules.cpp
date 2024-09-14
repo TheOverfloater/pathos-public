@@ -31,14 +31,24 @@ ai_task_t taskListScheduleFail[] =
 	AITASK(AI_TASK_WAIT_PVS,					0)
 };
 
+Uint32 interruptBitsScheduleFail[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2
+};
+
 const CAISchedule scheduleFail(
 	// Task list
 	taskListScheduleFail, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleFail),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_CAN_ATTACK,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleFail, PT_ARRAYSIZE(interruptBitsScheduleFail)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -58,14 +68,24 @@ ai_task_t taskListScheduleCombatFail[] =
 	AITASK(AI_TASK_WAIT_PVS,					0)
 };
 
+Uint32 interruptBitsScheduleCombatFail[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2
+};
+
 const CAISchedule scheduleCombatFail(
 	// Task list
 	taskListScheduleCombatFail, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleCombatFail),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_CAN_ATTACK,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleCombatFail, PT_ARRAYSIZE(interruptBitsScheduleCombatFail)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -83,21 +103,26 @@ ai_task_t taskListScheduleIdleStand[] =
 	AITASK(AI_TASK_WAIT,						(Float)5)
 };
 
+Uint32 interruptBitsScheduleIdleStand[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_DISLIKE, 
+	AI_COND_SEE_FEAR,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_HEAR_SOUND,
+	AI_COND_FOLLOW_TARGET_TOO_FAR,
+	AI_COND_BLOCKING_PATH,
+	AI_COND_PROVOKED
+};
+
 const CAISchedule scheduleIdleStand(
 	// Task list
 	taskListScheduleIdleStand, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleIdleStand),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY | 
-	AI_COND_SEE_DISLIKE | 
-	AI_COND_SEE_FEAR | 
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE | 
-	AI_COND_HEAR_SOUND | 
-	AI_COND_FOLLOW_TARGET_TOO_FAR |
-	AI_COND_BLOCKING_PATH | 
-	AI_COND_PROVOKED,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleIdleStand, PT_ARRAYSIZE(interruptBitsScheduleIdleStand)),
 	// Sound mask
 	AI_SOUND_COMBAT | 
 	AI_SOUND_WORLD | 
@@ -117,19 +142,24 @@ ai_task_t taskListScheduleIdleWalk[] =
 	AITASK(AI_TASK_WAIT_FOR_MOVEMENT,			0)
 };
 
+Uint32 interruptBitsScheduleIdleWalk[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_HEAR_SOUND,
+	AI_COND_FOLLOW_TARGET_TOO_FAR,
+	AI_COND_BLOCKING_PATH,
+	AI_COND_PROVOKED
+};
+
 const CAISchedule scheduleIdleWalk(
 	// Task list
 	taskListScheduleIdleWalk, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleIdleWalk),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY | 
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE | 
-	AI_COND_HEAR_SOUND | 
-	AI_COND_FOLLOW_TARGET_TOO_FAR |
-	AI_COND_BLOCKING_PATH | 
-	AI_COND_PROVOKED,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleIdleWalk, PT_ARRAYSIZE(interruptBitsScheduleIdleWalk)),
 	// Sound mask
 	AI_SOUND_COMBAT |  
 	AI_SOUND_DANGER, 
@@ -148,17 +178,22 @@ ai_task_t taskListScheduleAmbush[] =
 	AITASK(AI_TASK_WAIT_INDEFINITE,				0)
 };
 
+Uint32 interruptBitsScheduleAmbush[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_ENEMY,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_PROVOKED
+};
+
 const CAISchedule scheduleAmbush(
 	// Task list
 	taskListScheduleAmbush, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleAmbush),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY | 
-	AI_COND_SEE_ENEMY |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE | 
-	AI_COND_PROVOKED,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleAmbush, PT_ARRAYSIZE(interruptBitsScheduleAmbush)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -185,18 +220,23 @@ ai_task_t taskListScheduleActiveIdle[] =
 	AITASK(AI_TASK_CLEAR_HINT_NODE,				0)
 };
 
+Uint32 interruptBitsScheduleActiveIdle[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_HEAR_SOUND,
+	AI_COND_BLOCKING_PATH,
+	AI_COND_PROVOKED
+};
+
 const CAISchedule scheduleActiveIdle(
 	// Task list
 	taskListScheduleActiveIdle,
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleActiveIdle),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY | 
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE | 
-	AI_COND_HEAR_SOUND | 
-	AI_COND_BLOCKING_PATH | 
-	AI_COND_PROVOKED,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleActiveIdle, PT_ARRAYSIZE(interruptBitsScheduleActiveIdle)),
 	// Sound mask
 	AI_SOUND_COMBAT | 
 	AI_SOUND_WORLD | 
@@ -224,7 +264,7 @@ const CAISchedule scheduleBecomeAlert(
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleBecomeAlert),
 	// AI interrupt mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -242,18 +282,23 @@ ai_task_t taskListScheduleAlertFace[] =
 	AITASK(AI_TASK_FACE_IDEAL,					0)
 };
 
+Uint32 interruptBitsScheduleAlertFace[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_FEAR,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_PROVOKED,
+	AI_COND_FOLLOW_TARGET_TOO_FAR
+};
+
 const CAISchedule scheduleAlertFace(
 	// Task list
 	taskListScheduleAlertFace, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleAlertFace),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_SEE_FEAR |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_PROVOKED |
-	AI_COND_FOLLOW_TARGET_TOO_FAR,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleAlertFace, PT_ARRAYSIZE(interruptBitsScheduleAlertFace)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -278,7 +323,7 @@ const CAISchedule scheduleAlertSmallFlinch(
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleAlertSmallFlinch),
 	// AI interrupt mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -297,21 +342,26 @@ ai_task_t taskListScheduleAlertStand[] =
 	AITASK(AI_TASK_SUGGEST_STATE,				(Float)NPC_STATE_IDLE)
 };
 
+Uint32 interruptBitsScheduleAlertStand[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_ENEMY,
+	AI_COND_SEE_FEAR,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_HEAR_SOUND,
+	AI_COND_FOLLOW_TARGET_TOO_FAR,
+	AI_COND_BLOCKING_PATH,
+	AI_COND_PROVOKED
+};
+
 const CAISchedule scheduleAlertStand(
 	// Task list
 	taskListScheduleAlertStand, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleAlertStand),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY | 
-	AI_COND_SEE_ENEMY |
-	AI_COND_SEE_FEAR | 
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE | 
-	AI_COND_HEAR_SOUND | 
-	AI_COND_FOLLOW_TARGET_TOO_FAR |
-	AI_COND_BLOCKING_PATH | 
-	AI_COND_PROVOKED,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleAlertStand, PT_ARRAYSIZE(interruptBitsScheduleAlertStand)),
 	// Sound mask
 	AI_SOUND_COMBAT | 
 	AI_SOUND_WORLD | 
@@ -338,18 +388,23 @@ ai_task_t taskListScheduleInvestigateSound[] =
 	AITASK(AI_TASK_SET_ACTIVITY,				(Float)ACT_IDLE)
 };
 
+Uint32 interruptBitsScheduleInvestigateSound[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_FEAR,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_BLOCKING_PATH,
+	AI_COND_PROVOKED
+};
+
 const CAISchedule scheduleInvestigateSound(
 	// Task list
 	taskListScheduleInvestigateSound, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleInvestigateSound),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY | 
-	AI_COND_SEE_FEAR | 
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE | 
-	AI_COND_BLOCKING_PATH | 
-	AI_COND_PROVOKED,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleInvestigateSound, PT_ARRAYSIZE(interruptBitsScheduleInvestigateSound)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -367,18 +422,28 @@ ai_task_t taskListScheduleCombatStand[] =
 	AITASK(AI_TASK_WAIT_INDEFINITE,				0)
 };
 
+Uint32 interruptBitsScheduleCombatStand[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_SEE_ENEMY,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2
+};
+
 const CAISchedule scheduleCombatStand(
 	// Task list
 	taskListScheduleCombatStand, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleCombatStand),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY | 
-	AI_COND_ENEMY_DEAD |
-	AI_COND_SEE_ENEMY | 
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE | 
-	AI_COND_CAN_ATTACK,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleCombatStand, PT_ARRAYSIZE(interruptBitsScheduleCombatStand)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -396,16 +461,26 @@ ai_task_t taskListScheduleCombatFace[] =
 	AITASK(AI_TASK_FACE_ENEMY,					0)
 };
 
+Uint32 interruptBitsScheduleCombatFace[] =
+{
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_ENEMY,
+	AI_COND_ENEMY_DEAD
+};
+
 const CAISchedule scheduleCombatFace(
 	// Task list
 	taskListScheduleCombatFace, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleCombatFace),
 	// AI interrupt mask
-	AI_COND_CAN_ATTACK |
-	AI_COND_NEW_ENEMY |
-	AI_COND_SEE_ENEMY |
-	AI_COND_ENEMY_DEAD,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleCombatFace, PT_ARRAYSIZE(interruptBitsScheduleCombatFace)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -423,20 +498,25 @@ ai_task_t taskListScheduleStandoff[] =
 	AITASK(AI_TASK_WAIT_FACE_ENEMY,				2)
 };
 
+Uint32 interruptBitsScheduleStandoff[] =
+{
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1, 
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_ENEMY,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleStandoff(
 	// Task list
 	taskListScheduleStandoff, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleStandoff),
 	// AI interrupt mask
-	AI_COND_CAN_RANGE_ATTACK1 | 
-	AI_COND_CAN_RANGE_ATTACK2 |
-	AI_COND_CAN_SPECIAL_ATTACK1 | 
-	AI_COND_CAN_SPECIAL_ATTACK2 |
-	AI_COND_ENEMY_DEAD | 
-	AI_COND_NEW_ENEMY |
-	AI_COND_SEE_ENEMY | 
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleStandoff, PT_ARRAYSIZE(interruptBitsScheduleStandoff)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -459,7 +539,7 @@ const CAISchedule scheduleArmWeapon(
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleArmWeapon),
 	// AI interrupt mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -477,13 +557,18 @@ ai_task_t taskListScheduleReload[] =
 	AITASK(AI_TASK_SET_ACTIVITY,				(Float)ACT_IDLE)
 };
 
+Uint32 interruptBitsScheduleReload[] =
+{
+	AI_COND_HEAVY_DAMAGE
+};
+
 const CAISchedule scheduleReload(
 	// Task list
 	taskListScheduleReload, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleReload),
 	// AI interrupt mask
-	AI_COND_HEAVY_DAMAGE,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleReload, PT_ARRAYSIZE(interruptBitsScheduleReload)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -507,16 +592,21 @@ ai_task_t taskListScheduleHideReload[] =
 	AITASK(AI_TASK_SET_ACTIVITY,				(Float)ACT_IDLE)
 };
 
+Uint32 interruptBitsScheduleHideReload[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_IN_DANGER,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleHideReload(
 	// Task list
 	taskListScheduleHideReload, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleHideReload),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_IN_DANGER |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleHideReload, PT_ARRAYSIZE(interruptBitsScheduleHideReload)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -534,20 +624,25 @@ ai_task_t taskListScheduleRangeAttack1[] =
 	AITASK(AI_TASK_RANGE_ATTACK1,				0)
 };
 
+Uint32 interruptBitsScheduleRangeAttack1[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_ENEMY_OCCLUDED,
+	AI_COND_NO_AMMO_LOADED,
+	AI_COND_HEAR_SOUND,
+	AI_COND_FRIENDLY_FIRE
+};
+
 const CAISchedule scheduleRangeAttack1(
 	// Task list
 	taskListScheduleRangeAttack1, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleRangeAttack1),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_ENEMY_OCCLUDED |
-	AI_COND_NO_AMMO_LOADED |
-	AI_COND_HEAR_SOUND |
-	AI_COND_FRIENDLY_FIRE,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleRangeAttack1, PT_ARRAYSIZE(interruptBitsScheduleRangeAttack1)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -565,20 +660,25 @@ ai_task_t taskListScheduleRangeAttack2[] =
 	AITASK(AI_TASK_RANGE_ATTACK2,				0)
 };
 
+Uint32 interruptBitsScheduleRangeAttack2[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_ENEMY_OCCLUDED,
+	AI_COND_NO_AMMO_LOADED,
+	AI_COND_HEAR_SOUND,
+	AI_COND_FRIENDLY_FIRE
+};
+
 const CAISchedule scheduleRangeAttack2(
 	// Task list
 	taskListScheduleRangeAttack2, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleRangeAttack2),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_ENEMY_OCCLUDED |
-	AI_COND_NO_AMMO_LOADED |
-	AI_COND_HEAR_SOUND |
-	AI_COND_FRIENDLY_FIRE,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleRangeAttack2, PT_ARRAYSIZE(interruptBitsScheduleRangeAttack2)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -596,19 +696,29 @@ ai_task_t taskListScheduleMeleeAttack1[] =
 	AITASK(AI_TASK_MELEE_ATTACK1,				0)
 };
 
+Uint32 interruptBitsScheduleMeleeAttack1[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_ENEMY_OCCLUDED
+};
+
+Uint32 inverseInterruptBitsScheduleMeleeAttack1[] =
+{
+	AI_COND_CAN_MELEE_ATTACK1
+};
+
 const CAISchedule scheduleMeleeAttack1(
 	// Task list
 	taskListScheduleMeleeAttack1, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleMeleeAttack1),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_ENEMY_OCCLUDED,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleMeleeAttack1, PT_ARRAYSIZE(interruptBitsScheduleMeleeAttack1)),
 	// AI inverse interrupt mask
-	AI_COND_CAN_MELEE_ATTACK1,
+	CBitSet(AI_COND_BITSET_SIZE, inverseInterruptBitsScheduleMeleeAttack1, PT_ARRAYSIZE(inverseInterruptBitsScheduleMeleeAttack1)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -626,19 +736,29 @@ ai_task_t taskListScheduleMeleeAttack2[] =
 	AITASK(AI_TASK_MELEE_ATTACK2,				0)
 };
 
+Uint32 interruptBitsScheduleMeleeAttack2[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_ENEMY_OCCLUDED
+};
+
+Uint32 inverseInterruptBitsScheduleMeleeAttack2[] =
+{
+	AI_COND_CAN_MELEE_ATTACK2
+};
+
 const CAISchedule scheduleMeleeAttack2(
 	// Task list
 	taskListScheduleMeleeAttack2, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleMeleeAttack2),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_ENEMY_OCCLUDED,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleMeleeAttack2, PT_ARRAYSIZE(interruptBitsScheduleMeleeAttack2)),
 	// AI inverse interrupt mask
-	AI_COND_CAN_MELEE_ATTACK2,
+	CBitSet(AI_COND_BITSET_SIZE, inverseInterruptBitsScheduleMeleeAttack2, PT_ARRAYSIZE(inverseInterruptBitsScheduleMeleeAttack2)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -656,19 +776,24 @@ ai_task_t taskListScheduleSpecialAttack1[] =
 	AITASK(AI_TASK_SPECIAL_ATTACK1,				0)
 };
 
+Uint32 interruptBitsScheduleSpecialAttack1[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_ENEMY_OCCLUDED,
+	AI_COND_NO_AMMO_LOADED,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleSpecialAttack1(
 	// Task list
 	taskListScheduleSpecialAttack1, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleSpecialAttack1),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_ENEMY_OCCLUDED |
-	AI_COND_NO_AMMO_LOADED |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleSpecialAttack1, PT_ARRAYSIZE(interruptBitsScheduleSpecialAttack1)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -686,19 +811,24 @@ ai_task_t taskListScheduleSpecialAttack2[] =
 	AITASK(AI_TASK_SPECIAL_ATTACK2,				0)
 };
 
+Uint32 interruptBitsScheduleSpecialAttack2[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_ENEMY_OCCLUDED,
+	AI_COND_NO_AMMO_LOADED,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleSpecialAttack2(
 	// Task list
 	taskListScheduleSpecialAttack2, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleSpecialAttack2),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_ENEMY_OCCLUDED |
-	AI_COND_NO_AMMO_LOADED |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleSpecialAttack2, PT_ARRAYSIZE(interruptBitsScheduleSpecialAttack2)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -718,17 +848,27 @@ ai_task_t taskListScheduleChaseEnemy[] =
 	AITASK(AI_TASK_FACE_ENEMY,					0)
 };
 
+Uint32 interruptBitsScheduleChaseEnemy[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_TASK_FAILED,
+	AI_COND_HEARD_ENEMY_NEW_POSITION,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleChaseEnemy(
 	// Task list
 	taskListScheduleChaseEnemy, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleChaseEnemy),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_CAN_ATTACK |
-	AI_COND_TASK_FAILED |
-	AI_COND_HEARD_ENEMY_NEW_POSITION |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleChaseEnemy, PT_ARRAYSIZE(interruptBitsScheduleChaseEnemy)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -752,15 +892,25 @@ ai_task_t taskListScheduleChaseEnemyFailed[] =
 
 };
 
+Uint32 interruptBitsScheduleChaseEnemyFailed[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleChaseEnemyFailed(
 	// Task list
 	taskListScheduleChaseEnemyFailed, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleChaseEnemyFailed),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_CAN_ATTACK |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleChaseEnemyFailed, PT_ARRAYSIZE(interruptBitsScheduleChaseEnemyFailed)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -785,7 +935,7 @@ const CAISchedule scheduleSmallFlinch(
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleSmallFlinch),
 	// AI interrupt mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -809,7 +959,7 @@ const CAISchedule scheduleDie(
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleDie),
 	// AI interrupt mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -832,7 +982,7 @@ const CAISchedule scheduleVictoryDance(
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleVictoryDance),
 	// AI interrupt mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -855,7 +1005,7 @@ const CAISchedule scheduleError(
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleError),
 	// AI interrupt mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -1071,7 +1221,7 @@ const CAISchedule scheduleCower(
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleCower),
 	// AI interrupt mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -1092,14 +1242,19 @@ ai_task_t taskListScheduleTakeCoverFromOrigin[] =
 	AITASK(AI_TASK_TURN_LEFT,					180)
 };
 
+Uint32 interruptBitsScheduleTakeCoverFromOrigin[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_IN_DANGER
+};
+
 const CAISchedule scheduleTakeCoverFromOrigin(
 	// Task list
 	taskListScheduleTakeCoverFromOrigin, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleTakeCoverFromOrigin),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_IN_DANGER,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleTakeCoverFromOrigin, PT_ARRAYSIZE(interruptBitsScheduleTakeCoverFromOrigin)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -1120,14 +1275,19 @@ ai_task_t taskListScheduleTakeCoverFromBestSound[] =
 	AITASK(AI_TASK_TURN_LEFT,					180)
 };
 
+Uint32 interruptBitsScheduleTakeCoverFromBestSound[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_IN_DANGER
+};
+
 const CAISchedule scheduleTakeCoverFromBestSound(
 	// Task list
 	taskListScheduleTakeCoverFromBestSound, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleTakeCoverFromBestSound),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_IN_DANGER,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleTakeCoverFromBestSound, PT_ARRAYSIZE(interruptBitsScheduleTakeCoverFromBestSound)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -1149,13 +1309,18 @@ ai_task_t taskListScheduleTakeCoverFromBestSoundWithCower[] =
 	AITASK(AI_TASK_TURN_LEFT,					180)
 };
 
+Uint32 interruptBitsScheduleTakeCoverFromBestSoundWithCower[] =
+{
+	AI_COND_IN_DANGER
+};
+
 const CAISchedule scheduleTakeCoverFromBestSoundWithCower(
 	// Task list
 	taskListScheduleTakeCoverFromBestSoundWithCower, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleTakeCoverFromBestSoundWithCower),
 	// AI interrupt mask
-	AI_COND_IN_DANGER,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleTakeCoverFromBestSoundWithCower, PT_ARRAYSIZE(interruptBitsScheduleTakeCoverFromBestSoundWithCower)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -1178,14 +1343,19 @@ ai_task_t taskListScheduleTakeCoverFromEnemy[] =
 	AITASK(AI_TASK_WAIT,						1)
 };
 
+Uint32 interruptBitsScheduleTakeCoverFromEnemy[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_IN_DANGER
+};
+
 const CAISchedule scheduleTakeCoverFromEnemy(
 	// Task list
 	taskListScheduleTakeCoverFromEnemy, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleTakeCoverFromEnemy),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_IN_DANGER,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleTakeCoverFromEnemy, PT_ARRAYSIZE(interruptBitsScheduleTakeCoverFromEnemy)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -1206,16 +1376,26 @@ ai_task_t taskListScheduleMoveOutOfWay[] =
 	AITASK(AI_TASK_CLEAR_BLOCK_STATUS,			0)
 };
 
+Uint32 interruptBitsScheduleMoveOutOfWay[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_FOLLOW_TARGET_TOO_FAR,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleMoveOutOfWay(
 	// Task list
 	taskListScheduleMoveOutOfWay, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleMoveOutOfWay),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_CAN_ATTACK |
-	AI_COND_FOLLOW_TARGET_TOO_FAR |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleMoveOutOfWay, PT_ARRAYSIZE(interruptBitsScheduleMoveOutOfWay)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -1239,16 +1419,26 @@ ai_task_t taskListScheduleFindEnemies[] =
 	AITASK(AI_TASK_WAIT,						1)
 };
 
+Uint32 interruptBitsScheduleFindEnemies[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_SEE_ENEMY,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleFindEnemies(
 	// Task list
 	taskListScheduleFindEnemies, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleFindEnemies),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_SEE_ENEMY |
-	AI_COND_CAN_ATTACK |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleFindEnemies, PT_ARRAYSIZE(interruptBitsScheduleFindEnemies)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -1268,14 +1458,19 @@ ai_task_t taskListScheduleDodgeEnemy[] =
 	AITASK(AI_TASK_FACE_ENEMY,					0)
 };
 
+Uint32 interruptBitsScheduleDodgeEnemy[] =
+{
+	AI_COND_NEW_ENEMY,
+	AI_COND_IN_DANGER
+};
+
 const CAISchedule scheduleDodgeEnemy(
 	// Task list
 	taskListScheduleDodgeEnemy, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleDodgeEnemy),
 	// AI interrupt mask
-	AI_COND_NEW_ENEMY |
-	AI_COND_IN_DANGER,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleDodgeEnemy, PT_ARRAYSIZE(interruptBitsScheduleDodgeEnemy)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -1300,16 +1495,21 @@ ai_task_t taskListScheduleInspectEnemyCorpse[] =
 	AITASK(AI_TASK_PLAY_SEQUENCE,				(Float)ACT_VICTORY_DANCE)
 };
 
+Uint32 interruptBitsScheduleInspectEnemyCorpse[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE
+};
+
 const CAISchedule scheduleInspectEnemyCorpse(
 	// Task list
 	taskListScheduleInspectEnemyCorpse, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleInspectEnemyCorpse),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleInspectEnemyCorpse, PT_ARRAYSIZE(interruptBitsScheduleInspectEnemyCorpse)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -1329,35 +1529,60 @@ ai_task_t taskListScheduleEstablishLineOfFire[] =
 	AITASK(AI_TASK_FACE_ENEMY,								0)
 };
 
+Uint32 interruptBitsScheduleEstablishLineOfFire[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_IN_DANGER,
+	AI_COND_HEARD_ENEMY_NEW_POSITION,
+	AI_COND_HEAR_SOUND,
+	AI_COND_SHOOT_VECTOR_VALID
+};
+
+Uint32 specialInterruptBitsScheduleEstablishLineOfFire[] =
+{
+	AI_COND_SHOOT_VECTOR_VALID
+};
+
+Uint32 specialInterruptExceptionBitsScheduleEstablishLineOfFire[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_IN_DANGER,
+	AI_COND_HEARD_ENEMY_NEW_POSITION,
+	AI_COND_HEAR_SOUND
+};
+
+Uint32 specialInterruptRequirementBitsScheduleEstablishLineOfFire[] =
+{
+	AI_COND_SHOOT_VECTOR_VALID
+};
+
 const CAISchedule scheduleEstablishLineOfFire(
 	// Task list
 	taskListScheduleEstablishLineOfFire, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleEstablishLineOfFire),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_CAN_ATTACK |
-	AI_COND_IN_DANGER |
-	AI_COND_HEARD_ENEMY_NEW_POSITION |
-	AI_COND_HEAR_SOUND |
-	AI_COND_SHOOT_VECTOR_VALID,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleEstablishLineOfFire, PT_ARRAYSIZE(interruptBitsScheduleEstablishLineOfFire)),
 	// Inverse interrupt mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE),
 	// Special interrupt schedule
 	AI_SCHED_FACE_ENEMY,
 	// Special interrupt mask
-	AI_COND_SHOOT_VECTOR_VALID,
+	CBitSet(AI_COND_BITSET_SIZE, specialInterruptBitsScheduleEstablishLineOfFire, PT_ARRAYSIZE(specialInterruptBitsScheduleEstablishLineOfFire)),
 	// Special interrupt exception mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_IN_DANGER |
-	AI_COND_HEARD_ENEMY_NEW_POSITION |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, specialInterruptExceptionBitsScheduleEstablishLineOfFire, PT_ARRAYSIZE(specialInterruptExceptionBitsScheduleEstablishLineOfFire)),
 	// Special interrupt requirement mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE, specialInterruptRequirementBitsScheduleEstablishLineOfFire, PT_ARRAYSIZE(specialInterruptRequirementBitsScheduleEstablishLineOfFire)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -1374,19 +1599,29 @@ ai_task_t taskListScheduleFaceEnemy[] =
 	AITASK(AI_TASK_FACE_ENEMY,					0)
 };
 
+Uint32 interruptBitsScheduleFaceEnemy[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_IN_DANGER,
+	AI_COND_HEARD_ENEMY_NEW_POSITION,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleFaceEnemy(
 	// Task list
 	taskListScheduleFaceEnemy, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleFaceEnemy),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_CAN_ATTACK |
-	AI_COND_IN_DANGER |
-	AI_COND_HEARD_ENEMY_NEW_POSITION |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleFaceEnemy, PT_ARRAYSIZE(interruptBitsScheduleFaceEnemy)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -1407,18 +1642,28 @@ ai_task_t taskListScheduleSweep[] =
 	AITASK(AI_TASK_WAIT,						0.5f)
 };
 
+Uint32 interruptBitsScheduleSweep[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2,
+	AI_COND_HEAR_SOUND
+};
+
 const CAISchedule scheduleSweep(
 	// Task list
 	taskListScheduleSweep, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleSweep),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_CAN_ATTACK |
-	AI_COND_HEAR_SOUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleSweep, PT_ARRAYSIZE(interruptBitsScheduleSweep)),
 	// Sound mask
 	AI_SOUND_DANGER |
 	AI_SOUND_WORLD |
@@ -1438,16 +1683,26 @@ ai_task_t taskListScheduleWaitFaceEnemy[] =
 	AITASK(AI_TASK_WAIT_FACE_ENEMY,				1.0f)
 };
 
+Uint32 interruptBitsScheduleWaitFaceEnemy[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_HEAR_SOUND,
+	AI_COND_CAN_RANGE_ATTACK1,
+	AI_COND_CAN_RANGE_ATTACK2,
+	AI_COND_CAN_MELEE_ATTACK1,
+	AI_COND_CAN_MELEE_ATTACK2,
+	AI_COND_CAN_SPECIAL_ATTACK1,
+	AI_COND_CAN_SPECIAL_ATTACK2
+};
+
 const CAISchedule scheduleWaitFaceEnemy(
 	// Task list
 	taskListScheduleWaitFaceEnemy, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleWaitFaceEnemy),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY | 
-	AI_COND_HEAR_SOUND | 
-	AI_COND_CAN_ATTACK,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleWaitFaceEnemy, PT_ARRAYSIZE(interruptBitsScheduleWaitFaceEnemy)),
 	// Sound mask 
 	AI_SOUND_DANGER, 
 	// Name
@@ -1467,15 +1722,20 @@ ai_task_t taskListScheduleRunFromNPCPuller[] =
 	AITASK(AI_TASK_WAIT_FOR_MOVEMENT,				0)
 };
 
+Uint32 interruptBitsScheduleRunFromNPCPuller[] =
+{
+	AI_COND_SCHEDULE_DONE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_NOT_ONGROUND
+};
+
 const CAISchedule scheduleRunFromNPCPuller(
 	// Task list
 	taskListScheduleRunFromNPCPuller, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleRunFromNPCPuller),
 	// AI interrupt mask
-	AI_COND_SCHEDULE_DONE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_NOT_ONGROUND,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleRunFromNPCPuller, PT_ARRAYSIZE(interruptBitsScheduleRunFromNPCPuller)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -1493,16 +1753,19 @@ ai_task_t taskListScheduleHoverByNPCPuller[] =
 	AITASK(AI_TASK_NPCPULLER_HOVER,					0)
 };
 
+Uint32 interruptBitsScheduleHoverByNPCPuller[] =
+{
+	AI_COND_SCHEDULE_DONE,
+	AI_COND_HEAVY_DAMAGE
+};
+
 const CAISchedule scheduleHoverByNPCPuller(
 	// Task list
 	taskListScheduleHoverByNPCPuller, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleHoverByNPCPuller),
 	// AI interrupt mask
-	AI_COND_SCHEDULE_DONE |
-	AI_COND_HEAVY_DAMAGE,
-	// Inverse condition mask
-	AI_COND_NONE,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleHoverByNPCPuller, PT_ARRAYSIZE(interruptBitsScheduleHoverByNPCPuller)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -1528,19 +1791,24 @@ ai_task_t taskListScheduleSuppressingFire[] =
 	AITASK(AI_TASK_RANGE_ATTACK1,				0)
 };
 
+Uint32 interruptBitsScheduleSuppressingFire[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_HEAR_SOUND,
+	AI_COND_NO_AMMO_LOADED,
+	AI_COND_FRIENDLY_FIRE
+};
+
 const CAISchedule scheduleSuppressingFire(
 	// Task list
 	taskListScheduleSuppressingFire, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleSuppressingFire),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_LIGHT_DAMAGE |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_HEAR_SOUND |
-	AI_COND_NO_AMMO_LOADED |
-	AI_COND_FRIENDLY_FIRE,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleSuppressingFire, PT_ARRAYSIZE(interruptBitsScheduleSuppressingFire)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -1567,20 +1835,25 @@ ai_task_t taskListScheduleRangeAttack1Long[] =
 	AITASK(AI_TASK_RANGE_ATTACK1,							0)
 };
 
+Uint32 interruptBitsScheduleRangeAttack1Long[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	AI_COND_NEW_ENEMY,
+	AI_COND_ENEMY_DEAD,
+	AI_COND_HEAVY_DAMAGE,
+	AI_COND_ENEMY_OCCLUDED,
+	AI_COND_HEAR_SOUND,
+	AI_COND_NO_AMMO_LOADED,
+	AI_COND_FRIENDLY_FIRE
+};
+
 const CAISchedule scheduleRangeAttack1Long(
 	// Task list
 	taskListScheduleRangeAttack1Long, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleRangeAttack1Long),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE |
-	AI_COND_NEW_ENEMY |
-	AI_COND_ENEMY_DEAD |
-	AI_COND_HEAVY_DAMAGE |
-	AI_COND_ENEMY_OCCLUDED |
-	AI_COND_HEAR_SOUND |
-	AI_COND_NO_AMMO_LOADED |
-	AI_COND_FRIENDLY_FIRE,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleRangeAttack1Long, PT_ARRAYSIZE(interruptBitsScheduleRangeAttack1Long)),
 	// Sound mask
 	AI_SOUND_DANGER, 
 	// Name
@@ -1599,13 +1872,18 @@ ai_task_t taskListScheduleRangeAttack2Toss[] =
 	AITASK(AI_TASK_SET_SCHEDULE,				(Float)AI_SCHED_WAIT_FACE_ENEMY)
 };
 
+Uint32 interruptBitsScheduleRangeAttack2Toss[] =
+{
+	AI_COND_DANGEROUS_ENEMY_CLOSE
+};
+
 const CAISchedule scheduleRangeAttack2Toss(
 	// Task list
 	taskListScheduleRangeAttack2Toss, 
 	// Number of tasks
 	PT_ARRAYSIZE(taskListScheduleRangeAttack2Toss),
 	// AI interrupt mask
-	AI_COND_DANGEROUS_ENEMY_CLOSE,
+	CBitSet(AI_COND_BITSET_SIZE, interruptBitsScheduleRangeAttack2Toss, PT_ARRAYSIZE(interruptBitsScheduleRangeAttack2Toss)),
 	// Sound mask
 	AI_SOUND_NONE, 
 	// Name
@@ -1669,11 +1947,15 @@ void CBaseNPC::ChangeSchedule( const CAISchedule* pNewSchedule )
 	}
 
 	// Save some conditions in specific cases
-	Uint64 saveConditions = 0;
+	CBitSet saveConditions(AI_COND_BITSET_SIZE);
 	if(m_npcState == NPC_STATE_COMBAT)
-		saveConditions = (m_aiConditionBits & (AI_COND_ENEMY_NAVIGABLE|AI_COND_ENEMY_NOT_FOUND|AI_COND_FRIENDLY_FIRE
-		|AI_COND_CAN_RANGE_ATTACK1|AI_COND_CAN_RANGE_ATTACK2|AI_COND_CAN_MELEE_ATTACK1|AI_COND_CAN_MELEE_ATTACK2
-		|AI_COND_CAN_SPECIAL_ATTACK1|AI_COND_CAN_SPECIAL_ATTACK2));
+	{
+		static const Uint32 keptBitsArray[] = {AI_COND_ENEMY_NAVIGABLE, AI_COND_ENEMY_NOT_FOUND, AI_COND_FRIENDLY_FIRE,
+			AI_COND_CAN_RANGE_ATTACK1, AI_COND_CAN_RANGE_ATTACK2, AI_COND_CAN_MELEE_ATTACK1, AI_COND_CAN_MELEE_ATTACK2,
+			AI_COND_CAN_SPECIAL_ATTACK1, AI_COND_CAN_SPECIAL_ATTACK2};
+		static CBitSet keptBitsSet(AI_COND_BITSET_SIZE, keptBitsArray, PT_ARRAYSIZE(keptBitsArray));
+		saveConditions = (m_aiConditionBits & keptBitsSet);
+	}
 
 	// Save any conditions to be saved from custom entities
 	saveConditions |= (m_aiConditionBits & GetScheduleChangeKeptConditions());
@@ -1685,7 +1967,7 @@ void CBaseNPC::ChangeSchedule( const CAISchedule* pNewSchedule )
 	m_failureScheduleIndex = AI_SCHED_NONE;
 	m_nextScheduleIndex = AI_SCHED_NONE;
 
-	Uint64 interruptMask = m_pSchedule->GetInterruptMask();
+	CBitSet interruptMask = m_pSchedule->GetInterruptMask();
 	if(m_npcState == NPC_STATE_SCRIPT && m_pScriptedSequence)
 		interruptMask &= ~(m_pScriptedSequence->GetIgnoreConditions());
 
@@ -1693,9 +1975,9 @@ void CBaseNPC::ChangeSchedule( const CAISchedule* pNewSchedule )
 	if(m_npcState == NPC_STATE_SCRIPT && m_pScriptedSequence)
 		soundMask |= m_pScriptedSequence->GetInterruptSoundMask();
 
-	if(interruptMask & AI_COND_HEAR_SOUND && !soundMask)
+	if(interruptMask.test(AI_COND_HEAR_SOUND) && !soundMask)
 		Util::EntityConPrintf(m_pEdict, "AI_COND_HEAR_SOUND set, but no sound mask for schedule '%s'.\n", m_pSchedule->GetName());
-	else if(soundMask && !(interruptMask & AI_COND_HEAR_SOUND))
+	else if(soundMask && !(interruptMask.test(AI_COND_HEAR_SOUND)))
 		Util::EntityConPrintf(m_pEdict, "Sound mask set, but no AI_COND_HEAR_SOUND set for schedule '%s'.\n", m_pSchedule->GetName());
 }
 
@@ -1715,17 +1997,17 @@ void CBaseNPC::BeginNextScheduledTask( void )
 	m_scheduleTaskIndex++;
 
 	if(IsScheduleDone())
-		SetConditions(AI_COND_SCHEDULE_DONE);
+		SetCondition(AI_COND_SCHEDULE_DONE);
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-Uint64 CBaseNPC::GetScheduleFlags( void ) const
+CBitSet CBaseNPC::GetScheduleFlags( void ) const
 {
 	if(!m_pSchedule)
-		return 0;
+		return CBitSet(AI_COND_BITSET_SIZE);
 	else
 		return m_aiConditionBits & m_pSchedule->GetInterruptMask();
 }
@@ -1739,33 +2021,34 @@ bool CBaseNPC::IsScheduleValid( void )
 	if(!m_pSchedule)
 		return false;
 
-	Uint64 interruptMask = m_pSchedule->GetInterruptMask();
-	interruptMask |= (AI_COND_SCHEDULE_DONE|AI_COND_TASK_FAILED);
+	CBitSet interruptMask = m_pSchedule->GetInterruptMask();
+	interruptMask.set(AI_COND_SCHEDULE_DONE);
+	interruptMask.set(AI_COND_TASK_FAILED);
 
-	Uint64 aiConditions = (m_aiConditionBits & ~GetIgnoreConditions());
-	if(aiConditions & interruptMask)
+	CBitSet aiConditions = (m_aiConditionBits & ~GetIgnoreConditions());
+	if((aiConditions & interruptMask).any())
 	{
-		if(CheckConditions(AI_COND_TASK_FAILED) && m_failureScheduleIndex == AI_SCHED_NONE)
+		if(CheckCondition(AI_COND_TASK_FAILED) && m_failureScheduleIndex == AI_SCHED_NONE)
 		{
 			// Tell the engine that our schedule has failed
 			Util::EntityConDPrintf(m_pEdict, "Schedule '%s' failed.\n", m_pSchedule->GetName());
 		}
-		else if(!((interruptMask & m_aiConditionBits) & AI_COND_SCHEDULE_DONE))
+		else if(!(interruptMask & m_aiConditionBits).test(AI_COND_SCHEDULE_DONE))
 		{
-			Uint64 bitsPresentOfMask = (interruptMask & m_aiConditionBits);
+			CBitSet bitsPresentOfMask = (interruptMask & m_aiConditionBits);
 
 			CString msg;
 			msg << "Schedule " << m_pSchedule->GetName() << " interrupted by ";
 
 			bool first = true;
 			CString conditionName;
-			if(bitsPresentOfMask & AI_COND_NO_AMMO_LOADED)
+			if(bitsPresentOfMask.test(AI_COND_NO_AMMO_LOADED))
 			{
 				conditionName = "AI_COND_NO_AMMO_LOADED";
 				first = false;
 			}
 
-			if(bitsPresentOfMask & AI_COND_SEE_HATE)
+			if(bitsPresentOfMask.test(AI_COND_SEE_HATE))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1775,7 +2058,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_SEE_HATE";
 			}
 
-			if(bitsPresentOfMask & AI_COND_SEE_FEAR)
+			if(bitsPresentOfMask.test(AI_COND_SEE_FEAR))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1785,7 +2068,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_SEE_FEAR";
 			}
 
-			if(bitsPresentOfMask & AI_COND_SEE_DISLIKE)
+			if(bitsPresentOfMask.test(AI_COND_SEE_DISLIKE))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1795,7 +2078,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_SEE_DISLIKE";
 			}
 
-			if(bitsPresentOfMask & AI_COND_SEE_ENEMY)
+			if(bitsPresentOfMask.test(AI_COND_SEE_ENEMY))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1805,7 +2088,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_SEE_ENEMY";
 			}
 
-			if(bitsPresentOfMask & AI_COND_ENEMY_OCCLUDED)
+			if(bitsPresentOfMask.test(AI_COND_ENEMY_OCCLUDED))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1815,7 +2098,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_ENEMY_OCCLUDED";
 			}
 
-			if(bitsPresentOfMask & AI_COND_SMELL_FOOD)
+			if(bitsPresentOfMask.test(AI_COND_SMELL_FOOD))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1825,7 +2108,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_SMELL_FOOD";
 			}
 
-			if(bitsPresentOfMask & AI_COND_ENEMY_TOO_FAR)
+			if(bitsPresentOfMask.test(AI_COND_ENEMY_TOO_FAR))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1835,7 +2118,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_ENEMY_TOO_FAR";
 			}
 
-			if(bitsPresentOfMask & AI_COND_LIGHT_DAMAGE)
+			if(bitsPresentOfMask.test(AI_COND_LIGHT_DAMAGE))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1845,7 +2128,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_LIGHT_DAMAGE";
 			}
 
-			if(bitsPresentOfMask & AI_COND_HEAVY_DAMAGE)
+			if(bitsPresentOfMask.test(AI_COND_HEAVY_DAMAGE))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1855,7 +2138,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_HEAVY_DAMAGE";
 			}
 
-			if(bitsPresentOfMask & AI_COND_CAN_RANGE_ATTACK1)
+			if(bitsPresentOfMask.test(AI_COND_CAN_RANGE_ATTACK1))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1865,7 +2148,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_CAN_RANGE_ATTACK1";
 			}
 
-			if(bitsPresentOfMask & AI_COND_CAN_RANGE_ATTACK2)
+			if(bitsPresentOfMask.test(AI_COND_CAN_RANGE_ATTACK2))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1875,7 +2158,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_CAN_RANGE_ATTACK2";
 			}
 
-			if(bitsPresentOfMask & AI_COND_CAN_MELEE_ATTACK1)
+			if(bitsPresentOfMask.test(AI_COND_CAN_MELEE_ATTACK1))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1885,7 +2168,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_CAN_MELEE_ATTACK1";
 			}
 
-			if(bitsPresentOfMask & AI_COND_CAN_MELEE_ATTACK2)
+			if(bitsPresentOfMask.test(AI_COND_CAN_MELEE_ATTACK2))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1895,7 +2178,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_CAN_MELEE_ATTACK2";
 			}
 
-			if(bitsPresentOfMask & AI_COND_CAN_SPECIAL_ATTACK1)
+			if(bitsPresentOfMask.test(AI_COND_CAN_SPECIAL_ATTACK1))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1905,7 +2188,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_CAN_SPECIAL_ATTACK1";
 			}
 
-			if(bitsPresentOfMask & AI_COND_CAN_SPECIAL_ATTACK2)
+			if(bitsPresentOfMask.test(AI_COND_CAN_SPECIAL_ATTACK2))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1915,7 +2198,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_CAN_SPECIAL_ATTACK2";
 			}
 
-			if(bitsPresentOfMask & AI_COND_FOLLOW_TARGET_TOO_FAR)
+			if(bitsPresentOfMask.test(AI_COND_FOLLOW_TARGET_TOO_FAR))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1925,7 +2208,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_FOLLOW_TARGET_TOO_FAR";
 			}
 
-			if(bitsPresentOfMask & AI_COND_PROVOKED)
+			if(bitsPresentOfMask.test(AI_COND_PROVOKED))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1935,7 +2218,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_PROVOKED";
 			}
 
-			if(bitsPresentOfMask & AI_COND_NEW_ENEMY)
+			if(bitsPresentOfMask.test(AI_COND_NEW_ENEMY))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1945,7 +2228,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_NEW_ENEMY";
 			}
 
-			if(bitsPresentOfMask & AI_COND_HEAR_SOUND)
+			if(bitsPresentOfMask.test(AI_COND_HEAR_SOUND))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1955,7 +2238,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_HEAR_SOUND";
 			}
 
-			if(bitsPresentOfMask & AI_COND_SMELL)
+			if(bitsPresentOfMask.test(AI_COND_SMELL))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1965,7 +2248,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_SMELL";
 			}
 
-			if(bitsPresentOfMask & AI_COND_ENEMY_FACING_ME)
+			if(bitsPresentOfMask.test(AI_COND_ENEMY_FACING_ME))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1975,7 +2258,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_ENEMY_FACING_ME";
 			}
 
-			if(bitsPresentOfMask & AI_COND_ENEMY_DEAD)
+			if(bitsPresentOfMask.test(AI_COND_ENEMY_DEAD))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1985,7 +2268,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_ENEMY_DEAD";
 			}
 
-			if(bitsPresentOfMask & AI_COND_SEE_CLIENT)
+			if(bitsPresentOfMask.test(AI_COND_SEE_CLIENT))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -1995,7 +2278,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_SEE_CLIENT";
 			}
 
-			if(bitsPresentOfMask & AI_COND_SEE_NEMESIS)
+			if(bitsPresentOfMask.test(AI_COND_SEE_NEMESIS))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2005,7 +2288,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_SEE_NEMESIS";
 			}
 
-			if(bitsPresentOfMask & AI_COND_ENEMY_NOT_FOUND)
+			if(bitsPresentOfMask.test(AI_COND_ENEMY_NOT_FOUND))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2015,7 +2298,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_ENEMY_NOT_FOUND";
 			}
 
-			if(bitsPresentOfMask & AI_COND_ENEMY_UNREACHABLE)
+			if(bitsPresentOfMask.test(AI_COND_ENEMY_UNREACHABLE))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2025,7 +2308,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_ENEMY_UNREACHABLE";
 			}
 
-			if(bitsPresentOfMask & AI_COND_IN_DANGER)
+			if(bitsPresentOfMask.test(AI_COND_IN_DANGER))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2035,7 +2318,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_IN_DANGER";
 			}
 
-			if(bitsPresentOfMask & AI_COND_DANGEROUS_ENEMY_CLOSE)
+			if(bitsPresentOfMask.test(AI_COND_DANGEROUS_ENEMY_CLOSE))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2045,7 +2328,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_DANGEROUS_ENEMY_CLOSE";
 			}
 
-			if(bitsPresentOfMask & AI_COND_BLOCKING_PATH)
+			if(bitsPresentOfMask.test(AI_COND_BLOCKING_PATH))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2055,7 +2338,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_BLOCKING_PATH";
 			}
 
-			if(bitsPresentOfMask & AI_COND_TASK_FAILED)
+			if(bitsPresentOfMask.test(AI_COND_TASK_FAILED))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2065,7 +2348,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_TASK_FAILED";
 			}
 
-			if(bitsPresentOfMask & AI_COND_CLIENT_UNSEEN)
+			if(bitsPresentOfMask.test(AI_COND_CLIENT_UNSEEN))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2075,7 +2358,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_CLIENT_UNSEEN";
 			}
 
-			if(bitsPresentOfMask & AI_COND_PLAYER_CLOSE)
+			if(bitsPresentOfMask.test(AI_COND_PLAYER_CLOSE))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2085,7 +2368,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_PLAYER_CLOSE";
 			}
 
-			if(bitsPresentOfMask & AI_COND_HEARD_ENEMY_NEW_POSITION)
+			if(bitsPresentOfMask.test(AI_COND_HEARD_ENEMY_NEW_POSITION))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2095,7 +2378,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_HEARD_ENEMY_NEW_POSITION";
 			}
 
-			if(bitsPresentOfMask & AI_COND_SEE_HOSTILE_NPC)
+			if(bitsPresentOfMask.test(AI_COND_SEE_HOSTILE_NPC))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2105,7 +2388,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_SEE_HOSTILE_NPC";
 			}
 
-			if(bitsPresentOfMask & AI_COND_RESERVED1)
+			if(bitsPresentOfMask.test(AI_COND_RESERVED1))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2115,7 +2398,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_RESERVED1";
 			}
 
-			if(bitsPresentOfMask & AI_COND_RESERVED2)
+			if(bitsPresentOfMask.test(AI_COND_RESERVED2))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2125,7 +2408,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_RESERVED2";
 			}
 
-			if(bitsPresentOfMask & AI_COND_RESERVED1)
+			if(bitsPresentOfMask.test(AI_COND_RESERVED1))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2135,7 +2418,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_RESERVED1";
 			}
 
-			if(bitsPresentOfMask & AI_COND_RESERVED2)
+			if(bitsPresentOfMask.test(AI_COND_RESERVED2))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2145,7 +2428,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_RESERVED2";
 			}
 
-			if(bitsPresentOfMask & AI_COND_RESERVED3)
+			if(bitsPresentOfMask.test(AI_COND_RESERVED3))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2155,7 +2438,7 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_RESERVED3";
 			}
 
-			if(bitsPresentOfMask & AI_COND_RESERVED4)
+			if(bitsPresentOfMask.test(AI_COND_RESERVED4))
 			{
 				if(!first)
 					conditionName << ", ";
@@ -2178,25 +2461,25 @@ bool CBaseNPC::IsScheduleValid( void )
 	}
 
 	// Allow inverse interrupt mask to also interrupt
-	Uint64 inverseInterruptMask = m_pSchedule->GetInverseInterruptMask();
-	Uint64 setBitsOfMask = (aiConditions & inverseInterruptMask);
+	CBitSet inverseInterruptMask = m_pSchedule->GetInverseInterruptMask();
+	CBitSet setBitsOfMask = (aiConditions & inverseInterruptMask);
 		
 	if(setBitsOfMask != inverseInterruptMask)
 	{
-		Uint64 missingBitsOfMask = inverseInterruptMask & ~setBitsOfMask;
+		CBitSet missingBitsOfMask = inverseInterruptMask & ~setBitsOfMask;
 		
 		CString msg;
 		msg << "Schedule " << m_pSchedule->GetName() << " interrupted by non-set AI condition ";
 
 		bool first = true;
 		CString conditionName;
-		if(missingBitsOfMask & AI_COND_NO_AMMO_LOADED)
+		if(missingBitsOfMask.test(AI_COND_NO_AMMO_LOADED))
 		{
 			conditionName = "AI_COND_NO_AMMO_LOADED";
 			first = false;
 		}
 
-		if(missingBitsOfMask & AI_COND_SEE_HATE)
+		if(missingBitsOfMask.test(AI_COND_SEE_HATE))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2206,7 +2489,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_SEE_HATE";
 		}
 
-		if(missingBitsOfMask & AI_COND_SEE_FEAR)
+		if(missingBitsOfMask.test(AI_COND_SEE_FEAR))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2216,7 +2499,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_SEE_FEAR";
 		}
 
-		if(missingBitsOfMask & AI_COND_SEE_DISLIKE)
+		if(missingBitsOfMask.test(AI_COND_SEE_DISLIKE))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2226,7 +2509,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_SEE_DISLIKE";
 		}
 
-		if(missingBitsOfMask & AI_COND_SEE_ENEMY)
+		if(missingBitsOfMask.test(AI_COND_SEE_ENEMY))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2236,7 +2519,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_SEE_ENEMY";
 		}
 
-		if(missingBitsOfMask & AI_COND_ENEMY_OCCLUDED)
+		if(missingBitsOfMask.test(AI_COND_ENEMY_OCCLUDED))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2246,7 +2529,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_ENEMY_OCCLUDED";
 		}
 
-		if(missingBitsOfMask & AI_COND_SMELL_FOOD)
+		if(missingBitsOfMask.test(AI_COND_SMELL_FOOD))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2256,7 +2539,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_SMELL_FOOD";
 		}
 
-		if(missingBitsOfMask & AI_COND_ENEMY_TOO_FAR)
+		if(missingBitsOfMask.test(AI_COND_ENEMY_TOO_FAR))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2266,7 +2549,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_ENEMY_TOO_FAR";
 		}
 
-		if(missingBitsOfMask & AI_COND_LIGHT_DAMAGE)
+		if(missingBitsOfMask.test(AI_COND_LIGHT_DAMAGE))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2276,7 +2559,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_LIGHT_DAMAGE";
 		}
 
-		if(missingBitsOfMask & AI_COND_HEAVY_DAMAGE)
+		if(missingBitsOfMask.test(AI_COND_HEAVY_DAMAGE))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2286,7 +2569,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_HEAVY_DAMAGE";
 		}
 
-		if(missingBitsOfMask & AI_COND_CAN_RANGE_ATTACK1)
+		if(missingBitsOfMask.test(AI_COND_CAN_RANGE_ATTACK1))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2296,7 +2579,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_CAN_RANGE_ATTACK1";
 		}
 
-		if(missingBitsOfMask & AI_COND_CAN_RANGE_ATTACK2)
+		if(missingBitsOfMask.test(AI_COND_CAN_RANGE_ATTACK2))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2306,7 +2589,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_CAN_RANGE_ATTACK2";
 		}
 
-		if(missingBitsOfMask & AI_COND_CAN_MELEE_ATTACK1)
+		if(missingBitsOfMask.test(AI_COND_CAN_MELEE_ATTACK1))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2316,7 +2599,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_CAN_MELEE_ATTACK1";
 		}
 
-		if(missingBitsOfMask & AI_COND_CAN_MELEE_ATTACK2)
+		if(missingBitsOfMask.test(AI_COND_CAN_MELEE_ATTACK2))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2326,7 +2609,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_CAN_MELEE_ATTACK2";
 		}
 
-		if(missingBitsOfMask & AI_COND_CAN_SPECIAL_ATTACK1)
+		if(missingBitsOfMask.test(AI_COND_CAN_SPECIAL_ATTACK1))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2336,7 +2619,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_CAN_SPECIAL_ATTACK1";
 		}
 
-		if(missingBitsOfMask & AI_COND_CAN_SPECIAL_ATTACK2)
+		if(missingBitsOfMask.test(AI_COND_CAN_SPECIAL_ATTACK2))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2346,7 +2629,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_CAN_SPECIAL_ATTACK2";
 		}
 
-		if(missingBitsOfMask & AI_COND_FOLLOW_TARGET_TOO_FAR)
+		if(missingBitsOfMask.test(AI_COND_FOLLOW_TARGET_TOO_FAR))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2356,7 +2639,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_FOLLOW_TARGET_TOO_FAR";
 		}
 
-		if(missingBitsOfMask & AI_COND_PROVOKED)
+		if(missingBitsOfMask.test(AI_COND_PROVOKED))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2366,7 +2649,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_PROVOKED";
 		}
 
-		if(missingBitsOfMask & AI_COND_NEW_ENEMY)
+		if(missingBitsOfMask.test(AI_COND_NEW_ENEMY))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2376,7 +2659,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_NEW_ENEMY";
 		}
 
-		if(missingBitsOfMask & AI_COND_HEAR_SOUND)
+		if(missingBitsOfMask.test(AI_COND_HEAR_SOUND))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2386,7 +2669,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_HEAR_SOUND";
 		}
 
-		if(missingBitsOfMask & AI_COND_SMELL)
+		if(missingBitsOfMask.test(AI_COND_SMELL))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2396,7 +2679,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_SMELL";
 		}
 
-		if(missingBitsOfMask & AI_COND_ENEMY_FACING_ME)
+		if(missingBitsOfMask.test(AI_COND_ENEMY_FACING_ME))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2406,7 +2689,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_ENEMY_FACING_ME";
 		}
 
-		if(missingBitsOfMask & AI_COND_ENEMY_DEAD)
+		if(missingBitsOfMask.test(AI_COND_ENEMY_DEAD))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2416,7 +2699,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_ENEMY_DEAD";
 		}
 
-		if(missingBitsOfMask & AI_COND_SEE_CLIENT)
+		if(missingBitsOfMask.test(AI_COND_SEE_CLIENT))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2426,7 +2709,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_SEE_CLIENT";
 		}
 
-		if(missingBitsOfMask & AI_COND_SEE_NEMESIS)
+		if(missingBitsOfMask.test(AI_COND_SEE_NEMESIS))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2436,7 +2719,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_SEE_NEMESIS";
 		}
 
-		if(missingBitsOfMask & AI_COND_ENEMY_NOT_FOUND)
+		if(missingBitsOfMask.test(AI_COND_ENEMY_NOT_FOUND))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2446,7 +2729,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_ENEMY_NOT_FOUND";
 		}
 
-		if(missingBitsOfMask & AI_COND_ENEMY_UNREACHABLE)
+		if(missingBitsOfMask.test(AI_COND_ENEMY_UNREACHABLE))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2456,7 +2739,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_ENEMY_UNREACHABLE";
 		}
 
-		if(missingBitsOfMask & AI_COND_IN_DANGER)
+		if(missingBitsOfMask.test(AI_COND_IN_DANGER))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2466,7 +2749,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_IN_DANGER";
 		}
 
-		if(missingBitsOfMask & AI_COND_DANGEROUS_ENEMY_CLOSE)
+		if(missingBitsOfMask.test(AI_COND_DANGEROUS_ENEMY_CLOSE))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2476,7 +2759,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_DANGEROUS_ENEMY_CLOSE";
 		}
 
-		if(missingBitsOfMask & AI_COND_BLOCKING_PATH)
+		if(missingBitsOfMask.test(AI_COND_BLOCKING_PATH))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2486,7 +2769,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_BLOCKING_PATH";
 		}
 
-		if(missingBitsOfMask & AI_COND_TASK_FAILED)
+		if(missingBitsOfMask.test(AI_COND_TASK_FAILED))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2496,7 +2779,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_TASK_FAILED";
 		}
 
-		if(missingBitsOfMask & AI_COND_CLIENT_UNSEEN)
+		if(missingBitsOfMask.test(AI_COND_CLIENT_UNSEEN))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2506,7 +2789,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_CLIENT_UNSEEN";
 		}
 
-		if(missingBitsOfMask & AI_COND_PLAYER_CLOSE)
+		if(missingBitsOfMask.test(AI_COND_PLAYER_CLOSE))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2516,17 +2799,67 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_PLAYER_CLOSE";
 		}
 
-		if(missingBitsOfMask & AI_COND_CAN_ATTACK)
+		if(missingBitsOfMask.test(AI_COND_CAN_RANGE_ATTACK1))
 		{
 			if(!first)
 				conditionName << ", ";
 			else
 				first = false;
 
-			conditionName << "AI_COND_CAN_ATTACK";
+			conditionName << "AI_COND_CAN_RANGE_ATTACK1";
 		}
 
-		if(missingBitsOfMask & AI_COND_HEARD_ENEMY_NEW_POSITION)
+		if(missingBitsOfMask.test(AI_COND_CAN_RANGE_ATTACK2))
+		{
+			if(!first)
+				conditionName << ", ";
+			else
+				first = false;
+
+			conditionName << "AI_COND_CAN_RANGE_ATTACK2";
+		}
+
+		if(missingBitsOfMask.test(AI_COND_CAN_MELEE_ATTACK1))
+		{
+			if(!first)
+				conditionName << ", ";
+			else
+				first = false;
+
+			conditionName << "AI_COND_CAN_MELEE_ATTACK1";
+		}
+
+		if(missingBitsOfMask.test(AI_COND_CAN_MELEE_ATTACK2))
+		{
+			if(!first)
+				conditionName << ", ";
+			else
+				first = false;
+
+			conditionName << "AI_COND_CAN_MELEE_ATTACK2";
+		}
+
+		if(missingBitsOfMask.test(AI_COND_CAN_SPECIAL_ATTACK1))
+		{
+			if(!first)
+				conditionName << ", ";
+			else
+				first = false;
+
+			conditionName << "AI_COND_CAN_SPECIAL_ATTACK1";
+		}
+
+		if(missingBitsOfMask.test(AI_COND_CAN_SPECIAL_ATTACK2))
+		{
+			if(!first)
+				conditionName << ", ";
+			else
+				first = false;
+
+			conditionName << "AI_COND_CAN_SPECIAL_ATTACK2";
+		}
+
+		if(missingBitsOfMask.test(AI_COND_HEARD_ENEMY_NEW_POSITION))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2536,7 +2869,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_HEARD_ENEMY_NEW_POSITION";
 		}
 
-		if(missingBitsOfMask & AI_COND_SEE_HOSTILE_NPC)
+		if(missingBitsOfMask.test(AI_COND_SEE_HOSTILE_NPC))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2546,7 +2879,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_SEE_HOSTILE_NPC";
 		}
 
-		if(missingBitsOfMask & AI_COND_RESERVED1)
+		if(missingBitsOfMask.test(AI_COND_RESERVED1))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2556,7 +2889,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_RESERVED1";
 		}
 
-		if(missingBitsOfMask & AI_COND_RESERVED2)
+		if(missingBitsOfMask.test(AI_COND_RESERVED2))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2566,7 +2899,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_RESERVED2";
 		}
 
-		if(missingBitsOfMask & AI_COND_RESERVED1)
+		if(missingBitsOfMask.test(AI_COND_RESERVED1))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2576,7 +2909,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_RESERVED1";
 		}
 
-		if(missingBitsOfMask & AI_COND_RESERVED2)
+		if(missingBitsOfMask.test(AI_COND_RESERVED2))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2586,7 +2919,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_RESERVED2";
 		}
 
-		if(missingBitsOfMask & AI_COND_RESERVED3)
+		if(missingBitsOfMask.test(AI_COND_RESERVED3))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2596,7 +2929,7 @@ bool CBaseNPC::IsScheduleValid( void )
 			conditionName << "AI_COND_RESERVED3";
 		}
 
-		if(missingBitsOfMask & AI_COND_RESERVED4)
+		if(missingBitsOfMask.test(AI_COND_RESERVED4))
 		{
 			if(!first)
 				conditionName << ", ";
@@ -2647,8 +2980,8 @@ void CBaseNPC::MaintainSchedule( void )
 
 			if(m_idealNPCState != NPC_STATE_DEAD && (m_idealNPCState != NPC_STATE_SCRIPT || m_idealNPCState == m_npcState))
 			{
-				if(m_aiConditionBits && !CheckConditions(AI_COND_SCHEDULE_DONE)
-					|| m_pSchedule && (m_pSchedule->GetInterruptMask() & AI_COND_SCHEDULE_DONE)
+				if(m_aiConditionBits.any() && !CheckCondition(AI_COND_SCHEDULE_DONE)
+					|| m_pSchedule && m_pSchedule->GetInterruptMask().test(AI_COND_SCHEDULE_DONE)
 					|| m_npcState == NPC_STATE_COMBAT && !m_enemy)
 				{
 					// Set ideal state
@@ -2656,7 +2989,7 @@ void CBaseNPC::MaintainSchedule( void )
 				}
 			}
 
-			if(CheckConditions(AI_COND_TASK_FAILED) && m_npcState == m_idealNPCState)
+			if(CheckCondition(AI_COND_TASK_FAILED) && m_npcState == m_idealNPCState)
 			{
 				// Get the appropriate schedule if the task failed
 				Int32 newScheduleIndex = (m_failureScheduleIndex != AI_SCHED_NONE) ? m_failureScheduleIndex : AI_SCHED_FAIL;
@@ -2666,12 +2999,12 @@ void CBaseNPC::MaintainSchedule( void )
 				if(m_pSchedule)
 					Util::EntityConDPrintf(m_pEdict, "Schedule '%s' failed at task %d.\n", m_pSchedule->GetName(), m_scheduleTaskIndex);
 			}
-			else if(!CheckConditions(AI_COND_TASK_FAILED)
+			else if(!CheckCondition(AI_COND_TASK_FAILED)
 				&& m_pSchedule && m_pSchedule->GetSpecialInterruptScheduleIndex() != AI_SCHED_NONE
-				&& m_pSchedule->GetSpecialInterruptMask() != AI_COND_NONE
-				&& (m_pSchedule->GetSpecialInterruptExceptionMask() == AI_COND_NONE
+				&& m_pSchedule->GetSpecialInterruptMask().any()
+				&& (!m_pSchedule->GetSpecialInterruptExceptionMask().any()
 				|| !CheckConditions(m_pSchedule->GetSpecialInterruptExceptionMask()))
-				&& (m_pSchedule->GetSpecialInterruptRequirementMask() == AI_COND_NONE
+				&& (!m_pSchedule->GetSpecialInterruptRequirementMask().any()
 				|| CheckConditions(m_pSchedule->GetSpecialInterruptRequirementMask()))
 				&& CheckConditions(m_pSchedule->GetSpecialInterruptMask())
 				)
@@ -2761,7 +3094,7 @@ const CAISchedule* CBaseNPC::GetScheduleMain( void )
 {
 	if(m_npcPullerEntity)
 	{
-		if(!CheckConditions(AI_COND_NOT_ONGROUND))
+		if(!CheckCondition(AI_COND_NOT_ONGROUND))
 			return GetScheduleByIndex(AI_SCHED_RUN_FROM_NPC_PULLER);
 		else
 			return GetScheduleByIndex(AI_SCHED_HOVER_BY_NPC_PULLER);
@@ -2779,20 +3112,21 @@ const CAISchedule* CBaseNPC::GetScheduleMain( void )
 //=============================================
 const CAISchedule* CBaseNPC::GetSchedule( void )
 {
-	if(m_npcState == NPC_STATE_IDLE && CheckConditions(AI_COND_ENEMY_DEAD))
+	if(m_npcState == NPC_STATE_IDLE && CheckCondition(AI_COND_ENEMY_DEAD))
 	{
 		// Forget this in idle
 		if(HasMemory(AI_MEMORY_DODGE_ENEMY_FAILED))
 			ClearMemory(AI_MEMORY_DODGE_ENEMY_FAILED);
 
 		// Clear enemy dead state in alert or idle
-		ClearConditions(AI_COND_ENEMY_DEAD|AI_COND_ENEMY_NAVIGABLE);
+		ClearCondition(AI_COND_ENEMY_DEAD);
+		ClearCondition(AI_COND_ENEMY_NAVIGABLE);
 	}
 
 	// Do not bother with AI_COND_FOLLOW_TARGET_TOO_FAR if in ALERT
 	if((m_npcState == NPC_STATE_ALERT || m_npcState == NPC_STATE_COMBAT)
-		&& CheckConditions(AI_COND_FOLLOW_TARGET_TOO_FAR))
-		ClearConditions(AI_COND_FOLLOW_TARGET_TOO_FAR);
+		&& CheckCondition(AI_COND_FOLLOW_TARGET_TOO_FAR))
+		ClearCondition(AI_COND_FOLLOW_TARGET_TOO_FAR);
 
 	// Choose an appropriate schedule
 	switch(m_npcState)
@@ -2805,9 +3139,9 @@ const CAISchedule* CBaseNPC::GetSchedule( void )
 		break;
 	case NPC_STATE_IDLE:
 		{
-			if(CheckConditions(AI_COND_BLOCKING_PATH))
+			if(CheckCondition(AI_COND_BLOCKING_PATH))
 				return GetScheduleByIndex(AI_SCHED_MOVE_OUT_OF_WAY);
-			else if(CheckConditions(AI_COND_HEAR_SOUND))
+			else if(CheckCondition(AI_COND_HEAR_SOUND))
 				return GetScheduleByIndex(AI_SCHED_ALERT_FACE);
 			else if(IsRouteClear())
 				return GetScheduleByIndex(AI_SCHED_IDLE_STAND);
@@ -2817,19 +3151,19 @@ const CAISchedule* CBaseNPC::GetSchedule( void )
 		break;
 	case NPC_STATE_ALERT:
 		{
-			if(CheckConditions(AI_COND_BLOCKING_PATH))
+			if(CheckCondition(AI_COND_BLOCKING_PATH))
 				return GetScheduleByIndex(AI_SCHED_MOVE_OUT_OF_WAY);
-			else if(CheckConditions(AI_COND_ENEMY_DEAD) && FindActivity(ACT_VICTORY_DANCE) != NO_SEQUENCE_VALUE)
+			else if(CheckCondition(AI_COND_ENEMY_DEAD) && FindActivity(ACT_VICTORY_DANCE) != NO_SEQUENCE_VALUE)
 				return GetScheduleByIndex(AI_SCHED_VICTORY_DANCE);
-			else if(CheckConditions(AI_COND_LIGHT_DAMAGE|AI_COND_HEAVY_DAMAGE))
+			else if(CheckCondition(AI_COND_LIGHT_DAMAGE) || CheckCondition(AI_COND_HEAVY_DAMAGE))
 			{
 				Float coverYaw = SDL_fabs(GetYawDifference());
-				if(CheckConditions(AI_COND_HEAVY_DAMAGE) && coverYaw < (1.0 - m_fieldOfView) * 60)
+				if(CheckCondition(AI_COND_HEAVY_DAMAGE) && coverYaw < (1.0 - m_fieldOfView) * 60)
 					return GetScheduleByIndex(AI_SCHED_TAKE_COVER_FROM_ORIGIN);
 				else
 					return GetScheduleByIndex(AI_SCHED_ALERT_SMALL_FLINCH);
 			}
-			else if(CheckConditions(AI_COND_HEAR_SOUND))
+			else if(CheckCondition(AI_COND_HEAR_SOUND))
 				return GetScheduleByIndex(AI_SCHED_ALERT_FACE);
 			else
 				return GetScheduleByIndex(AI_SCHED_ALERT_STAND);
@@ -2837,7 +3171,7 @@ const CAISchedule* CBaseNPC::GetSchedule( void )
 		break;
 	case NPC_STATE_COMBAT:
 		{
-			if(CheckConditions(AI_COND_ENEMY_DEAD))
+			if(CheckCondition(AI_COND_ENEMY_DEAD))
 			{
 				// Clear enemy
 				m_enemy.reset();
@@ -2845,7 +3179,8 @@ const CAISchedule* CBaseNPC::GetSchedule( void )
 				// Find a new enemy
 				if(GetEnemy())
 				{
-					ClearConditions(AI_COND_ENEMY_DEAD|AI_COND_ENEMY_NAVIGABLE);
+					ClearCondition(AI_COND_ENEMY_DEAD);
+					ClearCondition(AI_COND_ENEMY_NAVIGABLE);
 					return GetSchedule();
 				}
 				else
@@ -2856,18 +3191,18 @@ const CAISchedule* CBaseNPC::GetSchedule( void )
 			}
 			else if(m_enemy && m_enemy->IsNPCDangerous())
 			{
-				if(!m_enemy->IsAwareOf(this) && CheckConditions(AI_COND_SEE_ENEMY))
+				if(!m_enemy->IsAwareOf(this) && CheckCondition(AI_COND_SEE_ENEMY))
 					return GetScheduleByIndex(AI_SCHED_TAKE_COVER_FROM_ENEMY);
 				else
 					return GetScheduleByIndex(AI_SCHED_STANDOFF);
 			}
-			else if(CheckConditions(AI_COND_NEW_ENEMY))
+			else if(CheckCondition(AI_COND_NEW_ENEMY))
 				return GetScheduleByIndex(AI_SCHED_BECOME_ALERT);
-			else if(CheckConditions(AI_COND_LIGHT_DAMAGE) && !HasMemory(AI_MEMORY_FLINCHED))
+			else if(CheckCondition(AI_COND_LIGHT_DAMAGE) && !HasMemory(AI_MEMORY_FLINCHED))
 				return GetScheduleByIndex(AI_SCHED_SMALL_FLINCH);
-			else if(!CheckConditions(AI_COND_SEE_ENEMY))
+			else if(!CheckCondition(AI_COND_SEE_ENEMY))
 			{
-				if(!CheckConditions(AI_COND_ENEMY_OCCLUDED))
+				if(!CheckCondition(AI_COND_ENEMY_OCCLUDED))
 					return GetScheduleByIndex(AI_SCHED_COMBAT_FACE);
 				else if(m_enemy->IsNPCDangerous())
 				{
@@ -2880,24 +3215,24 @@ const CAISchedule* CBaseNPC::GetSchedule( void )
 					else
 						return GetScheduleByIndex(AI_SCHED_COMBAT_FACE);
 				}
-				else if(!CheckConditions(AI_COND_ENEMY_NOT_FOUND))
+				else if(!CheckCondition(AI_COND_ENEMY_NOT_FOUND))
 					return GetScheduleByIndex(AI_SCHED_CHASE_ENEMY);
 				else
 					return GetScheduleByIndex(AI_SCHED_FIND_ENEMIES);
 			}
-			else if(CheckConditions(AI_COND_CAN_RANGE_ATTACK1))
+			else if(CheckCondition(AI_COND_CAN_RANGE_ATTACK1))
 				return GetScheduleByIndex(AI_SCHED_RANGE_ATTACK1);
-			else if(CheckConditions(AI_COND_CAN_RANGE_ATTACK2))
+			else if(CheckCondition(AI_COND_CAN_RANGE_ATTACK2))
 				return GetScheduleByIndex(AI_SCHED_RANGE_ATTACK2);
-			else if(CheckConditions(AI_COND_CAN_MELEE_ATTACK1))
+			else if(CheckCondition(AI_COND_CAN_MELEE_ATTACK1))
 				return GetScheduleByIndex(AI_SCHED_MELEE_ATTACK1);
-			else if(CheckConditions(AI_COND_CAN_MELEE_ATTACK2))
+			else if(CheckCondition(AI_COND_CAN_MELEE_ATTACK2))
 				return GetScheduleByIndex(AI_SCHED_MELEE_ATTACK2);
-			else if(CheckConditions(AI_COND_CAN_SPECIAL_ATTACK1))
+			else if(CheckCondition(AI_COND_CAN_SPECIAL_ATTACK1))
 				return GetScheduleByIndex(AI_SCHED_SPECIAL_ATTACK1);
-			else if(CheckConditions(AI_COND_CAN_SPECIAL_ATTACK2))
+			else if(CheckCondition(AI_COND_CAN_SPECIAL_ATTACK2))
 				return GetScheduleByIndex(AI_SCHED_SPECIAL_ATTACK2);
-			else if(!CheckConditions(AI_COND_CAN_RANGE_ATTACK1|AI_COND_CAN_RANGE_ATTACK2))
+			else if(!CheckCondition(AI_COND_CAN_RANGE_ATTACK1) && !CheckCondition(AI_COND_CAN_RANGE_ATTACK2))
 				return GetScheduleByIndex(AI_SCHED_CHASE_ENEMY);
 			else if(!IsFacingIdealYaw())
 				return GetScheduleByIndex(AI_SCHED_COMBAT_FACE);
@@ -3157,9 +3492,9 @@ const CAISchedule* CBaseNPC::GetScheduleByIndex( Int32 scheduleIndex )
 		break;
 	case AI_SCHED_ESTABLISH_LINE_OF_FIRE:
 		{
-			if(FavorRangedAttacks() 
-				&& CheckConditions(AI_COND_SHOOT_VECTOR_VALID) 
-				&& CheckConditions(AI_COND_SEE_ENEMY))
+			if(FavorRangedAttacks(m_enemy) 
+				&& CheckCondition(AI_COND_SHOOT_VECTOR_VALID) 
+				&& CheckCondition(AI_COND_SEE_ENEMY))
 				return &scheduleFaceEnemy;
 			else
 				return &scheduleEstablishLineOfFire;
@@ -3167,7 +3502,7 @@ const CAISchedule* CBaseNPC::GetScheduleByIndex( Int32 scheduleIndex )
 		break;
 	case AI_SCHED_ELOF_FAIL:
 		{
-			if(CheckConditions(AI_COND_CAN_RANGE_ATTACK1))
+			if(CheckCondition(AI_COND_CAN_RANGE_ATTACK1))
 				return GetScheduleByIndex(AI_SCHED_RANGE_ATTACK1);
 			else
 				return GetScheduleByIndex(AI_SCHED_FAIL);

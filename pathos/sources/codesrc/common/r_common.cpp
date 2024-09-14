@@ -130,15 +130,17 @@ color24_t *R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psa
 		}
 
 		// Do not perform this on lightvecs
-		if(overdarken > 0 && 
-			index != R_StyleIndex(psurface, LM_LIGHTVECS_STYLE))
+		if(overdarken > 0 && index != R_StyleIndex(psurface, LM_LIGHTVECS_STYLE))
 		{
 			const color24_t* prefsrc = psamples;
 			for (Uint32 i = 0; i < size; i++)
 			{
+				Vector color = Vector(prefsrc[i].r, prefsrc[i].g, prefsrc[i].b);
+				Math::VectorScale(color, 1.0f / 255.0f, color);
+
 				// Darken pixels with low values, helps make maps darker
-				Float flintensity = (prefsrc[i].r + prefsrc[i].g + prefsrc[i].b)/3;
-				flintensity = _max(flintensity/overdarken, 1);
+				Float dot = Math::DotProduct(color, Vector(0.2126, 0.7152, 0.0722));
+				Float flintensity = _max((dot * 255)/overdarken, 1);
 
 				pblock[i].r = pblock[i].r*flintensity;
 				pblock[i].g = pblock[i].g*flintensity;
