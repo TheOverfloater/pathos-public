@@ -462,7 +462,7 @@ bool CMenu::DrawMenuBackground( CBasicDraw* pDraw )
 
 		R_ValidateShader(pDraw);
 
-		pDraw->Begin(GL_TRIANGLES);
+		pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 		pDraw->TexCoord2f(0.0, tc1ymod*tc1scaley);
 		pDraw->Vertex3f(0.0, 0.0, -1.0);
 
@@ -514,7 +514,7 @@ bool CMenu::DrawMenuBackground( CBasicDraw* pDraw )
 
 		R_ValidateShader(pDraw);
 
-		pDraw->Begin(GL_TRIANGLES);
+		pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 		pDraw->TexCoord2f(0.0, tc2ymod*tc2scaley);
 		pDraw->Vertex3f(0.0, 0.0, -1.0);
 
@@ -571,7 +571,7 @@ bool CMenu::DrawMenuBackground( CBasicDraw* pDraw )
 
 		R_ValidateShader(pDraw);
 
-		pDraw->Begin(GL_TRIANGLES);
+		pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 		pDraw->TexCoord2f(0.0, tcymod*tcscaley);
 		pDraw->Vertex3f(0.0, 0.0, -1.0);
 
@@ -647,7 +647,7 @@ CMenu::rendercode_t CMenu::DrawMenuElements( CBasicDraw* pDraw )
 
 	R_ValidateShader(pDraw);
 
-	pDraw->Begin(GL_TRIANGLES);
+	pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	pDraw->TexCoord2f(0.0, 0.0);
 	pDraw->Vertex3f(titleX, titleY, -1.0);
 
@@ -758,7 +758,7 @@ bool CMenu::DrawMenuFade( void )
 	Float tcscalex = 1.0;
 	Float tcscaley = 1.0;
 
-	pDraw->Begin(GL_TRIANGLES);
+	pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	pDraw->TexCoord2f(0.0, tcymod*tcscaley);
 	pDraw->Vertex3f(0.0, 0.0, -1.0);
 

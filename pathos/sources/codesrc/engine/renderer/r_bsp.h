@@ -219,13 +219,13 @@ struct bsp_vertex_t
 	Vector binormal; // 40
 	Vector normal; // 52
 
-	Float lmapcoord[2]; // 60
+	Float lmapcoord[MAX_SURFACE_STYLES][2]; // 60
 	Float texcoord[2]; // 68
 	Float dtexcoord[2]; // 76
 
-	Float fogcoord; // 80
+	Float fogcoord; // 104
 
-	byte padding[14]; // 96
+	byte padding[22]; // 128
 };
 
 struct drawbatch_t
@@ -246,6 +246,25 @@ struct drawbatch_t
 	Uint32 end_index;
 
 	byte pad[24];
+};
+
+struct stylebatches_t
+{
+	stylebatches_t():
+		numbatches(0)
+	{}
+
+	CArray<drawbatch_t> batches;
+	Uint32 numbatches;
+};
+
+struct lightstyleinfo_t
+{
+	lightstyleinfo_t()
+	{
+	}
+
+	CArray<stylebatches_t> stylebatches;
 };
 
 struct bsp_texture_t
@@ -278,19 +297,24 @@ struct bsp_texture_t
 	struct msurface_t* psurfchain;
 
 	struct mtexture_t* pmodeltexture;
+
+	CArray<lightstyleinfo_t> lightstyleinfos;
 };
 
 struct bsp_surface_t
 {
 	bsp_surface_t():
-		light_s(0),
-		light_t(0),
 		start_index(0),
 		end_index(0),
 		num_indexes(0),
 		pmsurface(nullptr),
-		ptexture(nullptr)
-	{}
+		ptexture(nullptr),
+		ptexturechain(nullptr),
+		pstylechains(nullptr)
+	{
+		memset(light_s, 0, sizeof(light_s));
+		memset(light_t, 0, sizeof(light_t));
+	}
 
 	// Mins
 	Vector mins;
@@ -298,8 +322,8 @@ struct bsp_surface_t
 	Vector maxs;
 
 	// GL lightmap st coordinates
-	Uint32 light_s;
-	Uint32 light_t;
+	Uint32 light_s[MAX_SURFACE_STYLES];
+	Uint32 light_t[MAX_SURFACE_STYLES];
 
 	// Start vertex index
 	Uint32 start_index;
@@ -312,6 +336,11 @@ struct bsp_surface_t
 	msurface_t* pmsurface;
 	// texture info
 	bsp_texture_t* ptexture;
+
+	// texture chains
+	msurface_t* ptexturechain;
+	// lightstyle chains
+	msurface_t** pstylechains;
 };
 
 struct decalpolygroup_t
@@ -385,7 +414,7 @@ class CBSPRenderer
 {
 public:
 	// Default lightmap width
-	static const Uint32 LIGHTMAP_WIDTH;
+	static const Uint32 LIGHTMAP_DEFAULT_WIDTH;
 	// Default lightmap height
 	static const Uint32 LIGHTMAP_DEFAULT_HEIGHT;
 	// Default decal vertex cache size
@@ -437,14 +466,16 @@ public:
 	void CreateDecal( const Vector& origin, const Vector& normal, decalgroupentry_t* pentry, byte flags, Float life, Float fadetime, Float growthtime );
 
 	// Creates lightmaps
-	void InitLightmaps( bool loadald );
+	void InitLightmaps( void );
 	// Sets lightmap coords
 	void SetLightmapCoords( void );
 	// Initializes the main VBO
 	void InitVBO( void );
 
+	// Returns the lightmap width
+	Uint32 GetLightmapWidth( Uint32 index ) { if(index < MAX_SURFACE_STYLES) return m_lightmapWidths[index]; else return 0; }
 	// Returns the lightmap height
-	Uint32 GetLightmapHeight( void ) { return m_lightmapHeight; }
+	Uint32 GetLightmapHeight( Uint32 index ) { if(index < MAX_SURFACE_STYLES) return m_lightmapHeights[index]; else return 0; }
 
 	// Performs think functions
 	void Think( void );
@@ -494,6 +525,8 @@ private:
 	bool DrawLights( bool specular );
 	// Draws final renderpasses
 	bool DrawFinal( void );
+	// Draws final for specular highlights
+	bool DrawFinalSpecular( void );
 
 	// Prepares for VSM rendering
 	void PrepareVSM( void );
@@ -532,19 +565,28 @@ private:
 	CArray<bsp_texture_t> m_texturesArray;
 
 private:
+	// TRUE if rendering in multi-pass
 	bool m_multiPass;
+	// TRUE if object/surface should be added to multi-pass rendering
 	bool m_addMulti;
+	// TRUE if bump maps are present
 	bool m_bumpMaps;
+	// TRUE if lightstyles are supported
+	bool m_useLightStyles;
+	// TRUE if multipass is disabled
+	bool m_disableMultiPass;
 
 private:
 	// Lightmap images
-	Uint32 m_lightmapIndex;
-	Uint32 m_ambientLightmapIndex;
-	Uint32 m_diffuseLightmapIndex;
-	Uint32 m_lightVectorsIndex;
+	Uint32 m_lightmapIndexes[MAX_SURFACE_STYLES];
+	Uint32 m_ambientLightmapIndexes[MAX_SURFACE_STYLES];
+	Uint32 m_diffuseLightmapIndexes[MAX_SURFACE_STYLES];
+	Uint32 m_lightVectorsIndexes[MAX_SURFACE_STYLES];
 
+	// Lightmap width
+	Uint32 m_lightmapWidths[MAX_SURFACE_STYLES];
 	// Lightmap height
-	Uint32 m_lightmapHeight;
+	Uint32 m_lightmapHeights[MAX_SURFACE_STYLES];
 
 	// Chrome texture
 	en_texture_t* m_pChromeTexture;
@@ -564,6 +606,9 @@ private:
 
 	// Temporary decal vertexes array
 	CArray<bsp_vertex_t> m_tempDecalVertsArray;
+
+	// Pointer to lightstyle values array
+	CArray<Float>* m_pLightStyleValuesArray;
 
 private:
 	CCVar* m_pCvarDetailTextures;

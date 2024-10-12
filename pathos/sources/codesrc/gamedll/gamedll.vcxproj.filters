@@ -903,6 +903,21 @@
     <ClCompile Include="infovismark.cpp">
       <Filter>Source Files\entities\info</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\cbitset.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="funcparticleblocker.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\activitymappings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gamestaminamodifier.cpp">
+      <Filter>Source Files\entities\game</Filter>
+    </ClCompile>
+    <ClCompile Include="lightstyles.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gamedll.h">
@@ -1690,6 +1705,24 @@
     </ClInclude>
     <ClInclude Include="triggerrelaybinary.h">
       <Filter>Header Files\entities\trigger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\cbitset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\cbitset_inline.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="funcparticleblocker.h">
+      <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="gamestaminamodifier.h">
+      <Filter>Header Files\entities\game</Filter>
+    </ClInclude>
+    <ClInclude Include="lightstyles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="light.h">
+      <Filter>Header Files\entities\light</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

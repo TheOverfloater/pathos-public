@@ -35,6 +35,7 @@ struct cl_efxapi_t
 	void					(*pfnSetSpecialFog)( bool enablespecialfog );
 	void					(*pfnFreeEntityData)( entindex_t entindex, Int32 flags );
 	void					(*pfnSetLightStyle)( Int32 style, const Char* pstrpattern, bool interpolate, Float framerate );
+	void					(*pfnAddCustomLightStyle)( Int32 style, const Char* pstrpattern, bool interpolate, Float framerate );
 
 	// Decals
 	CDecalList&				(*pfnGetDecalList)( void );

@@ -163,7 +163,7 @@ bool R_BasicDrawDisableTextures( void )
 //====================================
 //
 //====================================
-void R_BasicDrawBegin( Int32 primitiveType )
+void R_BasicDrawBegin( CBasicDraw::primitivetype_t primitiveType )
 {
 	CBasicDraw::GetInstance()->Begin(primitiveType);
 }

@@ -146,7 +146,7 @@ bool CNodeDebug::Draw( void )
 		cl_renderfuncs.pfnBasicDrawColor4f(link.color.x, link.color.y, link.color.z, 1.0);
 		cl_renderfuncs.pfnValidateBasicDraw();
 
-		cl_renderfuncs.pfnBasicDrawBegin(GL_LINES);
+		cl_renderfuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_LINES);
 		cl_renderfuncs.pfnBasicDrawVertex3fv(link.node1);
 		cl_renderfuncs.pfnBasicDrawVertex3fv(link.node2);
 		cl_renderfuncs.pfnBasicDrawEnd();
@@ -193,7 +193,7 @@ bool CNodeDebug::Draw( void )
 			// Draw the waypoint
 			for(Uint32 j = 1; j < proute->points.size(); j++)
 			{
-				cl_renderfuncs.pfnBasicDrawBegin(GL_LINES);
+				cl_renderfuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_LINES);
 				cl_renderfuncs.pfnBasicDrawVertex3fv(proute->points[j-1] + raise);
 				cl_renderfuncs.pfnBasicDrawVertex3fv(proute->points[j] + raise);
 				cl_renderfuncs.pfnBasicDrawEnd();
@@ -202,7 +202,7 @@ bool CNodeDebug::Draw( void )
 			// Draw the points themselves
 			for(Uint32 j = 0; j < proute->points.size(); j++)
 			{
-				cl_renderfuncs.pfnBasicDrawBegin(GL_POINTS);
+				cl_renderfuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_POINTS);
 				cl_renderfuncs.pfnBasicDrawVertex3fv(proute->points[j] + raise);
 				cl_renderfuncs.pfnBasicDrawEnd();
 			}
@@ -226,12 +226,12 @@ bool CNodeDebug::Draw( void )
 
 			// Draw origin
 			cl_renderfuncs.pfnBasicDrawColor4f(pbbox->color.x, pbbox->color.y, pbbox->color.z, 1.0);
-			cl_renderfuncs.pfnBasicDrawBegin(GL_POINTS);
+			cl_renderfuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_POINTS);
 			cl_renderfuncs.pfnBasicDrawVertex3fv(pbbox->origin);
 			cl_renderfuncs.pfnBasicDrawEnd();
 
 			// Draw lines
-			cl_renderfuncs.pfnBasicDrawBegin(GL_LINES);
+			cl_renderfuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_LINES);
 
 			// Draw on X axis
 			Vector lineBegin = Vector(pbbox->mins[0], pbbox->origin[1], pbbox->origin[2]);
@@ -369,7 +369,7 @@ void CNodeDebug::AddWaypoint( const CArray<Vector>& pointsArray, entindex_t enti
 void CNodeDebug::DrawBBox( node_debug_bbox_t& bbox, Vector* pbboxpoints )
 {
 	cl_renderfuncs.pfnValidateBasicDraw();
-	cl_renderfuncs.pfnBasicDrawBegin(GL_TRIANGLES);
+	cl_renderfuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_TRIANGLES);
 
 	Vector triverts[3];
 	for(Uint32 i = 0; i < 3; i++)

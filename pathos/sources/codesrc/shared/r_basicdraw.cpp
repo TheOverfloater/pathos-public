@@ -20,7 +20,7 @@ All Rights Reserved.
 #include "r_common.h"
 
 // Increment by 4096 vertexes
-const Uint32 CBasicDraw::BASICDRAW_CACHE_SIZE = 4096;
+const Uint32 CBasicDraw::BASICDRAW_VERTEX_CACHE_SIZE = 4096;
 
 // Current instance of the class
 CBasicDraw* CBasicDraw::g_pInstance = nullptr;
@@ -32,7 +32,7 @@ CBasicDraw* CBasicDraw::g_pInstance = nullptr;
 CBasicDraw::CBasicDraw( void ):
 	m_isActive(false),
 	m_numVertexes(0),
-	m_primitiveType(GL_NONE),
+	m_primitiveType(DRAW_TRIANGLES),
 	m_pVBO(nullptr),
 	m_pShader(nullptr),
 	m_brightness(1.0)
@@ -59,11 +59,24 @@ bool CBasicDraw::InitGL( const CGLExtF& gGlExtF, const file_interface_t& fileFun
 {
 	// Allocate vertex array
 	if(m_vertexesArray.empty())
-		m_vertexesArray.resize(BASICDRAW_CACHE_SIZE);
+	{
+		m_vertexesArray.resize(BASICDRAW_VERTEX_CACHE_SIZE);
+
+		// Append triangle index array for GL_QUADs
+		Uint32 allocSize = BASICDRAW_VERTEX_CACHE_SIZE*6;
+		m_quadIndexesArray.resize(allocSize);
+
+		for(Uint32 i = 0, j = 0; i < allocSize; i += 6, j += 4)
+		{
+			// Set triangle indexes
+			m_quadIndexesArray[i] = j; m_quadIndexesArray[i+1] = j+1; m_quadIndexesArray[i+2] = j+2;
+			m_quadIndexesArray[i+3] = j; m_quadIndexesArray[i+4] = j+2; m_quadIndexesArray[i+5] = j+3;
+		}
+	}
 
 	// Allocate VBO if needed
 	if(!m_pVBO)
-		m_pVBO = new CVBO(gGlExtF, &m_vertexesArray[0], sizeof(basic_vertex_t)*m_vertexesArray.size(), nullptr, 0, true);
+		m_pVBO = new CVBO(gGlExtF, &m_vertexesArray[0], sizeof(basic_vertex_t)*m_vertexesArray.size(), &m_quadIndexesArray[0], sizeof(Uint32)*m_quadIndexesArray.size(), true);
 
 	// Load shader in if needed
 	if(!m_pShader)
@@ -139,7 +152,7 @@ void CBasicDraw::ClearGL( void )
 //
 // @param primitiveType OpenGL primitive type
 //=============================================
-void CBasicDraw::Begin( GLint primitiveType )
+void CBasicDraw::Begin( primitivetype_t primitiveType )
 {
 	// Reset this
 	m_numVertexes = 0;
@@ -159,11 +172,31 @@ void CBasicDraw::End( bool clearData )
 	if(!m_numVertexes)
 		return;
 
+	if(m_primitiveType == DRAW_QUADS && m_numVertexes % 4 != 0)
+		return;
+
 	// Send data to opengl
 	m_pVBO->VBOSubBufferData(0, &m_vertexesArray[0], sizeof(basic_vertex_t)*m_numVertexes);
 
 	// Render the primitives
-	glDrawArrays(m_primitiveType, 0, m_numVertexes);
+	switch(m_primitiveType)
+	{
+		case DRAW_TRIANGLES:
+			glDrawArrays(GL_TRIANGLES, 0, m_numVertexes);
+			break;
+		case DRAW_POINTS:
+			glDrawArrays(GL_POINTS, 0, m_numVertexes);
+			break;
+		case DRAW_LINES:
+			glDrawArrays(GL_LINES, 0, m_numVertexes);
+			break;
+		case DRAW_QUADS:
+		{
+			Uint32 numTriangleIndexes = (m_numVertexes / 4) * 6;
+			glDrawElements(GL_TRIANGLES, numTriangleIndexes, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+		}
+		break;
+	}
 
 	if(clearData)
 		m_numVertexes = 0;
@@ -378,9 +411,23 @@ void CBasicDraw::Vertex3fv( const Float* pfv )
 	if(m_numVertexes == m_vertexesArray.size())
 	{
 		// Append the vertex array
-		m_vertexesArray.resize(m_vertexesArray.size()+BASICDRAW_CACHE_SIZE);
-		// Resize VBO also
-		m_pVBO->Append(&m_vertexesArray[0], sizeof(basic_vertex_t)*m_vertexesArray.size(), nullptr, 0);
+		Uint32 firstVertexIndex = m_vertexesArray.size();
+		m_vertexesArray.resize(m_vertexesArray.size()+BASICDRAW_VERTEX_CACHE_SIZE);
+
+		// Append triangle index array for GL_QUADs
+		Uint32 beginPosition = m_quadIndexesArray.size();
+		Uint32 allocSize = m_quadIndexesArray.size() + (BASICDRAW_VERTEX_CACHE_SIZE*6);
+		m_quadIndexesArray.resize(allocSize);
+
+		for(Uint32 i = beginPosition, j = firstVertexIndex; i < allocSize; i += 6, j += 4)
+		{
+			// Set triangle indexes
+			m_quadIndexesArray[i] = j; m_quadIndexesArray[i+1] = j+1; m_quadIndexesArray[i+2] = j+2;
+			m_quadIndexesArray[i+3] = j; m_quadIndexesArray[i+4] = j+2; m_quadIndexesArray[i+5] = j+3;
+		}
+
+		// Now update the VBO
+		m_pVBO->Append(&m_vertexesArray[0], sizeof(basic_vertex_t)*m_vertexesArray.size(), &m_quadIndexesArray[0], sizeof(Uint32)*m_quadIndexesArray.size());
 	}
 }
 

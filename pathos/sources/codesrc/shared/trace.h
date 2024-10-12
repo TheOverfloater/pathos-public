@@ -44,6 +44,7 @@ enum trace_flags_t
 	FL_TRACE_HITBOXES					= (1<<6),
 	FL_TRACE_HIT_CORPSES				= (1<<7),
 	FL_TRACE_NO_TRANS_WORLDBRUSH		= (1<<8),
+	FL_TRACE_PARTICLE_BLOCKERS			= (1<<8)
 };
 
 struct trace_t
@@ -92,7 +93,7 @@ struct trace_t
 struct trace_interface_t
 {
 	Int32			(*pfnTestPlayerPosition)( hull_types_t hulltype, Int32 flags, const class Vector& position );
-	Int32			(*pfnPointContents)( const Vector& position, Int32* truecontents );
+	Int32			(*pfnPointContents)( const Vector& position, Int32* truecontents, bool particleBlockers );
 	Int32			(*pfnTruePointContents)( const Vector& position );
 	Int32			(*pfnHullPointContents)( const hull_t* phull, Int32 num, const Vector& position );
 	void			(*pfnPlayerTrace)( const Vector& start, const Vector& end, Int32 traceflags, hull_types_t hulltype, Int32 ignore_ent, trace_t& trace );

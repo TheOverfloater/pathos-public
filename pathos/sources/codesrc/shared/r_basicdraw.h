@@ -12,6 +12,8 @@ All Rights Reserved.
 
 #include "r_basic_vertex.h"
 #include "constants.h"
+#include "file_interface.h"
+#include "r_glextf.h"
 
 /*
 =================================
@@ -23,7 +25,7 @@ class CBasicDraw
 {
 public:
 	// Increment by 1024 vertexes
-	static const Uint32 BASICDRAW_CACHE_SIZE;
+	static const Uint32 BASICDRAW_VERTEX_CACHE_SIZE;
 
 private:
 	struct shader_attribs_t
@@ -62,6 +64,15 @@ private:
 		Int32 d_fog;
 	};
 
+public:
+	enum primitivetype_t
+	{
+		DRAW_TRIANGLES = 0,
+		DRAW_QUADS,
+		DRAW_POINTS,
+		DRAW_LINES
+	};
+
 private:
 	CBasicDraw( void );
 	~CBasicDraw( void );
@@ -73,7 +84,7 @@ public:
 	void ClearGL( void );
 
 	// Resets states for primitive rendering
-	void Begin( Int32 primitiveType );
+	void Begin( primitivetype_t primitiveType );
 	// Renders the primitives
 	void End( bool clearData = false );
 	// Enables texture use
@@ -139,10 +150,12 @@ public:
 	bool m_isActive;
 	// Array of vertexes
 	CArray<basic_vertex_t> m_vertexesArray;
+	// Quad triangle indexes array
+	CArray<Uint32> m_quadIndexesArray;
 	// Number of currently cached vertexes
 	Uint32 m_numVertexes;
 	// Primitive type
-	Int32 m_primitiveType;
+	primitivetype_t m_primitiveType;
 	// Last color specified
 	vec4_t m_vertexColor;
 	// Brightness
@@ -154,6 +167,8 @@ public:
 	class CGLSLShader* m_pShader;
 	// Shader attribs
 	shader_attribs_t m_shaderAttribs;
+
+	
 
 private:
 	// Current instance of the class

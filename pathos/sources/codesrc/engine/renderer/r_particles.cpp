@@ -35,6 +35,9 @@ All Rights Reserved.
 #include "r_vbm.h"
 #include "r_blackhole.h"
 #include "r_fbocache.h"
+#include "r_lightstyles.h"
+#include "modelcache.h"
+#include "trace_shared.h"
 
 // Class definition
 CParticleEngine gParticleEngine;
@@ -550,9 +553,9 @@ particle_system_t *CParticleEngine::CreateSystem( const Char *szPath, const Vect
 	{
 		// Playerplane needs to find sky brush above
 		trace_t tr;
-		CL_PlayerTrace(origin, origin + Vector(0, 0, 8496), FL_TRACE_WORLD_ONLY, HULL_POINT, NO_ENTITY_INDEX, tr);
+		CL_PlayerTrace(origin, origin + Vector(0, 0, 8496), (FL_TRACE_WORLD_ONLY|FL_TRACE_PARTICLE_BLOCKERS), HULL_POINT, NO_ENTITY_INDEX, tr);
 
-		if( tr.fraction == 1.0 || CL_PointContents(tr.endpos, nullptr) != CONTENTS_SKY )
+		if( tr.fraction == 1.0 || PointContentsParticle(tr.endpos) != CONTENTS_SKY )
 		{
 			m_particleSystemsList.remove(psystem);
 			return nullptr;
@@ -1457,7 +1460,7 @@ void CParticleEngine::EnvironmentCreateFirst( particle_system_t *psystem )
 		vorigin[2] = Common::RandomLong(vplayer[2], vorigin[2]);
 
 		trace_t trace;
-		CL_PlayerTrace(vorigin, Vector(vorigin[0], vorigin[1], psystem->skyheight-8), FL_TRACE_WORLD_ONLY, HULL_POINT, NO_ENTITY_INDEX, trace);
+		CL_PlayerTrace(vorigin, Vector(vorigin[0], vorigin[1], psystem->skyheight-8), (FL_TRACE_WORLD_ONLY|FL_TRACE_PARTICLE_BLOCKERS), HULL_POINT, NO_ENTITY_INDEX, trace);
 
 		if((trace.flags & FL_TR_ALLSOLID) || trace.fraction != 1.0)
 			continue;
@@ -1511,8 +1514,8 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 			vOffset[2] = (1-(flFrac))*(vOffset[2]-pplayer->curstate.origin[2]);
 
 			Vector testPosition = pplayer->curstate.origin + vOffset;
-			CL_PlayerTrace(testPosition, vtest, FL_TRACE_WORLD_ONLY, HULL_POINT, NO_ENTITY_INDEX, tr);
-			if(tr.fraction != 1.0 && CL_PointContents(tr.endpos, nullptr) != CONTENTS_SKY)
+			CL_PlayerTrace(testPosition, vtest, (FL_TRACE_WORLD_ONLY|FL_TRACE_PARTICLE_BLOCKERS), HULL_POINT, NO_ENTITY_INDEX, tr);
+			if(tr.fraction != 1.0 && PointContentsParticle(tr.endpos) != CONTENTS_SKY)
 				return nullptr;
 
 			Math::VectorCopy(testPosition, vbaseorigin);
@@ -2255,6 +2258,71 @@ __forceinline Int32 CParticleEngine::CheckWater( const Vector& origin )
 //====================================
 //
 //====================================
+Int32 CParticleEngine::PointContentsParticle( const Vector& position )
+{
+	Int32 contents = TR_HullPointContents(&ens.pworld->hulls[0], 0, position);	
+	if(contents != CONTENTS_EMPTY)
+		return contents;
+
+	// Get localplayer
+	cl_entity_t* pplayer = CL_GetLocalPlayer();
+	if(!pplayer)
+		return contents;
+
+	Vector mins, maxs;
+	for(Int32 i = 0; i < cls.numparticleblockers; i++)
+	{
+		Int32 entindex = cls.particleblockers[i];
+		cl_entity_t* pentity = CL_GetEntityByIndex(entindex);
+		if(!pentity->pmodel)
+			continue;
+
+		if(!pentity->curstate.modelindex)
+			continue;
+
+		if(pentity->curstate.msg_num != pplayer->curstate.msg_num)
+			continue;
+
+		if(!(pentity->curstate.flags & FL_PARTICLE_BLOCKER))
+			continue;
+
+		Math::VectorAdd(pentity->curstate.origin, pentity->curstate.mins, mins);
+		Math::VectorAdd(pentity->curstate.origin, pentity->curstate.maxs, maxs);
+
+		Math::VectorSubtract(mins, Vector(1, 1, 1), mins);
+		Math::VectorAdd(maxs, Vector(1, 1, 1), maxs);
+
+		if(!Math::PointInMinsMaxs(position, mins, maxs))
+			continue;
+
+		const cache_model_t* pmodel = Cache_GetModel(pentity->curstate.modelindex);
+		if(!pmodel || pmodel->type != MOD_BRUSH)
+			continue;
+
+		Vector lposition = position;
+		if(!pentity->curstate.origin.IsZero())
+			Math::VectorSubtract(lposition, pentity->curstate.origin, lposition);
+
+		if(!pentity->curstate.angles.IsZero())
+			Math::RotateToEntitySpace(pentity->curstate.angles, lposition);
+
+		const brushmodel_t* pbrushmodel = pmodel->getBrushmodel();
+		contents = TR_HullPointContents(&pbrushmodel->hulls[0], pbrushmodel->hulls[0].firstclipnode, lposition);
+		if(contents != CONTENTS_EMPTY)
+		{
+			if(pentity->curstate.solid == SOLID_NOT && pentity->curstate.skin <= CONTENTS_WATER && pentity->curstate.skin >= CONTENTS_LAVA)
+				return pentity->curstate.skin;
+			else
+				return contents;
+		}
+	}
+
+	return CONTENTS_EMPTY;
+}
+
+//====================================
+//
+//====================================
 bool CParticleEngine::CheckCollision( Vector& vecOrigin, Vector& vecVelocity, particle_system_t* psystem, cl_particle_t *pparticle ) 
 {
 	// Pointer to script definition
@@ -2269,7 +2337,7 @@ bool CParticleEngine::CheckCollision( Vector& vecOrigin, Vector& vecVelocity, pa
 	// Do a non-precise collision check if script is not set to be precise
 	if(!(pdefinition->collision_flags & COLLISION_FL_PRECISE))
 	{
-		Int32 contents = CL_PointContents(nullptr, testPosition);
+		Int32 contents = PointContentsParticle(testPosition);
 		if(contents != CONTENTS_EMPTY)
 			checkPreciseCollision = true;
 	}
@@ -2313,7 +2381,8 @@ bool CParticleEngine::CheckCollision( Vector& vecOrigin, Vector& vecVelocity, pa
 	else
 	{
 		// Just do a normal traceline
-		Int32 traceFlags = (pdefinition->collision_flags & COLLISION_FL_BMODELS) ? FL_TRACE_NORMAL : FL_TRACE_WORLD_ONLY;
+		Int32 traceFlags = FL_TRACE_PARTICLE_BLOCKERS;
+		traceFlags |= (pdefinition->collision_flags & COLLISION_FL_BMODELS) ? FL_TRACE_NORMAL : FL_TRACE_WORLD_ONLY;
 		CL_PlayerTrace(vecOrigin, testPosition, traceFlags, HULL_POINT, NO_ENTITY_INDEX, tr);
 	}
 
@@ -2329,7 +2398,7 @@ bool CParticleEngine::CheckCollision( Vector& vecOrigin, Vector& vecVelocity, pa
 
 	if(pdefinition->collision == collide_stuck)
 	{
-		if(CL_PointContents(tr.endpos, nullptr) == CONTENTS_SKY)
+		if(PointContentsParticle(tr.endpos) == CONTENTS_SKY)
 			return false;
 
 		if(pparticle->life == -1 && pdefinition->stuckdie)
@@ -2393,7 +2462,7 @@ bool CParticleEngine::CheckCollision( Vector& vecOrigin, Vector& vecVelocity, pa
 						CreateParticle(psystem->watersystem, tr.endpos, tr.plane.normal);
 				}
 
-				if(CL_PointContents(tr.endpos, nullptr) != CONTENTS_SKY && !pdefinition->create.empty() && psystem->createsystem != nullptr)
+				if(PointContentsParticle(tr.endpos) != CONTENTS_SKY && !pdefinition->create.empty() && psystem->createsystem != nullptr)
 				{
 					for(Uint32 i = 0; i < psystem->createsystem->pdefinition->startparticles; i++)
 						CreateParticle(psystem->createsystem, tr.endpos, tr.plane.normal);
@@ -2408,7 +2477,7 @@ bool CParticleEngine::CheckCollision( Vector& vecOrigin, Vector& vecVelocity, pa
 					CreateParticle(psystem->watersystem, tr.endpos, tr.plane.normal);
 			}
 
-			if(CL_PointContents(tr.endpos, nullptr) != CONTENTS_SKY && !pdefinition->create.empty() && psystem->createsystem != nullptr)
+			if(PointContentsParticle(tr.endpos) != CONTENTS_SKY && !pdefinition->create.empty() && psystem->createsystem != nullptr)
 			{
 				for(Uint32 i = 0; i < psystem->createsystem->pdefinition->startparticles; i++)
 					CreateParticle(psystem->createsystem, tr.endpos, tr.plane.normal);
@@ -3379,6 +3448,9 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 
 		m_pShader->SetUniform1f(m_attribs.u_overbright, (pdefinition->render_flags & RENDER_FL_OVERBRIGHT) ? 1.0 : 0.0);
 
+		if(pdefinition->render_flags & RENDER_FL_NOCULL)
+			glDisable(GL_CULL_FACE);
+
 		// Alphatestm mode used
 		Int32 alphatestMode = ALPHATEST_DISABLED;
 
@@ -3419,7 +3491,7 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 				}
 
 				// Apply lightstyles
-				gDynamicLights.ApplyLightStyle(psystem->pdlights[i], vcolor);
+				gLightStyles.ApplyLightStyle(psystem->pdlights[i], vcolor);
 
 				m_pShader->SetUniform3f(m_attribs.point_lights[i].u_color, vcolor[0], vcolor[1], vcolor[2]);
 			}
@@ -3454,7 +3526,7 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 				}
 
 				// Apply lightstyles
-				gDynamicLights.ApplyLightStyle(psystem->pspotlights[i], vcolor);
+				gLightStyles.ApplyLightStyle(psystem->pspotlights[i], vcolor);
 
 				m_pShader->SetUniform3f(m_attribs.proj_lights[i].u_color, vcolor[0], vcolor[1], vcolor[2]);
 
@@ -3583,6 +3655,9 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 
 		// Render elements
 		glDrawElements(GL_TRIANGLES, psystem->numindexes, GL_UNSIGNED_INT, BUFFER_OFFSET(psystem->indexoffset));
+
+		if(pdefinition->render_flags & RENDER_FL_NOCULL)
+			glEnable(GL_CULL_FACE);
 
 		if(pdefinition->alignment == align_tracer)
 		{

@@ -40,11 +40,12 @@ All Rights Reserved.
 #include "r_wadtextures.h"
 #include "vid.h"
 #include "tga.h"
+#include "r_lightstyles.h"
 
 // Default lightmap width
-const Uint32 CBSPRenderer::LIGHTMAP_WIDTH = 1024;
+const Uint32 CBSPRenderer::LIGHTMAP_DEFAULT_WIDTH = 128;
 // Default lightmap height
-const Uint32 CBSPRenderer::LIGHTMAP_DEFAULT_HEIGHT = 256;
+const Uint32 CBSPRenderer::LIGHTMAP_DEFAULT_HEIGHT = 128;
 // BSP decal cache size
 const Uint32 CBSPRenderer::NB_BSP_DECAL_VERTS = 16384;
 // Backface epsilon value
@@ -70,15 +71,13 @@ CBSPRenderer::CBSPRenderer( void ):
 	m_multiPass(false),
 	m_addMulti(false),
 	m_bumpMaps(false),
-	m_lightmapIndex(0),
-	m_ambientLightmapIndex(0),
-	m_diffuseLightmapIndex(0),
-	m_lightVectorsIndex(0),
-	m_lightmapHeight(0),
+	m_useLightStyles(false),
+	m_disableMultiPass(false),
 	m_pChromeTexture(nullptr),
 	m_vertexCacheBase(0),
 	m_vertexCacheIndex(0),
 	m_vertexCacheSize(0),
+	m_pLightStyleValuesArray(nullptr),
 	m_pCvarDetailTextures(nullptr),
 	m_pCvarDetailScale(nullptr),
 	m_pCvarDrawWorld(nullptr),
@@ -89,6 +88,13 @@ CBSPRenderer::CBSPRenderer( void ):
 	m_isCubemappingSupported(false)
 {
 	m_tempDecalVertsArray.resize(TEMP_DECAL_VERTEX_ALLOC_SIZE);
+	memset(m_lightmapWidths, 0, sizeof(m_lightmapWidths));
+	memset(m_lightmapHeights, 0, sizeof(m_lightmapHeights));
+
+	memset(m_lightmapIndexes, 0, sizeof(m_lightmapIndexes));
+	memset(m_ambientLightmapIndexes, 0, sizeof(m_ambientLightmapIndexes));
+	memset(m_diffuseLightmapIndexes, 0, sizeof(m_diffuseLightmapIndexes));
+	memset(m_lightVectorsIndexes, 0, sizeof(m_lightVectorsIndexes));
 }
 
 //=============================================
@@ -198,7 +204,7 @@ bool CBSPRenderer::InitGL( void )
 		m_attribs.a_tangent = m_pShader->InitAttribute("in_tangent", 3, GL_FLOAT, sizeof(bsp_vertex_t), OFFSET(bsp_vertex_t, tangent));
 		m_attribs.a_binormal = m_pShader->InitAttribute("in_binormal", 3, GL_FLOAT, sizeof(bsp_vertex_t), OFFSET(bsp_vertex_t, binormal));
 		m_attribs.a_normal = m_pShader->InitAttribute("in_normal", 3, GL_FLOAT, sizeof(bsp_vertex_t), OFFSET(bsp_vertex_t, normal));
-		m_attribs.a_lmapcoord = m_pShader->InitAttribute("in_lmapcoord", 2, GL_FLOAT, sizeof(bsp_vertex_t), OFFSET(bsp_vertex_t, lmapcoord));
+		m_attribs.a_lmapcoord = m_pShader->InitAttribute("in_lmapcoord", 2, GL_FLOAT, sizeof(bsp_vertex_t), OFFSET(bsp_vertex_t, lmapcoord[0]));
 		m_attribs.a_texcoord = m_pShader->InitAttribute("in_texcoord", 2, GL_FLOAT, sizeof(bsp_vertex_t), OFFSET(bsp_vertex_t, texcoord));
 		m_attribs.a_dtexcoord = m_pShader->InitAttribute("in_dtexcoord", 2, GL_FLOAT, sizeof(bsp_vertex_t), OFFSET(bsp_vertex_t, dtexcoord));
 		m_attribs.a_fogcoord = m_pShader->InitAttribute("in_fogcoord", 1, GL_FLOAT, sizeof(bsp_vertex_t), OFFSET(bsp_vertex_t, fogcoord));
@@ -366,7 +372,7 @@ bool CBSPRenderer::InitGL( void )
 		LoadTextures();
 
 		// Init lightmap
-		InitLightmaps(true);
+		InitLightmaps();
 
 		// Delete WAD resource
 		if(ens.pwadresource)
@@ -395,10 +401,10 @@ void CBSPRenderer::ClearGL( void )
 		m_pVBO->ClearGL();
 
 	// Clear these
-	m_lightmapIndex = 0;
-	m_ambientLightmapIndex = 0;
-	m_diffuseLightmapIndex = 0;
-	m_lightVectorsIndex = 0;
+	memset(m_lightmapIndexes, 0, sizeof(m_lightmapIndexes));
+	memset(m_ambientLightmapIndexes, 0, sizeof(m_ambientLightmapIndexes));
+	memset(m_diffuseLightmapIndexes, 0, sizeof(m_diffuseLightmapIndexes));
+	memset(m_lightVectorsIndexes, 0, sizeof(m_lightVectorsIndexes));
 }
 
 //=============================================
@@ -461,7 +467,10 @@ bool CBSPRenderer::InitGame( void )
 	InitVBO();
 
 	// Set up lightmap
-	InitLightmaps(true);
+	InitLightmaps();
+
+	// Set ptr to lightstyles array
+	m_pLightStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
 
 	return true;
 }
@@ -488,15 +497,21 @@ void CBSPRenderer::ClearGame( void )
 	m_vertexCacheIndex = 0;
 	m_vertexCacheSize = 0;
 
-	m_lightmapIndex = 0;
-	m_ambientLightmapIndex = 0;
-	m_diffuseLightmapIndex = 0;
-	m_lightVectorsIndex = 0;
-	m_lightmapHeight = 0;
+	memset(m_lightmapIndexes, 0, sizeof(m_lightmapIndexes));
+	memset(m_ambientLightmapIndexes, 0, sizeof(m_ambientLightmapIndexes));
+	memset(m_diffuseLightmapIndexes, 0, sizeof(m_diffuseLightmapIndexes));
+	memset(m_lightVectorsIndexes, 0, sizeof(m_lightVectorsIndexes));
+
+	for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
+	{
+		m_lightmapWidths[i] = 0;
+		m_lightmapHeights[i] = 0;
+	}
 
 	m_bumpMaps = false;
 	m_addMulti = false;
 	m_multiPass = false;
+	m_useLightStyles = false;
 
 	m_pCurrentEntity = nullptr;
 
@@ -537,184 +552,280 @@ void CBSPRenderer::ClearGame( void )
 void CBSPRenderer::SetLightmapCoords( void ) 
 {
 	// Set default height
-	m_lightmapHeight = LIGHTMAP_DEFAULT_HEIGHT;
-	
-	Uint32* pallocations = new Uint32[LIGHTMAP_WIDTH];
-	memset(pallocations, 0, sizeof(Uint32)*LIGHTMAP_WIDTH);
-
-	// Allocate lightmap positions first
-	for(Uint32 i = 0; i < ens.pworld->numsurfaces; i++)
+	for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
 	{
-		msurface_t* psurface = &ens.pworld->psurfaces[i];
-		if(psurface->flags & (SURF_DRAWSKY|SURF_DRAWTURB))
-			continue;
+		// Set to the default
+		m_lightmapWidths[i] = LIGHTMAP_DEFAULT_WIDTH;
+		m_lightmapHeights[i] = LIGHTMAP_DEFAULT_HEIGHT;
 
-		// Determine sizes
-		Uint32 xsize = (psurface->extents[0]>>4)+1;
-		Uint32 ysize = (psurface->extents[1]>>4)+1;
+		Uint32* pallocations = new Uint32[LIGHTMAP_DEFAULT_WIDTH];
+		memset(pallocations, 0, sizeof(Uint32)*LIGHTMAP_DEFAULT_WIDTH);
 
-		// Allocate lightmap slot
-		Uint32 light_s, light_t;
-		R_AllocBlock(xsize, ysize, light_s, light_t, LIGHTMAP_WIDTH, m_lightmapHeight, pallocations);
+		// Allocate lightmap positions first
+		for(Uint32 j = 0; j < ens.pworld->numsurfaces; j++)
+		{
+			msurface_t* psurface = &ens.pworld->psurfaces[j];
+			if(psurface->flags & (SURF_DRAWSKY|SURF_DRAWTURB))
+				continue;
 
-		bsp_surface_t* pbspsurface = &m_surfacesArray[i];
-		psurface->light_s = pbspsurface->light_s = light_s;
-		psurface->light_t = pbspsurface->light_t = light_t;
+			// Determine sizes
+			Uint32 xsize = (psurface->extents[0] / psurface->lightmapdivider)+1;
+			Uint32 ysize = (psurface->extents[1] / psurface->lightmapdivider)+1;
+
+			// Skip empty styles
+			if(i > BASE_LIGHTMAP_INDEX && psurface->styles[i] == 255)
+				continue;
+
+			// Allocate lightmap slot
+			Uint32 light_s, light_t;
+			R_AllocBlock(xsize, ysize, light_s, light_t, m_lightmapWidths[i], m_lightmapHeights[i], pallocations);
+
+			bsp_surface_t* pbspsurface = &m_surfacesArray[j];
+			pbspsurface->light_s[i] = light_s;
+			pbspsurface->light_t[i] = light_t;
+
+			if(i == BASE_LIGHTMAP_INDEX)
+			{
+				psurface->light_s = light_s;
+				psurface->light_t = light_t;
+			}
+		}
+
+		delete[] pallocations;
 	}
-
-	delete[] pallocations;
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-void CBSPRenderer::InitLightmaps( bool loadald ) 
+void CBSPRenderer::InitLightmaps( void ) 
 {
-	// Try and load alternate lightmaps if required
-	if(loadald)
-		ALD_Load(rns.daystage);
-
-	// alloc default lightmap's data
-	Uint32 lightmapdatasize = 0;
-	color32_t* plightmap = new color32_t[LIGHTMAP_WIDTH*m_lightmapHeight];
-	memset(plightmap, 0, sizeof(color32_t)*LIGHTMAP_WIDTH*m_lightmapHeight);
-
-	// alloc ambient lightmap's data
-	Uint32 amblightdatasize = 0;
-	color32_t* pambientlightmap = new color32_t[LIGHTMAP_WIDTH*m_lightmapHeight];
-	memset(pambientlightmap, 0, sizeof(color32_t)*LIGHTMAP_WIDTH*m_lightmapHeight);
-
-	// alloc diffuse lightmap's data
-	Uint32 diffuselightdatasize = 0;
-	color32_t* pdiffuselightmap = new color32_t[LIGHTMAP_WIDTH*m_lightmapHeight];
-	memset(pdiffuselightmap, 0, sizeof(color32_t)*LIGHTMAP_WIDTH*m_lightmapHeight);
-
-	// alloc lightvec lightmap's data
-	Uint32 lightvecsdatasize = 0;
-	color32_t* plightvecslightmap = new color32_t[LIGHTMAP_WIDTH*m_lightmapHeight];
-	memset(plightvecslightmap, 0, sizeof(color32_t)*LIGHTMAP_WIDTH*m_lightmapHeight);
-
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 	
 	// Get overdarken treshold
 	Float overdarken = g_pCvarOverdarkenTreshold->GetValue();
 	if(overdarken < 0)
 		overdarken = 0;
-	
-	// Process the surfaces
-	for(Uint32 i = 0; i < ens.pworld->numsurfaces; i++)
-	{
-		const msurface_t* psurface = &ens.pworld->psurfaces[i];
-		if(psurface->flags & (SURF_DRAWSKY|SURF_DRAWTURB))
-			continue;
 
-		bsp_surface_t* pbspsurface = &m_surfacesArray[i];
-		
-		bool isfullbright = false;
-		if(psurface->infoindex != NO_INFO_INDEX)
+	// Reset this
+	m_bumpMaps = false;
+	m_useLightStyles = false;
+
+	//
+	// Initialize the basic lightmap first
+	//
+	for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
+	{
+		// alloc default lightmap's data
+		Uint32 lightmapdatasize = 0;
+		color32_t* plightmap = new color32_t[m_lightmapWidths[i]*m_lightmapHeights[i]];
+		memset(plightmap, 0, sizeof(color32_t)*m_lightmapWidths[i]*m_lightmapHeights[i]);
+
+		// Process the surfaces
+		for(Uint32 j = 0; j < ens.pworld->numsurfaces; j++)
 		{
-			bsp_texture_t* ptexture = pbspsurface->ptexture;
-			if(ptexture && ptexture->pmaterial && (ptexture->pmaterial->flags & TX_FL_FULLBRIGHT))
-				isfullbright = true;
+			const msurface_t* psurface = &ens.pworld->psurfaces[j];
+			if(psurface->flags & (SURF_DRAWSKY|SURF_DRAWTURB))
+				continue;
+
+			bsp_surface_t* pbspsurface = &m_surfacesArray[j];
+		
+			// Skip empty styles
+			if(i > BASE_LIGHTMAP_INDEX && psurface->styles[i] == 255)
+				continue;
+
+			bool isfullbright = false;
+			if(psurface->infoindex != NO_INFO_INDEX)
+			{
+				bsp_texture_t* ptexture = pbspsurface->ptexture;
+				if(ptexture && ptexture->pmaterial && (ptexture->pmaterial->flags & TX_FL_FULLBRIGHT))
+					isfullbright = true;
+			}
+
+			// Determine sizes
+			Uint32 xsize = (psurface->extents[0] / psurface->lightmapdivider)+1;
+			Uint32 ysize = (psurface->extents[1] / psurface->lightmapdivider)+1;
+			Uint32 size = xsize*ysize;
+
+			Float overdarkValue = (i == BASE_LIGHTMAP_INDEX) ? overdarken : 0;
+
+			// Build the base lightmap
+			color24_t* psrc = psurface->psamples[SURF_LIGHTMAP_DEFAULT];
+			R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrc, psurface, plightmap, i, m_lightmapWidths[i], overdarkValue, false, isfullbright);
+			lightmapdatasize += size*sizeof(color32_t);
 		}
 
-		// Determine sizes
-		Uint32 xsize = (psurface->extents[0]>>4)+1;
-		Uint32 ysize = (psurface->extents[1]>>4)+1;
-		Uint32 size = xsize*ysize;
+		if(i > BASE_LIGHTMAP_INDEX && lightmapdatasize <= 0)
+			continue;
 
-		// Build the base lightmap
-		color24_t* psrc = psurface->psamples;
-		R_BuildLightmap(pbspsurface->light_s, pbspsurface->light_t, psrc, psurface, plightmap, 0, LIGHTMAP_WIDTH, overdarken, false, isfullbright);
-		lightmapdatasize += size*sizeof(color32_t);
-
-		// Get the normal map data too if required
-		if(g_pCvarBumpMaps->GetValue() && !isfullbright)
+		if(g_pCvarDumpLightmaps->GetValue() >= 1)
 		{
-			Int32 ambientindex = R_StyleIndex(psurface, LM_AMBIENT_STYLE);
-			Int32 diffuseindex = R_StyleIndex(psurface, LM_DIFFUSE_STYLE);
-			Int32 lightvecsindex = R_StyleIndex(psurface, LM_LIGHTVECS_STYLE);
+			CString basename;
+			Common::Basename(ens.pworld->name.c_str(), basename);
 
-			// See if we have anything to bind
-			if(ambientindex != -1 && diffuseindex != -1 && lightvecsindex != -1)
+			CString filepath;
+			filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << basename << "_lightmap_default_layer_" << i << ".tga";
+
+			const byte* pwritedata = reinterpret_cast<const byte*>(plightmap);
+			TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf);
+		}
+
+		// Set default lightmap
+		if(!m_lightmapIndexes[i])
+			m_lightmapIndexes[i] = pTextureManager->GenTextureIndex(RS_GAME_LEVEL)->gl_index;
+
+		glBindTexture(GL_TEXTURE_2D, m_lightmapIndexes[i]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_lightmapWidths[i], m_lightmapHeights[i], 0, GL_RGBA, GL_UNSIGNED_BYTE, plightmap);
+
+		Con_Printf("Loaded 1 lightmaps for layer %d: %.2f mbytes.\n", i, static_cast<Float>(lightmapdatasize)/(1024.0f*1024.0f));
+
+		if(i > 0)
+			m_useLightStyles = true;
+
+		delete[] plightmap;
+	}
+
+	//
+	// Now process any bump mapped ones
+	//
+	
+	if(g_pCvarBumpMaps->GetValue() >= 1
+		&& ens.pworld->plightdata[SURF_LIGHTMAP_AMBIENT]
+		&& ens.pworld->plightdata[SURF_LIGHTMAP_DIFFUSE]
+		&& ens.pworld->plightdata[SURF_LIGHTMAP_VECTORS])
+	{
+		for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
+		{
+			// alloc ambient lightmap's data
+			Uint32 amblightdatasize = 0;
+			color32_t* pambientlightmap = new color32_t[m_lightmapWidths[i]*m_lightmapHeights[i]];
+			memset(pambientlightmap, 0, sizeof(color32_t)*m_lightmapWidths[i]*m_lightmapHeights[i]);
+
+			// alloc diffuse lightmap's data
+			Uint32 diffuselightdatasize = 0;
+			color32_t* pdiffuselightmap = new color32_t[m_lightmapWidths[i]*m_lightmapHeights[i]];
+			memset(pdiffuselightmap, 0, sizeof(color32_t)*m_lightmapWidths[i]*m_lightmapHeights[i]);
+
+			// alloc lightvec lightmap's data
+			Uint32 lightvecsdatasize = 0;
+			color32_t* plightvecslightmap = new color32_t[m_lightmapWidths[i]*m_lightmapHeights[i]];
+			memset(plightvecslightmap, 0, sizeof(color32_t)*m_lightmapWidths[i]*m_lightmapHeights[i]);
+
+			// Process the surfaces
+			for(Uint32 j = 0; j < ens.pworld->numsurfaces; j++)
 			{
+				const msurface_t* psurface = &ens.pworld->psurfaces[j];
+				if(psurface->flags & (SURF_DRAWSKY|SURF_DRAWTURB))
+					continue;
+
+				// Skip empty styles
+				if(i > BASE_LIGHTMAP_INDEX && psurface->styles[i] == 255)
+					continue;
+
+				bsp_surface_t* pbspsurface = &m_surfacesArray[j];
+		
+				bool isfullbright = false;
+				if(psurface->infoindex != NO_INFO_INDEX)
+				{
+					bsp_texture_t* ptexture = pbspsurface->ptexture;
+					if(ptexture && ptexture->pmaterial && (ptexture->pmaterial->flags & TX_FL_FULLBRIGHT))
+						isfullbright = true;
+				}
+
+				// Determine sizes
+				Uint32 xsize = (psurface->extents[0] / psurface->lightmapdivider)+1;
+				Uint32 ysize = (psurface->extents[1] / psurface->lightmapdivider)+1;
+				Uint32 size = xsize*ysize;
+
 				// Ambient lightmap
-				R_BuildLightmap(pbspsurface->light_s, pbspsurface->light_t, psrc, psurface, pambientlightmap, ambientindex, LIGHTMAP_WIDTH, overdarken);
+				color24_t* psrc = psurface->psamples[SURF_LIGHTMAP_AMBIENT];
+				R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrc, psurface, pambientlightmap, i, m_lightmapWidths[i], overdarken);
 				amblightdatasize += size*sizeof(color32_t);
 
 				// Diffuse lightmap
-				R_BuildLightmap(pbspsurface->light_s, pbspsurface->light_t, psrc, psurface, pdiffuselightmap, diffuseindex, LIGHTMAP_WIDTH, overdarken);
+				psrc = psurface->psamples[SURF_LIGHTMAP_DIFFUSE];
+				R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrc, psurface, pdiffuselightmap, i, m_lightmapWidths[i], overdarken);
 				diffuselightdatasize += size*sizeof(color32_t);
 
 				// Light vectors lightmap
-				R_BuildLightmap(pbspsurface->light_s, pbspsurface->light_t, psrc, psurface, plightvecslightmap, lightvecsindex, LIGHTMAP_WIDTH, 0, true);
+				psrc = psurface->psamples[SURF_LIGHTMAP_VECTORS];
+				R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrc, psurface, plightvecslightmap, i, m_lightmapWidths[i], 0, true);
 				lightvecsdatasize += size*sizeof(color32_t);
 			}
+
+			if(i > BASE_LIGHTMAP_INDEX && amblightdatasize <= 0 && diffuselightdatasize <= 0 && lightvecsdatasize <= 0)
+				continue;
+			
+			if(g_pCvarDumpLightmaps->GetValue() >= 1)
+			{
+				CString basename;
+				Common::Basename(ens.pworld->name.c_str(), basename);
+
+				// Write ambient file
+				CString filepath;
+				filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << basename << "_lightmap_ambient_layer_" << i << ".tga";
+
+				const byte* pwritedata = reinterpret_cast<const byte*>(pambientlightmap);
+				TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf);
+
+				// Write diffuse file
+				filepath.clear();
+				filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << basename << "_lightmap_diffuse_layer_" << i << ".tga";
+
+				pwritedata = reinterpret_cast<const byte*>(pdiffuselightmap);
+				TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf);
+			
+				// Write vectors file
+				filepath.clear();
+				filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << basename << "_lightmap_vectors_layer_" << i << ".tga";
+
+				pwritedata = reinterpret_cast<const byte*>(plightvecslightmap);
+				TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf);
+			}
+
+			// Load the ambient lightmap
+			if(!m_ambientLightmapIndexes[i])
+				m_ambientLightmapIndexes[i] = pTextureManager->GenTextureIndex(RS_GAME_LEVEL)->gl_index;
+
+			glBindTexture(GL_TEXTURE_2D, m_ambientLightmapIndexes[i]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_lightmapWidths[i], m_lightmapHeights[i], 0, GL_RGBA, GL_UNSIGNED_BYTE, pambientlightmap);
+
+			// Load the diffuse lightmap
+			if(!m_diffuseLightmapIndexes[i])
+				m_diffuseLightmapIndexes[i] = pTextureManager->GenTextureIndex(RS_GAME_LEVEL)->gl_index;
+
+			glBindTexture(GL_TEXTURE_2D, m_diffuseLightmapIndexes[i]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_lightmapWidths[i], m_lightmapHeights[i], 0, GL_RGBA, GL_UNSIGNED_BYTE, pdiffuselightmap);
+
+			// Load the lightvecs lightmap
+			if(!m_lightVectorsIndexes[i])
+				m_lightVectorsIndexes[i] = pTextureManager->GenTextureIndex(RS_GAME_LEVEL)->gl_index;
+
+			glBindTexture(GL_TEXTURE_2D, m_lightVectorsIndexes[i]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_lightmapWidths[i], m_lightmapHeights[i], 0, GL_RGBA, GL_UNSIGNED_BYTE, plightvecslightmap);
+
+			// Calculate total memory used
+			Uint32 totalSize = amblightdatasize + diffuselightdatasize + lightvecsdatasize;
+			Con_Printf("Loaded 3 bumpmap lightmaps for layer %d: %.2f mbytes.\n", i, static_cast<Float>(totalSize)/(1024.0f*1024.0f)); 
+			m_bumpMaps = true;
+
+			// Delete allocations
+			delete[] pambientlightmap;
+			delete[] pdiffuselightmap;
+			delete[] plightvecslightmap;
 		}
 	}
 
-	// Set default lightmap
-	if(!m_lightmapIndex)
-		m_lightmapIndex = pTextureManager->GenTextureIndex(RS_GAME_LEVEL)->gl_index;
-
-	glBindTexture(GL_TEXTURE_2D, m_lightmapIndex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, LIGHTMAP_WIDTH, m_lightmapHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, plightmap);
-
-	// Load any special lightmaps
-	if(amblightdatasize && diffuselightdatasize && lightvecsdatasize)
-	{
-		// Load the ambient lightmap
-		if(!m_ambientLightmapIndex)
-			m_ambientLightmapIndex = pTextureManager->GenTextureIndex(RS_GAME_LEVEL)->gl_index;
-
-		glBindTexture(GL_TEXTURE_2D, m_ambientLightmapIndex);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, LIGHTMAP_WIDTH, m_lightmapHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pambientlightmap);
-
-		// Load the diffuse lightmap
-		if(!m_diffuseLightmapIndex)
-			m_diffuseLightmapIndex = pTextureManager->GenTextureIndex(RS_GAME_LEVEL)->gl_index;
-
-		glBindTexture(GL_TEXTURE_2D, m_diffuseLightmapIndex);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, LIGHTMAP_WIDTH, m_lightmapHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pdiffuselightmap);
-
-		// Load the lightvecs lightmap
-		if(!m_lightVectorsIndex)
-			m_lightVectorsIndex = pTextureManager->GenTextureIndex(RS_GAME_LEVEL)->gl_index;
-
-		glBindTexture(GL_TEXTURE_2D, m_lightVectorsIndex);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, LIGHTMAP_WIDTH, m_lightmapHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, plightvecslightmap);
-
-		// Calculate total memory used
-		Uint32 totalSize = lightmapdatasize + amblightdatasize + diffuselightdatasize + lightvecsdatasize;
-		Con_Printf("Loaded 4 lightmaps: %.2f mbytes.\n", static_cast<Float>(totalSize)/(1024.0f*1024.0f)); 
-		m_bumpMaps = true;
-	}
-	else
-	{
-		m_ambientLightmapIndex = 0;
-		m_diffuseLightmapIndex = 0;
-		m_lightVectorsIndex = 0;
-
-		Con_Printf("Loaded 1 lightmaps: %.2f mbytes.\n", static_cast<Float>(lightmapdatasize)/(1024.0f*1024.0f));
-		m_bumpMaps = false;
-	}
-
 	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// Free allocations
-	delete[] plightmap;
-	delete[] pambientlightmap;
-	delete[] pdiffuselightmap;
-	delete[] plightvecslightmap;
 }
 
 //=============================================
@@ -880,16 +991,19 @@ void CBSPRenderer::InitVBO( void )
 					vertex.dtexcoord[1] = vertex.texcoord[1]*pbspsurface->ptexture->pmaterial->dt_scaley*m_pCvarDetailScale->GetValue();
 				}
 
-				// Set lightmap coords
-				vertex.lmapcoord[0] = Math::DotProduct(vertexOrigin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
-				vertex.lmapcoord[0] -= psurface->texturemins[0];
-				vertex.lmapcoord[0] += pbspsurface->light_s*16+8;
-				vertex.lmapcoord[0] /= LIGHTMAP_WIDTH*16;
+				for(Uint32 l = 0; l < MAX_SURFACE_STYLES; l++)
+				{
+					// Set lightmap coords
+					vertex.lmapcoord[l][0] = Math::DotProduct(vertexOrigin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
+					vertex.lmapcoord[l][0] -= psurface->texturemins[0];
+					vertex.lmapcoord[l][0] += pbspsurface->light_s[l]*psurface->lightmapdivider + (psurface->lightmapdivider / 2.0f);
+					vertex.lmapcoord[l][0] /= m_lightmapWidths[l]*psurface->lightmapdivider;
 
-				vertex.lmapcoord[1] = Math::DotProduct(vertexOrigin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
-				vertex.lmapcoord[1] -= psurface->texturemins[1];
-				vertex.lmapcoord[1] += pbspsurface->light_t*16+8;
-				vertex.lmapcoord[1] /= m_lightmapHeight*16;
+					vertex.lmapcoord[l][1] = Math::DotProduct(vertexOrigin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
+					vertex.lmapcoord[l][1] -= psurface->texturemins[1];
+					vertex.lmapcoord[l][1] += pbspsurface->light_t[l]*psurface->lightmapdivider + (psurface->lightmapdivider / 2.0f);
+					vertex.lmapcoord[l][1] /= m_lightmapHeights[l]*psurface->lightmapdivider;
+				}
 			}
 
 			// Set indexes
@@ -1071,14 +1185,42 @@ void CBSPRenderer::InitTextures( CWADTextureResource& wadTextures, const CArray<
 		for(Uint32 j = 0; j < ens.pworld->numsurfaces; j++)
 		{
 			const msurface_t* psurface = &ens.pworld->psurfaces[j];
-			if(psurface->ptexinfo->ptexture->infoindex == static_cast<Int32>(i))
-				numsurfaces++;
+			if(psurface->ptexinfo->ptexture->infoindex != static_cast<Int32>(i))
+				continue;
+
+			for(Uint32 k = 1; k < MAX_SURFACE_STYLES; k++)
+			{
+				if(psurface->styles[k] != 255)
+				{
+					// Allocate if needed
+					if(pbsptexture->lightstyleinfos.empty())
+						pbsptexture->lightstyleinfos.resize(CLightStyleManager::CUSTOM_LIGHTSTYLE_START_INDEX);
+
+					// Allocate batches also if needed
+					lightstyleinfo_t& styleInfo = pbsptexture->lightstyleinfos[psurface->styles[k]];
+					if(styleInfo.stylebatches.empty())
+						styleInfo.stylebatches.resize(MAX_SURFACE_STYLES);
+				}
+			}
+
+			numsurfaces++;
 		}
 
 		// Set drawbatch array sizes
 		pbsptexture->light_batches.resize(numsurfaces);
 		pbsptexture->single_batches.resize(numsurfaces);
 		pbsptexture->multi_batches.resize(numsurfaces);
+
+		// Allocate for each style layer of each style
+		for(Uint32 j = 0; j < pbsptexture->lightstyleinfos.size(); j++)
+		{
+			lightstyleinfo_t& styleInfo = pbsptexture->lightstyleinfos[j];
+			if(styleInfo.stylebatches.empty())
+				continue;
+
+			for(Uint32 k = 1; k < MAX_SURFACE_STYLES; k++)
+				styleInfo.stylebatches[k].batches.resize(numsurfaces);
+		}
 	}
 }
 
@@ -1158,6 +1300,8 @@ bool CBSPRenderer::DrawTransparent( void )
 
 	// Check for shader errors
 	bool result = true;
+	// Do not allow the use of multipass rendering for transparents
+	m_disableMultiPass = true;
 
 	// Draw static entities first
 	if(g_pCvarDrawEntities->GetValue() > 0)
@@ -1214,6 +1358,9 @@ bool CBSPRenderer::DrawTransparent( void )
 	// Draw decals last
 	if(result)
 		result = DrawDecals(true);
+
+	// Reset this
+	m_disableMultiPass = false;
 
 	m_pShader->DisableShader();
 	m_pVBO->UnBind();
@@ -1452,8 +1599,8 @@ bool CBSPRenderer::DrawWorld( void )
 //=============================================
 bool CBSPRenderer::Prepare( void ) 
 {
-	m_multiPass = ((!gDynamicLights.GetLightList().empty() && !R_IsEntityTransparent(*m_pCurrentEntity) 
-		|| rns.inwater && !R_IsEntityTransparent(*m_pCurrentEntity)) && g_pCvarDynamicLights->GetValue() >= 1) ? true : false;
+	m_multiPass = (!m_disableMultiPass && ((!gDynamicLights.GetLightList().empty() && !R_IsEntityTransparent(*m_pCurrentEntity) 
+		|| rns.inwater && !R_IsEntityTransparent(*m_pCurrentEntity)) && g_pCvarDynamicLights->GetValue() >= 1)) ? true : false;
 
 	if(rns.fog.settings.active)
 	{
@@ -1500,11 +1647,22 @@ bool CBSPRenderer::Prepare( void )
 	// Clear all chains and batches
 	for(Uint32 i = 0; i < m_texturesArray.size(); i++)
 	{
-		m_texturesArray[i].numlightbatches = 0;
-		m_texturesArray[i].numsinglebatches = 0;
-		m_texturesArray[i].nummultibatches = 0;
+		bsp_texture_t& texture = m_texturesArray[i];
+		texture.numlightbatches = 0;
+		texture.numsinglebatches = 0;
+		texture.nummultibatches = 0;
 
-		m_texturesArray[i].psurfchain = nullptr;
+		texture.psurfchain = nullptr;
+
+		for(Uint32 j = 0; j < texture.lightstyleinfos.size(); j++)
+		{
+			lightstyleinfo_t& styleinfo = texture.lightstyleinfos[j];
+			if(styleinfo.stylebatches.empty())
+				continue;
+
+			for(Uint32 k = 0; k < MAX_SURFACE_STYLES; k++)
+				styleinfo.stylebatches[k].numbatches = 0;
+		}
 	}
 
 	// Reset everything
@@ -1617,20 +1775,54 @@ __forceinline void CBSPRenderer::BatchSurface( msurface_t* psurface )
 {
 	bsp_surface_t* pbspsurface = nullptr;
 	pbspsurface = &m_surfacesArray[psurface->infoindex];
+	bsp_texture_t* ptexture = pbspsurface->ptexture;
+	if(!ptexture)
+		return;
 
-	if(pbspsurface->ptexture)
+	bool addMultiPass = m_addMulti;
+	if(!m_disableMultiPass)
 	{
-		if(m_addMulti)
+		// check for animated lights
+		if(m_useLightStyles)
 		{
-			AddBatch(pbspsurface->ptexture->multi_batches, pbspsurface->ptexture->nummultibatches, pbspsurface);
+			for(Uint32 i = 1; i < MAX_SURFACE_STYLES; i++)
+			{
+				Uint32 styleIndex = psurface->styles[i];
+				if(styleIndex == 255)
+					break;
+
+				if((*m_pLightStyleValuesArray)[styleIndex] <= 0)
+					continue;
+
+				lightstyleinfo_t& info = ptexture->lightstyleinfos[styleIndex];
+
+				// Add to batch
+				stylebatches_t& batch = info.stylebatches[i];
+				AddBatch(batch.batches, batch.numbatches, pbspsurface);
+
+				// See if we need to flag multipass
+				if(!addMultiPass)
+				{
+					addMultiPass = true;
+
+					if(!m_multiPass)
+						m_multiPass = true;
+				}
+			}
+		}
+	}
+
+	// Add to the appropriate batch list
+	if(addMultiPass)
+	{
+		AddBatch(ptexture->multi_batches, ptexture->nummultibatches, pbspsurface);
 		
-			psurface->ptexturechain = pbspsurface->ptexture->psurfchain;
-			pbspsurface->ptexture->psurfchain = psurface;
-		}
-		else
-		{
-			AddBatch(pbspsurface->ptexture->single_batches, pbspsurface->ptexture->numsinglebatches, pbspsurface);
-		}
+		pbspsurface->ptexturechain = ptexture->psurfchain;
+		ptexture->psurfchain = psurface;
+	}
+	else
+	{
+		AddBatch(ptexture->single_batches, ptexture->numsinglebatches, pbspsurface);
 	}
 
 	rns.counters.brushpolies++;
@@ -1681,6 +1873,12 @@ void CBSPRenderer::FlagIfDynamicLighted( const Vector& mins, const Vector& maxs 
 {
 	Vector lmins, lmaxs;
 	cl_dlight_t *dl;
+
+	if(m_disableMultiPass)
+	{
+		m_addMulti = false;
+		return;
+	}
 
 	if(g_pCvarDynamicLights->GetValue() < 1)
 	{
@@ -1854,7 +2052,7 @@ bool CBSPRenderer::DrawFirst( void )
 				{
 					// Only lightmap
 					m_pShader->SetUniform1i(m_attribs.u_baselightmap, 0);
-					R_Bind2DTexture(GL_TEXTURE0, m_ambientLightmapIndex);
+					R_Bind2DTexture(GL_TEXTURE0, m_ambientLightmapIndexes[BASE_LIGHTMAP_INDEX]);
 
 					// Enable lightmap coord sends
 					m_pShader->EnableAttribute(m_attribs.a_lmapcoord);
@@ -2076,7 +2274,7 @@ bool CBSPRenderer::DrawFirst( void )
 					return false;
 
 				m_pShader->SetUniform1i(m_attribs.u_baselightmap, textureIndex);
-				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_ambientLightmapIndex);
+				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_ambientLightmapIndexes[BASE_LIGHTMAP_INDEX]);
 				textureIndex++;
 
 				m_pShader->SetUniform1i(m_attribs.u_maintexture, textureIndex);
@@ -2084,11 +2282,11 @@ bool CBSPRenderer::DrawFirst( void )
 				textureIndex++;
 
 				m_pShader->SetUniform1i(m_attribs.u_difflightmap, textureIndex);
-				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_diffuseLightmapIndex);
+				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_diffuseLightmapIndexes[BASE_LIGHTMAP_INDEX]);
 				textureIndex++;
 
 				m_pShader->SetUniform1i(m_attribs.u_lightvecstex, textureIndex);
-				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightVectorsIndex);
+				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightVectorsIndexes[BASE_LIGHTMAP_INDEX]);
 				textureIndex++;
 
 				m_pShader->SetUniform1i(m_attribs.u_normalmap, textureIndex);
@@ -2101,7 +2299,7 @@ bool CBSPRenderer::DrawFirst( void )
 					return false;
 
 				m_pShader->SetUniform1i(m_attribs.u_baselightmap, textureIndex);
-				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightmapIndex);
+				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightmapIndexes[BASE_LIGHTMAP_INDEX]);
 				textureIndex++;
 
 				m_pShader->SetUniform1i(m_attribs.u_maintexture, textureIndex);
@@ -2127,18 +2325,18 @@ bool CBSPRenderer::DrawFirst( void )
 					return false;
 
 				m_pShader->SetUniform1i(m_attribs.u_baselightmap, textureIndex);
-				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_ambientLightmapIndex);
+				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_ambientLightmapIndexes[BASE_LIGHTMAP_INDEX]);
 				textureIndex++;
 
-				m_pShader->SetUniform1i(m_attribs.u_difflightmap, 1);
-				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_diffuseLightmapIndex);
+				m_pShader->SetUniform1i(m_attribs.u_difflightmap, textureIndex);
+				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_diffuseLightmapIndexes[BASE_LIGHTMAP_INDEX]);
 				textureIndex++;
 
-				m_pShader->SetUniform1i(m_attribs.u_lightvecstex, 2);
-				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightVectorsIndex);
+				m_pShader->SetUniform1i(m_attribs.u_lightvecstex, textureIndex);
+				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightVectorsIndexes[BASE_LIGHTMAP_INDEX]);
 				textureIndex++;
 
-				m_pShader->SetUniform1i(m_attribs.u_normalmap, 3);
+				m_pShader->SetUniform1i(m_attribs.u_normalmap, textureIndex);
 				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, pnormalmap->palloc->gl_index);
 				textureIndex++;
 
@@ -2151,7 +2349,7 @@ bool CBSPRenderer::DrawFirst( void )
 					return false;
 
 				m_pShader->SetUniform1i(m_attribs.u_baselightmap, textureIndex);
-				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightmapIndex);
+				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightmapIndexes[BASE_LIGHTMAP_INDEX]);
 				textureIndex++;
 
 				// Texcoords won't be needed
@@ -2196,9 +2394,9 @@ bool CBSPRenderer::DrawFirst( void )
 			gGLExtF.glSampleCoverage(0.5, GL_FALSE);
 		}
 
-		ptexturehandle = &m_texturesArray[i];
-		drawbatch_t *pbatch = &ptexturehandle->multi_batches[0];
-		for(Uint32 j = 0; j < ptexturehandle->nummultibatches; j++, pbatch++)
+		bsp_texture_t* pbatchtexturehandle = &m_texturesArray[i];
+		drawbatch_t *pbatch = &pbatchtexturehandle->multi_batches[0];
+		for(Uint32 j = 0; j < pbatchtexturehandle->nummultibatches; j++, pbatch++)
 			glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 
 		if(alphatestMode == ALPHATEST_COVERAGE)
@@ -2209,6 +2407,147 @@ bool CBSPRenderer::DrawFirst( void )
 
 		if(useTexcoord)
 			m_pShader->DisableAttribute(m_attribs.a_texcoord);
+	}
+
+	if(!m_disableMultiPass && m_useLightStyles)
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE);
+		glDepthFunc(GL_EQUAL);
+
+		// Render lightstyle batches now
+		for(Uint32 i = 0; i < m_texturesArray.size(); i++)
+		{
+			if(!m_texturesArray[i].pmodeltexture)
+				continue;
+
+			if(!m_texturesArray[i].nummultibatches)
+				continue;
+
+			mtexture_t *pworldtexture = TextureAnimation(m_texturesArray[i].pmodeltexture, m_pCurrentEntity->curstate.frame);
+			bsp_texture_t* ptexturehandle = &m_texturesArray[pworldtexture->infoindex];
+			en_material_t* pmaterial = ptexturehandle->pmaterial;
+
+			// Don't bother if we have no lightstyles
+			bsp_texture_t* pbatchtexturehandle = &m_texturesArray[i];
+			if(pbatchtexturehandle->lightstyleinfos.empty())
+				continue;
+
+			// Render per layer
+			for(Uint32 j = 0; j < pbatchtexturehandle->lightstyleinfos.size(); j++)
+			{
+				lightstyleinfo_t& styleinfo = pbatchtexturehandle->lightstyleinfos[j];
+				if(styleinfo.stylebatches.empty())
+					continue;
+
+				// Don't bother if the lightstyle value is off
+				Float stylestrength = (*m_pLightStyleValuesArray)[j];
+				if(stylestrength <= 0)
+					continue;
+
+				// Set the color value
+				m_pShader->SetUniform4f(m_attribs.u_color, stylestrength, stylestrength, stylestrength, 1.0);
+
+				for(Uint32 k = 1; k < MAX_SURFACE_STYLES; k++)
+				{
+					// Check if we actually have any batches
+					stylebatches_t& batches = styleinfo.stylebatches[k];
+					if(batches.numbatches <= 0)
+						continue;
+
+					// Modify the lightmap coord pointer to use the appropriate texcoord
+					m_pShader->SetAttributePointer(m_attribs.a_lmapcoord, OFFSET(bsp_vertex_t, lmapcoord[k]));
+
+					// True if we need texcoord attrib
+					bool useTexcoord = false;
+					// Next free texturing unit
+					Int32 textureIndex = 0;
+
+					en_texture_t* pnormalmap = pmaterial->ptextures[MT_TX_NORMALMAP];
+					if(m_bumpMaps && pnormalmap && g_pCvarBumpMaps->GetValue() > 0)
+					{
+						if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, TRUE, false))
+							return false;
+
+						m_pShader->SetUniform1i(m_attribs.u_baselightmap, textureIndex);
+						R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_ambientLightmapIndexes[k]);
+						textureIndex++;
+
+						m_pShader->SetUniform1i(m_attribs.u_difflightmap, textureIndex);
+						R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_diffuseLightmapIndexes[k]);
+						textureIndex++;
+
+						m_pShader->SetUniform1i(m_attribs.u_lightvecstex, textureIndex);
+						R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightVectorsIndexes[k]);
+						textureIndex++;
+
+						m_pShader->SetUniform1i(m_attribs.u_normalmap, textureIndex);
+						R_Bind2DTexture(GL_TEXTURE0 + textureIndex, pnormalmap->palloc->gl_index);
+						textureIndex++;
+
+						// We'll need texcoords
+						useTexcoord = true;
+					}
+					else
+					{
+						if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false))
+							return false;
+
+						m_pShader->SetUniform1i(m_attribs.u_baselightmap, textureIndex);
+						R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightmapIndexes[k]);
+						textureIndex++;
+
+						// Texcoords won't be needed
+						useTexcoord = false;
+					}
+
+					if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false)
+						|| !m_pShader->SetDeterminator(m_attribs.d_fogtype, fog_none, false)
+						|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_lightonly, false))
+						return false;
+
+					if(pmaterial->ptextures[MT_TX_LUMINANCE])
+					{
+						if(!m_pShader->SetDeterminator(m_attribs.d_luminance, TRUE))
+							return false;
+
+						en_texture_t* pluminancetexture = pmaterial->ptextures[MT_TX_LUMINANCE];
+
+						m_pShader->SetUniform1i(m_attribs.u_luminance, textureIndex);
+						R_Bind2DTexture(GL_TEXTURE0 + textureIndex, pluminancetexture->palloc->gl_index);
+						textureIndex++;
+
+						// We'll need texcoords
+						useTexcoord = true;
+					}
+					else
+					{
+						if(!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE))
+							return false;
+					}
+
+					R_ValidateShader(m_pShader);
+
+					if(useTexcoord)
+						m_pShader->EnableAttribute(m_attribs.a_texcoord);
+
+					drawbatch_t *pbatch = &batches.batches[0];
+					for(Uint32 l = 0; l < batches.numbatches; l++, pbatch++)
+						glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+
+					if(useTexcoord)
+						m_pShader->DisableAttribute(m_attribs.a_texcoord);
+				}
+			}
+		}
+
+		// Re-set the lightmap coord to the first unit
+		m_pShader->SetAttributePointer(m_attribs.a_lmapcoord, OFFSET(bsp_vertex_t, lmapcoord[0]));
+		// Reset this to normal
+		m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
+
+		glDisable(GL_BLEND);
+		glDepthFunc(GL_LEQUAL);
 	}
 
 	m_pShader->DisableAttribute(m_attribs.a_lmapcoord);
@@ -2279,15 +2618,15 @@ bool CBSPRenderer::BindTextures( bsp_texture_t* phandle, cubemapinfo_t* pcubemap
 			return false;
 
 		m_pShader->SetUniform1i(m_attribs.u_baselightmap, textureIndex);
-		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_ambientLightmapIndex);
+		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_ambientLightmapIndexes[BASE_LIGHTMAP_INDEX]);
 		textureIndex++;
 
 		m_pShader->SetUniform1i(m_attribs.u_difflightmap, textureIndex);
-		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_diffuseLightmapIndex);
+		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_diffuseLightmapIndexes[BASE_LIGHTMAP_INDEX]);
 		textureIndex++;
 
 		m_pShader->SetUniform1i(m_attribs.u_lightvecstex, textureIndex);
-		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightVectorsIndex);
+		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightVectorsIndexes[BASE_LIGHTMAP_INDEX]);
 		textureIndex++;
 
 		m_pShader->SetUniform1i(m_attribs.u_normalmap, textureIndex);
@@ -2323,7 +2662,7 @@ bool CBSPRenderer::BindTextures( bsp_texture_t* phandle, cubemapinfo_t* pcubemap
 			return false;
 		
 		m_pShader->SetUniform1i(m_attribs.u_baselightmap, textureIndex);
-		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightmapIndex);
+		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_lightmapIndexes[BASE_LIGHTMAP_INDEX]);
 		textureIndex++;
 	}
 
@@ -2756,7 +3095,7 @@ bool CBSPRenderer::SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Uint32& 
 
 	Vector color;
 	Math::VectorCopy(pdlight->color, color);
-	gDynamicLights.ApplyLightStyle(pdlight, color);
+	gLightStyles.ApplyLightStyle(pdlight, color);
 
 	m_pShader->SetUniform4f(m_attribs.lights[lightindex].u_light_color, color[0], color[1], color[2], 1.0);
 	m_pShader->SetUniform3f(m_attribs.lights[lightindex].u_light_origin, vtransorigin[0], vtransorigin[1], vtransorigin[2]);
@@ -3044,12 +3383,12 @@ bool CBSPRenderer::DrawLights( bool specular )
 				bsp_surface_t *pclsurf = &m_surfacesArray[pnext->infoindex];
 				if(Math::CheckMinsMaxs(pclsurf->mins, pclsurf->maxs, batch.mins, batch.maxs))
 				{
-					pnext = pnext->ptexturechain;
+					pnext = pclsurf->ptexturechain;
 					continue;
 				}
 
 				AddBatch(ptexturehandle->light_batches, ptexturehandle->numlightbatches, pclsurf);
-				pnext = pnext->ptexturechain;
+				pnext = pclsurf->ptexturechain;
 				rns.counters.brushpolies++;
 			}
 
@@ -3291,75 +3630,8 @@ bool CBSPRenderer::DrawFinal( void )
 	}
 
 	// Render meshes with specular highlights
-	if(m_bumpMaps && g_pCvarBumpMaps->GetValue() > 0 && g_pCvarSpecular->GetValue() > 0)
-	{
-		glBlendFunc(GL_ONE, GL_ONE);
-
-		m_pShader->EnableAttribute(m_attribs.a_texcoord);
-		m_pShader->EnableAttribute(m_attribs.a_lmapcoord);
-		m_pShader->EnableAttribute(m_attribs.a_tangent);
-		m_pShader->EnableAttribute(m_attribs.a_normal);
-		m_pShader->EnableAttribute(m_attribs.a_binormal);
-
-		if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, TRUE, false)
-			|| !m_pShader->SetDeterminator(m_attribs.d_specular, TRUE, false)
-			|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_speconly))
-			return false;
-
-		m_pShader->SetUniform1i(m_attribs.u_difflightmap, 0);
-		m_pShader->SetUniform1i(m_attribs.u_lightvecstex, 1);
-
-		R_Bind2DTexture(GL_TEXTURE0, m_diffuseLightmapIndex);
-		R_Bind2DTexture(GL_TEXTURE1, m_lightVectorsIndex);
-
-		for(Uint32 i = 0; i < m_texturesArray.size(); i++)
-		{
-			if(!m_texturesArray[i].pmodeltexture)
-				continue;
-
-			if(!m_texturesArray[i].nummultibatches)
-				continue;
-
-			mtexture_t *ptexture = TextureAnimation(m_texturesArray[i].pmodeltexture, m_pCurrentEntity->curstate.frame);
-			bsp_texture_t* ptexturehandle = &m_texturesArray[ptexture->infoindex];
-			en_material_t* pmaterial = ptexturehandle->pmaterial;
-
-			en_texture_t* pspecular = pmaterial->ptextures[MT_TX_SPECULAR];
-			en_texture_t* pnormalmap = pmaterial->ptextures[MT_TX_NORMALMAP];
-			if(!pspecular || !pnormalmap)
-				continue;
-
-			m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
-			m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
-
-			m_pShader->SetUniform1i(m_attribs.u_normalmap, 2);
-			R_Bind2DTexture(GL_TEXTURE2, pnormalmap->palloc->gl_index);
-
-			m_pShader->SetUniform1i(m_attribs.u_specular, 3);
-			R_Bind2DTexture(GL_TEXTURE3, pspecular->palloc->gl_index);
-
-			R_ValidateShader(m_pShader);
-
-			drawbatch_t *pbatch = &m_texturesArray[i].multi_batches[0];
-			for(Uint32 j = 0; j < m_texturesArray[i].nummultibatches; j++, pbatch++)
-				glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
-		}
-
-		if(!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false)
-			|| !m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false))
-			return false;
-
-		m_pShader->DisableAttribute(m_attribs.a_tangent);
-		m_pShader->DisableAttribute(m_attribs.a_binormal);
-		m_pShader->DisableAttribute(m_attribs.a_normal);
-	}
-
-	// Draw specular for lights
-	if(g_pCvarSpecular->GetValue() > 0 && g_pCvarBumpMaps->GetValue() > 0)
-	{
-		if(!DrawLights(true))
-			return false;
-	}
+	if(!DrawFinalSpecular())
+		return false;
 
 	// Disable attribs
 	m_pShader->DisableAttribute(m_attribs.a_dtexcoord);
@@ -3595,6 +3867,162 @@ bool CBSPRenderer::DrawFinal( void )
 // @brief
 //
 //=============================================
+bool CBSPRenderer::DrawFinalSpecular( void ) 
+{
+	if(!m_bumpMaps || g_pCvarBumpMaps->GetValue() < 1 || g_pCvarSpecular->GetValue() < 1)
+		return true;
+
+	glBlendFunc(GL_ONE, GL_ONE);
+
+	//
+	// Draw specular for the first layer
+	//
+
+	m_pShader->EnableAttribute(m_attribs.a_texcoord);
+	m_pShader->EnableAttribute(m_attribs.a_lmapcoord);
+	m_pShader->EnableAttribute(m_attribs.a_tangent);
+	m_pShader->EnableAttribute(m_attribs.a_normal);
+	m_pShader->EnableAttribute(m_attribs.a_binormal);
+
+	if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, TRUE, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_specular, TRUE, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_speconly))
+		return false;
+
+	m_pShader->SetUniform1i(m_attribs.u_difflightmap, 0);
+	m_pShader->SetUniform1i(m_attribs.u_lightvecstex, 1);
+
+	R_Bind2DTexture(GL_TEXTURE0, m_diffuseLightmapIndexes[BASE_LIGHTMAP_INDEX]);
+	R_Bind2DTexture(GL_TEXTURE1, m_lightVectorsIndexes[BASE_LIGHTMAP_INDEX]);
+
+	for(Uint32 i = 0; i < m_texturesArray.size(); i++)
+	{
+		if(!m_texturesArray[i].pmodeltexture)
+			continue;
+
+		if(!m_texturesArray[i].nummultibatches)
+			continue;
+
+		mtexture_t *ptexture = TextureAnimation(m_texturesArray[i].pmodeltexture, m_pCurrentEntity->curstate.frame);
+		bsp_texture_t* ptexturehandle = &m_texturesArray[ptexture->infoindex];
+		en_material_t* pmaterial = ptexturehandle->pmaterial;
+
+		en_texture_t* pspecular = pmaterial->ptextures[MT_TX_SPECULAR];
+		en_texture_t* pnormalmap = pmaterial->ptextures[MT_TX_NORMALMAP];
+		if(!pspecular || !pnormalmap)
+			continue;
+
+		m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
+		m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
+
+		m_pShader->SetUniform1i(m_attribs.u_normalmap, 2);
+		R_Bind2DTexture(GL_TEXTURE2, pnormalmap->palloc->gl_index);
+
+		m_pShader->SetUniform1i(m_attribs.u_specular, 3);
+		R_Bind2DTexture(GL_TEXTURE3, pspecular->palloc->gl_index);
+
+		R_ValidateShader(m_pShader);
+
+		drawbatch_t *pbatch = &m_texturesArray[i].multi_batches[0];
+		for(Uint32 j = 0; j < m_texturesArray[i].nummultibatches; j++, pbatch++)
+			glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+	}
+
+	//
+	// Draw specular for all other layers
+	//
+	if(m_useLightStyles)
+	{
+		for(Uint32 i = 0; i < m_texturesArray.size(); i++)
+		{
+			if(!m_texturesArray[i].pmodeltexture)
+				continue;
+
+			mtexture_t *ptexture = TextureAnimation(m_texturesArray[i].pmodeltexture, m_pCurrentEntity->curstate.frame);
+			bsp_texture_t* ptexturehandle = &m_texturesArray[ptexture->infoindex];
+			en_material_t* pmaterial = ptexturehandle->pmaterial;
+
+			if(ptexturehandle->lightstyleinfos.empty())
+				continue;
+
+			en_texture_t* pspecular = pmaterial->ptextures[MT_TX_SPECULAR];
+			en_texture_t* pnormalmap = pmaterial->ptextures[MT_TX_NORMALMAP];
+			if(!pspecular || !pnormalmap)
+				continue;
+
+			// Render per layer
+			for(Uint32 j = 0; j < ptexturehandle->lightstyleinfos.size(); j++)
+			{
+				lightstyleinfo_t& styleinfo = ptexturehandle->lightstyleinfos[j];
+				if(styleinfo.stylebatches.empty())
+					continue;
+
+				// Don't bother if the lightstyle value is off
+				Float strength = (*m_pLightStyleValuesArray)[j];
+				if(strength <= 0)
+					continue;
+
+				// Set the color value
+				m_pShader->SetUniform4f(m_attribs.u_color, strength, strength, strength, 1.0);
+
+				for(Uint32 k = 1; k < MAX_SURFACE_STYLES; k++)
+				{
+					// Check if we actually have any batches
+					stylebatches_t& batches = styleinfo.stylebatches[k];
+					if(batches.numbatches <= 0)
+						continue;
+
+					// Modify the lightmap coord pointer to use the appropriate texcoord
+					m_pShader->SetAttributePointer(m_attribs.a_lmapcoord, OFFSET(bsp_vertex_t, lmapcoord[k]));
+
+					m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
+					m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
+
+					// Bind the appropriate lightmap layers
+					R_Bind2DTexture(GL_TEXTURE0, m_diffuseLightmapIndexes[k]);
+					R_Bind2DTexture(GL_TEXTURE1, m_lightVectorsIndexes[k]);
+
+					// Now bind the other textures
+					m_pShader->SetUniform1i(m_attribs.u_normalmap, 2);
+					R_Bind2DTexture(GL_TEXTURE2, pnormalmap->palloc->gl_index);
+
+					m_pShader->SetUniform1i(m_attribs.u_specular, 3);
+					R_Bind2DTexture(GL_TEXTURE3, pspecular->palloc->gl_index);
+
+					R_ValidateShader(m_pShader);
+
+					drawbatch_t *pbatch = &batches.batches[0];
+					for(Uint32 l = 0; l < batches.numbatches; l++, pbatch++)
+						glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+				}
+			}
+		}
+
+		// Re-set the lightmap coord to the first unit
+		m_pShader->SetAttributePointer(m_attribs.a_lmapcoord, OFFSET(bsp_vertex_t, lmapcoord[0]));
+		// Reset this to normal
+		m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
+	}
+
+	if(!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false))
+		return false;
+
+	m_pShader->DisableAttribute(m_attribs.a_tangent);
+	m_pShader->DisableAttribute(m_attribs.a_binormal);
+	m_pShader->DisableAttribute(m_attribs.a_normal);
+
+	// Draw specular for dynamic lights
+	if(!DrawLights(true))
+		return false;
+
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 void CBSPRenderer::PrepareVSM( void )
 {
 	// Load current modelview
@@ -3606,9 +4034,21 @@ void CBSPRenderer::PrepareVSM( void )
 	// clear all chains
 	for(Uint32 i = 0; i < m_texturesArray.size(); i++)
 	{
-		m_texturesArray[i].nummultibatches = 0;
-		m_texturesArray[i].numsinglebatches = 0;
-		m_texturesArray[i].psurfchain = nullptr;
+		bsp_texture_t& texture = m_texturesArray[i];
+
+		texture.nummultibatches = 0;
+		texture.numsinglebatches = 0;
+		texture.psurfchain = nullptr;
+
+		for(Uint32 j = 0; j < texture.lightstyleinfos.size(); j++)
+		{
+			lightstyleinfo_t& styleinfo = texture.lightstyleinfos[j];
+			if(styleinfo.stylebatches.empty())
+				continue;
+
+			for(Uint32 k = 0; k < MAX_SURFACE_STYLES; k++)
+				styleinfo.stylebatches[k].numbatches = 0;
+		}
 	}
 
 	// Make sure this is reset
@@ -3703,6 +4143,9 @@ bool CBSPRenderer::DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 nume
 	// Set initial entity to world
 	m_pCurrentEntity = CL_GetEntityByIndex(WORLDSPAWN_ENTITY_INDEX);
 
+	// Disable multipass functionalities
+	m_disableMultiPass = true;
+
 	PrepareVSM();
 
 	if(drawworld)
@@ -3795,6 +4238,9 @@ bool CBSPRenderer::DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 nume
 				break;
 		}
 	}
+
+	// Re-enable multipass functionalities
+	m_disableMultiPass = false;
 
 	m_pShader->DisableShader();
 	m_pVBO->UnBind();
@@ -4052,6 +4498,9 @@ void CBSPRenderer::CreateDecal( const Vector& origin, const Vector& normal, deca
 			msurface_t* psurf = &psurfaces[k];
 
 			bsp_texture_t* ptexture = &m_texturesArray[psurf->ptexinfo->ptexture->infoindex];
+			if(ptexture->pmaterial->flags & TX_FL_NODECAL)
+				continue;
+
 			if(ptexture->pmaterial->flags & TX_FL_ALPHATEST)
 				continue;
 
@@ -4082,6 +4531,9 @@ void CBSPRenderer::CreateDecal( const Vector& origin, const Vector& normal, deca
 		for(Uint32 k = 0; k < m_texturesArray.size(); k++)
 		{
 			bsp_texture_t* ptexture = &m_texturesArray[k];
+			if(ptexture->pmaterial->flags & TX_FL_NODECAL)
+				continue;
+
 			if(!(ptexture->pmaterial->flags & TX_FL_ALPHATEST))
 				continue;
 

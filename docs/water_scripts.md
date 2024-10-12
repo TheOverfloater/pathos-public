@@ -64,4 +64,5 @@ put in the script by themselves and act as flags.
  - cheaprefraction: Refractions will not be rendered in a separate pass, and instead will use current 
  contents of the screen to create a refracted underwater image. Water fog, and caustics cannot be used with
  this type of water. Best used for optimizing certain areas that don't need complex water.
- - normalmap: Defines the path to the normalmap texture.
+ - normalmap: Specify a custom normal map instead of the default one. Relative to "textures" folder in mod
+ folder.

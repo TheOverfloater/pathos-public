@@ -277,6 +277,7 @@
     <ClCompile Include="funcladder.cpp" />
     <ClCompile Include="funcmonitor.cpp" />
     <ClCompile Include="funcnull.cpp" />
+    <ClCompile Include="funcparticleblocker.cpp" />
     <ClCompile Include="funcplat.cpp" />
     <ClCompile Include="funcplatrot.cpp" />
     <ClCompile Include="funcportalsurface.cpp" />
@@ -293,6 +294,7 @@
     <ClCompile Include="funcwater.cpp" />
     <ClCompile Include="funcfriction.cpp" />
     <ClCompile Include="game.cpp" />
+    <ClCompile Include="gamestaminamodifier.cpp" />
     <ClCompile Include="gametimer.cpp" />
     <ClCompile Include="gamedialouge.cpp" />
     <ClCompile Include="gameobjective.cpp" />
@@ -303,6 +305,7 @@
     <ClCompile Include="gibshooter.cpp" />
     <ClCompile Include="grenade.cpp" />
     <ClCompile Include="infovismark.cpp" />
+    <ClCompile Include="lightstyles.cpp" />
     <ClCompile Include="materialdefs.cpp" />
     <ClCompile Include="infomonitorcamera.cpp" />
     <ClCompile Include="infonode.cpp" />
@@ -512,8 +515,10 @@
     <ClInclude Include="envsetskytexture.h" />
     <ClInclude Include="envsun.h" />
     <ClInclude Include="envsyncanimation.h" />
+    <ClInclude Include="funcparticleblocker.h" />
     <ClInclude Include="funcportalsurface.h" />
     <ClInclude Include="funcslippery.h" />
+    <ClInclude Include="gamestaminamodifier.h" />
     <ClInclude Include="gametimer.h" />
     <ClInclude Include="gameobjective.h" />
     <ClInclude Include="infonode.h" />
@@ -521,6 +526,8 @@
     <ClInclude Include="itemglockflashlight.h" />
     <ClInclude Include="itemglocksilencer.h" />
     <ClInclude Include="itemtaperecorder.h" />
+    <ClInclude Include="light.h" />
+    <ClInclude Include="lightstyles.h" />
     <ClInclude Include="nodeviewer.h" />
     <ClInclude Include="npcclonesoldier.h" />
     <ClInclude Include="npcgeneric.h" />

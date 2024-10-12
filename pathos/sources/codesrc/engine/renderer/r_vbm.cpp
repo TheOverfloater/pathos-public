@@ -38,6 +38,7 @@ All Rights Reserved.
 #include "file.h"
 #include "flexmanager.h"
 #include "vbmtrace.h"
+#include "r_lightstyles.h"
 
 // Notes:
 // Part of this implementation is based on the implementation in the Half-Life SDK
@@ -1503,12 +1504,43 @@ void CVBMRenderer::SetupLighting ( void )
 	Math::VectorAdd(lightorigin, zadjust, lightorigin);
 	Math::VectorCopy(lightorigin, saved_lightorigin);
 
+	// Get light styles array ptr
+	CArray<Float>* pstylevaluesarray = gLightStyles.GetLightStyleValuesArray();
+	// Pointer to last lightstyles
+	byte* plastlightstyles = nullptr;
+
 	if( m_pExtraInfo )
 	{
 		// Copy previous values
 		m_lightingInfo = *m_pExtraInfo->plightinfo;
+		plastlightstyles = m_pExtraInfo->plightinfo->lastlightstyles;
 
+		bool updateLighting;
 		if(!m_pExtraInfo->plightinfo->reset && Math::VectorCompare(m_pExtraInfo->plightinfo->lastlightorigin, lightorigin))
+		{
+			// Check animated light related stuff if we did not move or were reset
+			Uint32 i = 1;
+			for(; i < MAX_SURFACE_STYLES; i++)
+			{
+				if(plastlightstyles[i] == 255)
+					continue;
+
+				byte styleIndex = plastlightstyles[i];
+				Float styleValue = (*pstylevaluesarray)[styleIndex];
+				if(styleValue != m_pExtraInfo->plightinfo->laststylevalues[i])
+					break;
+			}
+
+			updateLighting = (i == MAX_SURFACE_STYLES) ? false : true;
+		}
+		else
+		{
+			// Either we were reset or we moved, so we need to update lighting
+			updateLighting = true;
+		}
+
+		// If we did not change, just keep blending values
+		if(!updateLighting)
 		{
 			BlendLightValues();
 			return;
@@ -1542,6 +1574,16 @@ void CVBMRenderer::SetupLighting ( void )
 		{
 			Math::VectorScale(cls.skycolor, 1.0f/255.0f, lightcolor);
 			Math::VectorCopy(skyvector, lightdir);
+
+			if(m_pExtraInfo)
+			{
+				for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
+				{
+					m_pExtraInfo->plightinfo->laststylevalues[i] = 0;
+					plastlightstyles[i] = 255;
+				}
+			}
+
 			gotLighting = true;
 		}
 	}
@@ -1549,7 +1591,7 @@ void CVBMRenderer::SetupLighting ( void )
 	if(!gotLighting)
 	{
 		// Trace against the world
-		if(ens.pworld->plightdata && !(m_pStudioHeader->flags & STUDIO_MF_SKYLIGHT))
+		if(ens.pworld->plightdata[SURF_LIGHTMAP_DEFAULT] && !(m_pStudioHeader->flags & STUDIO_MF_SKYLIGHT))
 		{
 			Vector lighttop;
 			Vector lightbottom;
@@ -1581,9 +1623,12 @@ void CVBMRenderer::SetupLighting ( void )
 					const brushmodel_t* pentbrushmodel = pentity->pmodel->getBrushmodel();
 
 					// Try and get bump data if possible
-					if(m_pCvarUseBumpData->GetValue() >= 1.0)
+					if(m_pCvarUseBumpData->GetValue() >= 1.0 
+						&& ens.pworld->plightdata[SURF_LIGHTMAP_AMBIENT]
+						&& ens.pworld->plightdata[SURF_LIGHTMAP_DIFFUSE]
+						&& ens.pworld->plightdata[SURF_LIGHTMAP_VECTORS])
 					{
-						gotLightmapLighting = Mod_RecursiveLightPoint_BumpData(pentbrushmodel, &pentbrushmodel->pnodes[pentbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor, lmapdiffusecolor, lightdir);
+						gotLightmapLighting = Mod_RecursiveLightPoint_BumpData(pentbrushmodel, &pentbrushmodel->pnodes[pentbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor, lmapdiffusecolor, lightdir, &(*pstylevaluesarray)[0], plastlightstyles);
 						if(gotLightmapLighting)
 						{
 							if(lightcolor.Length() < lmapdiffusecolor.Length())
@@ -1602,7 +1647,7 @@ void CVBMRenderer::SetupLighting ( void )
 
 					// If we didn't get bump data, use normal light data
 					if(!gotLightmapLighting)
-						gotLightmapLighting = Mod_RecursiveLightPoint(pentbrushmodel, &pentbrushmodel->pnodes[pentbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor);
+						gotLightmapLighting = Mod_RecursiveLightPoint(pentbrushmodel, &pentbrushmodel->pnodes[pentbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor, &(*pstylevaluesarray)[0], plastlightstyles);
 
 					if(gotLightmapLighting)
 					{
@@ -1629,7 +1674,7 @@ void CVBMRenderer::SetupLighting ( void )
 				// Try and get bump data if possible
 				if(m_pCvarUseBumpData->GetValue() >= 1.0)
 				{
-					gotLightmapLighting = Mod_RecursiveLightPoint_BumpData(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor, lmapdiffusecolor, lightdir);
+					gotLightmapLighting = Mod_RecursiveLightPoint_BumpData(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor, lmapdiffusecolor, lightdir, &(*pstylevaluesarray)[0], plastlightstyles);
 					if(gotLightmapLighting)
 					{
 						if(lightcolor.Length() < lmapdiffusecolor.Length())
@@ -1648,7 +1693,7 @@ void CVBMRenderer::SetupLighting ( void )
 
 				// If we didn't get bump data, use normal light data
 				if(!gotLightmapLighting)
-					gotLightmapLighting = Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor);
+					gotLightmapLighting = Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor, &(*pstylevaluesarray)[0], plastlightstyles);
 			}
 
 			// Only do this thing if we don't have bump data
@@ -1666,13 +1711,13 @@ void CVBMRenderer::SetupLighting ( void )
 					Vector offsetd = lightbottom + Vector(-offset, -offset, 0);
 
 					Vector samplecolor;
-					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor)
+					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0])
 						&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
 					{
 						offsetu = lightorigin + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 						offsetd = lightbottom + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 
-						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor);
+						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0]);
 					}
 
 					strengths[0] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
@@ -1681,13 +1726,13 @@ void CVBMRenderer::SetupLighting ( void )
 					offsetu = lighttop + Vector(offset, -offset, 0);
 					offsetd = lightbottom + Vector(offset, -offset, 0);
 
-					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor)
+					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0])
 						&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
 					{
 						offsetu = lightorigin + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 						offsetd = lightbottom + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 
-						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor);
+						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0]);
 					}
 
 					strengths[1] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
@@ -1696,13 +1741,13 @@ void CVBMRenderer::SetupLighting ( void )
 					offsetu = lighttop + Vector(offset, offset, 0);
 					offsetd = lightbottom + Vector(offset, offset, 0);
 
-					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor)
+					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0])
 						&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
 					{
 						offsetu = lightorigin + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 						offsetd = lightbottom + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 
-						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor);
+						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0]);
 					}
 
 					strengths[2] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
@@ -1711,13 +1756,13 @@ void CVBMRenderer::SetupLighting ( void )
 					offsetu = lighttop + Vector(-offset, offset, 0);
 					offsetd = lightbottom + Vector(-offset, offset, 0);
 
-					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor)
+					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0])
 						&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
 					{
 						offsetu = lightorigin + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 						offsetd = lightbottom + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 
-						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor);
+						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0]);
 					}
 
 					strengths[3] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
@@ -1802,7 +1847,7 @@ void CVBMRenderer::SetupLighting ( void )
 		|| !Math::VectorCompare(diffusecolor, m_lightingInfo.target_diffuse)
 		|| !Math::VectorCompare(lightdir, m_lightingInfo.target_lightdir)))
 	{
-		if(m_lightingInfo.lighttime)
+		if(m_lightingInfo.lighttime != 0)
 		{
 			// Set current light values as the previous
 			Math::VectorCopy(m_lightingInfo.ambient_color, m_lightingInfo.prev_ambient);
@@ -1863,6 +1908,15 @@ void CVBMRenderer::SetupLighting ( void )
 		Math::VectorCopy(m_lightingInfo.prev_lightdir, m_pExtraInfo->plightinfo->prev_lightdir);
 
 		Math::VectorCopy(saved_lightorigin, m_pExtraInfo->plightinfo->lastlightorigin);
+
+		for(Uint32 i = 1; i < MAX_SURFACE_STYLES; i++)
+		{
+			byte styleIndex = plastlightstyles[i];
+			if(styleIndex == 255)
+				continue;
+
+			m_pExtraInfo->plightinfo->laststylevalues[i] = (*pstylevaluesarray)[styleIndex];
+		}
 
 		if(m_pExtraInfo->plightinfo->reset)
 			m_pExtraInfo->plightinfo->reset = false;
@@ -3140,7 +3194,7 @@ bool CVBMRenderer::DrawLights( bool specularPass )
 
 			Vector color;
 			Math::VectorCopy(pdlight->color, color);
-			gDynamicLights.ApplyLightStyle(pdlight, color);
+			gLightStyles.ApplyLightStyle(pdlight, color);
 
 			m_pShader->SetUniform3f(m_attribs.dlights[lightindex].u_light_origin, vtransorigin[0], vtransorigin[1], vtransorigin[2]);
 			m_pShader->SetUniform4f(m_attribs.dlights[lightindex].u_light_color, color.x, color.y, color.z, 1.0);
@@ -6217,6 +6271,8 @@ bool CVBMRenderer::DrawLightVectors( void )
 	Vector lightcolor;
 	Vector lmapdiffusecolor;
 
+	CArray<Float>* pstylevaluesarray = gLightStyles.GetLightStyleValuesArray();
+
 	// Try to trace against the sky vector
 	if(rns.sky.drawsky && !cls.skycolor.IsZero() 
 		&& m_pCvarSkyLighting->GetValue() >= 1)
@@ -6246,7 +6302,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 	if(!gotLighting)
 	{
 		// Trace against the world
-		if(ens.pworld->plightdata && !(m_pStudioHeader->flags & STUDIO_MF_SKYLIGHT))
+		if(ens.pworld->plightdata[SURF_LIGHTMAP_DEFAULT] && !(m_pStudioHeader->flags & STUDIO_MF_SKYLIGHT))
 		{
 			Vector lighttop;
 			Vector lightbottom;
@@ -6278,9 +6334,12 @@ bool CVBMRenderer::DrawLightVectors( void )
 					const brushmodel_t* pentbrushmodel = pentity->pmodel->getBrushmodel();
 
 					// Try and get bump data if possible
-					if(m_pCvarUseBumpData->GetValue() >= 1.0)
+					if(m_pCvarUseBumpData->GetValue() >= 1.0 
+						&& ens.pworld->plightdata[SURF_LIGHTMAP_AMBIENT]
+						&& ens.pworld->plightdata[SURF_LIGHTMAP_DIFFUSE]
+						&& ens.pworld->plightdata[SURF_LIGHTMAP_VECTORS])
 					{
-						gotLightmapLighting = Mod_RecursiveLightPoint_BumpData(pentbrushmodel, &pentbrushmodel->pnodes[pentbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor, lmapdiffusecolor, lightdir);
+						gotLightmapLighting = Mod_RecursiveLightPoint_BumpData(pentbrushmodel, &pentbrushmodel->pnodes[pentbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor, lmapdiffusecolor, lightdir, &(*pstylevaluesarray)[0]);
 						if(gotLightmapLighting)
 						{
 							if(lightcolor.Length() < lmapdiffusecolor.Length())
@@ -6299,7 +6358,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 
 					// If we didn't get bump data, use normal light data
 					if(!gotLightmapLighting)
-						gotLightmapLighting = Mod_RecursiveLightPoint(pentbrushmodel, &pentbrushmodel->pnodes[pentbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor);
+						gotLightmapLighting = Mod_RecursiveLightPoint(pentbrushmodel, &pentbrushmodel->pnodes[pentbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor, &(*pstylevaluesarray)[0]);
 
 					if(gotLightmapLighting)
 					{
@@ -6330,7 +6389,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 				// Try and get bump data if possible
 				if(m_pCvarUseBumpData->GetValue() >= 1.0)
 				{
-					gotLightmapLighting = Mod_RecursiveLightPoint_BumpData(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor, lmapdiffusecolor, lightdir);
+					gotLightmapLighting = Mod_RecursiveLightPoint_BumpData(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor, lmapdiffusecolor, lightdir, &(*pstylevaluesarray)[0]);
 					if(gotLightmapLighting)
 					{
 						if(lightcolor.Length() < lmapdiffusecolor.Length())
@@ -6349,7 +6408,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 
 				// If we didn't get bump data, use normal light data
 				if(!gotLightmapLighting)
-					gotLightmapLighting = Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor);
+					gotLightmapLighting = Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolor, &(*pstylevaluesarray)[0]);
 			}
 
 			if(gotlighting)
@@ -6373,7 +6432,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 					drawbottom = lightorigin - Vector(0, 0, 8192) + Vector(-offset, -offset, 0);
 				
 					Vector samplecolor;
-					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor)
+					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0])
 						&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
 					{
 						offsetu = lightorigin + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
@@ -6381,7 +6440,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 						drawtop = lightorigin + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 						drawbottom = lightorigin - Vector(0, 0, 8192) + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 					
-						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor);
+						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0]);
 					}
 
 					strengths[0] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
@@ -6395,7 +6454,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 					drawtop = lightorigin + Vector(offset, -offset, 0);
 					drawbottom = lightorigin - Vector(0, 0, 8192) + Vector(offset, -offset, 0);
 				
-					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor)
+					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0])
 						&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
 					{
 						offsetu = lightorigin + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
@@ -6403,7 +6462,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 						drawtop = lightorigin + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 						drawbottom = lightorigin - Vector(0, 0, 8192) + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 					
-						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor);
+						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0]);
 					}
 
 					strengths[1] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
@@ -6417,7 +6476,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 					drawtop = lightorigin + Vector(offset, offset, 0);
 					drawbottom = lightorigin - Vector(0, 0, 8192) + Vector(offset, offset, 0);
 				
-					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor)
+					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0])
 						&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
 					{
 						offsetu = lightorigin + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
@@ -6425,7 +6484,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 						drawtop = lightorigin + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 						drawbottom = lightorigin - Vector(0, 0, 8192) + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 					
-						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor);
+						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0]);
 					}
 
 					strengths[2] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
@@ -6439,7 +6498,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 					drawtop = lightorigin + Vector(-offset, offset, 0);
 					drawbottom = lightorigin - Vector(0, 0, 8192) + Vector(-offset, offset, 0);
 				
-					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor)
+					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0])
 						&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
 					{
 						offsetu = lightorigin + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
@@ -6447,7 +6506,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 						drawtop = lightorigin + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 						drawbottom = lightorigin - Vector(0, 0, 8192) + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
 
-						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor);
+						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, samplecolor, &(*pstylevaluesarray)[0]);
 					}
 
 					strengths[3] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;

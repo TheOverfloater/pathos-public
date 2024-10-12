@@ -805,6 +805,9 @@ public:
 	// Clears a global delayed trigger
 	virtual void ClearGlobalDelayedTrigger( void ) { STUBWARNING; };
 
+	// Set stamina modifiers
+	virtual void SetStaminaModifiers( Float sprintStaminaDrainMultiplier, Float normalMovementStaminaDrainFactor ) { STUBWARNING; };
+
 public:
 	//
 	// Custer Phantom NPC functions

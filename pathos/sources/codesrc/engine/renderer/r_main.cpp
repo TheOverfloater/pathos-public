@@ -70,6 +70,7 @@ All Rights Reserved.
 #include "r_wadtextures.h"
 #include "r_sky.h"
 #include "r_fbocache.h"
+#include "r_lightstyles.h"
 
 #include "stepsound.h"
 
@@ -103,6 +104,7 @@ CCVar* g_pCvarOcclusionQueries = nullptr;
 CCVar* g_pCvarTraceGlow = nullptr;
 CCVar* g_pCvarBatchDynamicLights = nullptr;
 CCVar* g_pCvarOverdarkenTreshold = nullptr;
+CCVar* g_pCvarDumpLightmaps = nullptr;
 
 // Caustics texture list file path
 static const Char CAUSTICS_TEXTURE_FILE_PATH[] = "textures/general/caustics_textures.txt";
@@ -191,6 +193,7 @@ bool R_Init( void )
 	g_pCvarTraceGlow = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_traceglow", "0", "Enable/disable performance intensive trace tests." );
 	g_pCvarBatchDynamicLights = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_lightbatches", "0", "Controls whether light rendering is batched based on proximity and type of light." );
 	g_pCvarOverdarkenTreshold = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_overdarken_treshold", "35", "Overdarkening treshold setting, default is 35." );
+	g_pCvarDumpLightmaps = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_lightmap_dumping", "0", "Toggle whether lightmap data should be exported to TGAs on level load." );
 
 	gCommands.CreateCommand("r_exportald", ALD_ExportLightmaps, "Exports current lightmap info as nightstage light info");
 	gCommands.CreateCommand("r_detail_auto", Cmd_DetailAuto, "Generates detail texture entries for world textures without");
@@ -256,6 +259,9 @@ bool R_Init( void )
 	if(!gDynamicLights.Init())
 		return false;
 
+	if(!gLightStyles.Init())
+		return false;
+
 	if(!gGlowAura.Init())
 		return false;
 
@@ -316,6 +322,7 @@ void R_Shutdown( void )
 	gSkyRenderer.Shutdown();
 	gBSPRenderer.Shutdown();
 	gDynamicLights.Shutdown();
+	gLightStyles.Shutdown();
 	gGlowAura.Shutdown();
 	gWaterShader.Shutdown();
 	gMonitorManager.Shutdown();
@@ -631,6 +638,9 @@ bool R_LoadResources( void )
 	if(!gDynamicLights.InitGame())
 		return false;
 
+	if(!gLightStyles.InitGame())
+		return false;
+
 	if(!gWaterShader.InitGame())
 		return false;
 
@@ -770,6 +780,7 @@ void R_ResetGame( void )
 	gSkyRenderer.ClearGame();
 	gBSPRenderer.ClearGame();
 	gDynamicLights.ClearGame();
+	gLightStyles.ClearGame();
 	gRTTCache.Clear(RS_GAME_LEVEL);
 	gDecals.ClearGame();
 	gWaterShader.ClearGame();
@@ -1548,6 +1559,9 @@ void R_Ent_Beam( cl_entity_t *pentity )
 //====================================
 bool R_IsNonRenderedRenderEntity( const cl_entity_t& entity )
 {
+	if(entity.curstate.flags & FL_PARTICLE_BLOCKER)
+		return false;
+
 	switch(entity.curstate.rendertype)
 	{
 	case RT_ENVELIGHT:
@@ -1798,7 +1812,7 @@ bool R_DrawLogo( en_texture_t* ptexture, Int32 basewidth, Int32 baseheight )
 	// Draw the background
 	R_Bind2DTexture(GL_TEXTURE0_ARB, ptexture->palloc->gl_index);
 
-	pDraw->Begin(GL_TRIANGLES);
+	pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	pDraw->TexCoord2f(0.0, 0.0);
 	pDraw->Vertex3f(logoOriginX, logoOriginY, -1.0);
 
@@ -1883,7 +1897,7 @@ bool R_DrawLoadingBackground( void )
 		R_BindRectangleTexture(GL_TEXTURE0_ARB, rns.ploadbackground->gl_index);
 	}
 
-	pDraw->Begin(GL_TRIANGLES);
+	pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	pDraw->TexCoord2f(0.0, tcymod*tcscaley);
 	pDraw->Vertex3f(0.0, 0.0, -1.0);
 
@@ -2238,7 +2252,7 @@ void R_DrawLineGraph( CBasicDraw* pDraw, Int32 x, Int32 y, Int32 h, Int32 s )
 	// Set color
 	pDraw->Color4fv(color);
 
-	pDraw->Begin(GL_LINES);
+	pDraw->Begin(CBasicDraw::DRAW_LINES);
 	pDraw->Vertex3f(x, y-_h, -1);
 	pDraw->Vertex3f(x, y, -1);
 	pDraw->End();
@@ -2294,7 +2308,7 @@ bool R_DrawTimeGraph( Double& time1, Double& time2 )
 
 	// Draw the graph bars
 	pDraw->Color4f(1.0, 1.0, 1.0, 1.0);
-	pDraw->Begin(GL_LINES);
+	pDraw->Begin(CBasicDraw::DRAW_LINES);
 	pDraw->Vertex3f(x+1, y-s, -1);
 	pDraw->Vertex3f(x+1, y, -1);
 	pDraw->Vertex3f(x-MAX_TIMINGS-1, y, -1);
@@ -2716,6 +2730,9 @@ bool R_Update( void )
 	if(!gDynamicLights.Update())
 		return false;
 
+	// Update lightstyles
+	gLightStyles.AnimateStyles();
+
 	// Update particles
 	gParticleEngine.Update();
 	
@@ -2941,7 +2958,7 @@ bool R_DrawOrigins( void )
 		Vector forward, right, up;
 		Math::AngleVectors(pentity->curstate.angles, &forward, &right, &up);
 
-		pDraw->Begin(GL_LINES);
+		pDraw->Begin(CBasicDraw::DRAW_LINES);
 		pDraw->Color4f(1, 0, 0, 1);
 		pDraw->Vertex3fv(pentity->curstate.origin);
 		pDraw->Vertex3fv(pentity->curstate.origin + forward*linelength);
@@ -4687,16 +4704,17 @@ void Cmd_BSPToSMD_Lightmap( void )
 				}
 
 				// Set lightmap coords
+				// TODO: use lightmapdivider
 				mtexinfo_t *ptexinfo = psurf->ptexinfo;
-				pverts[k].lmapcoord[0] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
-				pverts[k].lmapcoord[0] -= psurf->texturemins[0];
-				pverts[k].lmapcoord[0] += psurf->light_s*16+8;
-				pverts[k].lmapcoord[0] /= static_cast<Float>(CBSPRenderer::LIGHTMAP_WIDTH*16);
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] -= psurf->texturemins[0];
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] += psurf->light_s*16+8;
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] /= static_cast<Float>(gBSPRenderer.GetLightmapWidth(BASE_LIGHTMAP_INDEX)*16);
 
-				pverts[k].lmapcoord[1] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
-				pverts[k].lmapcoord[1] -= psurf->texturemins[1];
-				pverts[k].lmapcoord[1] += psurf->light_t*16+8;
-				pverts[k].lmapcoord[1] /= static_cast<Float>(gBSPRenderer.GetLightmapHeight()*16);
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] -= psurf->texturemins[1];
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] += psurf->light_t*16+8;
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] /= static_cast<Float>(gBSPRenderer.GetLightmapHeight(BASE_LIGHTMAP_INDEX)*16);
 
 				Math::VectorCopy(psurf->pplane->normal, pverts[k].normal);
 			}
@@ -4713,7 +4731,7 @@ void Cmd_BSPToSMD_Lightmap( void )
 				fprintf(pf, "  0   %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %f  %f\n",
 				pverts[indexes[k]].origin[0], pverts[indexes[k]].origin[1], pverts[indexes[k]].origin[2],
 				pverts[indexes[k]].normal[0], pverts[indexes[k]].normal[1], pverts[indexes[k]].normal[2],
-				pverts[indexes[k]].lmapcoord[0], pverts[indexes[k]].lmapcoord[1]);
+				pverts[indexes[k]].lmapcoord[BASE_LIGHTMAP_INDEX][0], pverts[indexes[k]].lmapcoord[BASE_LIGHTMAP_INDEX][1]);
 			}
 
 			// Export the rest
@@ -4728,7 +4746,7 @@ void Cmd_BSPToSMD_Lightmap( void )
 					fprintf(pf, "  0   %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %f  %f\n",
 					pverts[indexes[m]].origin[0], pverts[indexes[m]].origin[1], pverts[indexes[m]].origin[2],
 					pverts[indexes[m]].normal[0], pverts[indexes[m]].normal[1], pverts[indexes[m]].normal[2],
-					pverts[indexes[m]].lmapcoord[0], pverts[indexes[m]].lmapcoord[1]);
+					pverts[indexes[m]].lmapcoord[BASE_LIGHTMAP_INDEX][0], pverts[indexes[m]].lmapcoord[BASE_LIGHTMAP_INDEX][1]);
 				}
 			}
 
@@ -4741,8 +4759,8 @@ void Cmd_BSPToSMD_Lightmap( void )
 
 	Con_Printf("Exported %s.\n", filepath.c_str());
 
-	Uint32 lightmapWidth = CBSPRenderer::LIGHTMAP_WIDTH;
-	Uint32 lightmapHeight = gBSPRenderer.GetLightmapHeight();
+	Uint32 lightmapWidth = gBSPRenderer.GetLightmapWidth(BASE_LIGHTMAP_INDEX);
+	Uint32 lightmapHeight = gBSPRenderer.GetLightmapHeight(BASE_LIGHTMAP_INDEX);
 
 	// alloc lightmap data ptrs
 	Uint32 lightmapdatasize = 0;
@@ -4765,42 +4783,36 @@ void Cmd_BSPToSMD_Lightmap( void )
 	memset(plightvecslightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
 
 	// Process the surfaces
-	for(Uint32 i = 0; i < ens.pworld->numsurfaces; i++)
+	for(Uint32 j = 0; j < ens.pworld->numsurfaces; j++)
 	{
-		const msurface_t* psurface = &ens.pworld->psurfaces[i];
+		const msurface_t* psurface = &ens.pworld->psurfaces[j];
 		if(psurface->flags & (SURF_DRAWSKY|SURF_DRAWTURB))
 			continue;
-
+		
 		// Determine sizes
-		Uint32 xsize = (psurface->extents[0]>>4)+1;
-		Uint32 ysize = (psurface->extents[1]>>4)+1;
+		Uint32 xsize = (psurface->extents[0] / psurface->lightmapdivider)+1;
+		Uint32 ysize = (psurface->extents[1] / psurface->lightmapdivider)+1;
 		Uint32 size = xsize*ysize;
 
 		// Build the base lightmap
-		color24_t* psrc = psurface->psamples;
+		color24_t* psrc = psurface->psamples[SURF_LIGHTMAP_DEFAULT];
 		R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, plightmap, 0, lightmapWidth, false, false);
 		lightmapdatasize += size*sizeof(color32_t);
 
-		// Get the normal map data too if required
-		Int32 ambientindex = R_StyleIndex(psurface, LM_AMBIENT_STYLE);
-		Int32 diffuseindex = R_StyleIndex(psurface, LM_DIFFUSE_STYLE);
-		Int32 lightvecsindex = R_StyleIndex(psurface, LM_LIGHTVECS_STYLE);
+		// Ambient lightmap
+		psrc = psurface->psamples[SURF_LIGHTMAP_AMBIENT];
+		R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, pambientlightmap, 0, lightmapWidth, 0);
+		amblightdatasize += size*sizeof(color32_t);
 
-		// See if we have anything to bind
-		if(ambientindex != -1 && diffuseindex != -1 && lightvecsindex != -1)
-		{
-			// Ambient lightmap
-			R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, pambientlightmap, ambientindex, lightmapWidth, 0);
-			amblightdatasize += size*sizeof(color32_t);
+		// Diffuse lightmap
+		psrc = psurface->psamples[SURF_LIGHTMAP_DIFFUSE];
+		R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, pdiffuselightmap, 0, lightmapWidth, 0);
+		diffuselightdatasize += size*sizeof(color32_t);
 
-			// Diffuse lightmap
-			R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, pdiffuselightmap, diffuseindex, lightmapWidth, 0);
-			diffuselightdatasize += size*sizeof(color32_t);
-
-			// Light vectors lightmap
-			R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, plightvecslightmap, lightvecsindex, lightmapWidth, 0, true);
-			lightvecsdatasize += size*sizeof(color32_t);
-		}
+		// Light vectors lightmap
+		psrc = psurface->psamples[SURF_LIGHTMAP_VECTORS];
+		R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, plightvecslightmap, 0, lightmapWidth, 0, true);
+		lightvecsdatasize += size*sizeof(color32_t);
 	}
 
 	CString lightmapfilebasename;

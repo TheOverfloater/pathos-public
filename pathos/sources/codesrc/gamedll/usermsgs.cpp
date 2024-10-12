@@ -36,7 +36,8 @@ void InitClientUserMessages( void )
 	g_usermsgs.setdaystage = gd_engfuncs.pfnRegisterUserMessage("SetDayStage", -1);
 	g_usermsgs.setspecialfog = gd_engfuncs.pfnRegisterUserMessage("SetSpecialFog", -1);
 	g_usermsgs.freeentitydata = gd_engfuncs.pfnRegisterUserMessage("FreeEntityData", -1);
-	g_usermsgs.addlightstyle = gd_engfuncs.pfnRegisterUserMessage("AddLightStyle", -1);
+	g_usermsgs.setlightstyle = gd_engfuncs.pfnRegisterUserMessage("SetLightStyle", -1);
+	g_usermsgs.addcustomlightstyle = gd_engfuncs.pfnRegisterUserMessage("AddCustomLightStyle", -1);
 	g_usermsgs.precacheflexscript = gd_engfuncs.pfnRegisterUserMessage("PrecacheFlexScript", -1);
 	g_usermsgs.setentityflexscript = gd_engfuncs.pfnRegisterUserMessage("SetEntityFlexScript", -1);
 	g_usermsgs.createtempentity = gd_engfuncs.pfnRegisterUserMessage("CreateTempEntity", -1);

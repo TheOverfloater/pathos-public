@@ -284,7 +284,8 @@ bool CGLSLShader::CompileShader( Uint32 index, glsl_shader_t* pshader, csdshader
 	Int32 iStatus = FALSE;
 	m_glExtF.glGetShaderiv(vertex_id, GL_COMPILE_STATUS, &iStatus);
 	g_vertexShaderGetStatusCallTotalDuration += static_cast<Double>(clock() - beginTime) / CLOCKS_PER_SEC;
-	Shader_PrintLog(vertex_id, vp, pshaderdata->vertexdatasize, vsOut.c_str(), (iStatus != TRUE) ? true : false);
+	if(!Shader_PrintLog(vertex_id, vp, pshaderdata->vertexdatasize, vsOut.c_str(), (iStatus != TRUE) ? true : false))
+		return false;
 
 	if(iStatus != TRUE)
 	{
@@ -312,7 +313,8 @@ bool CGLSLShader::CompileShader( Uint32 index, glsl_shader_t* pshader, csdshader
 
 	m_glExtF.glGetShaderiv(fragment_id, GL_COMPILE_STATUS, &iStatus);
 	g_fragmentShaderGetStatusCallTotalDuration += static_cast<Double>(clock() - beginTime) / CLOCKS_PER_SEC;
-	Shader_PrintLog(fragment_id, fp, pshaderdata->fragmentdatasize, fsOut.c_str(), (iStatus != TRUE) ? true : false);
+	if(!Shader_PrintLog(fragment_id, fp, pshaderdata->fragmentdatasize, fsOut.c_str(), (iStatus != TRUE) ? true : false))
+		return false;
 
 	if(iStatus != TRUE)
 	{
@@ -340,12 +342,16 @@ bool CGLSLShader::CompileShader( Uint32 index, glsl_shader_t* pshader, csdshader
 
 	m_glExtF.glGetProgramiv(pshader->program_id, GL_LINK_STATUS, &iStatus);
 	g_shaderLinkGetStatusCallDuration += static_cast<Double>(clock() - beginTime) / CLOCKS_PER_SEC;
-	Program_PrintLog(pshader->program_id, progOut.c_str());
+	if(!Program_PrintLog(pshader->program_id, progOut.c_str()))
+		return false;
 
+	bool result = true;
 	if(iStatus != TRUE)
 	{
-		Shader_PrintLog(vertex_id, vp, pshaderdata->vertexdatasize, vsOut.c_str(), true);
-		Shader_PrintLog(fragment_id, fp, pshaderdata->fragmentdatasize, fsOut.c_str(), true);
+		result = Shader_PrintLog(vertex_id, vp, pshaderdata->vertexdatasize, vsOut.c_str(), true);
+
+		if(result)
+			result = Shader_PrintLog(fragment_id, fp, pshaderdata->fragmentdatasize, fsOut.c_str(), true);
 
 		m_errorString = "Program " + m_shaderFile + " failed to compile. Log file was written.";
 	}
@@ -355,6 +361,9 @@ bool CGLSLShader::CompileShader( Uint32 index, glsl_shader_t* pshader, csdshader
 
 	m_glExtF.glDetachShader(pshader->program_id, fragment_id);
 	m_glExtF.glDeleteShader(fragment_id);
+
+	if(!result)
+		return false;
 
 	if(iStatus == TRUE)
 	{
@@ -1864,13 +1873,19 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 // @param script Pointer to the GLSL script
 // @param szoutpath Log file base name
 //=============================================
-void CGLSLShader::Shader_PrintLog ( GLuint shader_id, const Char *script, Uint32 length, const Char *szoutpath, bool dumpShaderCode )
+bool CGLSLShader::Shader_PrintLog ( GLuint shader_id, const Char *script, Uint32 length, const Char *szoutpath, bool dumpShaderCode )
 {
 	Int32 iLogSize = 0;
 	m_glExtF.glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &iLogSize);
 
 	if(iLogSize > 1)
 	{
+		if(!m_fileInterface.pfnCreateDirectory("logs"))
+		{
+			m_errorString << "Could not create folder '" << m_fileInterface.pfnGetGameDirectory() << "/logs' to print shader error log.";
+			return false;
+		}
+
 		Int32 iNumWritten;
 		Char *pLog = new Char[iLogSize];
 		m_glExtF.glGetShaderInfoLog(shader_id, iLogSize, &iNumWritten, pLog);
@@ -1914,6 +1929,8 @@ void CGLSLShader::Shader_PrintLog ( GLuint shader_id, const Char *script, Uint32
 		outputPath << szoutpath << "_source.txt";
 		m_fileInterface.pfnWriteFile(reinterpret_cast<const byte *>(script), length, outputPath.c_str(), false);
 	}
+
+	return true;
 }
 
 //=============================================
@@ -1922,12 +1939,18 @@ void CGLSLShader::Shader_PrintLog ( GLuint shader_id, const Char *script, Uint32
 // @param program_id GLSL id for the program
 // @param szoutpath Log file base name
 //=============================================
-void CGLSLShader :: Program_PrintLog ( GLuint program_id, const Char *szoutpath )
+bool CGLSLShader :: Program_PrintLog ( GLuint program_id, const Char *szoutpath )
 {
 	Int32 iLogSize = 0;
 	m_glExtF.glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &iLogSize);
 	if(iLogSize <= 1)
-		return;
+		return true;
+
+	if(!m_fileInterface.pfnCreateDirectory("logs"))
+	{
+		m_errorString << "Could not create folder '" << m_fileInterface.pfnGetGameDirectory() << "/logs' to print shader error log.";
+		return false;
+	}
 
 	Int32 iNumWritten;
 	Char *pLog = new Char[iLogSize];
@@ -1963,6 +1986,8 @@ void CGLSLShader :: Program_PrintLog ( GLuint program_id, const Char *szoutpath 
 
 	delete[] pLog;
 	delete[] pOut;
+
+	return true;
 }
 
 //=============================================

@@ -274,6 +274,10 @@ void SV_TouchLinks( edict_t* pentity, areanode_t* pnode )
 		if(ptouchedict->state.solid != SOLID_TRIGGER)
 			continue;
 
+		// Do not count particle blockers
+		if(ptouchedict->state.flags & FL_PARTICLE_BLOCKER)
+			continue;
+
 		// Check if the bounding boxes intersect eachother
 		if(Math::CheckMinsMaxs(pentity->state.absmin, pentity->state.absmax, ptouchedict->state.absmin, ptouchedict->state.absmax))
 			continue;
@@ -391,6 +395,10 @@ Int32 SV_LinkContents( areanode_t& node, const Vector& position )
 			}
 
 			if(gModelCache.GetType(ptouchedict->state.modelindex) != MOD_BRUSH)
+				continue;
+
+			// Do not count particle blockers
+			if(ptouchedict->state.flags & FL_PARTICLE_BLOCKER)
 				continue;
 
 			// Check if the position is in the bounding box of this pentity
@@ -623,8 +631,11 @@ void SV_SingleClipMoveToEntityPoint( edict_t* pentity, const Vector& start, cons
 //=============================================
 //
 //=============================================
-Int32 SV_PointContents( const Vector& position, Int32* truecontents )
+Int32 SV_PointContents( const Vector& position, Int32* truecontents, bool particleBlockers )
 {
+	if(particleBlockers)
+		Con_Printf("%s - Warning: The particleBlockers flag only has an effect on the client side.\n", __FUNCTION__);
+
 	Int32 contents = TR_HullPointContents(&ens.pworld->hulls[0], 0, position);
 	if(truecontents)
 		*truecontents = contents;
@@ -687,6 +698,10 @@ void SV_ClipToLinks( areanode_t& node, moveclip_t& clip, Int32 flags, hull_types
 			Con_Printf("Error: SV_ClipToLinks - Trigger pentity(%s) in clipping list!\n", SV_GetString(ptouchedict->fields.classname));
 			continue;
 		}
+
+		// Do not count particle blockers
+		if(ptouchedict->state.flags & FL_PARTICLE_BLOCKER)
+			continue;
 
 		// See if the game wants us to collide with this
 		if(!svs.dllfuncs.pfnShouldCollide(clip.pignore_edict, ptouchedict))
@@ -843,6 +858,10 @@ void SV_ClipToLinksPoint( areanode_t& node, moveclip_t& clip, Int32 flags )
 			Con_Printf("%s - Trigger pentity(%s) in clipping list!\n", __FUNCTION__, SV_GetString(ptouchedict->fields.classname));
 			continue;
 		}
+
+		// Do not count particle blockers
+		if(ptouchedict->state.flags & FL_PARTICLE_BLOCKER)
+			continue;
 
 		// Check for no models flag
 		if(flags & FL_TRACE_NO_MODELS)
@@ -1153,6 +1172,10 @@ void SV_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 				continue;
 
 			if(pentity->state.solid == SOLID_TRIGGER)
+				continue;
+
+			// Do not count particle blockers
+			if(pentity->state.flags & FL_PARTICLE_BLOCKER)
 				continue;
 
 			if(pentity->state.owner == svs.clients[svs.pmoveplayerindex].pedict->entindex)

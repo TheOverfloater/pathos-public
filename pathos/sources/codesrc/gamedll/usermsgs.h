@@ -27,7 +27,8 @@ struct usermsglist_t
 		setdaystage(0),
 		setspecialfog(0),
 		freeentitydata(0),
-		addlightstyle(0),
+		setlightstyle(0),
+		addcustomlightstyle(0),
 		precacheflexscript(0),
 		setentityflexscript(0),
 		createtempentity(0),
@@ -86,7 +87,8 @@ struct usermsglist_t
 	Int32 setdaystage;
 	Int32 setspecialfog;
 	Int32 freeentitydata;
-	Int32 addlightstyle;
+	Int32 setlightstyle;
+	Int32 addcustomlightstyle;
 	Int32 precacheflexscript;
 	Int32 setentityflexscript;
 	Int32 createtempentity;

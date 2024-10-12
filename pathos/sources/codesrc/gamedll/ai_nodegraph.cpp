@@ -413,7 +413,7 @@ void CAINodeGraph::InitNodeGraph( void )
 		if(pNode->nodeinfobits & AI_NODE_AIR)
 			continue;
 
-		if(gd_tracefuncs.pfnPointContents(pNode->origin, nullptr) == CONTENTS_WATER)
+		if(gd_tracefuncs.pfnPointContents(pNode->origin, nullptr, false) == CONTENTS_WATER)
 		{
 			// Mark this as water
 			pNode->nodeinfobits |= AI_NODE_WATER;

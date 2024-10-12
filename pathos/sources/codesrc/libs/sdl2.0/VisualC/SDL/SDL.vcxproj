@@ -95,6 +95,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>D:\dev\steam\rel\streaming_client\SDL\src\hidapi\hidapi;$(IncludePath)</IncludePath>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>D:\dev\steam\rel\streaming_client\SDL\src\hidapi\hidapi;$(IncludePath)</IncludePath>

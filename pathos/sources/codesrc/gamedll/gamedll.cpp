@@ -42,6 +42,7 @@ All Rights Reserved.
 #include "funcportalsurface.h"
 #include "triggercameramodel.h"
 #include "skytexturesets.h"
+#include "lightstyles.h"
 
 // Declaration of gamedll enginefuncs struct
 gdll_engfuncs_t gd_engfuncs;
@@ -62,6 +63,8 @@ Uint32 g_visBufferSize = 0;
 
 // Node graph generation time
 static Double g_nodeGraphGenerationTime = 0;
+// TRUE if game initialization has occurred
+bool g_gameInitializationDone = false;
 
 //
 // Game DLL functions
@@ -216,6 +219,9 @@ bool GameInit( void )
 		Util::PrintScreenText(-1, -1, NODE_GRAPH_GENERATION_DELAY + 1, "No valid node graph, building new one.");
 	}
 
+	// Mark as done
+	g_gameInitializationDone = true;
+
 	return true;
 }
 
@@ -230,8 +236,6 @@ void GameShutdown( void )
 
 	// Clear fog states
 	CEnvFog::ClearFogGlobals();
-	// Clear lightstyles
-	CEnvDLight::ResetLightStyles();
 	// Clear monitors
 	CFuncMonitor::ClearMonitorList();
 	// Clear portals
@@ -243,9 +247,14 @@ void GameShutdown( void )
 
 	// Clear sky texture sets
 	gSkyTextureSets.Reset();
+	// Clear lightstyles
+	gSVLightStyles.ResetStyles();
 
 	// Clear game objects
 	ClearGame();
+
+	// Reset this
+	g_gameInitializationDone = false;
 
 	// Reset pointers
 	gMovement.Reset();
@@ -268,11 +277,11 @@ void InitializeClientData( edict_t* pclient )
 	// !!! - Needs to be sent before SendEntityInitMessages
 	gSkyTextureSets.RegisterSets(pclient);
 
+	// Call dynlights to send lightstyles
+	gSVLightStyles.SendLightStylesToClient(pclient);
+
 	// Call entities to send init messages
 	SendEntityInitMessages(pclient);
-
-	// Call dynlights to send lightstyles
-	CEnvDLight::SendLightStylesToClient(pclient);
 }
 
 //=============================================
@@ -324,6 +333,9 @@ void ServerFrame( void )
 
 	// Manage NPC sound updates
 	gAISounds.Think();
+
+	// Update lightstyles
+	gSVLightStyles.Think();
 
 	// Reset these
 	g_nbNPCPenetrations = 0;

@@ -231,7 +231,7 @@ struct gdll_engfuncs_t
 	bool					(*pfnGetBonePositionByIndex)( edict_t* pedict, Uint32 boneindex, Vector& position );
 	bool					(*pfnGetAttachment)( edict_t* pedict, Uint32 index, Vector& position );
 
-	bool					(*pfnRecursiveLightPoint)( const brushmodel_t* pworld, struct mnode_t *pnode, const Vector &start, const Vector &end, Vector &color );
+	bool					(*pfnRecursiveLightPoint)( const brushmodel_t* pworld, struct mnode_t *pnode, const Vector &start, const Vector &end, Vector &color, Float* plightstylevalues, byte* poutstyles );
 
 	CCVar*					(*pfnCreateCVar)( cvar_type_t type, Int32 flags, const Char* pstrName, const Char* pstrValue, const Char* pstrDescription );
 	CCVar*					(*pfnCreateCVarCallback)( cvar_type_t type, Int32 flags, const Char* pstrName, const Char* pstrValue, const Char* pstrDescription, pfnCVarCallback_t pfnCallback );

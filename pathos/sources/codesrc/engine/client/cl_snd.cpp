@@ -921,7 +921,7 @@ bool CSoundEngine::DrawNormal( void )
 		else
 			pDraw->Color4f(1.0, 0.0, 0.0, 1.0);
 
-		pDraw->Begin(GL_POINTS);
+		pDraw->Begin(CBasicDraw::DRAW_POINTS);
 		pDraw->Vertex3fv(psound->origin);
 		pDraw->End();
 
@@ -930,7 +930,7 @@ bool CSoundEngine::DrawNormal( void )
 		else
 			pDraw->Color4f(1.0, 0.0, 0.0, 1.0);
 
-		pDraw->Begin(GL_POINTS);
+		pDraw->Begin(CBasicDraw::DRAW_POINTS);
 		pDraw->Vertex3fv(psound->origin+Vector(0, 0, 5));
 		pDraw->End();
 	}
@@ -2573,8 +2573,9 @@ bool CSoundEngine::UpdateMusicTrackPlayback ( snd_music_t& track, const ref_para
 			track.unpausefadetime = 0;
 		}
 	}
-
-	alSourcef(track.source, AL_GAIN, m_pCVarMusicVolume->GetValue()*flmultval*musicVolume*volume);
+	
+	Float multiplier = (track.flags & OGG_FL_MENU) ? 1.0 : flmultval;
+	alSourcef(track.source, AL_GAIN, m_pCVarMusicVolume->GetValue()*multiplier*musicVolume*volume);
 
 	ALenum state;
 	alGetSourcei(track.source, AL_SOURCE_STATE, &state);

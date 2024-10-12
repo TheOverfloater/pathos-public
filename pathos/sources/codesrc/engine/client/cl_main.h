@@ -47,6 +47,8 @@ static constexpr Uint32 USERCMD_HISTORY_ALLOC_SIZE = 1024;
 static constexpr Uint32 EXTRAINFO_ALLOC_SIZE = 128;
 // Max entity lights
 static constexpr Uint32 MAX_ENTITY_LIGHTS = 256;
+// Particle blocker alloc size
+static constexpr Uint32 PARTICLEBLOCKER_ALLOC_SIZE = 16;
 
 // Server dll path
 #ifdef _64BUILD
@@ -254,6 +256,11 @@ struct clientstate_t
 	CArray<cl_entity_t> entities;
 	// Max number of entities on client
 	Int32 numentities;
+
+	// Particle blocker entities
+	CArray<entindex_t> particleblockers;
+	// Number of particle blockers
+	Int32 numparticleblockers;
 
 	// extrainfos for entities
 	CArray<entity_extrainfo_t*> entityextrainfos;

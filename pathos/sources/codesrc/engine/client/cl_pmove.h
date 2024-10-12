@@ -16,7 +16,7 @@ struct trace_t;
 struct hull_t;
 
 extern Int32 CL_TestPlayerPosition( hull_types_t hulltype, Int32 flags, const class Vector& position );
-extern Int32 CL_PointContents( const Vector& position, Int32* truecontents );
+extern Int32 CL_PointContents( const Vector& position, Int32* truecontents, bool particleBlockers = false );
 extern Int32 CL_PointContents( cl_entity_t* pentity, const Vector& position );
 extern Int32 CL_TruePointContents( const Vector& position );
 extern void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, hull_types_t hulltype, Int32 ignore_ent, trace_t& trace );

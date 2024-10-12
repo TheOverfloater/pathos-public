@@ -781,7 +781,7 @@ bool CLegacyParticles::DrawParticles( void )
 
 	R_ValidateShader(pDraw);
 
-	pDraw->Begin(GL_TRIANGLES);
+	pDraw->Begin(CBasicDraw::DRAW_QUADS);
 
 	// Add rendered particles to the list
 	m_nbSortedParticles = 0;
@@ -825,7 +825,7 @@ bool CLegacyParticles::DrawParticles( void )
 		color24_t* pcolor = &m_pColorPalette[colorindex];
 		Vector color = Vector(static_cast<Float>(pcolor->r)/255.0f, static_cast<Float>(pcolor->g)/255.0f, static_cast<Float>(pcolor->b)/255.0f);
 
-		// Draw first triangle
+		// Draw a quad
 		Vector vpoint = pnext->origin - forward * 0.01 + up * scale * texscaley;
 		vpoint = vpoint + right * -1 * scale * texscalex;
 		pDraw->Color4f(color.x, color.y, color.z, 1.0);
@@ -844,19 +844,6 @@ bool CLegacyParticles::DrawParticles( void )
 		pDraw->TexCoord2f(1.0, 1.0);
 		pDraw->Vertex3fv(vpoint);
 
-		// Draw second triangle
-		vpoint = pnext->origin - forward * 0.01 + up * scale * texscaley;
-		vpoint = vpoint + right * -1 * scale * texscalex;
-		pDraw->Color4f(color.x, color.y, color.z, 1.0);
-		pDraw->TexCoord2f(0.0, 0.0);
-		pDraw->Vertex3fv(vpoint);
-
-		vpoint = pnext->origin - forward * 0.01 + up * -1 * scale * texscaley;
-		vpoint = vpoint + right * scale * texscalex;
-		pDraw->Color4f(color.x, color.y, color.z, 1.0);
-		pDraw->TexCoord2f(1.0, 1.0);
-		pDraw->Vertex3fv(vpoint);
-
 		vpoint = pnext->origin - forward * 0.01 + up * -1 * scale * texscaley;
 		vpoint = vpoint + right * -1 * scale * texscalex;
 		pDraw->Color4f(color.x, color.y, color.z, 1.0);
@@ -864,10 +851,10 @@ bool CLegacyParticles::DrawParticles( void )
 		pDraw->Vertex3fv(vpoint);
 		nbVertexes += 6;
 
-		if(i < (m_nbSortedParticles-1) && (nbVertexes+6) >= CBasicDraw::BASICDRAW_CACHE_SIZE)
+		if(i < (m_nbSortedParticles-1) && (nbVertexes+6) >= CBasicDraw::BASICDRAW_VERTEX_CACHE_SIZE)
 		{
 			pDraw->End();
-			pDraw->Begin(GL_TRIANGLES);
+			pDraw->Begin(CBasicDraw::DRAW_QUADS);
 		}
 	}
 

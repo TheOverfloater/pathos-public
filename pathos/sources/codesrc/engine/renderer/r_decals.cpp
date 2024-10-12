@@ -174,7 +174,7 @@ bool CDecalManager::DrawBogusDecals( void )
 		else
 			glEnable(GL_DEPTH_TEST);
 
-		pDraw->Begin(GL_LINES);
+		pDraw->Begin(CBasicDraw::DRAW_LINES);
 
 		for(Uint32 i = 0; i < 3; i++)
 		{

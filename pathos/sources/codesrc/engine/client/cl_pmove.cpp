@@ -37,7 +37,7 @@ Int32 CL_TestPlayerPosition( hull_types_t hulltype, Int32 flags, const class Vec
 //=============================================
 //
 //=============================================
-Int32 CL_PointContents( const Vector& position, Int32* truecontents )
+Int32 CL_PointContents( const Vector& position, Int32* truecontents, bool particleBlockers )
 {
 	Int32 contents = TR_HullPointContents(&ens.pworld->hulls[0], 0, position);
 	if(truecontents)
@@ -62,6 +62,9 @@ Int32 CL_PointContents( const Vector& position, Int32* truecontents )
 			continue;
 
 		if(pentity->curstate.msg_num != pplayer->curstate.msg_num)
+			continue;
+
+		if(pentity->curstate.flags & FL_PARTICLE_BLOCKER)
 			continue;
 
 		Math::VectorAdd(pentity->curstate.origin, pentity->curstate.mins, mins);
@@ -92,6 +95,56 @@ Int32 CL_PointContents( const Vector& position, Int32* truecontents )
 				return pentity->curstate.skin;
 			else
 				return contents;
+		}
+	}
+
+	if(particleBlockers)
+	{
+		for(Int32 i = 0; i < cls.numparticleblockers; i++)
+		{
+			Int32 entindex = cls.particleblockers[i];
+			cl_entity_t* pentity = CL_GetEntityByIndex(entindex);
+			if(!pentity->pmodel)
+				continue;
+
+			if(!pentity->curstate.modelindex)
+				continue;
+
+			if(pentity->curstate.msg_num != pplayer->curstate.msg_num)
+				continue;
+
+			if(!(pentity->curstate.flags & FL_PARTICLE_BLOCKER))
+				continue;
+
+			Math::VectorAdd(pentity->curstate.origin, pentity->curstate.mins, mins);
+			Math::VectorAdd(pentity->curstate.origin, pentity->curstate.maxs, maxs);
+
+			Math::VectorSubtract(mins, Vector(1, 1, 1), mins);
+			Math::VectorAdd(maxs, Vector(1, 1, 1), maxs);
+
+			if(!Math::PointInMinsMaxs(position, mins, maxs))
+				continue;
+
+			const cache_model_t* pmodel = Cache_GetModel(pentity->curstate.modelindex);
+			if(!pmodel || pmodel->type != MOD_BRUSH)
+				continue;
+
+			Vector lposition = position;
+			if(!pentity->curstate.origin.IsZero())
+				Math::VectorSubtract(lposition, pentity->curstate.origin, lposition);
+
+			if(!pentity->curstate.angles.IsZero())
+				Math::RotateToEntitySpace(pentity->curstate.angles, lposition);
+
+			const brushmodel_t* pbrushmodel = pmodel->getBrushmodel();
+			contents = TR_HullPointContents(&pbrushmodel->hulls[0], pbrushmodel->hulls[0].firstclipnode, lposition);
+			if(contents != CONTENTS_EMPTY)
+			{
+				if(pentity->curstate.solid == SOLID_NOT && pentity->curstate.skin <= CONTENTS_WATER && pentity->curstate.skin >= CONTENTS_LAVA)
+					return pentity->curstate.skin;
+				else
+					return contents;
+			}
 		}
 	}
 
@@ -204,6 +257,9 @@ void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 			if(pentity->curstate.flags & FL_PMOVE_IGNORE)
 				continue;
 
+			if(pentity->curstate.flags & FL_PARTICLE_BLOCKER)
+				continue;
+
 			if(pentity->curstate.owner == pplayer->entindex)
 				continue;
 
@@ -243,6 +299,57 @@ void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 			// Update VBM hull data if needed
 			if(pentity->pmodel->type == MOD_VBM && (pentity->pmodel->flags & STUDIO_MF_TRACE_HITBOX || traceflags & FL_TRACE_HITBOXES))
 				TR_VBMSetHullInfo(pentity->pvbmhulldata, pentity->pmodel, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], pentity->curstate, cls.cl_time, hulltype);
+
+			TR_PlayerTraceSingleEntity(pentity->curstate, pentity->pvbmhulldata, start, end, hulltype, traceflags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
+		}
+	}
+
+	if(traceflags & FL_TRACE_PARTICLE_BLOCKERS)
+	{
+		Vector tracemins, tracemaxs;
+		TR_MoveBoundsPoint(start, end, tracemins, tracemaxs);
+		Math::VectorAdd(tracemins, cls.pminfo.player_mins[hulltype], tracemins);
+		Math::VectorAdd(tracemaxs, cls.pminfo.player_maxs[hulltype], tracemaxs);
+
+		for(Int32 i = 0; i < cls.numparticleblockers; i++)
+		{
+			Int32 entindex = cls.particleblockers[i];
+			if(entindex == ignore_ent)
+				continue;
+
+			cl_entity_t* pentity = CL_GetEntityByIndex(entindex);
+			if(!pentity->pmodel)
+				continue;
+
+			if(pentity->pmodel->type != MOD_BRUSH)
+				continue;
+
+			if(pentity->curstate.solid == SOLID_NOT)
+				continue;
+
+			if(!(pentity->curstate.flags & FL_PARTICLE_BLOCKER))
+				continue;
+
+			if(Cache_GetModelType(*pentity->pmodel) == MOD_BRUSH && !pentity->curstate.angles.IsZero())
+			{
+				for(Uint32 j = 0; j < 3; j++)
+				{
+					mins[j] = pentity->curstate.origin[j] - pentity->pmodel->radius;
+					maxs[j] = pentity->curstate.origin[j] + pentity->pmodel->radius;
+				}
+			}
+			else
+			{
+				Math::VectorAdd(pentity->curstate.origin, pentity->curstate.mins, mins);
+				Math::VectorAdd(pentity->curstate.origin, pentity->curstate.maxs, maxs);
+			}
+
+			Math::VectorAdd(mins, cls.pminfo.player_mins[hulltype], mins);
+			Math::VectorAdd(maxs, cls.pminfo.player_maxs[hulltype], maxs);
+
+			// Optimize on traceline
+			if(Math::CheckMinsMaxs(tracemins, tracemaxs, mins, maxs))
+				continue;
 
 			TR_PlayerTraceSingleEntity(pentity->curstate, pentity->pvbmhulldata, start, end, hulltype, traceflags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
 		}

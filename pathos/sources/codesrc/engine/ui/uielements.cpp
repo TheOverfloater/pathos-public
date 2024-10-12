@@ -14,6 +14,7 @@ All Rights Reserved.
 #include "fontset.h"
 #include "matrix.h"
 #include "uimanager.h"
+#include "r_basicdraw.h"
 
 // UI engine function pointers
 ui_engine_interface_t CUIObject::g_engineFuncs;
@@ -710,7 +711,7 @@ bool CUITexturedObject::draw( void )
 
 		g_engineFuncs.pfnValidateBasicDraw();
 
-		g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
+		g_engineFuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_TRIANGLES);
 		g_engineFuncs.pfnBasicDrawTexCoord2f(0, tcmax_y);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos), static_cast<Float>(ypos) + static_cast<Float>(m_height), -1);
 
@@ -2234,7 +2235,7 @@ bool CUITextInputTab::draw( void )
 
 		g_engineFuncs.pfnValidateBasicDraw();
 
-		g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
+		g_engineFuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_TRIANGLES);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xOrg),				static_cast<Float>(yOrg+markerHeight), -1);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xOrg),				static_cast<Float>(yOrg), -1);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xOrg+markerWidth),	static_cast<Float>(yOrg), -1);
@@ -4035,7 +4036,7 @@ bool CUIListRow::draw( void )
 
 		g_engineFuncs.pfnValidateBasicDraw();
 
-		g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
+		g_engineFuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_TRIANGLES);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos+m_height), -1);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos), -1);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos+m_width),	static_cast<Float>(ypos), -1);
@@ -4067,7 +4068,7 @@ bool CUIListRow::draw( void )
 
 		g_engineFuncs.pfnValidateBasicDraw();
 
-		g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
+		g_engineFuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_TRIANGLES);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos+m_height), -1);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos), -1);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos+colWidth),	static_cast<Float>(ypos), -1);
@@ -4128,7 +4129,7 @@ bool CUIListSeparator::draw( void )
 
 	g_engineFuncs.pfnValidateBasicDraw();
 
-	g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
+	g_engineFuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_TRIANGLES);
 	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos+sepHeight), -1);
 	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos),			static_cast<Float>(ypos), -1);
 	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xpos+sepWidth),	static_cast<Float>(ypos), -1);
@@ -4594,7 +4595,7 @@ bool CUISlider::draw( void )
 		g_engineFuncs.pfnValidateBasicDraw();
 
 		// Draw it
-		g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
+		g_engineFuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_TRIANGLES);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos),				static_cast<Float>(yPos+markerHeight),		-1);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos),				static_cast<Float>(yPos),					-1);
 		g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos+markerWidth),	static_cast<Float>(yPos),					-1);
@@ -4827,7 +4828,7 @@ bool CUIProgressBar::draw( void )
 	g_engineFuncs.pfnValidateBasicDraw();
 
 	// Draw it
-	g_engineFuncs.pfnBasicDrawBegin(GL_TRIANGLES);
+	g_engineFuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_TRIANGLES);
 	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos),				static_cast<Float>(yPos+meterHeight),		-1);
 	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos),				static_cast<Float>(yPos),					-1);
 	g_engineFuncs.pfnBasicDrawVertex3f(static_cast<Float>(xPos+meterWidth),		static_cast<Float>(yPos),					-1);

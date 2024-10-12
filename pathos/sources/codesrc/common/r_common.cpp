@@ -20,25 +20,10 @@ All Rights Reserved.
 #include "textures_shared.h"
 
 //=============================================
-//
-//=============================================
-Int32 R_StyleIndex ( const msurface_t *psurface, Uint32 style )
-{
-	for (Uint32 j = 0 ; j < psurface->styles.size() && psurface->styles[j] != 255 ; j++)
-	{
-		if (psurface->styles[j] == style)
-			return j;
-	}
-
-	return -1;
-}
-
-
-//=============================================
 // @brief
 //
 //=============================================
-void R_AllocBlock ( Uint32 w, Uint32 h, Uint32 &x, Uint32 &y, Uint32 width, Uint32 &height, Uint32* pallocations )
+void R_AllocBlock ( Uint32 w, Uint32 h, Uint32 &x, Uint32 &y, Uint32& width, Uint32 &height, Uint32*& pallocations )
 { 
 	Uint32 ibest1 = height;
 	for(Uint32 i = 0; i < width-w; i++)
@@ -64,8 +49,28 @@ void R_AllocBlock ( Uint32 w, Uint32 h, Uint32 &x, Uint32 &y, Uint32 width, Uint
 
 	if((ibest1+h) > height)
 	{
-		// Increase height
-		height *= 2;
+		if(height == width)
+		{
+			// Increase height only if sizes match
+			height *= 2;
+		}
+		else
+		{
+			// If sizes don't match, then the next to be increased is width
+			Uint32 newwidth = width*2;
+			Uint32* pnewalloc = new Uint32[newwidth];
+
+			for(Uint32 i = 0; i < width; i++)
+				pnewalloc[i] = pallocations[i];
+
+			for(Uint32 i = width; i < newwidth; i++)
+				pnewalloc[i] = 0;
+
+			// Delete original and set ptr
+			delete[] pallocations;
+			pallocations = pnewalloc;
+			width = newwidth;
+		}
 
 		// try again
 		R_AllocBlock(w, h, x, y, width, height, pallocations);
@@ -85,8 +90,8 @@ color24_t *R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psa
 	static color24_t blocklights[BLOCKLIGHTS_SIZE];
 	color24_t *pblock = blocklights;
 
-	const Uint32 smax = (psurface->extents[0]>>4)+1;
-	const Uint32 tmax = (psurface->extents[1]>>4)+1;
+	const Uint32 smax = (psurface->extents[0] / psurface->lightmapdivider) + 1;
+	const Uint32 tmax = (psurface->extents[1] / psurface->lightmapdivider) + 1;
 	const Uint32 size = smax*tmax;
 	
 	if(size > BLOCKLIGHTS_SIZE)
@@ -130,7 +135,7 @@ color24_t *R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psa
 		}
 
 		// Do not perform this on lightvecs
-		if(overdarken > 0 && index != R_StyleIndex(psurface, LM_LIGHTVECS_STYLE))
+		if(overdarken > 0 && !isvectormap)
 		{
 			const color24_t* prefsrc = psamples;
 			for (Uint32 i = 0; i < size; i++)
@@ -138,7 +143,7 @@ color24_t *R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psa
 				Vector color = Vector(prefsrc[i].r, prefsrc[i].g, prefsrc[i].b);
 				Math::VectorScale(color, 1.0f / 255.0f, color);
 
-				// Darken pixels with low values, helps make maps darker
+				// Darken pixels with low values, helps make maps darker despite overbright
 				Float dot = Math::DotProduct(color, Vector(0.2126, 0.7152, 0.0722));
 				Float flintensity = _max((dot * 255)/overdarken, 1);
 

@@ -711,6 +711,9 @@ private:
 	// Returns relative vector
 	void TransformRelativeVector( const Vector& basevector, particle_system_t *psystem, Vector& outvector, bool iscoordinate, bool inverse );
 
+	// Do point contents check
+	Int32 PointContentsParticle( const Vector& position );
+
 private:
 	// Controls rendering of particles
 	CCVar *m_pCvarDrawParticles;

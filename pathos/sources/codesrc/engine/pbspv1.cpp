@@ -17,6 +17,7 @@ All Rights Reserved.
 #include "system.h"
 #include "logfile.h"
 #include "enginestate.h"
+#include "bsp_shared.h"
 
 //=============================================
 // @brief
@@ -33,28 +34,28 @@ brushmodel_t* PBSPV1_Load( const byte* pfile, const dpbspv1header_t* pheader, co
 	pmodel->freedata = true;
 
 	// Load the lumps
-	if(!PBSPV1_LoadVertexes(pfile, (*pmodel), pheader->lumps[LUMP_VERTEXES])
-		|| !PBSPV1_LoadEdges(pfile, (*pmodel), pheader->lumps[LUMP_EDGES])
-		|| !PBSPV1_LoadSurfedges(pfile, (*pmodel), pheader->lumps[LUMP_SURFEDGES])
-		|| !PBSPV1_LoadTextures(pfile, (*pmodel), pheader->lumps[LUMP_TEXTURES])
-		|| !PBSPV1_LoadLighting(pfile, (*pmodel), pheader->lumps[LUMP_LIGHTING])
-		|| !PBSPV1_LoadTexinfo(pfile, (*pmodel), pheader->lumps[LUMP_TEXINFO])
-		|| !PBSPV1_LoadPlanes(pfile, (*pmodel), pheader->lumps[LUMP_PLANES])
-		|| !PBSPV1_LoadFaces(pfile, (*pmodel), pheader->lumps[LUMP_FACES])
-		|| !PBSPV1_LoadMarksurfaces(pfile, (*pmodel), pheader->lumps[LUMP_MARKSURFACES])
-		|| !PBSPV1_LoadVisibility(pfile, (*pmodel), pheader->lumps[LUMP_VISIBILITY])
-		|| !PBSPV1_LoadLeafs(pfile, (*pmodel), pheader->lumps[LUMP_LEAFS])
-		|| !PBSPV1_LoadNodes(pfile, (*pmodel), pheader->lumps[LUMP_NODES])
-		|| !PBSPV1_LoadClipnodes(pfile, (*pmodel), pheader->lumps[LUMP_CLIPNODES])
-		|| !PBSPV1_LoadEntities(pfile, (*pmodel), pheader->lumps[LUMP_ENTITIES])
-		|| !PBSPV1_LoadSubmodels(pfile, (*pmodel), pheader->lumps[LUMP_MODELS]))
+	if(!PBSPV1_LoadVertexes(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_VERTEXES])
+		|| !PBSPV1_LoadEdges(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_EDGES])
+		|| !PBSPV1_LoadSurfedges(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_SURFEDGES])
+		|| !PBSPV1_LoadTextures(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_TEXTURES])
+		|| !PBSPV1_LoadLighting(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_LIGHTING])
+		|| !PBSPV1_LoadTexinfo(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_TEXINFO])
+		|| !PBSPV1_LoadPlanes(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_PLANES])
+		|| !PBSPV1_LoadFaces(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_FACES])
+		|| !PBSPV1_LoadMarksurfaces(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_MARKSURFACES])
+		|| !PBSPV1_LoadVisibility(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_VISIBILITY])
+		|| !PBSPV1_LoadLeafs(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_LEAFS])
+		|| !PBSPV1_LoadNodes(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_NODES])
+		|| !PBSPV1_LoadClipnodes(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_CLIPNODES])
+		|| !PBSPV1_LoadEntities(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_ENTITIES])
+		|| !PBSPV1_LoadSubmodels(pfile, (*pmodel), pheader->lumps[PBSPV1_LUMP_MODELS]))
 	{
 		delete pmodel;
 		return nullptr;
 	}
 
 	// Set up everything else
-	PBSPV1_MakeHullZero((*pmodel));
+	BSP_MakeHullZero((*pmodel));
 
 	return pmodel;
 }
@@ -63,7 +64,7 @@ brushmodel_t* PBSPV1_Load( const byte* pfile, const dpbspv1header_t* pheader, co
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadVertexes( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadVertexes( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv1vertex_t))
@@ -90,7 +91,7 @@ bool PBSPV1_LoadVertexes( const byte* pfile, brushmodel_t& model, const lump_t& 
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadEdges( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadEdges( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv1edge_t))
@@ -109,8 +110,8 @@ bool PBSPV1_LoadEdges( const byte* pfile, brushmodel_t& model, const lump_t& lum
 
 	for(Uint32 i = 0; i < count; i++)
 	{
-		poutedges[i].vertexes[0] = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinedges[i].vertexes[0]));
-		poutedges[i].vertexes[1] = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinedges[i].vertexes[1]));
+		poutedges[i].vertexes[0] = pinedges[i].vertexes[0];
+		poutedges[i].vertexes[1] = pinedges[i].vertexes[1];
 	}
 
 	return true;
@@ -120,7 +121,7 @@ bool PBSPV1_LoadEdges( const byte* pfile, brushmodel_t& model, const lump_t& lum
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadSurfedges( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadSurfedges( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	// Check if sizes are correct
 	if(lump.size % sizeof(Int32))
@@ -145,7 +146,7 @@ bool PBSPV1_LoadSurfedges( const byte* pfile, brushmodel_t& model, const lump_t&
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadTextures( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadTextures( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	if(!lump.size)
 	{
@@ -302,7 +303,7 @@ bool PBSPV1_LoadTextures( const byte* pfile, brushmodel_t& model, const lump_t& 
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadLighting( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadLighting( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	if(!lump.size)
 		return true;
@@ -314,13 +315,13 @@ bool PBSPV1_LoadLighting( const byte* pfile, brushmodel_t& model, const lump_t& 
 		return false;
 	}
 
-	model.pbaselightdata = reinterpret_cast<color24_t *>(new byte[lump.size]);
+	model.pbaselightdata[SURF_LIGHTMAP_DEFAULT] = reinterpret_cast<color24_t *>(new byte[lump.size]);
 	model.lightdatasize = lump.size;
 
 	const byte *psrc = (pfile + lump.offset);
-	memcpy(model.pbaselightdata, psrc, sizeof(byte)*lump.size);
+	memcpy(model.pbaselightdata[SURF_LIGHTMAP_DEFAULT], psrc, sizeof(byte)*lump.size);
 
-	model.plightdata = model.pbaselightdata;
+	model.plightdata[SURF_LIGHTMAP_DEFAULT] = model.pbaselightdata[SURF_LIGHTMAP_DEFAULT];
 
 	return true;
 }
@@ -329,7 +330,7 @@ bool PBSPV1_LoadLighting( const byte* pfile, brushmodel_t& model, const lump_t& 
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadPlanes( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadPlanes( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv1plane_t))
@@ -368,7 +369,7 @@ bool PBSPV1_LoadPlanes( const byte* pfile, brushmodel_t& model, const lump_t& lu
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadTexinfo( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadTexinfo( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv1texinfo_t))
@@ -409,7 +410,7 @@ bool PBSPV1_LoadTexinfo( const byte* pfile, brushmodel_t& model, const lump_t& l
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadFaces( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadFaces( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv1face_t))
@@ -426,44 +427,160 @@ bool PBSPV1_LoadFaces( const byte* pfile, brushmodel_t& model, const lump_t& lum
 	model.psurfaces = poutsurfaces;
 	model.numsurfaces = count;
 
+	// If we need to re-organize lighting data
+	byte* plightdata[NB_SURF_LIGHTMAP_LAYERS] = { nullptr };
+	Uint32 lightdatasize = 0;
+
+	bool hasBumpMapData = false;
+	for(Uint32 i = 0; i < count; i++)
+	{
+		Uint32 j = 0;
+		for(; j < MAX_SURFACE_STYLES; j++)
+		{
+			if(pinfaces[i].lmstyles[j] == PBSPV1_LM_AMBIENT_STYLE
+				|| pinfaces[i].lmstyles[j] == PBSPV1_LM_DIFFUSE_STYLE
+				|| pinfaces[i].lmstyles[j] == PBSPV1_LM_LIGHTVECS_STYLE)
+			{
+				break;
+			}
+		}
+
+		if(j != MAX_SURFACE_STYLES)
+		{
+			hasBumpMapData = true;
+			break;
+		}
+	}
+
+	// If we found bump data, allocate the lightmaps
+	if(hasBumpMapData)
+	{
+		for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
+		{
+			plightdata[j] = new byte[model.lightdatasize];
+			memset(plightdata[j], 0, sizeof(model.lightdatasize));
+		}
+	}
+
+	// Check if we have any bump map data
 	for(Uint32 i = 0; i < count; i++)
 	{
 		msurface_t* pout = &poutsurfaces[i];
 
 		pout->firstedge = pinfaces[i].firstedge;
-		pout->numedges = Common::ByteToInt32(reinterpret_cast<const byte *>(&pinfaces[i].numedges));
+		pout->numedges = pinfaces[i].numedges;
 		pout->flags = 0;
 
-		Uint32 planeindex = Common::ByteToUint32(reinterpret_cast<const byte *>(&pinfaces[i].planenum));
-		Int32 side = Common::ByteToInt32(reinterpret_cast<const byte *>(&pinfaces[i].side));
+		Uint32 planeindex = pinfaces[i].planenum;
+		Int32 side = pinfaces[i].side;
 		if(side)
 			pout->flags |= SURF_PLANEBACK;
 
 		pout->pplane = &model.pplanes[planeindex];
 		
-		Int32 texinfoindex = Common::ByteToInt32(reinterpret_cast<const byte*>(&pinfaces[i].texinfo));
+		Int32 texinfoindex = pinfaces[i].texinfo;
 		pout->ptexinfo = &model.ptexinfos[texinfoindex];
 
-		if(!PBSPV1_CalcSurfaceExtents(pout, model))
+		pout->lightmapdivider = PBSPV1_LM_SAMPLE_SIZE;
+		if(!BSP_CalcSurfaceExtents(pout, model))
 			return false;
 
-		pout->styles.resize(PBSPV1_MAX_LIGHTMAPS);
-		for(Uint32 j = 0; j < PBSPV1_MAX_LIGHTMAPS; j++)
+		for(Uint32 j = 0; j < MAX_SURFACE_STYLES; j++)
 			pout->styles[j] = pinfaces[i].lmstyles[j];
 		
 		if(pinfaces[i].lightoffset != -1)
 		{
-			pout->psamples = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(model.plightdata) + pinfaces[i].lightoffset);
-			pout->lightoffset = pinfaces[i].lightoffset;
+			Int32 ambientIndex = Mod_StyleIndex(pout, PBSPV1_LM_AMBIENT_STYLE);
+			Int32 diffuseIndex = Mod_StyleIndex(pout, PBSPV1_LM_DIFFUSE_STYLE);
+			Int32 vectorsIndex = Mod_StyleIndex(pout, PBSPV1_LM_LIGHTVECS_STYLE);
+		
+			// Manage reorganization of lighting data into what the engine needs
+			if(hasBumpMapData && ambientIndex != NO_POSITION && diffuseIndex != NO_POSITION && vectorsIndex != NO_POSITION)
+			{
+				// Calculate extents
+				Uint32 xsize = (pout->extents[0] / pout->lightmapdivider)+1;
+				Uint32 ysize = (pout->extents[1] / pout->lightmapdivider)+1;
+				Uint32 size = xsize*ysize;
+
+				// Set up indexes
+				Int32 layerIndexes[NB_SURF_LIGHTMAP_LAYERS] = { 
+					0,				// SURF_LIGHTMAP_DEFAULT
+					vectorsIndex,	 // SURF_LIGHTMAP_VECTORS
+					ambientIndex,	 // SURF_LIGHTMAP_AMBIENT
+					diffuseIndex,	 // SURF_LIGHTMAP_DIFFUSE
+				};
+
+				for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
+				{
+					// Set final data offset and copy the data
+					byte* pdestination = plightdata[j] + lightdatasize;
+					color24_t* psrclightdata = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(model.plightdata[SURF_LIGHTMAP_DEFAULT]) + pinfaces[i].lightoffset) + size * layerIndexes[j];
+					memcpy(pdestination, psrclightdata, sizeof(color24_t)*size);
+				}
+
+				// Set light data offset and increase size
+				pout->lightoffset = lightdatasize;
+				lightdatasize += size*sizeof(color24_t);
+			}
+			else
+			{
+				// We only have the base layer
+				pout->psamples[SURF_LIGHTMAP_DEFAULT] = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(model.plightdata[SURF_LIGHTMAP_DEFAULT]) + pinfaces[i].lightoffset);
+				pout->lightoffset = pinfaces[i].lightoffset;
+			}
+
+			// If any of these were set, clear the styles entirely past position 0
+			if(ambientIndex != NO_POSITION || diffuseIndex != NO_POSITION || vectorsIndex != NO_POSITION)
+			{
+				for(Uint32 j = 1; j < MAX_SURFACE_STYLES; j++)
+					pout->styles[j] = 255;
+			}
 		}
 		else
 		{
+			// No light data at all
 			pout->lightoffset = -1;
 		}
 
 		// Flag sky surfaces
 		if(!qstrncmp(pout->ptexinfo->ptexture->name.c_str(), "sky", 3))
 			pout->flags |= SURF_DRAWSKY;
+	}
+
+	// Re-organize light data if needed
+	if(hasBumpMapData)
+	{
+		// Delete original lightdata
+		if(model.plightdata[SURF_LIGHTMAP_DEFAULT])
+			delete[] model.plightdata[SURF_LIGHTMAP_DEFAULT];
+
+		// Resize the lighting data to it's final size
+		for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+		{
+			byte* pfinaldata = new byte[lightdatasize];
+			memcpy(pfinaldata, plightdata[i], sizeof(byte)*lightdatasize);
+
+			// Set pointers and data sizes
+			model.pbaselightdata[i] = reinterpret_cast<color24_t*>(pfinaldata);
+			model.plightdata[i] = model.pbaselightdata[i];
+
+			// Delete temporary array we made
+			delete[] plightdata[i];
+		}
+
+		// Set final size
+		model.lightdatasize = lightdatasize;
+
+		// Now modify the data ptrs
+		for(Uint32 i = 0; i < model.numsurfaces; i++)
+		{
+			msurface_t* psurface = &model.psurfaces[i];
+			if(psurface->lightoffset == -1)
+				continue;
+
+			for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
+				psurface->psamples[j] = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(model.plightdata[j]) + psurface->lightoffset);
+		}
 	}
 
 	return true;
@@ -473,7 +590,7 @@ bool PBSPV1_LoadFaces( const byte* pfile, brushmodel_t& model, const lump_t& lum
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadMarksurfaces( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadMarksurfaces( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	// Check if sizes are correct
 	if(lump.size % sizeof(Int32))
@@ -492,7 +609,7 @@ bool PBSPV1_LoadMarksurfaces( const byte* pfile, brushmodel_t& model, const lump
 
 	for(Uint32 i = 0; i < count; i++)
 	{
-		Uint32 surfindex = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinmarksurfaces[i]));
+		Uint32 surfindex = pinmarksurfaces[i];
 		if(surfindex >= count)
 		{
 			Con_EPrintf("PBSPV1_LoadFaces - Bad surface index.\n");
@@ -509,7 +626,7 @@ bool PBSPV1_LoadMarksurfaces( const byte* pfile, brushmodel_t& model, const lump
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadVisibility( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadVisibility( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	if(!lump.size)
 		return true;
@@ -527,7 +644,7 @@ bool PBSPV1_LoadVisibility( const byte* pfile, brushmodel_t& model, const lump_t
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadLeafs( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadLeafs( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv1leaf_t))
@@ -556,9 +673,9 @@ bool PBSPV1_LoadLeafs( const byte* pfile, brushmodel_t& model, const lump_t& lum
 
 		pout->contents = pinleafs[i].contents;
 
-		Uint32 marksurfindex = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinleafs[i].firstmarksurface));
+		Uint32 marksurfindex = pinleafs[i].firstmarksurface;
 		pout->pfirstmarksurface = &model.pmarksurfaces[marksurfindex];
-		pout->nummarksurfaces = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinleafs[i].nummarksurfaces));
+		pout->nummarksurfaces = pinleafs[i].nummarksurfaces;
 
 		if(pinleafs[i].visoffset != -1)
 			pout->pcompressedvis = model.pvisdata + pinleafs[i].visoffset;
@@ -571,7 +688,7 @@ bool PBSPV1_LoadLeafs( const byte* pfile, brushmodel_t& model, const lump_t& lum
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadNodes( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadNodes( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv1node_t))
@@ -600,12 +717,12 @@ bool PBSPV1_LoadNodes( const byte* pfile, brushmodel_t& model, const lump_t& lum
 
 		pout->pplane = &model.pplanes[pinnodes[i].planenum];
 
-		pout->firstsurface = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinnodes[i].firstface));
-		pout->numsurfaces = Common::ByteToUint32(reinterpret_cast<const byte*>(&pinnodes[i].numfaces));
+		pout->firstsurface = pinnodes[i].firstface;
+		pout->numsurfaces = pinnodes[i].numfaces;
 
 		for(Uint32 j = 0; j < 2; j++)
 		{
-			Int32 nodeidx = Common::ByteToInt32(reinterpret_cast<const byte*>(&pinnodes[i].children[j]));
+			Int32 nodeidx = pinnodes[i].children[j];
 
 			if(nodeidx >= 0)
 				pout->pchildren[j] = &model.pnodes[nodeidx];
@@ -615,7 +732,7 @@ bool PBSPV1_LoadNodes( const byte* pfile, brushmodel_t& model, const lump_t& lum
 	}
 
 	// Set linkage info on nodes
-	PBSPV1_SetNodeParent(model.pnodes, nullptr);
+	BSP_SetNodeParent(model.pnodes, nullptr);
 	return true;
 }
 
@@ -623,7 +740,7 @@ bool PBSPV1_LoadNodes( const byte* pfile, brushmodel_t& model, const lump_t& lum
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadClipnodes( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadClipnodes( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv1clipnode_t))
@@ -685,8 +802,8 @@ bool PBSPV1_LoadClipnodes( const byte* pfile, brushmodel_t& model, const lump_t&
 	for(Uint32 i = 0; i < count; i++)
 	{
 		poutnodes[i].planenum = pinnodes[i].planenum;
-		poutnodes[i].children[0] = Common::ByteToInt32(reinterpret_cast<const byte*>(&pinnodes[i].children[0]));
-		poutnodes[i].children[1] = Common::ByteToInt32(reinterpret_cast<const byte*>(&pinnodes[i].children[1]));
+		poutnodes[i].children[0] = pinnodes[i].children[0];
+		poutnodes[i].children[1] = pinnodes[i].children[1];
 	}
 
 	return true;
@@ -696,7 +813,7 @@ bool PBSPV1_LoadClipnodes( const byte* pfile, brushmodel_t& model, const lump_t&
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadEntities( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadEntities( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	if(!lump.size)
 		return true;
@@ -713,7 +830,7 @@ bool PBSPV1_LoadEntities( const byte* pfile, brushmodel_t& model, const lump_t& 
 // @brief
 //
 //=============================================
-bool PBSPV1_LoadSubmodels( const byte* pfile, brushmodel_t& model, const lump_t& lump )
+bool PBSPV1_LoadSubmodels( const byte* pfile, brushmodel_t& model, const dpbspv1lump_t& lump )
 {
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv1model_t))
@@ -750,198 +867,4 @@ bool PBSPV1_LoadSubmodels( const byte* pfile, brushmodel_t& model, const lump_t&
 	}
 
 	return true;
-}
-
-//=============================================
-// @brief
-//
-//=============================================
-void PBSPV1_SetNodeParent( mnode_t* pnode, mnode_t* pparent )
-{
-	pnode->pparent = pparent;
-	if(pnode->contents < 0)
-		return;
-
-	PBSPV1_SetNodeParent(pnode->pchildren[0], pnode);
-	PBSPV1_SetNodeParent(pnode->pchildren[1], pnode);
-}
-
-//=============================================
-// @brief
-//
-//=============================================
-bool PBSPV1_CalcSurfaceExtents( msurface_t* psurf, brushmodel_t& model )
-{
-	Vector vmins = NULL_MINS;
-	Vector vmaxs = NULL_MAXS;
-
-	Float mins[2] = { NULL_MINS[0], NULL_MINS[1] };
-	Float maxs[2] = { NULL_MAXS[0], NULL_MAXS[1] };
-
-	mtexinfo_t* ptexinfo = psurf->ptexinfo;
-	for(Uint32 i = 0; i < psurf->numedges; i++)
-	{
-		// Get the vertex
-		mvertex_t* pvertex = nullptr;
-		Int32 edgeindex = model.psurfedges[psurf->firstedge+i];
-		if(edgeindex >= 0)
-			pvertex = &model.pvertexes[model.pedges[edgeindex].vertexes[0]];
-		else
-			pvertex = &model.pvertexes[model.pedges[-edgeindex].vertexes[1]];
-
-		// Set mins/maxs coords
-		for(Uint32 j = 0; j < 3; j++)
-		{
-			if(pvertex->origin[j] < vmins[j])
-				vmins[j] = pvertex->origin[j];
-
-			if(pvertex->origin[j] > vmaxs[j])
-				vmaxs[j] = pvertex->origin[j];
-		}
-
-		// Calculate surface extents
-		for(Uint32 j = 0; j < 2; j++)
-		{
-			Float val = pvertex->origin[0] * static_cast<Double>(ptexinfo->vecs[j][0]) 
-					+ pvertex->origin[1] * static_cast<Double>(ptexinfo->vecs[j][1])
-					+ pvertex->origin[2] * static_cast<Double>(ptexinfo->vecs[j][2])
-					+ static_cast<Double>(ptexinfo->vecs[j][3]);
-
-			if(val < mins[j])
-				mins[j] = val;
-
-			if(val > maxs[j])
-				maxs[j] = val;
-		}
-	}
-
-	// Set mins/maxs
-	psurf->mins = vmins;
-	psurf->maxs = vmaxs;
-
-	for(Uint32 i = 0; i < 2; i++)
-	{
-		Int16 boundsmin = static_cast<Int16>(SDL_floor(mins[i]/PBSPV1_LM_SAMPLE_SIZE));
-		Int16 boundsmax = static_cast<Int16>(SDL_ceil(maxs[i]/PBSPV1_LM_SAMPLE_SIZE));
-
-		psurf->texturemins[i] = boundsmin*PBSPV1_LM_SAMPLE_SIZE;
-		psurf->extents[i] = (boundsmax - boundsmin) * PBSPV1_LM_SAMPLE_SIZE;
-
-		if(!(ptexinfo->flags & TEXFLAG_SPECIAL) && psurf->extents[i] > MAX_SURFACE_EXTENTS)
-		{
-			Con_EPrintf("%s: Bad surface extents.\n", __FUNCTION__);
-			return false;
-		}
-	}
-
-	return true;
-}
-
-//=============================================
-// @brief
-//
-//=============================================
-void PBSPV1_MakeHullZero( brushmodel_t& model )
-{
-	hull_t* phull = &model.hulls[0];
-	phull->pclipnodes = new mclipnode_t[model.numnodes];
-	phull->firstclipnode = 0;
-	phull->lastclipnode = model.numnodes;
-	phull->pplanes = model.pplanes;
-
-	for(Uint32 i = 0; i < model.numnodes; i++)
-	{
-		mclipnode_t* pnode = &phull->pclipnodes[i];
-		pnode->planenum = model.pnodes[i].pplane - model.pplanes;
-
-		for(Uint32 j = 0; j < 2; j++)
-		{
-			mnode_t* pchild = model.pnodes[i].pchildren[j];
-			if(pchild->contents < 0)
-				pnode->children[j] = pchild->contents;
-			else
-				pnode->children[j] = pchild - model.pnodes;
-		}
-	}
-}
-
-//=============================================
-// @brief
-//
-//=============================================
-void PBSPV1_SetupPAS( brushmodel_t& model )
-{
-	byte* ppasdata = new byte[ens.visbuffersize];
-	memset(ppasdata, 0, sizeof(byte)*ens.visbuffersize);
-
-	// Set up PAS
-	Int32 num = model.numleafs + 1;
-	Int32 rowwords = (num + 31)>>5;
-	Int32 rowbytes = rowwords * 4;
-
-	Int32 *visofs = new Int32[num];
-	byte *uncompressed_vis = new byte[rowbytes*num];
-	byte *uncompressed_pas = new byte[rowbytes*num];
-	byte *compressed_pas = new byte[rowbytes*num*4];
-
-	byte *vismap, *vismap_p;
-	vismap = vismap_p = compressed_pas;
-	byte *scan = uncompressed_vis;
-
-	for( Int32 i = 0; i < num; i++, scan += rowbytes )
-		memcpy( scan, Mod_LeafPVS(ppasdata, ens.visbuffersize, model.pleafs[i], model), sizeof(byte)*rowbytes );
-
-	Uint32 rowsize = 0, total_size = 0;
-	Uint32 *dest = reinterpret_cast<Uint32 *>(uncompressed_pas);
-	scan = uncompressed_vis;
-
-	for( Int32 i = 0; i < num; i++, dest += rowwords, scan += rowbytes )
-	{
-		memcpy( dest, scan, sizeof(byte)*rowbytes );
-
-		for( Int32 j = 0; j < rowbytes; j++ )
-		{
-			Int32 bitbyte = scan[j];
-			if( !bitbyte ) 
-				continue;
-
-			for( Int32 k = 0; k < 8; k++ )
-			{
-				if(!( bitbyte & ( 1<<k )))
-					continue;
-
-				Int32 index = ((j<<3) + k + 1);
-				if( index >= num ) 
-					continue;
-
-				Uint32 *src = reinterpret_cast<Uint32 *>(uncompressed_vis + index * rowwords);
-				for( Int32 l = 0; l < rowwords; l++ )
-					dest[l] |= src[l];
-			}
-		}
-
-		byte *comp = Mod_CompressVIS( reinterpret_cast<byte *>(dest), &rowsize, model, ens.visbuffersize );
-		visofs[i] = vismap_p - vismap; 
-		total_size += rowsize;
-
-		memcpy( vismap_p, comp, sizeof(byte)*rowsize );
-		vismap_p += rowsize;
-
-		// Delete temp data
-		delete[] comp;
-	}
-
-	// Allocate final data array
-	model.ppasdata = new byte[total_size];
-	memcpy(model.ppasdata, compressed_pas, sizeof(byte)*total_size);
-	model.pasdatasize = total_size;
-
-	for( Uint32 i = 0; i < model.numleafs; i++ )
-		model.pleafs[i].pcompressedpas = model.ppasdata + visofs[i];
-
-	delete[] compressed_pas;
-	delete[] uncompressed_vis;
-	delete[] uncompressed_pas;
-	delete[] visofs;
-	delete[] ppasdata;
 }

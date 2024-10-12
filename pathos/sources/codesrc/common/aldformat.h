@@ -10,7 +10,10 @@ All Rights Reserved.
 #ifndef ALDHEADER_H
 #define ALDHEADER_H
 
-#define ALD_HEADER_ENCODED		(('3'<<24)+('D'<<16)+('L'<<8)+'A')
+#include "brushmodel_shared.h"
+
+#define ALD_HEADER_ENCODED		(('D'<<24)+('L'<<16)+('A'<<8)+'P')
+#define ALD_HEADER_VERSION		1
 
 enum aldlumptype_t 
 {
@@ -28,28 +31,34 @@ struct aldheader_t
 {
 	aldheader_t():
 		header(0),
+		version(0),
 		flags(0),
 		lumpoffset(0),
-		numlumps(0)
+		numlumps(0),
+		lightdatasize(0)
 		{}
 
 	Int32 header;
+	Int32 version;
 	Int32 flags;
 
 	Int32 lumpoffset;
 	Int32 numlumps;
+	Int32 lightdatasize;
 };
 
 struct aldlump_t
 {
 	aldlump_t():
-		type(0),
-		lumpoffset(0),
-		lumpsize(0)
-		{}
+		type(0)
+	{
+		for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+			layeroffsets[i] = 0;
+	}
 
+	// Type of ALD lump
 	Int32 type;
-	Int32 lumpoffset;
-	Int32 lumpsize;
+	// The offsets to each layer
+	Int32 layeroffsets[NB_SURF_LIGHTMAP_LAYERS];
 };
 #endif

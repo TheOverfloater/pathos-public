@@ -17,9 +17,6 @@ struct cl_entity_t;
 struct ref_params_t;
 struct en_texture_t;
 
-// Lightmap X resolution
-static constexpr Uint32 WATER_LIGHTMAP_X = 128;
-
 struct cl_water_t
 {
 	cl_water_t():
@@ -36,6 +33,7 @@ struct cl_water_t
 		plightmap_texture(nullptr),
 		plightmap_diffuse_texture(nullptr),
 		plightmap_lightvecs_texture(nullptr),
+		lightmaptexturewidth(0),
 		lightmaptextureheight(0),
 		settingsindex(0)
 		{}
@@ -64,6 +62,7 @@ struct cl_water_t
 	en_texalloc_t* plightmap_diffuse_texture;
 	en_texalloc_t* plightmap_lightvecs_texture;
 
+	Uint32 lightmaptexturewidth;
 	Uint32 lightmaptextureheight;
 
 	Int32 settingsindex;
@@ -71,7 +70,7 @@ struct cl_water_t
 
 struct water_settings_t
 {
-	water_settings_t() :
+	water_settings_t():
 		causticscale(0),
 		causticstrength(0),
 		causticstimescale(0),
@@ -87,7 +86,7 @@ struct water_settings_t
 		phongexponent(0),
 		refractonly(false),
 		cheaprefraction(false)
-	{}
+		{}
 
 	fog_settings_t fogparams;
 	Float causticscale;
@@ -106,8 +105,7 @@ struct water_settings_t
 	bool refractonly;
 	bool cheaprefraction;
 
-	CString normalmappath;
-	en_texture_t* pNormalTexture;
+	en_texture_t* pnormalmap;
 };
 
 struct water_vertex_t
@@ -231,13 +229,17 @@ public:
 	static const Float DEFAULT_PHONG_EXPONENT;
 	// Default phong exponent value
 	static const Float DEFAULT_SPECULAR_FACTOR;
+	// Water shader default normalmap texture path
+	static const Char WATER_DEFAULT_NORMALMAP_PATH[];
 	// Script base path
 	static const Char WATER_SCRIPT_BASEPATH[];
 	// Default water script name
 	static const Char DEFAULT_WATER_SCRIPT_FILENAME[];
 
+	// Lightmap X resolution
+	static const Uint32 WATER_LIGHTMAP_DEFAULT_WIDTH;
 	// Lightmap Y resolution
-	static const Uint32 WATER_LIGHTMAP_Y;
+	static const Uint32 WATER_LIGHTMAP_DEFAULT_HEIGHT;
 
 	// FBO resolution for water
 	static const Uint32 WATER_FBO_SIZE;
@@ -268,7 +270,7 @@ public:
 	// Adds a water entity to the list
 	void AddEntity( cl_entity_t *pentity );
 	// Parses a script file
-	static void ParseScript( const Char* pstrFilename, water_settings_t *psettings, const Char* pfile );
+	void ParseScript( const Char* pstrFilename, water_settings_t *psettings, const Char* pfile );
 
 public:
 	// Renders water entities
@@ -353,6 +355,9 @@ private:
 	water_quality_t m_waterQuality;
 
 private:
+	// Normalmap texture for water surface
+	en_texture_t *m_pDefaultNormalTexture;
+
 	// View params for water
 	ref_params_t m_waterParams;
 	// Saved fog state

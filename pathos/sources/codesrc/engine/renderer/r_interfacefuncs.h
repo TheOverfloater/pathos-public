@@ -42,7 +42,7 @@ extern bool R_EnableBasicDraw( void );
 extern void R_DisableBasicDraw( void );
 extern bool R_BasicDrawEnableTextures( void );
 extern bool R_BasicDrawDisableTextures( void );
-extern void R_BasicDrawBegin( Int32 primitiveType );
+extern void R_BasicDrawBegin( CBasicDraw::primitivetype_t primitiveType );
 extern void R_BasicDrawEnd( void );
 extern void R_BasicDrawSetProjection( const Float* pMatrix );
 extern void R_BasicDrawSetModelView( const Float* pMatrix );

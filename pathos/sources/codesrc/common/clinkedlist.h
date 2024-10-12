@@ -64,7 +64,7 @@ public:
 	// Adds an element to the list after the link
 	inline link_t* insert_after( link_t* link, T element );
 	// Removes an element from the list
-	inline void remove( link_t* link );
+	inline void remove( const link_t* link );
 	// Removes an element from the list
 	inline bool remove( const T element );
 	// Returns the current element link

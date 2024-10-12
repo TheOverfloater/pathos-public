@@ -18,6 +18,7 @@ All Rights Reserved.
 #include "ai_basenpc.h"
 #include "funcdoor.h"
 #include "beam_shared.h"
+#include "lightstyles.h"
 
 // Number of glass debris sounds
 static const Uint32 NB_GLASS_DEBRIS_SOUNDS = 3;
@@ -993,8 +994,10 @@ namespace Util
 		Vector startPos = position + Vector(0, 0, 8);
 		Vector endPos = position - Vector(0, 0, 8192);
 
+		CArray<Float>* plightstylesarray = gSVLightStyles.GetLightStyleValuesArray();
+
 		Vector lightcolor;
-		if(!gd_engfuncs.pfnRecursiveLightPoint(pbrushmodel, pbrushmodel->pnodes, startPos, endPos, lightcolor))
+		if(!gd_engfuncs.pfnRecursiveLightPoint(pbrushmodel, pbrushmodel->pnodes, startPos, endPos, lightcolor, &(*plightstylesarray)[0], nullptr))
 			return 0;
 
 		// Calculate illumination
@@ -1142,9 +1145,9 @@ namespace Util
 				Util::CreateParticles(pdefinition->particlescript.c_str(), tr.endpos, tr.plane.normal, pdefinition->scripttype); 
 
 			// Make a water splash
-			if(gd_tracefuncs.pfnPointContents(tr.endpos, nullptr) == CONTENTS_WATER)
+			if(gd_tracefuncs.pfnPointContents(tr.endpos, nullptr, false) == CONTENTS_WATER)
 			{
-				if(gd_tracefuncs.pfnPointContents(traceBegin, nullptr) != CONTENTS_WATER)
+				if(gd_tracefuncs.pfnPointContents(traceBegin, nullptr, false) != CONTENTS_WATER)
 				{
 					Vector vDir = (traceBegin - tr.endpos).Normalize();
 					Vector vCur = tr.endpos;
@@ -1154,7 +1157,7 @@ namespace Util
 					{
 						vCur = vCur + vDir*diff;
 
-						if(gd_tracefuncs.pfnPointContents(vCur, nullptr) != CONTENTS_WATER)
+						if(gd_tracefuncs.pfnPointContents(vCur, nullptr, false) != CONTENTS_WATER)
 							break;
 		
 						diff += 0.1;

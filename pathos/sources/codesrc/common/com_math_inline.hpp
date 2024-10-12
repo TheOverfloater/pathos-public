@@ -122,7 +122,7 @@ namespace Math
 	//
 	// @param v1 Vector to add to
 	// @param scale Value to scale v2 by
-	// @param v2 Vector to add
+	// @param v2 Vector to multiply then add
 	// @param dest Destination vector to hold the result
 	//=============================================
 	inline void Math::VectorMA( const Vector& v1, Float scale, const Vector& v2, Vector& dest )
@@ -160,7 +160,7 @@ namespace Math
 	// @brief Performs a dot product on two vectors
 	//
 	// @param v1 First vector of dot product
-	// @param v2 Second vector of dot product
+	// @param pv2 Pointer to second vector of dot product
 	// @return Result of dot product
 	//=============================================
 	inline Float Math::DotProduct( const Vector& v1, const Float *pv2 )
@@ -169,10 +169,10 @@ namespace Math
 	}
 
 	//=============================================
-	// @brief Performs a dot product on two vectors
+	// @brief Performs a dot product on two float arrays with 4 elements
 	//
-	// @param v1 First vector of dot product
-	// @param v2 Second vector of dot product
+	// @param v1 First float array of dot product
+	// @param v2 Second float array of dot product
 	// @return Result of dot product
 	//=============================================
 	inline Float Math::DotProduct4( const Float* pv1, const Float *pv2 )
@@ -327,7 +327,7 @@ namespace Math
 	//=============================================
 	// @brief Normalizes an angle into the 0-360 range
 	//
-	// @param angle Angle to normalize
+	// @param angle Angle value to normalize
 	// @result Normalized angle
 	//=============================================
 	inline Float Math::AngleMod( Float angle )
@@ -400,7 +400,8 @@ namespace Math
 	{
 		if(v[0] || v[1] || v[2])
 			return false;
-		return true;
+		else
+			return true;
 	}
 
 	//=============================================
@@ -462,7 +463,7 @@ namespace Math
 	// @brief Rotates a vector into the entity's local space
 	//
 	// @param angles Angles of entity
-	// @param vec Vector to rotate into entity space
+	// @param vec Reference to vector to rotate to local space
 	//=============================================
 	inline void Math::RotateToEntitySpace( const Vector& angles, Vector& vec )
 	{
@@ -480,7 +481,7 @@ namespace Math
 	// into world space
 	//
 	// @param angles Angles of entity to rotate from
-	// @param vec Vector to rotate to world space
+	// @param vec Reference to vector to rotate to world space
 	//=============================================
 	inline void Math::RotateFromEntitySpace( const Vector& angles, Vector& vec )
 	{
@@ -498,7 +499,7 @@ namespace Math
 	// a rotation matrix from said angles
 	//
 	// @param angles Angles of entity
-	// @param pmatrix Matrix of 3x4 floats to hold the
+	// @param pmatrix Output matrix of 3x4 floats to hold the
 	// rotation matrix
 	//=============================================
 	inline void Math::AngleMatrix( const Vector& angles, Float (*pmatrix)[4] )
@@ -537,7 +538,7 @@ namespace Math
 	// an inverse rotation matrix from said angles
 	//
 	// @param angles Angles of entity
-	// @param pmatrix Matrix of 3x4 floats to hold the
+	// @param pmatrix Output matrix of 3x4 floats to hold the
 	// inverse rotation matrix
 	//=============================================
 	inline void Math::AngleInverseMatrix( const Vector& angles, Float (*pmatrix)[4] )
@@ -574,7 +575,7 @@ namespace Math
 	//
 	// @param vec Vector to rotate
 	// @param pmatrix 3x4 matrix to rotate with
-	// @param out Vector to hold the result
+	// @param out Reference to vector to hold the result
 	//=============================================
 	inline void Math::VectorRotate( const Vector& vec, const Float (*pmatrix)[4], Vector& out )
 	{
@@ -588,7 +589,7 @@ namespace Math
 	//
 	// @param vec Vector to rotate
 	// @param pmatrix 3x4 matrix to rotate with
-	// @param out Vector to hold the result
+	// @param out Reference to vector to hold the result
 	//=============================================
 	inline void Math::VectorInverseRotate( const Vector& vec, const Float (*pmatrix)[4], Vector& out )
 	{
@@ -599,9 +600,9 @@ namespace Math
 
 	//=============================================
 	// @brief Takes a forward and a left vector, and
-	// turns it into angles
+	// turns it into their resulting angles
 	//
-	// @param forward Forward vector
+	// @param forward Forward vector defining the forward direction
 	// @param left Left vector
 	// @result Angles calculated from forward and left vectors
 	//=============================================
@@ -631,7 +632,7 @@ namespace Math
 	// @brief Takes a forward vector, and turns it
 	// into an angle
 	//
-	// @param forward Forward vector
+	// @param forward Forward vector defining the forward direction
 	// @result Angles calculated from forward vector
 	//=============================================
 	inline Vector Math::VectorToAngles( const Vector& forward )
@@ -670,7 +671,7 @@ namespace Math
 	//=============================================
 	// @brief Multiplies a position vector by a 16 element matrix
 	//
-	// @param flmatrix 16 element float matrix to multiply with
+	// @param flmatrix The 16 element float matrix to multiply with
 	// @param vecin Vector to multiply with the matrix
 	// @param vecout Result vector
 	//=============================================
@@ -684,7 +685,7 @@ namespace Math
 	//=============================================
 	// @brief Multiplies a vector by a 16 element matrix
 	//
-	// @param flmatrix 16 element float matrix to multiply with
+	// @param flmatrix The 16 element float matrix to multiply with
 	// @param vecin Vector to multiply with the matrix
 	// @param vecout Result vector
 	//=============================================
@@ -698,7 +699,7 @@ namespace Math
 	//=============================================
 	// @brief Multiplies a 4 element vector by a 16 element matrix
 	//
-	// @param flmatrix 16 element float matrix to multiply with
+	// @param flmatrix The 16 element float matrix to multiply with
 	// @param vecin 4 element vector to multiply with the matrix
 	// @param vecout Result vector
 	//=============================================
@@ -711,7 +712,7 @@ namespace Math
 	}
 
 	//=============================================
-	// @brief Returns the up and right vectors from a forward vector
+	// @brief Returns the up and right vectors generated from a forward vector
 	//
 	// @param forward Forward vector
 	// @param up Result up vector
@@ -734,10 +735,10 @@ namespace Math
 	};
 
 	//=============================================
-	// @brief Transofmrs a vector by a 3x4 float matrix
+	// @brief Transforms a vector by a 3x4 float matrix
 	//
 	// @param in Vector to transform
-	// @param pmatrix 3x4 matrix to multiply with
+	// @param pmatrix The 3x4 matrix to multiply with
 	// @param out Result vector
 	//=============================================
 	inline void Math::VectorTransform( const Vector& in, Float (*pmatrix)[4], Vector& out )
@@ -769,12 +770,12 @@ namespace Math
 	}
 
 	//=============================================
-	// @brief Blends two quaternions together
+	// @brief Blends two quaternions together into an output quaternion
 	//
 	// @param q1 First quaternion
 	// @param q2 Second quaternion
-	// @param interp Blend value
-	// @param outq Result quaternion
+	// @param interp A value from 0-1 determining how the quaternions are blended together
+	// @param outq Reference to vec4_t to hold the resulting quaternion
 	//=============================================
 	inline void Math::QuaternionBlend( const vec4_t& q1, const vec4_t& q2, Float interp, vec4_t& outq )
 	{
@@ -898,7 +899,7 @@ namespace Math
 	//=============================================
 	// @brief Adjusts an angle to a surface normal
 	//
-	// @param normal Surface normal
+	// @param normal Surface normal to adjust to
 	// @param angles Angles to adjust
 	// @result Angles adjusted to surface normal
 	//=============================================

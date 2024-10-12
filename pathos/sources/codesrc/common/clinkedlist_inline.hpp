@@ -24,7 +24,7 @@ template <typename T> inline CLinkedList<T>::CLinkedList():
 //=============================================
 // @brief Copy constructor
 //
-// @param src Source list
+// @param src Source list object
 //=============================================
 template <typename T> inline CLinkedList<T>::CLinkedList( CLinkedList& src ):
 	m_pLinkHead(nullptr),
@@ -55,6 +55,7 @@ template <typename T> inline CLinkedList<T>::~CLinkedList()
 // @brief Adds an element to the linked list
 //
 // @param T Element to add
+// @return Link object in the chain with the element added
 //=============================================
 template <typename T> inline typename CLinkedList<T>::link_t* CLinkedList<T>::add( const T element )
 {
@@ -81,6 +82,7 @@ template <typename T> inline typename CLinkedList<T>::link_t* CLinkedList<T>::ad
 // @brief Adds an element to the linked list at the tail
 //
 // @param T Element to add
+// @return Link object in the chain with the element added
 //=============================================
 template <typename T> inline typename CLinkedList<T>::link_t* CLinkedList<T>::radd( const T element )
 {
@@ -108,6 +110,7 @@ template <typename T> inline typename CLinkedList<T>::link_t* CLinkedList<T>::ra
 //
 // @param link Element before which to add
 // @param T Element to add
+// @return Link object in the chain with the element added
 //=============================================
 template <typename T> inline typename CLinkedList<T>::link_t* CLinkedList<T>::insert_before( typename CLinkedList<T>::link_t* link, const T element )
 {
@@ -136,6 +139,7 @@ template <typename T> inline typename CLinkedList<T>::link_t* CLinkedList<T>::in
 //
 // @param Element to add after
 // @param T Element to add
+// @return Link object in the chain with the element added
 //=============================================
 template <typename T> inline typename CLinkedList<T>::link_t* CLinkedList<T>::insert_after( typename CLinkedList<T>::link_t* link, const T element )
 {
@@ -164,7 +168,7 @@ template <typename T> inline typename CLinkedList<T>::link_t* CLinkedList<T>::in
 //
 // @param link Pointer to link to remove
 //=============================================
-template <typename T> inline void CLinkedList<T>::remove( typename CLinkedList<T>::link_t* link )
+template <typename T> inline void CLinkedList<T>::remove( typename const CLinkedList<T>::link_t* link )
 {
 	if(link == m_iterator.plink)
 	{
@@ -235,7 +239,7 @@ template <typename T> inline typename CLinkedList<T>::link_t* CLinkedList<T>::ge
 //=============================================
 // @brief Returns the pointer for the element
 //
-// @return Pointer for the current element
+// @return Reference to the current element
 //=============================================
 template <typename T> inline typename T& CLinkedList<T>::get( void )
 {
@@ -253,7 +257,7 @@ template <typename T> inline void CLinkedList<T>::begin( void )
 }
 
 //=============================================
-// @brief Resets the iterator to the head link
+// @brief Resets the iterator to the link provided
 //
 //=============================================
 template <typename T> inline void CLinkedList<T>::begin( link_t* link )
@@ -388,6 +392,8 @@ template <typename T> inline void CLinkedList<T>::pop_iterator( void )
 //=============================================
 // @brief Assignment operator
 //
+// @param src Source chain from which to add elements
+// @return Reference to resulting CLinkedList object(this object)
 //=============================================
 template <typename T> inline CLinkedList<T>& CLinkedList<T>::operator=( const CLinkedList<T>& src )
 {

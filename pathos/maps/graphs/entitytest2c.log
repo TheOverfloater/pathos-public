@@ -1,926 +1,902 @@
-2024-07-06 15:25:18 - Log started: 2024-07-06 15:25:18
-2024-07-06 15:25:18 - Log file: D:\Games\Pathos Engine\maps/graphs/entitytest2c.log
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 -  Node graph file begin
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 - 	- Level name: entitytest2c
-2024-07-06 15:25:18 - 	- Number of nodes: 31
-2024-07-06 15:25:18
-2024-07-06 15:25:18 - Initial node array contents:
-2024-07-06 15:25:18 -  - Node 0
-2024-07-06 15:25:18 - 	Origin: 1662.000000 289.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 1
-2024-07-06 15:25:18 - 	Origin: 1538.000000 194.000000 44.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 2
-2024-07-06 15:25:18 - 	Origin: 1538.000000 273.000000 44.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 3
-2024-07-06 15:25:18 - 	Origin: 1407.000000 273.000000 44.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 4
-2024-07-06 15:25:18 - 	Origin: 1662.000000 194.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 5
-2024-07-06 15:25:18 - 	Origin: 1662.000000 -8.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 6
-2024-07-06 15:25:18 - 	Origin: 648.000000 0.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 7
-2024-07-06 15:25:18 - 	Origin: 398.000000 0.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 8
-2024-07-06 15:25:18 - 	Origin: 75.000000 0.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 9
-2024-07-06 15:25:18 - 	Origin: -283.000000 0.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 10
-2024-07-06 15:25:18 - 	Origin: -283.000000 218.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 11
-2024-07-06 15:25:18 - 	Origin: -283.000000 -210.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 12
-2024-07-06 15:25:18 - 	Origin: 1418.000000 0.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 13
-2024-07-06 15:25:18 - 	Origin: 1364.000000 -171.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 14
-2024-07-06 15:25:18 - 	Origin: 1364.000000 -258.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 15
-2024-07-06 15:25:18 - 	Origin: 1062.000000 -258.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 16
-2024-07-06 15:25:18 - 	Origin: 850.000000 -375.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 17
-2024-07-06 15:25:18 - 	Origin: 867.000000 -187.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 18
-2024-07-06 15:25:18 - 	Origin: 743.000000 -240.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 19
-2024-07-06 15:25:18 - 	Origin: 1564.000000 -427.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 20
-2024-07-06 15:25:18 - 	Origin: 1007.000000 0.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 21
-2024-07-06 15:25:18 - 	Origin: 1007.000000 273.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 22
-2024-07-06 15:25:18 - 	Origin: 1251.000000 273.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 23
-2024-07-06 15:25:18 - 	Origin: 1251.000000 481.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 24
-2024-07-06 15:25:18 - 	Origin: 1476.000000 599.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 25
-2024-07-06 15:25:18 - 	Origin: 1632.000000 599.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 26
-2024-07-06 15:25:18 - 	Origin: 1632.000000 1592.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 27
-2024-07-06 15:25:18 - 	Origin: 1662.000000 85.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 28
-2024-07-06 15:25:18 - 	Origin: 2512.000000 85.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 29
-2024-07-06 15:25:18 - 	Origin: 1476.000000 786.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 30
-2024-07-06 15:25:18 - 	Origin: 1632.000000 786.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18
-2024-07-06 15:25:18
-2024-07-06 15:25:18
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 -  LinkNodes begin
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 26(1632.000000 1592.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 29(1476.000000 786.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 1(1538.000000 194.000000 40.031250) connected to node with index 2(1538.000000 273.000000 40.031250)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 1(1538.000000 194.000000 40.031250) connected to node with index 4(1662.000000 194.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 2(1538.000000 273.000000 40.031250) connected to node with index 1(1538.000000 194.000000 40.031250)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 2(1538.000000 273.000000 40.031250) connected to node with index 3(1407.000000 273.000000 40.031250)
-2024-07-06 15:25:18 - 	 1 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *178, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 3(1407.000000 273.000000 40.031250) connected to node with index 2(1538.000000 273.000000 40.031250)
-2024-07-06 15:25:18 - 	 1 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *178, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 1(1538.000000 194.000000 40.031250)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 26(1632.000000 1592.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 29(1476.000000 786.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 7(398.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 1 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 8(75.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 16(850.000000 -375.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 26(1632.000000 1592.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 7(398.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 1 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 8(75.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 24(1476.000000 599.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 28(2512.000000 85.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 7(398.000000 0.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	 1 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 7(398.000000 0.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 1 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 7(398.000000 0.000000 8.000000) connected to node with index 8(75.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 2 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 7(398.000000 0.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 2 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 7(398.000000 0.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 1 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 7(398.000000 0.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 1 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 8(75.000000 0.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 8(75.000000 0.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 8(75.000000 0.000000 8.000000) connected to node with index 7(398.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 2 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 8(75.000000 0.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 8(75.000000 0.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 8(75.000000 0.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 7(398.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 2 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 8(75.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 10(-283.000000 218.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 11(-283.000000 -210.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 10(-283.000000 218.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 10(-283.000000 218.000000 8.000000) connected to node with index 11(-283.000000 -210.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 11(-283.000000 -210.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 11(-283.000000 -210.000000 8.000000) connected to node with index 10(-283.000000 218.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 7(398.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 1 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 8(75.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 14(1364.000000 -258.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 14(1364.000000 -258.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 15(1062.000000 -258.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 16(850.000000 -375.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 17(867.000000 -187.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 19(1564.000000 -427.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 21(1007.000000 273.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 14(1364.000000 -258.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 14(1364.000000 -258.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 14(1364.000000 -258.000000 8.000000) connected to node with index 15(1062.000000 -258.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 14(1364.000000 -258.000000 8.000000) connected to node with index 17(867.000000 -187.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 14(1364.000000 -258.000000 8.000000) connected to node with index 19(1564.000000 -427.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 15(1062.000000 -258.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 15(1062.000000 -258.000000 8.000000) connected to node with index 14(1364.000000 -258.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 15(1062.000000 -258.000000 8.000000) connected to node with index 16(850.000000 -375.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 15(1062.000000 -258.000000 8.000000) connected to node with index 17(867.000000 -187.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 15(1062.000000 -258.000000 8.000000) connected to node with index 19(1564.000000 -427.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 16(850.000000 -375.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 16(850.000000 -375.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 16(850.000000 -375.000000 8.000000) connected to node with index 15(1062.000000 -258.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 16(850.000000 -375.000000 8.000000) connected to node with index 18(743.000000 -240.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 16(850.000000 -375.000000 8.000000) connected to node with index 19(1564.000000 -427.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 17(867.000000 -187.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 17(867.000000 -187.000000 8.000000) connected to node with index 14(1364.000000 -258.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 17(867.000000 -187.000000 8.000000) connected to node with index 15(1062.000000 -258.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 17(867.000000 -187.000000 8.000000) connected to node with index 18(743.000000 -240.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 17(867.000000 -187.000000 8.000000) connected to node with index 19(1564.000000 -427.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 18(743.000000 -240.000000 8.000000) connected to node with index 16(850.000000 -375.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 18(743.000000 -240.000000 8.000000) connected to node with index 17(867.000000 -187.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 19(1564.000000 -427.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 19(1564.000000 -427.000000 8.000000) connected to node with index 14(1364.000000 -258.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 19(1564.000000 -427.000000 8.000000) connected to node with index 15(1062.000000 -258.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 19(1564.000000 -427.000000 8.000000) connected to node with index 16(850.000000 -375.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 19(1564.000000 -427.000000 8.000000) connected to node with index 17(867.000000 -187.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 19(1564.000000 -427.000000 8.000000) connected to node with index 21(1007.000000 273.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 7(398.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 1 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 8(75.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	 3 link entities:
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door_rotating), model name: *7, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
-2024-07-06 15:25:18 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 21(1007.000000 273.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 22(1251.000000 273.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 23(1251.000000 481.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 29(1476.000000 786.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 21(1007.000000 273.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 21(1007.000000 273.000000 8.000000) connected to node with index 19(1564.000000 -427.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 21(1007.000000 273.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 21(1007.000000 273.000000 8.000000) connected to node with index 22(1251.000000 273.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 22(1251.000000 273.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 22(1251.000000 273.000000 8.000000) connected to node with index 21(1007.000000 273.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 22(1251.000000 273.000000 8.000000) connected to node with index 23(1251.000000 481.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 23(1251.000000 481.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 23(1251.000000 481.000000 8.000000) connected to node with index 22(1251.000000 273.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 23(1251.000000 481.000000 8.000000) connected to node with index 24(1476.000000 599.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 23(1251.000000 481.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 24(1476.000000 599.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 24(1476.000000 599.000000 8.000000) connected to node with index 23(1251.000000 481.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 24(1476.000000 599.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 24(1476.000000 599.000000 8.000000) connected to node with index 29(1476.000000 786.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 23(1251.000000 481.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 24(1476.000000 599.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 26(1632.000000 1592.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 26(1632.000000 1592.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 26(1632.000000 1592.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 26(1632.000000 1592.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 26(1632.000000 1592.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 26(1632.000000 1592.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 26(1632.000000 1592.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 26(1632.000000 1592.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 28(2512.000000 85.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 28(2512.000000 85.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 28(2512.000000 85.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 29(1476.000000 786.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 29(1476.000000 786.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 29(1476.000000 786.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 29(1476.000000 786.000000 8.000000) connected to node with index 24(1476.000000 599.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 29(1476.000000 786.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 26(1632.000000 1592.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 29(1476.000000 786.000000 8.000000)
-2024-07-06 15:25:18 - 	No link entities.
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 -  LinkNodes end
-2024-07-06 15:25:18 -  - Initial number of nodes: 31
-2024-07-06 15:25:18 -  - Initial number of links: 176
-2024-07-06 15:25:18 -  - Initial number of link entities 66
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 -  WalkLinksAllHulls begin
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 -  - Node 0:
-2024-07-06 15:25:18 -  - Node 1:
-2024-07-06 15:25:18 -  - Node 2:
-2024-07-06 15:25:18 -  - Node 3:
-2024-07-06 15:25:18 -  - Node 4:
-2024-07-06 15:25:18 - 	Node 6 unreachable by node 4 with hull NODE_LARGE_HULL
-2024-07-06 15:25:18 -  - Node 5:
-2024-07-06 15:25:18 -  - Node 6:
-2024-07-06 15:25:18 - 	Node 6 unreachable by node 6 with hull NODE_LARGE_HULL
-2024-07-06 15:25:18 -  - Node 7:
-2024-07-06 15:25:18 -  - Node 8:
-2024-07-06 15:25:18 -  - Node 9:
-2024-07-06 15:25:18 -  - Node 10:
-2024-07-06 15:25:18 -  - Node 11:
-2024-07-06 15:25:18 -  - Node 12:
-2024-07-06 15:25:18 -  - Node 13:
-2024-07-06 15:25:18 - 	Node 6 unreachable by node 13 with hull NODE_LARGE_HULL
-2024-07-06 15:25:18 -  - Node 14:
-2024-07-06 15:25:18 -  - Node 15:
-2024-07-06 15:25:18 -  - Node 16:
-2024-07-06 15:25:18 -  - Node 17:
-2024-07-06 15:25:18 -  - Node 18:
-2024-07-06 15:25:18 -  - Node 19:
-2024-07-06 15:25:18 - 	Node 0 unreachable by node 19 with hull NODE_LARGE_HULL
-2024-07-06 15:25:18 - 	Node 5 unreachable by node 19 with hull NODE_LARGE_HULL
-2024-07-06 15:25:18 -  - Node 20:
-2024-07-06 15:25:18 -  - Node 21:
-2024-07-06 15:25:18 - 	Node 1 unreachable by node 21 with hull NODE_LARGE_HULL
-2024-07-06 15:25:18 -  - Node 22:
-2024-07-06 15:25:18 -  - Node 23:
-2024-07-06 15:25:18 -  - Node 24:
-2024-07-06 15:25:18 - 	Node 0 unreachable by node 24 with hull NODE_LARGE_HULL
-2024-07-06 15:25:18 -  - Node 25:
-2024-07-06 15:25:18 -  - Node 26:
-2024-07-06 15:25:18 -  - Node 27:
-2024-07-06 15:25:18 -  - Node 28:
-2024-07-06 15:25:18 -  - Node 29:
-2024-07-06 15:25:18 - 	Node 1 unreachable by node 29 with hull NODE_LARGE_HULL
-2024-07-06 15:25:18 -  - Node 30:
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 -  WalkLinksAllHulls end
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 -  OptimizeGraph begin
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 -  - Rejected link from node 5 to node 4, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 26 to node 30, DP: 0.999306
-2024-07-06 15:25:18 -  - Rejected link from node 27 to node 4, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 30 to node 25, DP: 0.999345
-2024-07-06 15:25:18 -  - Rejected link from node 5 to node 27, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 26 to node 0, DP: 0.999770
-2024-07-06 15:25:18 -  - Rejected link from node 30 to node 0, DP: 0.998719
-2024-07-06 15:25:18 -  - Rejected link from node 0 to node 4, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 4 to node 27, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 6 to node 12, DP: 0.999690
-2024-07-06 15:25:18 -  - Rejected link from node 7 to node 12, DP: 0.999650
-2024-07-06 15:25:18 -  - Rejected link from node 8 to node 12, DP: 0.999615
-2024-07-06 15:25:18 -  - Rejected link from node 9 to node 12, DP: 0.999589
-2024-07-06 15:25:18 -  - Rejected link from node 20 to node 12, DP: 0.999789
-2024-07-06 15:25:18 -  - Rejected link from node 25 to node 27, DP: 0.998781
-2024-07-06 15:25:18 -  - Rejected link from node 26 to node 27, DP: 0.999824
-2024-07-06 15:25:18 -  - Rejected link from node 30 to node 27, DP: 0.999287
-2024-07-06 15:25:18 -  - Rejected link from node 5 to node 12, DP: 0.999969
-2024-07-06 15:25:18 -  - Rejected link from node 8 to node 7, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 9 to node 7, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 12 to node 20, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 28 to node 20, DP: 0.998962
-2024-07-06 15:25:18 -  - Rejected link from node 5 to node 6, DP: 0.999980
-2024-07-06 15:25:18 -  - Rejected link from node 9 to node 8, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 12 to node 6, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 20 to node 6, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 5 to node 6, DP: 0.999987
-2024-07-06 15:25:18 -  - Rejected link from node 6 to node 7, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 12 to node 7, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 20 to node 7, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 5 to node 6, DP: 0.999992
-2024-07-06 15:25:18 -  - Rejected link from node 6 to node 7, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 7 to node 8, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 12 to node 8, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 20 to node 8, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 11 to node 9, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 10 to node 9, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 6 to node 20, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 7 to node 20, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 8 to node 20, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 9 to node 20, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 5 to node 13, DP: 0.998911
-2024-07-06 15:25:18 -  - Rejected link from node 19 to node 15, DP: 0.999846
-2024-07-06 15:25:18 -  - Rejected link from node 17 to node 15, DP: 0.999976
-2024-07-06 15:25:18 -  - Rejected link from node 21 to node 13, DP: 0.999960
-2024-07-06 15:25:18 -  - Rejected link from node 5 to node 12, DP: 0.999925
-2024-07-06 15:25:18 -  - Rejected link from node 7 to node 6, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 8 to node 6, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 9 to node 6, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 19 to node 13, DP: 0.999987
-2024-07-06 15:25:18 -  - Rejected link from node 4 to node 0, DP: 0.999746
-2024-07-06 15:25:18 -  - Rejected link from node 5 to node 0, DP: 0.998891
-2024-07-06 15:25:18 -  - Rejected link from node 26 to node 30, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 27 to node 0, DP: 0.999271
-2024-07-06 15:25:18 -  - Rejected link from node 0 to node 25, DP: 0.999735
-2024-07-06 15:25:18 -  - Rejected link from node 4 to node 25, DP: 0.999770
-2024-07-06 15:25:18 -  - Rejected link from node 5 to node 25, DP: 0.999824
-2024-07-06 15:25:18 -  - Rejected link from node 25 to node 30, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 27 to node 30, DP: 0.999802
-2024-07-06 15:25:18 -  - Rejected link from node 0 to node 4, DP: 1.000000
-2024-07-06 15:25:18 -  - Rejected link from node 25 to node 4, DP: 0.998301
-2024-07-06 15:25:18 -  - Rejected link from node 26 to node 4, DP: 0.999802
-2024-07-06 15:25:18 -  - Rejected link from node 30 to node 4, DP: 0.999085
-2024-07-06 15:25:18 -  - Rejected link from node 6 to node 27, DP: 0.998962
-2024-07-06 15:25:18 -  - Rejected link from node 4 to node 0, DP: 0.998559
-2024-07-06 15:25:18 -  - Rejected link from node 0 to node 25, DP: 0.998183
-2024-07-06 15:25:18 -  - Rejected link from node 4 to node 25, DP: 0.998719
-2024-07-06 15:25:18 -  - Rejected link from node 5 to node 25, DP: 0.999287
-2024-07-06 15:25:18 -  - Rejected link from node 27 to node 25, DP: 0.999085
-2024-07-06 15:25:18 - Link array contents:
-2024-07-06 15:25:18 -  - Link from node 0 to node 4.
-2024-07-06 15:25:18 -  - Link from node 0 to node 25.
-2024-07-06 15:25:18 -  - Link from node 0 to node 29.
-2024-07-06 15:25:18 -  - Link from node 1 to node 2.
-2024-07-06 15:25:18 -  - Link from node 1 to node 4.
-2024-07-06 15:25:18 -  - Link from node 2 to node 1.
-2024-07-06 15:25:18 -  - Link from node 2 to node 3.
-2024-07-06 15:25:18 -  - Link from node 3 to node 2.
-2024-07-06 15:25:18 -  - Link from node 4 to node 0.
-2024-07-06 15:25:18 -  - Link from node 4 to node 1.
-2024-07-06 15:25:18 -  - Link from node 4 to node 25.
-2024-07-06 15:25:18 -  - Link from node 4 to node 27.
-2024-07-06 15:25:18 -  - Link from node 4 to node 29.
-2024-07-06 15:25:18 -  - Link from node 5 to node 12.
-2024-07-06 15:25:18 -  - Link from node 5 to node 13.
-2024-07-06 15:25:18 -  - Link from node 5 to node 16.
-2024-07-06 15:25:18 -  - Link from node 5 to node 27.
-2024-07-06 15:25:18 -  - Link from node 6 to node 7.
-2024-07-06 15:25:18 -  - Link from node 6 to node 20.
-2024-07-06 15:25:18 -  - Link from node 6 to node 24.
-2024-07-06 15:25:18 -  - Link from node 7 to node 6.
-2024-07-06 15:25:18 -  - Link from node 7 to node 8.
-2024-07-06 15:25:18 -  - Link from node 8 to node 7.
-2024-07-06 15:25:18 -  - Link from node 8 to node 9.
-2024-07-06 15:25:18 -  - Link from node 9 to node 8.
-2024-07-06 15:25:18 -  - Link from node 9 to node 10.
-2024-07-06 15:25:18 -  - Link from node 9 to node 11.
-2024-07-06 15:25:18 -  - Link from node 10 to node 9.
-2024-07-06 15:25:18 -  - Link from node 11 to node 9.
-2024-07-06 15:25:18 -  - Link from node 12 to node 5.
-2024-07-06 15:25:18 -  - Link from node 12 to node 13.
-2024-07-06 15:25:18 -  - Link from node 12 to node 14.
-2024-07-06 15:25:18 -  - Link from node 12 to node 20.
-2024-07-06 15:25:18 -  - Link from node 12 to node 27.
-2024-07-06 15:25:18 -  - Link from node 13 to node 5.
-2024-07-06 15:25:18 -  - Link from node 13 to node 12.
-2024-07-06 15:25:18 -  - Link from node 13 to node 14.
-2024-07-06 15:25:18 -  - Link from node 13 to node 15.
-2024-07-06 15:25:18 -  - Link from node 13 to node 16.
-2024-07-06 15:25:18 -  - Link from node 13 to node 17.
-2024-07-06 15:25:18 -  - Link from node 13 to node 19.
-2024-07-06 15:25:18 -  - Link from node 13 to node 21.
-2024-07-06 15:25:18 -  - Link from node 13 to node 27.
-2024-07-06 15:25:18 -  - Link from node 14 to node 12.
-2024-07-06 15:25:18 -  - Link from node 14 to node 13.
-2024-07-06 15:25:18 -  - Link from node 14 to node 15.
-2024-07-06 15:25:18 -  - Link from node 14 to node 17.
-2024-07-06 15:25:18 -  - Link from node 14 to node 19.
-2024-07-06 15:25:18 -  - Link from node 15 to node 13.
-2024-07-06 15:25:18 -  - Link from node 15 to node 14.
-2024-07-06 15:25:18 -  - Link from node 15 to node 16.
-2024-07-06 15:25:18 -  - Link from node 15 to node 17.
-2024-07-06 15:25:18 -  - Link from node 15 to node 19.
-2024-07-06 15:25:18 -  - Link from node 16 to node 13.
-2024-07-06 15:25:18 -  - Link from node 16 to node 15.
-2024-07-06 15:25:18 -  - Link from node 16 to node 18.
-2024-07-06 15:25:18 -  - Link from node 16 to node 19.
-2024-07-06 15:25:18 -  - Link from node 17 to node 13.
-2024-07-06 15:25:18 -  - Link from node 17 to node 14.
-2024-07-06 15:25:18 -  - Link from node 17 to node 15.
-2024-07-06 15:25:18 -  - Link from node 17 to node 18.
-2024-07-06 15:25:18 -  - Link from node 18 to node 16.
-2024-07-06 15:25:18 -  - Link from node 18 to node 17.
-2024-07-06 15:25:18 -  - Link from node 19 to node 13.
-2024-07-06 15:25:18 -  - Link from node 19 to node 14.
-2024-07-06 15:25:18 -  - Link from node 19 to node 15.
-2024-07-06 15:25:18 -  - Link from node 19 to node 16.
-2024-07-06 15:25:18 -  - Link from node 20 to node 6.
-2024-07-06 15:25:18 -  - Link from node 20 to node 12.
-2024-07-06 15:25:18 -  - Link from node 20 to node 21.
-2024-07-06 15:25:18 -  - Link from node 20 to node 22.
-2024-07-06 15:25:18 -  - Link from node 20 to node 23.
-2024-07-06 15:25:18 -  - Link from node 20 to node 27.
-2024-07-06 15:25:18 -  - Link from node 20 to node 29.
-2024-07-06 15:25:18 -  - Link from node 21 to node 13.
-2024-07-06 15:25:18 -  - Link from node 21 to node 20.
-2024-07-06 15:25:18 -  - Link from node 21 to node 22.
-2024-07-06 15:25:18 -  - Link from node 22 to node 20.
-2024-07-06 15:25:18 -  - Link from node 22 to node 21.
-2024-07-06 15:25:18 -  - Link from node 22 to node 23.
-2024-07-06 15:25:18 -  - Link from node 23 to node 20.
-2024-07-06 15:25:18 -  - Link from node 23 to node 22.
-2024-07-06 15:25:18 -  - Link from node 23 to node 24.
-2024-07-06 15:25:18 -  - Link from node 23 to node 25.
-2024-07-06 15:25:18 -  - Link from node 24 to node 6.
-2024-07-06 15:25:18 -  - Link from node 24 to node 23.
-2024-07-06 15:25:18 -  - Link from node 24 to node 25.
-2024-07-06 15:25:18 -  - Link from node 24 to node 29.
-2024-07-06 15:25:18 -  - Link from node 25 to node 0.
-2024-07-06 15:25:18 -  - Link from node 25 to node 23.
-2024-07-06 15:25:18 -  - Link from node 25 to node 24.
-2024-07-06 15:25:18 -  - Link from node 25 to node 30.
-2024-07-06 15:25:18 -  - Link from node 26 to node 30.
-2024-07-06 15:25:18 -  - Link from node 27 to node 4.
-2024-07-06 15:25:18 -  - Link from node 27 to node 5.
-2024-07-06 15:25:18 -  - Link from node 27 to node 12.
-2024-07-06 15:25:18 -  - Link from node 27 to node 13.
-2024-07-06 15:25:18 -  - Link from node 27 to node 20.
-2024-07-06 15:25:18 -  - Link from node 27 to node 28.
-2024-07-06 15:25:18 -  - Link from node 28 to node 27.
-2024-07-06 15:25:18 -  - Link from node 29 to node 0.
-2024-07-06 15:25:18 -  - Link from node 29 to node 20.
-2024-07-06 15:25:18 -  - Link from node 29 to node 24.
-2024-07-06 15:25:18 -  - Link from node 29 to node 30.
-2024-07-06 15:25:18 -  - Link from node 30 to node 25.
-2024-07-06 15:25:18 -  - Link from node 30 to node 26.
-2024-07-06 15:25:18 -  - Link from node 30 to node 29.
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 -  - Number of deleted links: 69
-2024-07-06 15:25:18 -  - Number of deleted nodes: 0
-2024-07-06 15:25:18 -  - Number of deleted link entities: 174
-2024-07-06 15:25:18 -  OptimizeGraph end
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 - Final node array contents:
-2024-07-06 15:25:18 -  - Node 0
-2024-07-06 15:25:18 - 	Origin: 1662.000000 289.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 1
-2024-07-06 15:25:18 - 	Origin: 1662.000000 194.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 2
-2024-07-06 15:25:18 - 	Origin: 1632.000000 599.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 3
-2024-07-06 15:25:18 - 	Origin: 1476.000000 786.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 4
-2024-07-06 15:25:18 - 	Origin: 1538.000000 273.000000 40.031250
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 5
-2024-07-06 15:25:18 - 	Origin: 1538.000000 194.000000 40.031250
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 6
-2024-07-06 15:25:18 - 	Origin: 1407.000000 273.000000 40.031250
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 7
-2024-07-06 15:25:18 - 	Origin: 1662.000000 85.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 8
-2024-07-06 15:25:18 - 	Origin: 1418.000000 0.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 9
-2024-07-06 15:25:18 - 	Origin: 1364.000000 -171.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 10
-2024-07-06 15:25:18 - 	Origin: 850.000000 -375.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 11
-2024-07-06 15:25:18 - 	Origin: 398.000000 0.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 12
-2024-07-06 15:25:18 - 	Origin: 1007.000000 0.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 13
-2024-07-06 15:25:18 - 	Origin: 1476.000000 599.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 14
-2024-07-06 15:25:18 - 	Origin: 648.000000 0.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 15
-2024-07-06 15:25:18 - 	Origin: 75.000000 0.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 16
-2024-07-06 15:25:18 - 	Origin: -283.000000 0.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 17
-2024-07-06 15:25:18 - 	Origin: -283.000000 218.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 18
-2024-07-06 15:25:18 - 	Origin: -283.000000 -210.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 19
-2024-07-06 15:25:18 - 	Origin: 1662.000000 -8.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 20
-2024-07-06 15:25:18 - 	Origin: 1364.000000 -258.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 21
-2024-07-06 15:25:18 - 	Origin: 1062.000000 -258.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 22
-2024-07-06 15:25:18 - 	Origin: 867.000000 -187.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 23
-2024-07-06 15:25:18 - 	Origin: 1564.000000 -427.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 24
-2024-07-06 15:25:18 - 	Origin: 1007.000000 273.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 25
-2024-07-06 15:25:18 - 	Origin: 743.000000 -240.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 26
-2024-07-06 15:25:18 - 	Origin: 1251.000000 273.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 27
-2024-07-06 15:25:18 - 	Origin: 1251.000000 481.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 28
-2024-07-06 15:25:18 - 	Origin: 1632.000000 786.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 29
-2024-07-06 15:25:18 - 	Origin: 2512.000000 85.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 -  - Node 30
-2024-07-06 15:25:18 - 	Origin: 1632.000000 1592.000000 8.000000
-2024-07-06 15:25:18 - 	Hint type: 0
-2024-07-06 15:25:18 - 	Hint yaw: 0.000000
-2024-07-06 15:25:18 - Routing info size: 2010 bytes
-2024-07-06 15:25:18 - =============================================
-2024-07-06 15:25:18 -  - File size: 16038 bytes
-2024-07-06 15:25:18 -  - File name: maps/graphs/entitytest2c.nod
-2024-07-06 15:25:18 -  - Node graph generation time: 0 minutes 0 seconds
-2024-07-06 15:25:18 -  Node graph file end 
-2024-07-06 15:25:18 - =============================================
+2024-10-10 00:18:43 - Log started: 2024-10-10 00:18:43
+2024-10-10 00:18:43 - Log file: D:\Games\Pathos Engine\pathos\sources\codesrc\x64\Debug\maps/graphs/entitytest2c.log
+2024-10-10 00:18:43 - =============================================
+2024-10-10 00:18:43 -  Node graph file begin
+2024-10-10 00:18:43 - =============================================
+2024-10-10 00:18:43 - 	- Level name: entitytest2c
+2024-10-10 00:18:43 - 	- Number of nodes: 31
+2024-10-10 00:18:43
+2024-10-10 00:18:43 - Initial node array contents:
+2024-10-10 00:18:43 -  - Node 0
+2024-10-10 00:18:43 - 	Origin: 1662.000000 289.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 1
+2024-10-10 00:18:43 - 	Origin: 1538.000000 194.000000 44.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 2
+2024-10-10 00:18:43 - 	Origin: 1538.000000 273.000000 44.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 3
+2024-10-10 00:18:43 - 	Origin: 1407.000000 273.000000 44.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 4
+2024-10-10 00:18:43 - 	Origin: 1662.000000 194.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 5
+2024-10-10 00:18:43 - 	Origin: 1662.000000 -8.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 6
+2024-10-10 00:18:43 - 	Origin: 648.000000 0.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 7
+2024-10-10 00:18:43 - 	Origin: 398.000000 0.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 8
+2024-10-10 00:18:43 - 	Origin: 75.000000 0.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 9
+2024-10-10 00:18:43 - 	Origin: -283.000000 0.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 10
+2024-10-10 00:18:43 - 	Origin: -283.000000 218.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 11
+2024-10-10 00:18:43 - 	Origin: -283.000000 -210.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 12
+2024-10-10 00:18:43 - 	Origin: 1418.000000 0.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 13
+2024-10-10 00:18:43 - 	Origin: 1364.000000 -171.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 14
+2024-10-10 00:18:43 - 	Origin: 1364.000000 -258.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 15
+2024-10-10 00:18:43 - 	Origin: 1062.000000 -258.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 16
+2024-10-10 00:18:43 - 	Origin: 850.000000 -375.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 17
+2024-10-10 00:18:43 - 	Origin: 867.000000 -187.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 18
+2024-10-10 00:18:43 - 	Origin: 743.000000 -240.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 19
+2024-10-10 00:18:43 - 	Origin: 1564.000000 -427.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 20
+2024-10-10 00:18:43 - 	Origin: 1007.000000 0.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 21
+2024-10-10 00:18:43 - 	Origin: 1007.000000 273.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 22
+2024-10-10 00:18:43 - 	Origin: 1251.000000 273.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 23
+2024-10-10 00:18:43 - 	Origin: 1251.000000 481.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 24
+2024-10-10 00:18:43 - 	Origin: 1476.000000 599.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 25
+2024-10-10 00:18:43 - 	Origin: 1632.000000 599.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 26
+2024-10-10 00:18:43 - 	Origin: 1632.000000 1592.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 27
+2024-10-10 00:18:43 - 	Origin: 1662.000000 85.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 28
+2024-10-10 00:18:43 - 	Origin: 2512.000000 85.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 29
+2024-10-10 00:18:43 - 	Origin: 1476.000000 786.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43 -  - Node 30
+2024-10-10 00:18:43 - 	Origin: 1632.000000 786.000000 8.000000
+2024-10-10 00:18:43 - 	Hint type: 0
+2024-10-10 00:18:43 - 	Hint yaw: 0.000000
+2024-10-10 00:18:43
+2024-10-10 00:18:43
+2024-10-10 00:18:43
+2024-10-10 00:18:43 - =============================================
+2024-10-10 00:18:43 -  LinkNodes begin
+2024-10-10 00:18:43 - =============================================
+2024-10-10 00:18:43 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 26(1632.000000 1592.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 29(1476.000000 786.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 0(1662.000000 289.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 1(1538.000000 194.000000 40.031250) connected to node with index 2(1538.000000 273.000000 40.031250)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 1(1538.000000 194.000000 40.031250) connected to node with index 4(1662.000000 194.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 2(1538.000000 273.000000 40.031250) connected to node with index 1(1538.000000 194.000000 40.031250)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 2(1538.000000 273.000000 40.031250) connected to node with index 3(1407.000000 273.000000 40.031250)
+2024-10-10 00:18:43 - 	 1 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door_rotating), model name: *178, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 3(1407.000000 273.000000 40.031250) connected to node with index 2(1538.000000 273.000000 40.031250)
+2024-10-10 00:18:43 - 	 1 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door_rotating), model name: *178, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 1(1538.000000 194.000000 40.031250)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 26(1632.000000 1592.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 29(1476.000000 786.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 4(1662.000000 194.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 7(398.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 8(75.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 16(850.000000 -375.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 26(1632.000000 1592.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 5(1662.000000 -8.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 7(398.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 8(75.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 24(1476.000000 599.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 6(648.000000 0.000000 8.000000) connected to node with index 28(2512.000000 85.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 7(398.000000 0.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 7(398.000000 0.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 7(398.000000 0.000000 8.000000) connected to node with index 8(75.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 7(398.000000 0.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 7(398.000000 0.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 7(398.000000 0.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 8(75.000000 0.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 8(75.000000 0.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 8(75.000000 0.000000 8.000000) connected to node with index 7(398.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 8(75.000000 0.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 8(75.000000 0.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 8(75.000000 0.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 7(398.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 8(75.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 10(-283.000000 218.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 11(-283.000000 -210.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 9(-283.000000 0.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 10(-283.000000 218.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 10(-283.000000 218.000000 8.000000) connected to node with index 11(-283.000000 -210.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 11(-283.000000 -210.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 11(-283.000000 -210.000000 8.000000) connected to node with index 10(-283.000000 218.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 7(398.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 8(75.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 14(1364.000000 -258.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 12(1418.000000 0.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 14(1364.000000 -258.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 15(1062.000000 -258.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 16(850.000000 -375.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 17(867.000000 -187.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 19(1564.000000 -427.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 21(1007.000000 273.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 13(1364.000000 -171.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 14(1364.000000 -258.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 14(1364.000000 -258.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 14(1364.000000 -258.000000 8.000000) connected to node with index 15(1062.000000 -258.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 14(1364.000000 -258.000000 8.000000) connected to node with index 17(867.000000 -187.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 14(1364.000000 -258.000000 8.000000) connected to node with index 19(1564.000000 -427.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 15(1062.000000 -258.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 15(1062.000000 -258.000000 8.000000) connected to node with index 14(1364.000000 -258.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 15(1062.000000 -258.000000 8.000000) connected to node with index 16(850.000000 -375.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 15(1062.000000 -258.000000 8.000000) connected to node with index 17(867.000000 -187.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 15(1062.000000 -258.000000 8.000000) connected to node with index 19(1564.000000 -427.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 16(850.000000 -375.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 16(850.000000 -375.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 16(850.000000 -375.000000 8.000000) connected to node with index 15(1062.000000 -258.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 16(850.000000 -375.000000 8.000000) connected to node with index 18(743.000000 -240.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 16(850.000000 -375.000000 8.000000) connected to node with index 19(1564.000000 -427.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 17(867.000000 -187.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 17(867.000000 -187.000000 8.000000) connected to node with index 14(1364.000000 -258.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 17(867.000000 -187.000000 8.000000) connected to node with index 15(1062.000000 -258.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 17(867.000000 -187.000000 8.000000) connected to node with index 18(743.000000 -240.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 17(867.000000 -187.000000 8.000000) connected to node with index 19(1564.000000 -427.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 18(743.000000 -240.000000 8.000000) connected to node with index 16(850.000000 -375.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 18(743.000000 -240.000000 8.000000) connected to node with index 17(867.000000 -187.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 19(1564.000000 -427.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 19(1564.000000 -427.000000 8.000000) connected to node with index 14(1364.000000 -258.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 19(1564.000000 -427.000000 8.000000) connected to node with index 15(1062.000000 -258.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 19(1564.000000 -427.000000 8.000000) connected to node with index 16(850.000000 -375.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 19(1564.000000 -427.000000 8.000000) connected to node with index 17(867.000000 -187.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 19(1564.000000 -427.000000 8.000000) connected to node with index 21(1007.000000 273.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 7(398.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 8(75.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 9(-283.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	 2 link entities:
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *6, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 - 	 - Link entity classname: func_door), targetname: secdr8, model name: *5, link entity minimum hull: NODE_SMALL_HULL
+2024-10-10 00:18:43 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 21(1007.000000 273.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 22(1251.000000 273.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 23(1251.000000 481.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 20(1007.000000 0.000000 8.000000) connected to node with index 29(1476.000000 786.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 21(1007.000000 273.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 21(1007.000000 273.000000 8.000000) connected to node with index 19(1564.000000 -427.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 21(1007.000000 273.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 21(1007.000000 273.000000 8.000000) connected to node with index 22(1251.000000 273.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 22(1251.000000 273.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 22(1251.000000 273.000000 8.000000) connected to node with index 21(1007.000000 273.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 22(1251.000000 273.000000 8.000000) connected to node with index 23(1251.000000 481.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 23(1251.000000 481.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 23(1251.000000 481.000000 8.000000) connected to node with index 22(1251.000000 273.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 23(1251.000000 481.000000 8.000000) connected to node with index 24(1476.000000 599.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 23(1251.000000 481.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 24(1476.000000 599.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 24(1476.000000 599.000000 8.000000) connected to node with index 23(1251.000000 481.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 24(1476.000000 599.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 24(1476.000000 599.000000 8.000000) connected to node with index 29(1476.000000 786.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 23(1251.000000 481.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 24(1476.000000 599.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 26(1632.000000 1592.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 25(1632.000000 599.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 26(1632.000000 1592.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 26(1632.000000 1592.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 26(1632.000000 1592.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 26(1632.000000 1592.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 26(1632.000000 1592.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 26(1632.000000 1592.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 12(1418.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 13(1364.000000 -171.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 26(1632.000000 1592.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 28(2512.000000 85.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 27(1662.000000 85.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:43 -  - Node with index 28(2512.000000 85.000000 8.000000) connected to node with index 6(648.000000 0.000000 8.000000)
+2024-10-10 00:18:43 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 28(2512.000000 85.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 29(1476.000000 786.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 29(1476.000000 786.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 29(1476.000000 786.000000 8.000000) connected to node with index 20(1007.000000 0.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 29(1476.000000 786.000000 8.000000) connected to node with index 24(1476.000000 599.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 29(1476.000000 786.000000 8.000000) connected to node with index 30(1632.000000 786.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 0(1662.000000 289.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 4(1662.000000 194.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 5(1662.000000 -8.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 25(1632.000000 599.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 26(1632.000000 1592.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 27(1662.000000 85.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 -  - Node with index 30(1632.000000 786.000000 8.000000) connected to node with index 29(1476.000000 786.000000 8.000000)
+2024-10-10 00:18:44 - 	No link entities.
+2024-10-10 00:18:44 - =============================================
+2024-10-10 00:18:44 -  LinkNodes end
+2024-10-10 00:18:44 -  - Initial number of nodes: 31
+2024-10-10 00:18:44 -  - Initial number of links: 176
+2024-10-10 00:18:44 -  - Initial number of link entities 42
+2024-10-10 00:18:44 - =============================================
+2024-10-10 00:18:44 - =============================================
+2024-10-10 00:18:44 -  WalkLinksAllHulls begin
+2024-10-10 00:18:44 - =============================================
+2024-10-10 00:18:44 -  - Node 0:
+2024-10-10 00:18:44 -  - Node 1:
+2024-10-10 00:18:44 -  - Node 2:
+2024-10-10 00:18:44 -  - Node 3:
+2024-10-10 00:18:44 -  - Node 4:
+2024-10-10 00:18:44 - 	Node 6 unreachable by node 4 with hull NODE_LARGE_HULL
+2024-10-10 00:18:44 -  - Node 5:
+2024-10-10 00:18:44 -  - Node 6:
+2024-10-10 00:18:44 - 	Node 6 unreachable by node 6 with hull NODE_LARGE_HULL
+2024-10-10 00:18:44 -  - Node 7:
+2024-10-10 00:18:44 -  - Node 8:
+2024-10-10 00:18:44 -  - Node 9:
+2024-10-10 00:18:44 -  - Node 10:
+2024-10-10 00:18:44 -  - Node 11:
+2024-10-10 00:18:44 -  - Node 12:
+2024-10-10 00:18:44 -  - Node 13:
+2024-10-10 00:18:44 - 	Node 6 unreachable by node 13 with hull NODE_LARGE_HULL
+2024-10-10 00:18:44 -  - Node 14:
+2024-10-10 00:18:44 -  - Node 15:
+2024-10-10 00:18:44 -  - Node 16:
+2024-10-10 00:18:44 -  - Node 17:
+2024-10-10 00:18:44 -  - Node 18:
+2024-10-10 00:18:44 -  - Node 19:
+2024-10-10 00:18:44 - 	Node 0 unreachable by node 19 with hull NODE_LARGE_HULL
+2024-10-10 00:18:44 - 	Node 5 unreachable by node 19 with hull NODE_LARGE_HULL
+2024-10-10 00:18:44 -  - Node 20:
+2024-10-10 00:18:44 -  - Node 21:
+2024-10-10 00:18:44 - 	Node 1 unreachable by node 21 with hull NODE_LARGE_HULL
+2024-10-10 00:18:44 -  - Node 22:
+2024-10-10 00:18:44 -  - Node 23:
+2024-10-10 00:18:44 -  - Node 24:
+2024-10-10 00:18:44 - 	Node 0 unreachable by node 24 with hull NODE_LARGE_HULL
+2024-10-10 00:18:44 -  - Node 25:
+2024-10-10 00:18:44 -  - Node 26:
+2024-10-10 00:18:44 -  - Node 27:
+2024-10-10 00:18:44 -  - Node 28:
+2024-10-10 00:18:44 -  - Node 29:
+2024-10-10 00:18:44 - 	Node 1 unreachable by node 29 with hull NODE_LARGE_HULL
+2024-10-10 00:18:44 -  - Node 30:
+2024-10-10 00:18:44 - =============================================
+2024-10-10 00:18:44 -  WalkLinksAllHulls end
+2024-10-10 00:18:44 - =============================================
+2024-10-10 00:18:44 - =============================================
+2024-10-10 00:18:44 -  OptimizeGraph begin
+2024-10-10 00:18:44 - =============================================
+2024-10-10 00:18:44 -  - Rejected link from node 5 to node 4, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 26 to node 30, DP: 0.999306
+2024-10-10 00:18:44 -  - Rejected link from node 27 to node 4, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 30 to node 25, DP: 0.999345
+2024-10-10 00:18:44 -  - Rejected link from node 5 to node 27, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 26 to node 0, DP: 0.999770
+2024-10-10 00:18:44 -  - Rejected link from node 30 to node 0, DP: 0.998719
+2024-10-10 00:18:44 -  - Rejected link from node 0 to node 4, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 4 to node 27, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 6 to node 12, DP: 0.999690
+2024-10-10 00:18:44 -  - Rejected link from node 7 to node 12, DP: 0.999650
+2024-10-10 00:18:44 -  - Rejected link from node 8 to node 12, DP: 0.999615
+2024-10-10 00:18:44 -  - Rejected link from node 9 to node 12, DP: 0.999589
+2024-10-10 00:18:44 -  - Rejected link from node 20 to node 12, DP: 0.999789
+2024-10-10 00:18:44 -  - Rejected link from node 25 to node 27, DP: 0.998781
+2024-10-10 00:18:44 -  - Rejected link from node 26 to node 27, DP: 0.999824
+2024-10-10 00:18:44 -  - Rejected link from node 30 to node 27, DP: 0.999287
+2024-10-10 00:18:44 -  - Rejected link from node 5 to node 12, DP: 0.999969
+2024-10-10 00:18:44 -  - Rejected link from node 8 to node 7, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 9 to node 7, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 12 to node 20, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 28 to node 20, DP: 0.998962
+2024-10-10 00:18:44 -  - Rejected link from node 5 to node 6, DP: 0.999980
+2024-10-10 00:18:44 -  - Rejected link from node 9 to node 8, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 12 to node 6, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 20 to node 6, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 5 to node 6, DP: 0.999987
+2024-10-10 00:18:44 -  - Rejected link from node 6 to node 7, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 12 to node 7, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 20 to node 7, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 5 to node 6, DP: 0.999992
+2024-10-10 00:18:44 -  - Rejected link from node 6 to node 7, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 7 to node 8, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 12 to node 8, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 20 to node 8, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 11 to node 9, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 10 to node 9, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 6 to node 20, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 7 to node 20, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 8 to node 20, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 9 to node 20, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 5 to node 13, DP: 0.998911
+2024-10-10 00:18:44 -  - Rejected link from node 19 to node 15, DP: 0.999846
+2024-10-10 00:18:44 -  - Rejected link from node 17 to node 15, DP: 0.999976
+2024-10-10 00:18:44 -  - Rejected link from node 21 to node 13, DP: 0.999960
+2024-10-10 00:18:44 -  - Rejected link from node 5 to node 12, DP: 0.999925
+2024-10-10 00:18:44 -  - Rejected link from node 7 to node 6, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 8 to node 6, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 9 to node 6, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 19 to node 13, DP: 0.999987
+2024-10-10 00:18:44 -  - Rejected link from node 4 to node 0, DP: 0.999746
+2024-10-10 00:18:44 -  - Rejected link from node 5 to node 0, DP: 0.998891
+2024-10-10 00:18:44 -  - Rejected link from node 26 to node 30, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 27 to node 0, DP: 0.999271
+2024-10-10 00:18:44 -  - Rejected link from node 0 to node 25, DP: 0.999735
+2024-10-10 00:18:44 -  - Rejected link from node 4 to node 25, DP: 0.999770
+2024-10-10 00:18:44 -  - Rejected link from node 5 to node 25, DP: 0.999824
+2024-10-10 00:18:44 -  - Rejected link from node 25 to node 30, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 27 to node 30, DP: 0.999802
+2024-10-10 00:18:44 -  - Rejected link from node 0 to node 4, DP: 1.000000
+2024-10-10 00:18:44 -  - Rejected link from node 25 to node 4, DP: 0.998301
+2024-10-10 00:18:44 -  - Rejected link from node 26 to node 4, DP: 0.999802
+2024-10-10 00:18:44 -  - Rejected link from node 30 to node 4, DP: 0.999085
+2024-10-10 00:18:44 -  - Rejected link from node 6 to node 27, DP: 0.998962
+2024-10-10 00:18:44 -  - Rejected link from node 4 to node 0, DP: 0.998559
+2024-10-10 00:18:44 -  - Rejected link from node 0 to node 25, DP: 0.998183
+2024-10-10 00:18:44 -  - Rejected link from node 4 to node 25, DP: 0.998719
+2024-10-10 00:18:44 -  - Rejected link from node 5 to node 25, DP: 0.999287
+2024-10-10 00:18:44 -  - Rejected link from node 27 to node 25, DP: 0.999085
+2024-10-10 00:18:44 - Link array contents:
+2024-10-10 00:18:44 -  - Link from node 0 to node 4.
+2024-10-10 00:18:44 -  - Link from node 0 to node 25.
+2024-10-10 00:18:44 -  - Link from node 0 to node 29.
+2024-10-10 00:18:44 -  - Link from node 1 to node 2.
+2024-10-10 00:18:44 -  - Link from node 1 to node 4.
+2024-10-10 00:18:44 -  - Link from node 2 to node 1.
+2024-10-10 00:18:44 -  - Link from node 2 to node 3.
+2024-10-10 00:18:44 -  - Link from node 3 to node 2.
+2024-10-10 00:18:44 -  - Link from node 4 to node 0.
+2024-10-10 00:18:44 -  - Link from node 4 to node 1.
+2024-10-10 00:18:44 -  - Link from node 4 to node 25.
+2024-10-10 00:18:44 -  - Link from node 4 to node 27.
+2024-10-10 00:18:44 -  - Link from node 4 to node 29.
+2024-10-10 00:18:44 -  - Link from node 5 to node 12.
+2024-10-10 00:18:44 -  - Link from node 5 to node 13.
+2024-10-10 00:18:44 -  - Link from node 5 to node 16.
+2024-10-10 00:18:44 -  - Link from node 5 to node 27.
+2024-10-10 00:18:44 -  - Link from node 6 to node 7.
+2024-10-10 00:18:44 -  - Link from node 6 to node 20.
+2024-10-10 00:18:44 -  - Link from node 6 to node 24.
+2024-10-10 00:18:44 -  - Link from node 7 to node 6.
+2024-10-10 00:18:44 -  - Link from node 7 to node 8.
+2024-10-10 00:18:44 -  - Link from node 8 to node 7.
+2024-10-10 00:18:44 -  - Link from node 8 to node 9.
+2024-10-10 00:18:44 -  - Link from node 9 to node 8.
+2024-10-10 00:18:44 -  - Link from node 9 to node 10.
+2024-10-10 00:18:44 -  - Link from node 9 to node 11.
+2024-10-10 00:18:44 -  - Link from node 10 to node 9.
+2024-10-10 00:18:44 -  - Link from node 11 to node 9.
+2024-10-10 00:18:44 -  - Link from node 12 to node 5.
+2024-10-10 00:18:44 -  - Link from node 12 to node 13.
+2024-10-10 00:18:44 -  - Link from node 12 to node 14.
+2024-10-10 00:18:44 -  - Link from node 12 to node 20.
+2024-10-10 00:18:44 -  - Link from node 12 to node 27.
+2024-10-10 00:18:44 -  - Link from node 13 to node 5.
+2024-10-10 00:18:44 -  - Link from node 13 to node 12.
+2024-10-10 00:18:44 -  - Link from node 13 to node 14.
+2024-10-10 00:18:44 -  - Link from node 13 to node 15.
+2024-10-10 00:18:44 -  - Link from node 13 to node 16.
+2024-10-10 00:18:44 -  - Link from node 13 to node 17.
+2024-10-10 00:18:44 -  - Link from node 13 to node 19.
+2024-10-10 00:18:44 -  - Link from node 13 to node 21.
+2024-10-10 00:18:44 -  - Link from node 13 to node 27.
+2024-10-10 00:18:44 -  - Link from node 14 to node 12.
+2024-10-10 00:18:44 -  - Link from node 14 to node 13.
+2024-10-10 00:18:44 -  - Link from node 14 to node 15.
+2024-10-10 00:18:44 -  - Link from node 14 to node 17.
+2024-10-10 00:18:44 -  - Link from node 14 to node 19.
+2024-10-10 00:18:44 -  - Link from node 15 to node 13.
+2024-10-10 00:18:44 -  - Link from node 15 to node 14.
+2024-10-10 00:18:44 -  - Link from node 15 to node 16.
+2024-10-10 00:18:44 -  - Link from node 15 to node 17.
+2024-10-10 00:18:44 -  - Link from node 15 to node 19.
+2024-10-10 00:18:44 -  - Link from node 16 to node 13.
+2024-10-10 00:18:44 -  - Link from node 16 to node 15.
+2024-10-10 00:18:44 -  - Link from node 16 to node 18.
+2024-10-10 00:18:44 -  - Link from node 16 to node 19.
+2024-10-10 00:18:44 -  - Link from node 17 to node 13.
+2024-10-10 00:18:44 -  - Link from node 17 to node 14.
+2024-10-10 00:18:44 -  - Link from node 17 to node 15.
+2024-10-10 00:18:44 -  - Link from node 17 to node 18.
+2024-10-10 00:18:44 -  - Link from node 18 to node 16.
+2024-10-10 00:18:44 -  - Link from node 18 to node 17.
+2024-10-10 00:18:44 -  - Link from node 19 to node 13.
+2024-10-10 00:18:44 -  - Link from node 19 to node 14.
+2024-10-10 00:18:44 -  - Link from node 19 to node 15.
+2024-10-10 00:18:44 -  - Link from node 19 to node 16.
+2024-10-10 00:18:44 -  - Link from node 20 to node 6.
+2024-10-10 00:18:44 -  - Link from node 20 to node 12.
+2024-10-10 00:18:44 -  - Link from node 20 to node 21.
+2024-10-10 00:18:44 -  - Link from node 20 to node 22.
+2024-10-10 00:18:44 -  - Link from node 20 to node 23.
+2024-10-10 00:18:44 -  - Link from node 20 to node 27.
+2024-10-10 00:18:44 -  - Link from node 20 to node 29.
+2024-10-10 00:18:44 -  - Link from node 21 to node 13.
+2024-10-10 00:18:44 -  - Link from node 21 to node 20.
+2024-10-10 00:18:44 -  - Link from node 21 to node 22.
+2024-10-10 00:18:44 -  - Link from node 22 to node 20.
+2024-10-10 00:18:44 -  - Link from node 22 to node 21.
+2024-10-10 00:18:44 -  - Link from node 22 to node 23.
+2024-10-10 00:18:44 -  - Link from node 23 to node 20.
+2024-10-10 00:18:44 -  - Link from node 23 to node 22.
+2024-10-10 00:18:44 -  - Link from node 23 to node 24.
+2024-10-10 00:18:44 -  - Link from node 23 to node 25.
+2024-10-10 00:18:44 -  - Link from node 24 to node 6.
+2024-10-10 00:18:44 -  - Link from node 24 to node 23.
+2024-10-10 00:18:44 -  - Link from node 24 to node 25.
+2024-10-10 00:18:44 -  - Link from node 24 to node 29.
+2024-10-10 00:18:44 -  - Link from node 25 to node 0.
+2024-10-10 00:18:44 -  - Link from node 25 to node 23.
+2024-10-10 00:18:44 -  - Link from node 25 to node 24.
+2024-10-10 00:18:44 -  - Link from node 25 to node 30.
+2024-10-10 00:18:44 -  - Link from node 26 to node 30.
+2024-10-10 00:18:44 -  - Link from node 27 to node 4.
+2024-10-10 00:18:44 -  - Link from node 27 to node 5.
+2024-10-10 00:18:44 -  - Link from node 27 to node 12.
+2024-10-10 00:18:44 -  - Link from node 27 to node 13.
+2024-10-10 00:18:44 -  - Link from node 27 to node 20.
+2024-10-10 00:18:44 -  - Link from node 27 to node 28.
+2024-10-10 00:18:44 -  - Link from node 28 to node 27.
+2024-10-10 00:18:44 -  - Link from node 29 to node 0.
+2024-10-10 00:18:44 -  - Link from node 29 to node 20.
+2024-10-10 00:18:44 -  - Link from node 29 to node 24.
+2024-10-10 00:18:44 -  - Link from node 29 to node 30.
+2024-10-10 00:18:44 -  - Link from node 30 to node 25.
+2024-10-10 00:18:44 -  - Link from node 30 to node 26.
+2024-10-10 00:18:44 -  - Link from node 30 to node 29.
+2024-10-10 00:18:44 - =============================================
+2024-10-10 00:18:44 -  - Number of deleted links: 69
+2024-10-10 00:18:44 -  - Number of deleted nodes: 0
+2024-10-10 00:18:44 -  - Number of deleted link entities: 108
+2024-10-10 00:18:44 -  OptimizeGraph end
+2024-10-10 00:18:44 - =============================================
+2024-10-10 00:18:45 - Final node array contents:
+2024-10-10 00:18:45 -  - Node 0
+2024-10-10 00:18:45 - 	Origin: 1662.000000 289.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 1
+2024-10-10 00:18:45 - 	Origin: 1662.000000 194.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 2
+2024-10-10 00:18:45 - 	Origin: 1632.000000 599.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 3
+2024-10-10 00:18:45 - 	Origin: 1476.000000 786.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 4
+2024-10-10 00:18:45 - 	Origin: 1538.000000 273.000000 40.031250
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 5
+2024-10-10 00:18:45 - 	Origin: 1538.000000 194.000000 40.031250
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 6
+2024-10-10 00:18:45 - 	Origin: 1407.000000 273.000000 40.031250
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 7
+2024-10-10 00:18:45 - 	Origin: 1662.000000 85.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 8
+2024-10-10 00:18:45 - 	Origin: 1418.000000 0.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 9
+2024-10-10 00:18:45 - 	Origin: 1364.000000 -171.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 10
+2024-10-10 00:18:45 - 	Origin: 850.000000 -375.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 11
+2024-10-10 00:18:45 - 	Origin: 398.000000 0.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 12
+2024-10-10 00:18:45 - 	Origin: 1007.000000 0.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 13
+2024-10-10 00:18:45 - 	Origin: 1476.000000 599.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 14
+2024-10-10 00:18:45 - 	Origin: 648.000000 0.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 15
+2024-10-10 00:18:45 - 	Origin: 75.000000 0.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 16
+2024-10-10 00:18:45 - 	Origin: -283.000000 0.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 17
+2024-10-10 00:18:45 - 	Origin: -283.000000 218.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 18
+2024-10-10 00:18:45 - 	Origin: -283.000000 -210.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 19
+2024-10-10 00:18:45 - 	Origin: 1662.000000 -8.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 20
+2024-10-10 00:18:45 - 	Origin: 1364.000000 -258.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 21
+2024-10-10 00:18:45 - 	Origin: 1062.000000 -258.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 22
+2024-10-10 00:18:45 - 	Origin: 867.000000 -187.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 23
+2024-10-10 00:18:45 - 	Origin: 1564.000000 -427.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 24
+2024-10-10 00:18:45 - 	Origin: 1007.000000 273.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 25
+2024-10-10 00:18:45 - 	Origin: 743.000000 -240.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 26
+2024-10-10 00:18:45 - 	Origin: 1251.000000 273.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 27
+2024-10-10 00:18:45 - 	Origin: 1251.000000 481.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 28
+2024-10-10 00:18:45 - 	Origin: 1632.000000 786.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 29
+2024-10-10 00:18:45 - 	Origin: 2512.000000 85.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 -  - Node 30
+2024-10-10 00:18:45 - 	Origin: 1632.000000 1592.000000 8.000000
+2024-10-10 00:18:45 - 	Hint type: 0
+2024-10-10 00:18:45 - 	Hint yaw: 0.000000
+2024-10-10 00:18:45 - Routing info size: 1963 bytes
+2024-10-10 00:18:45 - =============================================
+2024-10-10 00:18:45 -  - File size: 15704 bytes
+2024-10-10 00:18:45 -  - File name: maps/graphs/entitytest2c.nod
+2024-10-10 00:18:45 -  - Node graph generation time: 0 minutes 2 seconds
+2024-10-10 00:18:45 -  Node graph file end 
+2024-10-10 00:18:45 - =============================================

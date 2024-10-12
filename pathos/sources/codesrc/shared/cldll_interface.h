@@ -163,7 +163,7 @@ struct cldll_engfuncs_t
 
 	entity_extrainfo_t*		(*pfnGetEntityExtraData)( cl_entity_t* pentity );
 	void					(*pfnFindTouchedLeafs)( const brushmodel_t* pworld, CArray<Uint32>& leafnumsarray, const Vector& mins, const Vector& maxs, mnode_t* pnode );
-	bool					(*pfnRecursiveLightPoint)( const brushmodel_t* pworld, struct mnode_t *pnode, const Vector &start, const Vector &end, Vector &color );
+	bool					(*pfnRecursiveLightPoint)( const brushmodel_t* pworld, struct mnode_t *pnode, const Vector &start, const Vector &end, Vector &color, byte* poutstyles );
 
 	void					(*pfnPrecacheFlexScript)( enum flextypes_t npctype, const Char* pstrscript );
 	void					(*pfnSetFlexScript)( entindex_t entindex, const Char* pstrscript );

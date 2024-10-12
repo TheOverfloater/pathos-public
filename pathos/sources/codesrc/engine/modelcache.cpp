@@ -14,8 +14,10 @@ All Rights Reserved.
 #include "brushmodel.h"
 #include "modelcache.h"
 #include "pbspv1file.h"
+#include "pbspv2file.h"
 #include "bspv30.h"
 #include "pbspv1.h"
+#include "pbspv2.h"
 #include "system.h"
 #include "texturemanager.h"
 #include "studio.h"
@@ -23,6 +25,7 @@ All Rights Reserved.
 #include "r_vbm.h"
 #include "enginestate.h"
 #include "commands.h"
+#include "bsp_shared.h"
 
 // Object declaration
 CModelCache gModelCache;
@@ -159,6 +162,7 @@ cache_model_t* CModelCache::LoadModel( const Char* pstrFilename )
 	case IDSPRITEHEADER:
 		pmodel = LoadSpriteModel(pstrFilename, pfile, filesize);
 		break;
+	case PBSP_HEADER:
 	default:
 		// Loads BSP files by default
 		pmodel = LoadBSPModel(pstrFilename, pfile);
@@ -320,34 +324,37 @@ cache_model_t* CModelCache::LoadBSPModel( const Char* pstrFilename, const byte* 
 {
 	brushmodel_t* pmodel = nullptr;
 
-	// First, check if it's a Pathos BSP
-	const dpbspv1header_t* pbspheader = reinterpret_cast<const dpbspv1header_t*>(pfile);
-	if(pbspheader->id == PBSP_HEADER)
+	// First, check if it's a Pathos BSP by checking the id part
+	Int32 fileHeaderId = Common::ByteToInt32(pfile);
+	if(fileHeaderId == PBSP_HEADER)
 	{
-		switch(pbspheader->version)
+		// Now get the version
+		Int32 fileHeaderVersion = Common::ByteToInt32(pfile + sizeof(Int32));
+		switch(fileHeaderVersion)
 		{
-		case PBSP_VERSION:
-			pmodel = PBSPV1_Load(pfile, pbspheader, pstrFilename);
+		case PBSPV1_VERSION:
+			pmodel = PBSPV1_Load(pfile, reinterpret_cast<const dpbspv1header_t*>(pfile), pstrFilename);
+			break;
+		case PBSPV2_VERSION:
+			pmodel = PBSPV2_Load(pfile, reinterpret_cast<const dpbspv2header_t*>(pfile), pstrFilename);
 			break;
 		default:
-			Con_EPrintf("%s - PBSP file '%s' has wrong version number '%d', which should be '%d'.\n", __FUNCTION__, pstrFilename, pbspheader->version, PBSP_VERSION);
+			Con_EPrintf("%s - PBSP file '%s' has an unknown version number '%d'.\n", __FUNCTION__, pstrFilename, fileHeaderVersion);
 			return nullptr;
 			break;
 		}
 	}
 	else
 	{
-		// Get header info
-		const dheader_t* pheader = reinterpret_cast<const dheader_t*>(pfile);
-	
-		// Determine bsp version to load
-		switch(pheader->version)
+		// Get the version from the file and determine if it's usable
+		Int32 bspVersion = Common::ByteToInt32(pfile);
+		switch(bspVersion)
 		{
 		case BSPV30_VERSION:
-			pmodel = BSPV30_Load(pfile, pheader, pstrFilename);
+			pmodel = BSPV30_Load(pfile, reinterpret_cast<const dv30header_t*>(pfile), pstrFilename);
 			break;
 		default:
-			Con_EPrintf("%s - BSP file '%s' has wrong version number '%d', which should be '%d'.\n", __FUNCTION__, pstrFilename, pheader->version, BSPV30_VERSION);
+			Con_EPrintf("%s - BSP file '%s' has wrong version number '%d', which should be '%d'.\n", __FUNCTION__, pstrFilename, bspVersion, BSPV30_VERSION);
 			return nullptr;
 			break;
 		}
@@ -367,7 +374,7 @@ cache_model_t* CModelCache::LoadBSPModel( const Char* pstrFilename, const byte* 
 	// Set up PAS after loading submodel data
 	cache_model_t* pcache = m_modelCacheArray[0];
 	pmodel = pcache->getBrushmodel();
-	BSPV30_SetupPAS((*pmodel));
+	BSP_SetupPAS((*pmodel));
 
 	return pcache;
 }
@@ -395,8 +402,6 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 		pnewmodel->visdatasize = model.visdatasize;
 		pnewmodel->ppasdata = model.ppasdata;
 		pnewmodel->pasdatasize = model.pasdatasize;
-		pnewmodel->plightdata = model.plightdata;
-		pnewmodel->pbaselightdata = model.pbaselightdata;
 		pnewmodel->lightdatasize = model.lightdatasize;
 		pnewmodel->pclipnodes = model.pclipnodes;
 		pnewmodel->numclipnodes = model.numclipnodes;
@@ -423,6 +428,12 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 
 		memcpy(pnewmodel->hulls, model.hulls, sizeof(hull_t)*MAX_MAP_HULLS);
 		pnewmodel->freedata = (i == 0) ? true : false;
+
+		for(Uint32 j = 0 ; j < NB_SURF_LIGHTMAP_LAYERS; j++)
+		{
+			pnewmodel->plightdata[j] = model.plightdata[j];
+			pnewmodel->pbaselightdata[j] = model.pbaselightdata[j];
+		}
 
 		pnewmodel->hulls[0].firstclipnode = psubmodel->headnode[0];
 		for(Uint32 j = 1; j < MAX_MAP_HULLS; j++)

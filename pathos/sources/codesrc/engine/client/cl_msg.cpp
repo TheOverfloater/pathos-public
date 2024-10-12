@@ -509,6 +509,9 @@ bool CL_ReadPacketEntities( void )
 {
 	CMSGReader& reader = cls.netinfo.reader;
 
+	// Reset this
+	cls.numparticleblockers = 0;
+
 	// Get the number of entities
 	Uint32 numentities = reader.ReadUint32();
 	
@@ -826,6 +829,16 @@ bool CL_ReadPacketEntities( void )
 			pmlight->color.y = 0.75;
 			pmlight->color.z = 0.25;
 			pmlight->radius = Common::RandomFloat(30, 40);
+		}
+
+		// Manage particle blockers in packet
+		if(pentity->curstate.flags & FL_PARTICLE_BLOCKER)
+		{
+			if(cls.numparticleblockers >= cls.particleblockers.size())
+				cls.particleblockers.resize(cls.particleblockers.size()+PARTICLEBLOCKER_ALLOC_SIZE);
+
+			cls.particleblockers[cls.numparticleblockers] = pentity->entindex;
+			cls.numparticleblockers++;
 		}
 	}
 

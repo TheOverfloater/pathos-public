@@ -77,35 +77,12 @@ CDynamicLightManager
 class CDynamicLightManager
 {
 public:
-	// Number of default lightstyles
-	static const Uint32 NUM_DL_DEFAULT_STYLES;
-	// Default lightstyle framerate
-	static const Char DEFAULT_LIGHTSTYLE_FRAMERATE;
 	// Minimum shadowmap size
 	static const Uint32 SHADOWMAP_MIN_SIZE;
-	// Maximum lightstyle string length
-	static const Uint32	MAX_STYLESTRING;
 	// Time until an unused shadowmap is freed
 	static const Float SHADOWMAP_RELEASE_DELAY;
 
 public:
-	struct lightstyle_t
-	{
-		lightstyle_t():
-			length(0),
-			framerate(0),
-			value(0),
-			interp(false)
-		{}
-
-		Int32 length;
-		Int32 framerate;
-		CArray<Char> map;
-
-		Float value;
-		bool interp;
-	};
-
 	struct vsm_shader_attribs
 	{
 		vsm_shader_attribs():
@@ -167,9 +144,6 @@ public:
 	// Allocates a spotlight light
 	cl_dlight_t* AllocDynamicSpotlight( Int32 key, Int32 subkey, bool isstatic, bool noshadow, cl_entity_t *pentity );
 
-	// Applies a lightstyle to a light value
-	void ApplyLightStyle( cl_dlight_t* dl, Vector& color );
-
 	// Returns the projective shadowmap size
 	Int32 GetShadowmapSize( void ) const;
 	// Returns the cubemap shadowmap size
@@ -177,19 +151,11 @@ public:
 	// Returns the dynamic light list
 	CLinkedList<cl_dlight_t*>& GetLightList( void ) { return m_dlightsList; }
 
-	// Adds a custom lightstyle
-	void AddCustomLightStyle( Uint32 index, Int32 framerate, bool interpolate, const Char* pstring );
-
 	// Releases any dynlights tied to an entity
 	void ReleaseEntityDynamicLights( entindex_t entindex );
 
 private:
-	// Resets lightstyles
-	void ResetStyles( void );
-	// Sets default lightstyles
-	void SetDefaultStyles( void );
-	// Animates lightstyles
-	void AnimateStyles( void );
+
 
 	// Clears shadow maps
 	void ClearShadowMaps( void );
@@ -205,9 +171,6 @@ private:
 	void FreeDynamicLight( cl_dlight_t* pdlight, bool ignoreStatic = false );
 	// Sets up a dynamic light's pointers
 	void SetupLight( cl_dlight_t* pdlight, bool spotlight, bool noshadow, bool isstatic, cl_entity_t *pentity );
-
-	// Adds a lightstyle
-	void AddLightStyle( Uint32 index, Int32 framerate, bool interpolate, const Char* pstring );
 
 	// Creates a projective FBO
 	bool CreateProjectiveFBO( shadowmap_t& shadowmap );
@@ -269,9 +232,6 @@ private:
 	// Current shadow map sizes
 	Int32 m_shadowmapSize;
 	Int32 m_cubeShadowmapSize;
-
-	// lightstyle related
-	CArray<lightstyle_t> m_lightStyles;
 
 	// Linkest list of dynamic lights
 	CLinkedList<cl_dlight_t*> m_dlightsList;

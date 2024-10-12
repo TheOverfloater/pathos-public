@@ -323,7 +323,7 @@ void CPlayerMovement::Move_Ladder( void )
 	floor[2] += m_pPMInfo->player_mins[m_hullIndex][2] - 1;
 
 	bool onfloor = false;
-	if(m_traceInterface.pfnPointContents(floor, nullptr) == CONTENTS_SOLID)
+	if(m_traceInterface.pfnPointContents(floor, nullptr, false) == CONTENTS_SOLID)
 		onfloor = true;
 
 	m_pPlayerState->gravity = 0;
@@ -898,7 +898,7 @@ bool CPlayerMovement::CheckWater( void )
 	m_pPlayerState->waterlevel = WATERLEVEL_NONE;
 	m_pPlayerState->watertype = CONTENTS_EMPTY;
 
-	Int32 contents = m_traceInterface.pfnPointContents(checkpos, nullptr);
+	Int32 contents = m_traceInterface.pfnPointContents(checkpos, nullptr, false);
 	if(contents <= CONTENTS_WATER && contents  >= CONTENTS_LAVA)
 	{
 		m_pPlayerState->watertype = contents;
@@ -909,7 +909,7 @@ bool CPlayerMovement::CheckWater( void )
 		Float heighthalf = height* 0.5f;
 
 		checkpos[2] = m_pPlayerState->origin[2] + heighthalf;
-		contents = m_traceInterface.pfnPointContents(checkpos, nullptr);
+		contents = m_traceInterface.pfnPointContents(checkpos, nullptr, false);
 		if(contents <= CONTENTS_WATER && contents  >= CONTENTS_LAVA)
 		{
 			m_pPlayerState->waterlevel = WATERLEVEL_MID;
@@ -917,7 +917,7 @@ bool CPlayerMovement::CheckWater( void )
 			// Check for head submersion
 			checkpos[2] = m_pPlayerState->origin[2] + m_pPlayerState->view_offset[2];
 
-			contents = m_traceInterface.pfnPointContents(checkpos, nullptr);
+			contents = m_traceInterface.pfnPointContents(checkpos, nullptr, false);
 			if(contents <= CONTENTS_WATER && contents  >= CONTENTS_LAVA)
 				m_pPlayerState->waterlevel = WATERLEVEL_FULL;
 		}
@@ -1101,7 +1101,7 @@ void CPlayerMovement::Jump( void )
 			// Remove waterdist
 			testpos[2] -= m_pMovevars->waterdist;
 
-			if(m_traceInterface.pfnPointContents(testpos, nullptr) != CONTENTS_WATER)
+			if(m_traceInterface.pfnPointContents(testpos, nullptr, false) != CONTENTS_WATER)
 			{
 				m_pPlayerState->velocity[2] = 0;
 				return;
@@ -1286,8 +1286,8 @@ void CPlayerMovement::Move_Water( void )
 			Vector submergemax = submergemin;
 			submergemax[2] -= m_pMovevars->waterdist*3;
 
-			Int32 contentsmin = m_traceInterface.pfnPointContents(submergemin, nullptr);
-			Int32 contentsmax = m_traceInterface.pfnPointContents(submergemax, nullptr);
+			Int32 contentsmin = m_traceInterface.pfnPointContents(submergemin, nullptr, false);
+			Int32 contentsmax = m_traceInterface.pfnPointContents(submergemax, nullptr, false);
 
 			// Wobble on the surface
 			if(contentsmin == CONTENTS_WATER && contentsmax != CONTENTS_WATER)
@@ -1556,13 +1556,13 @@ void CPlayerMovement::UpdateStepSound( void )
 		nextStepTime = STEPTIME_LADDER;
 		material = "ladder";
 	}
-	else if(m_traceInterface.pfnPointContents(knee, nullptr) == CONTENTS_WATER)
+	else if(m_traceInterface.pfnPointContents(knee, nullptr, false) == CONTENTS_WATER)
 	{
 		volume = 0.7;
 		nextStepTime = STEPTIME_WATER;
 		material = "wade";
 	}
-	else if(m_traceInterface.pfnPointContents(feet, nullptr) == CONTENTS_WATER)
+	else if(m_traceInterface.pfnPointContents(feet, nullptr, false) == CONTENTS_WATER)
 	{
 		volume = (speed < PLAYER_NORMAL_SPEED) ? 0.25 : 0.5;
 		nextStepTime = STEPTIME_WATER;

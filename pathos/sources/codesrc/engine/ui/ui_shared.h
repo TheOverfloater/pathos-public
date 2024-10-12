@@ -10,6 +10,8 @@ All Rights Reserved.
 #ifndef UI_SHARED_H
 #define UI_SHARED_H
 
+#include "r_basicdraw.h"
+
 struct en_texture_t;
 struct font_set_t;
 
@@ -261,7 +263,7 @@ struct ui_engine_interface_t
 	// Disable textures in basic draw
 	bool				(*pfnBasicDrawDisableTextures)( void );
 	// Resets states for primitive rendering
-	void				(*pfnBasicDrawBegin)( Int32 primitiveType );
+	void				(*pfnBasicDrawBegin)( CBasicDraw::primitivetype_t primitiveType );
 	// Renders the primitives
 	void				(*pfnBasicDrawEnd)( void );
 	// Sets a vertex's color

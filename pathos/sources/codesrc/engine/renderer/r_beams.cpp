@@ -43,6 +43,8 @@ const Float CBeamRenderer::BEAM_POSITION_SEGMENT_DISTANCE = 32.0f;
 const Uint32 CBeamRenderer::MIN_NB_BEAM_SEGMENTS = 3;
 // Fraction of length at which end/start fades
 const Float CBeamRenderer::BEAM_FADE_FRACTION = 0.1;
+// Distance between light checks for vapor trail
+const Float CBeamRenderer::VAPORTRAIL_LIGHTCHECK_DISTANCE = 16;
 
 // Object definition
 CBeamRenderer gBeamRenderer;
@@ -584,7 +586,7 @@ void CBeamRenderer::DrawBeamSegments( const Vector& src, const Vector& delta, Fl
 
 	R_ValidateShader(m_pBasicDraw);
 
-	m_pBasicDraw->Begin(GL_TRIANGLES);
+	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
 
 	for(Uint32 i = 1; i < _numsegments; i++)
 	{
@@ -638,23 +640,14 @@ void CBeamRenderer::DrawBeamSegments( const Vector& src, const Vector& delta, Fl
 		// Calculate texcoord
 		Float tcy2 = tcy1 + step;
 
-		// triangle 1
+		// Draw as a quad
+		m_pBasicDraw->Brightness1f(brightness1);
+		m_pBasicDraw->TexCoord2f(1, tcy1);
+		m_pBasicDraw->Vertex3fv(coord1_1);
+
 		m_pBasicDraw->Brightness1f(brightness1);
 		m_pBasicDraw->TexCoord2f(0, tcy1);
 		m_pBasicDraw->Vertex3fv(coord1_2);
-
-		m_pBasicDraw->Brightness1f(brightness1);
-		m_pBasicDraw->TexCoord2f(1, tcy1);
-		m_pBasicDraw->Vertex3fv(coord1_1);
-
-		m_pBasicDraw->Brightness1f(brightness2);
-		m_pBasicDraw->TexCoord2f(0, tcy2);
-		m_pBasicDraw->Vertex3fv(coord2_2);
-
-		// triangle 2
-		m_pBasicDraw->Brightness1f(brightness1);
-		m_pBasicDraw->TexCoord2f(1, tcy1);
-		m_pBasicDraw->Vertex3fv(coord1_1);
 
 		m_pBasicDraw->Brightness1f(brightness2);
 		m_pBasicDraw->TexCoord2f(0, tcy2);
@@ -761,7 +754,7 @@ void CBeamRenderer::DrawBeamTesla( const Vector& src, const Vector& delta, Float
 	Vector beamright, beamup;
 	Math::GetUpRight(beamforward, beamright, beamup);
 
-	m_pBasicDraw->Begin(GL_TRIANGLES);
+	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
 	for(Uint32 i = 1; i < _numsegments; i++)
 	{
 		Float fraction = i * div;
@@ -824,23 +817,14 @@ void CBeamRenderer::DrawBeamTesla( const Vector& src, const Vector& delta, Float
 		// Calculate texcoord
 		Float tcy2 = tcy1 + step;
 
-		// triangle 1
+		// Draw as a quad
+		m_pBasicDraw->Brightness1f(brightness1);
+		m_pBasicDraw->TexCoord2f(1, tcy1);
+		m_pBasicDraw->Vertex3fv(coord1_1);
+
 		m_pBasicDraw->Brightness1f(brightness1);
 		m_pBasicDraw->TexCoord2f(0, tcy1);
 		m_pBasicDraw->Vertex3fv(coord1_2);
-
-		m_pBasicDraw->Brightness1f(brightness1);
-		m_pBasicDraw->TexCoord2f(1, tcy1);
-		m_pBasicDraw->Vertex3fv(coord1_1);
-
-		m_pBasicDraw->Brightness1f(brightness2);
-		m_pBasicDraw->TexCoord2f(0, tcy2);
-		m_pBasicDraw->Vertex3fv(coord2_2);
-
-		// triangle 2
-		m_pBasicDraw->Brightness1f(brightness1);
-		m_pBasicDraw->TexCoord2f(1, tcy1);
-		m_pBasicDraw->Vertex3fv(coord1_1);
 
 		m_pBasicDraw->Brightness1f(brightness2);
 		m_pBasicDraw->TexCoord2f(0, tcy2);
@@ -914,7 +898,7 @@ void CBeamRenderer::DrawBeamTorus( const Vector& src, const Vector& delta, Float
 
 	R_ValidateShader(m_pBasicDraw);
 
-	m_pBasicDraw->Begin(GL_TRIANGLES);
+	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
 
 	Float tc1y = 0;
 	Vector screenlast, coord1_1, coord1_2;
@@ -956,19 +940,12 @@ void CBeamRenderer::DrawBeamTorus( const Vector& src, const Vector& delta, Float
 
 			if(i > 1)
 			{
-				// triangle 1
+				// Draw as a quad
+				m_pBasicDraw->TexCoord2f(1, tc1y);
+				m_pBasicDraw->Vertex3fv(coord1_1);
+
 				m_pBasicDraw->TexCoord2f(0, tc1y);
 				m_pBasicDraw->Vertex3fv(coord1_2);
-
-				m_pBasicDraw->TexCoord2f(1, tc1y);
-				m_pBasicDraw->Vertex3fv(coord1_1);
-
-				m_pBasicDraw->TexCoord2f(0, tc2y);
-				m_pBasicDraw->Vertex3fv(coord2_2);
-
-				// triangle 2
-				m_pBasicDraw->TexCoord2f(1, tc1y);
-				m_pBasicDraw->Vertex3fv(coord1_1);
 
 				m_pBasicDraw->TexCoord2f(0, tc2y);
 				m_pBasicDraw->Vertex3fv(coord2_2);
@@ -1016,7 +993,7 @@ void CBeamRenderer::DrawBeamDisk( const Vector& src, const Vector& delta, Float 
 
 	R_ValidateShader(m_pBasicDraw);
 
-	m_pBasicDraw->Begin(GL_TRIANGLES);
+	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
 
 	Float tc1y = 0;
 	Vector coord1_1, coord1_2;
@@ -1036,19 +1013,12 @@ void CBeamRenderer::DrawBeamDisk( const Vector& src, const Vector& delta, Float 
 		
 		if(i > 0)
 		{
-			// triangle 1
+			// Draw as a quad
+			m_pBasicDraw->TexCoord2f(1, tc1y);
+			m_pBasicDraw->Vertex3fv(coord1_1);
+
 			m_pBasicDraw->TexCoord2f(0, tc1y);
 			m_pBasicDraw->Vertex3fv(coord1_2);
-
-			m_pBasicDraw->TexCoord2f(1, tc1y);
-			m_pBasicDraw->Vertex3fv(coord1_1);
-
-			m_pBasicDraw->TexCoord2f(0, tc2y);
-			m_pBasicDraw->Vertex3fv(coord2_2);
-
-			// triangle 2
-			m_pBasicDraw->TexCoord2f(1, tc1y);
-			m_pBasicDraw->Vertex3fv(coord1_1);
 
 			m_pBasicDraw->TexCoord2f(0, tc2y);
 			m_pBasicDraw->Vertex3fv(coord2_2);
@@ -1091,7 +1061,7 @@ void CBeamRenderer::DrawBeamCylinder( const Vector& src, const Vector& delta, Fl
 
 	R_ValidateShader(m_pBasicDraw);
 
-	m_pBasicDraw->Begin(GL_TRIANGLES);
+	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
 
 	Float tc1y = 0;
 	Vector coord1_1, coord1_2;
@@ -1117,19 +1087,12 @@ void CBeamRenderer::DrawBeamCylinder( const Vector& src, const Vector& delta, Fl
 
 		if(i > 1)
 		{
-			// triangle 1
+			// Draw as a quad
+			m_pBasicDraw->TexCoord2f(1, tc1y);
+			m_pBasicDraw->Vertex3fv(coord1_1);
+
 			m_pBasicDraw->TexCoord2f(0, tc1y);
 			m_pBasicDraw->Vertex3fv(coord1_2);
-
-			m_pBasicDraw->TexCoord2f(1, tc1y);
-			m_pBasicDraw->Vertex3fv(coord1_1);
-
-			m_pBasicDraw->TexCoord2f(0, tc2y);
-			m_pBasicDraw->Vertex3fv(coord2_2);
-
-			// triangle 2
-			m_pBasicDraw->TexCoord2f(1, tc1y);
-			m_pBasicDraw->Vertex3fv(coord1_1);
 
 			m_pBasicDraw->TexCoord2f(0, tc2y);
 			m_pBasicDraw->Vertex3fv(coord2_2);
@@ -1205,7 +1168,7 @@ void CBeamRenderer::DrawBeamRing( const Vector& src, const Vector& delta, Float 
 
 	R_ValidateShader(m_pBasicDraw);
 
-	m_pBasicDraw->Begin(GL_TRIANGLES);
+	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
 
 	Float tc1y = 0;
 	Vector screenlast;
@@ -1243,19 +1206,12 @@ void CBeamRenderer::DrawBeamRing( const Vector& src, const Vector& delta, Float 
 
 			if(i > 1)
 			{
-				// triangle 1
+				// Draw as a quad
+				m_pBasicDraw->TexCoord2f(0, tc1y);
+				m_pBasicDraw->Vertex3fv(coord1_1);
+
 				m_pBasicDraw->TexCoord2f(1, tc1y);
 				m_pBasicDraw->Vertex3fv(coord1_2);
-
-				m_pBasicDraw->TexCoord2f(0, tc1y);
-				m_pBasicDraw->Vertex3fv(coord1_1);
-
-				m_pBasicDraw->TexCoord2f(1, last);
-				m_pBasicDraw->Vertex3fv(coord2_2);
-
-				// triangle 2
-				m_pBasicDraw->TexCoord2f(0, tc1y);
-				m_pBasicDraw->Vertex3fv(coord1_1);
 
 				m_pBasicDraw->TexCoord2f(1, last);
 				m_pBasicDraw->Vertex3fv(coord2_2);
@@ -1592,7 +1548,7 @@ void CBeamRenderer::DrawBeamFollow( beam_t* pbeam )
 
 	R_ValidateShader(m_pBasicDraw);
 
-	m_pBasicDraw->Begin(GL_TRIANGLES);
+	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
 
 	while(pnext)
 	{
@@ -1619,23 +1575,14 @@ void CBeamRenderer::DrawBeamFollow( beam_t* pbeam )
 		else
 			fraction = 0;
 
-		// Triangle 1
+		// Draw as a quad
+		m_pBasicDraw->Brightness1f(brightness1);
+		m_pBasicDraw->TexCoord2f(1, tc1y);
+		m_pBasicDraw->Vertex3fv(coord1_1);
+
 		m_pBasicDraw->Brightness1f(brightness1);
 		m_pBasicDraw->TexCoord2f(0, tc1y);
 		m_pBasicDraw->Vertex3fv(coord1_2);
-
-		m_pBasicDraw->Brightness1f(brightness1);
-		m_pBasicDraw->TexCoord2f(1, tc1y);
-		m_pBasicDraw->Vertex3fv(coord1_1);
-
-		m_pBasicDraw->Brightness1f(fraction);
-		m_pBasicDraw->TexCoord2f(0, last);
-		m_pBasicDraw->Vertex3fv(coord2_2);
-
-		// triangle 2
-		m_pBasicDraw->Brightness1f(brightness1);
-		m_pBasicDraw->TexCoord2f(1, tc1y);
-		m_pBasicDraw->Vertex3fv(coord1_1);
 
 		m_pBasicDraw->Brightness1f(fraction);
 		m_pBasicDraw->TexCoord2f(0, last);
@@ -1746,35 +1693,33 @@ void CBeamRenderer::DrawBeamVaporTrail( beam_t* pbeam, Float fadealpha )
 		else
 			fraction = 0;
 
-		beamsegment_t seg;
+		beamsegment_t& seg = pbeam->drawsegments[segmentIndex];
+		segmentIndex++;
+
 		seg.brightness = brightness1;
 		seg.tcy = tc1y;
 		seg.coord1 = coord1_1;
 		seg.coord2 = coord1_2;
 		seg.center = lastposition;
 
-		// Add to array
-		pbeam->drawsegments[segmentIndex] = seg;
-		segmentIndex++;
-
-		seg.brightness = fraction;
-		seg.tcy = last;
-		seg.coord1 = coord2_1;
-		seg.coord2 = coord2_2;
-		seg.center = pnext->position;
-
-		// Add to array
-		pbeam->drawsegments[segmentIndex] = seg;
-		segmentIndex++;
-
+		// Remember previous
 		lastposition = pnext->position;
 		screenlast = screenstart;
-		last = SDL_fmod(last, 1.0);
 		coord1_1 = coord2_1;
 		coord1_2 = coord2_2;
 
 		pnext = pnext->pnext;
 	}
+
+	// Add last segment
+	beamsegment_t& lastseg = pbeam->drawsegments[segmentIndex];
+	segmentIndex++;
+
+	lastseg.brightness = fraction;
+	lastseg.tcy = last;
+	lastseg.coord1 = coord1_1;
+	lastseg.coord2 = coord1_2;
+	lastseg.center = lastposition;
 
 	Float blendfactor;
 	if(!pbeam->colorfadetime)
@@ -1837,53 +1782,68 @@ void CBeamRenderer::DrawVaporTrailSegments( const CArray<beamsegment_t>& segment
 		
 	R_ValidateShader(m_pBasicDraw);
 
-	m_pBasicDraw->Begin(GL_TRIANGLES);
+	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
 
-	for(Uint32 i = 0; i < segments.size(); i += 2)
+	for(Uint32 i = 1; i < segments.size(); i++)
 	{
-		beamsegment_t& seg1 = segments[i];
-		beamsegment_t& seg2 = segments[i+1];
+		beamsegment_t& seg1 = segments[i-1];
+		beamsegment_t& seg2 = segments[i];
 
 		if(takelighting)
 		{
 			Vector lcolor;
 			Vector end = seg1.center - Vector(0, 0, 8192);
-			if(Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, seg1.center, end, lcolor))
-				color1 = lcolor * color;
+			if(seg1.lastlightpos.IsZero() || (seg1.lastlightpos - seg1.center).Length() > VAPORTRAIL_LIGHTCHECK_DISTANCE)
+			{
+				if(!Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, seg1.center, end, lcolor))
+					lcolor = Vector(1, 1, 1);
+
+				// Remember last seek position and color
+				seg1.lastlightcolor = lcolor;
+				seg1.lastlightpos = seg1.center;
+			}
 			else
-				color1 = color;
+			{
+				// Use previous fetched color value
+				lcolor = seg1.lastlightcolor;
+			}
+
+			// Apply light color
+			color1 = lcolor * color;
 
 			end = seg2.center - Vector(0, 0, 8192);
-			if(Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, seg2.center, end, lcolor))
-				color2 = lcolor * color;
+			if(seg2.lastlightpos.IsZero() || (seg2.lastlightpos - seg2.center).Length() > VAPORTRAIL_LIGHTCHECK_DISTANCE)
+			{
+				if(!Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, seg2.center, end, lcolor))
+					lcolor = Vector(1, 1, 1);
+
+				// Remember last seek position and color
+				seg2.lastlightcolor = lcolor;
+				seg2.lastlightpos = seg2.center;
+			}
 			else
-				color2 = color;
+			{
+				// Use previous fetched color value
+				lcolor = seg2.lastlightcolor;
+			}
+
+			// Apply light color
+			color2 = lcolor * color;
 
 			Math::VectorScale(color1, alpha, color1);
 			Math::VectorScale(color2, alpha, color2);
 		}
 
-		// Triangle 1
+		// Draw as a quad
+		m_pBasicDraw->Color4f(color1.x, color1.y, color1.z, fadealpha);
+		m_pBasicDraw->Brightness1f(seg1.brightness);
+		m_pBasicDraw->TexCoord2f(1, seg1.tcy);
+		m_pBasicDraw->Vertex3fv(seg1.coord1);
+
 		m_pBasicDraw->Color4f(color1.x, color1.y, color1.z, fadealpha);
 		m_pBasicDraw->Brightness1f(seg1.brightness);
 		m_pBasicDraw->TexCoord2f(0, seg1.tcy);
 		m_pBasicDraw->Vertex3fv(seg1.coord2);
-
-		m_pBasicDraw->Color4f(color1.x, color1.y, color1.z, fadealpha);
-		m_pBasicDraw->Brightness1f(seg1.brightness);
-		m_pBasicDraw->TexCoord2f(1, seg1.tcy);
-		m_pBasicDraw->Vertex3fv(seg1.coord1);
-
-		m_pBasicDraw->Color4f(color2.x, color2.y, color2.z, fadealpha);
-		m_pBasicDraw->Brightness1f(seg2.brightness);
-		m_pBasicDraw->TexCoord2f(0, seg2.tcy);
-		m_pBasicDraw->Vertex3fv(seg2.coord2);
-
-		// triangle 2
-		m_pBasicDraw->Color4f(color1.x, color1.y, color1.z, fadealpha);
-		m_pBasicDraw->Brightness1f(seg1.brightness);
-		m_pBasicDraw->TexCoord2f(1, seg1.tcy);
-		m_pBasicDraw->Vertex3fv(seg1.coord1);
 
 		m_pBasicDraw->Color4f(color2.x, color2.y, color2.z, fadealpha);
 		m_pBasicDraw->Brightness1f(seg2.brightness);
@@ -2239,7 +2199,7 @@ beam_t* CBeamRenderer::BeamVaporTrail( const Vector& src, const Vector& end, Int
 	Float beamlength = (src - end).Length();
 	Uint32 divisions = beamlength / static_cast<Float>(division);
 
-	pbeam->drawsegments.resize(divisions*2);
+	pbeam->drawsegments.resize(divisions+1);
 
 	Float fraction = 1.0f/divisions;
 	for(Float f = 0; f <= 1.0; f += fraction)

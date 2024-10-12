@@ -28,19 +28,24 @@ All Rights Reserved.
 #include "enginefuncs.h"
 #include "r_rttcache.h"
 #include "r_fbocache.h"
+#include "tga.h"
 
 // Default phong exponent value
 const Float CWaterShader::DEFAULT_PHONG_EXPONENT = 16.0f;
 // Default phong exponent value
 const Float CWaterShader::DEFAULT_SPECULAR_FACTOR = 2.0;
 
+// Water shader default normalmap texture path
+const Char CWaterShader::WATER_DEFAULT_NORMALMAP_PATH[] = "general/watershader.tga";
 // Script base path
 const Char CWaterShader::WATER_SCRIPT_BASEPATH[] = "scripts/water/";
 // Default water script name
 const Char CWaterShader::DEFAULT_WATER_SCRIPT_FILENAME[] = "water_default.txt";
 
+// Lightmap X resolution
+const Uint32 CWaterShader::WATER_LIGHTMAP_DEFAULT_WIDTH = 128;
 // Lightmap Y resolution
-const Uint32 CWaterShader::WATER_LIGHTMAP_Y = 128;
+const Uint32 CWaterShader::WATER_LIGHTMAP_DEFAULT_HEIGHT = 128;
 
 // FBO resolution for water
 const Uint32 CWaterShader::WATER_FBO_SIZE = 1024;
@@ -81,6 +86,7 @@ CWaterShader::CWaterShader( void ):
 	m_numPasses(0),
 	m_drawCounter(0),
 	m_waterQuality(WATER_QUALITY_FULL),
+	m_pDefaultNormalTexture(nullptr),
 	m_pShader(nullptr),
 	m_pVBO(nullptr),
 	m_pDepthTexture(nullptr)
@@ -285,10 +291,10 @@ void CWaterShader::ClearGL( void )
 //====================================
 //
 //====================================
-bool CWaterShader::InitGame(void)
+bool CWaterShader::InitGame( void ) 
 {
 	Int32 waterQuality = static_cast<Int32>(m_pCvarWaterQuality->GetValue());
-	switch (waterQuality)
+	switch(waterQuality)
 	{
 	case 0:
 		m_waterQuality = WATER_QUALITY_NO_REFLECT_REFRACT;
@@ -302,22 +308,18 @@ bool CWaterShader::InitGame(void)
 		break;
 	}
 
-	LoadScripts();
-
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 
-	for (size_t i = 0; i < m_waterSettingsArray.size(); ++i)
+	// Load texture
+	m_pDefaultNormalTexture = pTextureManager->LoadTexture(WATER_DEFAULT_NORMALMAP_PATH, RS_GAME_LEVEL);
+	if(!m_pDefaultNormalTexture)
 	{
-		water_settings_t& settings = m_waterSettingsArray[i];
-
-		settings.pNormalTexture = pTextureManager->LoadTexture(settings.normalmappath.c_str(), RS_GAME_LEVEL);
-		if (!settings.pNormalTexture)
-		{
-			settings.pNormalTexture = pTextureManager->GetDummyTexture();
-			Con_EPrintf("%s - Couldn't load '%s'.\n", __FUNCTION__, settings.normalmappath.c_str());
-		}
+		m_pDefaultNormalTexture = pTextureManager->GetDummyTexture();
+		Con_EPrintf("%s - Couldn't load '%s'.\n", __FUNCTION__, WATER_DEFAULT_NORMALMAP_PATH);
 	}
 
+	// Load scripts
+	LoadScripts();
 	return true;
 }
 
@@ -385,9 +387,9 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 	msurface_t *psurfaces = pbrushmodel->psurfaces + pbrushmodel->firstmodelsurface;
 
 	// Holds texture data
-	color32_t* plightmapdata = new color32_t[pwater->lightmaptextureheight * WATER_LIGHTMAP_X];
-	color32_t* pdiffusemaptexture = new color32_t[pwater->lightmaptextureheight * WATER_LIGHTMAP_X];
-	color32_t* plightvecstexture = new color32_t[pwater->lightmaptextureheight * WATER_LIGHTMAP_X];
+	color32_t* plightmapdata = new color32_t[pwater->lightmaptextureheight * pwater->lightmaptexturewidth];
+	color32_t* pdiffusemaptexture = new color32_t[pwater->lightmaptextureheight * pwater->lightmaptexturewidth];
+	color32_t* plightvecstexture = new color32_t[pwater->lightmaptextureheight * pwater->lightmaptexturewidth];
 
 	bool hasbumpdata = false;
 
@@ -401,20 +403,34 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 		msurface_t* psurf = &psurfaces[j];
 		if(!(psurf->flags & SURF_SHADERWATER))
 			continue;
-
-		R_BuildLightmap(psurf->light_s, psurf->light_t, psurf->psamples, psurf, plightmapdata, 0, WATER_LIGHTMAP_X, overdarken);
-
-		Int32 ambientindex = R_StyleIndex(psurf, LM_AMBIENT_STYLE);
-		Int32 diffuseindex = R_StyleIndex(psurf, LM_DIFFUSE_STYLE);
-		Int32 lightvecsindex = R_StyleIndex(psurf, LM_LIGHTVECS_STYLE);
+		
+		color24_t *psrc = psurf->psamples[SURF_LIGHTMAP_DEFAULT];
+		R_BuildLightmap(psurf->light_s, psurf->light_t, psrc, psurf, plightmapdata, 0, pwater->lightmaptexturewidth, overdarken, 0);
 
 		// See if we have anything to bind
-		if(ambientindex != -1 && diffuseindex != -1 && lightvecsindex != -1)
+		if(psurf->psamples[SURF_LIGHTMAP_DIFFUSE] && psurf->psamples[SURF_LIGHTMAP_VECTORS])
 		{
-			R_BuildLightmap(psurf->light_s, psurf->light_t, psurf->psamples, psurf, pdiffusemaptexture, diffuseindex, WATER_LIGHTMAP_X, overdarken);
-			R_BuildLightmap(psurf->light_s, psurf->light_t, psurf->psamples, psurf, plightvecstexture, lightvecsindex, WATER_LIGHTMAP_X, 0, true);
+			// Grab diffuse lightmap data
+			psrc = psurf->psamples[SURF_LIGHTMAP_DIFFUSE];
+			R_BuildLightmap(psurf->light_s, psurf->light_t, psrc, psurf, pdiffusemaptexture, 0, pwater->lightmaptexturewidth, 0);
+
+			// Grab diffuse lightmap data
+			psrc = psurf->psamples[SURF_LIGHTMAP_VECTORS];
+			R_BuildLightmap(psurf->light_s, psurf->light_t, psrc, psurf, plightvecstexture, 0, pwater->lightmaptexturewidth, 0, true);
 			hasbumpdata = true;
 		}
+	}
+
+	if(g_pCvarDumpLightmaps->GetValue() >= 1)
+	{
+		CString basename;
+		Common::Basename(ens.pworld->name.c_str(), basename);
+
+		CString filepath;
+		filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << basename << "_water_" << pwater->index << "_lightmap_default.tga";
+
+		const byte* pwritedata = reinterpret_cast<const byte*>(plightmapdata);
+		TGA_Write(pwritedata, 4, pwater->lightmaptexturewidth, pwater->lightmaptextureheight, filepath.c_str(), FL_GetInterface(), Con_Printf);
 	}
 
 	pwater->plightmap_texture = CTextureManager::GetInstance()->GenTextureIndex(RS_GAME_LEVEL);
@@ -422,23 +438,47 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 	glBindTexture(GL_TEXTURE_2D, pwater->plightmap_texture->gl_index);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WATER_LIGHTMAP_X, pwater->lightmaptextureheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, plightmapdata);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pwater->lightmaptexturewidth, pwater->lightmaptextureheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, plightmapdata);
 
 	if(hasbumpdata)
 	{
+		if(g_pCvarDumpLightmaps->GetValue() >= 1)
+		{
+			CString basename;
+			Common::Basename(ens.pworld->name.c_str(), basename);
+
+			CString filepath;
+			filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << basename << "_water_" << pwater->index << "_lightmap_diffuse.tga";
+
+			const byte* pwritedata = reinterpret_cast<const byte*>(pdiffusemaptexture);
+			TGA_Write(pwritedata, 4, pwater->lightmaptexturewidth, pwater->lightmaptextureheight, filepath.c_str(), FL_GetInterface(), Con_Printf);
+		}
+
 		pwater->plightmap_diffuse_texture = CTextureManager::GetInstance()->GenTextureIndex(RS_GAME_LEVEL);
 
 		glBindTexture(GL_TEXTURE_2D, pwater->plightmap_diffuse_texture->gl_index);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WATER_LIGHTMAP_X, pwater->lightmaptextureheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pdiffusemaptexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pwater->lightmaptexturewidth, pwater->lightmaptextureheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pdiffusemaptexture);
+
+		if(g_pCvarDumpLightmaps->GetValue() >= 1)
+		{
+			CString basename;
+			Common::Basename(ens.pworld->name.c_str(), basename);
+
+			CString filepath;
+			filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << basename << "_water_" << pwater->index << "_lightmap_vectors.tga";
+
+			const byte* pwritedata = reinterpret_cast<const byte*>(plightvecstexture);
+			TGA_Write(pwritedata, 4, pwater->lightmaptexturewidth, pwater->lightmaptextureheight, filepath.c_str(), FL_GetInterface(), Con_Printf);
+		}
 
 		pwater->plightmap_lightvecs_texture = CTextureManager::GetInstance()->GenTextureIndex(RS_GAME_LEVEL);
 
 		glBindTexture(GL_TEXTURE_2D, pwater->plightmap_lightvecs_texture->gl_index);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WATER_LIGHTMAP_X, pwater->lightmaptextureheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, plightvecstexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pwater->lightmaptexturewidth, pwater->lightmaptextureheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, plightvecstexture);
 	}
 
 	delete[] plightmapdata;
@@ -490,6 +530,8 @@ void CWaterShader::Restore( void ) const
 //====================================
 void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *psettings, const Char* pfile )
 {
+	CString normalmappath;
+
 	const Char *pscan = pfile;
 	while(pscan)
 	{
@@ -555,7 +597,7 @@ void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *pset
 		else if(!qstrcmp(szField, "cheaprefraction"))
 			psettings->cheaprefraction = true;
 		else if (!qstrcmp(szField, "normalmap"))
-			psettings->normalmappath = szValue;
+			normalmappath = szValue;
 		else
 			Con_Printf("%s - Unknown field '%s' in '%s'\n", __FUNCTION__, szField, pstrFilename);
 	}
@@ -604,6 +646,16 @@ void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *pset
 
 		if(psettings->causticstimescale <= 0)
 			psettings->causticstimescale = 1;
+	}
+
+	if(!normalmappath.empty())
+	{
+		psettings->pnormalmap = CTextureManager::GetInstance()->LoadTexture(normalmappath.c_str(), RS_GAME_LEVEL);
+		if(!psettings->pnormalmap)
+		{
+			psettings->pnormalmap = m_pDefaultNormalTexture;
+			Con_EPrintf("%s - Couldn't load '%s'.\n", __FUNCTION__, normalmappath.c_str());
+		}
 	}
 }
 
@@ -868,12 +920,13 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 
 	pwater->start_index = index_base;
 	pwater->num_indexes = indexcount;
-	pwater->lightmaptextureheight = WATER_LIGHTMAP_Y;
+	pwater->lightmaptexturewidth = WATER_LIGHTMAP_DEFAULT_WIDTH;
+	pwater->lightmaptextureheight = WATER_LIGHTMAP_DEFAULT_HEIGHT;
 
 	// For tracking lightmap allocations
-	Uint32 allocations[WATER_LIGHTMAP_X];
-	for(Uint32 i = 0; i < WATER_LIGHTMAP_X; i++)
-		allocations[i] = 0;
+	Uint32* pallocations = new Uint32[pwater->lightmaptexturewidth];
+	for(Uint32 i = 0; i < pwater->lightmaptexturewidth; i++)
+		pallocations[i] = 0;
 
 	for(Uint32 i = 0; i < pbrushmodel->nummodelsurfaces; i++)
 	{
@@ -881,11 +934,13 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 		if(!(psurf->flags & SURF_SHADERWATER))
 			continue;
 
-		Uint32 xsize = (psurf->extents[0]>>4)+1;
-		Uint32 ysize = (psurf->extents[1]>>4)+1;
+		Uint32 xsize = (psurf->extents[0] / psurf->lightmapdivider)+1;
+		Uint32 ysize = (psurf->extents[1] / psurf->lightmapdivider)+1;
 
-		R_AllocBlock(xsize, ysize, psurf->light_s, psurf->light_t, WATER_LIGHTMAP_X, pwater->lightmaptextureheight, allocations);
+		R_AllocBlock(xsize, ysize, psurf->light_s, psurf->light_t, pwater->lightmaptexturewidth, pwater->lightmaptextureheight, pallocations);
 	}
+
+	delete[] pallocations;
 
 	for(Uint32 i = 0; i < pbrushmodel->nummodelsurfaces; i++)
 	{
@@ -929,13 +984,13 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 
 			pcurvert->lightcoords[0] = Math::DotProduct(pcurvert->origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
 			pcurvert->lightcoords[0] -= psurf->texturemins[0];
-			pcurvert->lightcoords[0] += psurf->light_s*16 + 8;
-			pcurvert->lightcoords[0] /= WATER_LIGHTMAP_X*16;
+			pcurvert->lightcoords[0] += psurf->light_s*psurf->lightmapdivider + (psurf->lightmapdivider / 2.0f);
+			pcurvert->lightcoords[0] /= pwater->lightmaptexturewidth*psurf->lightmapdivider;
 
 			pcurvert->lightcoords[1] = Math::DotProduct(pcurvert->origin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
 			pcurvert->lightcoords[1] -= psurf->texturemins[1];
-			pcurvert->lightcoords[1] += psurf->light_t*16 + 8;
-			pcurvert->lightcoords[1] /= pwater->lightmaptextureheight*16;
+			pcurvert->lightcoords[1] += psurf->light_t*psurf->lightmapdivider + (psurf->lightmapdivider / 2.0f);
+			pcurvert->lightcoords[1] /= pwater->lightmaptextureheight*psurf->lightmapdivider;
 
 			for(Uint32 k = 0; k < 3; k++)
 			{
@@ -1609,8 +1664,6 @@ bool CWaterShader::DrawWater( bool skybox )
 	m_pShader->SetUniform1i(m_attribs.u_lightmap, 1);
 	m_pShader->SetUniform1i(m_attribs.u_refract, 2);
 	m_pShader->SetUniform1i(m_attribs.u_reflect, 3);
-	const water_settings_t* psettings = GetWaterSettings(m_pCurrentWater);
-	R_Bind2DTexture(GL_TEXTURE0, psettings->pNormalTexture->palloc->gl_index);
 
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
@@ -1689,6 +1742,9 @@ bool CWaterShader::DrawWater( bool skybox )
 		m_pShader->SetUniform1f(m_attribs.u_specularstrength, psettings->specularstrength);
 		m_pShader->SetUniform1f(m_attribs.u_phongexponent, psettings->phongexponent*g_pCvarPhongExponent->GetValue());
 		m_pShader->SetUniform1f(m_attribs.u_wavefresnelstrength, psettings->wavefresnelstrength);
+
+		en_texture_t* pnormaltex = (psettings->pnormalmap) ? psettings->pnormalmap : m_pDefaultNormalTexture;
+		R_Bind2DTexture(GL_TEXTURE0, pnormaltex->palloc->gl_index);
 
 		Int32 textureUnit = 4;
 

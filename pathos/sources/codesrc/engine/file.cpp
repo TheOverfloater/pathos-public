@@ -31,13 +31,18 @@ file_interface_t ENGINE_FILE_FUNCTIONS =
 	FL_DeleteFile,			//pfnDeleteFile
 	FL_CreateDirectory,		//pfnCreateDirectory
 	FL_GetFileDate,			//pfnGetFileDate
-	FL_CompareFileDates		//pfnCompareFileDates
+	FL_CompareFileDates,	//pfnCompareFileDates
+	FL_GetGameDirectory,	//pfnGetGameDirectory
 };
 
 //=============================================
 // @brief Writes data to a specified file
 //
-// @param pstr Pointer to string
+// @param pdata Pointer to data block to be written
+// @param size Size of data to be written
+// @param pstrpath Path to write the file to
+// @param append If true, the data will be appeneded to a file with this name if it already exists
+// @return TRUE if write was successful, FALSE otherwise
 //=============================================
 bool FL_WriteFile( const byte* pdata, Uint32 size, const Char* pstrpath, bool append )
 {
@@ -82,9 +87,13 @@ bool FL_WriteFile( const byte* pdata, Uint32 size, const Char* pstrpath, bool ap
 }
 
 //=============================================
-// @brief Writes data to a specified file
+// @brief Writes data to a specified log file
 //
-// @param pstr Pointer to string
+// @param pdata Pointer to data block to be written
+// @param size Size of data to be written
+// @param pstrpath Path to write the file to
+// @param append If true, the data will be appeneded to a file with this name if it already exists
+// @return TRUE if write was successful, FALSE otherwise
 //=============================================
 bool FL_WriteLogFile( const byte* pdata, Uint32 size, const Char* pstrpath, bool append )
 {
@@ -105,9 +114,13 @@ bool FL_WriteLogFile( const byte* pdata, Uint32 size, const Char* pstrpath, bool
 }
 
 //=============================================
-// @brief Writes data to a specified file
+// @brief Writes data to a specified file starting from the root folder
 //
-// @param pstr Pointer to string
+// @param pdata Pointer to data block to be written
+// @param size Size of data to be written
+// @param pstrpath Path to write the file to
+// @param append If true, the data will be appeneded to a file with this name if it already exists
+// @return TRUE if write was successful, FALSE otherwise
 //=============================================
 bool FL_WriteFileRoot( const byte* pdata, Uint32 size, const Char* pstrpath, bool append )
 {
@@ -149,7 +162,9 @@ bool FL_WriteFileRoot( const byte* pdata, Uint32 size, const Char* pstrpath, boo
 //=============================================
 // @brief Loads in data from a file
 //
-// @param pstr Pointer to string
+// @param pstrpath Path to file to load
+// @param psize Pointer to Uint32 to store the size of the file
+// @return Pointer to file data if successfully loaded, nullptr otherwise
 //=============================================
 const byte* FL_LoadFile( const Char* pstrpath, Uint32* psize )
 {
@@ -227,9 +242,11 @@ const byte* FL_LoadFile( const Char* pstrpath, Uint32* psize )
 }
 
 //=============================================
-// @brief Loads in data from a file
+// @brief Loads in data from a file starting from the root folder
 //
-// @param pstr Pointer to string
+// @param pstrpath Path to file to load
+// @param psize Pointer to Uint32 to store the size of the file
+// @return Pointer to file data if successfully loaded, nullptr otherwis
 //=============================================
 const byte* FL_LoadFileFromRoot( const Char* pstrpath, Uint32* psize )
 {
@@ -295,7 +312,7 @@ const byte* FL_LoadFileFromRoot( const Char* pstrpath, Uint32* psize )
 }
 
 //=============================================
-// @brief Frees memory for a file
+// @brief Frees memory allocated for a file that was loaded
 //
 // @param pf Pointer to file data in memory
 //=============================================
@@ -307,6 +324,8 @@ void FL_FreeFile( const void* pfile )
 //=============================================
 // @brief Checks if a file exists at the given path
 //
+// @param pstrpath File path to check
+// @return TRUE if file exists, FALSE otherwise
 //=============================================
 bool FL_FileExists( const Char* pstrpath )
 {
@@ -348,8 +367,9 @@ bool FL_FileExists( const Char* pstrpath )
 }
 
 //=============================================
-// @brief Checks if a file exists at the given path
+// @brief Deletes a directory path starting from the mod folder
 //
+// @return TRUE if successful, FALSE otherwise
 //=============================================
 bool FL_DeleteFile( const Char* pstrpath )
 {
@@ -386,8 +406,9 @@ bool FL_DeleteFile( const Char* pstrpath )
 }
 
 //=============================================
-// @brief Checks if a file exists at the given path
+// @brief Deletes a directory path starting from the root folder
 //
+// @return TRUE if successful, FALSE otherwise
 //=============================================
 bool FL_DeleteFileRoot( const Char* pstrpath )
 {
@@ -418,10 +439,10 @@ bool FL_DeleteFileRoot( const Char* pstrpath )
 }
 
 //=============================================
-// @brief Used when rendering dynamic lights
+// @brief Creates a directory path recirsively
 //
-// @param pitch Pitch value
-// @return true or false
+// @param pstrpath The directory path to create
+// @return TRUE if successful, FALSE otherwise
 //=============================================
 bool FL_CreateDirectory( const Char* pstrpath )
 {
@@ -457,10 +478,11 @@ bool FL_CreateDirectory( const Char* pstrpath )
 }
 
 //=============================================
-// @brief Makes slashes uniform in a path string
+// @brief Compares file dates
 //
-// @param pstring String to format
-// @return Formatted string
+// @param d1 File 1 date info reference
+// @param d1 File 2 date info reference
+// @return Result of comparison
 //=============================================
 Int32 FL_CompareFileDates( const file_dateinfo_t& d1, const file_dateinfo_t& d2 )
 {
@@ -509,7 +531,7 @@ Int32 FL_CompareFileDates( const file_dateinfo_t& d1, const file_dateinfo_t& d2 
 }
 
 //=============================================
-// @brief Checks visibility on a set of leaf numbers
+// @brief Return the modification date of a file
 //
 //=============================================
 bool FL_GetFileDate( const Char* pstrFile, file_dateinfo_t& dateinfo )
@@ -571,7 +593,16 @@ bool FL_GetFileDate( const Char* pstrFile, file_dateinfo_t& dateinfo )
 }
 
 //=============================================
-// @brief Checks visibility on a set of leaf numbers
+// @brief Returns the game directory name
+//
+//=============================================
+const Char* FL_GetGameDirectory( void )
+{
+	return ens.gamedir.c_str();
+}
+
+//=============================================
+// @brief Returns a pointer to the file interface function table
 //
 //=============================================
 file_interface_t& FL_GetInterface( void )

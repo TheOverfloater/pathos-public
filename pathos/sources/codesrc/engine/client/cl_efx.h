@@ -28,6 +28,7 @@ extern void CL_CreateGenericDecal( const Char *pstrname, const Vector& origin, c
 extern void CL_DecalVBMEntity( const Vector& origin, const Vector& normal, decalgroupentry_t* pentry, cl_entity_t* pentity, Int32 flags );
 extern CDecalList& CL_GetDecalList( void );
 extern void CL_SetLightStyle( Int32 style, const Char* pstrpattern, bool interpolate, Float framerate );
+extern void CL_AddCustomLightStyle( Int32 style, const Char* pstrpattern, bool interpolate, Float framerate );
 extern void CL_FreeEntityData( entindex_t entindex, Int32 flags );
 extern void CL_SetDayStage( daystage_t daystage );
 extern void CL_SetSpecialFog( bool enablespecialfog );

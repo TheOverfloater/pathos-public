@@ -240,6 +240,8 @@ namespace Common
 
 	extern inline void ParseColor( Float* pout, const color24_t *plightmap );
 	extern inline Float RemapValue( Float value, Float a, Float b, Float c, Float d );
+
+	extern inline bool ValueInRange( Float comparisonValue, Float referenceValue, Float rangeMax );
 };
 
 #include "common_inline.hpp"

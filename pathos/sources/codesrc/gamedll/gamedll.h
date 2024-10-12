@@ -33,6 +33,9 @@ extern byte* g_pVISBuffer;
 // VIS buffer size
 extern Uint32 g_visBufferSize;
 
+// TRUE if game initialization has occurred
+extern bool g_gameInitializationDone;
+
 extern bool GameDLLInit( void );
 extern void GameDLLShutdown( void );
 extern bool GameInit( void );

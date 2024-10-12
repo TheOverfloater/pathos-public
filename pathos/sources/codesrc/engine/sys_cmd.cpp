@@ -37,8 +37,7 @@ All Rights Reserved.
 #include "r_menu.h"
 #include "vid.h"
 #include "filewriterthread.h"
-#include <vector>
-#include <sstream>
+#include "cl_utils.h"
 
 // Port CVAR
 CCVar* g_pCVarPort = nullptr;
@@ -90,32 +89,42 @@ void Cmd_LoadMap( void )
 // @brief Shows list of active bsps in the maps folder
 // 
 //=============================================
-void Cmd_ListMaps() {
-	const std::string mapDirectory = std::string(DEFAULT_GAMEDIR) + "\\maps\\";
-	const std::string filePattern = "*.bsp";
-	std::string searchPath = mapDirectory + filePattern;
-	std::vector<std::string> mapList;
+void Cmd_ListMaps() 
+{
+	CString searchPath;
+	searchPath << DEFAULT_GAMEDIR << PATH_SLASH_CHAR << "maps" << PATH_SLASH_CHAR << "*.bsp";
+
 	WIN32_FIND_DATA fileData;
 	HANDLE hFind = FindFirstFile(searchPath.c_str(), &fileData);
-	if (hFind == INVALID_HANDLE_VALUE) {
-		Con_Printf("Error: Could not open the maps folder.\n");
+	if (hFind == INVALID_HANDLE_VALUE) 
+	{
+		Con_Printf("Error: Failed to parse '%s' for level list.\n", searchPath.c_str());
 		return;
 	}
-	do {
-		std::string fileName = fileData.cFileName;
-		std::string mapName = fileName.substr(0, fileName.size() - 4);
-		mapList.push_back(mapName);
-	} while (FindNextFile(hFind, &fileData) != 0);
-	FindClose(hFind);
-	if (mapList.empty()) {
-		Con_Printf("No maps found in the maps folder.\n");
+
+	CArray<CString> mapNames;
+	do 
+	{
+		CString mapFilePath(fileData.cFileName);
+		Int32 dotPosition = mapFilePath.find(0, ".");
+		if(dotPosition != NO_POSITION)
+			mapFilePath.erase(dotPosition, mapFilePath.length()-dotPosition);
+
+		mapNames.push_back(mapFilePath);
+	} 
+	while (FindNextFile(hFind, &fileData) != 0);
+
+	if(mapNames.empty())
+	{
+		Con_Printf("No maps found under search path '%s'.\n", searchPath.c_str());
+		return;
 	}
-	else {
-		Con_Printf("List of maps in the maps folder:\n");
-		for (size_t i = 0; i < mapList.size(); ++i) {
-			Con_Printf("- %s\n", mapList[i].c_str());
-		}
-	}
+
+	Con_Printf("List of maps found under search path '%s':\n", searchPath.c_str());
+	for (Uint32 i = 0; i < mapNames.size(); ++i)
+		Con_Printf("%d - %s.\n", (i+1), mapNames[i].c_str());
+
+	Con_Printf("%d files found total.\n", mapNames.size());
 }
 
 //=============================================
@@ -134,12 +143,22 @@ void Cmd_Pause( void )
 // @brief Position of the player in the world
 // 
 //=============================================
-void Cmd_Pos(void)
+void Cmd_PlayerPosition(void)
 {
-	std::stringstream ss;
-	ss << "Current Pos: " << rns.view.v_origin.x << ", " << rns.view.v_origin.y << ", " << rns.view.v_origin.z;
-	std::string position_str = ss.str();
-	Con_Printf(position_str.c_str());
+	if(!CL_IsGameActive())
+	{
+		Con_Printf("No active game.\n");
+		return;
+	}
+
+	cl_entity_t* pplayer = CL_GetLocalPlayer();
+	if(!pplayer)
+	{
+		Con_Printf("Failed to get local player.\n");
+		return;
+	}
+
+	Con_Printf("Current local player position: %f %f %f.\n", pplayer->curstate.origin.x, pplayer->curstate.origin.y, pplayer->curstate.origin.z);
 }
 
 //=============================================
@@ -604,7 +623,7 @@ void Cmd_ChangeLevel( void )
 void Sys_InitCommands( void )
 {
 	gCommands.CreateCommand("pause", Cmd_Pause, "Pauses the game");
-	gCommands.CreateCommand("pos", Cmd_Pos, "Position of the player in the world");
+	gCommands.CreateCommand("pos", Cmd_PlayerPosition, "Position of the player in the world");
 	gCommands.CreateCommand("quit", Cmd_Sys_Quit, "Exits the application");
 	gCommands.CreateCommand("map", Cmd_LoadMap, "Loads a map");
 	gCommands.CreateCommand("maps", Cmd_ListMaps, "List of all maps");

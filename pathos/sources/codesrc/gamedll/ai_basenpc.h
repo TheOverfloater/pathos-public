@@ -733,8 +733,6 @@ protected:
 	Vector GetIdealEnemyBodyTarget( const Vector& shootOrigin );
 	// Tells if enemy is shootable
 	bool IsEnemyShootable( CBaseEntity& enemy, bool ignoreGlass, bool ignoreBreakables, stance_t stance = STANCE_ACTUAL );
-	// Checks if an enemy's body target is shootable
-	bool IsEnemyBodyTargetShootable( CBaseEntity& enemy, bool ignoreGlass, bool ignoreBreakables, const Vector& gunPosition, const Vector& enemyBodyTarget );
 	// Checks firing vectors with stance info
 	bool CheckFiringWithStance( CBaseEntity& enemy, const Vector& firingCone, bool& shouldStand );
 	// Check glass penetration
@@ -1107,6 +1105,8 @@ protected:
 
 	// Return the NPC's minimum firing distance
 	virtual Float GetMinimumRangeAttackDistance( void ) { return 0; }
+	// Checks if an enemy's body target is shootable
+	virtual bool IsEnemyBodyTargetShootable( CBaseEntity& enemy, bool ignoreGlass, bool ignoreBreakables, const Vector& gunPosition, const Vector& enemyBodyTarget );
 
 protected:
 	// Last time the NPC thought

@@ -86,9 +86,9 @@ inline void*& CBuffer::getbufferdata( void )
 }
 
 //=============================================
-// @brief Returns the data load size
+// @brief Returns the current data writing position into the buffer
 //
-// @return Data load
+// @return Current writind position
 //=============================================
 inline Uint32 CBuffer::getsize( void ) const
 {
@@ -96,9 +96,9 @@ inline Uint32 CBuffer::getsize( void ) const
 }
 
 //=============================================
-// @brief Adds a pointer to the list
+// @brief Adds a pointer to the list of pointers this buffer will rebase when resized
 //
-// @param ptr Pointer to add
+// @param ptr Pointer that is to be added
 //=============================================
 inline void CBuffer::addpointer( void** ptr )
 {
@@ -122,7 +122,7 @@ inline void CBuffer::addpointer( void** ptr )
 }
 
 //=============================================
-// @brief Removes a pointer to the list
+// @brief Removes a pointer to the list of pointers to rebase
 //
 // @param ptr Pointer to remove
 //=============================================

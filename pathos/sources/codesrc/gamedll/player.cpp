@@ -488,6 +488,8 @@ CPlayerEntity::CPlayerEntity( edict_t* pedict ):
 	m_deathTime(0),
 	m_clientStamina(0),
 	m_clientKevlar(0),
+	m_sprintStaminaDrainMultiplier(0),
+	m_normalMovementStaminaDrainFactor(0),
 	m_fallingVelocity(0),
 	m_isHUDVisible(false),
 	m_clientHUDVisible(false),
@@ -676,6 +678,8 @@ void CPlayerEntity::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_delayedGlobalTriggerTime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_delayedGlobalTriggerTarget, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_dialougePlaybackTime, EFIELD_TIME));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_sprintStaminaDrainMultiplier, EFIELD_FLOAT));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_normalMovementStaminaDrainFactor, EFIELD_FLOAT));
 }
 
 //=============================================
@@ -2497,21 +2501,58 @@ void CPlayerEntity::UpdateTimeBasedDamages( void )
 //=============================================
 void CPlayerEntity::SprintThink( void )
 {
-	if((m_pState->buttons & IN_SPRINT) && m_pState->stamina > 0 && !m_pBikeEntity && m_pState->buttons & IN_FORWARD
-		&& (m_pState->velocity.Length() > ((m_pState->flags & FL_DUCKING) ? 50 : PLAYER_EXHAUST_SPEED)))
+	if(m_normalMovementStaminaDrainFactor > 0 && !(m_pState->flags & FL_SLOWMOVE) && !m_pBikeEntity
+		&& m_pState->buttons & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT)
+		&& Common::ValueInRange(m_pState->velocity.Length(), PLAYER_EXHAUST_SPEED, PLAYER_NORMAL_SPEED, 50))
 	{
-		Float staminadrain = gSkillData.GetSkillCVarSetting(g_skillcvars.skillStaminaSprintDrain);
-		m_pState->stamina -= g_pGameVars->frametime * (staminadrain/100.0f);
+		Float drainFactor = g_pGameVars->frametime * (m_normalMovementStaminaDrainFactor/100.0f);
+		m_pState->stamina -= drainFactor;
 		if(m_pState->stamina < 0)
 			m_pState->stamina = 0;
 	}
-	else if(g_pGameVars->frametime > 0 && m_pState->stamina < 1.0)
+	else if((m_pState->buttons & IN_SPRINT) && m_pState->stamina > 0 && !m_pBikeEntity 
+		&& m_pState->buttons & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT)
+		&& (m_pState->velocity.Length() > ((m_pState->flags & FL_DUCKING) ? 50 : PLAYER_EXHAUST_SPEED)))
+	{
+		Float staminadrain = gSkillData.GetSkillCVarSetting(g_skillcvars.skillStaminaSprintDrain);
+		Float drainFactor = g_pGameVars->frametime * (staminadrain/100.0f);
+		if(m_sprintStaminaDrainMultiplier > 0)
+			drainFactor *= m_sprintStaminaDrainMultiplier;
+
+		m_pState->stamina -= drainFactor;
+		if(m_pState->stamina < 0)
+			m_pState->stamina = 0;
+	}
+	else if(g_pGameVars->frametime > 0 && m_pState->stamina < 1.0
+		&& (m_normalMovementStaminaDrainFactor <= 0 || !(m_pState->buttons & (IN_FORWARD|IN_BACK|IN_MOVELEFT|IN_MOVERIGHT))))
 	{
 		Float staminagain = gSkillData.GetSkillCVarSetting(g_skillcvars.skillStaminaSprintDrain);
 		m_pState->stamina += g_pGameVars->frametime * (staminagain/100.0f);
 		if(m_pState->stamina > 1.0)
 			m_pState->stamina = 1.0;
 	}
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CPlayerEntity::SetStaminaModifiers( Float sprintStaminaDrainMultiplier, Float normalMovementStaminaDrainFactor )
+{
+	if(sprintStaminaDrainMultiplier < 0)
+	{
+		Util::EntityConPrintf(m_pEdict, "%s - Invalid value '%s' specified for sprintStaminaDrainMultiplier.\n", __FUNCTION__, sprintStaminaDrainMultiplier);
+		return;
+	}
+
+	if(normalMovementStaminaDrainFactor < 0)
+	{
+		Util::EntityConPrintf(m_pEdict, "%s - Invalid value '%s' specified for normalMovementStaminaDrainFactor.\n", __FUNCTION__, normalMovementStaminaDrainFactor);
+		return;
+	}
+
+	m_sprintStaminaDrainMultiplier = sprintStaminaDrainMultiplier;
+	m_normalMovementStaminaDrainFactor = normalMovementStaminaDrainFactor;
 }
 
 //=============================================

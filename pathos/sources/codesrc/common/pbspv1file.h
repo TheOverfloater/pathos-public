@@ -18,34 +18,29 @@ All Rights Reserved.
 // BSP limits
 //
 
-#define PBSPV1_MAX_MAP_HULLS			4
+static const Uint32 PBSPV1_MAX_MAP_HULLS			= 4;
+static const Uint32 PBSPV1_MAX_MAP_MODELS			= 4096;
+static const Uint32 PBSPV1_MAX_MAP_BRUSHES			= 262144;
+static const Uint32 PBSPV1_MAX_MAP_ENTITIES			= 65535;
+static const Uint32 PBSPV1_MAX_MAP_ENTSTRING		= 2097152;
+static const Uint32 PBSPV1_MAX_MAP_PLANES			= 262144;
+static const Uint32 PBSPV1_MAX_MAP_NODES			= 262144;
+static const Uint32 PBSPV1_MAX_MAP_CLIPNODES		= 262144;
+static const Uint32 PBSPV1_MAX_MAP_LEAFS			= 262144;
+static const Uint32 PBSPV1_MAX_MAP_VERTS			= 262144;
+static const Uint32 PBSPV1_MAX_MAP_FACES			= 262144;
+static const Uint32 PBSPV1_MAX_MAP_MARKSURFACES		= 262144;
+static const Uint32 PBSPV1_MAX_MAP_TEXINFO			= 262144;
+static const Uint32 PBSPV1_MAX_MAP_EDGES			= 524288;
+static const Uint32 PBSPV1_MAX_MAP_SURFEDGES		= 1048576;
+static const Uint32 PBSPV1_MAX_MAP_TEXTURES			= 16384;
+static const Uint32 PBSPV1_MAX_MAP_LIGHTING			= 16777216;
+static const Uint32 PBSPV1_MAX_MAP_VISIBILITY		= 16777216;
 
-#define PBSPV1_MAX_MAP_MODELS			4096
-#define PBSPV1_MAX_MAP_BRUSHES			262144
-#define PBSPV1_MAX_MAP_ENTITIES			65535
-#define PBSPV1_MAX_MAP_ENTSTRING		2097152
-
-#define PBSPV1_MAX_MAP_PLANES			262144
-#define PBSPV1_MAX_MAP_NODES			262144
-#define PBSPV1_MAX_MAP_CLIPNODES		262144
-#define PBSPV1_MAX_MAP_LEAFS			262144
-#define PBSPV1_MAX_MAP_VERTS			262144
-#define PBSPV1_MAX_MAP_FACES			262144
-#define PBSPV1_MAX_MAP_MARKSURFACES		262144
-#define PBSPV1_MAX_MAP_TEXINFO			262144
-#define PBSPV1_MAX_MAP_EDGES			524288
-#define PBSPV1_MAX_MAP_SURFEDGES		1048576
-#define PBSPV1_MAX_MAP_TEXTURES			16384
-#define PBSPV1_MAX_MAP_LIGHTING			16777216
-#define PBSPV1_MAX_MAP_VISIBILITY		16777216
-
-#define PBSPV1_MAX_LIGHTMAPS			4
-#define PBSPV1_LM_SAMPLE_SIZE			16
-
-#define PBSPV1_NUM_AMBIENTS				4
-
-#define PBSP_HEADER						(('P'<<24)+('S'<<16)+('B'<<8)+'P')
-#define PBSP_VERSION					1
+static const Uint32 PBSPV1_MAX_LIGHTMAPS			= 4;
+static const Uint32 PBSPV1_LM_SAMPLE_SIZE			= 16;
+static const Uint32 PBSPV1_NUM_AMBIENTS				= 4;
+static const Uint32 PBSPV1_VERSION					= 1;
 
 //
 // BSP lumps
@@ -70,10 +65,31 @@ enum pbspv1_lumps_t
 	PBSPV1_NB_LUMPS
 };
 
+//
+// The lightstyles reserved for bump map data
+//
+enum pbspv1_lightmaps_t
+{
+	PBSPV1_LM_AMBIENT_STYLE		= 61,
+	PBSPV1_LM_DIFFUSE_STYLE		= 62,
+	PBSPV1_LM_LIGHTVECS_STYLE	= 63,
+};
 
 //
 // Header for Pathos BSP V1
 //
+
+struct dpbspv1lump_t
+{
+	dpbspv1lump_t():
+		offset(0),
+		size(0)
+	{}
+
+	Int32 offset;
+	Int32 size;
+};
+
 struct dpbspv1header_t
 {
 	dpbspv1header_t():
@@ -85,7 +101,7 @@ struct dpbspv1header_t
 
 	Int32 id;
 	Int32 version;
-	lump_t lumps[NB_LUMPS];
+	dpbspv1lump_t lumps[PBSPV1_NB_LUMPS];
 };
 
 //

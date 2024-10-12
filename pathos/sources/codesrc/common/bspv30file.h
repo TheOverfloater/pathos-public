@@ -16,31 +16,91 @@ All Rights Reserved.
 // BSP limits
 //
 
-#define V30_MAX_MAP_HULLS			4
+static const Uint32 V30_MAX_MAP_HULLS			= 4;
 
-#define V30_MAX_MAP_MODELS			1024
-#define V30_MAX_MAP_BRUSHES			65536
-#define V30_MAX_MAP_ENTITIES		8192
-#define V30_MAX_MAP_ENTSTRING		65536
+static const Uint32 V30_MAX_MAP_MODELS			= 1024;
+static const Uint32 V30_MAX_MAP_BRUSHES			= 65536;
+static const Uint32 V30_MAX_MAP_ENTITIES		= 8192;
+static const Uint32 V30_MAX_MAP_ENTSTRING		= 65536;
 
-#define V30_MAX_MAP_PLANES			32768
-#define V30_MAX_MAP_NODES			32768
-#define V30_MAX_MAP_CLIPNODES		32768
-#define V30_MAX_MAP_LEAFS			32768
-#define V30_MAX_MAP_VERTS			65536
-#define V30_MAX_MAP_FACES			65536
-#define V30_MAX_MAP_MARKSURFACES	65536
-#define V30_MAX_MAP_TEXINFO			32768
-#define V30_MAX_MAP_EDGES			262144
-#define V30_MAX_MAP_SURFEDGES		524288
-#define V30_MAX_MAP_TEXTURES		4096
-#define V30_MAX_MAP_LIGHTING		16777216
-#define V30_MAX_MAP_VISIBILITY		16777216
+static const Uint32 V30_MAX_MAP_PLANES			= 32768;
+static const Uint32 V30_MAX_MAP_NODES			= 32768;
+static const Uint32 V30_MAX_MAP_CLIPNODES		= 32768;
+static const Uint32 V30_MAX_MAP_LEAFS			= 32768;
+static const Uint32 V30_MAX_MAP_VERTS			= 65536;
+static const Uint32 V30_MAX_MAP_FACES			= 65536;
+static const Uint32 V30_MAX_MAP_MARKSURFACES	= 65536;
+static const Uint32 V30_MAX_MAP_TEXINFO			= 32768;
+static const Uint32 V30_MAX_MAP_EDGES			= 262144;
+static const Uint32 V30_MAX_MAP_SURFEDGES		= 524288;
+static const Uint32 V30_MAX_MAP_TEXTURES		= 4096;
+static const Uint32 V30_MAX_MAP_LIGHTING		= 16777216;
+static const Uint32 V30_MAX_MAP_VISIBILITY		= 16777216;
 
-#define V30_MAX_LIGHTMAPS			4
-#define V30_LM_BASE_SAMPLE_SIZE		16
+static const Uint32 V30_MAX_LIGHTMAPS			= 4;
+static const Uint32 V30_LM_BASE_SAMPLE_SIZE		= 16;
 
-#define V30_NUM_AMBIENTS			4
+static const Uint32 V30_NUM_AMBIENTS			= 4;
+
+//
+// The lightstyles reserved for bump map data
+//
+enum bspv30_lightmaps_t
+{
+	BSPV30_LM_AMBIENT_STYLE		= 61,
+	BSPV30_LM_DIFFUSE_STYLE		= 62,
+	BSPV30_LM_LIGHTVECS_STYLE	= 63,
+};
+
+//
+// BSP lumps
+//
+enum bspv30_lumps_t
+{
+	V30_LUMP_ENTITIES = 0,
+	V30_LUMP_PLANES,
+	V30_LUMP_TEXTURES,
+	V30_LUMP_VERTEXES,
+	V30_LUMP_VISIBILITY,
+	V30_LUMP_NODES,
+	V30_LUMP_TEXINFO,
+	V30_LUMP_FACES,
+	V30_LUMP_LIGHTING,
+	V30_LUMP_CLIPNODES,
+	V30_LUMP_LEAFS,
+	V30_LUMP_MARKSURFACES,
+	V30_LUMP_EDGES,
+	V30_LUMP_SURFEDGES,
+	V30_LUMP_MODELS,
+	NB_V30_LUMPS
+};
+
+//
+// BSP file structures
+//
+
+struct dv30lump_t
+{
+	dv30lump_t():
+		offset(0),
+		size(0)
+	{}
+
+	Int32 offset;
+	Int32 size;
+};
+
+struct dv30header_t
+{
+	dv30header_t():
+		version(0)
+	{
+		memset(lumps, 0, sizeof(lumps));
+	}
+
+	Int32 version;
+	dv30lump_t lumps[NB_V30_LUMPS];
+};
 
 //
 // BSP hulls
@@ -51,29 +111,6 @@ enum bspv30_hulls_t
 	HUMAN_HULL,
 	LARGE_HULL,
 	HEAD_HULL
-};
-
-//
-// BSP lumps
-//
-enum bspv30_lumps_t
-{
-	LUMP_ENTITIES = 0,
-	LUMP_PLANES,
-	LUMP_TEXTURES,
-	LUMP_VERTEXES,
-	LUMP_VISIBILITY,
-	LUMP_NODES,
-	LUMP_TEXINFO,
-	LUMP_FACES,
-	LUMP_LIGHTING,
-	LUMP_CLIPNODES,
-	LUMP_LEAFS,
-	LUMP_MARKSURFACES,
-	LUMP_EDGES,
-	LUMP_SURFEDGES,
-	LUMP_MODELS,
-	NB_LUMPS
 };
 
 //

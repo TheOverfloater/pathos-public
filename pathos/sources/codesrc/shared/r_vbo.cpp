@@ -305,6 +305,13 @@ bool CVBO::Append ( const void *pvbodata, Uint32 ivbodatasize, const void *pibod
 			m_iIBOSize = iibodatasize;
 		}
 
+		if(!m_uiIBOIndex)
+		{
+			m_glExtF.glGenBuffers(1, &m_uiIBOIndex);
+			if(m_bActive)
+				m_glExtF.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_uiIBOIndex);
+		}
+
 		if(!m_bActive)
 			m_glExtF.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_uiIBOIndex);
 

@@ -475,7 +475,7 @@ void RadiusDamage( const Vector& vecPosition,
 		falloff = 1.0;
 
 	// Check if we're underwater
-	bool isInWater = (gd_tracefuncs.pfnPointContents(vecPosition, nullptr) == CONTENTS_WATER) ? true : false;
+	bool isInWater = (gd_tracefuncs.pfnPointContents(vecPosition, nullptr, false) == CONTENTS_WATER) ? true : false;
 	// Offset from ground a bit
 	Vector explodePosition = vecPosition + Vector(0, 0, 8);
 
@@ -645,7 +645,7 @@ bool ShootTrace( const Vector& gunPosition, const Vector& endPos, const Vector& 
 		pWeapon->OnWeaponShotImpact(gunPosition, tr, (isPenetrationShot || isRicochetShot) ? true : false);
 
 	// Don't bother if we hit the sky
-	if(gd_tracefuncs.pfnPointContents(tr.endpos, nullptr) == CONTENTS_SKY)
+	if(gd_tracefuncs.pfnPointContents(tr.endpos, nullptr, false) == CONTENTS_SKY)
 		return false;
 
 	// Make sure it's valid

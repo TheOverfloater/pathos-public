@@ -47,7 +47,7 @@ extern void SV_TouchLinks( edict_t* pentity, areanode_t* pnode );
 extern void SV_UnlinkEdict( edict_t* pentity );
 extern areanode_t* SV_CreateAreaNode( Int32 depth, const Vector& mins, const Vector& maxs );
 
-extern Int32 SV_PointContents( const Vector& position, Int32* truecontents = nullptr );
+extern Int32 SV_PointContents( const Vector& position, Int32* truecontents = nullptr, bool particleBlockers = false );
 extern Int32 SV_TruePointContents( const Vector& position );
 
 extern edict_t* SV_TestEntityPosition( edict_t* pentity, hull_types_t hulltype );

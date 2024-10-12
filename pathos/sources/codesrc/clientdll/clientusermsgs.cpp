@@ -453,11 +453,33 @@ MSGFN MsgFunc_FreeEntityData( const Char* pstrName, const byte* pdata, Uint32 ms
 // @brief
 //
 //=============================================
-MSGFN MsgFunc_AddLightStyle( const Char* pstrName, const byte* pdata, Uint32 msgsize )
+MSGFN MsgFunc_AddCustomLightStyle( const Char* pstrName, const byte* pdata, Uint32 msgsize )
 {
 	CMSGReader reader(pdata, msgsize);
 	bool interpolate = (reader.ReadByte() == 1) ? true : false;
-	Int32 styleindex = reader.ReadByte();
+	Int32 styleindex = reader.ReadInt16();
+	CString pattern = reader.ReadString();
+	Float framerate = reader.ReadSmallFloat();
+
+	if(reader.HasError())
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+		return false;
+	}
+
+	cl_efxapi.pfnAddCustomLightStyle(styleindex, pattern.c_str(), interpolate, framerate);
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+MSGFN MsgFunc_SetLightStyle( const Char* pstrName, const byte* pdata, Uint32 msgsize )
+{
+	CMSGReader reader(pdata, msgsize);
+	bool interpolate = (reader.ReadByte() == 1) ? true : false;
+	Int32 styleindex = reader.ReadInt16();
 	CString pattern = reader.ReadString();
 	Float framerate = reader.ReadSmallFloat();
 

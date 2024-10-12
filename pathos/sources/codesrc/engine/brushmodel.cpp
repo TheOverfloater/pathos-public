@@ -14,6 +14,7 @@ All Rights Reserved.
 #include "frustum.h"
 #include "system.h"
 #include "r_common.h"
+#include "r_lightstyles.h"
 
 //=============================================
 // @brief
@@ -316,7 +317,7 @@ void Mod_FindTouchedLeafs( const brushmodel_t* pworld, CArray<Uint32>& leafnumsa
 //=============================================
 //
 //=============================================
-bool Mod_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const Vector &start, const Vector &end, Vector &color )
+bool Mod_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const Vector &start, const Vector &end, Vector &color, Float* plightstylevalues, byte* poutstyles )
 {
 	if (pnode->contents < 0)
 		return false;
@@ -327,7 +328,7 @@ bool Mod_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const 
 	Int32 side = front < 0;
 	
 	if ( (back < 0) == side )
-		return Mod_RecursiveLightPoint(pworld, pnode->pchildren[side], start, end, color);
+		return Mod_RecursiveLightPoint(pworld, pnode->pchildren[side], start, end, color, plightstylevalues, poutstyles);
 	
 	Vector mid;
 	Float frac = front / (front-back);
@@ -336,7 +337,7 @@ bool Mod_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const 
 	mid[2] = start[2] + (end[2] - start[2])*frac;
 	
 	// go down front side	
-	if (Mod_RecursiveLightPoint(pworld, pnode->pchildren[side], start, mid, color)) 
+	if (Mod_RecursiveLightPoint(pworld, pnode->pchildren[side], start, mid, color, plightstylevalues, poutstyles)) 
 		return true;
 		
 	if ((back < 0) == side)
@@ -362,11 +363,11 @@ bool Mod_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const 
 		if (ds > psurf->extents[0] || dt > psurf->extents[1])
 			continue;
 
-		ds >>= 4;
-		dt >>= 4;
+		ds = ds / psurf->lightmapdivider;
+		dt = dt / psurf->lightmapdivider;
 
-		color24_t* plightmap = psurf->psamples;
-		plightmap += dt * ((psurf->extents[0]>>4)+1) + ds;
+		color24_t* plightmap = psurf->psamples[SURF_LIGHTMAP_DEFAULT];
+		plightmap += dt * ((psurf->extents[0] / psurf->lightmapdivider)+1) + ds;
 
 		Float flIntensity = (plightmap->r + plightmap->g + plightmap->b)/3;
 		Float flScale = flIntensity/35;
@@ -377,17 +378,47 @@ bool Mod_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const 
 		Common::ParseColor(color, plightmap);
 		Math::VectorScale(color, flScale, color);
 
+		// Check styles
+		if(plightstylevalues)
+		{
+			Uint32 xsize = (psurf->extents[0] / psurf->lightmapdivider) + 1;
+			Uint32 ysize = (psurf->extents[1] / psurf->lightmapdivider) + 1;
+			Uint32 size = xsize*ysize;
+
+			for(Uint32 k = 1; k < MAX_SURFACE_STYLES; k++)
+			{
+				if(psurf->styles[k] == 255)
+					break;
+
+				// Skip to next lightmap
+				plightmap += size;
+
+				Vector styleColor;
+				Common::ParseColor(styleColor, plightmap);
+
+				Float lightStyleValue = plightstylevalues[psurf->styles[k]];
+				Math::VectorMA(color, lightStyleValue, styleColor, color);
+			}
+		}
+
+		// See if we need to set destination styles
+		if(poutstyles)
+		{
+			for(Uint32 k = 0; k < MAX_SURFACE_STYLES; k++)
+				poutstyles[k] = psurf->styles[k];
+		}
+
 		return true;
 	}
 
 	// go down back side
-	return Mod_RecursiveLightPoint(pworld, pnode->pchildren[!side], mid, end, color);
+	return Mod_RecursiveLightPoint(pworld, pnode->pchildren[!side], mid, end, color, plightstylevalues, poutstyles);
 }
 
 //=============================================
 //
 //=============================================
-bool Mod_RecursiveLightPoint_BumpData( const brushmodel_t* pworld, mnode_t *pnode, const Vector &start, const Vector &end, Vector &ambientcolor, Vector& diffusecolor, Vector& lightdir )
+bool Mod_RecursiveLightPoint_BumpData( const brushmodel_t* pworld, mnode_t *pnode, const Vector &start, const Vector &end, Vector &ambientcolor, Vector& diffusecolor, Vector& lightdir, Float* plightstylevalues, byte* poutstyles )
 {
 	if (pnode->contents < 0)
 		return false;
@@ -398,7 +429,7 @@ bool Mod_RecursiveLightPoint_BumpData( const brushmodel_t* pworld, mnode_t *pnod
 	Int32 side = front < 0;
 	
 	if ( (back < 0) == side )
-		return Mod_RecursiveLightPoint_BumpData(pworld, pnode->pchildren[side], start, end, ambientcolor, diffusecolor, lightdir);
+		return Mod_RecursiveLightPoint_BumpData(pworld, pnode->pchildren[side], start, end, ambientcolor, diffusecolor, lightdir, plightstylevalues, poutstyles);
 	
 	Vector mid;
 	Float frac = front / (front-back);
@@ -407,7 +438,7 @@ bool Mod_RecursiveLightPoint_BumpData( const brushmodel_t* pworld, mnode_t *pnod
 	mid[2] = start[2] + (end[2] - start[2])*frac;
 	
 	// go down front side	
-	if (Mod_RecursiveLightPoint_BumpData(pworld, pnode->pchildren[side], start, mid, ambientcolor, diffusecolor, lightdir)) 
+	if (Mod_RecursiveLightPoint_BumpData(pworld, pnode->pchildren[side], start, mid, ambientcolor, diffusecolor, lightdir, plightstylevalues, poutstyles)) 
 		return true;
 		
 	if ((back < 0) == side)
@@ -436,57 +467,113 @@ bool Mod_RecursiveLightPoint_BumpData( const brushmodel_t* pworld, mnode_t *pnod
 		if (!psurf->psamples)
 			continue;
 
-		ds >>= 4;
-		dt >>= 4;
-
-		Int32 ambientindex = R_StyleIndex(psurf, LM_AMBIENT_STYLE);
-		Int32 diffuseindex = R_StyleIndex(psurf, LM_DIFFUSE_STYLE);
-		Int32 lightvecsindex = R_StyleIndex(psurf, LM_LIGHTVECS_STYLE);
+		ds = ds / psurf->lightmapdivider;
+		dt = dt / psurf->lightmapdivider;
 
 		// Fail if the surface has no bump data
-		if(ambientindex == -1 || diffuseindex == -1 || lightvecsindex == -1)
+		if(!psurf->psamples[SURF_LIGHTMAP_AMBIENT] 
+			|| !psurf->psamples[SURF_LIGHTMAP_DIFFUSE]
+			|| !psurf->psamples[SURF_LIGHTMAP_VECTORS])
 			return false;
 
-		Uint32 xsize = (psurf->extents[0]>>4)+1;
-		Uint32 ysize = (psurf->extents[1]>>4)+1;
+		Uint32 xsize = (psurf->extents[0] / psurf->lightmapdivider)+1;
+		Uint32 ysize = (psurf->extents[1] / psurf->lightmapdivider)+1;
 		Uint32 size = xsize*ysize;
 
-		// Get ambient light
-		color24_t* pambientlightmap = psurf->psamples + size * ambientindex;
-		pambientlightmap += dt * xsize + ds;
+		// Use base lighting as reference for overdarkening
+		color24_t* pbaselightmap = psurf->psamples[SURF_LIGHTMAP_DEFAULT] + size;
+		pbaselightmap += dt * xsize + ds;
 
-		Float flIntensity = (pambientlightmap->r + pambientlightmap->g + pambientlightmap->b)/3;
+		Float flIntensity = (pbaselightmap->r + pbaselightmap->g + pbaselightmap->b)/3;
 		Float flScale = flIntensity/35;
 
-		Common::ParseColor(ambientcolor, pambientlightmap);
-		Math::VectorScale(ambientcolor, flScale, ambientcolor);
+		// Now process along with styles
+		Uint32 j = 0;
+		for(; j < MAX_SURFACE_STYLES; j++)
+		{
+			if(psurf->styles[j] == 255)
+				break;
 
-		// Get diffuse light
-		color24_t* pdiffuselightmap = psurf->psamples + size * diffuseindex;
-		pdiffuselightmap += dt * xsize + ds;
+			Float styleScale;
+			if(j == BASE_LIGHTMAP_INDEX)
+			{
+				// Only overdarkening is applied to base lightmap
+				styleScale = flScale;
+			}
+			else
+			{
+				// If not checking styles, skip additional style layers
+				if(!plightstylevalues)
+					break;
 
-		flIntensity = (pdiffuselightmap->r + pdiffuselightmap->g + pdiffuselightmap->b)/3;
-		flScale = flIntensity/35;
+				// Only apply lightstyle value scaling to other styles,
+				// no ovedarkening
+				styleScale = plightstylevalues[psurf->styles[j]];
+			}
 
-		Common::ParseColor(diffusecolor, pdiffuselightmap);
-		Math::VectorScale(diffusecolor, flScale, diffusecolor);
+			// Get ambient light
+			color24_t* pambientlightmap = psurf->psamples[SURF_LIGHTMAP_AMBIENT] + size;
+			pambientlightmap += dt * xsize + ds;
 
-		// Get light direction
-		color24_t* plightdirdata = psurf->psamples + size * lightvecsindex;
-		plightdirdata += dt * ((psurf->extents[0]>>4)+1) + ds;
+			Common::ParseColor(ambientcolor, pambientlightmap);
+			Math::VectorScale(ambientcolor, styleScale, ambientcolor);
 
-		// Turn byte data to light vectors
-		lightdir = Vector(plightdirdata->r, plightdirdata->g, plightdirdata->b);
-		Math::VectorScale(lightdir, 1.0f/255.0f, lightdir);
+			// Get diffuse light
+			color24_t* pdiffuselightmap = psurf->psamples[SURF_LIGHTMAP_DIFFUSE] + size;
+			pdiffuselightmap += dt * xsize + ds;
 
-		for(Uint32 j = 0; j < 3; j++)
-			lightdir[j] = (2.0f * lightdir[j]) - 1.0;
+			Common::ParseColor(diffusecolor, pdiffuselightmap);
+			Math::VectorScale(diffusecolor, styleScale, diffusecolor);
+
+			// Get light direction
+			color24_t* plightdirdata = psurf->psamples[SURF_LIGHTMAP_VECTORS] + size;
+			plightdirdata += dt * ((psurf->extents[0] / psurf->lightmapdivider)+1) + ds;
+
+			// Turn byte data to light vectors
+			Vector stylelightdir;
+			stylelightdir = Vector(plightdirdata->r, plightdirdata->g, plightdirdata->b);
+			Math::VectorScale(stylelightdir, 1.0f/255.0f, stylelightdir);
+
+			for(Uint32 k = 0; k < 3; k++)
+				stylelightdir[k] = (2.0f * stylelightdir[k]) - 1.0;
+
+			if(j == BASE_LIGHTMAP_INDEX)
+				Math::VectorCopy(stylelightdir, lightdir);
+			else
+				Math::VectorMA(lightdir, styleScale, stylelightdir, lightdir);
+		}
+
+		// Normalize final lightdir if additional layers got added
+		if(j > 0)
+			Math::VectorNormalize(lightdir);
 
 		// Reverse green
 		lightdir[1] *= -1.0;
+
+		// See if we need to set destination styles
+		if(poutstyles)
+		{
+			for(Uint32 k = 0; k < MAX_SURFACE_STYLES; k++)
+				poutstyles[k] = psurf->styles[k];
+		}
+
 		return true;
 	}
 
 	// go down back side
-	return Mod_RecursiveLightPoint_BumpData(pworld, pnode->pchildren[!side], mid, end, ambientcolor, diffusecolor, lightdir);
+	return Mod_RecursiveLightPoint_BumpData(pworld, pnode->pchildren[!side], mid, end, ambientcolor, diffusecolor, lightdir, plightstylevalues, poutstyles);
+}
+
+//=============================================
+//
+//=============================================
+Int32 Mod_StyleIndex ( const msurface_t *psurface, Uint32 style )
+{
+	for (Uint32 j = 0 ; j < MAX_SURFACE_STYLES && psurface->styles[j] != 255 ; j++)
+	{
+		if (psurface->styles[j] == style)
+			return j;
+	}
+
+	return NO_POSITION;
 }

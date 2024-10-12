@@ -21,6 +21,7 @@ struct file_interface_t
 	bool			(*pfnCreateDirectory)( const Char* pstrpath );
 	bool			(*pfnGetFileDate)( const Char* pstrFile, file_dateinfo_t& dateinfo );
 	Int32			(*pfnCompareFileDates)( const file_dateinfo_t& d1, const file_dateinfo_t& d2 );
+	const Char*		(*pfnGetGameDirectory)( void );
 };
 
 #endif //FILE_INTERFACE_H

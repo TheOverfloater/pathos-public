@@ -10,6 +10,6 @@ All Rights Reserved.
 #ifndef ALD_H
 #define ALD_H
 enum daystage_t;
-extern byte* ALD_Load( daystage_t stage );
+extern bool ALD_Load( daystage_t stage, byte** pdestarrays );
 extern void ALD_ExportLightmaps( void );
 #endif //ALD_H

@@ -62,6 +62,7 @@ template <typename T> inline CArray<T>::~CArray( void )
 //=============================================
 // @brief Assignment operator
 //
+// @param src Source array to copy data from
 //=============================================
 template <typename T> inline void CArray<T>::operator=( const CArray& src )
 {
@@ -166,6 +167,7 @@ template <typename T> inline void CArray<T>::clear( void )
 //=============================================
 // @brief Tells the size of the array
 //
+// @return The size of the array
 //=============================================
 template <typename T> inline Uint32 CArray<T>::size( void ) const
 {
@@ -175,6 +177,7 @@ template <typename T> inline Uint32 CArray<T>::size( void ) const
 //=============================================
 // @brief Tells if the array is empty
 //
+// @return TRUE if array is empty, FALSE otherwise
 //=============================================
 template <typename T> inline bool CArray<T>::empty( void ) const
 {
@@ -187,7 +190,7 @@ template <typename T> inline bool CArray<T>::empty( void ) const
 //=============================================
 // @brief Resizes the array
 //
-// @param size Size to set
+// @param element element to add to the array
 //=============================================
 template <typename T> inline void CArray<T>::push_back( const T& element )
 {
@@ -246,7 +249,7 @@ template <typename T> inline void CArray<T>::erase( const T& element )
 }
 
 //=============================================
-// @brief Resizes the array
+// @brief Returns an element from the array by index
 //
 // @param n Index of element to return
 //=============================================

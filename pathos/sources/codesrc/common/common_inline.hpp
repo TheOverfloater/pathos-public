@@ -611,6 +611,18 @@ namespace Common
 	{
 		return c + (d-c)*(value-a)/(b-a);
 	}
+
+	//====================================
+	// 
+	//
+	//====================================
+	inline bool ValueInRange( Float comparisonValue, Float rangeMin, Float rangeMax, Float rangeShift )
+	{
+		Float valueMin = rangeMin + rangeShift;
+		Float valueMax = rangeMax + rangeShift;
+
+		return (comparisonValue >= valueMin && comparisonValue <= valueMax) ? true : false;
+	}
 }
 
 #endif // COMMON_INLINE_H

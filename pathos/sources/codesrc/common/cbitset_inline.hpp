@@ -184,8 +184,9 @@ inline void CBitSet::clear( void )
 }
 
 //=============================================
-// @brief
+// @brief Return the number of bits set
 //
+// @return Number of bits that are set
 //=============================================
 inline Uint32 CBitSet::count( void ) const
 {
@@ -202,8 +203,9 @@ inline Uint32 CBitSet::count( void ) const
 }
 
 //=============================================
-// @brief
+// @brief Tells the size of the bitset, in number of bits
 //
+// @return Number of bits in the bitset
 //=============================================
 inline Uint32 CBitSet::size( void ) const
 {
@@ -211,8 +213,9 @@ inline Uint32 CBitSet::size( void ) const
 }
 
 //=============================================
-// @brief
+// @brief Returns the number of bytes allocated by bitset
 //
+// @return Number of bytes allocated by the bitset
 //=============================================
 inline Uint32 CBitSet::numbytes( void ) const
 {
@@ -220,8 +223,9 @@ inline Uint32 CBitSet::numbytes( void ) const
 }
 
 //=============================================
-// @brief
+// @brief Returns a pointer to the bitset data
 //
+// @return Pointer to bitset data
 //=============================================
 inline byte* CBitSet::getData( void )
 {
@@ -229,8 +233,9 @@ inline byte* CBitSet::getData( void )
 }
 
 //=============================================
-// @brief
+// @brief Returns a pointer to the bitset data
 //
+// @return Const pointer to bitset data
 //=============================================
 inline const byte* CBitSet::getDataConst( void ) const
 {
@@ -240,6 +245,8 @@ inline const byte* CBitSet::getDataConst( void ) const
 //=============================================
 // @brief Implements assignment operator
 //
+// @param other Pointer to the bitset to be assigned
+// @return Reference to the bitset
 //=============================================
 inline CBitSet& CBitSet::operator = ( const CBitSet& other )
 {
@@ -257,6 +264,8 @@ inline CBitSet& CBitSet::operator = ( const CBitSet& other )
 //=============================================
 // @brief Implements the bitset OR operator
 //
+// @param other Pointer to other bitset
+// @return Reference to result bitset
 //=============================================
 inline CBitSet CBitSet::operator | ( const CBitSet& other ) const
 {
@@ -268,6 +277,8 @@ inline CBitSet CBitSet::operator | ( const CBitSet& other ) const
 //=============================================
 // @brief Implements the bitset OR assignment operator
 //
+// @param other Bitset to merge with
+// @return Reference to the result bitset
 //=============================================
 inline CBitSet& CBitSet::operator |= ( const CBitSet& other )
 {
@@ -305,6 +316,8 @@ inline CBitSet& CBitSet::operator |= ( const CBitSet& other )
 //=============================================
 // @brief Implements the bitset AND operator
 //
+// @param other Reference to other bitset
+// @return Reference to the result bitset
 //=============================================
 inline CBitSet CBitSet::operator & ( const CBitSet& other ) const
 {
@@ -316,6 +329,8 @@ inline CBitSet CBitSet::operator & ( const CBitSet& other ) const
 //=============================================
 // @brief Implements the bitset AND assignment operator
 //
+// @param other Bitset to merge with
+// @return Reference to the result bitset
 //=============================================
 inline CBitSet& CBitSet::operator &= ( const CBitSet& other )
 {
@@ -368,6 +383,7 @@ inline CBitSet& CBitSet::operator &= ( const CBitSet& other )
 //=============================================
 // @brief Implements the bitset inverse operator
 //
+// @return Resulting inverted bitset
 //=============================================
 inline CBitSet CBitSet::operator ~ ( void ) const
 {
@@ -394,6 +410,8 @@ inline CBitSet CBitSet::operator ~ ( void ) const
 //=============================================
 // @brief Implements equality check operator
 //
+// @param other The bitset to compare with
+// @return TRUE if the two are equal, FALSE otherwise
 //=============================================
 inline bool CBitSet::operator == ( const CBitSet& other )
 {
@@ -422,6 +440,8 @@ inline bool CBitSet::operator == ( const CBitSet& other )
 //=============================================
 // @brief Implements non-equality check operator
 //
+// @param other Bitset to compare with
+// @result TRUE if not matching, FALSE otherwise
 //=============================================
 inline bool CBitSet::operator != ( const CBitSet& other )
 {

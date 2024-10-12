@@ -36,6 +36,8 @@ public:
 	static const Uint32 MIN_NB_BEAM_SEGMENTS;
 	// Fraction of length at which end/start fades
 	static const Float BEAM_FADE_FRACTION;
+	// Distance between light checks for vapor trail
+	static const Float VAPORTRAIL_LIGHTCHECK_DISTANCE;
 
 public:
 	// Maximum number of segments for a beam

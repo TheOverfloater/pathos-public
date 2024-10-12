@@ -39,6 +39,8 @@ public:
 		psmcubemap(nullptr),
 		psceneinfo(nullptr),
 		psceneinfo_nonstatic(nullptr),
+		prevradius(0),
+		prevconesize(0),
 		pfrustum(nullptr)
 	{
 	}
@@ -98,6 +100,8 @@ private:
 
 	Vector prevorigin;
 	Vector prevangles;
+	Float prevradius;
+	Float prevconesize;
 
 public:
 	class CFrustum* pfrustum;

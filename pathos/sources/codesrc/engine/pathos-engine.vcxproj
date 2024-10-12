@@ -238,6 +238,7 @@
     <ClCompile Include="ald.cpp" />
     <ClCompile Include="brushmodel.cpp" />
     <ClCompile Include="bspv30.cpp" />
+    <ClCompile Include="bsp_shared.cpp" />
     <ClCompile Include="client\cl_cmd.cpp" />
     <ClCompile Include="client\cl_efx.cpp" />
     <ClCompile Include="client\cl_main.cpp" />
@@ -259,6 +260,7 @@
     <ClCompile Include="net_mp.cpp" />
     <ClCompile Include="net_sp.cpp" />
     <ClCompile Include="pbspv1.cpp" />
+    <ClCompile Include="pbspv2.cpp" />
     <ClCompile Include="renderer\r_beams.cpp" />
     <ClCompile Include="renderer\r_blackhole.cpp" />
     <ClCompile Include="renderer\r_cables.cpp" />
@@ -270,6 +272,7 @@
     <ClCompile Include="renderer\r_glqueries.cpp" />
     <ClCompile Include="renderer\r_interfacefuncs.cpp" />
     <ClCompile Include="renderer\r_lensflare.cpp" />
+    <ClCompile Include="renderer\r_lightstyles.cpp" />
     <ClCompile Include="renderer\r_menuparticles.cpp" />
     <ClCompile Include="renderer\r_nsmoothing.cpp" />
     <ClCompile Include="renderer\r_portals.cpp" />
@@ -360,6 +363,7 @@
     <ClInclude Include="..\common\movevars.h" />
     <ClInclude Include="..\common\ogg_common.h" />
     <ClInclude Include="..\common\pbspv1file.h" />
+    <ClInclude Include="..\common\pbspv2file.h" />
     <ClInclude Include="..\common\plane.h" />
     <ClInclude Include="..\common\plane_inline.hpp" />
     <ClInclude Include="..\common\r_common.h" />
@@ -382,6 +386,7 @@
     <ClInclude Include="..\shared\fontset.h" />
     <ClInclude Include="ald.h" />
     <ClInclude Include="bspv30.h" />
+    <ClInclude Include="bsp_shared.h" />
     <ClInclude Include="buildcounter.h" />
     <ClInclude Include="client\cl_efx.h" />
     <ClInclude Include="client\cl_main.h" />
@@ -407,6 +412,7 @@
     <ClInclude Include="net_mp.h" />
     <ClInclude Include="net_sp.h" />
     <ClInclude Include="pbspv1.h" />
+    <ClInclude Include="pbspv2.h" />
     <ClInclude Include="renderer\r_beams.h" />
     <ClInclude Include="renderer\r_blackhole.h" />
     <ClInclude Include="renderer\r_cables.h" />
@@ -418,6 +424,7 @@
     <ClInclude Include="renderer\r_glqueries.h" />
     <ClInclude Include="renderer\r_interfacefuncs.h" />
     <ClInclude Include="renderer\r_lensflare.h" />
+    <ClInclude Include="renderer\r_lightstyles.h" />
     <ClInclude Include="renderer\r_menuparticles.h" />
     <ClInclude Include="renderer\r_nsmoothing.h" />
     <ClInclude Include="renderer\r_portals.h" />

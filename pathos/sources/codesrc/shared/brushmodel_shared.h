@@ -17,40 +17,22 @@ All Rights Reserved.
 // No lightmaps for this surface
 #define	TEXFLAG_SPECIAL		1
 
+// No bsp surface info index
 #define NO_INFO_INDEX		-1
 
-enum bsp_lightmaps_t
+// Max styles on a surface
+#define MAX_SURFACE_STYLES	4
+
+// Lightmap layers
+enum surf_lmap_layers_t
 {
-	LM_AMBIENT_STYLE	= 61,
-	LM_DIFFUSE_STYLE	= 62,
-	LM_LIGHTVECS_STYLE	= 63,
-};
+	SURF_LIGHTMAP_DEFAULT = 0,
+	SURF_LIGHTMAP_VECTORS,
+	SURF_LIGHTMAP_AMBIENT,
+	SURF_LIGHTMAP_DIFFUSE,
 
-//
-// BSP file structures
-//
-
-struct lump_t
-{
-	lump_t():
-		offset(0),
-		size(0)
-	{}
-
-	Int32 offset;
-	Int32 size;
-};
-
-struct dheader_t
-{
-	dheader_t():
-		version(0)
-	{
-		memset(lumps, 0, sizeof(lumps));
-	}
-
-	Int32 version;
-	lump_t lumps[NB_LUMPS];
+	// Must be last
+	NB_SURF_LIGHTMAP_LAYERS
 };
 
 //
@@ -222,14 +204,15 @@ struct msurface_t
 		numedges(0),
 		light_s(0),
 		light_t(0),
+		lightmapdivider(0),
 		ptexinfo(nullptr),
-		psamples(nullptr),
 		lightoffset(0),
-		ptexturechain(nullptr),
 		infoindex(-1)
 	{
 		memset(texturemins, 0, sizeof(texturemins));
 		memset(extents, 0, sizeof(extents));
+		memset(styles, 0, sizeof(styles));
+		memset(psamples, 0, sizeof(psamples));
 	}
 
 	// Visframe this was drawn on
@@ -254,6 +237,8 @@ struct msurface_t
 	Uint32 light_s;
 	// Lightmap T coord
 	Uint32 light_t;
+	// Divider to get lightmap size
+	Uint32 lightmapdivider;
 
 	// texinfo
 	mtexinfo_t* ptexinfo;
@@ -267,14 +252,11 @@ struct msurface_t
 	// of getting rid of fixed size
 	// arrays. will depend on bsp
 	// loader logic from now on
-	CArray<byte> styles;
+	byte styles[MAX_SURFACE_STYLES];
 	// Pointer to lightmap samples
-	color24_t* psamples;
+	color24_t* psamples[NB_SURF_LIGHTMAP_LAYERS];
 	// original offset value into samples
 	Int32 lightoffset;
-
-	// texture chains
-	msurface_t* ptexturechain;
 
 	// info index for rendering
 	Int32 infoindex;
@@ -371,12 +353,15 @@ struct brushmodel_t
 		visdatasize(0),
 		ppasdata(nullptr),
 		pasdatasize(0),
-		plightdata(nullptr),
-		pbaselightdata(nullptr),
 		lightdatasize(0),
 		pentdata(nullptr),
 		entdatasize(0)
 	{
+		for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+		{
+			plightdata[i] = nullptr;
+			pbaselightdata[i] = nullptr;
+		}
 	}
 
 	~brushmodel_t()
@@ -411,14 +396,18 @@ struct brushmodel_t
 				delete[] pvisdata;
 			if(ppasdata) 
 				delete[] ppasdata;
-			if(plightdata && plightdata != pbaselightdata)
-				delete[] plightdata;
-			if (pbaselightdata)
-				delete[] pbaselightdata;
 			if(pentdata) 
 				delete[] pentdata;
 			if(hulls[0].pclipnodes)
 				delete[] hulls[0].pclipnodes;
+
+			for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+			{
+				if(plightdata[i] && plightdata[i] != pbaselightdata[i])
+					delete[] plightdata[i];
+				if (pbaselightdata[i])
+					delete[] pbaselightdata[i];
+			}
 		}
 	}
 
@@ -499,11 +488,11 @@ struct brushmodel_t
 	Uint32 pasdatasize;
 
 	// light data
-	color24_t* plightdata;
+	color24_t* plightdata[NB_SURF_LIGHTMAP_LAYERS];
 	Uint32 lightdatasize;
 	
 	// original lightdata
-	color24_t* pbaselightdata;
+	color24_t* pbaselightdata[NB_SURF_LIGHTMAP_LAYERS];
 
 	// entities
 	Char* pentdata;

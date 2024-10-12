@@ -14,6 +14,7 @@ All Rights Reserved.
 #include "mlight.h"
 #include "flex_shared.h"
 #include "animinfo.h"
+#include "brushmodel_shared.h"
 
 struct entity_animinfo_t;
 
@@ -34,7 +35,13 @@ struct entity_lightinfo_t
 		lighttime(0),
 		numsavedmlights(0),
 		reset(false)
-		{}
+	{
+		for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
+		{
+			lastlightstyles[i] = 0;
+			laststylevalues[i] = 0;
+		}
+	}
 
 	Int32 flags;
 
@@ -59,6 +66,11 @@ struct entity_lightinfo_t
 	Uint32 numsavedmlights;
 
 	Vector lastlightorigin;
+
+	// Lightstyles on the surface we're on
+	byte lastlightstyles[MAX_SURFACE_STYLES];
+	// Lightstyle values last cached
+	Float laststylevalues[MAX_SURFACE_STYLES];
 
 	// Used by nightstage
 	bool reset;

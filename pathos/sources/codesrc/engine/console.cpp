@@ -449,7 +449,7 @@ bool CConsole::Draw( void )
 	Float objWidth = boxWidth;
 	Float objHeight = barThickness;
 
-	pDraw->Begin(GL_TRIANGLES);
+	pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	pDraw->Vertex3f(xCoord, yCoord, -1.0);
 	pDraw->Vertex3f(xCoord+objWidth, yCoord, -1.0);
 	pDraw->Vertex3f(xCoord, yCoord+objHeight, -1.0);
@@ -466,7 +466,7 @@ bool CConsole::Draw( void )
 	objWidth = barThickness;
 	objHeight = boxHeight - barThickness*3;
 
-	pDraw->Begin(GL_TRIANGLES);
+	pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	pDraw->Vertex3f(xCoord, yCoord, -1.0);
 	pDraw->Vertex3f(xCoord+objWidth, yCoord, -1.0);
 	pDraw->Vertex3f(xCoord, yCoord+objHeight, -1.0);
@@ -483,7 +483,7 @@ bool CConsole::Draw( void )
 	objWidth = boxWidth;
 	objHeight = barThickness;
 
-	pDraw->Begin(GL_TRIANGLES);
+	pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	pDraw->Vertex3f(xCoord, yCoord, -1.0);
 	pDraw->Vertex3f(xCoord+objWidth, yCoord, -1.0);
 	pDraw->Vertex3f(xCoord, yCoord+objHeight, -1.0);
@@ -500,7 +500,7 @@ bool CConsole::Draw( void )
 	objWidth = barThickness;
 	objHeight = boxHeight - barThickness*3;
 
-	pDraw->Begin(GL_TRIANGLES);
+	pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	pDraw->Vertex3f(xCoord, yCoord, -1.0);
 	pDraw->Vertex3f(xCoord+objWidth, yCoord, -1.0);
 	pDraw->Vertex3f(xCoord, yCoord+objHeight, -1.0);
@@ -521,7 +521,7 @@ bool CConsole::Draw( void )
 	objHeight = boxHeight - barThickness*3;
 	objWidth = boxWidth - barThickness*2;
 	
-	pDraw->Begin(GL_TRIANGLES);
+	pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	pDraw->Vertex3f(xCoord, yCoord, -1.0);
 	pDraw->Vertex3f(xCoord+objWidth, yCoord, -1.0);
 	pDraw->Vertex3f(xCoord, yCoord+objHeight, -1.0);

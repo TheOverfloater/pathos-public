@@ -929,7 +929,7 @@ bool CScreenMessages::DrawMessage( displaymsg_t& msg )
 			(Float)msg.pmsg->color1.g/255.0f,
 			(Float)msg.pmsg->color1.b/255.0f);
 
-		cl_renderfuncs.pfnBasicDrawBegin(GL_TRIANGLES);
+		cl_renderfuncs.pfnBasicDrawBegin(CBasicDraw::DRAW_TRIANGLES);
 
 		// Draw first triangle
 		cl_renderfuncs.pfnBasicDrawColor4f(color.x, color.y, color.z, alpha);

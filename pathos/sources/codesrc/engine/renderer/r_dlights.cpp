@@ -34,14 +34,8 @@ All Rights Reserved.
 #include "tga.h"
 #include "file.h"
 
-// Number of default lightstyles
-const Uint32 CDynamicLightManager::NUM_DL_DEFAULT_STYLES = 12;
-// Default lightstyle framerate
-const Char CDynamicLightManager::DEFAULT_LIGHTSTYLE_FRAMERATE = 10;
 // Minimum shadowmap size
 const Uint32 CDynamicLightManager::SHADOWMAP_MIN_SIZE = 128;
-// Maximum lightstyle string length
-const Uint32 CDynamicLightManager::MAX_STYLESTRING = 64;
 // Time until an unused shadowmap is freed
 const Float CDynamicLightManager::SHADOWMAP_RELEASE_DELAY = 15;
 
@@ -232,171 +226,11 @@ void CDynamicLightManager::Shutdown( void )
 //====================================
 bool CDynamicLightManager::InitGame( void )
 {
-	// Set default styles
-	SetDefaultStyles();
-
 	// Allocate FBOs
 	if(!InitGL())
 		return false;
 
 	return true;
-}
-
-//====================================
-//
-//====================================
-void CDynamicLightManager::SetDefaultStyles( void )
-{
-	// 0 normal
-	AddLightStyle(LS_NORMAL, DEFAULT_LIGHTSTYLE_FRAMERATE, false, "m");
-	
-	// 1 FLICKER (first variety)
-	AddLightStyle(LS_FLICKER_A, DEFAULT_LIGHTSTYLE_FRAMERATE, true, "mmnmmommommnonmmonqnmmo");
-	
-	// 2 SLOW STRONG PULSE
-	AddLightStyle(LS_SLOW_STRONG_PULSE, DEFAULT_LIGHTSTYLE_FRAMERATE, true, "abcdefghijklmnopqrstuvwxyzyxwvutsrqponmlkjihgfedcba");
-	
-	// 3 CANDLE (first variety)
-	AddLightStyle(LS_CANDLE_A, DEFAULT_LIGHTSTYLE_FRAMERATE, true, "mmmmmaaaaammmmmaaaaaabcdefgabcdefg");
-	
-	// 4 FAST STROBE
-	AddLightStyle(LS_FAST_STROBE, DEFAULT_LIGHTSTYLE_FRAMERATE, false, "mamamamamama");
-	
-	// 5 GENTLE PULSE 1
-	AddLightStyle(LS_GENTLE_PULSE, DEFAULT_LIGHTSTYLE_FRAMERATE, true, "jklmnopqrstuvwxyzyxwvutsrqponmlkj");
-	
-	// 6 FLICKER (second variety)
-	AddLightStyle(LS_FLICKER_B, DEFAULT_LIGHTSTYLE_FRAMERATE, true, "nmonqnmomnmomomno");
-	
-	// 7 CANDLE (second variety)
-	AddLightStyle(LS_CANDLE_B, DEFAULT_LIGHTSTYLE_FRAMERATE, true, "mmmaaaabcdefgmmmmaaaammmaamm");
-	
-	// 8 CANDLE (third variety)
-	AddLightStyle(LS_CANDLE_C, DEFAULT_LIGHTSTYLE_FRAMERATE, true, "mmmaaammmaaammmabcdefaaaammmmabcdefmmmaaaa");
-	
-	// 9 SLOW STROBE (fourth variety)
-	AddLightStyle(LS_SLOW_STROBE, DEFAULT_LIGHTSTYLE_FRAMERATE, false, "aaaaaaaazzzzzzzz");
-	
-	// 10 FLUORESCENT FLICKER
-	AddLightStyle(LS_FLUORESCENT_FLICKER, DEFAULT_LIGHTSTYLE_FRAMERATE, false, "mmamammmmammamamaaamammma");
-
-	// 11 SLOW PULSE NOT FADE TO BLACK
-	AddLightStyle(LS_SLOW_PULSE_NOBLACK, DEFAULT_LIGHTSTYLE_FRAMERATE, true, "abcdefghijklmnopqrrqponmlkjihgfedcba");
-}
-
-//====================================
-//
-//====================================
-void CDynamicLightManager::ResetStyles( void )
-{
-	if(m_lightStyles.empty())
-		return;
-		
-	m_lightStyles.clear();
-}
-
-//====================================
-//
-//====================================
-void CDynamicLightManager::AddCustomLightStyle( Uint32 index, Int32 framerate, bool interpolate, const Char* pstring )
-{
-	if(index < NUM_DL_DEFAULT_STYLES)
-	{
-		Con_Printf("%s - Invalid lightstyle index %d.\n", __FUNCTION__, index);
-		return;
-	}
-
-	AddLightStyle(index, framerate, interpolate, pstring);
-}
-
-//====================================
-//
-//====================================
-void CDynamicLightManager::AddLightStyle( Uint32 index, Int32 framerate, bool interpolate, const Char* pstring )
-{
-	Uint32 length = qstrlen(pstring);
-	if(length+1 >= MAX_STYLESTRING)
-	{
-		Con_Printf("Error: Lightstyle with index %d is too long.\n", index);
-		return;
-	}
-
-	if(m_lightStyles.size() <= index)
-		m_lightStyles.resize(index+1);
-
-	lightstyle_t& style = m_lightStyles[index];
-
-	style.map.resize(length+1);
-	
-	for(Uint32 i = 0; i < length; i++)
-		style.map[i] = pstring[i];
-
-	style.map[length] = '\0';
-
-	style.length = length;
-	style.framerate = framerate;
-	style.interp = interpolate;
-
-	if(!style.framerate)
-		style.framerate = DEFAULT_LIGHTSTYLE_FRAMERATE;
-}
-
-//====================================
-//
-//====================================
-void CDynamicLightManager::AnimateStyles( void )
-{
-	for(Uint32 i = 0; i < m_lightStyles.size(); i++)
-	{
-		lightstyle_t& style = m_lightStyles[i];
-		if(!style.length)
-		{
-			style.value = 1.0;
-			continue;
-		}
-
-		if(style.interp)
-		{
-			const Float frame = (rns.time*style.framerate);
-			const Float interp = frame - floor(frame);
-
-			Int32 i1 = static_cast<Int32>(frame) % style.length;
-			Int32 i2 = (static_cast<Int32>(frame) + 1) % style.length;
-
-			const Int32 v1 = (style.map[i1] - 'a')*22;
-			const Int32 v2 = (style.map[i2] - 'a')*22;
-
-			style.value = ((static_cast<Float>(v1))*(1.0-interp)) + ((static_cast<Float>(v2))*interp);
-			style.value = style.value / 256.0f;
-		}
-		else
-		{
-			const Float frame = (rns.time*style.framerate);
-			Int32 i1 = static_cast<Int32>(frame) % style.length;
-			const Int32 v = (style.map[i1] - 'a')*22;
-
-			style.value = static_cast<Float>(v)/256.0f;
-		}
-	}
-}
-
-//====================================
-//
-//====================================
-void CDynamicLightManager::ApplyLightStyle( cl_dlight_t* dl, Vector& color )
-{
-	if(dl->lightstyle == 0)
-		return;
-
-	if(dl->lightstyle < 1 || dl->lightstyle >= m_lightStyles.size())
-	{
-		Con_Printf("Warning: Dynamic light at %.0f %.0f %.0f with invalid style index %d.\n", dl->origin.x, dl->origin.y, dl->origin.z, dl->lightstyle);
-		return;
-	}
-
-	assert(dl->lightstyle < m_lightStyles.size());
-	const lightstyle_t& style = m_lightStyles[dl->lightstyle];
-	Math::VectorScale(color, style.value, color);
 }
 
 //====================================
@@ -1174,6 +1008,8 @@ bool CDynamicLightManager::DrawPasses( void )
 		// Set these after rendering
 		dl->prevorigin = dl->origin;
 		dl->prevangles = dl->angles;
+		dl->prevradius = dl->radius;
+		dl->prevconesize = dl->cone_size;
 
 		m_dlightsList.next();
 	}
@@ -1436,7 +1272,6 @@ bool CDynamicLightManager::DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int
 
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
 		glDrawBuffer(GL_COLOR_ATTACHMENT0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		gGLExtF.glBlitFramebuffer(0, 0, shadowmapSize, shadowmapSize, 0, 0, shadowmapSize, shadowmapSize, GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		gGLExtF.glBindFramebuffer(GL_READ_FRAMEBUFFER, 0),
@@ -1627,9 +1462,6 @@ void CDynamicLightManager::FreeDynamicLight( cl_dlight_t* pdlight, bool ignoreSt
 //====================================
 bool CDynamicLightManager::Update( void )
 {
-	// Animate lightstyles
-	AnimateStyles();
-
 	// Check for any FBO updates
 	if(!CheckFBOs())
 		return false;
@@ -1706,8 +1538,6 @@ bool CDynamicLightManager::Update( void )
 //====================================
 void CDynamicLightManager::ClearGame( void )
 {
-	ResetStyles();
-
 	// Clear out dynlights
 	if(!m_dlightsList.empty())
 	{
@@ -2059,10 +1889,18 @@ bool CDynamicLightManager::ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_scenei
 	// check if a new entity has been added to the list
 	for(Uint32 i = 0; i < rns.objects.numvisents; i++)
 	{
-		if(!rns.objects.pvisents[i]->pmodel)
+		cl_entity_t* pvisentity = rns.objects.pvisents[i];
+		if(!pvisentity->pmodel)
 			continue;
 
-		cl_entity_t* pvisentity = rns.objects.pvisents[i];
+		// Skip tempents
+		if(pvisentity->entindex < 1)
+			continue;
+
+		// Only vbm and brush models
+		if(pvisentity->pmodel->type != MOD_VBM 
+			&& pvisentity->pmodel->type != MOD_BRUSH)
+			continue;
 
 		// Only static objects
 		if(isstatic)
@@ -2077,24 +1915,11 @@ bool CDynamicLightManager::ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_scenei
 				|| pvisentity->curstate.effects & EF_STATICENTITY)
 				continue;
 		}
-
+		
 		// No transparents
 		if(R_IsEntityTransparent((*pvisentity)))
 			continue;
 
-		// No entities without models
-		if(!pvisentity->pmodel)
-			continue;
-
-		// Skip tempents
-		if(pvisentity->entindex < 1)
-			continue;
-
-		// Only vbm and brush models
-		if(pvisentity->pmodel->type != MOD_VBM 
-			&& pvisentity->pmodel->type != MOD_BRUSH)
-			continue;
-		
 		// Check bbox
 		Vector mins, maxs;
 		if(pvisentity->pmodel->type == MOD_BRUSH)
@@ -2208,7 +2033,9 @@ bool CDynamicLightManager::ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_scenei
 
 	// Redraw if dlight moved
 	if(!Math::VectorCompare(dl->origin, dl->prevorigin)
-		|| !Math::VectorCompare(dl->angles, dl->prevangles))
+		|| !Math::VectorCompare(dl->angles, dl->prevangles)
+		|| dl->prevradius != dl->radius
+		|| dl->prevconesize != dl->cone_size)
 		return true;
 
 	return bRedraw;

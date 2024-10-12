@@ -33,6 +33,7 @@ All Rights Reserved.
 #include "r_blackhole.h"
 #include "r_lensflare.h"
 #include "r_sky.h"
+#include "r_lightstyles.h"
 
 #include "ald.h"
 #include "efxapi.h"
@@ -58,6 +59,7 @@ static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 	CL_SetSpecialFog,				//pfnSetSpecialFog
 	CL_FreeEntityData,				//pfnFreeEntityData
 	CL_SetLightStyle,				//pfnSetLightStyle
+	CL_AddCustomLightStyle,			//pfnAddCustomLightStyle
 	CL_GetDecalList,				//pfnGetDecalList
 	CL_DecalVBMEntity,				//pfnDecalVBMEntity
 	CL_CreateGenericDecal,			//pfnCreateGenericDecal
@@ -289,12 +291,22 @@ void CL_SetDayStage( daystage_t daystage )
 
 	// Get worldmodel ptr
 	brushmodel_t* pworldmodel = ens.pworld;
+	// Data pointers for our load result
+	byte* pdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
 
-	byte* plightdata = ALD_Load(rns.daystage);
-	if (!plightdata)
+	if (!ALD_Load(rns.daystage, pdatapointers))
 	{
-		plightdata = reinterpret_cast<byte*>(pworldmodel->pbaselightdata);
-		if (!plightdata || plightdata == reinterpret_cast<byte*>(pworldmodel->plightdata))
+		for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+			pdatapointers[i] = reinterpret_cast<byte*>(pworldmodel->pbaselightdata[i]);
+
+		Uint32 i = 0;
+		for(; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+		{
+			if(!pdatapointers[i] || pdatapointers[i] != reinterpret_cast<byte*>(pworldmodel->plightdata[i]))
+				break;
+		}
+
+		if(i == NB_SURF_LIGHTMAP_LAYERS)
 			return;
 	}
 
@@ -306,21 +318,30 @@ void CL_SetDayStage( daystage_t daystage )
 			continue;
 
 		// Re-set samples pointer to the new data
-		psurface->psamples = reinterpret_cast<color24_t*>(plightdata + psurface->lightoffset);
+		for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
+		{
+			if(pdatapointers[j])
+				psurface->psamples[j] = reinterpret_cast<color24_t*>(pdatapointers[j] + psurface->lightoffset);
+			else
+				psurface->psamples[j] = nullptr;
+		}
 	}
 
-	// All data was successfully set, so release original data
-	if (pworldmodel->plightdata != pworldmodel->pbaselightdata)
-		delete[] pworldmodel->plightdata;
-
 	// Set the new pointer
-	pworldmodel->plightdata = reinterpret_cast<color24_t*>(plightdata);
+	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+	{
+		// All data was successfully set, so release original data
+		if (pworldmodel->plightdata[i] != pworldmodel->pbaselightdata[i])
+			delete[] pworldmodel->plightdata[i];
+
+		pworldmodel->plightdata[i] = reinterpret_cast<color24_t*>(pdatapointers[i]);
+	}
 
 	// Reset lighting on entities
 	CL_ResetLighting();
 
 	// Tell the renderer to reload certain things
-	gBSPRenderer.InitLightmaps(false);
+	gBSPRenderer.InitLightmaps();
 
 	// Load day stage cubemaps
 	gCubemaps.InitGame();
@@ -388,9 +409,17 @@ void CL_FreeEntityData( entindex_t entindex, Int32 flags )
 //====================================
 //
 //====================================
+void CL_AddCustomLightStyle( Int32 style, const Char* pstrpattern, bool interpolate, Float framerate )
+{
+	gLightStyles.AddCustomLightStyle(style, framerate, interpolate, pstrpattern);
+}
+
+//====================================
+//
+//====================================
 void CL_SetLightStyle( Int32 style, const Char* pstrpattern, bool interpolate, Float framerate )
 {
-	gDynamicLights.AddCustomLightStyle(style, framerate, interpolate, pstrpattern);
+	gLightStyles.SetLightStyle(style, framerate, interpolate, pstrpattern);
 }
 
 //====================================

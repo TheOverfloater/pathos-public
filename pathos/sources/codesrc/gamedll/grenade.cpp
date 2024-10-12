@@ -79,7 +79,7 @@ bool CGrenade::Spawn( void )
 void CGrenade::BounceTouch( CBaseEntity* pOther )
 {
 	// Remove this object if it's stuck in the sky
-	if(gd_tracefuncs.pfnPointContents(m_pState->origin, nullptr) == CONTENTS_SKY)
+	if(gd_tracefuncs.pfnPointContents(m_pState->origin, nullptr, false) == CONTENTS_SKY)
 	{
 		Util::RemoveEntity(this);
 		return;
@@ -142,7 +142,7 @@ void CGrenade::BounceTouch( CBaseEntity* pOther )
 void CGrenade::SlideTouch( CBaseEntity* pOther )
 {
 	// Remove this object if it's stuck in the sky
-	if(gd_tracefuncs.pfnPointContents(m_pState->origin, nullptr) == CONTENTS_SKY)
+	if(gd_tracefuncs.pfnPointContents(m_pState->origin, nullptr, false) == CONTENTS_SKY)
 	{
 		Util::RemoveEntity(this);
 		return;
@@ -180,7 +180,7 @@ void CGrenade::BounceSound( void )
 void CGrenade::ExplodeTouch( CBaseEntity* pOther )
 {
 	// Don't explode if hitting skybox
-	if(gd_tracefuncs.pfnPointContents(m_pState->origin, nullptr) == CONTENTS_SKY)
+	if(gd_tracefuncs.pfnPointContents(m_pState->origin, nullptr, false) == CONTENTS_SKY)
 	{
 		Util::RemoveEntity(this);
 		return;
@@ -228,7 +228,7 @@ void CGrenade::DangerSoundThink( void )
 void CGrenade::TumbleThink( void )
 {
 	// Remove this object if it's stuck in the sky
-	if(gd_tracefuncs.pfnPointContents(m_pState->origin, nullptr) == CONTENTS_SKY)
+	if(gd_tracefuncs.pfnPointContents(m_pState->origin, nullptr, false) == CONTENTS_SKY)
 	{
 		Util::RemoveEntity(this);
 		return;

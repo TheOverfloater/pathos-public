@@ -480,7 +480,8 @@ extern CCVar* g_pCvarOcclusionQueries;
 extern CCVar* g_pCvarTraceGlow;
 extern CCVar* g_pCvarBatchDynamicLights;
 extern CCVar* g_pCvarOverdarkenTreshold;
-	
+extern CCVar* g_pCvarDumpLightmaps;
+
 extern void R_InitRenderInterface( r_interface_t &renderFuncs );
 
 extern void R_Bind2DTexture( Int32 texture, Uint32 id, bool force = false );

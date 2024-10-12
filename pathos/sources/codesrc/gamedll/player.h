@@ -382,6 +382,8 @@ public:
 	// Tells if the player can have a weapon
 	virtual bool CanHaveWeapon( CPlayerWeapon* pWeapon ) const override;
 
+	// Set stamina modifiers
+	virtual void SetStaminaModifiers( Float sprintStaminaDrainMultiplier, Float normalMovementStaminaDrainFactor ) override;
 	// TRUE if a black hole can pull this entity
 	virtual bool CanBlackHolePull( void ) const override;
 
@@ -748,6 +750,11 @@ private:
 	Float						m_clientStamina;
 	// Kevlar on client
 	Float						m_clientKevlar;
+
+	// Sprint stamina drain multiplier
+	Float						m_sprintStaminaDrainMultiplier;
+	// Normal walking movement stamina drain factor
+	Float						m_normalMovementStaminaDrainFactor;
 
 	// Current falling velocity
 	Float						m_fallingVelocity;

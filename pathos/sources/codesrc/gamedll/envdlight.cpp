@@ -10,16 +10,7 @@ All Rights Reserved.
 #include "includes.h"
 #include "gd_includes.h"
 #include "envdlight.h"
-
-// start lightstyle index for dynlights
-const Uint32 CEnvDLight::CUSTOM_LIGHTSTYLE_START_INDEX = 12;
-// Default framerate value
-const Float CEnvDLight::DEFAULT_LIGHTSTYLE_FRAMERATE = 10;
-
-// Array of custom lightstyles
-CArray<CEnvDLight::customlightstyle_t> CEnvDLight::g_customLightStylesArray;
-// Next available lightstyle index
-Uint32 CEnvDLight::g_nextLightStyleIndex = CUSTOM_LIGHTSTYLE_START_INDEX;
+#include "lightstyles.h"
 
 // Link the entity to it's class
 LINK_ENTITY_TO_CLASS(env_dlight, CEnvDLight);
@@ -255,7 +246,7 @@ void CEnvDLight::ManageLightStyle( void )
 		return;
 
 	if(!m_framerate)
-		m_framerate = DEFAULT_LIGHTSTYLE_FRAMERATE;
+		m_framerate = CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE;
 
 	// Get the pattern string
 	const Char* pstrpattern = gd_engfuncs.pfnGetString(m_pattern);
@@ -263,7 +254,7 @@ void CEnvDLight::ManageLightStyle( void )
 		return;
 
 	// Add the new lightstyle
-	AddCustomLightStyle(pstrpattern, m_interpolate, m_framerate, m_style);
+	m_style = gSVLightStyles.AddCustomLightStyle(pstrpattern, m_interpolate, m_framerate);
 }
 
 //=============================================
@@ -287,72 +278,6 @@ void CEnvDLight::OscillateThink( void )
 
 	
 	m_pState->nextthink = m_pState->ltime + 0.1;
-}
-
-//=============================================
-// @brief
-//
-//=============================================
-void CEnvDLight::AddCustomLightStyle( const Char* pstrpattern, bool interpolate, Float framerate, Uint32& styleindex )
-{
-	for(Uint32 i = 0; i < g_customLightStylesArray.size(); i++)
-	{
-		if(!qstrcmp(g_customLightStylesArray[i].pattern, pstrpattern)
-			&& g_customLightStylesArray[i].interpolate == interpolate
-			&& g_customLightStylesArray[i].framerate == framerate)
-		{
-			styleindex = g_customLightStylesArray[i].styleindex;
-			return;
-		}
-	}
-
-	customlightstyle_t newstyle;
-	newstyle.pattern = pstrpattern;
-	newstyle.interpolate = interpolate;
-	newstyle.framerate = framerate;
-	newstyle.styleindex = g_nextLightStyleIndex;
-	g_nextLightStyleIndex++;
-
-	g_customLightStylesArray.push_back(newstyle);
-	styleindex = newstyle.styleindex;
-}
-
-//=============================================
-// @brief
-//
-//=============================================
-void CEnvDLight::ResetLightStyles( void )
-{
-	if(!g_customLightStylesArray.empty())
-		g_customLightStylesArray.clear();
-
-	g_nextLightStyleIndex = CUSTOM_LIGHTSTYLE_START_INDEX;
-}
-
-//=============================================
-// @brief
-//
-//=============================================
-void CEnvDLight::SendLightStylesToClient( edict_t* pPlayer )
-{
-	if(g_customLightStylesArray.empty())
-		return;
-
-	for(Uint32 i = 0; i < g_customLightStylesArray.size(); i++)
-	{
-		customlightstyle_t& style = g_customLightStylesArray[i];
-
-		if(pPlayer)
-			gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.addlightstyle, nullptr, pPlayer);
-		else
-			gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.addlightstyle, nullptr, nullptr);
-
-		gd_engfuncs.pfnMsgWriteByte(style.interpolate);
-		gd_engfuncs.pfnMsgWriteByte(style.styleindex);
-		gd_engfuncs.pfnMsgWriteString(style.pattern.c_str());
-		gd_engfuncs.pfnMsgWriteSmallFloat(style.framerate);
-		gd_engfuncs.pfnUserMessageEnd();
-	}
 }
 
 //=============================================

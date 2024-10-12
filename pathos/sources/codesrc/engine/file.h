@@ -21,5 +21,6 @@ extern bool FL_DeleteFileRoot( const Char* pstrpath );
 extern bool FL_CreateDirectory( const Char* pstrpath );
 extern bool FL_GetFileDate( const Char* pstrFile, file_dateinfo_t& dateinfo );
 extern Int32 FL_CompareFileDates( const file_dateinfo_t& d1, const file_dateinfo_t& d2 );
+extern const Char* FL_GetGameDirectory( void );
 extern struct file_interface_t& FL_GetInterface( void );
 #endif //FILE_H

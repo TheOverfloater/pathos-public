@@ -95,6 +95,9 @@ struct beamsegment_t
 	Vector coord2;
 	Float tcy;
 	Float brightness;
+
+	Vector lastlightpos;
+	Vector lastlightcolor;
 };
 
 struct beam_t

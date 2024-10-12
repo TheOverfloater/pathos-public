@@ -270,6 +270,28 @@
 @BaseClass = Light 
 [
   _light(color255) : "Brightness" : "255 255 128 200"
+  style(Choices) : "Appearance" : 0 =
+  [
+    0 : "Normal"
+    10: "Fluorescent flicker"
+    2 : "Slow, strong pulse"
+    11: "Slow pulse, noblack"
+    5 : "Gentle pulse"
+    1 : "Flicker A"
+    6 : "Flicker B"
+    3 : "Candle A"
+    7 : "Candle B"
+    8 : "Candle C"
+    4 : "Fast strobe"
+    9 : "Slow strobe"
+  ]
+  interp(Choices) : "Interpolate Custom Appearence" : 0 =
+  [ 
+      0 : "No"
+      1 : "Yes"
+  ]
+  framerate(integer) : "Custom appearence framerate" : 10
+  pattern(string) : "Custom Appearance"
 ]
 
 @BaseClass = LightStyle
@@ -294,6 +316,7 @@
       0 : "No"
       1 : "Yes"
   ]
+  framerate(integer) : "Custom appearence framerate" : 10
   pattern(string) : "Custom Appearance"
 ]
 
@@ -2121,11 +2144,11 @@
 // lights
 //
 
-@PointClass iconsprite("sprites/lightbulb.spr") base(Light, ZHLT_point) = light : "Invisible lightsource"
+@PointClass iconsprite("sprites/lightbulb.spr") base(Target, Targetname, Light, ZHLT_point) = light : "Invisible lightsource"
 [
 ]
 
-@PointClass iconsprite("sprites/lightbulb.spr") base(Target, Angles, ZHLT_point) = light_spot : "Spotlight" 
+@PointClass iconsprite("sprites/lightbulb.spr") base(Target, Targetname, Angles, ZHLT_point) = light_spot : "Spotlight" 
 [
 	_cone(integer) : "Inner (bright) angle" : 30
 	_cone2(integer) : "Outer (fading) angle" : 45
@@ -2646,7 +2669,7 @@
   master(target_destination) : "Master" 
   dmg(integer) : "Damage" : 10
   delay(string) : "Delay before trigger" : "0"
-  dmgdelay(Integer) : "Delay before next hurt": "0.5"
+  dmgdelay(string) : "Delay before next hurt": "0.5"
   damagetype(choices) : "Damage Type" : 0 =
   [
     0 : "GENERIC"
@@ -2903,6 +2926,7 @@
   ]
   telesound(string) : "Teleport Sound"
   message(string) : "Landmarker"
+  netname(target_destination) : "Trigger on Teleport"
 ]
 
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = trigger_textwindow : "Text Window" 

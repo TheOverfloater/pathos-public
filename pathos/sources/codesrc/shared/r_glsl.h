@@ -525,9 +525,9 @@ private:
 	void RecursiveFreeChunks( shader_chunk_t* pchunk );
 
 	// Prints error information to a log file
-	void Shader_PrintLog( GLuint shader_id, const Char *script, Uint32 length, const Char *szoutpath, bool dumpShaderCode );
+	bool Shader_PrintLog( GLuint shader_id, const Char *script, Uint32 length, const Char *szoutpath, bool dumpShaderCode );
 	// Prints error information for the entire program to a log file
-	void Program_PrintLog( GLuint program_id, const Char *szoutpath );
+	bool Program_PrintLog( GLuint program_id, const Char *szoutpath );
 
 	// Re-syncs a uniform
 	void SyncUniform( glsl_uniform_t& uniform );

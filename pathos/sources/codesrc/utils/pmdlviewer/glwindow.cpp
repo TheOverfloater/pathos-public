@@ -451,7 +451,7 @@ void CGLWindow::DrawFloor ( CBasicDraw* pBasicDraw )
 	pBasicDraw->SetProjection(vs.projection.GetMatrix());
 	pBasicDraw->SetModelview(vs.modelview.GetMatrix());
 
-	pBasicDraw->Begin(GL_TRIANGLES);
+	pBasicDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	// Triangle 1
 	pBasicDraw->TexCoord2f(0.0f + vs.grounddist, 1.0f);
 	pBasicDraw->Vertex3f(-vs.groundsize, -vs.groundsize, 0.0f);
@@ -514,7 +514,7 @@ bool CGLWindow::DrawUVCoords( CBasicDraw* pBasicDraw, Int32 xOrigin, Int32 yOrig
 	const Uint32* pindexes = vs.pvbmheader->getIndexes();
 	const vbmvertex_t* pvertexes = vs.pvbmheader->getVertexes();
 
-	pBasicDraw->Begin(GL_LINES);
+	pBasicDraw->Begin(CBasicDraw::DRAW_LINES);
 
 	for(Int32 i = 0; i < vs.pvbmheader->numbodyparts; i++)
 	{
@@ -630,7 +630,7 @@ bool CGLWindow::DrawTexture( CBasicDraw* pBasicDraw )
 	Float x2 = x  + width*2 + 2;
 	Float y2 = y + height*2 + 2;
 
-	pBasicDraw->Begin(GL_TRIANGLES);
+	pBasicDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	pBasicDraw->Vertex3f(x1, y1, 0);
 	pBasicDraw->Vertex3f(x2, y1, 0);
 	pBasicDraw->Vertex3f(x2, y2, 0);
@@ -659,7 +659,7 @@ bool CGLWindow::DrawTexture( CBasicDraw* pBasicDraw )
 
 	for(Int32 i = 0; i < 9; i++)
 	{
-		pBasicDraw->Begin(GL_TRIANGLES);
+		pBasicDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 		
 		// Triangle 1
 		pBasicDraw->TexCoord2f(0, 0);
@@ -816,7 +816,7 @@ bool CGLWindow::DrawSkybox ( CBasicDraw* pBasicDraw, bool mirror )
 	{
 		Viewer_Bind2DTexture(GL_TEXTURE0_ARB, m_pSkyboxTextures[i]->palloc->gl_index);
 
-		pBasicDraw->Begin(GL_TRIANGLES);
+		pBasicDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 
 		// Triangle 1
 		pBasicDraw->TexCoord2f(0, 1);
@@ -1203,7 +1203,7 @@ bool CGLWindow::DrawFlexVisualizer( CBasicDraw* pBasicDraw )
 
 	pBasicDraw->Color4f(0.0, 0.0, 0.0, 1.0);
 
-	pBasicDraw->Begin(GL_TRIANGLES);
+	pBasicDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	pBasicDraw->Vertex3f(0.0, 0.0, 0.0);
 	pBasicDraw->Vertex3f(totalWidth, 0.0, 0.0);
 	pBasicDraw->Vertex3f(totalWidth, totalHeight, 0.0);
@@ -1223,7 +1223,7 @@ bool CGLWindow::DrawFlexVisualizer( CBasicDraw* pBasicDraw )
 
 	glLineWidth(2);
 	pBasicDraw->Color4f(0.0, 0.0, 1.0, 1.0);
-	pBasicDraw->Begin(GL_LINES);
+	pBasicDraw->Begin(CBasicDraw::DRAW_LINES);
 
 	// Draw the scale
 	Float inset = w2()*FLEX_VISUALIZER_INSET_FRACTION;
@@ -1268,7 +1268,7 @@ bool CGLWindow::DrawFlexVisualizer( CBasicDraw* pBasicDraw )
 				glLineWidth( bSelected ? 6.0f : 3.0f );
 				pBasicDraw->Color4f(1.0, 0.0, 0.0, bSelected ? 1.0 : 0.25);
 
-				pBasicDraw->Begin(GL_LINES);
+				pBasicDraw->Begin(CBasicDraw::DRAW_LINES);
 				for(Uint32 i = 1; i < pcontroller->binds.size(); i++)
 				{
 					// Calculate coords for keyframe 1
@@ -1293,7 +1293,7 @@ bool CGLWindow::DrawFlexVisualizer( CBasicDraw* pBasicDraw )
 			// Draw bind points
 			glPointSize( bSelected ? 8.0f : 4.0f );
 
-			pBasicDraw->Begin(GL_POINTS);
+			pBasicDraw->Begin(CBasicDraw::DRAW_POINTS);
 			for(Int32 i = 0; i < pcontroller->binds.size(); i++)
 			{
 				if(SDL_fabs(selectionTimePos - pcontroller->binds[i].time) <= CControlPanel::FLEX_DELETION_SENSITIVITY*selectionSize && bSelected)
@@ -1330,7 +1330,7 @@ bool CGLWindow::DrawFlexVisualizer( CBasicDraw* pBasicDraw )
 	Float x2 = xOffs + selectionWidth;
 	Float y2 = lineHeight + totalHeight*FLEX_VISUALIZER_SCALE_HEIGHT;
 
-	pBasicDraw->Begin(GL_TRIANGLES);
+	pBasicDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 	pBasicDraw->Vertex3f(x1, y1, 0);
 	pBasicDraw->Vertex3f(x2, y1, 0);
 	pBasicDraw->Vertex3f(x2, y2, 0);
@@ -1350,7 +1350,7 @@ bool CGLWindow::DrawFlexVisualizer( CBasicDraw* pBasicDraw )
 		x2 = xOffs + selectionWidth;
 		y2 = lineHeight + totalHeight*FLEX_VISUALIZER_SCALE_HEIGHT;
 
-		pBasicDraw->Begin(GL_TRIANGLES);
+		pBasicDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 		pBasicDraw->Vertex3f(x1, y1, 0);
 		pBasicDraw->Vertex3f(x2, y1, 0);
 		pBasicDraw->Vertex3f(x2, y2, 0);

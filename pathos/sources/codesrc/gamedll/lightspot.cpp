@@ -9,7 +9,7 @@ All Rights Reserved.
 
 #include "includes.h"
 #include "gd_includes.h"
-#include "nullentity.h"
+#include "light.h"
 
 // Link the entity to it's class
-LINK_ENTITY_TO_CLASS(light_spot, CNullEntity);
+LINK_ENTITY_TO_CLASS(light_spot, CLight);

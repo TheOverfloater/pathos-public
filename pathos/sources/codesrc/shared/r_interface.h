@@ -21,6 +21,7 @@ struct cl_entity_t;
 #include "textures_shared.h"
 #include "common.h"
 #include "vbm_shared.h"
+#include "r_basicdraw.h"
 
 struct r_interface_t
 {
@@ -55,7 +56,7 @@ struct r_interface_t
 	bool				(*pfnBasicDrawDisableTextures)( void );
 
 	// Resets states for primitive rendering
-	void				(*pfnBasicDrawBegin)( Int32 primitiveType );
+	void				(*pfnBasicDrawBegin)( CBasicDraw::primitivetype_t primitiveType );
 	// Renders the primitives
 	void				(*pfnBasicDrawEnd)( void );
 

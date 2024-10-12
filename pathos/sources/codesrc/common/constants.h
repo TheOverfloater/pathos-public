@@ -268,6 +268,11 @@ static const Char NEWLINE[] = "\r\n";
 // World textures base path
 static const Char WORLD_TEXTURES_BASE_PATH[] = "textures/world/";
 
+// The common Id for all Pathos BSP files
+static const Int32 PBSP_HEADER = (('P'<<24)+('S'<<16)+('B'<<8)+'P');
+// Base lightmap style index
+static constexpr Uint32 BASE_LIGHTMAP_INDEX = 0;
+
 // Export function macro
 #define EXPORTFN _declspec( dllexport )
 

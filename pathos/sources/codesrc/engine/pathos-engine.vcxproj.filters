@@ -393,6 +393,15 @@
     <ClCompile Include="renderer\r_fbocache.cpp">
       <Filter>Source Files\renderer</Filter>
     </ClCompile>
+    <ClCompile Include="renderer\r_lightstyles.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="pbspv2.cpp">
+      <Filter>Source Files\bsp</Filter>
+    </ClCompile>
+    <ClCompile Include="bsp_shared.cpp">
+      <Filter>Source Files\bsp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="system.h">
@@ -877,6 +886,18 @@
     </ClInclude>
     <ClInclude Include="renderer\r_fbocache.h">
       <Filter>Header Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer\r_lightstyles.h">
+      <Filter>Header Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\pbspv2file.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="pbspv2.h">
+      <Filter>Header Files\bsp</Filter>
+    </ClInclude>
+    <ClInclude Include="bsp_shared.h">
+      <Filter>Header Files\bsp</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

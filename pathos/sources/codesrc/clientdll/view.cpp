@@ -230,11 +230,11 @@ Float CDefaultView::EstimateStepTime( cl_entity_t* pplayer, ref_params_t& params
 	Math::VectorSubtract(params.pl_origin, Vector(0, 0, 0.5 * height), feet);
 
 	Float steptime = 0;
-	if(cl_tracefuncs.pfnPointContents(knee, nullptr) == CONTENTS_WATER)
+	if(cl_tracefuncs.pfnPointContents(knee, nullptr, false) == CONTENTS_WATER)
 	{
 		steptime = STEPTIME_WATER;
 	}
-	else if(cl_tracefuncs.pfnPointContents(feet, nullptr) == CONTENTS_WATER)
+	else if(cl_tracefuncs.pfnPointContents(feet, nullptr, false) == CONTENTS_WATER)
 	{
 		steptime = STEPTIME_WATER;
 	}
@@ -831,7 +831,7 @@ void CDefaultView::CalcRefDef( ref_params_t& params )
 		// Use pointcontents to determine water pos
 		for(Float dist = 0.1; dist < params.pmovevars->waterdist; dist += 0.1)
 		{
-			if(cl_tracefuncs.pfnPointContents(point, nullptr) == CONTENTS_WATER)
+			if(cl_tracefuncs.pfnPointContents(point, nullptr, false) == CONTENTS_WATER)
 				break;
 
 			point[2] = params.v_origin[2] - dist;

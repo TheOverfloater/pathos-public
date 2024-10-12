@@ -18,28 +18,6 @@ All Rights Reserved.
 class CEnvDLight : public CPointEntity
 {
 public:
-	struct customlightstyle_t
-	{
-		customlightstyle_t():
-			interpolate(false),
-			styleindex(0),
-			framerate(0)
-			{
-			}
-
-		CString pattern;
-		bool interpolate;
-		Uint32 styleindex;
-		Float framerate;
-	};
-
-public:
-	// start lightstyle index for dynlights
-	static const Uint32 CUSTOM_LIGHTSTYLE_START_INDEX;
-	// Default framerate value
-	static const Float DEFAULT_LIGHTSTYLE_FRAMERATE;
-
-public:
 	enum
 	{
 		FL_START_ON	= (1<<0),
@@ -72,9 +50,6 @@ private:
 
 public:
 	static CEnvDLight* SpawnLight( const Vector& origin, const Vector& color, Uint32 radius );
-	static void AddCustomLightStyle( const Char* pstrpattern, bool interpolate, Float framerate, Uint32& styleindex );
-	static void SendLightStylesToClient( edict_t* pPlayer );
-	static void ResetLightStyles( void );
 
 private:
 	string_t m_pattern;
@@ -84,11 +59,5 @@ private:
 	Uint32 m_oscillationh;
 	Uint32 m_oscillationv;
 	Vector m_baseOrigin;
-
-private:
-	// Array of custom lightstyles
-	static CArray<customlightstyle_t> g_customLightStylesArray;
-	// Next available lightstyle index
-	static Uint32 g_nextLightStyleIndex;
 };
 #endif //ENVDLIGHT_H

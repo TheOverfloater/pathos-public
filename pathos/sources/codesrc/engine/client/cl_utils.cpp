@@ -32,6 +32,7 @@ All Rights Reserved.
 #include "uimanager.h"
 #include "r_menu.h"
 #include "textschemas.h"
+#include "r_lightstyles.h"
 
 //=============================================
 //
@@ -357,4 +358,15 @@ const font_set_t* CL_GetSchemaFontSet( const Char* schemaFileName )
 const font_set_t* CL_GetResolutionSchemaFontSet( const Char* schemaFileName, Uint32 resolution )
 {
 	return gTextSchemas.GetResolutionSchemaFontSet(schemaFileName, resolution);
+}
+
+//=============================================
+//
+//=============================================
+bool CL_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const Vector &start, const Vector &end, Vector &color, byte* poutstyles )
+{
+	// Get ptr to lightstyles array from renderer
+	CArray<Float>* pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
+
+	return Mod_RecursiveLightPoint(pworld, pnode, start, end, color, &(*pStyleValuesArray)[0], poutstyles);
 }

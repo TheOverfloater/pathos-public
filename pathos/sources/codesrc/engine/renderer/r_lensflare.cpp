@@ -391,7 +391,7 @@ void CLensFlareRenderer::DrawQuad( const Vector& position, const Vector& color, 
 	R_Bind2DTexture(GL_TEXTURE0_ARB, ptexture->palloc->gl_index);
 	R_ValidateShader(m_pBasicDraw);
 
-	m_pBasicDraw->Begin(GL_TRIANGLES);
+	m_pBasicDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
 
 	Vector _color(color);
 	Math::VectorScale(_color, alpha, _color);
@@ -451,7 +451,7 @@ void CLensFlareRenderer::PreDrawFunction( void )
 //====================================
 void CLensFlareRenderer::DrawFunction( const Vector& origin )
 {
-	m_pBasicDraw->Begin(GL_POINTS);
+	m_pBasicDraw->Begin(CBasicDraw::DRAW_POINTS);
 	m_pBasicDraw->Color4f(1.0, 1.0, 1.0, 1.0);
 	m_pBasicDraw->Vertex3fv(origin);
 	m_pBasicDraw->End(); 

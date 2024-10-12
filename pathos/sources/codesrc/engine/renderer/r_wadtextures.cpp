@@ -19,7 +19,10 @@ All Rights Reserved.
 #include "brushmodel.h"
 #include "miptex.h"
 #include "pbspv1file.h"
+#include "pbspv2file.h"
 #include "bspv30.h"
+#include "bsp_shared.h"
+#include "enginestate.h"
 
 // Path to legacy texture material type associations
 const Char CWADTextureResource::TEXTURE_MATERIAL_ASSOCIATION_FILE_PATH[] = "scripts/legacy/materials.txt";
@@ -154,26 +157,52 @@ bool CWADTextureResource::Init( const Char* pstrBSPName, const CArray<CString>& 
 	if(!generateMissingWAD && !generateMissingBSP)
 		return true;
 
-	// Now that all WAD files are loaded, check if the world has data for it
 	const dmiptexlump_t* ptexturelump = nullptr;
-	const dpbspv1header_t* pheaderp1bsp = reinterpret_cast<const dpbspv1header_t*>(m_pBSPFile);
 	if (generateMissingBSP)
 	{
-		if (pheaderp1bsp->id == PBSP_HEADER && pheaderp1bsp->version == PBSP_VERSION)
+		// Now that all WAD files are loaded, check if the world has data for it
+		Int32 fileHeaderId = Common::ByteToInt32(m_pBSPFile);
+		if(fileHeaderId == PBSP_HEADER)
 		{
-			// Pathos BSP
-			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pheaderp1bsp->lumps[LUMP_TEXTURES].offset);
+			// Now get the version
+			Int32 fileHeaderVersion = Common::ByteToInt32(m_pBSPFile + sizeof(Int32));
+			switch(fileHeaderVersion)
+			{
+			case PBSPV1_VERSION:
+				{
+					const dpbspv1header_t* pbspheader = reinterpret_cast<const dpbspv1header_t*>(m_pBSPFile);
+					ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pbspheader->lumps[PBSPV1_LUMP_TEXTURES].offset);
+				}
+				break;
+			case PBSPV2_VERSION:
+				{
+					const dpbspv2header_t* pbspheader = reinterpret_cast<const dpbspv2header_t*>(m_pBSPFile);
+					ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pbspheader->lumps[PBSPV2_LUMP_TEXTURES].offset);
+				}
+				break;
+			default:
+				Con_EPrintf("%s - PBSP file '%s' has an unknown version number '%d'.\n", __FUNCTION__, ens.pworld->name.c_str(), fileHeaderVersion);
+				return false;
+				break;
+			}
 		}
 		else
 		{
-			const dheader_t* pheaderv30bsp = reinterpret_cast<const dheader_t*>(m_pBSPFile);
-			if (pheaderv30bsp->version != BSPV30_VERSION)
+			// Get the version from the file and determine if it's usable
+			Int32 bspVersion = Common::ByteToInt32(m_pBSPFile);
+			switch(bspVersion)
 			{
-				Con_Printf("%s - Unknown BSP version %d.\n", __FUNCTION__, pheaderv30bsp->version);
+			case BSPV30_VERSION:
+				{
+					const dv30header_t* pheaderv30bsp = reinterpret_cast<const dv30header_t*>(m_pBSPFile);
+					ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pheaderv30bsp->lumps[V30_LUMP_TEXTURES].offset);
+				}
+				break;
+			default:
+				Con_EPrintf("%s - BSP file '%s' has wrong version number '%d', which should be '%d'.\n", __FUNCTION__, ens.pworld->name.c_str(), bspVersion, BSPV30_VERSION);
 				return false;
+				break;
 			}
-
-			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pheaderv30bsp->lumps[LUMP_TEXTURES].offset);
 		}
 
 		for (Int32 i = 0; i < ptexturelump->nummiptex; i++)
@@ -563,22 +592,49 @@ en_texture_t* CWADTextureResource::GetWADTexture( en_material_t* pmaterial, cons
 	{
 		// Now that all WAD files are loaded, check if the world has data for it
 		const dmiptexlump_t* ptexturelump = nullptr;
-		const dpbspv1header_t* pheaderp1bsp = reinterpret_cast<const dpbspv1header_t*>(m_pBSPFile);
-		if(pheaderp1bsp->id == PBSP_HEADER && pheaderp1bsp->version == PBSP_VERSION)
+		// Now that all WAD files are loaded, check if the world has data for it
+		Int32 fileHeaderId = Common::ByteToInt32(m_pBSPFile);
+		if(fileHeaderId == PBSP_HEADER)
 		{
-			// Pathos BSP
-			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pheaderp1bsp->lumps[LUMP_TEXTURES].offset);
+			// Now get the version
+			Int32 fileHeaderVersion = Common::ByteToInt32(m_pBSPFile + sizeof(Int32));
+			switch(fileHeaderVersion)
+			{
+			case PBSPV1_VERSION:
+				{
+					const dpbspv1header_t* pbspheader = reinterpret_cast<const dpbspv1header_t*>(m_pBSPFile);
+					ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pbspheader->lumps[PBSPV1_LUMP_TEXTURES].offset);
+				}
+				break;
+			case PBSPV2_VERSION:
+				{
+					const dpbspv2header_t* pbspheader = reinterpret_cast<const dpbspv2header_t*>(m_pBSPFile);
+					ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pbspheader->lumps[PBSPV2_LUMP_TEXTURES].offset);
+				}
+				break;
+			default:
+				Con_EPrintf("%s - PBSP file '%s' has an unknown version number '%d'.\n", __FUNCTION__, ens.pworld->name.c_str(), fileHeaderVersion);
+				return nullptr;
+				break;
+			}
 		}
 		else
 		{
-			const dheader_t* pheaderv30bsp = reinterpret_cast<const dheader_t*>(m_pBSPFile);
-			if(pheaderv30bsp->version != BSPV30_VERSION)
+			// Get the version from the file and determine if it's usable
+			Int32 bspVersion = Common::ByteToInt32(m_pBSPFile);
+			switch(bspVersion)
 			{
-				Con_Printf("%s - Unknown BSP version %d.\n", __FUNCTION__, pheaderv30bsp->version);
+			case BSPV30_VERSION:
+				{
+					const dv30header_t* pheaderv30bsp = reinterpret_cast<const dv30header_t*>(m_pBSPFile);
+					ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pheaderv30bsp->lumps[V30_LUMP_TEXTURES].offset);
+				}
+				break;
+			default:
+				Con_EPrintf("%s - BSP file '%s' has wrong version number '%d', which should be '%d'.\n", __FUNCTION__, ens.pworld->name.c_str(), bspVersion, BSPV30_VERSION);
 				return nullptr;
+				break;
 			}
-
-			ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pheaderv30bsp->lumps[LUMP_TEXTURES].offset);
 		}
 
 		for(Int32 i = 0; i < ptexturelump->nummiptex; i++)

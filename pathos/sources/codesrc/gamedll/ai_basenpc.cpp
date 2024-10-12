@@ -4531,7 +4531,7 @@ bool CBaseNPC::FindCover( const Vector& threatPosition, const Vector& viewOffset
 		trace_t tr;
 		Util::TraceLine(m_pState->origin, skyOffset, true, false, m_pEdict, tr);
 
-		bool isThreatOutdoors = (gd_tracefuncs.pfnPointContents(tr.endpos, nullptr) == CONTENTS_SKY) ? true : false;
+		bool isThreatOutdoors = (gd_tracefuncs.pfnPointContents(tr.endpos, nullptr, false) == CONTENTS_SKY) ? true : false;
 
 		Int32 nodeIndex = NO_POSITION;
 		for(Int32 i = 0; i < gNodeGraph.GetNumNodes(); i++)
@@ -4557,7 +4557,7 @@ bool CBaseNPC::FindCover( const Vector& threatPosition, const Vector& viewOffset
 
 			skyOffset = pNode->origin + Vector(0, 0, 4096);
 			Util::TraceLine(pNode->origin, skyOffset, true, false, m_pEdict, tr);
-			bool isNodeOutdoors = gd_tracefuncs.pfnPointContents(tr.endpos, nullptr) == CONTENTS_SKY ? true : false;
+			bool isNodeOutdoors = gd_tracefuncs.pfnPointContents(tr.endpos, nullptr, false) == CONTENTS_SKY ? true : false;
 			if(isNodeOutdoors && isThreatOutdoors || !isNodeOutdoors && !isThreatOutdoors)
 				continue;
 
@@ -5209,7 +5209,7 @@ bool CBaseNPC::CheckMaterialPenetration( CBaseEntity* pHitEntity, const Vector& 
 	if(depthOfPenetration > penetrationInfo.penetrationdepth)
 		return false;
 					
-	Int32 contentsAtExit = gd_tracefuncs.pfnPointContents(tr.endpos, nullptr);
+	Int32 contentsAtExit = gd_tracefuncs.pfnPointContents(tr.endpos, nullptr, false);
 	if(contentsAtExit != CONTENTS_EMPTY && contentsAtExit != CONTENTS_WATER
 		&& contentsAtExit != CONTENTS_SLIME && contentsAtExit != CONTENTS_LAVA)
 		return false;
