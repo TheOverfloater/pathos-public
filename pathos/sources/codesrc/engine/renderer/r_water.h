@@ -85,7 +85,8 @@ struct water_settings_t
 		wavefresnelstrength(0),
 		phongexponent(0),
 		refractonly(false),
-		cheaprefraction(false)
+		cheaprefraction(false),
+		pnormalmap(nullptr)
 		{}
 
 	fog_settings_t fogparams;

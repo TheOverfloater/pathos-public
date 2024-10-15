@@ -1732,6 +1732,9 @@ bool CWaterShader::DrawWater( bool skybox )
 		if(!result)
 			break;
 
+		en_texture_t* pnormaltex = (psettings->pnormalmap) ? psettings->pnormalmap : m_pDefaultNormalTexture;
+		R_Bind2DTexture(GL_TEXTURE0, pnormaltex->palloc->gl_index);
+
 		R_Bind2DTexture(GL_TEXTURE1, m_pCurrentWater->plightmap_texture->gl_index);
 
 		m_pShader->SetUniform1f(m_attribs.u_texscale, psettings->texscale);
@@ -1742,9 +1745,6 @@ bool CWaterShader::DrawWater( bool skybox )
 		m_pShader->SetUniform1f(m_attribs.u_specularstrength, psettings->specularstrength);
 		m_pShader->SetUniform1f(m_attribs.u_phongexponent, psettings->phongexponent*g_pCvarPhongExponent->GetValue());
 		m_pShader->SetUniform1f(m_attribs.u_wavefresnelstrength, psettings->wavefresnelstrength);
-
-		en_texture_t* pnormaltex = (psettings->pnormalmap) ? psettings->pnormalmap : m_pDefaultNormalTexture;
-		R_Bind2DTexture(GL_TEXTURE0, pnormaltex->palloc->gl_index);
 
 		Int32 textureUnit = 4;
 
