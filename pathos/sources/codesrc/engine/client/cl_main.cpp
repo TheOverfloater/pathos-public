@@ -111,6 +111,7 @@ static cldll_engfuncs_t CLIENTDLL_ENGINE_FUNCTION_TABLE =
 	CL_GetEntityExtraData,			//pfnGetEntityExtraData
 	Mod_FindTouchedLeafs,			//pfnFindTouchedLeafs
 	CL_RecursiveLightPoint,			//pfnRecursiveLightPoint
+	CL_RecursiveLightPointBumpData,	//pfnRecursiveLightPointBumpData
 	CL_PrecacheFlexScript,			//pfnPrecacheFlexScript
 	CL_SetFlexScript,				//pfnSetFlexScript
 	CL_GetAttachment,				//pfnGetAttachment

@@ -363,10 +363,49 @@ const font_set_t* CL_GetResolutionSchemaFontSet( const Char* schemaFileName, Uin
 //=============================================
 //
 //=============================================
-bool CL_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const Vector &start, const Vector &end, Vector &color, byte* poutstyles )
+bool CL_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const Vector &start, const Vector &end, Vector* poutcolors, byte* poutstyles, Float* poutstylevalues )
 {
-	// Get ptr to lightstyles array from renderer
-	CArray<Float>* pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
+	bool result = Mod_RecursiveLightPoint(pworld, pnode, start, end, poutcolors, poutstyles);
 
-	return Mod_RecursiveLightPoint(pworld, pnode, start, end, color, &(*pStyleValuesArray)[0], poutstyles);
+	if(result && poutstyles && poutstylevalues)
+	{
+		CArray<Float>* pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
+
+		for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
+		{
+			if(i == BASE_LIGHTMAP_INDEX)
+				poutstylevalues[i] = 1.0f;
+			else if(poutstyles[i] == NULL_LIGHTSTYLE_INDEX)
+				poutstylevalues[i] = 0;
+			else
+				poutstylevalues[i] = (*pStyleValuesArray)[poutstyles[i]];
+		}
+	}
+
+	return result;
+}
+
+//=============================================
+//
+//=============================================
+extern bool CL_RecursiveLightPointBumpData( const brushmodel_t* pworld, mnode_t *pnode, const Vector &start, const Vector &end, Vector* poutambientcolors, Vector* poutdiffusecolors, Vector* poutlightdirs, Vector* poutsurfnormal, byte* poutstyles, Float* poutstylevalues )
+{
+	bool result = Mod_RecursiveLightPoint_BumpData(pworld, pnode, start, end, poutambientcolors, poutdiffusecolors, poutlightdirs, poutsurfnormal, poutstyles);
+
+	if(result && poutstyles && poutstylevalues)
+	{
+		CArray<Float>* pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
+
+		for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
+		{
+			if(i == BASE_LIGHTMAP_INDEX)
+				poutstylevalues[i] = 1.0f;
+			else if(poutstyles[i] == NULL_LIGHTSTYLE_INDEX)
+				poutstylevalues[i] = 0;
+			else
+				poutstylevalues[i] = (*pStyleValuesArray)[poutstyles[i]];
+		}
+	}
+
+	return result;
 }

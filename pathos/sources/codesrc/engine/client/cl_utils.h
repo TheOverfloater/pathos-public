@@ -57,5 +57,6 @@ extern void	CL_PrecacheDecal( const Char* pstrDecalName );
 extern void	CL_PrecacheDecalGroup( const Char* pstrDecalName );
 extern const font_set_t* CL_GetSchemaFontSet( const Char* schemaFileName );
 extern const font_set_t* CL_GetResolutionSchemaFontSet( const Char* schemaFileName, Uint32 resolution );
-extern bool CL_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const Vector &start, const Vector &end, Vector &color, byte* poutstyles );
+extern bool CL_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const Vector &start, const Vector &end, Vector* poutcolors, byte* poutstyles, Float* poutstylevalues );
+extern bool CL_RecursiveLightPointBumpData( const brushmodel_t* pworld, mnode_t *pnode, const Vector &start, const Vector &end, Vector* poutambientcolors, Vector* poutdiffusecolors, Vector* poutlightdirs, Vector* poutsurfnormal, byte* poutstyles, Float* poutstylevalues );
 #endif //CL_UTILS_H

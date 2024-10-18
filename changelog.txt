@@ -228,3 +228,23 @@
   - Add compatibility code for V30 BSP and Pathos V1 BSP to support legacy bump map data storage solution.
   - Clean up struct usage in BSP loading code to specifically use named structures for V30 and Pathos V1 BSP.
   - Move lightstyle array code out of CEnvDLight and into server-side lightstyle class.
+  
+- 2024 October 14th:
+  - Fix potential crash inside HLRAD.
+  - Fix issue with outdoor areas not getting lit properly by light_environment entities.
+  - Add support for smoothing between the faces of different entities that share the same edge.
+
+- 2024 October 15th:
+  - Fix crash in water shader class due to a pointer not being initialized to null on object creation.
+
+- 2024 October 18th:
+  - Recompiled all levels to use the new smoothing improvement in HLRAD.
+  - Added r_model_light_ratio to allow user-defining of ambient/diffuse lighting split when not fetching bump map model lighting data.
+  - Added NULL_LIGHTSTYLE_INDEX constant to track lightstyle value 255, which stands for unused lightstyles slots.
+  - Disable overdarkening of lightstyle layers above the base lightmap.
+  - Rework of RecursiveLightPoint functions to fetch raw lighting values per style layer instead of a single combined value multiplied with lightstyles.
+  - Add R_GetLightingForPosition renderer function to simplify lighting data fetches for general purpose lighting.
+  - Extend r_bsp2smd_lm command to support specifying the lightstyle layer to be exported.
+  - Add capping of lightstyle values to 0-255 range.
+  - Update VBM renderer's level lighting blending code to better support lightstyle value blending(Still a work in progress).
+  - Several fixes added to HLRAD to properly account for bump data lightmaps/vector map when it comes to coring and empty lightmap reduction.

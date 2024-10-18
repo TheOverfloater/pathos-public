@@ -15,6 +15,7 @@ All Rights Reserved.
 #include "r_beams.h"
 #include "r_main.h"
 #include "r_common.h"
+#include "r_lightstyles.h"
 
 #include "cvar.h"
 #include "console.h"
@@ -1795,11 +1796,8 @@ void CBeamRenderer::DrawVaporTrailSegments( const CArray<beamsegment_t>& segment
 			Vector end = seg1.center - Vector(0, 0, 8192);
 			if(seg1.lastlightpos.IsZero() || (seg1.lastlightpos - seg1.center).Length() > VAPORTRAIL_LIGHTCHECK_DISTANCE)
 			{
-				if(!Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, seg1.center, end, lcolor))
-					lcolor = Vector(1, 1, 1);
-
 				// Remember last seek position and color
-				seg1.lastlightcolor = lcolor;
+				seg1.lastlightcolor = R_GetLightingForPosition(seg1.center, Vector(1, 1, 1));
 				seg1.lastlightpos = seg1.center;
 			}
 			else
@@ -1814,11 +1812,8 @@ void CBeamRenderer::DrawVaporTrailSegments( const CArray<beamsegment_t>& segment
 			end = seg2.center - Vector(0, 0, 8192);
 			if(seg2.lastlightpos.IsZero() || (seg2.lastlightpos - seg2.center).Length() > VAPORTRAIL_LIGHTCHECK_DISTANCE)
 			{
-				if(!Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, seg2.center, end, lcolor))
-					lcolor = Vector(1, 1, 1);
-
 				// Remember last seek position and color
-				seg2.lastlightcolor = lcolor;
+				seg2.lastlightcolor = R_GetLightingForPosition(seg2.center, Vector(1, 1, 1));
 				seg2.lastlightpos = seg2.center;
 			}
 			else

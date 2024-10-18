@@ -533,7 +533,7 @@ bool PBSPV1_LoadFaces( const byte* pfile, brushmodel_t& model, const dpbspv1lump
 			if(ambientIndex != NO_POSITION || diffuseIndex != NO_POSITION || vectorsIndex != NO_POSITION)
 			{
 				for(Uint32 j = 1; j < MAX_SURFACE_STYLES; j++)
-					pout->styles[j] = 255;
+					pout->styles[j] = NULL_LIGHTSTYLE_INDEX;
 			}
 		}
 		else

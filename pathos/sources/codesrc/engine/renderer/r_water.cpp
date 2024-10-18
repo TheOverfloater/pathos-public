@@ -405,18 +405,18 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 			continue;
 		
 		color24_t *psrc = psurf->psamples[SURF_LIGHTMAP_DEFAULT];
-		R_BuildLightmap(psurf->light_s, psurf->light_t, psrc, psurf, plightmapdata, 0, pwater->lightmaptexturewidth, overdarken, 0);
+		R_BuildLightmap(psurf->light_s[BASE_LIGHTMAP_INDEX], psurf->light_t[BASE_LIGHTMAP_INDEX], psrc, psurf, plightmapdata, 0, pwater->lightmaptexturewidth, overdarken, 0);
 
 		// See if we have anything to bind
 		if(psurf->psamples[SURF_LIGHTMAP_DIFFUSE] && psurf->psamples[SURF_LIGHTMAP_VECTORS])
 		{
 			// Grab diffuse lightmap data
 			psrc = psurf->psamples[SURF_LIGHTMAP_DIFFUSE];
-			R_BuildLightmap(psurf->light_s, psurf->light_t, psrc, psurf, pdiffusemaptexture, 0, pwater->lightmaptexturewidth, 0);
+			R_BuildLightmap(psurf->light_s[BASE_LIGHTMAP_INDEX], psurf->light_t[BASE_LIGHTMAP_INDEX], psrc, psurf, pdiffusemaptexture, 0, pwater->lightmaptexturewidth, 0);
 
 			// Grab diffuse lightmap data
 			psrc = psurf->psamples[SURF_LIGHTMAP_VECTORS];
-			R_BuildLightmap(psurf->light_s, psurf->light_t, psrc, psurf, plightvecstexture, 0, pwater->lightmaptexturewidth, 0, true);
+			R_BuildLightmap(psurf->light_s[BASE_LIGHTMAP_INDEX], psurf->light_t[BASE_LIGHTMAP_INDEX], psrc, psurf, plightvecstexture, 0, pwater->lightmaptexturewidth, 0, true);
 			hasbumpdata = true;
 		}
 	}
@@ -937,7 +937,7 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 		Uint32 xsize = (psurf->extents[0] / psurf->lightmapdivider)+1;
 		Uint32 ysize = (psurf->extents[1] / psurf->lightmapdivider)+1;
 
-		R_AllocBlock(xsize, ysize, psurf->light_s, psurf->light_t, pwater->lightmaptexturewidth, pwater->lightmaptextureheight, pallocations);
+		R_AllocBlock(xsize, ysize, psurf->light_s[BASE_LIGHTMAP_INDEX], psurf->light_t[BASE_LIGHTMAP_INDEX], pwater->lightmaptexturewidth, pwater->lightmaptextureheight, pallocations);
 	}
 
 	delete[] pallocations;
@@ -984,12 +984,12 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 
 			pcurvert->lightcoords[0] = Math::DotProduct(pcurvert->origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
 			pcurvert->lightcoords[0] -= psurf->texturemins[0];
-			pcurvert->lightcoords[0] += psurf->light_s*psurf->lightmapdivider + (psurf->lightmapdivider / 2.0f);
+			pcurvert->lightcoords[0] += psurf->light_s[BASE_LIGHTMAP_INDEX]*psurf->lightmapdivider + (psurf->lightmapdivider / 2.0f);
 			pcurvert->lightcoords[0] /= pwater->lightmaptexturewidth*psurf->lightmapdivider;
 
 			pcurvert->lightcoords[1] = Math::DotProduct(pcurvert->origin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
 			pcurvert->lightcoords[1] -= psurf->texturemins[1];
-			pcurvert->lightcoords[1] += psurf->light_t*psurf->lightmapdivider + (psurf->lightmapdivider / 2.0f);
+			pcurvert->lightcoords[1] += psurf->light_t[BASE_LIGHTMAP_INDEX]*psurf->lightmapdivider + (psurf->lightmapdivider / 2.0f);
 			pcurvert->lightcoords[1] /= pwater->lightmaptextureheight*psurf->lightmapdivider;
 
 			for(Uint32 k = 0; k < 3; k++)

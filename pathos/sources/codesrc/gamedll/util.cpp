@@ -996,12 +996,23 @@ namespace Util
 
 		CArray<Float>* plightstylesarray = gSVLightStyles.GetLightStyleValuesArray();
 
-		Vector lightcolor;
-		if(!gd_engfuncs.pfnRecursiveLightPoint(pbrushmodel, pbrushmodel->pnodes, startPos, endPos, lightcolor, &(*plightstylesarray)[0], nullptr))
+		Vector lightcolors[MAX_SURFACE_STYLES];
+		byte lightstyles[MAX_SURFACE_STYLES];
+		if(!gd_engfuncs.pfnRecursiveLightPoint(pbrushmodel, pbrushmodel->pnodes, startPos, endPos, lightcolors, lightstyles))
 			return 0;
 
 		// Calculate illumination
-		Math::VectorScale(lightcolor, 255, lightcolor);
+		Vector lightcolor;
+		Math::VectorScale(lightcolors[BASE_LIGHTMAP_INDEX], 255, lightcolor);
+		for(Uint32 i = 1; i < MAX_SURFACE_STYLES; i++)
+		{
+			if(lightstyles[i] == NULL_LIGHTSTYLE_INDEX)
+				break;
+
+			Float scale = 255 * (*plightstylesarray)[lightstyles[i]];
+			Math::VectorScale(lightcolors[i], scale, lightcolor);
+		}
+
 		Int32 illumination = (lightcolor[0]+lightcolor[1]+lightcolor[2])/3;
 
 		for(Int32 i = 0; i < g_pGameVars->numentities; i++)

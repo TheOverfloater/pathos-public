@@ -135,7 +135,7 @@ color24_t *R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psa
 		}
 
 		// Do not perform this on lightvecs
-		if(overdarken > 0 && !isvectormap)
+		if(overdarken > 0 && !isvectormap && index == 0)
 		{
 			const color24_t* prefsrc = psamples;
 			for (Uint32 i = 0; i < size; i++)

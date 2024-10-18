@@ -573,7 +573,7 @@ void CBSPRenderer::SetLightmapCoords( void )
 			Uint32 ysize = (psurface->extents[1] / psurface->lightmapdivider)+1;
 
 			// Skip empty styles
-			if(i > BASE_LIGHTMAP_INDEX && psurface->styles[i] == 255)
+			if(i > BASE_LIGHTMAP_INDEX && psurface->styles[i] == NULL_LIGHTSTYLE_INDEX)
 				continue;
 
 			// Allocate lightmap slot
@@ -581,14 +581,8 @@ void CBSPRenderer::SetLightmapCoords( void )
 			R_AllocBlock(xsize, ysize, light_s, light_t, m_lightmapWidths[i], m_lightmapHeights[i], pallocations);
 
 			bsp_surface_t* pbspsurface = &m_surfacesArray[j];
-			pbspsurface->light_s[i] = light_s;
-			pbspsurface->light_t[i] = light_t;
-
-			if(i == BASE_LIGHTMAP_INDEX)
-			{
-				psurface->light_s = light_s;
-				psurface->light_t = light_t;
-			}
+			psurface->light_s[i] = pbspsurface->light_s[i] = light_s;
+			psurface->light_t[i] = pbspsurface->light_t[i] = light_t;
 		}
 
 		delete[] pallocations;
@@ -632,7 +626,7 @@ void CBSPRenderer::InitLightmaps( void )
 			bsp_surface_t* pbspsurface = &m_surfacesArray[j];
 		
 			// Skip empty styles
-			if(i > BASE_LIGHTMAP_INDEX && psurface->styles[i] == 255)
+			if(i > BASE_LIGHTMAP_INDEX && psurface->styles[i] == NULL_LIGHTSTYLE_INDEX)
 				continue;
 
 			bool isfullbright = false;
@@ -722,7 +716,7 @@ void CBSPRenderer::InitLightmaps( void )
 					continue;
 
 				// Skip empty styles
-				if(i > BASE_LIGHTMAP_INDEX && psurface->styles[i] == 255)
+				if(i > BASE_LIGHTMAP_INDEX && psurface->styles[i] == NULL_LIGHTSTYLE_INDEX)
 					continue;
 
 				bsp_surface_t* pbspsurface = &m_surfacesArray[j];
@@ -1190,7 +1184,7 @@ void CBSPRenderer::InitTextures( CWADTextureResource& wadTextures, const CArray<
 
 			for(Uint32 k = 1; k < MAX_SURFACE_STYLES; k++)
 			{
-				if(psurface->styles[k] != 255)
+				if(psurface->styles[k] != NULL_LIGHTSTYLE_INDEX)
 				{
 					// Allocate if needed
 					if(pbsptexture->lightstyleinfos.empty())
@@ -1788,7 +1782,7 @@ __forceinline void CBSPRenderer::BatchSurface( msurface_t* psurface )
 			for(Uint32 i = 1; i < MAX_SURFACE_STYLES; i++)
 			{
 				Uint32 styleIndex = psurface->styles[i];
-				if(styleIndex == 255)
+				if(styleIndex == NULL_LIGHTSTYLE_INDEX)
 					break;
 
 				if((*m_pLightStyleValuesArray)[styleIndex] <= 0)

@@ -202,8 +202,6 @@ struct msurface_t
 		flags(0),
 		firstedge(0),
 		numedges(0),
-		light_s(0),
-		light_t(0),
 		lightmapdivider(0),
 		ptexinfo(nullptr),
 		lightoffset(0),
@@ -213,6 +211,8 @@ struct msurface_t
 		memset(extents, 0, sizeof(extents));
 		memset(styles, 0, sizeof(styles));
 		memset(psamples, 0, sizeof(psamples));
+		memset(light_s, 0, sizeof(light_s));
+		memset(light_t, 0, sizeof(light_t));
 	}
 
 	// Visframe this was drawn on
@@ -234,9 +234,9 @@ struct msurface_t
 	Int32 extents[2];
 
 	// Lightmap S coord
-	Uint32 light_s;
+	Uint32 light_s[MAX_SURFACE_STYLES];
 	// Lightmap T coord
-	Uint32 light_t;
+	Uint32 light_t[MAX_SURFACE_STYLES];
 	// Divider to get lightmap size
 	Uint32 lightmapdivider;
 

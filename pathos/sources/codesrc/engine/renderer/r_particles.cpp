@@ -1769,7 +1769,7 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 
 		if(pdefinition->lighting_flags != PARTICLE_LIGHTCHECK_NONE)
 		{
-			Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, pparticle->origin, pparticle->origin - Vector(0, 0, 2048), pparticle->lightcol);
+			pparticle->lightcol = R_GetLightingForPosition(pparticle->origin, ZERO_VECTOR);
 			Math::VectorCopy(pparticle->origin, pparticle->last_light);
 			Math::VectorCopy(pparticle->lightcol, pparticle->lightmap);
 
@@ -2202,9 +2202,7 @@ Vector CParticleEngine::LightForParticle( cl_particle_t *pparticle )
 	Float fldist = (pparticle->origin - pparticle->last_light).Length2D();
 	if(fldist > LIGHTCHECK_DISTANCE)
 	{
-		if(!Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, vorigin, vorigin - Vector(0, 0, 2048), color))
-			color = ZERO_VECTOR;
-
+		color = R_GetLightingForPosition(vorigin, ZERO_VECTOR);
 		Math::VectorCopy(color, pparticle->lightmap);
 		Math::VectorCopy(pparticle->origin, pparticle->last_light);
 	}

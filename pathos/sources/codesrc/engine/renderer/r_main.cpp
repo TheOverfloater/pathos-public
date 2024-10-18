@@ -3346,6 +3346,42 @@ bool R_PerformPendingShaderLoads( void )
 //====================================
 //
 //====================================
+Vector R_GetLightingForPosition( const Vector& position, const Vector& defaultcolor )
+{
+	// For retaining lightcolors set by Mod_RecursiveLightPoint
+	Vector lightcolors[MAX_SURFACE_STYLES];
+	byte lightstyles[MAX_SURFACE_STYLES];
+
+	Vector end = position - Vector(0, 0, 8192);
+
+	// Get lightstyle values array
+	CArray<Float>* pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
+
+	if(Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, position, end, lightcolors, lightstyles))
+	{
+		Vector lcolor = lightcolors[BASE_LIGHTMAP_INDEX];
+		for(Uint32 j = 1; j < MAX_SURFACE_STYLES; j++)
+		{
+			if(lightstyles[j] == NULL_LIGHTSTYLE_INDEX)
+				break;
+
+			Float value = (*pStyleValuesArray)[lightstyles[j]];
+			Math::VectorMA(lcolor, value, lightcolors[j], lcolor);
+		}
+
+		// Return final combined color
+		return lcolor;
+	}
+	else
+	{
+		// Not a valid result
+		return defaultcolor;
+	}
+}
+
+//====================================
+//
+//====================================
 void Cmd_PasteDecal( void )
 {
 	if(gCommands.Cmd_Argc() < 5)
@@ -4627,6 +4663,22 @@ void Cmd_BSPToSMD_Lightmap( void )
 		return;
 	}
 
+	if(gCommands.Cmd_Argc() < 2)
+	{
+		Con_Printf("r_bsp2smd_lm usage: r_bsp2smd_lm <style index>.\n");
+		return;
+	}
+
+	Int32 styleIndex = SDL_atoi(gCommands.Cmd_Argv(1));
+	if(styleIndex < 0 || styleIndex >= 4)
+	{
+		Con_Printf("%s - Invalid style index '%d' specified.\n", __FUNCTION__, styleIndex);
+		return;
+	}
+
+	Uint32 lightmapWidth = gBSPRenderer.GetLightmapWidth(styleIndex);
+	Uint32 lightmapHeight = gBSPRenderer.GetLightmapHeight(styleIndex);
+
 	Uint32 fileidx = 0;
 	CString filepath;
 	FILE* pf = NULL;
@@ -4704,17 +4756,16 @@ void Cmd_BSPToSMD_Lightmap( void )
 				}
 
 				// Set lightmap coords
-				// TODO: use lightmapdivider
 				mtexinfo_t *ptexinfo = psurf->ptexinfo;
 				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
 				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] -= psurf->texturemins[0];
-				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] += psurf->light_s*16+8;
-				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] /= static_cast<Float>(gBSPRenderer.GetLightmapWidth(BASE_LIGHTMAP_INDEX)*16);
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] += psurf->light_s[styleIndex]*psurf->lightmapdivider + (psurf->lightmapdivider / 2.0f);
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] /= lightmapWidth*psurf->lightmapdivider;
 
 				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
 				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] -= psurf->texturemins[1];
-				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] += psurf->light_t*16+8;
-				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] /= static_cast<Float>(gBSPRenderer.GetLightmapHeight(BASE_LIGHTMAP_INDEX)*16);
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] += psurf->light_t[styleIndex]*psurf->lightmapdivider + (psurf->lightmapdivider / 2.0f);
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] /= lightmapHeight*psurf->lightmapdivider;
 
 				Math::VectorCopy(psurf->pplane->normal, pverts[k].normal);
 			}
@@ -4759,9 +4810,6 @@ void Cmd_BSPToSMD_Lightmap( void )
 
 	Con_Printf("Exported %s.\n", filepath.c_str());
 
-	Uint32 lightmapWidth = gBSPRenderer.GetLightmapWidth(BASE_LIGHTMAP_INDEX);
-	Uint32 lightmapHeight = gBSPRenderer.GetLightmapHeight(BASE_LIGHTMAP_INDEX);
-
 	// alloc lightmap data ptrs
 	Uint32 lightmapdatasize = 0;
 	color32_t* plightmap = new color32_t[lightmapWidth*lightmapHeight];
@@ -4789,6 +4837,9 @@ void Cmd_BSPToSMD_Lightmap( void )
 		if(psurface->flags & (SURF_DRAWSKY|SURF_DRAWTURB))
 			continue;
 		
+		if(styleIndex > 0 && psurface->styles[styleIndex] == NULL_LIGHTSTYLE_INDEX)
+			continue;
+
 		// Determine sizes
 		Uint32 xsize = (psurface->extents[0] / psurface->lightmapdivider)+1;
 		Uint32 ysize = (psurface->extents[1] / psurface->lightmapdivider)+1;
@@ -4796,22 +4847,22 @@ void Cmd_BSPToSMD_Lightmap( void )
 
 		// Build the base lightmap
 		color24_t* psrc = psurface->psamples[SURF_LIGHTMAP_DEFAULT];
-		R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, plightmap, 0, lightmapWidth, false, false);
+		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightmap, styleIndex, lightmapWidth, false, false);
 		lightmapdatasize += size*sizeof(color32_t);
 
 		// Ambient lightmap
 		psrc = psurface->psamples[SURF_LIGHTMAP_AMBIENT];
-		R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, pambientlightmap, 0, lightmapWidth, 0);
+		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pambientlightmap, styleIndex, lightmapWidth, 0);
 		amblightdatasize += size*sizeof(color32_t);
 
 		// Diffuse lightmap
 		psrc = psurface->psamples[SURF_LIGHTMAP_DIFFUSE];
-		R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, pdiffuselightmap, 0, lightmapWidth, 0);
+		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pdiffuselightmap, styleIndex, lightmapWidth, 0);
 		diffuselightdatasize += size*sizeof(color32_t);
 
 		// Light vectors lightmap
 		psrc = psurface->psamples[SURF_LIGHTMAP_VECTORS];
-		R_BuildLightmap(psurface->light_s, psurface->light_t, psrc, psurface, plightvecslightmap, 0, lightmapWidth, 0, true);
+		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightvecslightmap, styleIndex, lightmapWidth, 0, true);
 		lightvecsdatasize += size*sizeof(color32_t);
 	}
 

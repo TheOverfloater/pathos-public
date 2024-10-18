@@ -38,8 +38,9 @@ struct entity_lightinfo_t
 	{
 		for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
 		{
-			lastlightstyles[i] = 0;
-			laststylevalues[i] = 0;
+			prev_lightstyles[i] = 0;
+			target_lightstyles[i] = 0;
+			lightstyles[i] = 0;
 		}
 	}
 
@@ -50,6 +51,13 @@ struct entity_lightinfo_t
 	Vector direct_color;
 	Vector lightdirection;
 
+	// Current lightstyle ambient colors
+	Vector lightstylecolors_ambient[MAX_SURFACE_STYLES-1];
+	// Current lightstyle diffuse colors
+	Vector lightstylecolors_diffuse[MAX_SURFACE_STYLES-1];
+	// Styles of the surface we're on
+	byte lightstyles[MAX_SURFACE_STYLES-1];
+
 	// for lerping values
 	Vector prev_ambient;
 	Vector target_ambient;
@@ -57,6 +65,16 @@ struct entity_lightinfo_t
 	Vector target_diffuse;
 	Vector prev_lightdir;
 	Vector target_lightdir;
+
+	// lerping for lightstyles
+	Vector prev_stylecolors_ambient[MAX_SURFACE_STYLES-1];
+	Vector target_stylecolors_ambient[MAX_SURFACE_STYLES-1];
+
+	Vector prev_stylecolors_diffuse[MAX_SURFACE_STYLES-1];
+	Vector target_stylecolors_diffuse[MAX_SURFACE_STYLES-1];
+
+	byte prev_lightstyles[MAX_SURFACE_STYLES-1];
+	byte target_lightstyles[MAX_SURFACE_STYLES-1];
 
 	// time we changed values
 	Double lighttime;
@@ -66,11 +84,6 @@ struct entity_lightinfo_t
 	Uint32 numsavedmlights;
 
 	Vector lastlightorigin;
-
-	// Lightstyles on the surface we're on
-	byte lastlightstyles[MAX_SURFACE_STYLES];
-	// Lightstyle values last cached
-	Float laststylevalues[MAX_SURFACE_STYLES];
 
 	// Used by nightstage
 	bool reset;

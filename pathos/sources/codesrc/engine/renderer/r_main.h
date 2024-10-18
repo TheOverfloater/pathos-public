@@ -553,6 +553,7 @@ extern Int32 R_SortEntities( const void* p1, const void* p2 );
 
 extern void R_AddShaderForLoading( CGLSLShader* pShader );
 extern bool R_PerformPendingShaderLoads( void );
+extern Vector R_GetLightingForPosition( const Vector& position, const Vector& defaultcolor );
 
 extern void Cmd_PasteDecal( void );
 extern void Cmd_CreateSprite( void );

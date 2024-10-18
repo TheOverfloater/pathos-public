@@ -460,10 +460,13 @@ private:
 
 	// Calculates attachment positions
 	void CalculateAttachments( void );
-	// Blends light values
-	void BlendLightValues( void );
+	// Updates currently fetched light values
+	void UpdateLightValues( void );
 	// Sets up model lighting
 	void SetupLighting( void );
+	// Compare light values with light info
+	bool CompareLightValues( Vector* pambientlightvalues, Vector* pdiffuselightvalues, const Vector& lightdir, entity_lightinfo_t& lightinfo );
+
 	// Gets model lights
 	void GetModelLights( void );
 	// Gets dynamic lights
@@ -574,6 +577,8 @@ private:
 	CCVar* m_pCvarSampleOffset;
 	// Controls whether we can use bump data for model lighting
 	CCVar* m_pCvarUseBumpData;
+	// Lighting ratio used for non-bump lightdata fetches
+	CCVar* m_pCvarLightRatio;
 
 private:
 	// GLSL shader object
