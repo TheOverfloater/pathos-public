@@ -395,6 +395,7 @@ bool CVBMRenderer::InitGL( void )
 		m_attribs.u_rectangle = m_pShader->InitUniform("rectangle", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_spectexture = m_pShader->InitUniform("spectexture", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_lumtexture = m_pShader->InitUniform("lumtexture", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_aotexture = m_pShader->InitUniform("aotex", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_normalmap = m_pShader->InitUniform("normalmap", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_FLOAT3);
 		m_attribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_FLOAT2);
@@ -421,6 +422,7 @@ bool CVBMRenderer::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_rectangle, "rectangle", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_spectexture, "spectexture", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_lumtexture, "lumtexture", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_aotexture, "aotex", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_normalmap, "normalmap", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_fogcolor, "fogcolor", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_fogparams, "fogparams", m_pShader, Sys_ErrorPopup)
@@ -3051,6 +3053,7 @@ bool CVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, b
 		!m_pShader->SetDeterminator(m_attribs.d_numlights, (pmaterial->flags & (TX_FL_FULLBRIGHT|TX_FL_SCOPE)) ? 0 : m_numModelLights, false) ||
 		!m_pShader->SetDeterminator(m_attribs.d_specular, (pmaterial->ptextures[MT_TX_SPECULAR]) && !(pmaterial->flags & TX_FL_FULLBRIGHT) && !m_isMultiPass && g_pCvarSpecular->GetValue() > 0 ? true : false, false) ||
 		!m_pShader->SetDeterminator(m_attribs.d_luminance, (pmaterial->ptextures[MT_TX_LUMINANCE]) && !(pmaterial->flags & TX_FL_FULLBRIGHT), false) ||
+		!m_pShader->SetDeterminator(m_attribs.d_ao, (pmaterial->ptextures[MT_TX_AO]) && !(pmaterial->flags & TX_FL_FULLBRIGHT), false) ||
 		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, (pmaterial->ptextures[MT_TX_NORMALMAP]) && !(pmaterial->flags & TX_FL_FULLBRIGHT) && g_pCvarBumpMaps->GetValue() > 0, false))
 	return false;
 
@@ -3127,6 +3130,12 @@ bool CVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, b
 	{
 		m_pShader->SetUniform1i(m_attribs.u_normalmap, 4);
 		R_Bind2DTexture(GL_TEXTURE4, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
+	}
+	
+	if (pmaterial->ptextures[MT_TX_AO])
+	{
+		m_pShader->SetUniform1i(m_attribs.u_aotexture, 5);
+		R_Bind2DTexture(GL_TEXTURE5, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
 	}
 
 	if(pmaterial->scrollu || pmaterial->scrollv)

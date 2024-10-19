@@ -228,6 +228,7 @@ struct vbm_attribs
 		u_rectangle(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_spectexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_lumtexture(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_aotexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_normalmap(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_sky_ambient(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_sky_diffuse(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -247,6 +248,7 @@ struct vbm_attribs
 		d_flexes(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_luminance(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_ao(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_bumpmapping(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_numdlights(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_use_ubo(CGLSLShader::PROPERTY_UNAVAILABLE)
@@ -293,6 +295,7 @@ struct vbm_attribs
 	Int32 u_rectangle;
 	Int32 u_spectexture;
 	Int32 u_lumtexture;
+	Int32 u_lumtexture;
 	Int32 u_normalmap;
 
 	Int32 u_sky_ambient;
@@ -321,6 +324,7 @@ struct vbm_attribs
 	Int32 d_flexes;
 	Int32 d_specular;
 	Int32 d_luminance;
+	Int32 d_ao;
 	Int32 d_bumpmapping;
 	Int32 d_numdlights;
 	Int32 d_use_ubo;

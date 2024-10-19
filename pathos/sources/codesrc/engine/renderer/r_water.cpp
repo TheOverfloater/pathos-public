@@ -160,11 +160,13 @@ bool CWaterShader::InitGL( void )
 		m_attribs.d_side = m_pShader->GetDeterminatorIndex("side");
 		m_attribs.d_rectrefract = m_pShader->GetDeterminatorIndex("rectrefract");
 		m_attribs.d_specular = m_pShader->GetDeterminatorIndex("specular");
+		m_attribs.d_flowmap = m_pShader->GetDeterminatorIndex("flowmap");
 
 		if(!R_CheckShaderDeterminator(m_attribs.d_fog, "fog", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_side, "side", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_rectrefract, "rectrefract", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_specular, "specular", m_pShader, Sys_ErrorPopup))
+			|| !R_CheckShaderDeterminator(m_attribs.d_specular, "specular", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderDeterminator(m_attribs.d_flowmap, "flowmap", m_pShader, Sys_ErrorPopup))
 			return false;
 
 		m_attribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_FLOAT3);
@@ -178,10 +180,12 @@ bool CWaterShader::InitGL( void )
 		m_attribs.u_lightstrength = m_pShader->InitUniform("lightstrength", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_specularstrength = m_pShader->InitUniform("specularstrength", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_wavefresnelstrength = m_pShader->InitUniform("wavefresnelstrength", CGLSLShader::UNIFORM_FLOAT1);
+		m_attribs.u_flowspeed = m_pShader->InitUniform("flowSpeed", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_phongexponent = m_pShader->InitUniform("phongexponent", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_normalmatrix = m_pShader->InitUniform("normalmatrix", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_normalmatrix_v = m_pShader->InitUniform("normalmatrix_v", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_normalmap = m_pShader->InitUniform("normalMap", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_flowmap = m_pShader->InitUniform("flowMap", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_lightmap = m_pShader->InitUniform("lightMap", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_refract = m_pShader->InitUniform("refractMap", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_reflect = m_pShader->InitUniform("reflectMap", CGLSLShader::UNIFORM_INT1);
@@ -202,10 +206,12 @@ bool CWaterShader::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_lightstrength, "lightstrength", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_specularstrength, "specularstrength", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_wavefresnelstrength, "wavefresnelstrength", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_flowspeed, "flowSpeed", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_phongexponent, "phongexponent", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_normalmatrix, "normalmatrix", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_normalmatrix_v, "normalmatrix_v", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_normalmap, "normalMap", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_flowmap, "flowMap", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_lightmap, "lightMap", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_refract, "refractMap", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_reflect, "reflectMap", m_pShader, Sys_ErrorPopup)
@@ -316,6 +322,13 @@ bool CWaterShader::InitGame( void )
 	{
 		m_pDefaultNormalTexture = pTextureManager->GetDummyTexture();
 		Con_EPrintf("%s - Couldn't load '%s'.\n", __FUNCTION__, WATER_DEFAULT_NORMALMAP_PATH);
+	}
+	for (size_t i = 0; i < m_waterSettingsArray.size(); ++i)
+	{
+		if (settings.pflowmap)
+		{
+			settings.pflowmap = pTextureManager->LoadTexture(settings.flowmappath.c_str(), RS_GAME_LEVEL);
+		}
 	}
 
 	// Load scripts
@@ -598,6 +611,10 @@ void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *pset
 			psettings->cheaprefraction = true;
 		else if (!qstrcmp(szField, "normalmap"))
 			normalmappath = szValue;
+		else if (!qstrcmp(szField, "flowmap"))
+			psettings->flowmappath = szValue;
+		else if (!qstrcmp(szField, "flowmapspeed"))
+			psettings->flowmapspeed = atof(szValue);
 		else
 			Con_Printf("%s - Unknown field '%s' in '%s'\n", __FUNCTION__, szField, pstrFilename);
 	}
@@ -764,6 +781,7 @@ void CWaterShader::LoadScripts( void )
 			pSettings->specularstrength = DEFAULT_SPECULAR_FACTOR;
 			pSettings->phongexponent = DEFAULT_PHONG_EXPONENT;
 			pSettings->wavefresnelstrength = 1.0;
+			pSettings->flowmapspeed = 1.0;
 
 			Con_Printf("Could not load default water definition file '%s'!\n", filepath.c_str());
 			return;
@@ -1664,6 +1682,11 @@ bool CWaterShader::DrawWater( bool skybox )
 	m_pShader->SetUniform1i(m_attribs.u_lightmap, 1);
 	m_pShader->SetUniform1i(m_attribs.u_refract, 2);
 	m_pShader->SetUniform1i(m_attribs.u_reflect, 3);
+	m_pShader->SetUniform1i(m_attribs.u_flowmap, 4);
+	const water_settings_t* psettings = GetWaterSettings(m_pCurrentWater);
+	if (psettings->pflowmap) {
+		R_Bind2DTexture(GL_TEXTURE4, psettings->pflowmap->palloc->gl_index);
+	}
 
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
@@ -1745,6 +1768,7 @@ bool CWaterShader::DrawWater( bool skybox )
 		m_pShader->SetUniform1f(m_attribs.u_specularstrength, psettings->specularstrength);
 		m_pShader->SetUniform1f(m_attribs.u_phongexponent, psettings->phongexponent*g_pCvarPhongExponent->GetValue());
 		m_pShader->SetUniform1f(m_attribs.u_wavefresnelstrength, psettings->wavefresnelstrength);
+		m_pShader->SetUniform1f(m_attribs.u_flowspeed, psettings->flowmapspeed);
 
 		Int32 textureUnit = 4;
 
@@ -1838,6 +1862,19 @@ bool CWaterShader::DrawWater( bool skybox )
 		{
 			result = m_pShader->SetDeterminator(m_attribs.d_specular, 0);
 			if(!result)
+				break;
+		}
+		
+		if (psettings->pflowmap)
+		{
+			result = m_pShader->SetDeterminator(m_attribs.d_flowmap, 1);
+			if (!result)
+				break;
+		}
+		else
+		{
+			result = m_pShader->SetDeterminator(m_attribs.d_flowmap, 0);
+			if (!result)
 				break;
 		}
 

@@ -8,6 +8,7 @@
 @SolidClass = worldspawn : "World entity" 
 [
   skyname(string) : "environment map (cl_skyname)"
+  chaptertitle(string) : "Chapter Title Message" : "" : "Chapter Title that appears onscreen when this level starts, must add it into titles.txt."
 ]
 
 //
@@ -793,6 +794,39 @@
     1 : "Start On" : 0
   ]
 ]
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_vignette : "Vignette Effect"
+[
+  strength(integer) : "Vignette Strength" : "0"
+  radius(integer) : "Vignette Radius" : "0"
+  spawnflags(flags) = 
+  [
+    1 : "Start On" : 0
+  ]
+]
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_chromatic : "Chromatic Aberration Effect"
+[
+  strength(integer) : "Chromatic Aberration Strength" : "0"
+  spawnflags(flags) = 
+  [
+    1 : "Start On" : 0
+  ]
+]
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blackwhite : "Black and White Effect"
+[
+  strength(float) : "Black and White Strength" : "1.0"
+  spawnflags(flags) = 
+  [
+    1 : "Start On" : 0
+  ]
+]
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_filmgrain : "FilmGrain Effect"
+[
+  strength(float) : "FilmGrain Strength" : "0.001"
+  spawnflags(flags) = 
+  [
+    1 : "Start On" : 0
+  ]
+]
 @SolidClass base(Targetname, ZHLT) = env_bubbles : "Bubble Volume" 
 [
   density(integer) : "Bubble density" : 2
@@ -1280,6 +1314,27 @@
   [
     32: "Toggle" : 0
     64: "Start ON" : 0
+  ]
+]
+@PointClass base(Targetname, Angles) size(-16 -16 -16, 16 16 16) = math_counter : "Math Counter"
+[
+  startvalue(integer) : "Start Value" : "0"
+  increment(integer) : "Increment Value" : "1"
+  maxvalue(integer) : "Maximum Value" : "100"
+  minvalue(integer) : "Minimum Value" : "0"
+  target(target_source) : "Target to trigger when the value exceeds or drops below the limits" : "0"
+  operation(Choices) : "Operation" : 0 =
+  [ 
+     0 : "Addition"
+     1 : "Subtraction"
+	 2 : "Division"
+	 3 : "Multiplication"
+  ]
+  spawnflags(flags) =
+  [
+    1: "Reset On Use" : 0
+    2: "Trigger On Max" : 0
+    4: "Trigger On Min" : 0
   ]
 ]
 @PointClass base(Targetname) size(-8 -8 -8, 8 8 8) = env_specialfog : "Set special fog"

@@ -102,11 +102,14 @@ struct water_settings_t
 	Float lightstrength;
 	Float specularstrength;
 	Float wavefresnelstrength;
+	Float flowmapspeed;
 	Float phongexponent;
 	bool refractonly;
 	bool cheaprefraction;
-
+	
+	CString flowmappath;
 	en_texture_t* pnormalmap;
+	en_texture_t* pflowmap;
 };
 
 struct water_vertex_t
@@ -140,6 +143,7 @@ struct water_attribs
 		a_texcoords(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_lightcoords(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_normalmap(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_flowmap(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_lightmap(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_refract(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_reflect(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -161,10 +165,12 @@ struct water_attribs
 		u_phongexponent(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_modelview(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_projection(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_flowspeed(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_side(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_fog(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_rectrefract(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_specular(CGLSLShader::PROPERTY_UNAVAILABLE)
+		d_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_flowmap(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{}
 
 	Int32 a_origin;
@@ -175,6 +181,7 @@ struct water_attribs
 	Int32 a_lightcoords;
 
 	Int32 u_normalmap;
+	Int32 u_flowmap;
 	Int32 u_lightmap;
 	Int32 u_refract;
 	Int32 u_reflect;
@@ -198,6 +205,7 @@ struct water_attribs
 	Int32 u_specularstrength;
 	Int32 u_phongexponent;
 	Int32 u_wavefresnelstrength;
+	Int32 u_flowspeed;
 
 	Int32 u_modelview;
 	Int32 u_projection;
@@ -206,6 +214,7 @@ struct water_attribs
 	Int32 d_fog;
 	Int32 d_rectrefract;
 	Int32 d_specular;
+	Int32 d_flowmap;
 };
 
 /*

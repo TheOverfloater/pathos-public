@@ -5,6 +5,7 @@ $global_determinator bumpmapping 0 1
 $global_determinator specular 0 1
 $global_determinator cubemaps 0 2
 $global_determinator luminance 0 1
+$global_determinator ao 0 1
 $global_determinator numlights 0 4
 $global_determinator light0_shadowmap 0 1
 $global_determinator light1_shadowmap 0 1
@@ -250,6 +251,10 @@ uniform sampler2D speculartex;
 $branch luminance == 1
 $begin
 uniform sampler2D luminance;
+$end
+$branch ao == 1
+$begin
+uniform sampler2D aomaptex;
 $end
 
 $branch numlights >= 1
@@ -1101,6 +1106,11 @@ void main()
 		finalColor = texture2D(maintexture, ps_texcoord);
 		finalColor.xyz = (decalalpha * finalColor.xyz) + (1.0 - decalalpha) * vec3(0.5, 0.5, 0.5);
 	$end
+	
+	$branch ao == 1
+	$begin
+	    finalColor.xyz *= texture(aomaptex, ps_texcoord).xyz;
+    $end
 	
 	$branch fogtype != 0
 	$begin

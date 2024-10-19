@@ -300,7 +300,7 @@ CEnvDLight* CEnvDLight::SpawnLight( const Vector& origin, const Vector& color, U
 		return nullptr;
 	}
 
-	// Set values for lgiht
+	// Set values for light
 	pdlight->SetValues(origin, color, radius);
 
 	// Spawn the entity
