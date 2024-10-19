@@ -68,6 +68,10 @@ static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 	CL_SpawnParticleSystem,			//pfnSpawnParticleSystem
 	CL_KillEntityParticleSystems,	//pfnKillEntityParticleSystems
 	CL_SetMotionBlur,				//pfnSetMotionBlur
+	CL_SetVignette,				    //pfnSetVignette
+	CL_SetFilmGrain,				//pfnSetFilmGrain
+	CL_SetBlackWhite,				//pfnSetBlackWhite
+	CL_SetChromatic,				//pfnSetChromatic
 	CL_SetFade,						//pfnSetFade
 	CL_SetGaussianBlur,				//pfnSetGaussianBlur
 	CL_BreakModel,					//pfnBreakModel
@@ -484,6 +488,35 @@ void CL_SpawnParticleSystem( const Vector& origin, const Vector& direction, part
 void CL_SetMotionBlur( bool active, Float blurfade, bool override )
 {
 	gPostProcess.SetMotionBlur(active, blurfade, override);
+}
+
+//====================================
+//
+//====================================
+void CL_SetVignette(bool active, Float strength, Float radius)
+{
+	gPostProcess.SetVignette(active, strength, radius);
+}
+//====================================
+// 
+//====================================
+void CL_SetFilmGrain(bool active, Float strength)
+{
+	gPostProcess.SetFilmGrain(active, strength);
+}
+//====================================
+//
+//====================================
+void CL_SetBlackWhite(bool active, Float strength)
+{
+	gPostProcess.SetBlackWhite(active, strength);
+}
+//====================================
+//
+//====================================
+void CL_SetChromatic(bool active, Float strength)
+{
+	gPostProcess.SetChromatic(active, strength);
 }
 
 //====================================

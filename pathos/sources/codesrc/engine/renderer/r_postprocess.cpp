@@ -56,7 +56,16 @@ CPostProcess::CPostProcess( void ):
 	m_pCvarBloomBlurSteps(nullptr),
 	m_pCvarBloomBrightenMultiplier(nullptr),
 	m_pScreenRTT(nullptr),
-	m_pBlurScreenTexture(nullptr)
+	m_pBlurScreenTexture(nullptr),
+	m_vignetteActive(false),
+	m_chromaticActive(false),
+	m_vignetteStrength(0.0f),
+	m_chromaticStrength(0.0f),
+	m_vignetteRadius(0.0f),
+	m_blackwhiteActive(false),
+	m_blackwhiteStrength(0.0f) ,
+	m_filmGrainStrength(0.0f),
+	m_filmGrainActive(0.0f)
 {
 }
 
@@ -127,6 +136,11 @@ bool CPostProcess :: InitGL( void )
 		m_attribs.u_screenwidth = m_pShader->InitUniform("screenwidth", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_screenheight = m_pShader->InitUniform("screenheight", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_timer = m_pShader->InitUniform("timer", CGLSLShader::UNIFORM_FLOAT1);
+		m_attribs.u_grainammount = m_pShader->InitUniform("grainamount", CGLSLShader::UNIFORM_FLOAT1);
+		m_attribs.u_chromaticStrength = m_pShader->InitUniform("chromaticStrength", CGLSLShader::UNIFORM_FLOAT1);
+		m_attribs.u_BWStrength = m_pShader->InitUniform("BWStrength", CGLSLShader::UNIFORM_FLOAT1);
+		m_attribs.u_VignetteStrength = m_pShader->InitUniform("vignetteStrength", CGLSLShader::UNIFORM_FLOAT1);
+		m_attribs.u_VignetteRadius = m_pShader->InitUniform("vignetteRadius", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_offsetdivider = m_pShader->InitUniform("offsetdivider", CGLSLShader::UNIFORM_FLOAT2);
 		m_attribs.u_texture1rect = m_pShader->InitUniform("texture0rect", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_texture2rect = m_pShader->InitUniform("blurtextureRect", CGLSLShader::UNIFORM_INT1);
@@ -145,6 +159,11 @@ bool CPostProcess :: InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_screenwidth, "screenwidth", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_screenheight, "screenheight", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_timer, "timer", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_grainammount, "grainamount", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_chromaticStrength, "chromaticStrength", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_BWStrength, "BWStrength", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_VignetteStrength, "vignetteStrength", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_VignetteRadius, "vignetteRadius", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_offsetdivider, "offsetdivider", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_texture1rect, "texture0rect", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_texture2rect, "blurtextureRect", m_pShader, Sys_ErrorPopup)
@@ -243,6 +262,10 @@ void CPostProcess :: ClearGame( void )
 	// reset blur
 	m_gaussianBlurActive = false;
 	m_motionBlurActive = false;
+	m_vignetteActive = false;
+	m_filmGrainActive = false;
+	m_chromaticActive = false;
+	m_blackwhiteActive = false;
 	m_blurOverride = false;
 	m_lastWaterTime = -1;
 	m_gaussianBlurAlpha = 1.0;
@@ -437,16 +460,103 @@ bool CPostProcess :: DrawFade( screenfade_t& fade )
 //=============================================
 bool CPostProcess :: DrawFilmGrain( void )
 {
-	FetchScreen(&m_pScreenRTT);
-	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
-	R_BindRectangleTexture(GL_TEXTURE1_ARB, m_pBlurScreenTexture->gl_index);
+	if (!m_useFBOs)
+	{
+		FetchScreen(&m_pScreenRTT);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	}
+	else
+	{
+		FetchScreen(&m_pScreenFBO);
+		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
+	}
 
 	m_pShader->SetUniform1f(m_attribs.u_timer, rns.time*0.1);
+	m_pShader->SetUniform1f(m_attribs.u_grainammount, m_filmGrainStrength);
 	if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_GRAIN))
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		return false;
 	}
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CPostProcess::DrawChromatic(void)
+{
+	if (!m_useFBOs)
+	{
+		FetchScreen(&m_pScreenRTT);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	}
+	else
+	{
+		FetchScreen(&m_pScreenFBO);
+		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
+	}
+
+	m_pShader->SetUniform1f(m_attribs.u_chromaticStrength, m_chromaticStrength);
+
+	if (!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_CHROMATIC))
+		return false;
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CPostProcess::DrawBW(void)
+{
+	if (!m_useFBOs)
+	{
+		FetchScreen(&m_pScreenRTT);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	}
+	else
+	{
+		FetchScreen(&m_pScreenFBO);
+		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
+	}
+
+	m_pShader->SetUniform1f(m_attribs.u_BWStrength, m_blackwhiteStrength);
+
+	if (!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_BW))
+		return false;
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CPostProcess::DrawVignette(void)
+{
+	if (!m_useFBOs)
+	{
+		FetchScreen(&m_pScreenRTT);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
+	}
+	else
+	{
+		FetchScreen(&m_pScreenFBO);
+		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
+	}
+
+	m_pShader->SetUniform1f(m_attribs.u_VignetteStrength, m_vignetteStrength);
+	m_pShader->SetUniform1f(m_attribs.u_VignetteRadius, m_vignetteRadius);
+
+	if (!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_VIGNETTE))
+		return false;
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	return true;
@@ -773,7 +883,7 @@ bool CPostProcess :: Draw( void )
 	}
 
 	// Render film grain
-	if(m_pCvarPostProcess->GetValue() > 0 && m_pCvarFilmGrain->GetValue() > 0)
+	if (m_pCvarPostProcess->GetValue() > 0 && m_filmGrainActive)
 	{
 		if(!DrawFilmGrain())
 		{
@@ -782,6 +892,42 @@ bool CPostProcess :: Draw( void )
 			return false;
 		}
 	}
+
+	// Render chromatic
+	if (m_pCvarPostProcess->GetValue() > 0 && m_chromaticActive)
+	{
+		if (!DrawChromatic())
+		{
+			Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
+			m_pShader->DisableShader();
+			m_pVBO->UnBind();
+			return false;
+		}
+	}
+
+	// Render BW
+	if (m_pCvarPostProcess->GetValue() > 0 && m_blackwhiteActive)
+	{
+		if (!DrawBW())
+		{
+			Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
+			m_pShader->DisableShader();
+			m_pVBO->UnBind();
+			return false;
+		}
+	}
+
+	// Apply vignette if needed
+	if (m_pCvarPostProcess->GetValue() > 0 && m_vignetteActive)
+	{
+		if (!DrawVignette())
+		{
+			m_pShader->DisableShader();
+			m_pVBO->UnBind();
+			return false;
+		}
+	}
+
 
 	if (m_pScreenRTT)
 	{
@@ -845,6 +991,64 @@ void CPostProcess :: SetMotionBlur( bool active, Float blurfade, bool override )
 
 	m_motionBlurActive = true;
 	m_isFirstFrame = true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CPostProcess::SetVignette(bool active, Float strength, Float radius)
+{
+	if (!active)
+	{
+		m_vignetteActive = false;
+		return;
+	}
+	m_vignetteActive = active;
+	m_vignetteStrength = strength;
+	m_vignetteRadius = radius;
+}
+//=============================================
+// @brief
+//
+//=============================================
+void CPostProcess::SetFilmGrain(bool active, Float strength)
+{
+	if (!active)
+	{
+		m_filmGrainActive = false;
+		return;
+	}
+	m_filmGrainActive = active;
+	m_filmGrainStrength = strength;
+}
+//=============================================
+// @brief
+//
+//=============================================
+void CPostProcess::SetBlackWhite(bool active, Float strength)
+{
+	if (!active)
+	{
+		m_blackwhiteActive = false;
+		return;
+	}
+	m_blackwhiteActive = active;
+	m_blackwhiteStrength = strength;
+}
+//=============================================
+// @brief
+//
+//=============================================
+void CPostProcess::SetChromatic(bool active, Float strength)
+{
+	if (!active)
+	{
+		m_chromaticActive = false;
+		return;
+	}
+	m_chromaticActive = active;
+	m_chromaticStrength = strength;
 }
 
 //=============================================

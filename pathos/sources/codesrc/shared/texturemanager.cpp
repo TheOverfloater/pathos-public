@@ -556,6 +556,8 @@ mt_texture_t CTextureManager::GetTextureType( const Char* pstrTypename )
 		return MT_TX_SPECULAR;
 	else if(!qstrcmp(pstrTypename, "luminance"))
 		return MT_TX_LUMINANCE;
+	else if (!qstrcmp(pstrTypename, "ao"))
+		return MT_TX_AO;
 	else
 		return MT_TX_UNKNOWN;
 }
@@ -1605,6 +1607,9 @@ void CTextureManager::WritePMFFile( en_material_t* pmaterial )
 
 	if(pmaterial->ptextures[MT_TX_LUMINANCE])
 		data << "\t$texture luminance " << pmaterial->ptextures[MT_TX_LUMINANCE]->filepath << NEWLINE;
+	
+	if (pmaterial->ptextures[MT_TX_AO])
+		data << "\t$texture ao " << pmaterial->ptextures[MT_TX_AO]->filepath << NEWLINE;
 
 	data << "}" << NEWLINE;
 

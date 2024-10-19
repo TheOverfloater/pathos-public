@@ -46,6 +46,7 @@ enum mt_texture_t
 	MT_TX_DETAIL,
 	MT_TX_SPECULAR,
 	MT_TX_LUMINANCE,
+	MT_TX_AO,
 
 	// Must be last
 	NB_MT_TX,

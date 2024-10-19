@@ -58,6 +58,10 @@ struct usermsglist_t
 		viewcontroller(0),
 		viewmodel(0),
 		motionblur(0),
+		vignette(0),
+		filmgrain(0),
+		blackwhite(0),
+		chromatic(0),
 		showmessage(0),
 		showcustommessage(0),
 		screenfade(0),
@@ -118,6 +122,10 @@ struct usermsglist_t
 	Int32 viewcontroller;
 	Int32 viewmodel;
 	Int32 motionblur;
+	Int32 vignette;
+	Int32 filmgrain;
+	Int32 blackwhite;
+	Int32 chromatic;
 	Int32 showmessage;
 	Int32 showcustommessage;
 	Int32 screenfade;
