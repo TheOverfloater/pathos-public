@@ -540,9 +540,9 @@ private:
 	bool BatchBrushModelForVSM( cl_entity_t& entity, bool isstatic );
 
 	// Prepares a light for rendering
-	bool SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Uint32& texunit, lightbatchtype_t type );
+	bool SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Int32& texunit, lightbatchtype_t type );
 	// Finishes rendering of a light
-	void FinishLight( cl_dlight_t* pdlight, Uint32& texunit );
+	void FinishLight( cl_dlight_t* pdlight, Int32& texunit );
 
 private:
 	// Draws a single decal

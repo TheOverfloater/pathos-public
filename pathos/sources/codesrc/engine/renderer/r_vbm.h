@@ -295,7 +295,7 @@ struct vbm_attribs
 	Int32 u_rectangle;
 	Int32 u_spectexture;
 	Int32 u_lumtexture;
-	Int32 u_lumtexture;
+	Int32 u_aotexture;
 	Int32 u_normalmap;
 
 	Int32 u_sky_ambient;

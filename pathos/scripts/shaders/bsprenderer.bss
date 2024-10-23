@@ -43,6 +43,13 @@ $invalid_state 2 light0_shadowmap 1 1 numlights 0 0
 $invalid_state 2 light1_shadowmap 1 1 numlights 0 1
 $invalid_state 2 light2_shadowmap 1 1 numlights 0 2
 $invalid_state 2 light3_shadowmap 1 1 numlights 0 3
+$invalid_state 2 ao 1 1 shadertype 3 4
+$invalid_state 2 ao 1 1 shadertype 6 6
+$invalid_state 2 ao 1 1 shadertype 8 9
+$invalid_state 2 ao 1 1 shadertype 11 15
+$invalid_state 2 ao 1 1 shadertype 11 15
+$invalid_state 2 ao 1 1 shadertype 19 22
+
 $shader_vertex $begin
 #version 130
 
@@ -715,6 +722,13 @@ vec4 CombineTextureLayers( vec3 v_origin, vec3 v_normal, float specularStrength 
 	vec4 lightDiffuse = GetDiffuseLight( difflightmap );
 	vec4 finalColor = AddBaseLight(baselightmap, lightDiffuse, lightDir, v_normal);
 
+	$branch ao == 1
+	$begin
+		vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
+		finalColor.xyz *= aocolor;
+		lightDiffuse.xyz *= aocolor;
+	$end
+
 	$branch shadertype == 0
 	$begin
 		vec4 texColor = texture2D(maintexture, ps_texcoord);
@@ -836,17 +850,21 @@ void main()
 		specularFactor = (specTexture.x + specTexture.y + specTexture.z) / 3.0;
 	$end
 	
+	// 0 -> main * detail texture * lightmapping
+	// 1 -> texture * lightmapping
+	// 2 -> texture * lightmap + chrome * lightmap
 	$branch shadertype == 0 || shadertype == 1 || shadertype == 2
 	$begin
 		vec3 v_normal = GetTangentSpaceNormal(ps_texcoord, normalmap, ps_normal);
 		finalColor = CombineTextureLayers(ps_vertexpos, v_normal, specularFactor);
-		finalColor = finalColor*color;
+		finalColor = finalColor*color;		
 		
 		$branch cubemaps >= 1
 		$begin
 			finalColor += AddCubemaps(specularFactor);
 		$end
 	$end
+	// Texture unit 0 only and texunit 0 * 4
 	$branch shadertype == 3 || shadertype == 22
 	$begin
 		finalColor = texture2D(baselightmap, ps_lmapcoord) * color;
@@ -855,10 +873,12 @@ void main()
 			finalColor.xyz *= 4;
 		$end
 	$end
+	// Texture unit 1
 	$branch shadertype == 4
 	$begin
 		finalColor = texture2D(maintexture, ps_texcoord) * color;
 	$end
+	// Dynamic lights
 	$branch shadertype == 5
 	$begin
 		// Build the TBN matrix and get the vertex normal
@@ -940,7 +960,14 @@ void main()
 			// Add to specular
 			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, light_3_color.xyz);
 		$end
+		
+		$branch ao == 1
+		$begin
+			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
+			finalColor.xyz *= aocolor;
+		$end
 	$end
+	// Spotlight
 	$branch shadertype == 7
 	$begin
 		// Build the TBN matrix and get the vertex normal
@@ -1022,7 +1049,15 @@ void main()
 			// Add to specular
 			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, light_3_color.xyz);
 		$end
+		
+		$branch ao == 1
+		$begin
+			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
+			finalColor.xyz *= aocolor;
+		$end		
+		
 	$end
+	// Caustics
 	$branch shadertype == 9
 	$begin
 		vec4 caustics1 = texture2D(maintexture, ps_texcoord);
@@ -1030,6 +1065,7 @@ void main()
 		
 		finalColor = caustics1*(1.0 - interpolant) + caustics2*interpolant;
 	$end
+	// Light alpha
 	$branch shadertype == 10
 	$begin
 		vec3 lightDir = GetLightDir( lightvecstex );
@@ -1037,13 +1073,23 @@ void main()
 		vec4 diffuseLight = GetDiffuseLight( difflightmap );
 		
 		finalColor = AddBaseLight(baselightmap, diffuseLight, lightDir, v_normal);
+		
+		$branch ao == 1
+		$begin
+			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
+			finalColor.xyz *= aocolor;
+		$end
+		
 		finalColor.w = finalColor.w * texture2D(maintexture, ps_texcoord).w;
 	$end
+	
+	// Solid color only
 	$branch shadertype == 11
 	$begin
 		finalColor = vec4(1.0, 1.0, 1.0, 1.0)*color;
 	$end
 	
+	// VSM store, without and with alpha
 	$branch shadertype == 12 || shadertype == 13
 	$begin
 		finalColor = EncodeDepth(ps_vertexpos, light_radius);
@@ -1055,12 +1101,15 @@ void main()
 		$end
 	$end
 	
+	// Fog only
 	$branch shadertype == 14
 	$begin
 		float fp_fogfactor = CalcFogFactor_Radial( ps_vertexpos.xyz, ps_fogcoord, fogparams );
 		finalColor.xyz = fogcolor.xyz;
 		finalColor.w = fp_fogfactor;
 	$end
+	
+	// Fog with fog coordinate supplied
 	$branch shadertype == 15
 	$begin
 		float fp_fogfactor = CalcFogFactor_FogCoord( ps_vertexpos.xyz, ps_fogcoord, fogparams );
@@ -1068,6 +1117,7 @@ void main()
 		finalColor.w = fp_fogfactor;
 	$end
 	
+	// Lighting only
 	$branch shadertype == 16
 	$begin
 		vec3 lightDir = GetLightDir( lightvecstex );
@@ -1075,8 +1125,17 @@ void main()
 		vec4 diffuseLight = GetDiffuseLight( difflightmap );
 		
 		finalColor = AddBaseLight(baselightmap, diffuseLight, lightDir, v_normal);
+		
+		$branch ao == 1
+		$begin
+			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
+			finalColor.xyz *= aocolor;
+		$end
+		
 		finalColor *= color;
 	$end
+	
+	// Main texture multiplid with detail texture * 2
 	$branch shadertype == 17
 	$begin
 		vec4 tex0 = texture2D(maintexture, ps_texcoord);
@@ -1085,15 +1144,27 @@ void main()
 		finalColor.xyz = finalColor.xyz*2;
 		finalColor = finalColor*color;
 	$end
+	
+	// Specular highlight only
 	$branch shadertype == 18
 	$begin
 		vec3 v_normal = GetTangentSpaceNormal(ps_texcoord, normalmap, ps_normal);
 		finalColor = GetLightmappedSpecular( ps_vertexpos, v_normal, specularFactor );
+		
+		$branch ao == 1
+		$begin
+			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
+			finalColor.xyz *= aocolor;
+		$end
 	$end
+	
+	// Cube mapping only
 	$branch shadertype == 19
 	$begin
 		finalColor = AddCubemaps(specularFactor);
 	$end
+	
+	// Decals with alpha holes from world texture
 	$branch shadertype == 20
 	$begin
 		finalColor = texture2D(maintexture, ps_texcoord);
@@ -1101,17 +1172,15 @@ void main()
 		finalColor.a = finalColor.a*tex1.a;
 		finalColor.xyz = (decalalpha * finalColor.xyz) + (1.0 - decalalpha) * vec3(0.5, 0.5, 0.5);
 	$end
+	
+	// Decal
 	$branch shadertype == 21
 	$begin
 		finalColor = texture2D(maintexture, ps_texcoord);
 		finalColor.xyz = (decalalpha * finalColor.xyz) + (1.0 - decalalpha) * vec3(0.5, 0.5, 0.5);
 	$end
 	
-	$branch ao == 1
-	$begin
-	    finalColor.xyz *= texture(aomaptex, ps_texcoord).xyz;
-    $end
-	
+	// If fog is enabled or not
 	$branch fogtype != 0
 	$begin
 		float fp_fogfactor = CalcFogFactor( ps_vertexpos.xyz, ps_fogcoord, fogparams );

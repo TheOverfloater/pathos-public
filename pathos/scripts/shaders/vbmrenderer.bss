@@ -268,6 +268,9 @@ $invalid_state 2 numdlights 1 4 num_lights 1 6
 $invalid_state 2 numdlights 1 4 alphatest 1 1
 $invalid_state 1 shadertype 4 4
 $invalid_state 1 shadertype 6 6
+$invalid_state 2 ao 1 1 shadertype 7 12
+$invalid_state 2 ao 1 1 shadertype 14 14
+$invalid_state 2 ao 1 1 shadertype 16 17
 
 $begin
 $branch use_ubo == 1
@@ -943,6 +946,13 @@ void main()
 		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, mlight_color);
 	$end
 	
+	$branch ao == 1 && shadertype != 3 && shadertype != 5
+	$begin
+		vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
+		finalColor.xyz *= aocolor;
+		specularColor.xyz *= aocolor;
+	$end	
+	
 	// Normal single pass rendering
 	$branch shadertype == 0 || shadertype == 1
 	$begin
@@ -1034,6 +1044,13 @@ void main()
 			// Add to specular
 			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_3_color.xyz);
 		$end
+		
+		$branch ao == 1
+		$begin
+			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
+			finalColor.xyz *= aocolor;
+			specularColor.xyz *= aocolor;
+		$end
 	$end
 	$branch shadertype == 5
 	$begin
@@ -1109,6 +1126,13 @@ void main()
 			// Add to specular
 			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_3_color.xyz);
 		$end
+		
+		$branch ao == 1
+		$begin
+			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
+			finalColor.xyz *= aocolor;
+			specularColor.xyz *= aocolor;
+		$end
 	$end
 	
 	// Caustics
@@ -1176,6 +1200,7 @@ void main()
 	$begin
 		finalColor = texture(texture0, ps_texcoord1)*color;
 	$end
+	
 	// Texture with alpha holes for decals
 	$branch shadertype == 16 || shadertype == 17
 	$begin
@@ -1183,12 +1208,6 @@ void main()
 		vec4 alphacolor = texture(texture1, ps_texcoord2);
 		finalColor.a = finalColor.a*alphacolor.a;
 	$end	
-	
-	$branch ao == 1
-$begin
-    float aoFactor = texture2D(aotex, ps_texcoord1).r;
-    finalColor.rgb *= aoFactor;
-$end
 	
 	// Fog calculations
 	$branch shadertype == 14 || shadertype == 1 || shadertype == 17

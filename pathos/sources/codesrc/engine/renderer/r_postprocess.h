@@ -26,7 +26,7 @@ enum pp_shadertypes_t
 	SHADER_BLOOM_DARKEN,
 	SHADER_BLOOM_APPLY,
 	SHADER_BLOOM_BLUR_H,
-	SHADER_BLOOM_BLUR_V.
+	SHADER_BLOOM_BLUR_V,
 	SHADER_CHROMATIC,
 	SHADER_BW,
 	SHADER_VIGNETTE
@@ -44,10 +44,10 @@ struct pp_shader_attribs
 		u_screenwidth(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_screenheight(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_timer(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_chromaticStrength(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_BWStrength(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_VignetteStrength(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_VignetteRadius(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_chromatic_strength(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_bw_strength(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_vignette_strength(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_vignette_radius(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_offsetdivider(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_texture1rect(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_texture2rect(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -74,10 +74,10 @@ struct pp_shader_attribs
 	Int32	u_screenheight;
 	Int32	u_timer;
 	Int32	u_grainammount;
-	Int32	u_chromaticStrength;
-	Int32	u_VignetteStrength;
-	Int32	u_VignetteRadius;
-	Int32	u_BWStrength;
+	Int32	u_chromatic_strength;
+	Int32	u_vignette_strength;
+	Int32	u_vignette_radius;
+	Int32	u_bw_strength;
 	Int32	u_offsetdivider;
 
 	Int32	u_texture1rect;
@@ -141,6 +141,12 @@ private:
 	bool DrawFilmGrain( void );
 	// Draw bloom
 	bool DrawBloom( void );
+	// Draw chromatic aberration
+	bool DrawChromatic( void );
+	// Draw black and white effect
+	bool DrawBlackAndWhite( void );
+	// Draw vignette effect
+	bool DrawVignette( void );
 
 	// Fetches screen contents
 	static void FetchScreen( rtt_texture_t** ptarget );

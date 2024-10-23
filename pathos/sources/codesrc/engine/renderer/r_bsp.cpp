@@ -2543,6 +2543,25 @@ bool CBSPRenderer::DrawFirst( void )
 							return false;
 					}
 
+					if (pmaterial->ptextures[MT_TX_AO])
+					{
+						if (!m_pShader->SetDeterminator(m_attribs.d_ao, TRUE))
+							return false;
+
+						en_texture_t* paotexture = pmaterial->ptextures[MT_TX_AO];
+						m_pShader->SetUniform1i(m_attribs.u_aomap, textureIndex);
+						R_Bind2DTexture(GL_TEXTURE0 + textureIndex, paotexture->palloc->gl_index);
+						textureIndex++;
+
+						// We'll need texcoords
+						useTexcoord = true;
+					}
+					else
+					{
+						if (!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE))
+							return false;
+					}
+
 					R_ValidateShader(m_pShader);
 
 					if(useTexcoord)
@@ -3142,7 +3161,7 @@ bool CBSPRenderer::SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Uint32& 
 // @brief
 //
 //=============================================
-void CBSPRenderer::FinishLight( cl_dlight_t* pdlight, Uint32& texunit )
+void CBSPRenderer::FinishLight( cl_dlight_t* pdlight, Int32& texunit )
 {
 	if(pdlight->cone_size)
 	{
@@ -3336,8 +3355,12 @@ bool CBSPRenderer::DrawLights( bool specular )
 		dlightlist.next();
 	};
 
-	// Highest texture unit used
-	Uint32 highestunit = 0;
+	// Highest normal map texture unit used
+	Int32 highestnormalmapunit = NO_POSITION;
+	// Highest specular map texture unit used
+	Int32 highestspecularmapunit = NO_POSITION;
+	// Highest AO unit used
+	Int32 highestaounit = NO_POSITION;
 
 	// Now draw the actual batches
 	lightBatches.begin();
@@ -3348,7 +3371,13 @@ bool CBSPRenderer::DrawLights( bool specular )
 		// Latest light index
 		Uint32 lightindex = 0;
 		// Next available texture unit
-		Uint32 texunit = 0;
+		Int32 texunit = 0;
+		// Normal map unit
+		Int32 normalmapunit = NO_POSITION;
+		// Specular map unit
+		Int32 specularmapunit = NO_POSITION;
+		// AO mapping unit to use
+		Int32 aomapunit = NO_POSITION;
 
 		if(batch.type == LB_TYPE_POINTLIGHT || batch.type == LB_TYPE_POINTLIGHT_SHADOW)
 		{
@@ -3426,30 +3455,40 @@ bool CBSPRenderer::DrawLights( bool specular )
 				rns.counters.brushpolies++;
 			}
 
-			// ALWAYS set this, because AMD will complain about multiple
-			// sampler types being set to texture unit 0
-			m_pShader->SetUniform1i(m_attribs.u_normalmap, texunit);
-			m_pShader->SetUniform1i(m_attribs.u_specular, texunit+1);
+			bool useTexCoord = false;
 
 			if(specular)
 			{
 				m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
 				m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
 
-				R_Bind2DTexture(GL_TEXTURE0+texunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
-				R_Bind2DTexture(GL_TEXTURE0+texunit+1, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
+				// Set normal map
+				normalmapunit = texunit;
+				texunit++;
+
+				R_Bind2DTexture(GL_TEXTURE0 + normalmapunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
+
+				// Set specular map
+				specularmapunit = texunit;
+				texunit++;
+
+				R_Bind2DTexture(GL_TEXTURE0 + specularmapunit, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
 
 				m_pShader->EnableAttribute(m_attribs.a_tangent);
 				m_pShader->EnableAttribute(m_attribs.a_binormal);
-				m_pShader->EnableAttribute(m_attribs.a_texcoord);
+				useTexCoord = true;
 			}
 			else if(pmaterial->ptextures[MT_TX_NORMALMAP] && g_pCvarBumpMaps->GetValue() > 0)
 			{
-				R_Bind2DTexture(GL_TEXTURE0+texunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
+				// Set normal map
+				normalmapunit = texunit;
+				texunit++;
+
+				R_Bind2DTexture(GL_TEXTURE0+ normalmapunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
 
 				m_pShader->EnableAttribute(m_attribs.a_tangent);
 				m_pShader->EnableAttribute(m_attribs.a_binormal);
-				m_pShader->EnableAttribute(m_attribs.a_texcoord);
+				useTexCoord = true;
 
 				if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, true, false))
 					return false;
@@ -3458,21 +3497,62 @@ bool CBSPRenderer::DrawLights( bool specular )
 			{
 				m_pShader->DisableAttribute(m_attribs.a_tangent);
 				m_pShader->DisableAttribute(m_attribs.a_binormal);
-				m_pShader->DisableAttribute(m_attribs.a_texcoord);
+				useTexCoord = false;
 
 				if(!m_pShader->SetDeterminator(m_attribs.d_specular, false, false)
 					|| !m_pShader->SetDeterminator(m_attribs.d_bumpmapping, false, false))
 					return false;
 			}
 
+			if (pmaterial->ptextures[MT_TX_AO])
+			{
+				// Specify the AO map unit
+				aomapunit = texunit;
+				texunit++;
+
+				R_Bind2DTexture(GL_TEXTURE0 + aomapunit, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
+				useTexCoord = true;
+
+				if (!m_pShader->SetDeterminator(m_attribs.d_ao, true, false))
+					return false;
+			}
+			else
+			{
+				if (!m_pShader->SetDeterminator(m_attribs.d_ao, false, false))
+					return false;
+			}
+
+			// u_specular always needs to be set, otherwise AMD will complain
+			// about two samplers being on the same unit.
+			m_pShader->SetUniform1i(m_attribs.u_normalmap, normalmapunit);
+			if(specularmapunit != NO_POSITION)
+				m_pShader->SetUniform1i(m_attribs.u_specular, specularmapunit);
+			else if(aomapunit != NO_POSITION)
+				m_pShader->SetUniform1i(m_attribs.u_specular, aomapunit + 1);
+			else
+				m_pShader->SetUniform1i(m_attribs.u_specular, normalmapunit + 1);
+
+			// Verify that everything is ok with the states
 			if(!m_pShader->VerifyDeterminators())
 				return false;
 
 			// Make sure shaders are valid
 			R_ValidateShader(m_pShader);
 
-			if(highestunit < texunit)
-				highestunit = texunit;
+			// Update the highest units used
+			if(highestnormalmapunit < normalmapunit)
+				highestnormalmapunit = normalmapunit;
+
+			if (highestspecularmapunit < specularmapunit)
+				highestspecularmapunit = specularmapunit;
+
+			if (highestaounit < aomapunit)
+				highestaounit = aomapunit;
+
+			if(useTexCoord)
+				m_pShader->EnableAttribute(m_attribs.a_texcoord);
+			else
+				m_pShader->DisableAttribute(m_attribs.a_texcoord);
 
 			drawbatch_t *pdrawbatch = &ptexturehandle->light_batches[0];
 			for(Uint32 j = 0; j < ptexturehandle->numlightbatches; j++, pdrawbatch++)
@@ -3523,11 +3603,20 @@ bool CBSPRenderer::DrawLights( bool specular )
 	m_pShader->DisableAttribute(m_attribs.a_binormal);
 	m_pShader->DisableAttribute(m_attribs.a_texcoord);
 
-	R_Bind2DTexture(GL_TEXTURE0+highestunit, 0);
-	R_Bind2DTexture(GL_TEXTURE0+highestunit+1, 0);
+	// Ensure these get reset
+	if (highestnormalmapunit != NO_POSITION)
+		R_Bind2DTexture(GL_TEXTURE0 + highestnormalmapunit, 0);
 
+	if (highestspecularmapunit != NO_POSITION)
+		R_Bind2DTexture(GL_TEXTURE0 + highestspecularmapunit, 0);
+
+	if(highestaounit != -1)
+		R_Bind2DTexture(GL_TEXTURE0+highestaounit, 0);
+
+	// Reset determinators
 	if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false)
 		|| !m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false)
 		|| !m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false))
 		return false;
 	else
@@ -3903,6 +3992,7 @@ bool CBSPRenderer::DrawFinal( void )
 //=============================================
 bool CBSPRenderer::DrawFinalSpecular( void ) 
 {
+	// TODO: Add AO here!
 	if(!m_bumpMaps || g_pCvarBumpMaps->GetValue() < 1 || g_pCvarSpecular->GetValue() < 1)
 		return true;
 

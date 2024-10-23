@@ -137,10 +137,10 @@ bool CPostProcess :: InitGL( void )
 		m_attribs.u_screenheight = m_pShader->InitUniform("screenheight", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_timer = m_pShader->InitUniform("timer", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_grainammount = m_pShader->InitUniform("grainamount", CGLSLShader::UNIFORM_FLOAT1);
-		m_attribs.u_chromaticStrength = m_pShader->InitUniform("chromaticStrength", CGLSLShader::UNIFORM_FLOAT1);
-		m_attribs.u_BWStrength = m_pShader->InitUniform("BWStrength", CGLSLShader::UNIFORM_FLOAT1);
-		m_attribs.u_VignetteStrength = m_pShader->InitUniform("vignetteStrength", CGLSLShader::UNIFORM_FLOAT1);
-		m_attribs.u_VignetteRadius = m_pShader->InitUniform("vignetteRadius", CGLSLShader::UNIFORM_FLOAT1);
+		m_attribs.u_chromatic_strength = m_pShader->InitUniform("chromaticStrength", CGLSLShader::UNIFORM_FLOAT1);
+		m_attribs.u_bw_strength = m_pShader->InitUniform("BWStrength", CGLSLShader::UNIFORM_FLOAT1);
+		m_attribs.u_vignette_strength = m_pShader->InitUniform("vignetteStrength", CGLSLShader::UNIFORM_FLOAT1);
+		m_attribs.u_vignette_radius = m_pShader->InitUniform("vignetteRadius", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_offsetdivider = m_pShader->InitUniform("offsetdivider", CGLSLShader::UNIFORM_FLOAT2);
 		m_attribs.u_texture1rect = m_pShader->InitUniform("texture0rect", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_texture2rect = m_pShader->InitUniform("blurtextureRect", CGLSLShader::UNIFORM_INT1);
@@ -160,10 +160,10 @@ bool CPostProcess :: InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_screenheight, "screenheight", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_timer, "timer", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_grainammount, "grainamount", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_chromaticStrength, "chromaticStrength", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_BWStrength, "BWStrength", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_VignetteStrength, "vignetteStrength", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_VignetteRadius, "vignetteRadius", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_chromatic_strength, "chromaticStrength", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_bw_strength, "BWStrength", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_vignette_strength, "vignetteStrength", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_vignette_radius, "vignetteRadius", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_offsetdivider, "offsetdivider", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_texture1rect, "texture0rect", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_texture2rect, "blurtextureRect", m_pShader, Sys_ErrorPopup)
@@ -460,16 +460,8 @@ bool CPostProcess :: DrawFade( screenfade_t& fade )
 //=============================================
 bool CPostProcess :: DrawFilmGrain( void )
 {
-	if (!m_useFBOs)
-	{
-		FetchScreen(&m_pScreenRTT);
-		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
-	}
-	else
-	{
-		FetchScreen(&m_pScreenFBO);
-		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
-	}
+	FetchScreen(&m_pScreenRTT);
+	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
 
 	m_pShader->SetUniform1f(m_attribs.u_timer, rns.time*0.1);
 	m_pShader->SetUniform1f(m_attribs.u_grainammount, m_filmGrainStrength);
@@ -487,20 +479,12 @@ bool CPostProcess :: DrawFilmGrain( void )
 // @brief
 //
 //=============================================
-bool CPostProcess::DrawChromatic(void)
+bool CPostProcess::DrawChromatic( void )
 {
-	if (!m_useFBOs)
-	{
-		FetchScreen(&m_pScreenRTT);
-		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
-	}
-	else
-	{
-		FetchScreen(&m_pScreenFBO);
-		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
-	}
+	FetchScreen(&m_pScreenRTT);
+	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
 
-	m_pShader->SetUniform1f(m_attribs.u_chromaticStrength, m_chromaticStrength);
+	m_pShader->SetUniform1f(m_attribs.u_chromatic_strength, m_chromaticStrength);
 
 	if (!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_CHROMATIC))
 		return false;
@@ -513,20 +497,12 @@ bool CPostProcess::DrawChromatic(void)
 // @brief
 //
 //=============================================
-bool CPostProcess::DrawBW(void)
+bool CPostProcess::DrawBlackAndWhite( void )
 {
-	if (!m_useFBOs)
-	{
-		FetchScreen(&m_pScreenRTT);
-		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
-	}
-	else
-	{
-		FetchScreen(&m_pScreenFBO);
-		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
-	}
+	FetchScreen(&m_pScreenRTT);
+	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
 
-	m_pShader->SetUniform1f(m_attribs.u_BWStrength, m_blackwhiteStrength);
+	m_pShader->SetUniform1f(m_attribs.u_bw_strength, m_blackwhiteStrength);
 
 	if (!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_BW))
 		return false;
@@ -539,21 +515,13 @@ bool CPostProcess::DrawBW(void)
 // @brief
 //
 //=============================================
-bool CPostProcess::DrawVignette(void)
+bool CPostProcess::DrawVignette( void )
 {
-	if (!m_useFBOs)
-	{
-		FetchScreen(&m_pScreenRTT);
-		R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
-	}
-	else
-	{
-		FetchScreen(&m_pScreenFBO);
-		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pScreenFBO->fbo.ptexture1->gl_index);
-	}
+	FetchScreen(&m_pScreenRTT);
+	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
 
-	m_pShader->SetUniform1f(m_attribs.u_VignetteStrength, m_vignetteStrength);
-	m_pShader->SetUniform1f(m_attribs.u_VignetteRadius, m_vignetteRadius);
+	m_pShader->SetUniform1f(m_attribs.u_vignette_strength, m_vignetteStrength);
+	m_pShader->SetUniform1f(m_attribs.u_vignette_radius, m_vignetteRadius);
 
 	if (!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_VIGNETTE))
 		return false;
@@ -908,7 +876,7 @@ bool CPostProcess :: Draw( void )
 	// Render BW
 	if (m_pCvarPostProcess->GetValue() > 0 && m_blackwhiteActive)
 	{
-		if (!DrawBW())
+		if (!DrawBlackAndWhite())
 		{
 			Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 			m_pShader->DisableShader();
