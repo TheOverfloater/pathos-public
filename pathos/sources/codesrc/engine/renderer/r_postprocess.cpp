@@ -7,6 +7,10 @@ All Rights Reserved.
 ===============================================
 */
 
+// Notes:
+// The black and white effect, chromatic aberration, vignette 
+// and entity-customizable film grain code was done by valina354.
+
 #include "includes.h"
 #include "r_vbo.h"
 #include "r_glsl.h"
@@ -62,8 +66,8 @@ CPostProcess::CPostProcess( void ):
 	m_vignetteStrength(0.0f),
 	m_chromaticStrength(0.0f),
 	m_vignetteRadius(0.0f),
-	m_blackwhiteActive(false),
-	m_blackwhiteStrength(0.0f) ,
+	m_blackAndWhiteActive(false),
+	m_blackAndWhiteStrength(0.0f) ,
 	m_filmGrainStrength(0.0f),
 	m_filmGrainActive(0.0f)
 {
@@ -265,7 +269,7 @@ void CPostProcess :: ClearGame( void )
 	m_vignetteActive = false;
 	m_filmGrainActive = false;
 	m_chromaticActive = false;
-	m_blackwhiteActive = false;
+	m_blackAndWhiteActive = false;
 	m_blurOverride = false;
 	m_lastWaterTime = -1;
 	m_gaussianBlurAlpha = 1.0;
@@ -463,8 +467,12 @@ bool CPostProcess :: DrawFilmGrain( void )
 	FetchScreen(&m_pScreenRTT);
 	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
 
+	// If set from an entity, film grain strength is overridden by that
+	Float filmGrainStrength = m_filmGrainActive ? m_filmGrainStrength : m_pCvarFilmGrain->GetValue();
+
 	m_pShader->SetUniform1f(m_attribs.u_timer, rns.time*0.1);
-	m_pShader->SetUniform1f(m_attribs.u_grainammount, m_filmGrainStrength);
+	m_pShader->SetUniform1f(m_attribs.u_grainammount, filmGrainStrength);
+
 	if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_GRAIN))
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
@@ -502,7 +510,7 @@ bool CPostProcess::DrawBlackAndWhite( void )
 	FetchScreen(&m_pScreenRTT);
 	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenRTT->palloc->gl_index);
 
-	m_pShader->SetUniform1f(m_attribs.u_bw_strength, m_blackwhiteStrength);
+	m_pShader->SetUniform1f(m_attribs.u_bw_strength, m_blackAndWhiteStrength);
 
 	if (!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_BW))
 		return false;
@@ -851,7 +859,7 @@ bool CPostProcess :: Draw( void )
 	}
 
 	// Render film grain
-	if (m_pCvarPostProcess->GetValue() > 0 && m_filmGrainActive)
+	if (m_pCvarPostProcess->GetValue() > 0 && (m_pCvarFilmGrain->GetValue() > 0 || m_filmGrainActive))
 	{
 		if(!DrawFilmGrain())
 		{
@@ -874,7 +882,7 @@ bool CPostProcess :: Draw( void )
 	}
 
 	// Render BW
-	if (m_pCvarPostProcess->GetValue() > 0 && m_blackwhiteActive)
+	if (m_pCvarPostProcess->GetValue() > 0 && m_blackAndWhiteActive)
 	{
 		if (!DrawBlackAndWhite())
 		{
@@ -994,15 +1002,15 @@ void CPostProcess::SetFilmGrain(bool active, Float strength)
 // @brief
 //
 //=============================================
-void CPostProcess::SetBlackWhite(bool active, Float strength)
+void CPostProcess::SetBlackAndWhite(bool active, Float strength)
 {
 	if (!active)
 	{
-		m_blackwhiteActive = false;
+		m_blackAndWhiteActive = false;
 		return;
 	}
-	m_blackwhiteActive = active;
-	m_blackwhiteStrength = strength;
+	m_blackAndWhiteActive = active;
+	m_blackAndWhiteStrength = strength;
 }
 //=============================================
 // @brief

@@ -1,3 +1,14 @@
+/*
+===============================================
+Pathos Engine - Created by Andrew Stephen "Overfloater" Lucas
+
+Copyright 2016
+All Rights Reserved.
+===============================================
+*/
+
+// Code by valina354
+
 #ifndef MATHCOUNTER
 #define MATHCOUNTER
 
@@ -24,8 +35,8 @@ public:
     };
 
 public:
-    explicit CMathCounter(edict_t* pedict);
-    virtual ~CMathCounter(void);
+    explicit CMathCounter( edict_t* pedict );
+    virtual ~CMathCounter( void );
 
 public:
     // Spawn flags
@@ -37,14 +48,14 @@ public:
     };
 
 public:
-    virtual bool Spawn(void) override;
-    virtual void DeclareSaveFields(void) override;
-    virtual bool KeyValue(const keyvalue_t& kv) override;
-    virtual void CallUse(CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value) override;
+    virtual bool Spawn( void ) override;
+    virtual void DeclareSaveFields( void ) override;
+    virtual bool KeyValue( const keyvalue_t& kv ) override;
+    virtual void CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value ) override;
 
 public:
-    void IncrementValue(void);
-    void TriggerTarget(void);
+    void IncrementValue( void );
+    void TriggerTarget( void );
 
 private:
     int m_value;

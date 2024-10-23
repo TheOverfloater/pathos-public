@@ -1,44 +1,61 @@
+/*
+===============================================
+Pathos Engine - Created by Andrew Stephen "Overfloater" Lucas
+
+Copyright 2016
+All Rights Reserved.
+===============================================
+*/
+
+// Code by valina354
+
 #include "includes.h"
 #include "gd_includes.h"
 #include "envvignette.h"
 #include "player.h"
+
 // Link the entity to it's class
 LINK_ENTITY_TO_CLASS(env_vignette, CEnvVignette);
+
 //=============================================
 // @brief
 //
 //=============================================
-CEnvVignette::CEnvVignette(edict_t* pedict) :
+CEnvVignette::CEnvVignette( edict_t* pedict ) :
     CPointEntity(pedict),
     m_isActive(false),
     m_vignetteStrength(0.5f),
     m_vignetteRadius(0.5f)
 {
 }
+
 //=============================================
 // @brief
 //
 //=============================================
-CEnvVignette::~CEnvVignette(void)
+CEnvVignette::~CEnvVignette( void )
 {
 }
+
 //=============================================
 // @brief
 //
 //=============================================
-void CEnvVignette::DeclareSaveFields(void)
+void CEnvVignette::DeclareSaveFields( void )
 {
     // Call base class to do it first
     CPointEntity::DeclareSaveFields();
+
     DeclareSaveField(DEFINE_DATA_FIELD(CEnvVignette, m_isActive, EFIELD_BOOLEAN));
     DeclareSaveField(DEFINE_DATA_FIELD(CEnvVignette, m_vignetteStrength, EFIELD_FLOAT));
     DeclareSaveField(DEFINE_DATA_FIELD(CEnvVignette, m_vignetteRadius, EFIELD_FLOAT));
 }
+
 //=============================================
 // @brief
 //
 //=============================================
-bool CEnvVignette::KeyValue(const keyvalue_t& kv)
+bool CEnvVignette::KeyValue( const keyvalue_t& kv )
 {
     if (!qstrcmp(kv.keyname, "strength"))
     {
@@ -53,30 +70,36 @@ bool CEnvVignette::KeyValue(const keyvalue_t& kv)
     else
         return CPointEntity::KeyValue(kv);
 }
+
 //=============================================
 // @brief
 //
 //=============================================
-bool CEnvVignette::Spawn(void)
+bool CEnvVignette::Spawn( void )
 {
     if (!CPointEntity::Spawn())
         return false;
+
     if (HasSpawnFlag(FL_START_ON))
         m_isActive = true;
+
     return true;
 }
+
 //=============================================
 // @brief
 //
 //=============================================
-void CEnvVignette::SendInitMessage(const CBaseEntity* pPlayer)
+void CEnvVignette::SendInitMessage( const CBaseEntity* pPlayer )
 {
     if (pPlayer && !m_isActive)
         return;
+
     if (pPlayer)
         gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.vignette, nullptr, pPlayer->GetEdict());
     else
         gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.vignette, nullptr, nullptr);
+
     gd_engfuncs.pfnMsgWriteByte(m_isActive);
     if (m_isActive)
     {
@@ -85,11 +108,12 @@ void CEnvVignette::SendInitMessage(const CBaseEntity* pPlayer)
     }
     gd_engfuncs.pfnUserMessageEnd();
 }
+
 //=============================================
 // @brief
 //
 //=============================================
-void CEnvVignette::CallUse(CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value)
+void CEnvVignette::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value )
 {
     bool prevstate = m_isActive;
     switch (useMode)
@@ -104,6 +128,7 @@ void CEnvVignette::CallUse(CBaseEntity* pActivator, CBaseEntity* pCaller, usemod
         m_isActive = !m_isActive;
         break;
     }
+
     if (m_isActive != prevstate)
         SendInitMessage(nullptr);
 }

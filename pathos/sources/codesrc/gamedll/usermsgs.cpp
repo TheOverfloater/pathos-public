@@ -69,7 +69,7 @@ void InitClientUserMessages( void )
 	g_usermsgs.motionblur = gd_engfuncs.pfnRegisterUserMessage("MotionBlur", -1);
 	g_usermsgs.vignette = gd_engfuncs.pfnRegisterUserMessage("Vignette", -1);
 	g_usermsgs.filmgrain = gd_engfuncs.pfnRegisterUserMessage("FilmGrain", -1);
-	g_usermsgs.blackwhite = gd_engfuncs.pfnRegisterUserMessage("BlackWhite", -1);
+	g_usermsgs.blackandwhite = gd_engfuncs.pfnRegisterUserMessage("BlackAndWhite", -1);
 	g_usermsgs.chromatic = gd_engfuncs.pfnRegisterUserMessage("Chromatic", -1);
 	g_usermsgs.showmessage = gd_engfuncs.pfnRegisterUserMessage("ShowMessage", -1);
 	g_usermsgs.showcustommessage =  gd_engfuncs.pfnRegisterUserMessage("ShowCustomMessage", -1);

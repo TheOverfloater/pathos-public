@@ -7,6 +7,9 @@ All Rights Reserved.
 ===============================================
 */
 
+// Notes:
+// Flow mapping related code was done by valina354.
+
 #include "includes.h"
 #include "r_vbo.h"
 #include "r_glsl.h"
@@ -323,13 +326,6 @@ bool CWaterShader::InitGame( void )
 		m_pDefaultNormalTexture = pTextureManager->GetDummyTexture();
 		Con_EPrintf("%s - Couldn't load '%s'.\n", __FUNCTION__, WATER_DEFAULT_NORMALMAP_PATH);
 	}
-	for (size_t i = 0; i < m_waterSettingsArray.size(); ++i)
-	{
-		if (settings.pflowmap)
-		{
-			settings.pflowmap = pTextureManager->LoadTexture(settings.flowmappath.c_str(), RS_GAME_LEVEL);
-		}
-	}
 
 	// Load scripts
 	LoadScripts();
@@ -544,6 +540,7 @@ void CWaterShader::Restore( void ) const
 void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *psettings, const Char* pfile )
 {
 	CString normalmappath;
+	CString flowmappath;
 
 	const Char *pscan = pfile;
 	while(pscan)
@@ -612,7 +609,7 @@ void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *pset
 		else if (!qstrcmp(szField, "normalmap"))
 			normalmappath = szValue;
 		else if (!qstrcmp(szField, "flowmap"))
-			psettings->flowmappath = szValue;
+			flowmappath = szValue;
 		else if (!qstrcmp(szField, "flowmapspeed"))
 			psettings->flowmapspeed = atof(szValue);
 		else
@@ -673,6 +670,13 @@ void CWaterShader::ParseScript( const Char* pstrFilename, water_settings_t *pset
 			psettings->pnormalmap = m_pDefaultNormalTexture;
 			Con_EPrintf("%s - Couldn't load '%s'.\n", __FUNCTION__, normalmappath.c_str());
 		}
+	}
+
+	if(!flowmappath.empty())
+	{
+		psettings->pflowmap = CTextureManager::GetInstance()->LoadTexture(flowmappath.c_str(), RS_GAME_LEVEL);
+		if(!psettings->pflowmap)
+			Con_EPrintf("%s - Couldn't load flow map texture '%s'.\n", __FUNCTION__, normalmappath.c_str());
 	}
 }
 
@@ -1682,11 +1686,6 @@ bool CWaterShader::DrawWater( bool skybox )
 	m_pShader->SetUniform1i(m_attribs.u_lightmap, 1);
 	m_pShader->SetUniform1i(m_attribs.u_refract, 2);
 	m_pShader->SetUniform1i(m_attribs.u_reflect, 3);
-	m_pShader->SetUniform1i(m_attribs.u_flowmap, 4);
-	const water_settings_t* psettings = GetWaterSettings(m_pCurrentWater);
-	if (psettings->pflowmap) {
-		R_Bind2DTexture(GL_TEXTURE4, psettings->pflowmap->palloc->gl_index);
-	}
 
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
@@ -1757,8 +1756,27 @@ bool CWaterShader::DrawWater( bool skybox )
 
 		en_texture_t* pnormaltex = (psettings->pnormalmap) ? psettings->pnormalmap : m_pDefaultNormalTexture;
 		R_Bind2DTexture(GL_TEXTURE0, pnormaltex->palloc->gl_index);
-
 		R_Bind2DTexture(GL_TEXTURE1, m_pCurrentWater->plightmap_texture->gl_index);
+
+		// Now come optional units
+		Int32 textureUnit = 4;
+
+		if (psettings->pflowmap) 
+		{
+			R_Bind2DTexture(GL_TEXTURE0 + textureUnit, psettings->pflowmap->palloc->gl_index);
+			m_pShader->SetUniform1i(m_attribs.u_flowmap, textureUnit);
+			textureUnit++;
+
+			result = m_pShader->SetDeterminator(m_attribs.d_flowmap, TRUE, false);
+			if (!result)
+				break;
+		}
+		else
+		{
+			result = m_pShader->SetDeterminator(m_attribs.d_flowmap, FALSE, false);
+			if (!result)
+				break;
+		}
 
 		m_pShader->SetUniform1f(m_attribs.u_texscale, psettings->texscale);
 		m_pShader->SetUniform1f(m_attribs.u_strength, psettings->strength);
@@ -1769,8 +1787,6 @@ bool CWaterShader::DrawWater( bool skybox )
 		m_pShader->SetUniform1f(m_attribs.u_phongexponent, psettings->phongexponent*g_pCvarPhongExponent->GetValue());
 		m_pShader->SetUniform1f(m_attribs.u_wavefresnelstrength, psettings->wavefresnelstrength);
 		m_pShader->SetUniform1f(m_attribs.u_flowspeed, psettings->flowmapspeed);
-
-		Int32 textureUnit = 4;
 
 		if(psettings->cheaprefraction || m_waterQuality <= WATER_QUALITY_NO_REFLECT_REFRACT)
 		{
@@ -1867,9 +1883,7 @@ bool CWaterShader::DrawWater( bool skybox )
 		
 		if (psettings->pflowmap)
 		{
-			result = m_pShader->SetDeterminator(m_attribs.d_flowmap, 1);
-			if (!result)
-				break;
+
 		}
 		else
 		{

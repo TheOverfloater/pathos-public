@@ -70,7 +70,7 @@ static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 	CL_SetMotionBlur,				//pfnSetMotionBlur
 	CL_SetVignette,				    //pfnSetVignette
 	CL_SetFilmGrain,				//pfnSetFilmGrain
-	CL_SetBlackWhite,				//pfnSetBlackWhite
+	CL_SetBlackAndWhite,			//pfnSetBlackAndWhite
 	CL_SetChromatic,				//pfnSetChromatic
 	CL_SetFade,						//pfnSetFade
 	CL_SetGaussianBlur,				//pfnSetGaussianBlur
@@ -507,9 +507,9 @@ void CL_SetFilmGrain(bool active, Float strength)
 //====================================
 //
 //====================================
-void CL_SetBlackWhite(bool active, Float strength)
+void CL_SetBlackAndWhite(bool active, Float strength)
 {
-	gPostProcess.SetBlackWhite(active, strength);
+	gPostProcess.SetBlackAndWhite(active, strength);
 }
 //====================================
 //

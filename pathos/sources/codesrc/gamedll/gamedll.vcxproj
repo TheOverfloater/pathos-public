@@ -228,9 +228,12 @@
     <ClCompile Include="envbeam.cpp" />
     <ClCompile Include="envbeamfollow.cpp" />
     <ClCompile Include="envblackhole.cpp" />
+    <ClCompile Include="envblackandwhite.cpp" />
+    <ClCompile Include="envchromatic.cpp" />
     <ClCompile Include="envdlighttrain.cpp" />
     <ClCompile Include="envearthquake.cpp" />
     <ClCompile Include="envelighttrain.cpp" />
+    <ClCompile Include="envfilmgrain.cpp" />
     <ClCompile Include="envlaser.cpp" />
     <ClCompile Include="envlensflare.cpp" />
     <ClCompile Include="envlightning.cpp" />
@@ -246,6 +249,7 @@
     <ClCompile Include="envbeamfx.cpp" />
     <ClCompile Include="envsun.cpp" />
     <ClCompile Include="envsyncanimation.cpp" />
+    <ClCompile Include="envvignette.cpp" />
     <ClCompile Include="funcbreakable.cpp" />
     <ClCompile Include="funcbutton.cpp" />
     <ClCompile Include="funcdoor.cpp" />
@@ -323,6 +327,7 @@
     <ClCompile Include="itemshoulderlight.cpp" />
     <ClCompile Include="itemsodacan.cpp" />
     <ClCompile Include="itemtaperecorder.cpp" />
+    <ClCompile Include="mathcounter.cpp" />
     <ClCompile Include="multidamage.cpp" />
     <ClCompile Include="delayentity.cpp" />
     <ClCompile Include="envblur.cpp" />
@@ -501,9 +506,12 @@
     <ClInclude Include="envbeamfollow.h" />
     <ClInclude Include="envbeamfx.h" />
     <ClInclude Include="envblackhole.h" />
+    <ClInclude Include="envblackandwhite.h" />
+    <ClInclude Include="envchromatic.h" />
     <ClInclude Include="envdlighttrain.h" />
     <ClInclude Include="envearthquake.h" />
     <ClInclude Include="envelighttrain.h" />
+    <ClInclude Include="envfilmgrain.h" />
     <ClInclude Include="envlaser.h" />
     <ClInclude Include="envlensflare.h" />
     <ClInclude Include="envlightning.h" />
@@ -515,6 +523,7 @@
     <ClInclude Include="envsetskytexture.h" />
     <ClInclude Include="envsun.h" />
     <ClInclude Include="envsyncanimation.h" />
+    <ClInclude Include="envvignette.h" />
     <ClInclude Include="funcparticleblocker.h" />
     <ClInclude Include="funcportalsurface.h" />
     <ClInclude Include="funcslippery.h" />
@@ -528,6 +537,7 @@
     <ClInclude Include="itemtaperecorder.h" />
     <ClInclude Include="light.h" />
     <ClInclude Include="lightstyles.h" />
+    <ClInclude Include="mathcounter.h" />
     <ClInclude Include="nodeviewer.h" />
     <ClInclude Include="npcclonesoldier.h" />
     <ClInclude Include="npcgeneric.h" />

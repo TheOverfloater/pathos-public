@@ -52,7 +52,7 @@ struct cl_efxapi_t
 	void					(*pfnSetMotionBlur)( bool active, Float blurfade, bool override );
 	void					(*pfnSetVignette)(bool active, Float strength, Float radius);
 	void					(*pfnSetFilmGrain)(bool active, Float strength);
-	void					(*pfnSetBlackWhite)(bool active, Float strength);
+	void					(*pfnSetBlackAndWhite)(bool active, Float strength);
 	void					(*pfnSetChromatic)(bool active, Float strength);
 	void					(*pfnSetFade)( Uint32 layerindex, Float duration, Float holdtime, Int32 flags, const color24_t& color, byte alpha, Float timeoffset );
 	void					(*pfnSetGaussianBlur)( bool active, Float alpha );

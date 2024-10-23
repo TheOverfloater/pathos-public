@@ -44,6 +44,8 @@ All Rights Reserved.
 // Part of this implementation is based on the implementation in the Half-Life SDK
 // The studiomodel format is Valve's original work, and I take no ownership of it
 // No copyright infringement intended
+// AO mapping related code was done by valina354.
+
 
 // Number of random colors
 static constexpr Uint32 NUM_RANDOM_COLORS = 16;
@@ -3679,7 +3681,6 @@ bool CVBMRenderer::DrawFinal ( void )
 			return false;
 	}
 	
-	bool hasNormalMapped = false;
 	bool hasSpecular = false;
 	Int32 textureFlags = 0;
 
@@ -3793,9 +3794,6 @@ bool CVBMRenderer::DrawFinal ( void )
 			if(pmaterial->ptextures[MT_TX_SPECULAR])
 				hasSpecular = true;
 
-			if(pmaterial->ptextures[MT_TX_SPECULAR] && pmaterial->ptextures[MT_TX_NORMALMAP])
-				hasNormalMapped = true;
-
 			if(pmesh->numbones)
 				SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
 
@@ -3854,21 +3852,16 @@ bool CVBMRenderer::DrawFinal ( void )
 		// TODO: add AO here!
 		glBlendFunc(GL_ONE, GL_ONE);
 
-		// Draw non-bump mapped ones first
 		if(!m_pShader->SetDeterminator(m_attribs.d_numlights, m_numModelLights, false) || 
 			!m_pShader->SetDeterminator(m_attribs.d_specular, TRUE, false) || 
-			!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_speconly, false) ||
-			!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE))
+			!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_speconly, false))
 			return false;
 
 		m_pShader->EnableSync(m_attribs.u_sky_ambient);
 		m_pShader->EnableSync(m_attribs.u_sky_diffuse);
 		m_pShader->EnableSync(m_attribs.u_sky_dir);
 		m_pShader->EnableSync(m_attribs.u_spectexture);
-
-		// Enable sync on these
-		if(hasNormalMapped)
-			m_pShader->EnableSync(m_attribs.u_normalmap);
+		m_pShader->EnableSync(m_attribs.u_normalmap);
 
 		m_pShader->EnableAttribute(m_attribs.a_texcoord1);
 		m_pShader->EnableAttribute(m_attribs.a_normal);
@@ -3898,6 +3891,15 @@ bool CVBMRenderer::DrawFinal ( void )
 
 			for (Int32 j = 0; j < m_pVBMSubModel->nummeshes; j++) 
 			{
+				// First texture unit used
+				Int32 textureunit = 2;
+				// Normal mapping unit used
+				Int32 normalmapunit = NO_POSITION;
+				// Specular mapping unit used
+				Int32 specularmapunit = NO_POSITION;
+				// Ambient occlusion mapping unit used
+				Int32 aomapunit = NO_POSITION;
+
 				const vbmmesh_t *pmesh = m_pVBMSubModel->getMesh(m_pVBMHeader, j);
 				const vbmtexture_t *ptexture = m_pVBMHeader->getTexture(pskinref[pmesh->skinref]);
 
@@ -3911,63 +3913,77 @@ bool CVBMRenderer::DrawFinal ( void )
 				m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
 				m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
 
-				if(pmaterial->ptextures[MT_TX_NORMALMAP])
-					continue;
+				// Set the specular mapping unit
+				specularmapunit = textureunit;
+				textureunit++;
+
+				R_Bind2DTexture(GL_TEXTURE0 + specularmapunit, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
+				m_pShader->SetUniform1i(m_attribs.u_spectexture, specularmapunit);
+
+				// Set normal map if any
+				if (pmaterial->ptextures[MT_TX_NORMALMAP])
+				{
+					if (!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, true))
+						return false;
+
+					// Specify the AO map unit
+					normalmapunit = textureunit;
+					textureunit++;
+
+					R_Bind2DTexture(GL_TEXTURE0 + normalmapunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
+				}
+				else
+				{
+					if (!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, false))
+						return false;
+
+					normalmapunit = NO_POSITION;
+				}
+
+				if (pmaterial->ptextures[MT_TX_AO])
+				{
+					if (!m_pShader->SetDeterminator(m_attribs.d_ao, true))
+						return false;
+
+					// Specify the AO map unit
+					aomapunit = textureunit;
+					textureunit++;
+
+					R_Bind2DTexture(GL_TEXTURE0 + aomapunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
+				}
+				else
+				{
+					if (!m_pShader->SetDeterminator(m_attribs.d_ao, false))
+						return false;
+
+					aomapunit = NO_POSITION;
+				}
 					
+				// u_specular always needs to be set, otherwise AMD will complain
+				// about two samplers being on the same unit.
+				m_pShader->SetUniform1i(m_attribs.u_normalmap, normalmapunit);
+				if (specularmapunit != NO_POSITION)
+					m_pShader->SetUniform1i(m_attribs.u_spectexture, specularmapunit);
+				else if (aomapunit != NO_POSITION)
+					m_pShader->SetUniform1i(m_attribs.u_spectexture, aomapunit + 1);
+				else
+					m_pShader->SetUniform1i(m_attribs.u_spectexture, normalmapunit + 1);
+
 				if(pmesh->numbones)
 					SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
 
-				R_Bind2DTexture(GL_TEXTURE2, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
 				R_ValidateShader(m_pShader);
 
 				glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 			}
 		}
 
-		// Now draw bump mapped ones
-		if(hasNormalMapped)
-		{
-			if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, TRUE))
-				return false;
+		m_pShader->DisableSync(m_attribs.u_sky_ambient);
+		m_pShader->DisableSync(m_attribs.u_sky_diffuse);
+		m_pShader->DisableSync(m_attribs.u_sky_dir);
 
-			for (Uint32 i = 0; i < m_numDrawSubmodels; i++)
-			{
-				m_pVBMSubModel = m_pSubmodelDrawList[i];
-
-				for (Int32 j = 0; j < m_pVBMSubModel->nummeshes; j++) 
-				{
-					const vbmmesh_t *pmesh = m_pVBMSubModel->getMesh(m_pVBMHeader, j);
-					const vbmtexture_t *ptexture = m_pVBMHeader->getTexture(pskinref[pmesh->skinref]);
-
-					en_material_t* pmaterial = pTextureManager->FindMaterialScriptByIndex(ptexture->index);
-					if(!pmaterial)
-						continue;
-
-					if(!pmaterial->ptextures[MT_TX_SPECULAR] || !pmaterial->ptextures[MT_TX_NORMALMAP])
-						continue;
-
-					m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
-					m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
-
-					R_Bind2DTexture(GL_TEXTURE2, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
-					R_Bind2DTexture(GL_TEXTURE3, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
-
-					if(pmesh->numbones)
-						SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
-
-					R_ValidateShader(m_pShader);
-
-					glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
-				}
-			}
-
-			m_pShader->DisableSync(m_attribs.u_sky_ambient);
-			m_pShader->DisableSync(m_attribs.u_sky_diffuse);
-			m_pShader->DisableSync(m_attribs.u_sky_dir);
-
-			if(!m_areUBOsSupported)
-				m_pShader->DisableSync(m_attribs.u_normalmatrix);
-		}
+		if (!m_areUBOsSupported)
+			m_pShader->DisableSync(m_attribs.u_normalmatrix);
 
 		// Draw dynamic light specular lighting
 		if(m_numDynamicLights)

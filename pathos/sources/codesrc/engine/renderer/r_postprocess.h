@@ -165,7 +165,7 @@ public:
 	// Toggle filmgrain effect message
 	void SetFilmGrain(bool active, Float strength);
 	// Toggle bw effect message
-	void SetBlackWhite(bool active, Float strength);
+	void SetBlackAndWhite( bool active, Float strength );
 	// Toggle chromatic effect message
 	void SetChromatic(bool active, Float strength);
 	// Reads fade message
@@ -186,7 +186,7 @@ private:
 	// TRUE if vignette is active
 	bool			m_vignetteActive;
 	// TRUE if bw is active
-	bool			m_blackwhiteActive;
+	bool			m_blackAndWhiteActive;
 	// TRUE if filmgrain is active
 	bool			m_filmGrainActive;
 	// TRUE if chromatic is active
@@ -223,7 +223,7 @@ private:
 	// Filmgrain strength
 	Float           m_filmGrainStrength;
 	// bw strength
-	Float           m_blackwhiteStrength;
+	Float           m_blackAndWhiteStrength;
 	// Vignette radius
 	Float           m_vignetteRadius;
 	// Chromatic strength

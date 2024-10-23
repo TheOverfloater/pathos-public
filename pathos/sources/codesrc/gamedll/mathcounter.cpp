@@ -1,12 +1,23 @@
+/*
+===============================================
+Pathos Engine - Created by Andrew Stephen "Overfloater" Lucas
+
+Copyright 2016
+All Rights Reserved.
+===============================================
+*/
+
+// Code by valina354
+
 #include "includes.h"
 #include "gd_includes.h"
 #include "mathcounter.h"
 
 // Default values
-const int CMathCounter::DEFAULT_START_VALUE = 0;
-const int CMathCounter::DEFAULT_INCREMENT = 1;
-const int CMathCounter::DEFAULT_MAX_VALUE = 100;
-const int CMathCounter::DEFAULT_MIN_VALUE = 0;
+const Int32 CMathCounter::DEFAULT_START_VALUE = 0;
+const Int32 CMathCounter::DEFAULT_INCREMENT = 1;
+const Int32 CMathCounter::DEFAULT_MAX_VALUE = 100;
+const Int32 CMathCounter::DEFAULT_MIN_VALUE = 0;
 
 // Link the entity to its class
 LINK_ENTITY_TO_CLASS(math_counter, CMathCounter);
@@ -14,7 +25,7 @@ LINK_ENTITY_TO_CLASS(math_counter, CMathCounter);
 //=============================================
 // @brief Constructor
 //=============================================
-CMathCounter::CMathCounter(edict_t* pedict) :
+CMathCounter::CMathCounter( edict_t* pedict ) :
     CPointEntity(pedict),
     m_value(DEFAULT_START_VALUE),
     m_increment(DEFAULT_INCREMENT),
@@ -28,14 +39,14 @@ CMathCounter::CMathCounter(edict_t* pedict) :
 //=============================================
 // @brief Destructor
 //=============================================
-CMathCounter::~CMathCounter(void)
+CMathCounter::~CMathCounter( void )
 {
 }
 
 //=============================================
 // @brief Declare save fields
 //=============================================
-void CMathCounter::DeclareSaveFields(void)
+void CMathCounter::DeclareSaveFields( void )
 {
     // Call base class to do it first
     CPointEntity::DeclareSaveFields();
@@ -51,7 +62,7 @@ void CMathCounter::DeclareSaveFields(void)
 //=============================================
 // @brief Handle key-value pairs
 //=============================================
-bool CMathCounter::KeyValue(const keyvalue_t& kv)
+bool CMathCounter::KeyValue( const keyvalue_t& kv )
 {
     if (!qstrcmp(kv.keyname, "startvalue"))
     {
@@ -80,11 +91,9 @@ bool CMathCounter::KeyValue(const keyvalue_t& kv)
     }
     else if (!qstrcmp(kv.keyname, "operation"))
     {
-        int op = SDL_atoi(kv.value);
+        Int32 op = SDL_atoi(kv.value);
         if (op >= 0 && op <= 3)
-        {
             m_operation = static_cast<Operation>(op);
-        }
         return true;
     }
     else
@@ -94,7 +103,7 @@ bool CMathCounter::KeyValue(const keyvalue_t& kv)
 //=============================================
 // @brief Spawn the entity
 //=============================================
-bool CMathCounter::Spawn(void)
+bool CMathCounter::Spawn( void )
 {
     if (!CPointEntity::Spawn())
         return false;
@@ -110,7 +119,7 @@ bool CMathCounter::Spawn(void)
 //=============================================
 // @brief Increase or modify the counter value
 //=============================================
-void CMathCounter::IncrementValue(void)
+void CMathCounter::IncrementValue( void )
 {
     switch (m_operation)
     {
@@ -144,7 +153,7 @@ void CMathCounter::IncrementValue(void)
 //=============================================
 // @brief Call the use function
 //=============================================
-void CMathCounter::CallUse(CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value)
+void CMathCounter::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value )
 {
     m_activator = pActivator;
 
@@ -156,9 +165,7 @@ void CMathCounter::CallUse(CBaseEntity* pActivator, CBaseEntity* pCaller, usemod
     default:
         IncrementValue();
         if (HasSpawnFlag(FL_RESET_ON_USE))
-        {
             m_value = DEFAULT_START_VALUE;
-        }
         break;
     }
 }

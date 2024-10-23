@@ -918,6 +918,21 @@
     <ClCompile Include="lightstyles.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="envblackandwhite.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envchromatic.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envfilmgrain.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="envvignette.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="mathcounter.cpp">
+      <Filter>Source Files\entities\other</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gamedll.h">
@@ -1723,6 +1738,21 @@
     </ClInclude>
     <ClInclude Include="light.h">
       <Filter>Header Files\entities\light</Filter>
+    </ClInclude>
+    <ClInclude Include="envblackandwhite.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envchromatic.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envfilmgrain.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envvignette.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="mathcounter.h">
+      <Filter>Header Files\entities\other</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

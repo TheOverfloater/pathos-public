@@ -60,7 +60,7 @@ struct usermsglist_t
 		motionblur(0),
 		vignette(0),
 		filmgrain(0),
-		blackwhite(0),
+		blackandwhite(0),
 		chromatic(0),
 		showmessage(0),
 		showcustommessage(0),
@@ -124,7 +124,7 @@ struct usermsglist_t
 	Int32 motionblur;
 	Int32 vignette;
 	Int32 filmgrain;
-	Int32 blackwhite;
+	Int32 blackandwhite;
 	Int32 chromatic;
 	Int32 showmessage;
 	Int32 showcustommessage;

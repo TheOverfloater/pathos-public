@@ -8,6 +8,9 @@ All Rights Reserved.
 ===============================================
 */
 
+// Notes:
+// AO mapping related code was done by valina354.
+
 #include "includes.h"
 #include "brushmodel.h"
 #include "cl_entity.h"
@@ -3042,7 +3045,7 @@ bool CBSPRenderer::DrawBrushModel( cl_entity_t& entity, bool isstatic )
 // @brief
 //
 //=============================================
-bool CBSPRenderer::SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Uint32& texunit, lightbatchtype_t type )
+bool CBSPRenderer::SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Int32& texunit, lightbatchtype_t type )
 {
 	CMatrix matrix;
 	Vector vtransorigin;
@@ -3484,7 +3487,7 @@ bool CBSPRenderer::DrawLights( bool specular )
 				normalmapunit = texunit;
 				texunit++;
 
-				R_Bind2DTexture(GL_TEXTURE0+ normalmapunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
+				R_Bind2DTexture(GL_TEXTURE0 + normalmapunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
 
 				m_pShader->EnableAttribute(m_attribs.a_tangent);
 				m_pShader->EnableAttribute(m_attribs.a_binormal);
@@ -3992,7 +3995,6 @@ bool CBSPRenderer::DrawFinal( void )
 //=============================================
 bool CBSPRenderer::DrawFinalSpecular( void ) 
 {
-	// TODO: Add AO here!
 	if(!m_bumpMaps || g_pCvarBumpMaps->GetValue() < 1 || g_pCvarSpecular->GetValue() < 1)
 		return true;
 
@@ -4010,7 +4012,7 @@ bool CBSPRenderer::DrawFinalSpecular( void )
 
 	if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, TRUE, false)
 		|| !m_pShader->SetDeterminator(m_attribs.d_specular, TRUE, false)
-		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_speconly))
+		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_speconly, false))
 		return false;
 
 	m_pShader->SetUniform1i(m_attribs.u_difflightmap, 0);
@@ -4044,6 +4046,21 @@ bool CBSPRenderer::DrawFinalSpecular( void )
 
 		m_pShader->SetUniform1i(m_attribs.u_specular, 3);
 		R_Bind2DTexture(GL_TEXTURE3, pspecular->palloc->gl_index);
+
+		if (pmaterial->ptextures[MT_TX_AO])
+		{
+			if (!m_pShader->SetDeterminator(m_attribs.d_ao, TRUE))
+				return false;
+
+			en_texture_t* paotexture = pmaterial->ptextures[MT_TX_AO];
+			m_pShader->SetUniform1i(m_attribs.u_aomap, 4);
+			R_Bind2DTexture(GL_TEXTURE0 + 4, paotexture->palloc->gl_index);
+		}
+		else
+		{
+			if (!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE))
+				return false;
+		}
 
 		R_ValidateShader(m_pShader);
 
@@ -4112,6 +4129,21 @@ bool CBSPRenderer::DrawFinalSpecular( void )
 
 					m_pShader->SetUniform1i(m_attribs.u_specular, 3);
 					R_Bind2DTexture(GL_TEXTURE3, pspecular->palloc->gl_index);
+
+					if (pmaterial->ptextures[MT_TX_AO])
+					{
+						if (!m_pShader->SetDeterminator(m_attribs.d_ao, TRUE))
+							return false;
+
+						en_texture_t* paotexture = pmaterial->ptextures[MT_TX_AO];
+						m_pShader->SetUniform1i(m_attribs.u_aomap, 4);
+						R_Bind2DTexture(GL_TEXTURE0 + 4, paotexture->palloc->gl_index);
+					}
+					else
+					{
+						if (!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE))
+							return false;
+					}
 
 					R_ValidateShader(m_pShader);
 

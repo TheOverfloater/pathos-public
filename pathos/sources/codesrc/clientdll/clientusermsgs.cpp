@@ -28,6 +28,7 @@ All Rights Reserved.
 #include "tempentity.h"
 #include "screentext.h"
 #include "beam_shared.h"
+#include "flex_shared.h"
 
 #include "gameui_shared.h"
 #include "gameuimanager.h"
@@ -2379,5 +2380,113 @@ MSGFN MsgFunc_SetSkyTexture( const Char* pstrName, const byte* pdata, Uint32 msg
 	}
 
 	cl_efxapi.pfnSetSkyTexture(setIndex);
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+MSGFN MsgFunc_Vignette(const Char* pstrName, const byte* pdata, Uint32 msgsize)
+{
+	CMSGReader reader(pdata, msgsize);
+	bool isActive = (reader.ReadByte() == 1) ? true : false;
+	
+	Float strength;
+	Float radius;
+
+	if (isActive)
+	{
+		strength = reader.ReadFloat();
+		radius = reader.ReadFloat();
+	}
+	else
+	{
+		strength = 0;
+		radius = 0;
+	}
+
+	if (reader.HasError())
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+		return false;
+	}
+
+	cl_efxapi.pfnSetVignette(isActive, strength, radius);
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+MSGFN MsgFunc_FilmGrain(const Char* pstrName, const byte* pdata, Uint32 msgsize)
+{
+	CMSGReader reader(pdata, msgsize);
+	bool isActive = (reader.ReadByte() == 1) ? true : false;
+
+	Float strength;
+	if (isActive)
+		strength = reader.ReadFloat();
+	else
+		strength = 0;
+
+	if (reader.HasError())
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+		return false;
+	}
+
+	cl_efxapi.pfnSetFilmGrain(isActive, strength);
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+MSGFN MsgFunc_BlackAndWhite(const Char* pstrName, const byte* pdata, Uint32 msgsize)
+{
+	CMSGReader reader(pdata, msgsize);
+	bool isActive = (reader.ReadByte() == 1) ? true : false;
+
+	Float strength;
+	if (isActive)
+		strength = reader.ReadFloat();
+	else
+		strength = 0;
+
+	if (reader.HasError())
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+		return false;
+	}
+
+	cl_efxapi.pfnSetBlackAndWhite(isActive, strength);
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+MSGFN MsgFunc_Chromatic(const Char* pstrName, const byte* pdata, Uint32 msgsize)
+{
+	CMSGReader reader(pdata, msgsize);
+	bool isActive = (reader.ReadByte() == 1) ? true : false;
+
+	Float strength;
+	if (isActive)
+		strength = reader.ReadFloat();
+	else
+		strength = 0;
+
+	if (reader.HasError())
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+		return false;
+	}
+
+	cl_efxapi.pfnSetChromatic(isActive, strength);
 	return true;
 }
