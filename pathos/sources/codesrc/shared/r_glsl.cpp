@@ -495,8 +495,8 @@ bool CGLSLShader::CompileFromCSD( void )
 	m_fileInterface.pfnFreeFile(pFile);
 
 	// Set determinator values
-	m_pDeterminatorValues = new Int32[m_pCSDHeader->numshaders];
-	for(Uint32 i = 0; i < m_pCSDHeader->numshaders; i++)
+	m_pDeterminatorValues = new Int32[m_pCSDHeader->numdeterminators];
+	for(Uint32 i = 0; i < m_pCSDHeader->numdeterminators; i++)
 		m_pDeterminatorValues[i] = 0;
 
 	// Set determinators
@@ -1739,12 +1739,6 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 		RecursiveFillValues(0, nbShaders);
 	}
 
-	if(nbShaders >= MAX_VARIATIONS)
-	{
-		m_errorString << CString("nbShaders > ") << static_cast<Int32>(MAX_VARIATIONS) << " in " << m_shaderFile;
-		return false;
-	}
-
 	// Get the temp buffer for writing the file
 	CBuffer csdBuffer(TEMP_FILE_BUFFER_SIZE);
 	csdheader_t* pheader = reinterpret_cast<csdheader_t*>(csdBuffer.getbufferdata());
@@ -2527,6 +2521,8 @@ Int32 CGLSLShader :: InitUniformBufferObject( const Char* pstrName, Uint32 buffe
 //=============================================
 bool CGLSLShader :: SetDeterminator ( Int32 index, Int32 value, bool update )
 {
+	assert(index >= 0 && index < m_determinatorArray.size());
+
 	if(!m_reCheck)
 	{
 		if(m_pDeterminatorValues[index] == value)

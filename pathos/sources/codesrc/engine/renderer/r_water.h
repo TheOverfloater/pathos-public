@@ -86,7 +86,8 @@ struct water_settings_t
 		phongexponent(0),
 		refractonly(false),
 		cheaprefraction(false),
-		pnormalmap(nullptr)
+		pnormalmap(nullptr),
+		pflowmap(nullptr)
 		{}
 
 	fog_settings_t fogparams;
@@ -107,7 +108,6 @@ struct water_settings_t
 	bool refractonly;
 	bool cheaprefraction;
 	
-	CString flowmappath;
 	en_texture_t* pnormalmap;
 	en_texture_t* pflowmap;
 };

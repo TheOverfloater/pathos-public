@@ -12,6 +12,6 @@ $particlescript
 	$alpha 0.600000
 	$alignment to_normal
 	$texture snowflake
-	$render_flags overbright
+	$render_flags overbright nocull
 	$min_light_value 0.400000
 }

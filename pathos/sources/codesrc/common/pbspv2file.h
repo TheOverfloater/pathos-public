@@ -78,6 +78,14 @@ enum pbspv2_flags_t
 };
 
 //
+// Lightmap data compression types
+//
+enum pbspv2_compressiontypes_t
+{
+	PBSPV2_LMAP_COMPRESSION_MINIZ = 0
+};
+
+//
 // Header for Pathos BSP V1
 //
 
@@ -264,5 +272,18 @@ struct dpbspv2leaf_t
 	Uint32 nummarksurfaces;
 
 	byte ambient_level[PBSPV2_NUM_AMBIENTS];
+};
+
+struct dpbspv2lmapdata_t
+{
+	dpbspv2lmapdata_t():
+		compression(0),
+		dataoffset(0),
+		datasize(0)
+	{}
+
+	Int32 compression;
+	Int32 dataoffset;
+	Int32 datasize;
 };
 #endif //PBSPV2FILE_H

@@ -493,28 +493,28 @@ void CL_SetMotionBlur( bool active, Float blurfade, bool override )
 //====================================
 //
 //====================================
-void CL_SetVignette(bool active, Float strength, Float radius)
+void CL_SetVignette( bool active, Float strength, Float radius )
 {
 	gPostProcess.SetVignette(active, strength, radius);
 }
 //====================================
 // 
 //====================================
-void CL_SetFilmGrain(bool active, Float strength)
+void CL_SetFilmGrain( bool active, Float strength )
 {
 	gPostProcess.SetFilmGrain(active, strength);
 }
 //====================================
 //
 //====================================
-void CL_SetBlackAndWhite(bool active, Float strength)
+void CL_SetBlackAndWhite( bool active, Float strength )
 {
 	gPostProcess.SetBlackAndWhite(active, strength);
 }
 //====================================
 //
 //====================================
-void CL_SetChromatic(bool active, Float strength)
+void CL_SetChromatic( bool active, Float strength )
 {
 	gPostProcess.SetChromatic(active, strength);
 }

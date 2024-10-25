@@ -487,7 +487,7 @@ extern void R_InitRenderInterface( r_interface_t &renderFuncs );
 extern void R_Bind2DTexture( Int32 texture, Uint32 id, bool force = false );
 extern void R_BindRectangleTexture( Int32 texture, Uint32 id, bool force = false );
 extern void R_BindCubemapTexture( Int32 texture, Uint32 id, bool force = false );
-extern void R_ClearBinds( void );
+extern void R_ClearBinds( Uint32 firstUnit = 0 );
 
 extern bool R_DrawScene( void );
 extern bool R_DrawInterface( void );

@@ -34,6 +34,8 @@ All Rights Reserved.
 static constexpr Float BLUR_FADE = 0.1;
 // Water effects fade duration
 static constexpr Float WATER_FADE_TIME = 2.0;
+// Default grain amount
+static constexpr Float DEFAULT_GRAIN_AMOUNT = 0.05f;
 
 // Class definition
 CPostProcess gPostProcess;
@@ -63,9 +65,9 @@ CPostProcess::CPostProcess( void ):
 	m_pBlurScreenTexture(nullptr),
 	m_vignetteActive(false),
 	m_chromaticActive(false),
-	m_vignetteStrength(0.0f),
+	m_vignetteStrength(0),
 	m_chromaticStrength(0.0f),
-	m_vignetteRadius(0.0f),
+	m_vignetteRadius(0),
 	m_blackAndWhiteActive(false),
 	m_blackAndWhiteStrength(0.0f) ,
 	m_filmGrainStrength(0.0f),
@@ -469,9 +471,10 @@ bool CPostProcess :: DrawFilmGrain( void )
 
 	// If set from an entity, film grain strength is overridden by that
 	Float filmGrainStrength = m_filmGrainActive ? m_filmGrainStrength : m_pCvarFilmGrain->GetValue();
+	Float grainAmount = DEFAULT_GRAIN_AMOUNT * filmGrainStrength;
 
 	m_pShader->SetUniform1f(m_attribs.u_timer, rns.time*0.1);
-	m_pShader->SetUniform1f(m_attribs.u_grainammount, filmGrainStrength);
+	m_pShader->SetUniform1f(m_attribs.u_grainammount, grainAmount);
 
 	if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_GRAIN))
 	{
@@ -980,6 +983,7 @@ void CPostProcess::SetVignette(bool active, Float strength, Float radius)
 		m_vignetteActive = false;
 		return;
 	}
+
 	m_vignetteActive = active;
 	m_vignetteStrength = strength;
 	m_vignetteRadius = radius;

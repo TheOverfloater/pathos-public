@@ -42,7 +42,7 @@ struct r_interface_t
 	// Binds a texture to a texture unit
 	void				(*pfnBind2DTexture)( Int32 texture, Uint32 id, bool force );
 	// Clears all memorized binds
-	void				(*pfnClearBinds)( void );
+	void				(*pfnClearBinds)( Uint32 firstunit );
 
 	// Tells if basic draw is active
 	bool				(*pfnBasicDrawIsActive)( void );

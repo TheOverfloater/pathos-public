@@ -35,6 +35,7 @@ uniform float brighten_multiplier;
 uniform float blur_brightness;
 uniform int blur_radius;
 uniform float brightness_treshold;
+uniform float grainamount;
 
 $branch pp_type == 0
 $begin
@@ -59,7 +60,6 @@ uniform float timer;
 const float permTexUnit = 1.0/256.0;		// Perm texture texel-size
 const float permTexUnitHalf = 0.5/256.0;	// Half perm texture texel-size
 
-const float grainamount = 0.05; //grain amount
 float grainsize = 1.6; //grain particle size (1.5 - 2.5)
 float lumamount = 1.0; //
 float coloramount = 0.6;
@@ -266,7 +266,7 @@ void main()
 	$end
 	$branch pp_type == 10
 	$begin
-		float blur_fraction = 1.0f / blur_radius;
+		float blur_fraction = 1.0f / (blur_radius*2);
 		
 		vec4 outcolor = texture0Func(ps_texcoord)*blur_fraction;
 		for(int i = 1; i < blur_radius; i++)
@@ -278,7 +278,7 @@ void main()
 	$end
 	$branch pp_type == 11
 	$begin
-		float blur_fraction = 1.0f / blur_radius;
+		float blur_fraction = 1.0f / (blur_radius*2);
 		
 		vec4 outcolor = texture0Func(ps_texcoord)*blur_fraction;
 		for(int i = 1; i < blur_radius; i++)
@@ -290,32 +290,32 @@ void main()
 	$end
 	$branch pp_type == 12
     $begin
-    vec2 offsetR = vec2(chromaticStrength * 1000.0 / screenwidth, 0.0);
-    vec2 offsetG = vec2(-chromaticStrength * 1000.0 / screenwidth, 0.0);
-    vec2 offsetB = vec2(0.0, chromaticStrength * 1000.0 / screenheight);
-    vec4 colorR = texture0Func(ps_texcoord + offsetR);
-    vec4 colorG = texture0Func(ps_texcoord + offsetG);
-    vec4 colorB = texture0Func(ps_texcoord + offsetB);
-    oColor.r = colorR.r;
-    oColor.g = colorG.g;
-    oColor.b = colorB.b;
-    oColor.a = (colorR.a + colorG.a + colorB.a) / 3.0;
+		vec2 offsetR = vec2(chromaticStrength * 1000.0 / screenwidth, 0.0);
+		vec2 offsetG = vec2(-chromaticStrength * 1000.0 / screenwidth, 0.0);
+		vec2 offsetB = vec2(0.0, chromaticStrength * 1000.0 / screenheight);
+		vec4 colorR = texture0Func(ps_texcoord + offsetR);
+		vec4 colorG = texture0Func(ps_texcoord + offsetG);
+		vec4 colorB = texture0Func(ps_texcoord + offsetB);
+		oColor.r = colorR.r;
+		oColor.g = colorG.g;
+		oColor.b = colorB.b;
+		oColor.a = (colorR.a + colorG.a + colorB.a) / 3.0;
     $end
 	$branch pp_type == 13
     $begin
-    vec4 color = texture0Func(ps_texcoord);
-    float luminance = 0.3 * color.r + 0.59 * color.g + 0.11 * color.b;
-    vec4 grayscaleColor = vec4(vec3(luminance), color.a);
-    oColor = mix(color, grayscaleColor, BWStrength);
+		vec4 color = texture0Func(ps_texcoord);
+		float luminance = 0.3 * color.r + 0.59 * color.g + 0.11 * color.b;
+		vec4 grayscaleColor = vec4(vec3(luminance), color.a);
+		oColor = mix(color, grayscaleColor, BWStrength);
     $end
 	$branch pp_type == 14
     $begin
-    vec4 color = texture0Func(ps_texcoord);
-    vec2 uv = ps_texcoord;
-    vec2 centeredUV = uv - vec2(0.5, 0.5);
-    float distance = length(centeredUV);
-    float vignette = smoothstep(vignetteRadius, vignetteRadius - vignetteStrength, distance);
-    oColor = color * vignette;
+		vec4 color = texture0Func(ps_texcoord);
+		vec2 uv = vec2(ps_texcoord.x / screenwidth, ps_texcoord.y / screenheight);
+		vec2 centeredUV = uv - vec2(0.5, 0.5);
+		float distance = length(centeredUV);
+		float vignette = smoothstep(vignetteRadius, vignetteRadius - vignetteStrength, distance);
+		oColor = color * vignette;
     $end
 }
 $end

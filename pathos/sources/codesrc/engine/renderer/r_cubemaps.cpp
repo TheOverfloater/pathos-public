@@ -24,6 +24,8 @@ All Rights Reserved.
 #include "enginestate.h"
 #include "enginefuncs.h"
 #include "r_fbocache.h"
+#include "r_glextf.h"
+#include "stb_dxt.h"
 
 // Console commands
 void Cmd_BuildCubemaps( void ) { gCubemaps.BuildCubemaps(); }
@@ -133,14 +135,31 @@ bool CCubemapManager::InitGame( void )
 	const ecdheader_t* pheader = reinterpret_cast<const ecdheader_t*>(pf);
 	if(pheader->id != ECD_HEADER_ENCODED)
 	{
-		Con_EPrintf("%s - %s is not a valid ECD file.\n", __FUNCTION__, filename.c_str());
+		Con_EPrintf("%s - '%s' is not a valid ECD file.\n", __FUNCTION__, filename.c_str());
 		FL_FreeFile(pf);
 		return true; // don't fail fatally
 	}
 
-	if(rns.daystage == DAYSTAGE_NIGHTSTAGE && !(pheader->flags & FL_ECD_HAS_NIGHTDATA)
-		|| !rns.daystage != DAYSTAGE_NIGHTSTAGE && !(pheader->flags & FL_ECD_HAS_DAYDATA))
+	// Parse through the ECD looking for a valid cubemap to tie to the day stage
+	bool foundMatchingCubemaps = false;
+	for(Int32 i = 0; i < pheader->numcubemaps; i++)
 	{
+		// Get ptr to cubemap
+		const ecdcubemap_t* pcubemap = reinterpret_cast<const ecdcubemap_t*>(reinterpret_cast<const byte*>(pheader) + pheader->cubemapinfooffset)+i;
+		for(Uint32 j = 0; j < pcubemap->cubemapcount; j++)
+		{
+			const ecdsinglecubemap_t* pscubemap = reinterpret_cast<const ecdsinglecubemap_t*>(reinterpret_cast<const byte*>(pheader) + pcubemap->cubemapoffset)+j;
+			if(pscubemap->daystage == rns.daystage)
+			{
+				foundMatchingCubemaps = true;
+				break;
+			}
+		}
+	}
+
+	if(!foundMatchingCubemaps)
+	{
+		Con_EPrintf("%s - Cubemap data file '%s' has no matching cubemap data for day stage '%d'.\n", __FUNCTION__, filename.c_str(), (Int32)rns.daystage);
 		FL_FreeFile(pf);
 		return true; // don't fail fatally
 	}
@@ -151,18 +170,52 @@ bool CCubemapManager::InitGame( void )
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 
 	// Fill in the data
+	Uint32 cubemapCount = 0;
 	for(Int32 i = 0; i < pheader->numcubemaps; i++)
 	{
+		// Get ptr to cubemap
 		const ecdcubemap_t* pcubemap = reinterpret_cast<const ecdcubemap_t*>(reinterpret_cast<const byte*>(pheader) + pheader->cubemapinfooffset)+i;
 
-		m_cubemapsArray[i].cubemapindex = pcubemap->cubemapindex;
-		m_cubemapsArray[i].entindex = pcubemap->entindex;
-		m_cubemapsArray[i].width = pcubemap->width;
-		m_cubemapsArray[i].height = pcubemap->height;
-		Math::VectorCopy(pcubemap->origin, m_cubemapsArray[i].origin);
+		const ecdsinglecubemap_t* psinglecubemap = nullptr;
+		for(Uint32 j = 0; j < pcubemap->cubemapcount; j++)
+		{
+			const ecdsinglecubemap_t* pscubemap = reinterpret_cast<const ecdsinglecubemap_t*>(reinterpret_cast<const byte*>(pheader) + pcubemap->cubemapoffset)+j;
+			if(pscubemap->daystage == rns.daystage)
+			{
+				psinglecubemap = pscubemap;
+				break;
+			}
+		}
 
-		m_cubemapsArray[i].palloc = pTextureManager->GenTextureIndex(RS_GAME_LEVEL);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemapsArray[i].palloc->gl_index);
+		if(!psinglecubemap)
+			continue;
+
+		// Only DXT 1 is supported for now
+		GLenum glCompression;
+		switch(psinglecubemap->dxtcompression)
+		{
+		case COMPRESSION_DXT1:
+			glCompression = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+			break;
+		default:
+			{
+				Con_Printf("%s - Unknown compression setting %d for cubemap %d.\n", __FUNCTION__, psinglecubemap->dxtcompression, i);
+				continue;
+			}
+			break;
+		}
+
+		cubemapinfo_t* pnewcubemap = &m_cubemapsArray[cubemapCount];
+		cubemapCount++;
+
+		pnewcubemap->cubemapindex = pcubemap->cubemapindex;
+		pnewcubemap->entindex = pcubemap->entindex;
+		pnewcubemap->width = pcubemap->width;
+		pnewcubemap->height = pcubemap->height;
+		Math::VectorCopy(pcubemap->origin, pnewcubemap->origin);
+
+		pnewcubemap->palloc = pTextureManager->GenTextureIndex(RS_GAME_LEVEL);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, pnewcubemap->palloc->gl_index);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP);
@@ -171,14 +224,19 @@ bool CCubemapManager::InitGame( void )
 
 		for (int j = 0; j < 6; j++)
 		{
-			const byte* psrc = (reinterpret_cast<const byte*>(pheader) + (rns.daystage == DAYSTAGE_NIGHTSTAGE ? pcubemap->nightdataoffset : pcubemap->dataoffset));
-			psrc += j * pcubemap->width*pcubemap->height*3;
+			// Get data for the face in question
+			const ecdcubemapface_t* pface = reinterpret_cast<const ecdcubemapface_t*>(reinterpret_cast<const byte*>(pheader) + psinglecubemap->facesoffset)+j;
+			const byte* pdxtdata = reinterpret_cast<const byte*>(pheader) + pface->dataoffset;
 
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, 0, GL_RGB, m_cubemapsArray[i].width, m_cubemapsArray[i].height, 0, GL_RGB, GL_UNSIGNED_BYTE, psrc);
+			R_BindCubemapTexture(GL_TEXTURE0_ARB, pnewcubemap->palloc->gl_index);
+			gGLExtF.glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, 0, glCompression, pcubemap->width, pcubemap->height, 0, pface->datasize, pdxtdata);
 		}
-
-		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	}
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+	// Set final size
+	m_cubemapsArray.resize(cubemapCount);
 
 	FL_FreeFile(pf);
 
@@ -295,6 +353,20 @@ void CCubemapManager::BuildCubemaps( void )
 	if(!m_cubemapsArray.empty())
 		Cleanup(false);
 
+	bool dumpTGAs = false;
+	if(gCommands.Cmd_Argc() >= 2)
+	{
+		Uint32 count = gCommands.Cmd_Argc() - 1;
+		for(Uint32 i = 0; i < count; i++)
+		{
+			const Char* pstrArg = gCommands.Cmd_Argv(i+1);
+			if(!qstrcmp(pstrArg, "dumptgas"))
+				dumpTGAs = true;
+			else
+				Con_Printf("%s - Unknown argument '%s' specified.\n", __FUNCTION__, pstrArg);
+		}
+	}
+
 	Uint32 numEntities = 0;
 	const entitydata_t* pEntities = nullptr;
 
@@ -317,7 +389,7 @@ void CCubemapManager::BuildCubemaps( void )
 	BuildEntityList(&pRenderEntities, &numRenderEntities, pEntities, numEntities);
 
 	// Now draw the cubemap faces for all cubemaps
-	bool result = RenderCubemaps(pRenderEntities, numRenderEntities);
+	bool result = RenderCubemaps(pRenderEntities, numRenderEntities, dumpTGAs);
 
 	// Free render data
 	cls.dllfuncs.pfnFreeEntityData();
@@ -427,6 +499,7 @@ void CCubemapManager::BuildEntityList( cl_entity_t** pRenderEntities, Uint32 *pN
 		// Check for the classname
 		const Char *pkeyvalue = ValueForKey(pEntities[i], "classname");
 		if(strcmp(pkeyvalue, "func_detail") 
+			&& strcmp(pkeyvalue, "func_clipeconomy") 
 			&& strcmp(pkeyvalue, "func_wall") 
 			&& strcmp(pkeyvalue, "func_illusionary")
 			&& strcmp(pkeyvalue, "env_model"))
@@ -508,6 +581,10 @@ void CCubemapManager::BuildEntityList( cl_entity_t** pRenderEntities, Uint32 *pN
 		pEntity->curstate.renderamt = renderamt;
 		pEntity->curstate.body = body;
 		pEntity->curstate.skin = skin;
+		pEntity->curstate.modelindex = pmodel->cacheindex;
+
+		Math::VectorAdd(pEntity->curstate.origin, pmodel->mins, pEntity->curstate.mins);
+		Math::VectorAdd(pEntity->curstate.origin, pmodel->maxs, pEntity->curstate.maxs);
 
 		// Set model
 		pEntity->pmodel = pmodel;
@@ -578,17 +655,8 @@ void CCubemapManager::SaveCubemapFile( void )
 	// Allocate temporary buffer
 	CBuffer fileBuffer;
 
-	// Copy existing data
-	if(ploadheader && size)
-	{
-		fileBuffer.append(ploadheader, size);
-		FL_FreeFile(pf);
-	}
-	else
-	{
-		// Create space for header
-		fileBuffer.append(nullptr, sizeof(ecdheader_t));
-	}
+	// Create space for header
+	fileBuffer.append(nullptr, sizeof(ecdheader_t));
 
 	// Retreive data ptr
 	void*& dataptr = fileBuffer.getbufferdata();
@@ -615,32 +683,113 @@ void CCubemapManager::SaveCubemapFile( void )
 	for(Uint32 i = 0; i < m_cubemapsArray.size(); i++)
 	{
 		ecdcubemap_t* pcubemap = reinterpret_cast<ecdcubemap_t*>(reinterpret_cast<byte*>(pheader) + pheader->cubemapinfooffset)+i;
+		fileBuffer.addpointer(reinterpret_cast<void**>(&pcubemap));
+
 		pcubemap->cubemapindex = m_cubemapsArray[i].cubemapindex;
 		pcubemap->entindex = m_cubemapsArray[i].entindex;
 		pcubemap->width = m_cubemapsArray[i].width;
 		pcubemap->height = m_cubemapsArray[i].height;
 		Math::VectorCopy(m_cubemapsArray[i].origin, pcubemap->origin);
 		
-		Int32 offset = fileBuffer.getsize();
-		Int32 imagesize = pcubemap->width*pcubemap->height*3;
+		pcubemap->cubemapoffset = fileBuffer.getsize();
 
-		if(rns.daystage != DAYSTAGE_NIGHTSTAGE)
+		// We always add one
+		Uint32 cubemapcount = 1;
+		if(ploadheader)
 		{
-			if(!pcubemap->dataoffset)
-				pcubemap->dataoffset = offset;
-			else
-				offset = pcubemap->dataoffset;
-		}
-		else
-		{
-			if(!pcubemap->nightdataoffset)
-				pcubemap->nightdataoffset = offset;
-			else
-				offset = pcubemap->nightdataoffset;
+			// Count in the original file the number of cubemaps not of this daystage
+			const ecdcubemap_t* poriginalcubemap = reinterpret_cast<const ecdcubemap_t*>(reinterpret_cast<const byte*>(ploadheader) + ploadheader->cubemapinfooffset)+i;
+			for(Uint32 j = 0; j < poriginalcubemap->cubemapcount; j++)
+			{
+				const ecdsinglecubemap_t* porigscubemap = reinterpret_cast<const ecdsinglecubemap_t*>(reinterpret_cast<const byte*>(ploadheader) + poriginalcubemap->cubemapoffset)+j;
+				if(porigscubemap->daystage != rns.daystage)
+					cubemapcount++;
+			}
 		}
 
-		// Write the data and reset pointer after reallocation
-		fileBuffer.append(m_cubemapsArray[i].pimagedata, static_cast<Uint32>(imagesize*6));
+		// Append space for this data
+		fileBuffer.append(nullptr, sizeof(ecdsinglecubemap_t)*cubemapcount);
+		// Get ptr to new faces array
+		ecdsinglecubemap_t* pnewscubemaps = reinterpret_cast<ecdsinglecubemap_t*>(reinterpret_cast<byte*>(pheader) + pcubemap->cubemapoffset);
+		fileBuffer.addpointer(reinterpret_cast<void**>(&pnewscubemaps));
+
+		Uint32 cubemapIndex = 0;
+		if(ploadheader)
+		{
+			// Add cubemaps from original
+			const ecdcubemap_t* poriginalcubemap = reinterpret_cast<const ecdcubemap_t*>(reinterpret_cast<const byte*>(ploadheader) + ploadheader->cubemapinfooffset)+i;
+			for(Uint32 j = 0; j < poriginalcubemap->cubemapcount; j++)
+			{
+				const ecdsinglecubemap_t* porigscubemap = reinterpret_cast<const ecdsinglecubemap_t*>(reinterpret_cast<const byte*>(ploadheader) + poriginalcubemap->cubemapoffset)+j;
+				if(porigscubemap->daystage == rns.daystage)
+					continue;
+
+				ecdsinglecubemap_t* pnewscubemap = &pnewscubemaps[cubemapIndex];
+				fileBuffer.addpointer(reinterpret_cast<void**>(&pnewscubemap));
+				cubemapIndex++;
+
+				pnewscubemap->daystage = porigscubemap->daystage;
+				pnewscubemap->dxtcompression = porigscubemap->dxtcompression;
+				pnewscubemap->facesoffset = fileBuffer.getsize();
+
+				// Append face data for each of the six faces
+				fileBuffer.append(nullptr, sizeof(ecdcubemapface_t)*6);
+					
+				// Add the faces now
+				for(Uint32 k = 0; k < 6; k++)
+				{
+					// Get ptr to new
+					ecdcubemapface_t* pnewface = reinterpret_cast<ecdcubemapface_t*>(reinterpret_cast<byte*>(pheader) + pnewscubemap->facesoffset)+k;
+
+					// Get ptr to old
+					const ecdcubemapface_t* poldface = reinterpret_cast<const ecdcubemapface_t*>(reinterpret_cast<const byte*>(ploadheader) + porigscubemap->facesoffset)+k;
+					const byte* poldfacedata = reinterpret_cast<const byte*>(ploadheader) + poldface->dataoffset;
+
+					pnewface->dataoffset = fileBuffer.getsize();
+					pnewface->datasize = poldface->datasize;
+					fileBuffer.append(poldfacedata, pnewface->datasize);
+				}
+
+				// Remove previously saved ptr
+				fileBuffer.removepointer((const void**)(&pnewscubemap));
+			}
+		}
+
+		// Now add the new cubemap
+		ecdsinglecubemap_t* pnewscubemap = &pnewscubemaps[cubemapIndex];
+		cubemapIndex++;
+
+		// Set final count
+		pcubemap->cubemapcount = cubemapIndex;
+
+		fileBuffer.addpointer(reinterpret_cast<void**>(&pnewscubemap));
+
+		pnewscubemap->daystage = rns.daystage;
+		pnewscubemap->dxtcompression = COMPRESSION_DXT1;
+		pnewscubemap->facesoffset = fileBuffer.getsize();
+
+		fileBuffer.append(nullptr, sizeof(ecdcubemapface_t)*6);
+
+		Int32 imagesize = pcubemap->width*pcubemap->height*4;
+		Uint32 dxtdatasize = imagesize / 8;
+
+		// Add each new face
+		for(Uint32 j = 0; j < 6; j++)
+		{
+			// Get ptr to new
+			ecdcubemapface_t* pnewface = reinterpret_cast<ecdcubemapface_t*>(reinterpret_cast<byte*>(pheader) + pnewscubemap->facesoffset)+j;
+
+			// Get ptr to raw RGB image data and compress using DXT
+			byte* pdxtdata = m_cubemapsArray[i].pimagedata + dxtdatasize * j;
+			pnewface->dataoffset = fileBuffer.getsize();
+			pnewface->datasize = dxtdatasize;
+
+			fileBuffer.append(pdxtdata, dxtdatasize);
+		}
+
+		// Remove previously saved ptr
+		fileBuffer.removepointer((const void**)(&pnewscubemap));
+		fileBuffer.removepointer((const void**)(&pnewscubemaps));
 
 		// Free the image data
 		delete[] m_cubemapsArray[i].pimagedata;
@@ -649,6 +798,10 @@ void CCubemapManager::SaveCubemapFile( void )
 
 	// Set length
 	pheader->length = fileBuffer.getsize();
+
+	// Release original if it was present
+	if(ploadheader)
+		FL_FreeFile(pf);
 
 	const byte *pwritedata = reinterpret_cast<const byte*>(fileBuffer.getbufferdata());
 	if(!FL_WriteFile(pwritedata, fileBuffer.getsize(), filename.c_str()))
@@ -662,7 +815,7 @@ void CCubemapManager::SaveCubemapFile( void )
 // @brief
 //
 //=============================================
-bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRenderEntities )
+bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRenderEntities, bool dumpTGAs )
 {
 	// Holds rendering info
 	ref_params_t viewParams;
@@ -686,8 +839,11 @@ bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRe
 	for(Uint32 i = 0; i < m_cubemapsArray.size(); i++)
 	{
 		// Allocate texture data reservoir
-		Uint32 imagedatasize = m_cubemapsArray[i].width*m_cubemapsArray[i].height*3;
-		m_cubemapsArray[i].pimagedata = new byte[imagedatasize*6];
+		Uint32 imagedatasize = m_cubemapsArray[i].width*m_cubemapsArray[i].height*4;
+		Uint32 dxtdatasize = imagedatasize / 8;
+
+		m_cubemapsArray[i].pimagedata = new byte[dxtdatasize*6];
+		byte* ptempdata = new byte[imagedatasize];
 
 		// Delete any existing textures
 		if(m_cubemapsArray[i].palloc)
@@ -702,16 +858,15 @@ bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRe
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		for (Uint32 j = 0; j < 6; j++)
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, 0, GL_RGB, m_cubemapsArray[i].width, m_cubemapsArray[i].height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-
-		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
+		// Reset these prior to rendering
 		R_ResetFrameStates();
 
 		// Set the render list up with our ents
 		for(Uint32 j = 0; j < numRenderEntities; j++)
 			R_AddEntity(&pRenderEntities[j]);
+
+		// Keep original list of unsorted visents
+		memcpy(rns.objects.pvisents_unsorted, rns.objects.pvisents, sizeof(cl_entity_t*)*rns.objects.numvisents);
 
 		// Set view params
 		viewParams.time = rns.time;
@@ -719,8 +874,9 @@ bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRe
 
 		Math::VectorCopy(m_cubemapsArray[i].origin, viewParams.v_origin);
 
-		// Perform basic frame setups
-		R_Update();
+		// Raise for dlights
+		rns.framecount_main++;
+
 		// Get VIS
 		R_MarkLeaves(viewParams.v_origin);
 
@@ -759,21 +915,38 @@ bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRe
 			}
 
 			// Save it into the buffer
-			byte* pdest = m_cubemapsArray[i].pimagedata + imagedatasize * j;
-			glReadPixels(0, 0, m_cubemapsArray[i].width, m_cubemapsArray[i].height, GL_RGB, GL_UNSIGNED_BYTE, pdest);
-			
-			CString directory = "cubemap/";
-			CString filepath;
-			filepath << directory.c_str() << "cubemap_" << (Int32)i << "_" << (Int32)j << ".tga";
-			TGA_Write(pdest, 3, m_cubemapsArray[i].width, m_cubemapsArray[i].height, filepath.c_str(), FL_GetInterface(), Con_EPrintf);
+			byte* pdest = m_cubemapsArray[i].pimagedata + dxtdatasize * j;
+			glReadPixels(0, 0, m_cubemapsArray[i].width, m_cubemapsArray[i].height, GL_RGBA, GL_UNSIGNED_BYTE, ptempdata);
+			rygCompress(pdest, ptempdata, m_cubemapsArray[i].width, m_cubemapsArray[i].height, false);
+
+			if(dumpTGAs)
+			{
+				CString basename;
+				Common::Basename(ens.pworld->name.c_str(), basename);
+
+				CString directory;
+				directory << "dumps" << PATH_SLASH_CHAR << "cubemaps" << PATH_SLASH_CHAR << basename << PATH_SLASH_CHAR;
+				if(FL_CreateDirectory(directory.c_str()))
+				{
+					CString filepath;
+					filepath << directory.c_str() << "cubemap_" << basename << "_" << (Int32)i << "_" << (Int32)j << ".tga";
+					TGA_Write(ptempdata, 4, m_cubemapsArray[i].width, m_cubemapsArray[i].height, filepath.c_str(), FL_GetInterface(), Con_EPrintf);
+				}
+				else
+				{
+					Con_Printf("%s - Couldn't create directory '%s'.\n", __FUNCTION__, directory.c_str());
+				}
+			}
 
 			// Save it to the OGL texture too
 			R_BindCubemapTexture(GL_TEXTURE0_ARB, m_cubemapsArray[i].palloc->gl_index);
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, 0, GL_RGB, m_cubemapsArray[i].width, m_cubemapsArray[i].height, FALSE, GL_RGB, GL_UNSIGNED_BYTE, pdest);
+			gGLExtF.glCompressedTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, m_cubemapsArray[i].width, m_cubemapsArray[i].height, 0, dxtdatasize, pdest);
 		}
 
 		// Restore projection
 		rns.view.projection.PopMatrix();
+
+		delete[] ptempdata;
 
 		if(!result)
 			break;

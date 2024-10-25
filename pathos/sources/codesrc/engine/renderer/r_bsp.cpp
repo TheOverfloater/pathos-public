@@ -291,6 +291,7 @@ bool CBSPRenderer::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_detailtex, "detailtex", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_chrometex, "chrometex", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_normalmap, "normalmap", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_aomap, "aomaptex", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_difflightmap, "difflightmap", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_lightvecstex, "lightvecstex", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_specular, "speculartex", m_pShader, Sys_ErrorPopup)
@@ -664,11 +665,21 @@ void CBSPRenderer::InitLightmaps( void )
 			CString basename;
 			Common::Basename(ens.pworld->name.c_str(), basename);
 
-			CString filepath;
-			filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << basename << "_lightmap_default_layer_" << i << ".tga";
+			CString directoryPath;
+			directoryPath << "dumps" << PATH_SLASH_CHAR << "lightmaps" << PATH_SLASH_CHAR << basename << PATH_SLASH_CHAR;
+			if(FL_CreateDirectory(directoryPath.c_str()))
+			{
+				CString filepath;
+				filepath << directoryPath << PATH_SLASH_CHAR << "dump_lightmap_default_layer_" << i << ".tga";
 
-			const byte* pwritedata = reinterpret_cast<const byte*>(plightmap);
-			TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf);
+				const byte* pwritedata = reinterpret_cast<const byte*>(plightmap);
+				if(TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf))
+					Con_Printf("Exported %s.\n", filepath.c_str());
+			}
+			else
+			{
+				Con_Printf("%s - Failed to create directory '%s'.\n", __FUNCTION__, directoryPath.c_str());
+			}
 		}
 
 		// Set default lightmap
@@ -764,26 +775,35 @@ void CBSPRenderer::InitLightmaps( void )
 				CString basename;
 				Common::Basename(ens.pworld->name.c_str(), basename);
 
-				// Write ambient file
-				CString filepath;
-				filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << basename << "_lightmap_ambient_layer_" << i << ".tga";
+				CString directoryPath;
+				directoryPath << "dumps" << PATH_SLASH_CHAR << "lightmaps" << PATH_SLASH_CHAR << basename << PATH_SLASH_CHAR;
 
-				const byte* pwritedata = reinterpret_cast<const byte*>(pambientlightmap);
-				TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf);
+				if(FL_CreateDirectory(directoryPath.c_str()))
+				{
+					// Write ambient file
+					CString filepath;
+					filepath << directoryPath << "dump_" << basename << "_lightmap_ambient_layer_" << i << ".tga";
 
-				// Write diffuse file
-				filepath.clear();
-				filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << basename << "_lightmap_diffuse_layer_" << i << ".tga";
+					const byte* pwritedata = reinterpret_cast<const byte*>(pambientlightmap);
+					if(TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf))
+						Con_Printf("Exported %s.\n", filepath.c_str());
 
-				pwritedata = reinterpret_cast<const byte*>(pdiffuselightmap);
-				TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf);
+					// Write diffuse file
+					filepath.clear();
+					filepath << directoryPath << "dump_" << basename << "_lightmap_diffuse_layer_" << i << ".tga";
+
+					pwritedata = reinterpret_cast<const byte*>(pdiffuselightmap);
+					if(TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf))
+						Con_Printf("Exported %s.\n", filepath.c_str());
 			
-				// Write vectors file
-				filepath.clear();
-				filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << basename << "_lightmap_vectors_layer_" << i << ".tga";
+					// Write vectors file
+					filepath.clear();
+					filepath << directoryPath << "dump_" << basename << "_lightmap_vectors_layer_" << i << ".tga";
 
-				pwritedata = reinterpret_cast<const byte*>(plightvecslightmap);
-				TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf);
+					pwritedata = reinterpret_cast<const byte*>(plightvecslightmap);
+					if(TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf))
+						Con_Printf("Exported %s.\n", filepath.c_str());
+				}
 			}
 
 			// Load the ambient lightmap
@@ -3358,13 +3378,6 @@ bool CBSPRenderer::DrawLights( bool specular )
 		dlightlist.next();
 	};
 
-	// Highest normal map texture unit used
-	Int32 highestnormalmapunit = NO_POSITION;
-	// Highest specular map texture unit used
-	Int32 highestspecularmapunit = NO_POSITION;
-	// Highest AO unit used
-	Int32 highestaounit = NO_POSITION;
-
 	// Now draw the actual batches
 	lightBatches.begin();
 	while(!lightBatches.end())
@@ -3375,12 +3388,6 @@ bool CBSPRenderer::DrawLights( bool specular )
 		Uint32 lightindex = 0;
 		// Next available texture unit
 		Int32 texunit = 0;
-		// Normal map unit
-		Int32 normalmapunit = NO_POSITION;
-		// Specular map unit
-		Int32 specularmapunit = NO_POSITION;
-		// AO mapping unit to use
-		Int32 aomapunit = NO_POSITION;
 
 		if(batch.type == LB_TYPE_POINTLIGHT || batch.type == LB_TYPE_POINTLIGHT_SHADOW)
 		{
@@ -3457,8 +3464,19 @@ bool CBSPRenderer::DrawLights( bool specular )
 				pnext = pclsurf->ptexturechain;
 				rns.counters.brushpolies++;
 			}
-
+			
+			// TRUE if we should send texcoords
 			bool useTexCoord = false;
+			// Normal map unit
+			Int32 normalmapunit = NO_POSITION;
+			// Specular map unit
+			Int32 specularmapunit = NO_POSITION;
+			// AO mapping unit to use
+			Int32 aomapunit = NO_POSITION;
+			// First unit used
+			Int32 firstunit = texunit;
+			// Tex units for current texture
+			Int32 texunit_local = firstunit;
 
 			if(specular)
 			{
@@ -3466,14 +3484,14 @@ bool CBSPRenderer::DrawLights( bool specular )
 				m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
 
 				// Set normal map
-				normalmapunit = texunit;
-				texunit++;
+				normalmapunit = texunit_local;
+				texunit_local++;
 
 				R_Bind2DTexture(GL_TEXTURE0 + normalmapunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
 
 				// Set specular map
-				specularmapunit = texunit;
-				texunit++;
+				specularmapunit = texunit_local;
+				texunit_local++;
 
 				R_Bind2DTexture(GL_TEXTURE0 + specularmapunit, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
 
@@ -3484,8 +3502,8 @@ bool CBSPRenderer::DrawLights( bool specular )
 			else if(pmaterial->ptextures[MT_TX_NORMALMAP] && g_pCvarBumpMaps->GetValue() > 0)
 			{
 				// Set normal map
-				normalmapunit = texunit;
-				texunit++;
+				normalmapunit = texunit_local;
+				texunit_local++;
 
 				R_Bind2DTexture(GL_TEXTURE0 + normalmapunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
 
@@ -3501,6 +3519,7 @@ bool CBSPRenderer::DrawLights( bool specular )
 				m_pShader->DisableAttribute(m_attribs.a_tangent);
 				m_pShader->DisableAttribute(m_attribs.a_binormal);
 				useTexCoord = false;
+				normalmapunit = texunit_local;
 
 				if(!m_pShader->SetDeterminator(m_attribs.d_specular, false, false)
 					|| !m_pShader->SetDeterminator(m_attribs.d_bumpmapping, false, false))
@@ -3510,8 +3529,8 @@ bool CBSPRenderer::DrawLights( bool specular )
 			if (pmaterial->ptextures[MT_TX_AO])
 			{
 				// Specify the AO map unit
-				aomapunit = texunit;
-				texunit++;
+				aomapunit = texunit_local;
+				texunit_local++;
 
 				R_Bind2DTexture(GL_TEXTURE0 + aomapunit, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
 				useTexCoord = true;
@@ -3535,22 +3554,15 @@ bool CBSPRenderer::DrawLights( bool specular )
 			else
 				m_pShader->SetUniform1i(m_attribs.u_specular, normalmapunit + 1);
 
+			if(aomapunit != NO_POSITION)
+				m_pShader->SetUniform1i(m_attribs.u_aomap, aomapunit);
+
 			// Verify that everything is ok with the states
 			if(!m_pShader->VerifyDeterminators())
 				return false;
 
 			// Make sure shaders are valid
 			R_ValidateShader(m_pShader);
-
-			// Update the highest units used
-			if(highestnormalmapunit < normalmapunit)
-				highestnormalmapunit = normalmapunit;
-
-			if (highestspecularmapunit < specularmapunit)
-				highestspecularmapunit = specularmapunit;
-
-			if (highestaounit < aomapunit)
-				highestaounit = aomapunit;
 
 			if(useTexCoord)
 				m_pShader->EnableAttribute(m_attribs.a_texcoord);
@@ -3560,6 +3572,9 @@ bool CBSPRenderer::DrawLights( bool specular )
 			drawbatch_t *pdrawbatch = &ptexturehandle->light_batches[0];
 			for(Uint32 j = 0; j < ptexturehandle->numlightbatches; j++, pdrawbatch++)
 				glDrawElements(GL_TRIANGLES, pdrawbatch->end_index-pdrawbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pdrawbatch->start_index));
+
+			// Remove all current binds from textures used
+			R_ClearBinds(firstunit);
 		}
 
 		// Clean up bound textures
@@ -3574,6 +3589,9 @@ bool CBSPRenderer::DrawLights( bool specular )
 			batch.lightslist.next();
 			lightindex++;
 		}
+
+		// Remove all current binds
+		R_ClearBinds();
 
 		// Reset everything
 		for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
@@ -3605,16 +3623,6 @@ bool CBSPRenderer::DrawLights( bool specular )
 	m_pShader->DisableAttribute(m_attribs.a_tangent);
 	m_pShader->DisableAttribute(m_attribs.a_binormal);
 	m_pShader->DisableAttribute(m_attribs.a_texcoord);
-
-	// Ensure these get reset
-	if (highestnormalmapunit != NO_POSITION)
-		R_Bind2DTexture(GL_TEXTURE0 + highestnormalmapunit, 0);
-
-	if (highestspecularmapunit != NO_POSITION)
-		R_Bind2DTexture(GL_TEXTURE0 + highestspecularmapunit, 0);
-
-	if(highestaounit != -1)
-		R_Bind2DTexture(GL_TEXTURE0+highestaounit, 0);
 
 	// Reset determinators
 	if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false)

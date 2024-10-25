@@ -15,7 +15,6 @@ All Rights Reserved.
 class CGLExtF;
 
 #define MAX_DETERMINATORS		16
-#define MAX_VARIATIONS			4096
 
 #define SHADER_VERTEX			0
 #define SHADER_FRAGMENT			1

@@ -564,6 +564,9 @@ void CMirrorManager::SetupMirrorPass( void )
 
 	// Set renderpass id
 	rns.renderpassidx = m_pCurrentMirror->renderpassidx;
+	rns.view.v_visorigin = rns.view.params.v_origin;
+
+	rns.usevisorigin = true;
 }
 
 //=============================================
@@ -578,6 +581,8 @@ void CMirrorManager::FinishMirrorPass( void )
 		R_Bind2DTexture(GL_TEXTURE0_ARB, m_pCurrentMirror->ptexture->gl_index);
 		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, MIRROR_RTT_SIZE, MIRROR_RTT_SIZE, 0);
 	}
+
+	rns.usevisorigin = false;
 }
 
 //=============================================

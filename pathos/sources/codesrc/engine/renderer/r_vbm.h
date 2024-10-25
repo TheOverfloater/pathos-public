@@ -469,7 +469,7 @@ private:
 	// Sets up model lighting
 	void SetupLighting( void );
 	// Compare light values with light info
-	bool CompareLightValues( Vector* pambientlightvalues, Vector* pdiffuselightvalues, const Vector& lightdir, entity_lightinfo_t& lightinfo );
+	bool CompareLightValues( const Vector* pambientlightvalues, const Vector* pdiffuselightvalues, const Vector& lightdir, const byte* plightstyles );
 
 	// Gets model lights
 	void GetModelLights( void );
@@ -648,6 +648,12 @@ private:
 	entity_extrainfo_t *m_pExtraInfo;
 	// Entity alpha used for rendering
 	Float m_renderAlpha;
+	// Global light vector used for rendering
+	Vector m_renderLightVector;
+	// Global ambient color used for rendering
+	Vector m_renderAmbientColor;
+	// Global diffuse color used for rendering
+	Vector m_renderDiffuseColor;
 
 private:
 	// Entity absolute mins
@@ -667,7 +673,9 @@ private:
 
 private:
 	// Lighting information for entity
-	entity_lightinfo_t m_lightingInfo;
+	entity_lightinfo_t* m_pLightingInfo;
+	// Lighting information for entity
+	entity_lightinfo_t m_localLightingInfo;
 
 	// Model lights array
 	mlightinfo_t m_modelLights[MAX_ENT_MLIGHTS];

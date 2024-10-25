@@ -1,0 +1,12 @@
+$texture
+{
+	$int_width 512
+	$int_height 256
+	$dt_scalex 24.000000
+	$dt_scaley 12.000000
+	$material concrete
+	$texture diffuse world/pathos/rn_rockface.dds
+	$texture normalmap world/pathos/rn_rockface_normal.tga
+	$texture specular world/pathos/rn_rockface_specular.tga
+	$texture detail detail/arstone.dds
+}

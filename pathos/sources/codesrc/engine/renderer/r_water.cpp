@@ -1881,17 +1881,6 @@ bool CWaterShader::DrawWater( bool skybox )
 				break;
 		}
 		
-		if (psettings->pflowmap)
-		{
-
-		}
-		else
-		{
-			result = m_pShader->SetDeterminator(m_attribs.d_flowmap, 0);
-			if (!result)
-				break;
-		}
-
 		R_ValidateShader(m_pShader);
 
 		glDrawElements(GL_TRIANGLES, m_pCurrentWater->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pCurrentWater->start_index));

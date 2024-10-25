@@ -112,7 +112,7 @@ mxGlWindow::~mxGlWindow ()
 	if (d_this->hglrc)
 	{
 		wglMakeCurrent (NULL, NULL);
-		//wglDeleteContext (d_this->hglrc);
+		wglDeleteContext (d_this->hglrc);
 	}
 
 	if (d_this->hdc)

@@ -14,7 +14,7 @@ All Rights Reserved.
 static constexpr Uint32 NUM_CUBEMAP_SIZES = 6;
 
 // Encoded cubemap header
-#define ECD_HEADER_ENCODED (('1'<<24)+('D'<<16)+('C'<<8)+'E')
+#define ECD_HEADER_ENCODED (('2'<<24)+('D'<<16)+('C'<<8)+'E')
 
 // Cubemap file version
 #define CUBEMAP_FILE_VERSION 0
@@ -33,6 +33,12 @@ enum cubemapstate_t
 	CUBEMAPS_OFF = 0,
 	CUBEMAPS_ON,
 	CUBEMAPS_INTERP
+};
+
+// cubemap compression type
+enum cubemapcompression_t
+{
+	COMPRESSION_DXT1 = 0,
 };
 
 // environment cubemap data file
@@ -57,6 +63,30 @@ struct ecdheader_t
 	Int32 length;
 };
 
+struct ecdcubemapface_t
+{
+	ecdcubemapface_t():
+		dataoffset(0),
+		datasize(0)
+	{}
+
+	Int32 dataoffset;
+	Int32 datasize;
+};
+
+struct ecdsinglecubemap_t
+{
+	ecdsinglecubemap_t():
+		daystage(0),
+		facesoffset(0),
+		dxtcompression(0)
+	{}
+
+	Int32 daystage;
+	Int32 facesoffset;
+	Int32 dxtcompression;
+};
+
 struct ecdcubemap_t
 {
 	ecdcubemap_t():
@@ -64,8 +94,8 @@ struct ecdcubemap_t
 		cubemapindex(0),
 		width(0),
 		height(0),
-		dataoffset(0),
-		nightdataoffset(0)
+		cubemapoffset(0),
+		cubemapcount(0)
 		{}
 
 	entindex_t entindex;
@@ -76,8 +106,8 @@ struct ecdcubemap_t
 
 	Vector origin;
 
-	Int32 dataoffset;
-	Int32 nightdataoffset;
+	Int32 cubemapoffset;
+	Int32 cubemapcount;
 };
 
 struct cubemapinfo_t
@@ -166,7 +196,7 @@ private:
 	// Saves cubemaps to a file
 	void SaveCubemapFile( void );
 	// Reads the cubemap file
-	bool RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRenderEntities );
+	bool RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRenderEntities, bool dumpTGAs );
 	// Verifies if an ECD file is valid
 	bool VerifyECDFile( const ecdheader_t* pheader );
 

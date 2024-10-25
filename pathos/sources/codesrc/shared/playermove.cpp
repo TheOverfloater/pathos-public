@@ -544,7 +544,7 @@ Int32 CPlayerMovement::Move_Fly( void )
 		numplanes++;
 
 		// Reflect player velocity
-		if(m_pPlayerState->movetype == MOVETYPE_WALK && (m_pPlayerState->groundent == NO_ENTITY_INDEX || m_pPlayerState->friction != 1))
+		if(numplanes == 1 && m_pPlayerState->movetype == MOVETYPE_WALK && (m_pPlayerState->groundent == NO_ENTITY_INDEX || m_pPlayerState->friction != 1))
 		{
 			Vector newvelocity;
 			for(Int32 j = 0; j < numplanes; j++)

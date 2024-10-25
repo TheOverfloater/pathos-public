@@ -962,9 +962,11 @@ void R_BindRectangleTexture( Int32 texture, Uint32 id, bool force )
 //====================================
 //
 //====================================
-void R_ClearBinds( void )
+void R_ClearBinds( Uint32 firstUnit )
 {
-	for(Uint32 i = 0; i < MAX_BOUND_TEXTURES; i++)
+	assert(firstUnit < MAX_BOUND_TEXTURES);
+
+	for(Uint32 i = firstUnit; i < MAX_BOUND_TEXTURES; i++)
 	{
 		if(rns.textures.texturebinds_2d[i] != 0)
 		{
@@ -975,7 +977,7 @@ void R_ClearBinds( void )
 		rns.textures.texturebinds_2d[i] = 0;
 	}
 
-	for(Uint32 i = 0; i < MAX_BOUND_TEXTURES; i++)
+	for(Uint32 i = firstUnit; i < MAX_BOUND_TEXTURES; i++)
 	{
 		if(rns.textures.texturebinds_cube[i] != 0)
 		{
@@ -986,7 +988,7 @@ void R_ClearBinds( void )
 		rns.textures.texturebinds_cube[i] = 0;
 	}
 
-	for(Uint32 i = 0; i < MAX_BOUND_TEXTURES; i++)
+	for(Uint32 i = firstUnit; i < MAX_BOUND_TEXTURES; i++)
 	{
 		if(rns.textures.texturebinds_rect[i] != 0)
 		{
@@ -1058,7 +1060,7 @@ void R_SetupView( const ref_params_t& params )
 	Math::AngleVectors(rns.view.v_angles, &rns.view.v_forward, &rns.view.v_right, &rns.view.v_up);
 
 	// Set frustum
-	if(!rns.monitorpass)
+	if(!rns.monitorpass && !rns.cubemapdraw)
 		rns.view.fov = R_GetRenderFOV(params.viewsize);
 	else
 		rns.view.fov = params.viewsize;
@@ -2120,7 +2122,7 @@ bool R_Draw( const ref_params_t& params )
 		R_SetupView(params);
 	}
 
-	if(!rns.view.params.nodraw)
+	if(rns.mainframe && !rns.view.params.nodraw)
 	{
 		// Update ideal cubemap
 		gCubemaps.Update(params.v_origin);
@@ -2712,7 +2714,6 @@ bool R_Update( void )
 
 	// Update tempents
 	gTempEntities.UpdateTempEntities();
-
 
 	// Keep original list of unsorted visents
 	memcpy(rns.objects.pvisents_unsorted, rns.objects.pvisents, sizeof(cl_entity_t*)*rns.objects.numvisents);
@@ -4526,10 +4527,18 @@ void Cmd_BSPToSMD_Textures( void )
 	CString levelname;
 	Common::Basename(ens.pworld->name.c_str(), levelname);
 	
+	CString folderpath;
+	folderpath << "dumps" << PATH_SLASH_CHAR << "bsp2smd_tx" << PATH_SLASH_CHAR << levelname << PATH_SLASH_CHAR;
+	if(!FL_CreateDirectory(folderpath.c_str()))
+	{
+		Con_Printf("%s - Could not create directory '%s'.\n", __FUNCTION__, folderpath.c_str());
+		return;
+	}
+
 	while(true)
 	{
 		filepath.clear();
-		filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << levelname << "_" << fileidx << "_mesh_textures.smd";
+		filepath << folderpath << "dump_" << levelname << "_" << fileidx << "_mesh_textures.smd";
 
 		if(!FL_FileExists(filepath.c_str()))
 			break;
@@ -4538,7 +4547,7 @@ void Cmd_BSPToSMD_Textures( void )
 	}
 
 	filepath.clear();
-	filepath << ens.gamedir << PATH_SLASH_CHAR << "dumps" << PATH_SLASH_CHAR << "dump_" << levelname << "_" << fileidx << "_mesh_textures.smd";
+	filepath << ens.gamedir << PATH_SLASH_CHAR << folderpath << "dump_" << levelname << "_" << fileidx << "_mesh_textures.smd";
 
 	pf = fopen(filepath.c_str(), "w");
 	if(!pf)
@@ -4611,7 +4620,7 @@ void Cmd_BSPToSMD_Textures( void )
 			indexes[2] = 2;
 
 			// Export first triangle
-			fprintf(pf, "%s.bmp\n", psurf->ptexinfo->ptexture->name.c_str());
+			fprintf(pf, "%s.tga\n", psurf->ptexinfo->ptexture->name.c_str());
 			for(Uint32 k = 0; k < 3; k++)
 			{
 				fprintf(pf, "  0   %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f\n",
@@ -4626,7 +4635,7 @@ void Cmd_BSPToSMD_Textures( void )
 				indexes[1] = indexes[2];
 				indexes[2] = l;
 
-				fprintf(pf, "%s.bmp\n", psurf->ptexinfo->ptexture->name.c_str());
+				fprintf(pf, "%s.tga\n", psurf->ptexinfo->ptexture->name.c_str());
 				for(int m = 0; m < 3; m++)
 				{
 					fprintf(pf, "  0   %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f\n",
@@ -4686,10 +4695,18 @@ void Cmd_BSPToSMD_Lightmap( void )
 	CString levelname;
 	Common::Basename(ens.pworld->name.c_str(), levelname);
 	
+	CString folderpath;
+	folderpath << "dumps" << PATH_SLASH_CHAR << "bsp2smd_lm" << PATH_SLASH_CHAR << levelname << PATH_SLASH_CHAR;
+	if(!FL_CreateDirectory(folderpath.c_str()))
+	{
+		Con_Printf("%s - Could not create directory '%s'.\n", __FUNCTION__, folderpath.c_str());
+		return;
+	}
+
 	while(true)
 	{
 		filepath.clear();
-		filepath << "dumps" << PATH_SLASH_CHAR << "dump_" << levelname << "_" << fileidx << "_mesh_lightmap.smd";
+		filepath << folderpath << "dump_" << levelname << "_" << fileidx << "_mesh_lightmap.smd";
 
 		if(!FL_FileExists(filepath.c_str()))
 			break;
@@ -4698,7 +4715,7 @@ void Cmd_BSPToSMD_Lightmap( void )
 	}
 
 	filepath.clear();
-	filepath << ens.gamedir << PATH_SLASH_CHAR << "dumps" << PATH_SLASH_CHAR << "dump_" << levelname << "_" << fileidx << "_mesh_lightmap.smd";
+	filepath << ens.gamedir << PATH_SLASH_CHAR << folderpath << "dump_" << levelname << "_" << fileidx << "_mesh_lightmap.smd";
 
 	pf = fopen(filepath.c_str(), "w");
 	if(!pf)
@@ -4776,7 +4793,7 @@ void Cmd_BSPToSMD_Lightmap( void )
 			indexes[2] = 2;
 
 			// Export first triangle
-			fprintf(pf, "lightmap.bmp\n");
+			fprintf(pf, "lightmap.tga\n");
 			for(Uint32 k = 0; k < 3; k++)
 			{
 				fprintf(pf, "  0   %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %f  %f\n",
@@ -4791,7 +4808,7 @@ void Cmd_BSPToSMD_Lightmap( void )
 				indexes[1] = indexes[2];
 				indexes[2] = l;
 
-				fprintf(pf, "lightmap.bmp\n");
+				fprintf(pf, "lightmap.tga\n");
 				for(Uint32 m = 0; m < 3; m++)
 				{
 					fprintf(pf, "  0   %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %f  %f\n",
@@ -4867,7 +4884,7 @@ void Cmd_BSPToSMD_Lightmap( void )
 	}
 
 	CString lightmapfilebasename;
-	lightmapfilebasename << "dumps" << PATH_SLASH_CHAR << "dump_" << levelname << "_" << fileidx << "_lightmap";
+	lightmapfilebasename << folderpath << "dump_" << levelname << "_" << fileidx << "_lightmap";
 
 	filepath.clear();
 	filepath << lightmapfilebasename << "_default.tga";
@@ -4881,7 +4898,8 @@ void Cmd_BSPToSMD_Lightmap( void )
 		filepath << lightmapfilebasename << "_ambient.tga";
 
 		pwritedata = reinterpret_cast<const byte*>(pambientlightmap);
-		TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf);
+		if(TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf))
+			Con_Printf("Exported %s.\n", filepath.c_str());
 	}
 
 	if(diffuselightdatasize > 0)
@@ -4890,7 +4908,8 @@ void Cmd_BSPToSMD_Lightmap( void )
 		filepath << lightmapfilebasename << "_diffuse.tga";
 
 		pwritedata = reinterpret_cast<const byte*>(pdiffuselightmap);
-		TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf);
+		if(TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf))
+			Con_Printf("Exported %s.\n", filepath.c_str());
 	}
 
 	if(lightvecsdatasize > 0)
@@ -4899,7 +4918,8 @@ void Cmd_BSPToSMD_Lightmap( void )
 		filepath << lightmapfilebasename << "_lightvecs.tga";
 
 		pwritedata = reinterpret_cast<const byte*>(plightvecslightmap);
-		TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf);
+		if(TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf))
+			Con_Printf("Exported %s.\n", filepath.c_str());
 	}
 
 	delete[] plightmap;

@@ -271,6 +271,7 @@ $invalid_state 1 shadertype 6 6
 $invalid_state 2 ao 1 1 shadertype 7 12
 $invalid_state 2 ao 1 1 shadertype 14 14
 $invalid_state 2 ao 1 1 shadertype 16 17
+$invalid_state 1 use_ubo 1 1
 
 $begin
 $branch use_ubo == 1
@@ -310,7 +311,7 @@ uniform sampler2D normalmap;
 
 $branch ao == 1
 $begin
-uniform sampler2D aotex;
+uniform sampler2D aomaptex;
 $end
 
 uniform vec4 color;
@@ -946,29 +947,6 @@ void main()
 		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, mlight_color);
 	$end
 	
-	$branch ao == 1 && shadertype != 3 && shadertype != 5
-	$begin
-		vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
-		finalColor.xyz *= aocolor;
-		specularColor.xyz *= aocolor;
-	$end	
-	
-	// Normal single pass rendering
-	$branch shadertype == 0 || shadertype == 1
-	$begin
-		finalColor = clamp(finalColor, 0.0, 1.0); // To prevent multipass inconsistencies
-		vec4 textureColor = texture(texture0, ps_texcoord1);
-		finalColor = finalColor*textureColor + specularColor;
-		finalColor.xyz *= 2;
-		finalColor = finalColor*color;
-	$end
-	
-	// Lighting without textures but with alpha
-	$branch shadertype == 2
-	$begin
-		finalColor.w = texture(texture0, ps_texcoord1).w;
-	$end
-	
 	// Dynamic light passes
 	$branch shadertype == 3
 	$begin
@@ -1043,13 +1021,6 @@ void main()
 			
 			// Add to specular
 			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_3_color.xyz);
-		$end
-		
-		$branch ao == 1
-		$begin
-			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
-			finalColor.xyz *= aocolor;
-			specularColor.xyz *= aocolor;
 		$end
 	$end
 	$branch shadertype == 5
@@ -1126,13 +1097,29 @@ void main()
 			// Add to specular
 			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_3_color.xyz);
 		$end
-		
-		$branch ao == 1
-		$begin
-			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
-			finalColor.xyz *= aocolor;
-			specularColor.xyz *= aocolor;
-		$end
+	$end
+	
+	$branch ao == 1 && shadertype != 3 && shadertype != 5
+	$begin
+		vec3 aocolor = texture(aomaptex, ps_texcoord1).xyz;
+		finalColor.xyz *= aocolor;
+		specularColor.xyz *= aocolor;
+	$end	
+	
+	// Normal single pass rendering
+	$branch shadertype == 0 || shadertype == 1
+	$begin
+		finalColor = clamp(finalColor, 0.0, 1.0); // To prevent multipass inconsistencies
+		vec4 textureColor = texture(texture0, ps_texcoord1);
+		finalColor = finalColor*textureColor + specularColor;
+		finalColor.xyz *= 2;
+		finalColor = finalColor*color;
+	$end
+	
+	// Lighting without textures but with alpha
+	$branch shadertype == 2
+	$begin
+		finalColor.w = texture(texture0, ps_texcoord1).w;
 	$end
 	
 	// Caustics

@@ -1,0 +1,9 @@
+$texture
+{
+	$int_width 64
+	$int_height 144
+	$container pathos.wad
+	$material glass
+	$chrome
+	$texture diffuse window03a
+}

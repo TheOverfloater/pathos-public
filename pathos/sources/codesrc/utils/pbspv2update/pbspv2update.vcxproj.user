@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LocalDebuggerCommandArguments>D:\crapcasket\old D:\crapkasket\new</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerWorkingDirectory>D:\Games\Reckoning\reckon\sources\codesrc\utils\pbspv2update\Release</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerCommand>D:\Games\Reckoning\reckon\sources\codesrc\utils\pbspv2update\Release\pbspv2update.exe</LocalDebuggerCommand>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>D:\Robotnik\ D:\Robotnik\out</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerWorkingDirectory>D:\Games\Pathos Engine\reckon\sources\codesrc\utils\pbspv2update\Release</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerCommand>D:\Games\Pathos Engine\reckon\sources\codesrc\utils\pbspv2update\Release\pbspv2update.exe</LocalDebuggerCommand>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LocalDebuggerCommandArguments>D:\test\models D:\test\out\models</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerAttach>false</LocalDebuggerAttach>
+    <LocalDebuggerCommand>D:\Games\Reckoning\reckon\sources\codesrc\utils\pbspv2update\Debug\pbspv2update.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>D:\Games\Reckoning\</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommandArguments>D:\Robotnik\ D:\Robotnik\out</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerAttach>false</LocalDebuggerAttach>
+    <LocalDebuggerCommand>D:\Games\Pathos Engine\pathos\sources\codesrc\utils\pbspv2update\Debug\pbspv2update.exe</LocalDebuggerCommand>
+    <LocalDebuggerWorkingDirectory>D:\Games\Pathos Engine\x64</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
+</Project>

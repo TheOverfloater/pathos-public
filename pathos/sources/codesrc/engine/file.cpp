@@ -468,13 +468,50 @@ bool FL_CreateDirectory( const Char* pstrpath )
 
 	DWORD type = GetFileAttributesA(filepath.c_str());
 	if(type == INVALID_FILE_ATTRIBUTES)
-		return CreateDirectoryA(filepath.c_str(), nullptr) ? true : false;
+	{
+		CString createpath;
 
-	// Check if it's a directory
-	if(type & FILE_ATTRIBUTE_DIRECTORY)
+		// Process it per slash
+		const Char* pstr = filepath.c_str();
+		const Char* pstrnextbegin = pstr;
+		while(*pstr)
+		{
+			pstr++;
+
+			if((*pstr) == PATH_SLASH_CHAR || (*pstr) == '\\' || (*pstr) == '\0')
+			{
+				Uint32 length = (pstr - pstrnextbegin);
+				CString foldername(pstrnextbegin, length);
+
+				createpath << foldername << PATH_SLASH_CHAR;
+				type = GetFileAttributesA(createpath.c_str());
+				if(type == INVALID_FILE_ATTRIBUTES)
+				{
+					if(!CreateDirectoryA(createpath.c_str(), nullptr))
+						return false;
+				}
+				else if(!(type & FILE_ATTRIBUTE_DIRECTORY))
+				{
+					return false;
+				}
+
+				while((*pstr) && ((*pstr) == PATH_SLASH_CHAR || (*pstr) == '\\'))
+					pstr++;
+
+				pstrnextbegin = pstr;
+			}
+		}
+
 		return true;
-
-	return false;
+	}
+	else
+	{
+		// Check if it's a directory
+		if(type & FILE_ATTRIBUTE_DIRECTORY)
+			return true;
+		else
+			return false;
+	}
 }
 
 //=============================================
