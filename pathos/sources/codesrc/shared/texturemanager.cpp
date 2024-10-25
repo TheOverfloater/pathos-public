@@ -15,6 +15,7 @@ All Rights Reserved.
 
 #include "tga.h"
 #include "dds.h"
+#include "bmp.h"
 
 #ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY 0x84FF
@@ -535,6 +536,8 @@ texture_format_t CTextureManager::GetFormat( const Char* pstrFilename )
 		return TX_FORMAT_TGA;
 	else if(!qstrcicmp(pstrFilename + qstrlen(pstrFilename) - 3, "dds"))
 		return TX_FORMAT_DDS;
+	else if (!qstrcicmp(pstrFilename + qstrlen(pstrFilename) - 3, "bmp"))
+		return TX_FORMAT_BMP;
 	else
 		return TX_FORMAT_UNDEFINED;
 }
@@ -990,6 +993,14 @@ en_texture_t* CTextureManager::LoadTexture( const Char* pstrFilename, rs_level_t
 
 			pfile = m_fileFuncs.pfnLoadFile(filePath.c_str(), nullptr);
 		}
+		
+		if (filePath.find(0, ".bmp") != -1 || filePath.find(0, ".BMP") != -1)
+		{
+			filePath.erase(filePath.length() - 3, 3);
+			filePath << "bmp";
+
+			pfile = m_fileFuncs.pfnLoadFile(filePath.c_str(), nullptr);
+		}
 
 		if(!pfile)
 		{
@@ -1020,6 +1031,13 @@ en_texture_t* CTextureManager::LoadTexture( const Char* pstrFilename, rs_level_t
 		if(!DDS_Load(pstrFilename, pfile, pdata, width, height, bpp, datasize, compression, m_printErrorFunction))
 		{
 			m_printErrorFunction("Failed to load DDS image file '%s'.\n", pstrFilename);
+			m_fileFuncs.pfnFreeFile(pfile);
+			return nullptr;
+		}
+	}
+	else if (format == TX_FORMAT_BMP) {
+		if (!BMP_Load(pstrFilename, pfile, pdata, width, height, bpp, datasize, compression, m_printErrorFunction)) {
+			m_printErrorFunction("Failed to load BMP image file '%s'.\n", pstrFilename);
 			m_fileFuncs.pfnFreeFile(pfile);
 			return nullptr;
 		}
