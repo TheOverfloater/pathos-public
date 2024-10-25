@@ -248,3 +248,26 @@
   - Add capping of lightstyle values to 0-255 range.
   - Update VBM renderer's level lighting blending code to better support lightstyle value blending(Still a work in progress).
   - Several fixes added to HLRAD to properly account for bump data lightmaps/vector map when it comes to coring and empty lightmap reduction.
+  
+- 2024 October 25th:
+  - Added entities and effects created by valina354, which include:
+    - AO mapping for world and VBM models.
+	- Vignette effect.
+	- Chromatic aberration.
+	- Black and white/Grayscale effect.
+	- Entity-controllable film grain effect.
+	- Water flowmapping.
+  - Added new room to entitytest2 to show off bump mapping, specular highlight and cubemapping effects.
+  - Fix to the blur division of the bloom effect.
+  - Preliminary changes for updating the Pathos BSP V2 format to support compression of lightmap data to reduce disk space load.
+  - Modified FL_CreateDirectory function to support creation of directories recursively.
+  - Updated dumping code for cubemap faces, lightmaps, and r_bsp2smd_* functions to dump in separate directories under "dumps" folder.
+  - Major improvements to the cubemap data format to dynamically support storage slots for different day stages.
+  - Added DXT1 compression as default for cubemap files now.
+  - Expanded R_ClearBinds function to support clearing units only above a specific unit.
+  - Fixed an issue with the func_mirror entity where, when standing in some places, the world would stop rendering in the mirror.
+  - Fixed cubemap generation issue described in Issue #19, where the entity list used for generation was still taken from the packet entity list.
+  - Major improvements and optimizations to VBM model light caching and blending between light values taken from the lightmap.
+  - Added player movement stuck fix from the HL25 updates.
+  - Fix in CGLSLShader class for where the determinator array size was using the number of shaders instead of the number of determinators, causing a crash.
+  - Removed max shader variations limit from CGLSLShader.
