@@ -699,7 +699,7 @@ void CMonitorManager::FinishMonitorPass( void )
 	}
 
 	// Get the aiment
-	Uint32 cameraEntityIndex = m_pCurrentMonitor->pentity->curstate.aiment;
+	entindex_t cameraEntityIndex = m_pCurrentMonitor->pentity->curstate.aiment;
 	cl_entity_t* pCameraEntity = CL_GetEntityByIndex(cameraEntityIndex);
 	if(!pCameraEntity)
 		return;

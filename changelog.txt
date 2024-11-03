@@ -305,4 +305,10 @@
   - Modified vhlt compile tools to now support lightmap upscaling up to 8x(still needs work).
   - Modified vhlt compile tools to support miniz compression of lightmap data.
   - Improved parameter design for new features in the compile tools.
-  
+
+2024 November 3rd 2nd update:
+  - Fix sky lighting in entitytest2a.
+  - Fix visible collision brushes on trees in entitytest2c.
+  - Fix crash on renderer reboot when changing display window properties.
+  - Fix Uint32 being used for entindex in monitor renderer.
+  - Add "Recent Skyboxes" list to Pathos Model Viewer.

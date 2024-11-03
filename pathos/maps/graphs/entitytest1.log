@@ -1,155 +1,155 @@
-2024-10-31 21:29:00 - Log started: 2024-10-31 21:29:00
-2024-10-31 21:29:00 - Log file: D:\Games\Pathos Engine\maps/graphs/entitytest1.log
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 -  Node graph file begin
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 - 	- Level name: entitytest1
-2024-10-31 21:29:00 - 	- Number of nodes: 6
-2024-10-31 21:29:00
-2024-10-31 21:29:00 - Initial node array contents:
-2024-10-31 21:29:00 -  - Node 0
-2024-10-31 21:29:00 - 	Origin: 72.000000 -80.000000 576.000000
-2024-10-31 21:29:00 - 	Hint type: 0
-2024-10-31 21:29:00 - 	Hint yaw: 0.000000
-2024-10-31 21:29:00 -  - Node 1
-2024-10-31 21:29:00 - 	Origin: -80.000000 -80.000000 576.000000
-2024-10-31 21:29:00 - 	Hint type: 0
-2024-10-31 21:29:00 - 	Hint yaw: 0.000000
-2024-10-31 21:29:00 -  - Node 2
-2024-10-31 21:29:00 - 	Origin: -232.000000 -80.000000 576.000000
-2024-10-31 21:29:00 - 	Hint type: 0
-2024-10-31 21:29:00 - 	Hint yaw: 0.000000
-2024-10-31 21:29:00 -  - Node 3
-2024-10-31 21:29:00 - 	Origin: -472.000000 -80.000000 576.000000
-2024-10-31 21:29:00 - 	Hint type: 0
-2024-10-31 21:29:00 - 	Hint yaw: 0.000000
-2024-10-31 21:29:00 -  - Node 4
-2024-10-31 21:29:00 - 	Origin: -472.000000 -240.000000 576.000000
-2024-10-31 21:29:00 - 	Hint type: 0
-2024-10-31 21:29:00 - 	Hint yaw: 0.000000
-2024-10-31 21:29:00 -  - Node 5
-2024-10-31 21:29:00 - 	Origin: -605.000000 -240.000000 576.000000
-2024-10-31 21:29:00 - 	Hint type: 0
-2024-10-31 21:29:00 - 	Hint yaw: 0.000000
-2024-10-31 21:29:00
-2024-10-31 21:29:00
-2024-10-31 21:29:00
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 -  LinkNodes begin
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 -  - Node with index 0(72.000000 -80.000000 576.000000) connected to node with index 1(-80.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	No link entities.
-2024-10-31 21:29:00 -  - Node with index 0(72.000000 -80.000000 576.000000) connected to node with index 2(-232.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	 1 link entities:
-2024-10-31 21:29:00 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
-2024-10-31 21:29:00 -  - Node with index 0(72.000000 -80.000000 576.000000) connected to node with index 3(-472.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	 1 link entities:
-2024-10-31 21:29:00 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
-2024-10-31 21:29:00 -  - Node with index 1(-80.000000 -80.000000 576.000000) connected to node with index 0(72.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	No link entities.
-2024-10-31 21:29:00 -  - Node with index 1(-80.000000 -80.000000 576.000000) connected to node with index 2(-232.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	 1 link entities:
-2024-10-31 21:29:00 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
-2024-10-31 21:29:00 -  - Node with index 1(-80.000000 -80.000000 576.000000) connected to node with index 3(-472.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	 1 link entities:
-2024-10-31 21:29:00 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
-2024-10-31 21:29:00 -  - Node with index 2(-232.000000 -80.000000 576.000000) connected to node with index 0(72.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	 1 link entities:
-2024-10-31 21:29:00 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
-2024-10-31 21:29:00 -  - Node with index 2(-232.000000 -80.000000 576.000000) connected to node with index 1(-80.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	 1 link entities:
-2024-10-31 21:29:00 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
-2024-10-31 21:29:00 -  - Node with index 2(-232.000000 -80.000000 576.000000) connected to node with index 3(-472.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	No link entities.
-2024-10-31 21:29:00 -  - Node with index 3(-472.000000 -80.000000 576.000000) connected to node with index 0(72.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	 1 link entities:
-2024-10-31 21:29:00 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
-2024-10-31 21:29:00 -  - Node with index 3(-472.000000 -80.000000 576.000000) connected to node with index 1(-80.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	 1 link entities:
-2024-10-31 21:29:00 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
-2024-10-31 21:29:00 -  - Node with index 3(-472.000000 -80.000000 576.000000) connected to node with index 2(-232.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	No link entities.
-2024-10-31 21:29:00 -  - Node with index 3(-472.000000 -80.000000 576.000000) connected to node with index 4(-472.000000 -240.000000 576.000000)
-2024-10-31 21:29:00 - 	No link entities.
-2024-10-31 21:29:00 -  - Node with index 4(-472.000000 -240.000000 576.000000) connected to node with index 3(-472.000000 -80.000000 576.000000)
-2024-10-31 21:29:00 - 	No link entities.
-2024-10-31 21:29:00 -  - Node with index 4(-472.000000 -240.000000 576.000000) connected to node with index 5(-605.000000 -240.000000 576.000000)
-2024-10-31 21:29:00 - 	No link entities.
-2024-10-31 21:29:00 -  - Node with index 5(-605.000000 -240.000000 576.000000) connected to node with index 4(-472.000000 -240.000000 576.000000)
-2024-10-31 21:29:00 - 	No link entities.
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 -  LinkNodes end
-2024-10-31 21:29:00 -  - Initial number of nodes: 6
-2024-10-31 21:29:00 -  - Initial number of links: 16
-2024-10-31 21:29:00 -  - Initial number of link entities 8
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 -  WalkLinksAllHulls begin
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 -  - Node 0:
-2024-10-31 21:29:00 -  - Node 1:
-2024-10-31 21:29:00 -  - Node 2:
-2024-10-31 21:29:00 -  - Node 3:
-2024-10-31 21:29:00 -  - Node 4:
-2024-10-31 21:29:00 -  - Node 5:
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 -  WalkLinksAllHulls end
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 -  OptimizeGraph begin
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 -  - Rejected link from node 2 to node 1, DP: 1.000000
-2024-10-31 21:29:00 -  - Rejected link from node 3 to node 1, DP: 1.000000
-2024-10-31 21:29:00 -  - Rejected link from node 3 to node 2, DP: 1.000000
-2024-10-31 21:29:00 -  - Rejected link from node 0 to node 1, DP: 1.000000
-2024-10-31 21:29:00 -  - Rejected link from node 0 to node 1, DP: 1.000000
-2024-10-31 21:29:00 -  - Rejected link from node 1 to node 2, DP: 1.000000
-2024-10-31 21:29:00 - Link array contents:
-2024-10-31 21:29:00 -  - Link from node 0 to node 1.
-2024-10-31 21:29:00 -  - Link from node 1 to node 0.
-2024-10-31 21:29:00 -  - Link from node 1 to node 2.
-2024-10-31 21:29:00 -  - Link from node 2 to node 1.
-2024-10-31 21:29:00 -  - Link from node 2 to node 3.
-2024-10-31 21:29:00 -  - Link from node 3 to node 2.
-2024-10-31 21:29:00 -  - Link from node 3 to node 4.
-2024-10-31 21:29:00 -  - Link from node 4 to node 3.
-2024-10-31 21:29:00 -  - Link from node 4 to node 5.
-2024-10-31 21:29:00 -  - Link from node 5 to node 4.
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 -  - Number of deleted links: 6
-2024-10-31 21:29:00 -  - Number of deleted nodes: 0
-2024-10-31 21:29:00 -  - Number of deleted link entities: 18
-2024-10-31 21:29:00 -  OptimizeGraph end
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 - Final node array contents:
-2024-10-31 21:29:00 -  - Node 0
-2024-10-31 21:29:00 - 	Origin: 72.000000 -80.000000 576.000000
-2024-10-31 21:29:00 - 	Hint type: 0
-2024-10-31 21:29:00 - 	Hint yaw: 0.000000
-2024-10-31 21:29:00 -  - Node 1
-2024-10-31 21:29:00 - 	Origin: -80.000000 -80.000000 576.000000
-2024-10-31 21:29:00 - 	Hint type: 0
-2024-10-31 21:29:00 - 	Hint yaw: 0.000000
-2024-10-31 21:29:00 -  - Node 2
-2024-10-31 21:29:00 - 	Origin: -232.000000 -80.000000 576.000000
-2024-10-31 21:29:00 - 	Hint type: 0
-2024-10-31 21:29:00 - 	Hint yaw: 0.000000
-2024-10-31 21:29:00 -  - Node 3
-2024-10-31 21:29:00 - 	Origin: -472.000000 -80.000000 576.000000
-2024-10-31 21:29:00 - 	Hint type: 0
-2024-10-31 21:29:00 - 	Hint yaw: 0.000000
-2024-10-31 21:29:00 -  - Node 4
-2024-10-31 21:29:00 - 	Origin: -472.000000 -240.000000 576.000000
-2024-10-31 21:29:00 - 	Hint type: 0
-2024-10-31 21:29:00 - 	Hint yaw: 0.000000
-2024-10-31 21:29:00 -  - Node 5
-2024-10-31 21:29:00 - 	Origin: -605.000000 -240.000000 576.000000
-2024-10-31 21:29:00 - 	Hint type: 0
-2024-10-31 21:29:00 - 	Hint yaw: 0.000000
-2024-10-31 21:29:00 - Routing info size: 30 bytes
-2024-10-31 21:29:00 - =============================================
-2024-10-31 21:29:00 -  - File size: 2164 bytes
-2024-10-31 21:29:00 -  - File name: maps/graphs/entitytest1.nod
-2024-10-31 21:29:00 -  - Node graph generation time: 0 minutes 0 seconds
-2024-10-31 21:29:00 -  Node graph file end 
-2024-10-31 21:29:00 - =============================================
+2024-11-03 13:27:51 - Log started: 2024-11-03 13:27:51
+2024-11-03 13:27:51 - Log file: D:\Games\Pathos Engine\maps/graphs/entitytest1.log
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 -  Node graph file begin
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 - 	- Level name: entitytest1
+2024-11-03 13:27:51 - 	- Number of nodes: 6
+2024-11-03 13:27:51
+2024-11-03 13:27:51 - Initial node array contents:
+2024-11-03 13:27:51 -  - Node 0
+2024-11-03 13:27:51 - 	Origin: 72.000000 -80.000000 576.000000
+2024-11-03 13:27:51 - 	Hint type: 0
+2024-11-03 13:27:51 - 	Hint yaw: 0.000000
+2024-11-03 13:27:51 -  - Node 1
+2024-11-03 13:27:51 - 	Origin: -80.000000 -80.000000 576.000000
+2024-11-03 13:27:51 - 	Hint type: 0
+2024-11-03 13:27:51 - 	Hint yaw: 0.000000
+2024-11-03 13:27:51 -  - Node 2
+2024-11-03 13:27:51 - 	Origin: -232.000000 -80.000000 576.000000
+2024-11-03 13:27:51 - 	Hint type: 0
+2024-11-03 13:27:51 - 	Hint yaw: 0.000000
+2024-11-03 13:27:51 -  - Node 3
+2024-11-03 13:27:51 - 	Origin: -472.000000 -80.000000 576.000000
+2024-11-03 13:27:51 - 	Hint type: 0
+2024-11-03 13:27:51 - 	Hint yaw: 0.000000
+2024-11-03 13:27:51 -  - Node 4
+2024-11-03 13:27:51 - 	Origin: -472.000000 -240.000000 576.000000
+2024-11-03 13:27:51 - 	Hint type: 0
+2024-11-03 13:27:51 - 	Hint yaw: 0.000000
+2024-11-03 13:27:51 -  - Node 5
+2024-11-03 13:27:51 - 	Origin: -605.000000 -240.000000 576.000000
+2024-11-03 13:27:51 - 	Hint type: 0
+2024-11-03 13:27:51 - 	Hint yaw: 0.000000
+2024-11-03 13:27:51
+2024-11-03 13:27:51
+2024-11-03 13:27:51
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 -  LinkNodes begin
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 -  - Node with index 0(72.000000 -80.000000 576.000000) connected to node with index 1(-80.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	No link entities.
+2024-11-03 13:27:51 -  - Node with index 0(72.000000 -80.000000 576.000000) connected to node with index 2(-232.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	 1 link entities:
+2024-11-03 13:27:51 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
+2024-11-03 13:27:51 -  - Node with index 0(72.000000 -80.000000 576.000000) connected to node with index 3(-472.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	 1 link entities:
+2024-11-03 13:27:51 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
+2024-11-03 13:27:51 -  - Node with index 1(-80.000000 -80.000000 576.000000) connected to node with index 0(72.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	No link entities.
+2024-11-03 13:27:51 -  - Node with index 1(-80.000000 -80.000000 576.000000) connected to node with index 2(-232.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	 1 link entities:
+2024-11-03 13:27:51 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
+2024-11-03 13:27:51 -  - Node with index 1(-80.000000 -80.000000 576.000000) connected to node with index 3(-472.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	 1 link entities:
+2024-11-03 13:27:51 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
+2024-11-03 13:27:51 -  - Node with index 2(-232.000000 -80.000000 576.000000) connected to node with index 0(72.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	 1 link entities:
+2024-11-03 13:27:51 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
+2024-11-03 13:27:51 -  - Node with index 2(-232.000000 -80.000000 576.000000) connected to node with index 1(-80.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	 1 link entities:
+2024-11-03 13:27:51 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
+2024-11-03 13:27:51 -  - Node with index 2(-232.000000 -80.000000 576.000000) connected to node with index 3(-472.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	No link entities.
+2024-11-03 13:27:51 -  - Node with index 3(-472.000000 -80.000000 576.000000) connected to node with index 0(72.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	 1 link entities:
+2024-11-03 13:27:51 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
+2024-11-03 13:27:51 -  - Node with index 3(-472.000000 -80.000000 576.000000) connected to node with index 1(-80.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	 1 link entities:
+2024-11-03 13:27:51 - 	 - Link entity classname: func_door_rotating), model name: *1, link entity minimum hull: NODE_SMALL_HULL
+2024-11-03 13:27:51 -  - Node with index 3(-472.000000 -80.000000 576.000000) connected to node with index 2(-232.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	No link entities.
+2024-11-03 13:27:51 -  - Node with index 3(-472.000000 -80.000000 576.000000) connected to node with index 4(-472.000000 -240.000000 576.000000)
+2024-11-03 13:27:51 - 	No link entities.
+2024-11-03 13:27:51 -  - Node with index 4(-472.000000 -240.000000 576.000000) connected to node with index 3(-472.000000 -80.000000 576.000000)
+2024-11-03 13:27:51 - 	No link entities.
+2024-11-03 13:27:51 -  - Node with index 4(-472.000000 -240.000000 576.000000) connected to node with index 5(-605.000000 -240.000000 576.000000)
+2024-11-03 13:27:51 - 	No link entities.
+2024-11-03 13:27:51 -  - Node with index 5(-605.000000 -240.000000 576.000000) connected to node with index 4(-472.000000 -240.000000 576.000000)
+2024-11-03 13:27:51 - 	No link entities.
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 -  LinkNodes end
+2024-11-03 13:27:51 -  - Initial number of nodes: 6
+2024-11-03 13:27:51 -  - Initial number of links: 16
+2024-11-03 13:27:51 -  - Initial number of link entities 8
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 -  WalkLinksAllHulls begin
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 -  - Node 0:
+2024-11-03 13:27:51 -  - Node 1:
+2024-11-03 13:27:51 -  - Node 2:
+2024-11-03 13:27:51 -  - Node 3:
+2024-11-03 13:27:51 -  - Node 4:
+2024-11-03 13:27:51 -  - Node 5:
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 -  WalkLinksAllHulls end
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 -  OptimizeGraph begin
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 -  - Rejected link from node 2 to node 1, DP: 1.000000
+2024-11-03 13:27:51 -  - Rejected link from node 3 to node 1, DP: 1.000000
+2024-11-03 13:27:51 -  - Rejected link from node 3 to node 2, DP: 1.000000
+2024-11-03 13:27:51 -  - Rejected link from node 0 to node 1, DP: 1.000000
+2024-11-03 13:27:51 -  - Rejected link from node 0 to node 1, DP: 1.000000
+2024-11-03 13:27:51 -  - Rejected link from node 1 to node 2, DP: 1.000000
+2024-11-03 13:27:51 - Link array contents:
+2024-11-03 13:27:51 -  - Link from node 0 to node 1.
+2024-11-03 13:27:51 -  - Link from node 1 to node 0.
+2024-11-03 13:27:51 -  - Link from node 1 to node 2.
+2024-11-03 13:27:51 -  - Link from node 2 to node 1.
+2024-11-03 13:27:51 -  - Link from node 2 to node 3.
+2024-11-03 13:27:51 -  - Link from node 3 to node 2.
+2024-11-03 13:27:51 -  - Link from node 3 to node 4.
+2024-11-03 13:27:51 -  - Link from node 4 to node 3.
+2024-11-03 13:27:51 -  - Link from node 4 to node 5.
+2024-11-03 13:27:51 -  - Link from node 5 to node 4.
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 -  - Number of deleted links: 6
+2024-11-03 13:27:51 -  - Number of deleted nodes: 0
+2024-11-03 13:27:51 -  - Number of deleted link entities: 18
+2024-11-03 13:27:51 -  OptimizeGraph end
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 - Final node array contents:
+2024-11-03 13:27:51 -  - Node 0
+2024-11-03 13:27:51 - 	Origin: 72.000000 -80.000000 576.000000
+2024-11-03 13:27:51 - 	Hint type: 0
+2024-11-03 13:27:51 - 	Hint yaw: 0.000000
+2024-11-03 13:27:51 -  - Node 1
+2024-11-03 13:27:51 - 	Origin: -80.000000 -80.000000 576.000000
+2024-11-03 13:27:51 - 	Hint type: 0
+2024-11-03 13:27:51 - 	Hint yaw: 0.000000
+2024-11-03 13:27:51 -  - Node 2
+2024-11-03 13:27:51 - 	Origin: -232.000000 -80.000000 576.000000
+2024-11-03 13:27:51 - 	Hint type: 0
+2024-11-03 13:27:51 - 	Hint yaw: 0.000000
+2024-11-03 13:27:51 -  - Node 3
+2024-11-03 13:27:51 - 	Origin: -472.000000 -80.000000 576.000000
+2024-11-03 13:27:51 - 	Hint type: 0
+2024-11-03 13:27:51 - 	Hint yaw: 0.000000
+2024-11-03 13:27:51 -  - Node 4
+2024-11-03 13:27:51 - 	Origin: -472.000000 -240.000000 576.000000
+2024-11-03 13:27:51 - 	Hint type: 0
+2024-11-03 13:27:51 - 	Hint yaw: 0.000000
+2024-11-03 13:27:51 -  - Node 5
+2024-11-03 13:27:51 - 	Origin: -605.000000 -240.000000 576.000000
+2024-11-03 13:27:51 - 	Hint type: 0
+2024-11-03 13:27:51 - 	Hint yaw: 0.000000
+2024-11-03 13:27:51 - Routing info size: 30 bytes
+2024-11-03 13:27:51 - =============================================
+2024-11-03 13:27:51 -  - File size: 2164 bytes
+2024-11-03 13:27:51 -  - File name: maps/graphs/entitytest1.nod
+2024-11-03 13:27:51 -  - Node graph generation time: 0 minutes 0 seconds
+2024-11-03 13:27:51 -  Node graph file end 
+2024-11-03 13:27:51 - =============================================

@@ -70,6 +70,8 @@ const Uint32 CMDLViewer::WINDOW_DEFAULT_HEIGHT = 768;
 const Char CMDLViewer::RECENT_MDL_FILE_PREFIX[] = "RECENT_MDL_FILE";
 // Recent folder option prefix
 const Char CMDLViewer::RECENT_FOLDER_PREFIX[] = "RECENT_FOLDER";
+// Recent skybox texture option prefix
+const Char CMDLViewer::RECENT_SKYBOX_PREFIX[] = "RECENT_SKYBOX";
 
 //=============================================
 // @brief Constructor
@@ -103,6 +105,12 @@ CMDLViewer::CMDLViewer( void ):
 	menuRecentFolders->add("(empty)", IDC_FILE_RECENTFOLDERS3);
 	menuRecentFolders->add("(empty)", IDC_FILE_RECENTFOLDERS4);
 
+	mxMenu *menuRecentSkyboxes = new mxMenu();
+	menuRecentSkyboxes->add("(empty)", IDC_FILE_RECENTSKYBOXES1);
+	menuRecentSkyboxes->add("(empty)", IDC_FILE_RECENTSKYBOXES2);
+	menuRecentSkyboxes->add("(empty)", IDC_FILE_RECENTSKYBOXES3);
+	menuRecentSkyboxes->add("(empty)", IDC_FILE_RECENTSKYBOXES4);
+
 	menuFile->add("Load Model...", IDC_FILE_LOADMODEL);
 	menuFile->addSeparator ();
 	menuFile->add("Compile QC...", IDC_FILE_COMPILEMODEL);
@@ -118,6 +126,7 @@ CMDLViewer::CMDLViewer( void ):
 	menuFile->addSeparator();
 	menuFile->addMenu("Recent Models", menuRecentModels);
 	menuFile->addMenu("Recent Folders", menuRecentFolders);
+	menuFile->addMenu("Recent Skyboxes", menuRecentSkyboxes);
 	menuFile->addSeparator();
 	menuFile->add("Exit", IDC_FILE_EXIT);
 
@@ -148,6 +157,7 @@ CMDLViewer::~CMDLViewer( void )
 
 	SaveRecentFiles();
 	SaveRecentFolders();
+	SaveRecentSkyboxes();
 }
 
 //=============================================
@@ -167,9 +177,14 @@ void CMDLViewer::InitViewer( void )
 {
 	LoadRecentFiles();
 	InitRecentFiles();
+
 	LoadRecentFolders();
 	InitRecentFolders();	
+
 	InitPreviousTextures();
+
+	LoadRecentSkyboxes();
+	InitRecentSkyboxes();	
 
 	setBounds(WINDOW_DEFAULT_X_ORIGIN, WINDOW_DEFAULT_Y_ORIGIN, 
 		WINDOW_DEFAULT_WIDTH, WINDOW_DEFAULT_HEIGHT);
@@ -312,6 +327,64 @@ void CMDLViewer::SaveRecentFolders( void )
 }
 
 //=============================================
+// @brief Initializes recent skybox textures list
+//
+//=============================================
+void CMDLViewer::InitRecentSkyboxes( void )
+{
+	for (Uint32 i = 0; i < MAX_RECENT_FILES; i++)
+	{
+		if (!m_recentSkyboxesArray[i].empty())
+		{
+			m_pMenuBar->modify(IDC_FILE_RECENTSKYBOXES1 + i, IDC_FILE_RECENTSKYBOXES1 + i, m_recentSkyboxesArray[i].c_str());
+		}
+		else
+		{
+			m_pMenuBar->modify(IDC_FILE_RECENTSKYBOXES1 + i, IDC_FILE_RECENTSKYBOXES1 + i, "(empty)");
+			m_pMenuBar->setEnabled(IDC_FILE_RECENTSKYBOXES1 + i, false);
+		}
+	}
+}
+
+//=============================================
+// @brief Loads recent skybox textures list
+//
+//=============================================
+void CMDLViewer::LoadRecentSkyboxes( void )
+{
+	for(Uint32 i = 0; i < MAX_RECENT_FILES; i++)
+	{
+		CString optionName;
+		optionName << RECENT_SKYBOX_PREFIX << i;
+
+		const Char* pstrValue = gConfig.GetOptionValue(optionName.c_str());
+		if(!pstrValue && !m_recentSkyboxesArray[i].empty())
+			m_recentSkyboxesArray[i].clear();
+		else
+			m_recentSkyboxesArray[i] = pstrValue;
+	}
+}
+
+//=============================================
+// @brief Saves recent skybox textures list
+//
+//=============================================
+void CMDLViewer::SaveRecentSkyboxes( void )
+{
+	for(int i = 0; i < MAX_RECENT_FILES; i++)
+	{
+		if(m_recentSkyboxesArray[i].empty())
+			break;
+
+		CString optionName;
+		optionName << RECENT_SKYBOX_PREFIX << i;
+		gConfig.SetOption(optionName.c_str(), m_recentSkyboxesArray[i].c_str());
+	}
+
+	gConfig.SaveOptions();
+}
+
+//=============================================
 // @brief Handles an mx event
 //
 //=============================================
@@ -426,6 +499,30 @@ Int32 CMDLViewer::handleEvent( mxEvent *pEvent )
 						{
 							vs.skyboxtexfile = pstrFilePath;
 							pControlPanel->SetShowSkybox(true);
+
+							Uint32 i = 0;
+							for(; i < MAX_RECENT_FILES; i++)
+							{
+								if(!qstrcicmp(m_recentSkyboxesArray[i], pstrFilePath))
+									break;
+							}
+
+							if(i != MAX_RECENT_FILES)
+							{
+								CString tmp = m_recentSkyboxesArray[0];
+								m_recentSkyboxesArray[0] = m_recentSkyboxesArray[i];
+								m_recentSkyboxesArray[i] = tmp;
+							}
+							else
+							{
+								for(i = MAX_RECENT_FILES-1; i > 0; i--)
+									m_recentSkyboxesArray[i] = m_recentSkyboxesArray[i - 1];
+
+								m_recentSkyboxesArray[0] = pstrFilePath;
+							}
+
+							InitRecentSkyboxes();
+							redraw();
 						}
 						else
 						{
@@ -499,6 +596,45 @@ Int32 CMDLViewer::handleEvent( mxEvent *pEvent )
 					m_recentFoldersArray[0] = m_recentFoldersArray[i];
 					m_recentFoldersArray[i] = tmp;
 					InitRecentFolders();
+					redraw();
+				}
+				break;
+			case IDC_FILE_RECENTSKYBOXES1:
+			case IDC_FILE_RECENTSKYBOXES2:
+			case IDC_FILE_RECENTSKYBOXES3:
+			case IDC_FILE_RECENTSKYBOXES4:
+				{
+					Int32 i = pEvent->action - IDC_FILE_RECENTSKYBOXES1;
+					const Char* pstrFilePath = m_recentSkyboxesArray[i].c_str();
+
+					// Get dir path
+					CString directoryPath;
+					Viewer_GetDirectoryPath(pstrFilePath, directoryPath);
+					gConfig.SetOption(VIEWER_ENV_TEX_PATH, directoryPath.c_str());
+
+					CGLWindow* pGLWindow = CGLWindow::GetInstance();
+					CControlPanel* pControlPanel = CControlPanel::GetInstance();
+
+					if(pGLWindow->LoadSkyboxTextures(pstrFilePath))
+					{
+						vs.skyboxtexfile = pstrFilePath;
+						pControlPanel->SetShowSkybox(true);
+
+						CString tmp = m_recentSkyboxesArray[0];
+						m_recentSkyboxesArray[0] = pstrFilePath;
+						m_recentSkyboxesArray[i] = tmp;
+					}
+					else
+					{
+						mxMessageBox(this, "Error loading texture.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+						vs.skyboxtexfile.clear();
+						pControlPanel->SetShowSkybox(false);
+
+						m_recentSkyboxesArray[i] = m_recentSkyboxesArray[0];
+						m_recentSkyboxesArray[0] = "(empty)";
+					}
+
+					InitRecentSkyboxes();
 					redraw();
 				}
 				break;

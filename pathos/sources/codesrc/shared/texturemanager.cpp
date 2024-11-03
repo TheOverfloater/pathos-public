@@ -116,7 +116,6 @@ void CTextureManager::ReloadResources( void )
 
 				delete itRemove->second;
 				m_texturesMap.erase(itRemove);
-				delete ptexture;
 				continue;
 			}
 

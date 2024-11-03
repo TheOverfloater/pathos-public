@@ -85,6 +85,8 @@ public:
 	static const Char RECENT_MDL_FILE_PREFIX[];
 	// Recent folder option prefix
 	static const Char RECENT_FOLDER_PREFIX[];
+	// Recent skybox texture option prefix
+	static const Char RECENT_SKYBOX_PREFIX[];
 
 public:
 	// Max recent files
@@ -106,6 +108,10 @@ public:
 		IDC_FILE_RECENTFOLDERS2,
 		IDC_FILE_RECENTFOLDERS3,
 		IDC_FILE_RECENTFOLDERS4,
+		IDC_FILE_RECENTSKYBOXES1,
+		IDC_FILE_RECENTSKYBOXES2,
+		IDC_FILE_RECENTSKYBOXES3,
+		IDC_FILE_RECENTSKYBOXES4,
 		IDC_FILE_EXIT,
 		IDC_FILE_COMPILEMODEL,
 		IDC_FILE_DECOMPILEMODEL,
@@ -150,6 +156,13 @@ public:
 	// Init recent files list
 	void InitRecentFolders( void );
 
+	// Load recent skybox textures list
+	void LoadRecentSkyboxes( void );
+	// Save recent skybox textures list
+	void SaveRecentSkyboxes( void );
+	// Init recent skybox textures list
+	void InitRecentSkyboxes( void );
+
 public:
 	// Handles an mx event
 	virtual Int32 handleEvent( mxEvent *pEvent ) override;
@@ -176,6 +189,8 @@ private:
 	CString m_recentMDLFilesArray[MAX_RECENT_FILES];
 	// Recent folders array
 	CString m_recentFoldersArray[MAX_RECENT_FILES];
+	// Recent skybox textures array
+	CString m_recentSkyboxesArray[MAX_RECENT_FILES];
 
 private:
 	// Current instance of this class
