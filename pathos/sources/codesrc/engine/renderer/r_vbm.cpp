@@ -1255,9 +1255,12 @@ void CVBMRenderer::CalculateAttachments( void )
 //
 //
 //=============================================
-void CVBMRenderer::AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm )
+void CVBMRenderer::AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, vbm_glvertex_t* pvertexbuffer, Uint32* pindexbuffer, Uint32& vertexoffset, Uint32& indexoffset )
 {
-	vbm_glvertex_t *pvboverts = new vbm_glvertex_t[pvbm->numverts];
+	//
+	// Compile in vertexes
+	//
+	vbm_glvertex_t *pvboverts = pvertexbuffer + vertexoffset;
 	const vbmvertex_t* pvbmverts = pvbm->getVertexes();
 	for(Int32 i = 0; i < pvbm->numverts; i++)
 	{
@@ -1292,21 +1295,26 @@ void CVBMRenderer::AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm )
 		VBM_NormalizeWeights(pvboverts[i].boneweights, MAX_VBM_BONEWEIGHTS);
 	}
 
-	// Set the offsets
-	pvbm->ibooffset = m_pVBO->GetIBOSize()/sizeof(Uint32);
-	pvbm->vbooffset = m_pVBO->GetVBOSize()/sizeof(vbm_glvertex_t);
+	// Set the vertex offset
+	pvbm->vbooffset = vertexoffset;
+	vertexoffset += pvbm->numverts;
 
-	Uint32 *pvboindexes = new Uint32[pvbm->numindexes];
+	//
+	// Compile in indexes
+	//
+	Uint32 *pvboindexes = pindexbuffer + indexoffset;
 	const Uint32 *pvbmindexes = pvbm->getIndexes();
 
 	for(Int32 j = 0; j < pvbm->numindexes; j++)
 		pvboindexes[j] = pvbmindexes[j]+pvbm->vbooffset;
 
-	m_pVBO->Append(pvboverts, sizeof(vbm_glvertex_t)*pvbm->numverts, pvboindexes, sizeof(Uint32)*pvbm->numindexes);
-	delete[] pvboindexes;
-	delete[] pvboverts;
+	// Set the indexes
+	pvbm->ibooffset = indexoffset;
+	indexoffset += pvbm->numindexes;
 
-	// set up textures
+	//
+	// Set up textures
+	//
 	CString modelname;
 	Common::Basename(pvbm->name, modelname);
 	modelname.tolower();
@@ -1367,8 +1375,13 @@ void CVBMRenderer::BuildVBO( void )
 		m_pVBO = nullptr;
 	}
 
-	m_pVBO = new CVBO(gGLExtF, true, true);
-	m_pShader->SetVBO(m_pVBO);
+	// Estimate the final counts
+	Uint32 finalvertexcount = 0;
+	Uint32 finalindexcount = 0;
+
+	// Array holding all VBM caches
+	CArray<const vbmcache_t*> pvbmarray(gModelCache.GetNbCachedModels());
+	Uint32 finalvbmcount = 0;
 
 	for(Uint32 i = 0; i < gModelCache.GetNbCachedModels(); i++)
 	{
@@ -1387,26 +1400,22 @@ void CVBMRenderer::BuildVBO( void )
 		if(!pcache->pvbmhdr->numbodyparts)
 			continue;
 
-		AddVBM(pcache->pstudiohdr, pcache->pvbmhdr); 
+		// Add to cache
+		pvbmarray[finalvbmcount] = pcache;
+		finalvbmcount++;
+
+		// Increment the vertex and index counts
+		finalvertexcount += pcache->pvbmhdr->numverts;
+		finalindexcount += pcache->pvbmhdr->numindexes;
 
 		// Mark as loaded into GL
 		pmodel->isloaded = true;
 	}
 
-	// Create base for draw buffer
-	m_drawBufferIndex = m_pVBO->GetVBOSize()/sizeof(vbm_glvertex_t);
-	vbm_glvertex_t* ptempverts = new vbm_glvertex_t[MAX_TEMP_VBM_VERTEXES];
-	m_pVBO->Append(ptempverts, sizeof(vbm_glvertex_t)*MAX_TEMP_VBM_VERTEXES, nullptr, 0);
-	delete[] ptempverts;
-
-	// Add in reserve
-	m_vCache_Base = m_pVBO->GetVBOSize()/sizeof(vbm_glvertex_t);
-	m_vCache_Index = m_vCache_Base;
-
-	m_iCache_Base = m_pVBO->GetIBOSize()/sizeof(Uint32);
-	m_iCache_Index = m_iCache_Base;
+	// Add in the draw buffer
+	finalvertexcount += MAX_TEMP_VBM_VERTEXES;
 	
-	// Get the cache size
+	// Add in the decal buffer
 	m_decalVertexCacheSize = m_pCvarDecalCacheSize->GetValue();
 	if(m_decalVertexCacheSize < MIN_VBMDECAL_VERTEXES)
 	{
@@ -1418,16 +1427,36 @@ void CVBMRenderer::BuildVBO( void )
 	// Count 3 indexes for each vertex
 	m_decalIndexCacheSize = m_decalVertexCacheSize*3;
 
-	// Allocate the blanks
-	vbm_glvertex_t *pblankverts = new vbm_glvertex_t[m_decalVertexCacheSize];
-	Uint32 *pblankindexes = new Uint32[m_decalIndexCacheSize];
+	// Add these in
+	m_vCache_Base = finalvertexcount;
+	m_vCache_Index = m_vCache_Base;
+	finalvertexcount += m_decalVertexCacheSize;
 
-	// Append it to the VBO
-	m_pVBO->Append(pblankverts, sizeof(vbm_glvertex_t)*m_decalVertexCacheSize, pblankindexes, sizeof(Uint32)*m_decalIndexCacheSize);
-	m_pVBO->DeleteCaches();
+	m_iCache_Base = finalindexcount;
+	m_iCache_Index = m_iCache_Base;
+	finalindexcount += m_decalIndexCacheSize;
 
-	delete[] pblankverts;
-	delete[] pblankindexes;
+	// Allocate buffers we'll send to the GPU
+	vbm_glvertex_t* pvertexbuffer = new vbm_glvertex_t[finalvertexcount];
+	memset(pvertexbuffer, 0, sizeof(vbm_glvertex_t)*finalvertexcount);
+	Uint32 vertexoffset = 0;
+
+	Uint32* pindexbuffer = new Uint32[finalindexcount];
+	memset(pindexbuffer, 0, sizeof(Uint32)*finalindexcount);
+	Uint32 indexoffset = 0;
+
+	// Now process all the 
+	for(Uint32 i = 0; i < finalvbmcount; i++)
+	{
+		const vbmcache_t* pcache = pvbmarray[i];
+		AddVBM(pcache->pstudiohdr, pcache->pvbmhdr, pvertexbuffer, pindexbuffer, vertexoffset, indexoffset);
+	}
+
+	m_pVBO = new CVBO(gGLExtF, pvertexbuffer, sizeof(vbm_glvertex_t)*finalvertexcount, pindexbuffer, sizeof(Uint32)*finalindexcount);
+	m_pShader->SetVBO(m_pVBO);
+
+	delete[] pvertexbuffer;
+	delete[] pindexbuffer;
 }
 
 //=============================================

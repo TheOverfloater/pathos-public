@@ -89,7 +89,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\common;..\..\cl_dll;..\..\engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\common;..\..\libs\sdl2.0\include;..\..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;PSCRIPTCONV;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -112,6 +112,7 @@
       <ProgramDatabaseFile>.\Release/pscriptconv.pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>.\Win32\Release\SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -127,7 +128,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\common;..\..\cl_dll;..\..\engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\common;..\..\libs\sdl2.0\include;..\..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;PSCRIPTCONV;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -149,6 +150,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>.\Release/pscriptconv.pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>.\x64\Release\SDL2.lib;.\x64\Release\SDL2Main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -247,7 +249,10 @@
     <ClInclude Include="..\..\common\com_math.h" />
     <ClInclude Include="..\..\common\com_math_inline.hpp" />
     <ClInclude Include="..\..\common\constants.h" />
+    <ClInclude Include="..\..\common\crc32.h" />
     <ClInclude Include="..\..\common\cstring.h" />
+    <ClInclude Include="..\..\common\cstringpool.h" />
+    <ClInclude Include="..\..\common\cstringpool_inline.hpp" />
     <ClInclude Include="..\..\common\cstring_inline.hpp" />
     <ClInclude Include="..\..\common\vector.h" />
     <ClInclude Include="..\..\common\vector_inline.hpp" />
@@ -257,7 +262,9 @@
     <ClCompile Include="..\..\common\cbitset.cpp" />
     <ClCompile Include="..\..\common\cbuffer.cpp" />
     <ClCompile Include="..\..\common\common.cpp" />
+    <ClCompile Include="..\..\common\crc32.cpp" />
     <ClCompile Include="..\..\common\cstring.cpp" />
+    <ClCompile Include="..\..\common\cstringpool.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

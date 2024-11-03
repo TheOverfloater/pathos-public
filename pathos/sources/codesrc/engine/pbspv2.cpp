@@ -18,6 +18,7 @@ All Rights Reserved.
 #include "logfile.h"
 #include "enginestate.h"
 #include "bsp_shared.h"
+#include "miniz.h"
 
 //=============================================
 // @brief
@@ -306,27 +307,68 @@ bool PBSPV2_LoadTextures( const byte* pfile, brushmodel_t& model, const dpbspv2l
 // @brief
 //
 //=============================================
+bool PBSPV2_DecompressLightingData( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump, color24_t*& pdestptr, Uint32& destsize )
+{
+	const dpbspv2lmapdata_t* plightmapdata = reinterpret_cast<const dpbspv2lmapdata_t*>(pfile + lump.offset);
+	if(plightmapdata->noncompressedsize % sizeof(color24_t))
+	{
+		Con_EPrintf("%s - Inconsistent decompressed data size in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
+	const byte* prawdatasrc = pfile + plightmapdata->dataoffset;
+	byte* poutputdataptr = new byte[plightmapdata->noncompressedsize];
+	memset(poutputdataptr, 0, sizeof(byte)*plightmapdata->noncompressedsize);
+
+	switch(plightmapdata->compression)
+	{
+	case PBSPV2_LMAP_COMPRESSION_NONE:
+		memcpy(poutputdataptr, prawdatasrc, sizeof(byte)*plightmapdata->noncompressedsize);
+		break;
+	case PBSPV2_LMAP_COMPRESSION_MINIZ:
+		{
+			mz_ulong destinationsize = plightmapdata->noncompressedsize;
+			Int32 status = uncompress(poutputdataptr, &destinationsize, prawdatasrc, plightmapdata->datasize);
+			if(status != MZ_OK)
+			{
+				Con_EPrintf("%s - Miniz uncompress failed with error code %d.\n", __FUNCTION__, status);
+				delete[] poutputdataptr;
+				return false;
+			}
+
+			if(plightmapdata->noncompressedsize != destinationsize)
+			{
+				Con_EPrintf("%s - Miniz uncompress produced inconsistent output size (expected %d, got %d instead).\n", __FUNCTION__, plightmapdata->noncompressedsize, destinationsize);
+				delete[] poutputdataptr;
+				return false;
+			}
+		}
+		break;
+	}
+
+	pdestptr = reinterpret_cast<color24_t*>(poutputdataptr);
+	destsize = plightmapdata->noncompressedsize;
+
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 bool PBSPV2_LoadDefaultLighting( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
 	if(!lump.size)
 		return true;
 
 	// Check if sizes are correct
-	if(lump.size % sizeof(color24_t))
+	if(lump.size != sizeof(dpbspv2lmapdata_t))
 	{
 		Con_EPrintf("%s - Inconsistent lump size in '%s'.\n", __FUNCTION__, model.name.c_str());
 		return false;
 	}
 
-	model.pbaselightdata[SURF_LIGHTMAP_DEFAULT] = reinterpret_cast<color24_t *>(new byte[lump.size]);
-	model.lightdatasize = lump.size;
-
-	const byte *psrc = (pfile + lump.offset);
-	memcpy(model.pbaselightdata[SURF_LIGHTMAP_DEFAULT], psrc, sizeof(byte)*lump.size);
-
-	model.plightdata[SURF_LIGHTMAP_DEFAULT] = model.pbaselightdata[SURF_LIGHTMAP_DEFAULT];
-
-	return true;
+	return PBSPV2_DecompressLightingData(pfile, model, lump, model.plightdata[SURF_LIGHTMAP_DEFAULT], model.lightdatasize);
 }
 
 //=============================================
@@ -339,27 +381,24 @@ bool PBSPV2_LoadLightingDataLayer( const byte* pfile, brushmodel_t& model, const
 		return true;
 
 	// Check if sizes are correct
-	if(lump.size % sizeof(color24_t))
+	if(lump.size != sizeof(dpbspv2lmapdata_t))
 	{
 		Con_EPrintf("%s - Inconsistent lump size in '%s'.\n", __FUNCTION__, model.name.c_str());
 		return false;
 	}
 
-	if(static_cast<Uint32>(lump.size) != model.lightdatasize)
+	Uint32 datasize = 0;
+	bool result = PBSPV2_DecompressLightingData(pfile, model, lump, model.plightdata[layer], datasize);
+	if(result)
 	{
-		Con_EPrintf("%s - Inconsistent lump size %d in '%s' for light data layer %d, expected size was %d.\n", __FUNCTION__, lump.size, model.name.c_str(), layer, model.lightdatasize);
-		return false;
+		if(datasize != model.lightdatasize)
+		{
+			Con_EPrintf("%s - Inconsistent lump size %d in '%s' for light data layer %d, expected size was %d.\n", __FUNCTION__, lump.size, model.name.c_str(), layer, model.lightdatasize);
+			return false;
+		}
 	}
 
-	// Copy the data to the appropriate layer
-	model.pbaselightdata[layer] = reinterpret_cast<color24_t *>(new byte[lump.size]);
-
-	const byte *psrc = (pfile + lump.offset);
-	memcpy(model.pbaselightdata[layer], psrc, sizeof(byte)*lump.size);
-
-	model.plightdata[layer] = model.pbaselightdata[layer];
-
-	return true;
+	return result;
 }
 
 //=============================================
@@ -471,7 +510,14 @@ bool PBSPV2_LoadFaces( const byte* pfile, brushmodel_t& model, const dpbspv2lump
 		pout->firstedge = pinfaces[i].firstedge;
 		pout->numedges = pinfaces[i].numedges;
 		pout->flags = 0;
-		
+		pout->base_samplesize = PBSPV2_LM_SAMPLE_SIZE;
+
+		Float sampleScale = pinfaces[i].samplescale;
+		if(sampleScale <= 0)
+			sampleScale = 1.0;
+
+		pout->lightmapdivider = pout->base_samplesize / sampleScale;
+
 		Uint32 planeindex = pinfaces[i].planenum;
 		Int32 side = pinfaces[i].side;
 		if(side)
@@ -482,11 +528,6 @@ bool PBSPV2_LoadFaces( const byte* pfile, brushmodel_t& model, const dpbspv2lump
 		Int32 texinfoindex = pinfaces[i].texinfo;
 		pout->ptexinfo = &model.ptexinfos[texinfoindex];
 
-		Float sampleScale = pinfaces[i].samplescale;
-		if(sampleScale <= 0)
-			sampleScale = 1.0;
-
-		pout->lightmapdivider = PBSPV2_LM_SAMPLE_SIZE / sampleScale;
 		if(!BSP_CalcSurfaceExtents(pout, model))
 			return false;
 

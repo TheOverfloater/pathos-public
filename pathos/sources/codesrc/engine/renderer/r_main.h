@@ -555,6 +555,8 @@ extern void R_AddShaderForLoading( CGLSLShader* pShader );
 extern bool R_PerformPendingShaderLoads( void );
 extern Vector R_GetLightingForPosition( const Vector& position, const Vector& defaultcolor );
 
+extern void R_SetLightmapTexture( Uint32 glindex, Uint32 width, Uint32 height, bool isvectormap, color32_t* pdata, Uint32& resultsize );
+
 extern void Cmd_PasteDecal( void );
 extern void Cmd_CreateSprite( void );
 extern void Cmd_CreateDynamicLight( void );
@@ -600,5 +602,6 @@ extern void Cmd_SetTextureMaterialType( void );
 extern void Cmd_ShowListMaterial( void );
 
 extern void Cmd_LoadAllParticleScripts( void );
+extern void Cmd_ExportALD( void );
 
 #endif //R_MAIN_H

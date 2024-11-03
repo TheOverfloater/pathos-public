@@ -269,15 +269,14 @@ ui_schemeinfo_t* CL_UILoadSchemaFile( const Char* pstrFilename )
 //=============================================
 const en_material_t* CL_GetMapTextureMaterial( const Char* pstrtexturename )
 {
-	for(Uint32 i = 0; i < cls.mapmaterialfiles.size(); i++)
+	unordered_map<CString, Uint32>::iterator it = cls.mapmaterialfilesnamemap.find(pstrtexturename);
+	if(it != cls.mapmaterialfilesnamemap.end())
 	{
-		if(!qstrcmp(cls.mapmaterialfiles[i].maptexturename, pstrtexturename))
-		{
-			return CTextureManager::GetInstance()->FindMaterialScript(cls.mapmaterialfiles[i].materialfilepath.c_str(), RS_GAME_LEVEL);
-		}
+		CTextureManager* pTextureManager = CTextureManager::GetInstance();
+		return pTextureManager->FindMaterialScript(cls.mapmaterialfiles[it->second].materialfilepath.c_str(), RS_GAME_LEVEL);
 	}
-
-	return nullptr;
+	else
+		return nullptr;
 }
 
 //=============================================

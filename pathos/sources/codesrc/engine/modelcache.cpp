@@ -26,6 +26,7 @@ All Rights Reserved.
 #include "enginestate.h"
 #include "commands.h"
 #include "bsp_shared.h"
+#include "crc32.h"
 
 // Object declaration
 CModelCache gModelCache;
@@ -134,6 +135,7 @@ void CModelCache::ClearCache( void )
 	}
 
 	m_modelCacheArray.clear();
+	m_modelNameMap.clear();
 }
 
 //=============================================
@@ -170,6 +172,11 @@ cache_model_t* CModelCache::LoadModel( const Char* pstrFilename )
 	}
 
 	FL_FreeFile(pfile);
+
+	// Add to the map
+	if(pmodel)
+		m_modelNameMap.insert(std::pair<CString, Uint32>(pstrFilename, pmodel->cacheindex-1));
+
 	return pmodel;
 }
 //=============================================
@@ -228,7 +235,7 @@ cache_model_t* CModelCache::LoadVBMModel( const Char* pstrFilename, const byte* 
 	// Now load the VBM file
 	CString filepath = pstrFilename;
 	Uint32 begin = filepath.find(0, ".mdl");
-	if(begin != -1)
+	if(begin != CString::CSTRING_NO_POSITION)
 		filepath.erase(begin, 4);
 	filepath << ".vbm";
 
@@ -430,10 +437,7 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 		pnewmodel->freedata = (i == 0) ? true : false;
 
 		for(Uint32 j = 0 ; j < NB_SURF_LIGHTMAP_LAYERS; j++)
-		{
 			pnewmodel->plightdata[j] = model.plightdata[j];
-			pnewmodel->pbaselightdata[j] = model.pbaselightdata[j];
-		}
 
 		pnewmodel->hulls[0].firstclipnode = psubmodel->headnode[0];
 		for(Uint32 j = 1; j < MAX_MAP_HULLS; j++)
@@ -493,16 +497,11 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 //=============================================
 cache_model_t* CModelCache::FindModelByName( const Char* pstrFilename )
 {
-	if(m_modelCacheArray.empty())
+	ModelNameMapType_t::iterator it = m_modelNameMap.find(pstrFilename);
+	if(it != m_modelNameMap.end())
+		return m_modelCacheArray[it->second];
+	else
 		return nullptr;
-
-	for(Uint32 i = 0; i < m_modelCacheArray.size(); i++)
-	{
-		if(!qstrcmp(m_modelCacheArray[i]->name, pstrFilename))
-			return m_modelCacheArray[i];
-	}
-
-	return nullptr;
 }
 
 //=============================================

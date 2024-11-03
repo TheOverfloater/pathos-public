@@ -10,6 +10,10 @@ All Rights Reserved.
 #ifndef SV_MAIN_H
 #define SV_MAIN_H
 
+#include <string>
+#include <unordered_map>
+#include <map>
+
 #include "gdll_interface.h"
 #include "sv_shared.h"
 #include "usercmd.h"
@@ -52,6 +56,12 @@ struct trace_t;
 
 // Datatype for linking edicts to their private data
 typedef void (*pfnPrivateData_t)( edict_t* pedict );
+// Datatype for decal cache key
+typedef std::pair<CString, decalcache_type_t> DecalCacheMapKey_t;
+// Datatype for cache name->index mappings
+typedef std::map<DecalCacheMapKey_t, Uint32> DecalCacheNameIndexMap_t;
+// Datatype for cache name->index mappings
+typedef std::unordered_map<CString, Uint32> CacheNameIndexMap_t;
 
 enum sv_state_t
 {
@@ -345,9 +355,11 @@ struct stringbuffer_t
 		{}
 
 	// Buffer holding the strings
-	CArray<CString> buffer;
+	CArray<const CString*> buffer;
 	// Number of strings in buffer
 	Uint32 numstrings;
+	// Name->position map
+	std::unordered_map<CString, Uint32> stringposmap;
 };
 
 struct saveddecal_t
@@ -475,20 +487,33 @@ struct serverstate_t
 
 	// server sound cache
 	CArray<sv_sound_t> sndcache;
+	// Map linking sound names to cache indexes
+	CacheNameIndexMap_t sndcachemap;
+
 	// server model cache
 	CArray<sv_model_t> modelcache;
+	// Map linking model names to cache indexes
+	CacheNameIndexMap_t modelcachemap;
+
 	// generic resources list
 	CArray<CString> genericsourcesarray;
+	// Map linking model names to cache indexes
+	CacheNameIndexMap_t genericcachemap;
+
 	// particle scripts list
 	CArray<sv_particlecache_t> particlescache;
+	// Map linking model names to cache indexes
+	CacheNameIndexMap_t particlecachemap;
+
 	// decals precache list
 	CArray<decalcache_t> decalcache;
+	// Map linking model names to cache indexes
+	DecalCacheNameIndexMap_t decalcachemap;
 
 	// association of map textures/material scripts
 	CArray<maptexturematerial_t> mapmaterialfiles;
-
-	// Message prompt hashes list
-	CHashList promptshashlist;
+	// Mapping of material names to positions
+	CacheNameIndexMap_t mapmaterialfilesnamemap;
 
 	// All level connections known
 	CLinkedList<sv_levelinfo_t> levelinfos;

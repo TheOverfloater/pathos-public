@@ -315,13 +315,11 @@ bool PBSPV1_LoadLighting( const byte* pfile, brushmodel_t& model, const dpbspv1l
 		return false;
 	}
 
-	model.pbaselightdata[SURF_LIGHTMAP_DEFAULT] = reinterpret_cast<color24_t *>(new byte[lump.size]);
+	model.plightdata[SURF_LIGHTMAP_DEFAULT] = reinterpret_cast<color24_t *>(new byte[lump.size]);
 	model.lightdatasize = lump.size;
 
 	const byte *psrc = (pfile + lump.offset);
-	memcpy(model.pbaselightdata[SURF_LIGHTMAP_DEFAULT], psrc, sizeof(byte)*lump.size);
-
-	model.plightdata[SURF_LIGHTMAP_DEFAULT] = model.pbaselightdata[SURF_LIGHTMAP_DEFAULT];
+	memcpy(model.plightdata[SURF_LIGHTMAP_DEFAULT], psrc, sizeof(byte)*lump.size);
 
 	return true;
 }
@@ -470,6 +468,8 @@ bool PBSPV1_LoadFaces( const byte* pfile, brushmodel_t& model, const dpbspv1lump
 		pout->firstedge = pinfaces[i].firstedge;
 		pout->numedges = pinfaces[i].numedges;
 		pout->flags = 0;
+		pout->lightmapdivider = PBSPV1_LM_SAMPLE_SIZE;
+		pout->base_samplesize = PBSPV1_LM_SAMPLE_SIZE;
 
 		Uint32 planeindex = pinfaces[i].planenum;
 		Int32 side = pinfaces[i].side;
@@ -480,8 +480,7 @@ bool PBSPV1_LoadFaces( const byte* pfile, brushmodel_t& model, const dpbspv1lump
 		
 		Int32 texinfoindex = pinfaces[i].texinfo;
 		pout->ptexinfo = &model.ptexinfos[texinfoindex];
-
-		pout->lightmapdivider = PBSPV1_LM_SAMPLE_SIZE;
+		
 		if(!BSP_CalcSurfaceExtents(pout, model))
 			return false;
 
@@ -561,8 +560,7 @@ bool PBSPV1_LoadFaces( const byte* pfile, brushmodel_t& model, const dpbspv1lump
 			memcpy(pfinaldata, plightdata[i], sizeof(byte)*lightdatasize);
 
 			// Set pointers and data sizes
-			model.pbaselightdata[i] = reinterpret_cast<color24_t*>(pfinaldata);
-			model.plightdata[i] = model.pbaselightdata[i];
+			model.plightdata[i] = reinterpret_cast<color24_t*>(pfinaldata);
 
 			// Delete temporary array we made
 			delete[] plightdata[i];

@@ -10,14 +10,14 @@ REM Check if the BSP file exists
 IF NOT exist %mapname%.map GOTO Error_NoMAP
 
 ECHO Compiling %mapname%...
-hlcsg -low -cliptype simple -chart -estimate %mapname%.map
-hlbsp -nobrink -low -chart -estimate %mapname%.map
+hlcsg -low -cliptype precise -chart -estimate %mapname%.map
+hlbsp -lightmapscale 4.0 -low -chart -estimate %mapname%.map
 
 REM Fail if we have a leak pointfile
 IF exist %mapname%.lin GOTO Error_Leak
 
 hlvis -fast -low -chart -estimate %mapname%.map
-hlrad -bumpmaps -low -chart -blur 2.0 -smooth2 60 -notexscale -minlight 1 -estimate %mapname%.map
+hlrad -extra -compress 0 -rgbcompress 0 -compressionlevel uber_compression -bumpmaps -low -chart -blur 2.0 -smooth 150 -smooth2 60 -notexscale -minlight 1 -estimate %mapname%.map
 GOTO CopyPrompt
 
 :CopyPrompt

@@ -11,6 +11,7 @@ All Rights Reserved.
 #include "gd_includes.h"
 #include "ambientgeneric.h"
 #include "snd_shared.h"
+#include "sentencesfile.h"
 
 // TRUE if we're in InitializeEntities
 extern bool g_bInInitializeEntities;
@@ -37,10 +38,12 @@ CAmbientGeneric::CAmbientGeneric( edict_t* pedict ):
 	m_volumeFadeOutTime(0),
 	m_pitchFadeInTime(0),
 	m_pitchFadeOutTime(0),
+	m_soundDuration(0),
 	m_beginTime(0),
 	m_turnoffBeginTime(0),
 	m_turnoffEndTime(0),
-	m_emitterEntityName(NO_STRING_VALUE)
+	m_emitterEntityName(NO_STRING_VALUE),
+	m_emitSoundName(NO_STRING_VALUE)
 {
 }
 
@@ -224,6 +227,11 @@ bool CAmbientGeneric::Spawn( void )
 		return false;
 	}
 
+	if(m_emitSoundName == NO_STRING_VALUE)
+	{
+		Util::EntityConPrintf(m_pEdict, "Sound '%s' could not be loaded.\n", gd_engfuncs.pfnGetString(m_pFields->message));
+		return false;
+	}
 	// Set that this is an ambient sound
 	m_sndFlags |= SND_FL_AMBIENT;
 
@@ -262,7 +270,33 @@ void CAmbientGeneric::Precache( void )
 	if(m_pFields->message != NO_STRING_VALUE)
 	{
 		const Char* pstrSound = gd_engfuncs.pfnGetString(m_pFields->message);
-		gd_engfuncs.pfnPrecacheSound(pstrSound);
+		if(pstrSound[0] == '!')
+		{
+			const Char* pstrName = g_pSentencesFile->GetSentence(pstrSound, &m_soundDuration);
+			if(pstrName)
+			{
+				m_emitSoundName = gd_engfuncs.pfnAllocString(pstrName);
+			}
+			else
+			{
+				Util::EntityConPrintf(m_pEdict, "%s - No such sentence '%s'.\n", __FUNCTION__, pstrSound);
+				return;
+			}
+		}
+		else
+		{
+			// Just a regular sound file
+			if(gd_engfuncs.pfnPrecacheSound(pstrSound) != NO_POSITION)
+			{
+				m_soundDuration = gd_engfuncs.pfnGetSoundDuration(pstrSound, PITCH_NORM);
+				m_emitSoundName = m_pFields->message;
+			}
+			else
+			{
+				Util::EntityConPrintf(m_pEdict, "%s - No such sound file '%s'.\n", __FUNCTION__, pstrSound);
+				return;
+			}
+		}
 	}
 }
 
@@ -374,8 +408,7 @@ void CAmbientGeneric::SendInitMessage( const CBaseEntity* pPlayer )
 		// Check if we should bother at all
 		if(!m_isLooping && m_beginTime)
 		{
-			const Char* pstrSound = gd_engfuncs.pfnGetString(m_pFields->message);
-			Float duration = gd_engfuncs.pfnGetSoundDuration(pstrSound, pitch);
+			Float duration = m_soundDuration * (static_cast<Float>(pitch) / static_cast<Float>(PITCH_NORM));
 			if((g_pGameVars->time-m_beginTime) > duration)
 			{
 				// Reset this
@@ -508,9 +541,9 @@ void CAmbientGeneric::PlaySound( void )
 
 	// Send to client to play
 	if(m_emitterEntity != reinterpret_cast<const CBaseEntity*>(this) && m_emitterEntity->IsVisible())
-		Util::EmitEntitySound(m_emitterEntity, m_pFields->message, SND_CHAN_AUTO, volume/100.0f, m_attenuation, pitch, m_sndFlags);
+		Util::EmitEntitySound(m_emitterEntity, m_emitSoundName, SND_CHAN_AUTO, volume/100.0f, m_attenuation, pitch, m_sndFlags);
 	else
-		Util::EmitAmbientSound(m_emitterEntity->GetOrigin(), m_pFields->message, volume/100.0f, m_attenuation, pitch, m_sndFlags, this, nullptr);
+		Util::EmitAmbientSound(m_emitterEntity->GetOrigin(), m_emitSoundName, volume/100.0f, m_attenuation, pitch, m_sndFlags, this, nullptr);
 
 	// Apply any effects for turning on
 	ApplyTurnOnEffects();
@@ -545,9 +578,9 @@ void CAmbientGeneric::StopSound( void )
 	{
 		// Just kill it if there's no turn-off time
 		if(m_emitterEntity != reinterpret_cast<const CBaseEntity*>(this) && m_emitterEntity->IsVisible())
-			Util::EmitEntitySound(m_emitterEntity, m_pFields->message, SND_CHAN_AUTO, 0, 0, 0, SND_FL_STOP);
+			Util::EmitEntitySound(m_emitterEntity, m_emitSoundName, SND_CHAN_AUTO, 0, 0, 0, SND_FL_STOP);
 		else
-			Util::EmitAmbientSound(m_emitterEntity->GetOrigin(), m_pFields->message, 0, 0, 0, SND_FL_STOP, this);
+			Util::EmitAmbientSound(m_emitterEntity->GetOrigin(), m_emitSoundName, 0, 0, 0, SND_FL_STOP, this);
 	}
 	else
 	{
@@ -576,10 +609,10 @@ void CAmbientGeneric::ApplyTurnOnEffects( void )
 	}
 
 	if(m_volumeFadeInTime && m_startVolume != m_volume)
-		gd_engfuncs.pfnApplySoundEffect(m_emitterEntity->GetEntityIndex(), gd_engfuncs.pfnGetString(m_pFields->message), SND_CHAN_AUTO, SND_EF_CHANGE_VOLUME, m_volumeFadeInTime, m_volume/100.0f, NO_CLIENT_INDEX);
+		gd_engfuncs.pfnApplySoundEffect(m_emitterEntity->GetEntityIndex(), gd_engfuncs.pfnGetString(m_emitSoundName), SND_CHAN_AUTO, SND_EF_CHANGE_VOLUME, m_volumeFadeInTime, m_volume/100.0f, NO_CLIENT_INDEX);
 
 	if(m_pitchFadeInTime && m_startPitch != m_pitch)
-		gd_engfuncs.pfnApplySoundEffect(m_emitterEntity->GetEntityIndex(), gd_engfuncs.pfnGetString(m_pFields->message), SND_CHAN_AUTO, SND_EF_CHANGE_PITCH, m_pitchFadeInTime, m_pitch, NO_CLIENT_INDEX);
+		gd_engfuncs.pfnApplySoundEffect(m_emitterEntity->GetEntityIndex(), gd_engfuncs.pfnGetString(m_emitSoundName), SND_CHAN_AUTO, SND_EF_CHANGE_PITCH, m_pitchFadeInTime, m_pitch, NO_CLIENT_INDEX);
 }
 
 //=============================================

@@ -214,6 +214,7 @@ namespace Common
 	extern void StringToVector( const Char* pstrString, Vector& outVector );
 	extern void NormalizeAngles( Vector& angles );
 	extern void ConvertStringToLowerCase( Char* pstring );
+	extern Uint32 GetStringCRC32Hash( const Char* pstrString );
 
 	extern inline Int16 ByteToInt16( const byte *pdata );
 	extern inline Uint16 ByteToUint16( const byte *pdata );

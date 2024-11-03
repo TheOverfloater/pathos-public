@@ -10,6 +10,9 @@ All Rights Reserved.
 #ifndef CL_SND_H
 #define CL_SND_H
 
+#include <string>
+#include <unordered_map>
+
 #include <al/al.h>
 #include <al/alc.h>
 #include <al/alext.h>

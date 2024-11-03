@@ -45,6 +45,7 @@ All Rights Reserved.
 #include "r_main.h"
 #include "ogg_common.h"
 #include "sv_msg.h"
+#include "sys_print.h"
 
 #ifdef WIN32
 #include <detours.h>
@@ -404,6 +405,9 @@ void SV_LinkMapTextureMaterials( CArray<CString>& wadList )
 	if(!svs.mapmaterialfiles.empty())
 		svs.mapmaterialfiles.clear();
 
+	if(!svs.mapmaterialfilesnamemap.empty())
+		svs.mapmaterialfilesnamemap.clear();
+
 	for(Uint32 i = 0; i < ens.pworld->numtextures; i++)
 	{
 		// First look in the BSP folder
@@ -443,7 +447,12 @@ void SV_LinkMapTextureMaterials( CArray<CString>& wadList )
 			maptexturematerial_t newmat;
 			newmat.maptexturename = ens.pworld->ptextures[i].name;
 			newmat.materialfilepath = filepath;
+
+			Uint32 insertindex = svs.mapmaterialfiles.size();
 			svs.mapmaterialfiles.push_back(newmat);
+
+			// Add to the map
+			svs.mapmaterialfilesnamemap.insert(std::pair<CString, Uint32>(newmat.maptexturename.c_str(), insertindex));
 		}
 		else
 			Con_Printf("%s - Failed to find material file for world texture '%s'.\n", __FUNCTION__, ens.pworld->ptextures[i].name.c_str());
@@ -696,7 +705,10 @@ bool SV_SpawnGame( const Char* pstrLevelName, const Char* pstrSaveFile, const Ch
 		newmodel.modelname = pcache->name;
 		newmodel.cache_index = i+1;
 
+		Uint32 insertindex = svs.modelcache.size();
 		svs.modelcache.push_back(newmodel);
+
+		svs.modelcachemap.insert(std::pair<CString, Uint32>(newmodel.modelname.c_str(), insertindex));
 	}
 	
 	// Precache error model and sprite
@@ -1044,9 +1056,6 @@ void SV_ClearGame(  bool clearloadingscreen, bool clearconnections )
 	// Clear consistency list
 	svs.netinfo.enforcedfiles.clear();
 
-	// Clear prompts hash list
-	svs.promptshashlist.clear();
-
 	// Clear all edicts
 	gEdicts.ClearEdicts();
 
@@ -1070,17 +1079,56 @@ void SV_ClearGame(  bool clearloadingscreen, bool clearconnections )
 	ens.pworld = nullptr;
 
 	// Clear caches
-	svs.modelcache.clear();
-	svs.sndcache.clear();
-	svs.mapmaterialfiles.clear();
-	svs.particlescache.clear();
+	if(!svs.modelcache.empty())
+		svs.modelcache.clear();
+
+	if(!svs.modelcachemap.empty())
+		svs.modelcachemap.clear();
+
+	if(!svs.sndcache.empty())
+		svs.sndcache.clear();
+
+	if(!svs.sndcachemap.empty())
+		svs.sndcachemap.clear();
+
+	if(!svs.particlescache.empty())
+		svs.particlescache.clear();
+
+	if(!svs.particlecachemap.empty())
+		svs.particlecachemap.clear();
+
+	if(!svs.genericsourcesarray.empty())
+		svs.genericsourcesarray.clear();
+
+	if(!svs.genericcachemap.empty())
+		svs.genericcachemap.clear();
+
+	if(!svs.mapmaterialfiles.empty())
+		svs.mapmaterialfiles.clear();
+
+	if(!svs.mapmaterialfilesnamemap.empty())
+		svs.mapmaterialfilesnamemap.clear();
+
+	if(!svs.decalcache.empty())
+		svs.decalcache.clear();
+
+	if(!svs.decalcachemap.empty())
+		svs.decalcachemap.clear();
 
 	// Clear string buffer
-	svs.strbuffer.buffer.clear();
+	if(!svs.strbuffer.buffer.empty())
+		svs.strbuffer.buffer.clear();	
+
+	if(!svs.strbuffer.stringposmap.empty())
+		svs.strbuffer.stringposmap.clear();
+
 	svs.strbuffer.numstrings = 0;
 
 	svs.perrormodel = nullptr;
 	svs.perrorsprite = nullptr;
+
+	// Reset printer
+	gPrintInterface.ClearGame();
 
 	// Disconnect localhost
 	if(CL_IsHostClient())
@@ -1509,11 +1557,11 @@ void SV_Frame( void )
 //=============================================
 Int32 SV_PrecacheModel( const Char* pstrFilepath )
 {
-	// Check if it's already in the cache
-	for(Uint32 i = 0; i < svs.modelcache.size(); i++)
+	CacheNameIndexMap_t::iterator it = svs.modelcachemap.find(pstrFilepath);
+	if(it != svs.modelcachemap.end())
 	{
-		if(!qstrcmp(svs.modelcache[i].modelname, pstrFilepath))
-			return svs.modelcache[i].cache_index;
+		sv_model_t* psvmodel = &svs.modelcache[it->second];
+		return psvmodel->cache_index;
 	}
 
 	// Do not allow precache past loading
@@ -1526,9 +1574,7 @@ Int32 SV_PrecacheModel( const Char* pstrFilepath )
 	cache_model_t* pmodel = gModelCache.LoadModel(pstrFilepath);
 	if(!pmodel)
 	{
-		const byte* phashdata = reinterpret_cast<const byte*>(pstrFilepath);
-		if(svs.promptshashlist.addhash(phashdata, qstrlen(pstrFilepath)))
-			Con_Printf("%s - Could not precache '%s'.\n", __FUNCTION__, pstrFilepath);
+		Con_Printf("[flags=onlyonce_game]%s - Could not precache '%s'.\n", __FUNCTION__, pstrFilepath);
 		return NO_PRECACHE;
 	}
 
@@ -1536,7 +1582,12 @@ Int32 SV_PrecacheModel( const Char* pstrFilepath )
 	sv_model_t newmodel;
 	newmodel.modelname = pstrFilepath;
 	newmodel.cache_index = pmodel->cacheindex;
+
+	Uint32 insertindex = svs.modelcache.size();
 	svs.modelcache.push_back(newmodel);
+
+	// Add to map
+	svs.modelcachemap.insert(std::pair<CString, Uint32>(pstrFilepath, insertindex));
 
 	return newmodel.cache_index;
 }
@@ -1838,11 +1889,9 @@ Uint32 SV_AllocString( const Char* pString )
 		return NO_STRING_VALUE;
 
 	// See if it's already present
-	for(Uint32 i = 0; i < svs.strbuffer.numstrings; i++)
-	{
-		if(!qstrcmp(pString, svs.strbuffer.buffer[i]))
-			return i + 1;
-	}
+	std::unordered_map<CString, Uint32>::iterator it = svs.strbuffer.stringposmap.find(pString);
+	if(it != svs.strbuffer.stringposmap.end())
+		return it->second + 1;
 
 	// Resize the buffer if needed
 	if(svs.strbuffer.buffer.empty() || svs.strbuffer.buffer.size() == svs.strbuffer.numstrings)
@@ -1850,7 +1899,9 @@ Uint32 SV_AllocString( const Char* pString )
 	
 	// Add it to the list
 	Uint32 returnindex = svs.strbuffer.numstrings;
-	svs.strbuffer.buffer[svs.strbuffer.numstrings] = pString;
+	std::pair<std::unordered_map<CString, Uint32>::iterator, bool> result = svs.strbuffer.stringposmap.insert(std::pair<CString, Uint32>(pString, returnindex));
+	
+	svs.strbuffer.buffer[svs.strbuffer.numstrings] = &result.first->first;
 	svs.strbuffer.numstrings++;
 
 	return returnindex + 1;
@@ -1872,7 +1923,7 @@ const Char* SV_GetString( string_t stringindex )
 		return nullptr;
 	}
 
-	return svs.strbuffer.buffer[realindex].c_str();
+	return svs.strbuffer.buffer[realindex]->c_str();
 }
 
 //=============================================
@@ -2156,17 +2207,14 @@ bool SV_GetAttachment( edict_t* pedict, Uint32 index, Vector& position )
 //=============================================
 const en_material_t* SV_GetMapTextureMaterial( const Char* pstrtexturename )
 {
-	CTextureManager* pTextureManager = CTextureManager::GetInstance();
-
-	for(Uint32 i = 0; i < svs.mapmaterialfiles.size(); i++)
+	unordered_map<CString, Uint32>::iterator it = svs.mapmaterialfilesnamemap.find(pstrtexturename);
+	if(it != svs.mapmaterialfilesnamemap.end())
 	{
-		if(!qstrcmp(svs.mapmaterialfiles[i].maptexturename, pstrtexturename))
-		{
-			return pTextureManager->FindMaterialScript(svs.mapmaterialfiles[i].materialfilepath.c_str(), RS_GAME_LEVEL);
-		}
+		CTextureManager* pTextureManager = CTextureManager::GetInstance();
+		return pTextureManager->FindMaterialScript(svs.mapmaterialfiles[it->second].materialfilepath.c_str(), RS_GAME_LEVEL);
 	}
-
-	return nullptr;
+	else
+		return nullptr;
 }
 
 //=============================================
@@ -2174,11 +2222,9 @@ const en_material_t* SV_GetMapTextureMaterial( const Char* pstrtexturename )
 //=============================================
 void SV_PrecacheGeneric( const Char* pstrresourcename )
 {
-	for(Uint32 i = 0; i < svs.genericsourcesarray.size(); i++)
-	{
-		if(!qstrcmp(svs.genericsourcesarray[i], pstrresourcename))
-			return;
-	}
+	CacheNameIndexMap_t::iterator it = svs.genericcachemap.find(pstrresourcename);
+	if(it != svs.genericcachemap.end())
+		return;
 
 	if(!FL_FileExists(pstrresourcename))
 	{
@@ -2186,7 +2232,8 @@ void SV_PrecacheGeneric( const Char* pstrresourcename )
 		return;
 	}
 
-	svs.genericsourcesarray.push_back(pstrresourcename);
+	Uint32 insertindex = svs.genericsourcesarray.size();
+	svs.genericcachemap.insert(std::pair<CString, Uint32>(pstrresourcename, insertindex));
 }
 
 //=============================================
@@ -2198,19 +2245,17 @@ Float SV_GetSoundDuration( const Char* pstrfilename, Uint32 pitch )
 	Float pitchmod = static_cast<Float>(pitch)/static_cast<Float>(PITCH_NORM);
 
 	// Look it up in precache list
-	for(Uint32 i = 0; i < svs.sndcache.size(); i++)
-	{
-		if(!qstrcmp(svs.sndcache[i].filepath, pstrfilename))
-			return svs.sndcache[i].duration * pitchmod;
-	}
+	CacheNameIndexMap_t::iterator it = svs.sndcachemap.find(pstrfilename);
+	if(it != svs.sndcachemap.end())
+		return svs.sndcache[it->second].duration * pitchmod;
 
 	CString filename(pstrfilename);
 	filename.tolower();
 
 	// Otherwise load it in and check
-	if(filename.find(0, ".wav") != -1)
+	if(filename.find(0, ".wav") != CString::CSTRING_NO_POSITION)
 		return SV_GetWAVFileDuration(pstrfilename) * pitchmod;
-	else if(filename.find(0, ".ogg") != -1)
+	else if(filename.find(0, ".ogg") != CString::CSTRING_NO_POSITION)
 		return SV_GetOGGFileDuration(pstrfilename) * pitchmod;
 	else
 	{
@@ -2231,7 +2276,7 @@ Float SV_GetOGGFileDuration( const Char* pstrfilename )
 	const byte *pfile = FL_LoadFile(filepath.c_str(), &fileSize);
 	if(!pfile)
 	{
-		Con_EPrintf("%s - Could not load %s\n", __FUNCTION__, pstrfilename);
+		Con_EPrintf("[flags=onlyonce_game]%s - Could not load %s\n", __FUNCTION__, pstrfilename);
 		return 0;
 	}
 
@@ -2256,7 +2301,7 @@ Float SV_GetOGGFileDuration( const Char* pstrfilename )
 	Int32 openResult = ov_open_callbacks(pogg, &stream, nullptr, 0, oggCallbacks);
 	if(openResult < 0)
 	{
-		Con_Printf("%s - Could not open '%s' for streaming.\n", __FUNCTION__, pstrfilename);
+		Con_Printf("[flags=onlyonce_game]%s - Could not open '%s' for streaming.\n", __FUNCTION__, pstrfilename);
 		delete[] pdata;
 		delete pogg;
 		return 0;
@@ -2293,13 +2338,13 @@ Float SV_GetWAVFileDuration( const Char* pstrfilename )
 	const byte* pfile = FL_LoadFile(filepath.c_str(), &filesize);
 	if(!pfile)
 	{
-		Con_Printf("%s - Failed to open '%s'.\n", __FUNCTION__, pstrfilename);
+		Con_Printf("[flags=onlyonce_game]%s - Failed to open '%s'.\n", __FUNCTION__, pstrfilename);
 		return 0;
 	}
 
 	if(qstrncmp(reinterpret_cast<const Char*>(pfile), "RIFF", 4))
 	{
-		Con_Printf("%s - '%s' is not a valid WAV file.\n", __FUNCTION__, pstrfilename);
+		Con_Printf("[flags=onlyonce_game]%s - '%s' is not a valid WAV file.\n", __FUNCTION__, pstrfilename);
 		FL_FreeFile(pfile);
 		return 0;
 	}

@@ -203,10 +203,7 @@ bool CEdictManager::LoadEntities( const Char* pstrEntdata )
 		// Initialize private data
 		if(!SV_InitPrivateData(pedict, entity.classname.c_str()))
 		{
-			const byte* pdata = reinterpret_cast<const byte*>(entity.classname.c_str());
-			if(svs.promptshashlist.addhash(pdata, entity.classname.length()))
-				Con_Printf("Failed to allocate private data for entity '%s'.\n", entity.classname.c_str());
-
+			Con_Printf("[flags=onlyonce_game]Failed to allocate private data for entity '%s'.\n", entity.classname.c_str());
 			FreeEdict(pedict, EDICT_REMOVED_AT_INIT);
 			continue;
 		}
@@ -215,14 +212,7 @@ bool CEdictManager::LoadEntities( const Char* pstrEntdata )
 		for(Uint32 i = 0; i < entity.values.size(); i++)
 		{
 			if(!svs.dllfuncs.pfnKeyValue(pedict, *entity.values[i]))
-			{
-				CString identifier;
-				identifier << entity.classname << "." << entity.values[i]->keyname;
-
-				const byte* pdata = reinterpret_cast<const byte*>(identifier.c_str());
-				if(svs.promptshashlist.addhash(pdata, identifier.length()))
-					Con_DPrintf("Entity %s - Unhandled keyvalue '%s'.\n", entity.classname.c_str(), entity.values[i]->keyname);
-			}
+				Con_DPrintf("[flags=onlyonce_game]Entity %s - Unhandled keyvalue '%s'.\n", entity.classname.c_str(), entity.values[i]->keyname);
 		}
 
 		// Dispatch spawn function

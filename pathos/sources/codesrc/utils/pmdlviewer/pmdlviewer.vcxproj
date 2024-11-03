@@ -308,6 +308,9 @@
     <ClInclude Include="..\..\common\com_math.h" />
     <ClInclude Include="..\..\common\com_math_inline.hpp" />
     <ClInclude Include="..\..\common\constants.h" />
+    <ClInclude Include="..\..\common\crc32.h" />
+    <ClInclude Include="..\..\common\cstringpool.h" />
+    <ClInclude Include="..\..\common\cstringpool_inline.hpp" />
     <ClInclude Include="..\..\common\datatypes.h" />
     <ClInclude Include="..\..\common\dds.h" />
     <ClInclude Include="..\..\common\file_interface.h" />
@@ -344,7 +347,9 @@
   <ItemGroup>
     <ClCompile Include="..\..\common\cbuffer.cpp" />
     <ClCompile Include="..\..\common\common.cpp" />
+    <ClCompile Include="..\..\common\crc32.cpp" />
     <ClCompile Include="..\..\common\cstring.cpp" />
+    <ClCompile Include="..\..\common\cstringpool.cpp" />
     <ClCompile Include="..\..\common\dds.cpp" />
     <ClCompile Include="..\..\common\matrix.cpp" />
     <ClCompile Include="..\..\common\md5.cpp" />

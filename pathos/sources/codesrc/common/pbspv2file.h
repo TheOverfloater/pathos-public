@@ -82,7 +82,8 @@ enum pbspv2_flags_t
 //
 enum pbspv2_compressiontypes_t
 {
-	PBSPV2_LMAP_COMPRESSION_MINIZ = 0
+	PBSPV2_LMAP_COMPRESSION_NONE = 0,
+	PBSPV2_LMAP_COMPRESSION_MINIZ
 };
 
 //
@@ -278,12 +279,16 @@ struct dpbspv2lmapdata_t
 {
 	dpbspv2lmapdata_t():
 		compression(0),
+		compressionlevel(0),
 		dataoffset(0),
-		datasize(0)
+		datasize(0),
+		noncompressedsize(0)
 	{}
 
 	Int32 compression;
+	Int32 compressionlevel;
 	Int32 dataoffset;
 	Int32 datasize;
+	Int32 noncompressedsize;
 };
 #endif //PBSPV2FILE_H

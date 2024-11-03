@@ -1349,14 +1349,14 @@ bool CSoundEngine::PrecacheServerSound( const Char *sample, Int32 serverindex )
 		else
 			filepath << SOUND_FOLDER_BASE_PATH << sample;
 
-		if(filepath.find(0, ".wav") != -1 
-			|| filepath.find(0, ".WAV") != -1)
+		if(filepath.find(0, ".wav") != CString::CSTRING_NO_POSITION 
+			|| filepath.find(0, ".WAV") != CString::CSTRING_NO_POSITION)
 		{
 			if(PrecacheSound(filepath.c_str(), serverindex, RS_GAME_LEVEL, false) != nullptr)
 				return true;
 		}
-		else if(filepath.find(0, ".ogg") != -1 
-			|| filepath.find(0, ".OGG") != -1)
+		else if(filepath.find(0, ".ogg") != CString::CSTRING_NO_POSITION 
+			|| filepath.find(0, ".OGG") != CString::CSTRING_NO_POSITION)
 		{
 			if(PrecacheOgg(filepath.c_str(), RS_GAME_LEVEL) != nullptr)
 				return true;

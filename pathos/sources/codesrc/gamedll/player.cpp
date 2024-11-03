@@ -2979,7 +2979,7 @@ void CPlayerEntity::SpawnTextWindow( const Char* pstrfilepath, const Char* pstrp
 
 		CString textFilePath;
 		Int32 semicolonPosition = textFileEntry.find(0, ";");
-		if(semicolonPosition != -1)
+		if(semicolonPosition != CString::CSTRING_NO_POSITION)
 			textFilePath.assign(textFileEntry.c_str(), semicolonPosition);
 		else
 			textFilePath = textFileEntry;
@@ -6593,7 +6593,7 @@ void CPlayerEntity::SpawnDocumentsWindow( void )
 		// Check for the code
 		CString finalEntry;
 		Int32 semicolonPosition = fileEntry.find(0, ";");
-		if(semicolonPosition != -1)
+		if(semicolonPosition != CString::CSTRING_NO_POSITION)
 		{
 			finalEntry.assign(fileEntry.c_str(), semicolonPosition);
 
@@ -6605,7 +6605,7 @@ void CPlayerEntity::SpawnDocumentsWindow( void )
 			{
 				CString storedPassCodeEntry = gd_engfuncs.pfnGetString(m_savedPasscodesArray[j]);
 				semicolonPosition = storedPassCodeEntry.find(0, ";");
-				if(semicolonPosition == -1)
+				if(semicolonPosition == CString::CSTRING_NO_POSITION)
 					continue;
 
 				CString storedPassCodeId(storedPassCodeEntry.c_str(), semicolonPosition);

@@ -73,6 +73,7 @@ private:
 
 	Float m_pitchFadeInTime;
 	Float m_pitchFadeOutTime;
+	Float m_soundDuration;
 
 	Double m_beginTime;
 	Double m_turnoffBeginTime;
@@ -80,5 +81,7 @@ private:
 
 	string_t m_emitterEntityName;
 	CEntityHandle m_emitterEntity;
+
+	string_t m_emitSoundName;
 };
 #endif //AMBIENTGENERIC_H

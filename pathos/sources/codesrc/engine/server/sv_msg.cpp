@@ -719,7 +719,7 @@ bool SV_SendResourceLists( sv_client_t& cl )
 		wadfilepath << TEXTURE_BASE_DIRECTORY_PATH << WORLD_TEXTURES_PATH_BASE << basename << PATH_SLASH_CHAR << wadFilesArray[i];
 
 		if(FL_FileExists(wadfilepath.c_str()))
-			svs.genericsourcesarray.push_back(wadfilepath);
+			SV_PrecacheGeneric(wadfilepath.c_str());
 	}
 
 	for(Uint32 i = 0; i < modelsList.size(); i++)
@@ -833,12 +833,10 @@ Int32 SV_PrecacheSound( const Char* pstrFilepath )
 		return NO_PRECACHE;
 	}
 
-	// See if it's already present
-	for(Uint32 i = 0; i < svs.sndcache.size(); i++)
-	{
-		if(!qstrcmp(svs.sndcache[i].filepath, pstrFilepath))
-			return i;
-	}
+	// Look it up in precache list
+	CacheNameIndexMap_t::iterator it = svs.sndcachemap.find(pstrFilepath);
+	if(it != svs.sndcachemap.end())
+		return it->second;
 
 	// Duration of file
 	Float duration = 0;
@@ -850,9 +848,7 @@ Int32 SV_PrecacheSound( const Char* pstrFilepath )
 		filepath << SOUND_FOLDER_BASE_PATH << pstrFilepath;
 		if(!FL_FileExists(filepath.c_str()))
 		{
-			const byte* phashdata = reinterpret_cast<const byte*>(filepath.c_str());
-			if(svs.promptshashlist.addhash(phashdata, filepath.length()))
-				Con_Printf("%s - File '%s' does not exist.\n", __FUNCTION__, filepath.c_str());
+			Con_Printf("[flags=onlyonce_game]%s - File '%s' does not exist.\n", __FUNCTION__, filepath.c_str());
 			return NO_PRECACHE;
 		}
 
@@ -868,9 +864,7 @@ Int32 SV_PrecacheSound( const Char* pstrFilepath )
 		}
 		else
 		{
-			const byte* phashdata = reinterpret_cast<const byte*>(filepath.c_str());
-			if(svs.promptshashlist.addhash(phashdata, filepath.length()))
-				Con_Printf("%s - %s is not a valid sound file.\n", __FUNCTION__, filepath.c_str());
+			Con_Printf("[flags=onlyonce_game]%s - %s is not a valid sound file.\n", __FUNCTION__, filepath.c_str());
 			return NO_PRECACHE;
 		}
 	}
@@ -880,6 +874,12 @@ Int32 SV_PrecacheSound( const Char* pstrFilepath )
 	newSound.filepath = pstrFilepath;
 	newSound.sv_index = svs.sndcache.size();
 	newSound.duration = duration;
+
+	Uint32 insertindex = svs.sndcache.size();
+	svs.sndcache.push_back(newSound);
+
+	// Insert into the map
+	svs.sndcachemap.insert(std::pair<CString, Uint32>(pstrFilepath, insertindex));
 
 	// Tell local player to precache it
 	sv_client_t* pclient = SV_GetHostClient();
@@ -892,7 +892,6 @@ Int32 SV_PrecacheSound( const Char* pstrFilepath )
 	svs.netinfo.pnet->SVC_MessageEnd();
 
 	// Store it and return the index
-	svs.sndcache.push_back(newSound);
 	return newSound.sv_index;
 }
 
@@ -901,20 +900,16 @@ Int32 SV_PrecacheSound( const Char* pstrFilepath )
 //=============================================
 bool SV_PrecacheParticleScript( const Char* pstrfilepath, part_script_type_t type )
 {
-	for(Uint32 i = 0; i < svs.particlescache.size(); i++)
-	{
-		if(!qstrcmp(pstrfilepath, svs.particlescache[i].scriptpath))
-			return true;
-	}
+	CacheNameIndexMap_t::iterator it = svs.particlecachemap.find(pstrfilepath);
+	if(it != svs.particlecachemap.end())
+		return true;
 
 	// Check if the file exists
 	CString filepath;
 	filepath << PARTICLE_SCRIPT_PATH << pstrfilepath;
 	if(!FL_FileExists(filepath.c_str()))
 	{
-		const byte* phashdata = reinterpret_cast<const byte*>(filepath.c_str());
-		if(svs.promptshashlist.addhash(phashdata, filepath.length()))
-			Con_Printf("%s - File '%s' does not exist.\n", __FUNCTION__, filepath.c_str());
+		Con_Printf("[flags=onlyonce_game]%s - File '%s' does not exist.\n", __FUNCTION__, filepath.c_str());
 		return false;
 	}
 
@@ -922,6 +917,7 @@ bool SV_PrecacheParticleScript( const Char* pstrfilepath, part_script_type_t typ
 	newcache.scriptpath = pstrfilepath;
 	newcache.type = type;
 
+	Uint32 insertindex = svs.particlescache.size();
 	svs.particlescache.push_back(newcache);
 
 	// Tell local player to precache it
@@ -932,6 +928,10 @@ bool SV_PrecacheParticleScript( const Char* pstrfilepath, part_script_type_t typ
 		svs.netinfo.pnet->WriteString(pstrfilepath);
 		svs.netinfo.pnet->WriteByte(type);
 	svs.netinfo.pnet->SVC_MessageEnd();
+
+	// Insert into name->index map
+	svs.particlecachemap.insert(std::pair<CString, Uint32>(pstrfilepath, insertindex));
+
 	return true;
 }
 
@@ -940,17 +940,21 @@ bool SV_PrecacheParticleScript( const Char* pstrfilepath, part_script_type_t typ
 //=============================================
 void SV_PrecacheDecal( const Char* pstrDecalName )
 {
-	for(Uint32 i = 0; i < svs.decalcache.size(); i++)
-	{
-		if(!qstrcmp(pstrDecalName, svs.decalcache[i].name)
-			&& svs.decalcache[i].type == DECAL_CACHE_SINGLE)
-			return;
-	}
+	DecalCacheMapKey_t key(pstrDecalName, DECAL_CACHE_SINGLE);
+
+	DecalCacheNameIndexMap_t::iterator it = svs.decalcachemap.find(key);
+	if(it != svs.decalcachemap.end())
+		return;
 
 	decalcache_t newcache;
 	newcache.name = pstrDecalName;
 	newcache.type = DECAL_CACHE_SINGLE;
+
+	Uint32 insertindex = svs.decalcache.size();
 	svs.decalcache.push_back(newcache);
+
+	// Insert into index map
+	svs.decalcachemap.insert(std::pair<DecalCacheMapKey_t, Uint32>(key, insertindex));
 
 	// Tell local player to precache it
 	sv_client_t* pclient = SV_GetHostClient();
@@ -967,17 +971,21 @@ void SV_PrecacheDecal( const Char* pstrDecalName )
 //=============================================
 void SV_PrecacheDecalGroup( const Char* pstrDecalName )
 {
-	for(Uint32 i = 0; i < svs.decalcache.size(); i++)
-	{
-		if(!qstrcmp(pstrDecalName, svs.decalcache[i].name)
-			&& svs.decalcache[i].type == DECAL_CACHE_GROUP)
-			return;
-	}
+	DecalCacheMapKey_t key(pstrDecalName, DECAL_CACHE_GROUP);
+
+	DecalCacheNameIndexMap_t::iterator it = svs.decalcachemap.find(key);
+	if(it != svs.decalcachemap.end())
+		return;
 
 	decalcache_t newcache;
 	newcache.name = pstrDecalName;
 	newcache.type = DECAL_CACHE_GROUP;
+
+	Uint32 insertindex = svs.decalcache.size();
 	svs.decalcache.push_back(newcache);
+
+	// Insert into index map
+	svs.decalcachemap.insert(std::pair<DecalCacheMapKey_t, Uint32>(key, insertindex));
 
 	// Tell local player to precache it
 	sv_client_t* pclient = SV_GetHostClient();
@@ -1024,14 +1032,9 @@ void SV_PlayEntitySound( entindex_t entindex, const Char* pstrPath, Int32 flags,
 	}
 
 	sv_sound_t* psnd = nullptr;
-	for(Uint32 i = 0; i < svs.sndcache.size(); i++)
-	{
-		if(!qstrcmp(svs.sndcache[i].filepath, pstrPath))
-		{
-			psnd = &svs.sndcache[i];
-			break;
-		}
-	}
+	CacheNameIndexMap_t::iterator it = svs.sndcachemap.find(pstrPath);
+	if(it != svs.sndcachemap.end())
+		psnd = &svs.sndcache[it->second];
 
 	if(!psnd)
 	{
@@ -1107,14 +1110,9 @@ void SV_PlayAmbientSound( entindex_t entindex, const Char* pstrPath, const Vecto
 	}
 
 	sv_sound_t* psnd = nullptr;
-	for(Uint32 i = 0; i < svs.sndcache.size(); i++)
-	{
-		if(!qstrcmp(svs.sndcache[i].filepath, pstrPath))
-		{
-			psnd = &svs.sndcache[i];
-			break;
-		}
-	}
+	CacheNameIndexMap_t::iterator it = svs.sndcachemap.find(pstrPath);
+	if(it != svs.sndcachemap.end())
+		psnd = &svs.sndcache[it->second];
 
 	if(!psnd)
 	{
@@ -1185,14 +1183,9 @@ void SV_ApplySoundEffect( entindex_t entindex, const Char* pstrPath, Int32 chann
 	}
 
 	sv_sound_t* psnd = nullptr;
-	for(Uint32 i = 0; i < svs.sndcache.size(); i++)
-	{
-		if(!qstrcmp(svs.sndcache[i].filepath, pstrPath))
-		{
-			psnd = &svs.sndcache[i];
-			break;
-		}
-	}
+	CacheNameIndexMap_t::iterator it = svs.sndcachemap.find(pstrPath);
+	if(it != svs.sndcachemap.end())
+		psnd = &svs.sndcache[it->second];
 
 	if(!psnd)
 	{

@@ -342,6 +342,7 @@ void CMenuParticles::Think( void )
 			|| (pParticle->origin.x - particleWidth*0.5) > screenWidth
 			|| (pParticle->origin.y - particleHeight*0.5) > screenHeight)
 		{
+			delete pParticle;
 			m_particlesList.remove(m_particlesList.get_link());
 			m_particlesList.next();
 			continue;
@@ -392,9 +393,6 @@ void CMenuParticles::StartParticles( void )
 //=============================================
 void CMenuParticles::KillParticles( void )
 {
-	if(!m_isActive)
-		return;
-
 	m_isActive = false;
 
 	if(m_particlesList.empty())

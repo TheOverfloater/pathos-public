@@ -26,9 +26,15 @@ inline CString& CString::operator=(const CString& str)
 		if(m_pString)
 		{
 			if(m_pString != EMPTY_STRING)
-				delete[] m_pString;	
+			{
+				if(!(m_flags & fl_str_nopooling))
+					CStringPool::Instance()->RemoveString(m_pPoolCacheEntry);
+				else
+					delete[] m_pString;
+			}
 
 			m_pString = nullptr;
+			m_pPoolCacheEntry = nullptr;
 		}
 
 		if(!psrc)
@@ -38,11 +44,13 @@ inline CString& CString::operator=(const CString& str)
 
 			return (*this);
 		}
-
-		const Uint32 strlength = str.length();
-		m_pString = new Char[strlength+1];
-		qstrcpy(m_pString, psrc);
-		m_stringLength = strlength;
+		else
+		{
+			const Uint32 strlength = str.length();
+			Char* pString = new Char[strlength+1];
+			qstrcpy(pString, psrc);
+			setdata(pString, strlength);
+		}
 	}
 
 	return *this;
@@ -53,7 +61,7 @@ inline CString& CString::operator=(const CString& str)
 //
 // @param pstr Pointer to CString to compare
 //=============================================
-inline bool CString::operator==(const Char* pstr)
+inline bool CString::operator==(const Char* pstr) const
 {
 	if(!pstr)
 	{
@@ -71,7 +79,7 @@ inline bool CString::operator==(const Char* pstr)
 //
 // @param pstr Pointer to CString to compare
 //=============================================
-inline bool CString::operator==(const CString& str)
+inline bool CString::operator==(const CString& str) const
 {
 	if(str.empty())
 	{
@@ -82,6 +90,47 @@ inline bool CString::operator==(const CString& str)
 	}
 	else
 		return qstrcmp(str, m_pString) == 0;
+}
+
+
+//=============================================
+// @brief Less than operator
+//
+// @param pstr Pointer to CString to compare
+//=============================================
+inline bool CString::operator<(const Char* pstr) const
+{
+	return qstrcmp(pstr, m_pString) < 0 ? true : false;
+}
+
+//=============================================
+// @brief Less than operator
+//
+// @param pstr Pointer to CString to compare
+//=============================================
+inline bool CString::operator<(const CString& str) const
+{
+	return qstrcmp(str, m_pString) < 0 ? true : false;
+}
+
+//=============================================
+// @brief Greater than operator
+//
+// @param pstr Pointer to CString to compare
+//=============================================
+inline bool CString::operator>(const Char* pstr) const
+{
+	return qstrcmp(pstr, m_pString) > 0 ? true : false;
+}
+
+//=============================================
+// @brief Greater than operator
+//
+// @param pstr Pointer to CString to compare
+//=============================================
+inline bool CString::operator>(const CString& str) const
+{
+	return qstrcmp(str, m_pString) > 0 ? true : false;
 }
 
 //=============================================
@@ -321,11 +370,7 @@ inline void CString::Append(const Char* psrc)
 		else
 			qstrcpy(pstrNew, psrc);
 
-		if(m_pString != EMPTY_STRING)
-			delete m_pString;
-
-		m_pString = pstrNew;
-		m_stringLength = newlength;
+		setdata(pstrNew, newlength);
 	}
 }
 
@@ -344,11 +389,7 @@ inline void CString::Append(Char c)
 	else
 		sprintf(pstrNew, "%c", c);
 
-	if(m_pString != EMPTY_STRING)
-		delete m_pString; 
-
-	m_pString = pstrNew;
-	m_stringLength = newlength;
+	setdata(pstrNew, newlength);
 }
 
 //=============================================
@@ -370,11 +411,7 @@ inline void CString::Append(Int32 i)
 	else
 		sprintf(pstrNew, "%s", convBuffer);
 
-	if(m_pString != EMPTY_STRING)
-		delete m_pString;
-
-	m_pString = pstrNew;
-	m_stringLength = newlength;
+	setdata(pstrNew, newlength);
 }
 
 //=============================================
@@ -396,11 +433,7 @@ inline void CString::Append(Uint32 i)
 	else
 		sprintf(pstrNew, "%s", convBuffer);
 
-	if(m_pString != EMPTY_STRING)
-		delete m_pString;
-
-	m_pString = pstrNew;
-	m_stringLength = newlength;
+	setdata(pstrNew, newlength);
 }
 
 //=============================================
@@ -422,11 +455,7 @@ inline void CString::Append(Float f)
 	else
 		sprintf(pstrNew, "%s", convBuffer);
 
-	if(m_pString != EMPTY_STRING)
-		delete m_pString;
-
-	m_pString = pstrNew;
-	m_stringLength = newlength;
+	setdata(pstrNew, newlength);
 }
 
 //=============================================
@@ -448,11 +477,7 @@ inline void CString::Append(Double d)
 	else
 		sprintf(pstrNew, "%s", convBuffer);
 
-	if(m_pString != EMPTY_STRING)
-		delete m_pString;
-
-	m_pString = pstrNew;
-	m_stringLength = newlength;
+	setdata(pstrNew, newlength);
 }
 
 //=============================================
@@ -512,9 +537,15 @@ inline void CString::clear( void )
 
 	m_stringLength = 0;
 	if(m_pString && m_pString != EMPTY_STRING)
-		delete[] m_pString;
+	{
+		if(!(m_flags & fl_str_nopooling))
+			g_pStringPool->RemoveString(m_pPoolCacheEntry);
+		else
+			delete[] m_pString;
+	}
 
 	m_pString = EMPTY_STRING;
+	m_pPoolCacheEntry = nullptr;
 }
 
 //=============================================
@@ -523,14 +554,11 @@ inline void CString::clear( void )
 //=============================================
 inline void CString::assign( const Char* pstr, Uint32 num )
 {
-	if(m_pString && m_pString != EMPTY_STRING)
-		delete[] m_pString;
+	Char* pString = new Char[num+1];
+	qstrncpy(pString, pstr, num);
+	pString[num] = '\0';
 
-	m_pString = new Char[num+1];
-	qstrncpy(m_pString, pstr, num);
-	m_pString[num] = '\0';
-
-	m_stringLength = num;
+	setdata(pString, num);
 }
 
 //=============================================
@@ -559,7 +587,7 @@ inline CString operator + ( const CString& lhs, const CString& rhs )
 inline Int32 CString::find( Uint32 offset, const Char* psubstr )
 {
 	if(empty())
-		return -1;
+		return CSTRING_NO_POSITION;
 
 	assert(offset < m_stringLength);
 	const Char* pstrbegin = m_pString + offset;
@@ -578,7 +606,7 @@ inline Int32 CString::find( Uint32 offset, const Char* psubstr )
 	}
 
 	if(*pstr == '\0')
-		return -1;
+		return CSTRING_NO_POSITION;
 
 	return (pstr - m_pString);
 }
@@ -618,12 +646,7 @@ inline void CString::erase( Uint32 begin, Uint32 numremove )
 
 	// Terminate string
 	pstrnew[dstindex] = '\0';
-
-	if(m_pString && m_pString != EMPTY_STRING)
-		delete[] m_pString;
-
-	m_pString = pstrnew;
-	m_stringLength = dstindex;
+	setdata(pstrnew, dstindex);
 }
 //=============================================
 // @brief Erases part of a string
@@ -644,23 +667,37 @@ inline void CString::insert( Uint32 begin, const Char* pstrsubstr )
 	memcpy(pstrnew+begin+substrlength, m_pString+begin, m_stringLength-begin);
 
 	// Set new size
-	m_stringLength = m_stringLength+substrlength;
-	pstrnew[m_stringLength] = '\0';
-
-	if(m_pString && m_pString != EMPTY_STRING)
-		delete[] m_pString;
-
-	m_pString = pstrnew;
+	Uint32 newlength = m_stringLength+substrlength;
+	pstrnew[newlength] = '\0';
+	setdata(pstrnew, newlength);
 }
 
 //=============================================
 // @brief Converts the string to lowercase chars
 //
 //=============================================
-inline void CString::tolower( void ) const
+inline void CString::tolower( void )
 {
-	for(Char* ptemp = m_pString; *ptemp; ptemp++) 
-		(*ptemp) = ::tolower(*ptemp);
+	if(m_pString == EMPTY_STRING)
+		return;
+
+	Uint32 i = 0;
+	for(; i < m_stringLength; i++)
+	{
+		if(m_pString[i] != ::tolower(m_pString[i]))
+			break;
+	}
+
+	if(i == m_stringLength)
+		return;
+
+	Char* pNew = new Char[m_stringLength+1];
+	Char* pInsert = pNew;
+	for(const Char* pTemp = m_pString; *pTemp; pTemp++, pInsert++) 
+		(*pInsert) = ::tolower(*pTemp);
+
+	pNew[m_stringLength] = '\0';
+	setdata(pNew, m_stringLength);
 }
 
 //=============================================
@@ -669,11 +706,30 @@ inline void CString::tolower( void ) const
 //=============================================
 inline void CString::replaceslashes( void )
 {
-	for(Char* ptemp = m_pString; *ptemp; ptemp++)
-	{
-		if(*ptemp == '\\')
-			*ptemp = PATH_SLASH_CHAR;
-	}
-}
+	if(m_pString == EMPTY_STRING)
+		return;
 
+	Uint32 i = 0;
+	for(; i < m_stringLength; i++)
+	{
+		if(m_pString[i] == '\\')
+			break;
+	}
+
+	if(i == m_stringLength)
+		return;
+
+	Char* pNew = new Char[m_stringLength+1];
+	Char* pInsert = pNew;
+	for(const Char* pTemp = m_pString; *pTemp; pTemp++, pInsert++)
+	{
+		if(*pTemp == '\\')
+			(*pInsert) = PATH_SLASH_CHAR;
+		else
+			(*pInsert) = *pTemp;
+	}
+
+	pNew[m_stringLength] = '\0';
+	setdata(pNew, m_stringLength);
+}
 #endif // CSTRING_INLINE_HPP

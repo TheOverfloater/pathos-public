@@ -10,16 +10,16 @@ REM Check if the BSP file exists
 IF NOT exist %mapname%.map GOTO Error_NoMAP
 
 ECHO Compiling %mapname%...
-hlcsg -chart -low -cliptype simple -estimate %mapname%.map
-hlbsp -chart -low -nobrink -estimate %mapname%.map
+hlcsg -chart -low -cliptype precise -estimate %mapname%.map
+hlbsp -lightmapscale 4.0 -chart -low -estimate %mapname%.map
 
 REM Fail if we have a leak pointfile
 IF exist %mapname%.lin GOTO Error_Leak
 
 hlvis -chart -low -estimate %mapname%.map
-hlrad -bumpmaps -low -chart -blur 1.0 -smooth 150 -smooth2 60 -notexscale -minlight 1 -estimate %mapname%.map
-hlrad -bumpmaps -low -nightmode -chart -blur 1.0 -smooth 150 -smooth2 60 -notexscale -minlight 1 -estimate %mapname%.map
-hlrad -bumpmaps -low -daylightreturnmode -chart -blur 1.0 -smooth 150 -smooth2 60 -notexscale -minlight 1 -estimate %mapname%.map
+hlrad -extra -compress 0 -rgbcompress 0 -compressionlevel uber_compression -bumpmaps -low -chart -blur 2.0 -smooth 150 -smooth2 60 -notexscale -minlight 1 -estimate %mapname%.map
+hlrad -extra -compress 0 -rgbcompress 0 -compressionlevel uber_compression -bumpmaps -low -chart -blur 2.0 -smooth 150 -smooth2 60 -daystage nightmode -notexscale -minlight 1 -estimate %mapname%.map
+hlrad -extra -compress 0 -rgbcompress 0 -compressionlevel uber_compression -bumpmaps -low -chart -blur 2.0 -smooth 150 -smooth2 60 -daystage daylightreturn -notexscale -minlight 1 -estimate %mapname%.map
 GOTO CopyPrompt
 
 :CopyPrompt

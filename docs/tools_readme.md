@@ -37,3 +37,12 @@ Pathos's Model Viewer is based on the original Half-Life Model Viewer by Mike Ci
 offers numerous useful features like a Compile Model tab, with the ability to copy the
 resulting VBM and MDL files to a set of destination folders. See "model_viewer.txt" for
 more information.
+
+# bspconvert
+This tool can be used to convert Pathos BSP V1 files to V2. This tool should be used in
+conjuction with pbspv2update, as the format has been updated since this tool was made.
+
+# pbspv2update
+This tool is a further extension to bspconvert, and is usable for updating your PBSP V2
+files prior the November update to the latest 2.1 specification, which includes lightmap data
+compression.

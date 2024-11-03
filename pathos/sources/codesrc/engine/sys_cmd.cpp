@@ -107,7 +107,7 @@ void Cmd_ListMaps()
 	{
 		CString mapFilePath(fileData.cFileName);
 		Int32 dotPosition = mapFilePath.find(0, ".");
-		if(dotPosition != NO_POSITION)
+		if(dotPosition != CString::CSTRING_NO_POSITION)
 			mapFilePath.erase(dotPosition, mapFilePath.length()-dotPosition);
 
 		mapNames.push_back(mapFilePath);
@@ -313,7 +313,7 @@ void Cmd_Load( void )
 	else
 	{
 		savefile << cmdarg;
-		if(cmdarg.find(0, SAVE_FILE_EXTENSION) == -1)
+		if(cmdarg.find(0, SAVE_FILE_EXTENSION) == CString::CSTRING_NO_POSITION)
 			savefile << SAVE_FILE_EXTENSION;
 	}
 
@@ -544,7 +544,7 @@ void Cmd_Snapshot( void )
 		{
 			finaloutputname = outputname;
 			Int32 pos = finaloutputname.find(0, "%number%");
-			if(pos == -1)
+			if(pos == CString::CSTRING_NO_POSITION)
 			{
 				delete[] pbuffer;
 				return;

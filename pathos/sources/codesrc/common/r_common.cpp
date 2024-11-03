@@ -85,17 +85,14 @@ void R_AllocBlock ( Uint32 w, Uint32 h, Uint32 &x, Uint32 &y, Uint32& width, Uin
 // @brief
 //
 //=============================================
-color24_t *R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psamples, const msurface_t *psurface, color32_t *pout, Int32 index, Uint32 sizex, Float overdarken, bool isvectormap, bool fullbright )
+void R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psamples, const msurface_t *psurface, color32_t *pout, Int32 index, Uint32 sizex, Float overdarken, bool isvectormap, bool fullbright )
 {
-	static color24_t blocklights[BLOCKLIGHTS_SIZE];
-	color24_t *pblock = blocklights;
-
 	const Uint32 smax = (psurface->extents[0] / psurface->lightmapdivider) + 1;
 	const Uint32 tmax = (psurface->extents[1] / psurface->lightmapdivider) + 1;
 	const Uint32 size = smax*tmax;
 	
-	if(size > BLOCKLIGHTS_SIZE)
-		return nullptr;
+	color24_t *blocklights = new color24_t[size];
+	color24_t *pblock = blocklights;
 
 	if(!psamples || fullbright)
 	{
@@ -171,7 +168,8 @@ color24_t *R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psa
 		}
 	}
 
-	return blocklights;
+	delete[] blocklights;
+	return;
 }
 
 //=============================================

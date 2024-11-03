@@ -373,7 +373,7 @@ bool CGameUITextWindow::ProcessTextFile( const Char* pstrFilePath, const CString
 	while(true)
 	{
 		Int32 tokenoffset = documentText.find(0, "%passcode%");
-		if(tokenoffset == -1)
+		if(tokenoffset == CString::CSTRING_NO_POSITION)
 			break;
 
 		documentText.erase(tokenoffset, 10);

@@ -150,10 +150,10 @@ void CTriggerRelayBinary::CallUse(CBaseEntity* pActivator, CBaseEntity* pCaller,
 	switch (m_relayState)
 	{
 	case RELAY_STATE_ON:
-			UseTargets(this, (usemode_t)m_triggerOffMode, m_pFields->target);
+			UseTargets(this, (usemode_t)m_triggerOffMode, 0, m_pFields->target);
 		break;
 	case RELAY_STATE_OFF:
-			UseTargets(this, (usemode_t)m_triggerOnMode, m_pFields->netname);
+			UseTargets(this, (usemode_t)m_triggerOnMode, 0, m_pFields->netname);
 		break;
 	}
 }

@@ -1610,7 +1610,7 @@ namespace Util
 	{
 		CString filepath(pstrPattern);
 		Int32 tokenpos = filepath.find(0, "%d");
-		if(tokenpos == -1)
+		if(tokenpos == CString::CSTRING_NO_POSITION)
 		{
 			gd_engfuncs.pfnCon_Printf("%s - Number token not found in string '%s'.\n", __FUNCTION__, pstrPattern);
 			return;
@@ -1636,7 +1636,7 @@ namespace Util
 	{
 		CString filepath(pstrPattern);
 		Int32 tokenpos = filepath.find(0, "%d");
-		if(tokenpos == -1)
+		if(tokenpos == CString::CSTRING_NO_POSITION)
 		{
 			gd_engfuncs.pfnCon_Printf("%s - Number token not found in string '%s'.\n", __FUNCTION__, pstrPattern);
 			return;
@@ -1678,7 +1678,7 @@ namespace Util
 	{
 		CString filepath(pstrPattern);
 		Int32 tokenpos = filepath.find(0, "%d");
-		if(tokenpos == -1)
+		if(tokenpos == CString::CSTRING_NO_POSITION)
 		{
 			gd_engfuncs.pfnCon_Printf("%s - Number token not found in string '%s'.\n", __FUNCTION__, pstrPattern);
 			return;
@@ -1710,7 +1710,7 @@ namespace Util
 
 		CString filepath(pstrPattern);
 		Int32 tokenpos = filepath.find(0, "%d");
-		if(tokenpos == -1)
+		if(tokenpos == CString::CSTRING_NO_POSITION)
 		{
 			gd_engfuncs.pfnCon_Printf("%s - Number token not found in string '%s'.\n", __FUNCTION__, pstrPattern);
 			return CString();
@@ -1741,7 +1741,7 @@ namespace Util
 
 		CString filepath(pstrPattern);
 		Int32 tokenpos = filepath.find(0, "%d");
-		if(tokenpos == -1)
+		if(tokenpos == CString::CSTRING_NO_POSITION)
 		{
 			gd_engfuncs.pfnCon_Printf("%s - Number token not found in string '%s'.\n", __FUNCTION__, pstrPattern);
 			return CString();

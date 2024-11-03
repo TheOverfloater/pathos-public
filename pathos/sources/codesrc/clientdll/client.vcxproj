@@ -101,6 +101,7 @@
       <AdditionalIncludeDirectories>..\common;..\libs\sdl2.0\include\;..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4244;4305;4127;4481;4100;4512;4018</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -122,7 +123,7 @@
       <PreprocessorDefinitions>WIN32;_64BUILD;CLIENT;_DEBUG;_WINDOWS;_USRDLL;CLIENT_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\common;..\libs\sdl2.0\include\;..\shared;..\shared\renderer;..\gameui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4244;4305;4127;4481;4100;4512</DisableSpecificWarnings>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -193,6 +194,7 @@
     <ClCompile Include="..\common\common.cpp" />
     <ClCompile Include="..\common\crc32.cpp" />
     <ClCompile Include="..\common\cstring.cpp" />
+    <ClCompile Include="..\common\cstringpool.cpp" />
     <ClCompile Include="..\common\matrix.cpp" />
     <ClCompile Include="..\common\md5.cpp" />
     <ClCompile Include="..\common\r_common.cpp" />
@@ -251,6 +253,8 @@
     <ClInclude Include="..\common\constants.h" />
     <ClInclude Include="..\common\crc32.h" />
     <ClInclude Include="..\common\cstring.h" />
+    <ClInclude Include="..\common\cstringpool.h" />
+    <ClInclude Include="..\common\cstringpool_inline.hpp" />
     <ClInclude Include="..\common\cstring_inline.hpp" />
     <ClInclude Include="..\common\entitydata.h" />
     <ClInclude Include="..\common\hashlist.h" />

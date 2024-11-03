@@ -279,12 +279,12 @@ CString CMD5::HexDigest( void ) const
 	if(!m_isFinalized)
 		return "";
  
-	Char buffer[33] = {'\0'};
+	Char buffer[MD5_HASH_SIZE] = {'\0'};
 	for(Uint32 i = 0; i < 16; i++)
 		sprintf(&buffer[i*2], "%02x", m_digest[i]);
 
 	// Terminate
-	buffer[32]=0;
+	buffer[MD5_HASH_SIZE-1]=0;
  
 	return CString(buffer);
 }

@@ -273,7 +273,7 @@ bool CGameUIDocumentsWindow::initData( const CArray<CString>& textFilesArray, co
 
 		// Check for the code
 		Int32 semicolonPosition = textFileEntry.find(0, ";");
-		if(semicolonPosition != -1)
+		if(semicolonPosition != CString::CSTRING_NO_POSITION)
 		{
 			Uint32 codeLength = textFileEntry.length() - semicolonPosition - 1;
 			textFileCode.assign(textFileEntry.c_str() + semicolonPosition + 1, codeLength);

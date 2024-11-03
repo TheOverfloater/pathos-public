@@ -1303,7 +1303,7 @@ bool CSaveRestore::CreateSaveFile( const Char* baseName, savefile_type_t type, c
 
 	// Try putting it in writer thread queue
 	bool threadresult = false;
-	bool incremental = (filename.find(0, "%number%") != -1) ? true : false;
+	bool incremental = (filename.find(0, "%number%") != CString::CSTRING_NO_POSITION) ? true : false;
 
 	// Try saving with file writer thread if quick or auto
 	if(type == SAVE_QUICK || type == SAVE_AUTO)
@@ -1320,7 +1320,7 @@ bool CSaveRestore::CreateSaveFile( const Char* baseName, savefile_type_t type, c
 			{
 				finaloutputname = filename;
 				Int32 pos = finaloutputname.find(0, "%number%");
-				if(pos == -1)
+				if(pos == CString::CSTRING_NO_POSITION)
 				{
 					delete[] pbuffer;
 					return false;

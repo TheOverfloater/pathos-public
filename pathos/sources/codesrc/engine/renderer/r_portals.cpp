@@ -90,6 +90,12 @@ void CPortalManager::ClearGame( void )
 			if(!m_portalsArray[i]->surfaces.empty())
 				m_portalsArray[i]->surfaces.clear();
 
+			if(m_portalsArray[i]->pfbo->fboid)
+				gGLExtF.glDeleteFramebuffers(1, &m_portalsArray[i]->pfbo->fboid);
+
+			delete m_portalsArray[i]->pfbo;
+			m_portalsArray[i]->pfbo = nullptr;
+
 			delete m_portalsArray[i];
 		}
 

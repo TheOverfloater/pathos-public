@@ -104,7 +104,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NETWORKING;DONT_USE_VAO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
@@ -135,7 +135,7 @@
       <AdditionalIncludeDirectories>.\;..\shared\renderer;..\libs\sdl2.0\include\;.\renderer\;..\common\;..\libs\;..\libs\freetype\include\;.\ui\;.\server\;.\client\;..\shared\;..\libs\enet\include;..\libs\openal\include;..\libs\libogg\include;..\libs\detours\include;..\libs\libvorbis\include;.\windows;.\rygsdxtc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_64BUILD;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NETWORKING;DONT_USE_VAO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
@@ -150,8 +150,7 @@
       <AdditionalLibraryDirectories>x64\Debug</AdditionalLibraryDirectories>
       <GenerateMapFile>true</GenerateMapFile>
       <DelayLoadDLLs>OpenAL32.dll;SDL2.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
-      <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <IgnoreSpecificDefaultLibraries>msvcrtd</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
@@ -223,11 +222,14 @@
     <ClCompile Include="..\common\cbitset.cpp" />
     <ClCompile Include="..\common\cbuffer.cpp" />
     <ClCompile Include="..\common\common.cpp" />
+    <ClCompile Include="..\common\crc32.cpp" />
     <ClCompile Include="..\common\cstring.cpp" />
+    <ClCompile Include="..\common\cstringpool.cpp" />
     <ClCompile Include="..\common\dds.cpp" />
     <ClCompile Include="..\common\logfile.cpp" />
     <ClCompile Include="..\common\matrix.cpp" />
     <ClCompile Include="..\common\md5.cpp" />
+    <ClCompile Include="..\common\miniz.c" />
     <ClCompile Include="..\common\ogg_common.cpp" />
     <ClCompile Include="..\common\r_common.cpp" />
     <ClCompile Include="..\common\tga.cpp" />
@@ -297,6 +299,7 @@
     <ClCompile Include="server\sv_physics.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="sv_move.cpp" />
+    <ClCompile Include="sys_print.cpp" />
     <ClCompile Include="textschemas.cpp" />
     <ClCompile Include="usermsg.cpp" />
     <ClCompile Include="vbmtrace.cpp" />
@@ -350,7 +353,10 @@
     <ClInclude Include="..\common\common.h" />
     <ClInclude Include="..\common\common_inline.hpp" />
     <ClInclude Include="..\common\constants.h" />
+    <ClInclude Include="..\common\crc32.h" />
     <ClInclude Include="..\common\cstring.h" />
+    <ClInclude Include="..\common\cstringpool.h" />
+    <ClInclude Include="..\common\cstringpool_inline.hpp" />
     <ClInclude Include="..\common\cstring_inline.hpp" />
     <ClInclude Include="..\common\com_math.h" />
     <ClInclude Include="..\common\com_math_inline.hpp" />
@@ -359,6 +365,7 @@
     <ClInclude Include="..\common\file_interface.h" />
     <ClInclude Include="..\common\matrix.h" />
     <ClInclude Include="..\common\md5.h" />
+    <ClInclude Include="..\common\miniz.h" />
     <ClInclude Include="..\common\miptex.h" />
     <ClInclude Include="..\common\movevars.h" />
     <ClInclude Include="..\common\ogg_common.h" />
@@ -448,6 +455,7 @@
     <ClInclude Include="server\sv_shared.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="sv_move.h" />
+    <ClInclude Include="sys_print.h" />
     <ClInclude Include="textschemas.h" />
     <ClInclude Include="usermsg.h" />
     <ClInclude Include="vbmtrace.h" />

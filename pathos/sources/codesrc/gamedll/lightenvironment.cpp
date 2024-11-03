@@ -228,7 +228,7 @@ void CLightEnvironment::CheckALDFile( void )
 
 	CString aldPath = pWorld->name;
 	Uint32 dotPos = aldPath.find(0, ".");
-	if (dotPos == NO_POSITION)
+	if (dotPos == CString::CSTRING_NO_POSITION)
 		return;
 
 	Uint32 eraseCnt = aldPath.length() - dotPos;

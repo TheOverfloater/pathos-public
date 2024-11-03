@@ -21,7 +21,7 @@ class CMatrix;
 class CGLSLShader;
 
 extern void R_AllocBlock ( Uint32 w, Uint32 h, Uint32 &x, Uint32 &y, Uint32& width, Uint32 &height, Uint32*& pallocations );
-extern color24_t *R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psamples, const msurface_t *psurface, color32_t *pout, Int32 index, Uint32 sizex, Float overdarken, bool isvectormap = false, bool fullbright = false );
+extern void R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psamples, const msurface_t *psurface, color32_t *pout, Int32 index, Uint32 sizex, Float overdarken, bool isvectormap = false, bool fullbright = false );
 extern bool R_IsEntityMoved( const cl_entity_t& entity );
 extern bool R_IsEntityRotated( const cl_entity_t& entity );
 extern bool R_IsEntityTransparent( const cl_entity_t& entity, bool ignoreVBMFlags = false );

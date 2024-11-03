@@ -11,6 +11,10 @@ All Rights Reserved.
 #ifndef R_TEXTURES_H
 #define R_TEXTURES_H
 
+#include <string>
+#include <unordered_map>
+#include <map>
+
 #include "common.h"
 #include "textures_shared.h"
 #include "file_interface.h"
@@ -46,12 +50,16 @@ public:
 	static const Uint32 ANISOTROPY_OFF_VALUE;
 
 private:
-	// Texture allocs list type
-	typedef CLinkedList<en_texalloc_t*> AllocList_t;
+	// Map key type for the textures list hash
+	typedef std::pair<CString, rs_level_t> HashResourceTypeKey_t;
+	// Texture allocs map type
+	typedef std::unordered_map<GLuint, en_texalloc_t*> AllocMap_t;
 	// Individual textures list type
-	typedef CLinkedList<en_texture_t*> TexturesList_t;
+	typedef std::map<HashResourceTypeKey_t, en_texture_t*> TexturesMap_t;
 	// Materials list type
-	typedef CLinkedList<en_material_t*> MaterialsList_t;
+	typedef std::map<HashResourceTypeKey_t, en_material_t*> MaterialsMap_t;
+	// Alias listings list type
+	typedef std::map<HashResourceTypeKey_t, alias_mapping_t> AliasMap_t;
 
 private:
 	CTextureManager( const file_interface_t& fileFuncs, pfnPrintf_t printFunction, pfnPrintf_t printErrorFunction, const CGLExtF& glExtF, bool onlyMaterials );
@@ -128,7 +136,7 @@ private:
 	static texture_format_t GetFormat( const Char* pstrFilename );
 
 	// Allocates a new texture object
-	en_texture_t* AllocTexture( void );
+	en_texture_t* AllocTexture( const HashResourceTypeKey_t& key );
 	// Creates the dummy texture image
 	void CreateDummyTexture( void );
 	
@@ -137,16 +145,16 @@ private:
 
 private:
 	// Array of loaded textures
-	TexturesList_t m_texturesList;
+	TexturesMap_t m_texturesMap;
 	// Array of material definitions
-	MaterialsList_t m_materialsList;
+	MaterialsMap_t m_materialsMap;
 	// Material index->material ptr index array
 	CArray<en_material_t*> m_materialsIndexPtrArray;
 	// Alias mappings list
-	CLinkedList<alias_mapping_t> m_aliasMappingsList;
+	AliasMap_t m_aliasMappingsMap;
 
 	// Linked list of allocations
-	AllocList_t m_allocsList;
+	AllocMap_t m_allocsMap;
 
 	// Dummy texture's pointer
 	en_texture_t* m_pDummyTexture;

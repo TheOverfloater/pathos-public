@@ -70,7 +70,7 @@ bool FWT_AddFile( const Char* pstrFilename, const byte* pData, Uint32 dataSize, 
 	if(!g_fileThreadData.available)
 		return false;
 
-	if(incremental && CString(pstrFilename).find(0, "%number%") == -1)
+	if(incremental && CString(pstrFilename).find(0, "%number%") == CString::CSTRING_NO_POSITION)
 	{
 		Con_Printf("%s - Incremental file's path '%s' missing '%number%' token.\n", __FUNCTION__, pstrFilename);
 		return false;
@@ -142,7 +142,7 @@ DWORD WINAPI FileWriterThread( LPVOID lpParam )
 						
 						// Get position of token
 						Int32 pos = filename.find(0, "%number%");
-						if(pos == -1)
+						if(pos == CString::CSTRING_NO_POSITION)
 						{
 							filename.clear();
 							FWT_Con_Printf(pThreadData, "%s - Filename '%s' missing '%number%' token, file not writen.\n");

@@ -88,7 +88,7 @@ bool CMultiManager::KeyValue( const keyvalue_t& kv )
 
 		CString targetname(kv.keyname);
 		Uint32 hashpos = targetname.find(0, "#");
-		if(hashpos != -1)
+		if(hashpos != CString::CSTRING_NO_POSITION)
 			targetname.erase(hashpos, targetname.length()-hashpos);
 
 		m_targetNamesArray[m_nbTargets] = gd_engfuncs.pfnAllocString(targetname.c_str());

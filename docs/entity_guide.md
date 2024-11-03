@@ -351,6 +351,18 @@ document:
    - "Name": Name of this entity.
    - "Angles": Specifies the direction to shoot the blood particles in.
    
+# env_blackandwhite
+>This entity was added by valina354, which adds the ability to turn the screen progressively into a more
+>grayscale version. The strength value controls how strong the effect is, with 1.0 being completely black 
+>and white.
+   
+ - Keyvalues:
+   - "Name": Name of this entity.
+   - "Effect strength": The strength of the aberration. Best values are in the 0-16 range.
+   
+ - Spawnflags:
+   - "Start On": The entity will start enabled.   
+   
 # env_blackhole
 >Creates a black hole effect, complete with a shader effect that distorts the light around it like a real
 >black hole would. It can also pull in objects, particles, client-side temporary entities, killing them. If
@@ -414,6 +426,17 @@ document:
 
  - Keyvalues:
    - "Size": Choose from a different set of resolutions to use for the cubemap.
+   
+# env_chromatic
+>This entity was added by valina354, and it adds a simple chromatic aberration effect to the game when it's
+>turned on. The strength of the aberration can be controlled by the strength cvar.
+
+ - Keyvalues:
+   - "Name": Name of this entity.
+   - "Chromatic Aberration Strength": The strength of the aberration. Best values are in the 0-16 range.
+   
+ - Spawnflags:
+   - "Start On": The entity will start enabled.
    
 # env_decal
 >The engine's version of infodecal, this entity allows you to spawn a specific decal, or a random one from
@@ -1146,6 +1169,20 @@ document:
    - "Name": Name of this entity.
    - "Target": The entity to sync up.
    - "Sync target": The entity to sync the entity specified in "Target" to.
+   
+# env_vignette
+>Coded by valina354, this post-processing effect adds a tunnel vision-like effect to the screen, where
+>with increasing radius more and more of the screen is occupied by a circular black outline. The fuzzy-
+>-ness of this outline is determined by the strength setting.
+
+ - Keyvalues:
+   - "Name": Name of this entity.
+   - "Effect strength": The strength of the effect. It should be less than the "radius value".
+   - "Vignette radius": This is the radius of the effect, in the 0-1 range. A value of 0.5 will occupy 
+   half of the screen, while a value of 0.9 will occupy 90% of it.
+   
+ - Spawn flags:   
+   - "Start On": The effect will be enabled on spawn.
    
 # envpos_sky
 >This entity marks the position of the 3D sky's skybox dome, where your skybox objects are. This entity
@@ -2645,13 +2682,22 @@ Body of text explaining the objective<br /><br />
 >light sources, please refer to the env_dlight entity.
 
  - Keyvalues:
+   - "Name": Name of this entity.
    - "Brightness": Defines the color of the light and the brightness. First three elements are the color,
    with values from 0 to 255. The fourth element is the intensity of the light source.
+   - "Appearence": Check the "Shared keyvalues" section for more on this.
+   - "Interpolate Custom Appearence": If set, the "Custom Appearance" will have it's values interpolated.
+   - "Custom appearence framerate": Specify the framerate of the custom appearence.
+   - "Custom Appearance": Specify a custom appearence, from letter a to z, which specify the light
+   strength at a given frame.
    - "ZHLT Fade": Multiplies the light value without affecting distances at which the light shines.
    - "ZHLT Falloff": Set the light intensity falloff model used.
      - "Default": Linear light falloff.
 	 - "Inverse Linear"
 	 - "Inverse Square"
+	 
+ - Spawn flags:
+   - "Initially dark": The light will be in an off state until triggered to be on.
 	 
 # light_spot
 >A spotlight light source that will shine at it's target or at the specified angles, acting as a spotlight
@@ -2662,6 +2708,13 @@ Body of text explaining the objective<br /><br />
  - Keyvalues:
    - "Target": The entity to aim the spotlight at if specified. This will override "Angles".
    - "Angles": Defines the direction in which the spotlight will shine.
+   - "Brightness": Defines the color of the light and the brightness. First three elements are the color,
+   with values from 0 to 255. The fourth element is the intensity of the light source.
+   - "Appearence": Check the "Shared keyvalues" section for more on this.
+   - "Interpolate Custom Appearence": If set, the "Custom Appearance" will have it's values interpolated.
+   - "Custom appearence framerate": Specify the framerate of the custom appearence.
+   - "Custom Appearance": Specify a custom appearence, from letter a to z, which specify the light
+   strength at a given frame.
    - "ZHLT Fade": Multiplies the light value without affecting distances at which the light shines.
    - "ZHLT Falloff": Set the light intensity falloff model used.
      - "Default": Linear light falloff.
@@ -2671,18 +2724,51 @@ Body of text explaining the objective<br /><br />
    - "Outer (fading) angle": Between the inner angle and this angle, light values will fade out the closer
    the lit area is to the outer angle of the spotlight.
    - "Pitch": This overrides the pitch value in Angles. A pitch value of -90 is straight down, a value of
-   90 is straight up.
-   - "Brightness": Defines the color of the light and the brightness. First three elements are the color,
-   with values from 0 to 255. The fourth element is the intensity of the light source.
    - "Is Sky": This will cause the spotlight to act like a light_environment, with lighting projected from
    the sky brushes instead of projecting any light itself.
 
+ - Spawn flags:
+   - "Initially dark": The light will be in an off state until triggered to be on.
+
+# math_counter
+>This entity, coded by valina354, allows you to perform various math functions that then will be checked
+>against the min/max values specified in the entity. If the value passes either of the boundaries, the
+>entity will trigger it's target.
+
+ - Keyvalues:
+   - "Name": Name of this entity.
+   - "Start value": The initial value stored by the entity.
+   - "Increment value on On trigger": This value will be added, subtracted, divided or multiplied by when
+   using the "Off" trigger mode.
+   - "Increment value on Off trigger": This value will be added, subtracted, divided or multiplied by when
+   using the "On" trigger mode.
+   - "Increment value on Toggle trigger": This value will be added, subtracted, divided or multiplied by 
+   when using the "Toggle" trigger mode. 
+   - "Maximum value": Max value to reach before before triggering target.
+   - "Minimum value": Minimum value to reach before triggering target.
+   - "Target": Entity to trigger upon reaching min/max.
+   - "Operation on Off trigger": The operation to perform on off trigger mode.
+     - Addition: Adds the increment value to the current value.
+	 - Subtraction: Subtracts from the current value the increment value.
+	 - Division: Divides the current value by the increment value.
+	 - Multiplication: Multiplies the current value by the increment value.
+   - "Operation on On trigger": The operation to perform on off trigger mode(see "Operation on Off trigger"
+   for the options.
+   - "Operation on Toggle trigger": The operation to perform on toggle trigger mode(see "Operation on Off 
+   trigger" for the options.
+   
+ - Spawn flags:
+   - "Reset On Use": Resets the value to the initial "Start value" when the boundary has been reached and
+   the target was triggered.
+   - "Trigger On Max": Trigger target when reaching max boundary.
+   - "Trigger On Min": Trigger target when reaching min boundary.
+   
 # night_light
->A simple point light source used by HLRAD to calculate lighting, but this only works with "-nightmode" set
->in the HLRAD launch arguments, and will only be visible in night mode. For more info, check the
->game_daystage entity. This entity is removed on spawn,  and can only contribute to static lighting, 
->meaning it cannot be switched on and off. For switchable/ >animated light sources, please refer to the 
->env_dlight entity.
+>A simple point light source used by HLRAD to calculate lighting, but this only works with "-daystage 
+>nightmode" set in the HLRAD launch arguments, and will only be visible in night mode. For more info, 
+>check the game_daystage entity. This entity is removed on spawn,  and can only contribute to static
+>lighting, meaning it cannot be switched on and off. For switchable/ >animated light sources, please 
+>refer to the env_dlight entity.
 
  - Keyvalues:
    - "Brightness": Defines the color of the light and the brightness. First three elements are the color,

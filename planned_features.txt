@@ -1,0 +1,4 @@
+- 2024 November 3rd:
+  - Reducing upscaled lightmap data in RAM by rescaling it to the default resolution. This data is used for model lighting, and needs to be retained. The problem is that reloading it is a pain when doing bsp2smd exports or other cases where the non-downscaled version is needed.
+  - Adding code to the water shader so it also supports the new switchable lights based on lightmaps. Most likely this will be a multipass based implementation.
+  - (Potential) Lightmap compression when uploading to the GPU.

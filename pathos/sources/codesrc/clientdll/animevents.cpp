@@ -359,7 +359,7 @@ void EV_WeaponVaporTrail_Smoke( const Vector& attachment, const mstudioevent_t *
 	
 	CString sprit1name;
 	Int32 colonPos = option.find(0, ";");
-	if(colonPos == -1)
+	if(colonPos == CString::CSTRING_NO_POSITION)
 	{
 		cl_engfuncs.pfnCon_Printf("%s - Colon character not found in '%s'.\n", __FUNCTION__, option.c_str());
 		return;
@@ -415,7 +415,7 @@ void EV_WeaponVaporTrail_Glow( const Vector& attachment, const mstudioevent_t *p
 	
 	CString sprit1name;
 	Int32 colonPos = option.find(0, ";");
-	if(colonPos == -1)
+	if(colonPos == CString::CSTRING_NO_POSITION)
 	{
 		cl_engfuncs.pfnCon_Printf("%s - Colon character not found in '%s'.\n", __FUNCTION__, option.c_str());
 		return;

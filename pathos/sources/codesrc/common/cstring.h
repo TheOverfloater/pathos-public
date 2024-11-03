@@ -10,6 +10,10 @@ All Rights Reserved.
 #ifndef CSTRING_H
 #define CSTRING_H
 
+#include <functional>
+
+#include "cstringpool.h"
+
 /*
 =======================
 CString
@@ -18,6 +22,16 @@ CString
 */
 class CString
 {
+public:
+	// flags for string object
+	enum stringflags_t
+	{
+		fl_str_none = 0,
+		fl_str_nopooling = (1<<0)
+	};
+	// No position value
+	static const Int32 CSTRING_NO_POSITION = -1;
+
 private:
 	// Empty string character
 	static Char EMPTY_STRING[];
@@ -27,15 +41,26 @@ public:
 	CString( const Char* pstr );
 	CString( const CString& str );
 	CString( const Char* pstr, Uint32 length );
+	CString( byte flags );
 	~CString();
 	
 public:
 	// Assignment operator
 	CString& operator=(const CString& str);
 	// Comparison operator
-	inline bool operator==(const Char* pstr);
+	inline bool operator==(const Char* pstr) const;
 	// Comparison operator
-	inline bool operator==(const CString& str);
+	inline bool operator==(const CString& str) const;
+
+	// Comparison operator
+	inline bool operator<(const Char* pstr) const;
+	// Comparison operator
+	inline bool operator<(const CString& str) const;
+
+	// Comparison operator
+	inline bool operator>(const Char* pstr) const;
+	// Comparison operator
+	inline bool operator>(const CString& str) const;
 
 	// Byte shift operator
 	inline CString& operator<<(const Char* pstr);
@@ -98,7 +123,7 @@ public:
 	// Erases part of the string
 	inline void erase( Uint32 begin, Uint32 numremove );
 	// Converts characters to lowercase
-	inline void tolower( void ) const;
+	inline void tolower( void );
 	// Inserts a substrinct into the string
 	inline void insert( Uint32 begin, const Char* pstrsubstr );
 	// Replaces slashes with PATH_SLASH_CHAR
@@ -118,12 +143,35 @@ public:
 	// Appends a string to the current one
 	inline void Append( Double d );
 
+public:
+	// Sets data for the string
+	virtual void setdata( const Char* pString, Uint32 length );
+
 private:
 	// Pointer to string
-	Char* m_pString;
+	const Char* m_pString;
 	// Length of the string
 	Uint32 m_stringLength;
+	// Link to current string link in pool
+	CStringPool::cachestring_t* m_pPoolCacheEntry;
+	// Flags for string
+	byte m_flags;
+
+private:
+	// Pointer to string pool
+	static CStringPool* g_pStringPool;
 };
+
+// Hash structure for CString
+template <>
+struct std::hash<CString>
+{
+	std::size_t operator()( const CString& k ) const
+	{
+		return std::hash<const Char*>()(k.c_str());
+	}
+};
+
 // For adding strings together
 extern inline CString operator + ( const CString& lhs, const CString& rhs );
 

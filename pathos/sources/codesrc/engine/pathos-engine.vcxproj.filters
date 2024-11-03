@@ -393,6 +393,9 @@
     <ClCompile Include="renderer\r_fbocache.cpp">
       <Filter>Source Files\renderer</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\cstringpool.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
     <ClCompile Include="renderer\r_lightstyles.cpp">
       <Filter>Source Files\renderer</Filter>
     </ClCompile>
@@ -401,6 +404,15 @@
     </ClCompile>
     <ClCompile Include="bsp_shared.cpp">
       <Filter>Source Files\bsp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\crc32.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="sys_print.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\miniz.c">
+      <Filter>Source Files\common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -887,6 +899,9 @@
     <ClInclude Include="renderer\r_fbocache.h">
       <Filter>Header Files\renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\cstringpool.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
     <ClInclude Include="renderer\r_lightstyles.h">
       <Filter>Header Files\renderer</Filter>
     </ClInclude>
@@ -898,6 +913,18 @@
     </ClInclude>
     <ClInclude Include="bsp_shared.h">
       <Filter>Header Files\bsp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\cstringpool_inline.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\crc32.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="sys_print.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\miniz.h">
+      <Filter>Header Files\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

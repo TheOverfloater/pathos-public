@@ -34,21 +34,14 @@ bool SV_SetModel( edict_t* pedict, const Char* pstrFilepath, bool setbounds )
 	}
 
 	sv_model_t* psvmodel = nullptr;
-	for(Uint32 i = 0; i < svs.modelcache.size(); i++)
-	{
-		if(!qstrcmp(svs.modelcache[i].modelname, pstrFilepath))
-		{
-			psvmodel = &svs.modelcache[i];
-			break;
-		}
-	}
+	CacheNameIndexMap_t::iterator it = svs.modelcachemap.find(pstrFilepath);
+	if(it != svs.modelcachemap.end())
+		psvmodel = &svs.modelcache[it->second];
 
 	cache_model_t* pmodel = nullptr;
 	if(!psvmodel)
 	{
-		const byte* phashdata = reinterpret_cast<const byte*>(pstrFilepath);
-		if(svs.promptshashlist.addhash(phashdata, qstrlen(pstrFilepath)))
-			Con_Printf("%s - Model '%s' not precached for entity '%s'.\n", __FUNCTION__, pstrFilepath, SV_GetString(pedict->fields.classname));
+		Con_Printf("[flags=onlyonce_game]%s - Model '%s' not precached for entity '%s'.\n", __FUNCTION__, pstrFilepath, SV_GetString(pedict->fields.classname));
 
 		CString fileextension(pstrFilepath+qstrlen(pstrFilepath)-4);
 		fileextension.tolower();
@@ -82,9 +75,7 @@ bool SV_SetModel( edict_t* pedict, const Char* pstrFilepath, bool setbounds )
 		pmodel = gModelCache.GetModelByIndex(psvmodel->cache_index);
 		if(!pmodel)
 		{
-			const byte* phashdata = reinterpret_cast<const byte*>(pstrFilepath);
-			if(svs.promptshashlist.addhash(phashdata, qstrlen(pstrFilepath)))
-				Con_Printf("%s - Could not load '%s'.\n", __FUNCTION__, pstrFilepath);
+			Con_Printf("[flags=onlyonce_game]%s - Could not load '%s'.\n", __FUNCTION__, pstrFilepath);
 			return false;
 		}
 

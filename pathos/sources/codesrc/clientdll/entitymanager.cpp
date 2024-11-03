@@ -60,8 +60,6 @@ void CEntityManager::Clear( void )
 		m_entitiesArray.clear();
 
 	FreeEntityData();
-
-	m_promptHashList.clear();
 }
 
 //=============================================
@@ -344,8 +342,7 @@ void CEntityManager::Entity_EnvSprite( const entitydata_t& entity, entindex_t& e
 	const cache_model_t *pmodel = cl_engfuncs.pfnLoadModel(pvalue);
 	if(!pmodel)
 	{
-		if(m_promptHashList.addhash(reinterpret_cast<const byte*>(pvalue), qstrlen(pvalue)))
-			cl_engfuncs.pfnCon_Printf("%s - Failed to load '%s'.\n", __FUNCTION__, pvalue);
+		cl_engfuncs.pfnCon_Printf("[flags=onlyonce_game]%s - Failed to load '%s'.\n", __FUNCTION__, pvalue);
 		return;
 	}
 
@@ -486,8 +483,7 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 	const cache_model_t *pmodel = cl_engfuncs.pfnLoadModel(pvalue);
 	if (!pmodel)
 	{
-		if(m_promptHashList.addhash(reinterpret_cast<const byte*>(pvalue), qstrlen(pvalue)))
-			cl_engfuncs.pfnCon_Printf("%s - Failed to load '%s'.\n", __FUNCTION__, pvalue);
+		cl_engfuncs.pfnCon_Printf("[flags=onlyonce_game]%s - Failed to load '%s'.\n", __FUNCTION__, pvalue);
 		return;
 	}
 

@@ -634,8 +634,8 @@ void CUISaveLoadWindow::SetBackgroundTexture( save_file_t* psave )
 	// Delete previous texture entry, if the save is a quick save, or autosave
 	// as these get updated regularly
 	CString filepath(psave->filepath);
-	if(filepath.find(0, QUICKSAVE_FILE_NAME) != -1 
-		|| filepath.find(0, AUTOSAVE_FILE_NAME) != -1)
+	if(filepath.find(0, QUICKSAVE_FILE_NAME) != CString::CSTRING_NO_POSITION 
+		|| filepath.find(0, AUTOSAVE_FILE_NAME) != CString::CSTRING_NO_POSITION)
 	{
 		// Remove
 		ptexture = pTextureManager->FindTexture(filepath.c_str(), RS_WINDOW_LEVEL);

@@ -10,6 +10,9 @@ All Rights Reserved.
 #ifndef MODELCACHE_H
 #define MODELCACHE_H
 
+#include <unordered_map>
+#include <string>
+
 #include "cache_model.h"
 
 struct maptexturematerial_t;
@@ -32,6 +35,9 @@ class CModelCache
 public:
 	CModelCache( void );
 	~CModelCache( void );
+
+public:
+	typedef std::unordered_map<CString, Uint32> ModelNameMapType_t;
 
 public:
 	// Initializes the class
@@ -70,10 +76,10 @@ private:
 	static void GatherMaterialResources( struct en_material_t* pmaterialscript, CArray<CString>& outMaterialsArray, CArray<CString>& outTexturesArray );
 
 public:
-	// Missing models hash
-	CHashList m_missingModelsHashList;
 	// Cached models array
 	CArray<cache_model_t*> m_modelCacheArray;
+	// Model cache map
+	ModelNameMapType_t m_modelNameMap;
 };
 extern CModelCache gModelCache;
 #endif

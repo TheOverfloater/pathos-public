@@ -1,7 +1,13 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pscriptconv", "pscriptconv.vcxproj", "{07560066-7207-4114-B0F2-16162F183E59}"
+	ProjectSection(ProjectDependencies) = postProject
+		{81CE8DAF-EBB2-4761-8E45-B71ABCCA8C68} = {81CE8DAF-EBB2-4761-8E45-B71ABCCA8C68}
+		{DA956FD3-E142-46F2-9DD5-C78BEBB56B7A} = {DA956FD3-E142-46F2-9DD5-C78BEBB56B7A}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SDL2", "..\..\libs\sdl2.0\VisualC\SDL\SDL.vcxproj", "{81CE8DAF-EBB2-4761-8E45-B71ABCCA8C68}"
 EndProject
@@ -24,7 +30,8 @@ Global
 		{07560066-7207-4114-B0F2-16162F183E59}.Debug|x64.Build.0 = Debug|x64
 		{07560066-7207-4114-B0F2-16162F183E59}.Release|Win32.ActiveCfg = Release|Win32
 		{07560066-7207-4114-B0F2-16162F183E59}.Release|Win32.Build.0 = Release|Win32
-		{07560066-7207-4114-B0F2-16162F183E59}.Release|x64.ActiveCfg = Release|Win32
+		{07560066-7207-4114-B0F2-16162F183E59}.Release|x64.ActiveCfg = Release|x64
+		{07560066-7207-4114-B0F2-16162F183E59}.Release|x64.Build.0 = Release|x64
 		{81CE8DAF-EBB2-4761-8E45-B71ABCCA8C68}.Debug|Win32.ActiveCfg = Debug|Win32
 		{81CE8DAF-EBB2-4761-8E45-B71ABCCA8C68}.Debug|Win32.Build.0 = Debug|Win32
 		{81CE8DAF-EBB2-4761-8E45-B71ABCCA8C68}.Debug|x64.ActiveCfg = Debug|x64
@@ -44,5 +51,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {98C05444-4E00-473D-88A2-108B8E56EA94}
 	EndGlobalSection
 EndGlobal

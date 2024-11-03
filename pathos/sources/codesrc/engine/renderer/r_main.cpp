@@ -73,6 +73,8 @@ All Rights Reserved.
 #include "r_lightstyles.h"
 
 #include "stepsound.h"
+#include "aldformat.h"
+#include "stb_dxt.h"
 
 // Global cvars
 CCVar* g_pCvarBumpMaps = nullptr;
@@ -105,6 +107,7 @@ CCVar* g_pCvarTraceGlow = nullptr;
 CCVar* g_pCvarBatchDynamicLights = nullptr;
 CCVar* g_pCvarOverdarkenTreshold = nullptr;
 CCVar* g_pCvarDumpLightmaps = nullptr;
+CCVar* g_pCvarLightmapCompression = nullptr;
 
 // Caustics texture list file path
 static const Char CAUSTICS_TEXTURE_FILE_PATH[] = "textures/general/caustics_textures.txt";
@@ -158,6 +161,13 @@ en_material_t* g_pMaterialShown = nullptr;
 // List of pending shaders to load
 CLinkedList<active_load_shader_t> g_pendingShadersList;
 
+// Lightmap compression modes
+enum lightmapcompression_t
+{
+	LM_COMPRESSION_NONE = 0,
+	LM_COMPRESSION_DXT1
+};
+
 //====================================
 //
 //====================================
@@ -194,8 +204,9 @@ bool R_Init( void )
 	g_pCvarBatchDynamicLights = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_lightbatches", "0", "Controls whether light rendering is batched based on proximity and type of light." );
 	g_pCvarOverdarkenTreshold = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_overdarken_treshold", "35", "Overdarkening treshold setting, default is 35." );
 	g_pCvarDumpLightmaps = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_lightmap_dumping", "0", "Toggle whether lightmap data should be exported to TGAs on level load." );
+	g_pCvarLightmapCompression = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_lightmap_compression", "0", "Controls whether lightmap data is compressed to the DXT1 format(Experimental)." );
 
-	gCommands.CreateCommand("r_exportald", ALD_ExportLightmaps, "Exports current lightmap info as nightstage light info");
+	gCommands.CreateCommand("r_exportald", Cmd_ExportALD, "Exports current lightmap info as nightstage light info");
 	gCommands.CreateCommand("r_detail_auto", Cmd_DetailAuto, "Generates detail texture entries for world textures without");
 	gCommands.CreateCommand("r_list_default_materials", Cmd_ListDefaultMaterials, "List world textures with default material types");
 	gCommands.CreateCommand("r_set_texture_material", Cmd_SetTextureMaterialType, "Set material type in list of default material types");
@@ -632,6 +643,9 @@ bool R_LoadResources( void )
 	if(!gSkyRenderer.InitGame())
 		return false;
 
+	// This needs to be called before the BSP renderer inits
+	ALD_InitGame();
+
 	if(!gBSPRenderer.InitGame())
 		return false;
 
@@ -770,8 +784,6 @@ void R_ResetGame( void )
 	rns.sky.skysize = 0;
 	rns.sky.local_origin = ZERO_VECTOR;
 	rns.sky.world_origin = ZERO_VECTOR;
-
-
 
 	// Clear this in particular
 	g_pRotLightSprite = nullptr;
@@ -3383,6 +3395,50 @@ Vector R_GetLightingForPosition( const Vector& position, const Vector& defaultco
 //====================================
 //
 //====================================
+void R_SetLightmapTexture( Uint32 glindex, Uint32 width, Uint32 height, bool isvectormap, color32_t* pdata, Uint32& resultsize )
+{
+	lightmapcompression_t method;
+	if(!isvectormap && g_pCvarLightmapCompression->GetValue() >= 1
+		|| isvectormap && g_pCvarLightmapCompression->GetValue() >= 2)
+		method = LM_COMPRESSION_DXT1;
+	else
+		method = LM_COMPRESSION_NONE;
+
+	switch(method)
+	{
+	case LM_COMPRESSION_DXT1:
+		{
+			Uint32 imagedatasize = width*height*sizeof(color32_t);
+			Uint32 dxtdatasize = imagedatasize / 8;
+
+			byte* pdxtdata = new byte[dxtdatasize];
+			rygCompress(pdxtdata, reinterpret_cast<byte*>(pdata), width, height, false);
+
+			glBindTexture(GL_TEXTURE_2D, glindex);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			gGLExtF.glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, width, height, 0, dxtdatasize, pdxtdata);
+			delete[] pdxtdata;
+
+			resultsize = dxtdatasize;
+		}
+		break;
+	case LM_COMPRESSION_NONE:
+		{
+			glBindTexture(GL_TEXTURE_2D, glindex);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pdata);
+			resultsize = width*height*sizeof(color32_t);
+		}
+		break;
+	}
+
+}
+
+//====================================
+//
+//====================================
 void Cmd_PasteDecal( void )
 {
 	if(gCommands.Cmd_Argc() < 5)
@@ -3577,7 +3633,7 @@ void Cmd_LoadModel( void )
 	}
 
 	CString strModel = gCommands.Cmd_Argv(1);
-	if(strModel.find(0, "bsp") != -1)
+	if(strModel.find(0, "bsp") != CString::CSTRING_NO_POSITION)
 	{
 		Con_Printf("%s - BSP files are not allowed to be loaded through this function.\n", __FUNCTION__);
 		return;
@@ -5339,3 +5395,50 @@ void Cmd_LoadAllParticleScripts( void )
 	}
 }
 
+//====================================
+//
+//====================================
+void Cmd_ExportALD( void )
+{
+	if(gCommands.Cmd_Argc() < 3)
+	{
+		Con_Printf("r_exportald usage: r_exportald <compression(none or miniz) <stage of day(nightstage or daylightreturn)>\n");
+		return;
+	}
+
+	// Get compression
+	aldcompression_t compression;
+	CString compressionarg = gCommands.Cmd_Argv(1);
+	if(!qstrcmp(compressionarg, "none"))
+	{
+		compression = ALD_COMPRESSION_NONE;
+	}
+	else if(!qstrcmp(compressionarg, "miniz"))
+	{
+		compression = ALD_COMPRESSION_MINIZ;
+	}
+	else
+	{
+		Con_EPrintf("r_show_list_material - Invalid compression type '%s' specified.\n", compressionarg.c_str());
+		return;
+	}
+
+	// Get day stage
+	daystage_t daystage;
+	CString daystagearg = gCommands.Cmd_Argv(2);
+	if(!qstrcmp(daystagearg, "nightstage"))
+	{
+		daystage = DAYSTAGE_NIGHTSTAGE;
+	}
+	else if(!qstrcmp(daystagearg, "daylightreturn"))
+	{
+		daystage = DAYSTAGE_DAYLIGHT_RETURN;
+	}
+	else
+	{
+		Con_EPrintf("r_show_list_material - Invalid day stage '%s' specified.\n", daystagearg.c_str());
+		return;
+	}
+
+	ALD_ExportLightmaps(compression, daystage);
+}

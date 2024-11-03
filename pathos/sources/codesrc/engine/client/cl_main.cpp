@@ -46,6 +46,7 @@ All Rights Reserved.
 #include "vbmtrace.h"
 #include "r_wadtextures.h"
 #include "enginefuncs.h"
+#include "ald.h"
 
 // client state structure
 clientstate_t cls;
@@ -321,7 +322,11 @@ void CL_ResetGame( void )
 	cls.dllfuncs.pfnGameReset();
 
 	// Clear links
-	svs.mapmaterialfiles.clear();
+	if(!cls.mapmaterialfiles.empty())
+		cls.mapmaterialfiles.clear();
+
+	if(!cls.mapmaterialfilesnamemap.empty())
+		cls.mapmaterialfilesnamemap.clear();
 
 	// Make sure this is deleted
 	if(ens.pwadresource)
@@ -648,6 +653,7 @@ bool CL_InitGame( void )
 	{
 		// Copy mappings from server for localhost
 		cls.mapmaterialfiles = svs.mapmaterialfiles;
+		cls.mapmaterialfilesnamemap = svs.mapmaterialfilesnamemap;
 	}
 
 	// Call renderer to initialize
@@ -828,6 +834,9 @@ void CL_Disconnect( bool clearserver, bool clearloadingplaque )
 	// Call function on client
 	cls.dllfuncs.pfnClientDisconnected();
 
+	// Clean up the restore file if present
+	ALD_ClearGame();
+
 	// Manage disconnection with remote host
 	if(!CL_IsHostClient())
 	{
@@ -853,6 +862,9 @@ void CL_Disconnect( bool clearserver, bool clearloadingplaque )
 
 		// Set this
 		ens.gamestate = GAME_INACTIVE;
+
+		// Reset printer
+		gPrintInterface.ClearGame();
 	}
 	else
 	{
@@ -1226,6 +1238,9 @@ void CL_LinkMapTextureMaterials( CArray<CString>& wadList )
 	if(!cls.mapmaterialfiles.empty())
 		cls.mapmaterialfiles.clear();
 
+	if(!cls.mapmaterialfilesnamemap.empty())
+		cls.mapmaterialfilesnamemap.clear();
+
 	for(Uint32 i = 0; i < ens.pworld->numtextures; i++)
 	{
 		// First look in the BSP folder
@@ -1265,7 +1280,12 @@ void CL_LinkMapTextureMaterials( CArray<CString>& wadList )
 			maptexturematerial_t newmat;
 			newmat.maptexturename = ens.pworld->ptextures[i].name;
 			newmat.materialfilepath = filepath;
+
+			Uint32 insertindex = cls.mapmaterialfiles.size();
 			cls.mapmaterialfiles.push_back(newmat);
+
+			// Add to the map
+			cls.mapmaterialfilesnamemap.insert(std::pair<CString, Uint32>(newmat.maptexturename.c_str(), insertindex));
 		}
 		else
 			Con_Printf("%s - Failed to find material file for world texture '%s'.\n", __FUNCTION__, ens.pworld->ptextures[i].name.c_str());

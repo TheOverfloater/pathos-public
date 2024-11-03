@@ -564,7 +564,7 @@ private:
 	// Builds the VBO
 	void BuildVBO( void );
 	// Adds a VBM file to the VBO object
-	void AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm );
+	void AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, vbm_glvertex_t* pvertexbuffer, Uint32* pindexbuffer, Uint32& vertexoffset, Uint32& indexoffset );
 
 private:
 	// Toggles rendering of models

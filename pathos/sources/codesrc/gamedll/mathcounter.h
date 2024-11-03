@@ -26,12 +26,24 @@ public:
     static const int DEFAULT_MAX_VALUE;
     static const int DEFAULT_MIN_VALUE;
 
-    enum Operation
+    enum operation_t
     {
         ADD = 0,
         SUBTRACT = 1,
         DIVIDE = 2,
-        MULTIPLY = 3
+        MULTIPLY = 3,
+
+        // Must be last
+        NB_OPERATIONS
+    };
+
+    enum modes_t
+    {
+        UM_OFF = 0,
+        UM_ON,
+        UM_TOGGLE,
+
+        NB_USEMODES
     };
 
 public:
@@ -54,16 +66,20 @@ public:
     virtual void CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value ) override;
 
 public:
-    void IncrementValue( void );
+    void IncrementValue( operation_t operation, Int32 increment );
     void TriggerTarget( void );
 
 private:
-    int m_value;
-    int m_increment;
-    int m_maxValue;
-    int m_minValue;
-    CString m_target;
-    Operation m_operation;
+    Int32 m_value;
+    Int32 m_incrementValues[NB_USEMODES]; // Final values to be saved
+    Int32 m_maxValue;
+    Int32 m_minValue;
+    Int32 m_originalStartValue;
+
+    Uint32 m_operationToggleTrigger;
+    Uint32 m_operationOnTrigger;
+    Uint32 m_operationOffTrigger;
+
     CEntityHandle m_activator;
 };
 

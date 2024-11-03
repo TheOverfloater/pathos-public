@@ -244,7 +244,10 @@
     <ClInclude Include="..\..\common\com_math.h" />
     <ClInclude Include="..\..\common\com_math_inline.hpp" />
     <ClInclude Include="..\..\common\const.h" />
+    <ClInclude Include="..\..\common\crc32.h" />
     <ClInclude Include="..\..\common\cstring.h" />
+    <ClInclude Include="..\..\common\cstringpool.h" />
+    <ClInclude Include="..\..\common\cstringpool_inline.hpp" />
     <ClInclude Include="..\..\common\cstring_inline.hpp" />
     <ClInclude Include="..\..\common\vector.h" />
     <ClInclude Include="..\..\common\vector_inline.hpp" />
@@ -257,7 +260,9 @@
     <ClCompile Include="..\..\common\cbitset.cpp" />
     <ClCompile Include="..\..\common\cbuffer.cpp" />
     <ClCompile Include="..\..\common\common.cpp" />
+    <ClCompile Include="..\..\common\crc32.cpp" />
     <ClCompile Include="..\..\common\cstring.cpp" />
+    <ClCompile Include="..\..\common\cstringpool.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="vbmconvert.cpp" />
   </ItemGroup>

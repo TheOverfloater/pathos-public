@@ -10,6 +10,8 @@ All Rights Reserved.
 #ifndef CL_MAIN_H
 #define CL_MAIN_H
 
+#include <unordered_map>
+
 #include "sv_shared.h"
 #include "cldll_interface.h"
 #include "cl_entity.h"
@@ -301,6 +303,8 @@ struct clientstate_t
 
 	// association of map textures/material scripts
 	CArray<maptexturematerial_t> mapmaterialfiles;
+	// material name->index mappings
+	std::unordered_map<CString, Uint32> mapmaterialfilesnamemap;
 
 	// Entity lights
 	entitylight_t entitylights[MAX_ENTITY_LIGHTS];

@@ -429,7 +429,7 @@ bool CGameUISubwayWindow::initData( const Char* pstrScriptFile, Int32 flags, Int
 					while(true)
 					{
 						Uint32 tabpos = schema.description.find(0, "\t");
-						if(tabpos == -1)
+						if(tabpos == CString::CSTRING_NO_POSITION)
 							break;
 
 						schema.description.erase(tabpos, 1);
@@ -486,7 +486,7 @@ bool CGameUISubwayWindow::initData( const Char* pstrScriptFile, Int32 flags, Int
 			while(true)
 			{
 				Uint32 tabpos = defaultdescription.find(0, "\t");
-				if(tabpos == -1)
+				if(tabpos == CString::CSTRING_NO_POSITION)
 					break;
 
 				defaultdescription.erase(tabpos, 1);

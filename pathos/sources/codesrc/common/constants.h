@@ -244,8 +244,6 @@ static constexpr Uint32 CL_ENTITY_INDEX_BASE = MAX_SERVER_ENTITIES;
 
 // Max surface extents size
 static constexpr Uint32 MAX_SURFACE_EXTENTS = 1024;
-// Size of a light block(1024x1024 chop size should give 64x64, but we pad by 2)
-static constexpr Uint32 BLOCKLIGHTS_SIZE = (66*66);
 
 // Default field of view value
 static constexpr Uint32 DEFAULT_FOV_VALUE = 70;
@@ -896,7 +894,11 @@ enum daystage_t
 {
 	DAYSTAGE_NORMAL = 0,
 	DAYSTAGE_NIGHTSTAGE,
-	DAYSTAGE_DAYLIGHT_RETURN
+	DAYSTAGE_DAYLIGHT_RETURN,
+	DAYSTAGE_NORMAL_RESTORE, // Special case for restoring normal time of day
+
+	// Number of day stages
+	NB_DAY_STAGES
 };
 
 enum entity_free_flags_t

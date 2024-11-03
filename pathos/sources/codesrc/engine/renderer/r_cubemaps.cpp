@@ -120,7 +120,7 @@ bool CCubemapManager::InitGame( void )
 	// Build file path
 	CString filename = Engine_GetLevelName();
 	Uint32 begin = filename.find(0, ".bsp");
-	if(begin != -1)
+	if(begin != CString::CSTRING_NO_POSITION)
 		filename.erase(begin, 4);
 	filename << ".ecd";
 
@@ -632,7 +632,7 @@ void CCubemapManager::SaveCubemapFile( void )
 	// Try to load the original file first
 	CString filename = Engine_GetLevelName();
 	Uint32 begin = filename.find(0, ".bsp");
-	if(begin != -1)
+	if(begin != CString::CSTRING_NO_POSITION)
 		filename.erase(begin, 4);
 	filename << ".ecd";
 

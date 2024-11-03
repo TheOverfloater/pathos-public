@@ -342,7 +342,7 @@ bool CGameUIObjectivesWindow::initData( const CArray<CString>& objectivesArray, 
 			while(true)
 			{
 				Uint32 tabpos = defaultDescription.find(0, "\t");
-				if(tabpos == -1)
+				if(tabpos == CString::CSTRING_NO_POSITION)
 					break;
 
 				defaultDescription.erase(tabpos, 1);
@@ -458,7 +458,7 @@ bool CGameUIObjectivesWindow::initData( const CArray<CString>& objectivesArray, 
 		while(true)
 		{
 			Uint32 tabpos = objectiveDescription.find(0, "\t");
-			if(tabpos == -1)
+			if(tabpos == CString::CSTRING_NO_POSITION)
 				break;
 
 			objectiveDescription.erase(tabpos, 1);

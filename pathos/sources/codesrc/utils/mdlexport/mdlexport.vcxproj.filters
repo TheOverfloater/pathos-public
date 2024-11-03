@@ -84,6 +84,15 @@
     <ClInclude Include="..\..\common\com_math_inline.hpp">
       <Filter>Header Files\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\crc32.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\cstringpool.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\cstringpool_inline.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\cbitset.cpp">
@@ -103,6 +112,12 @@
     </ClCompile>
     <ClCompile Include="vbmconvert.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\crc32.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\cstringpool.cpp">
+      <Filter>Source Files\common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

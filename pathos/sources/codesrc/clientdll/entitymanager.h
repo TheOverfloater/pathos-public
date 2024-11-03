@@ -85,9 +85,6 @@ private:
 
 	// CVar controlling the rendering of client entities
 	CCVar *m_pCvarDrawClientEntities;
-
-	// Prompt history hash list
-	CHashList m_promptHashList;
 	
 	// Last entity identifier used
 	Uint32 m_lastIdentifierUsed;

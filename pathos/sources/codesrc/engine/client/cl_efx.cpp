@@ -36,6 +36,7 @@ All Rights Reserved.
 #include "r_lightstyles.h"
 
 #include "ald.h"
+#include "aldformat.h"
 #include "efxapi.h"
 #include "entity_extrainfo.h"
 #include "flexmanager.h"
@@ -298,21 +299,16 @@ void CL_SetDayStage( daystage_t daystage )
 	// Data pointers for our load result
 	byte* pdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
 
-	if (!ALD_Load(rns.daystage, pdatapointers))
-	{
-		for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
-			pdatapointers[i] = reinterpret_cast<byte*>(pworldmodel->pbaselightdata[i]);
+	// If restoring to DAYSTAGE_NORMAL from any other stage, then we
+	// need to load the restore file 
+	daystage_t loadstage;
+	if(daystage == DAYSTAGE_NORMAL && prevdaystage != DAYSTAGE_NORMAL)
+		loadstage = DAYSTAGE_NORMAL_RESTORE;
+	else
+		loadstage = rns.daystage;
 
-		Uint32 i = 0;
-		for(; i < NB_SURF_LIGHTMAP_LAYERS; i++)
-		{
-			if(!pdatapointers[i] || pdatapointers[i] != reinterpret_cast<byte*>(pworldmodel->plightdata[i]))
-				break;
-		}
-
-		if(i == NB_SURF_LIGHTMAP_LAYERS)
-			return;
-	}
+	if (!ALD_Load(loadstage, pdatapointers))
+		return;
 
 	// Go through each surface and verify that the data size is correct
 	for (Uint32 i = 0; i < pworldmodel->numsurfaces; i++)
@@ -335,7 +331,7 @@ void CL_SetDayStage( daystage_t daystage )
 	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
 	{
 		// All data was successfully set, so release original data
-		if (pworldmodel->plightdata[i] != pworldmodel->pbaselightdata[i])
+		if (pworldmodel->plightdata[i])
 			delete[] pworldmodel->plightdata[i];
 
 		pworldmodel->plightdata[i] = reinterpret_cast<color24_t*>(pdatapointers[i]);

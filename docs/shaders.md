@@ -38,10 +38,16 @@ For example in bsprenderer.bss:
 >$invalid_state 2 fogtype 1 2 shadertype 5 19 <br />
 
 Here, fog is not going to be used with specific shader variations, so it is
-not compiled by the compiler code.
+not compiled by the compiler code. The first parameter is the number of
+determinators to check, and then the determinator name, followed by the
+range of values deemed to be invalid. Then the next determinator follows
+with the same schema.
+
+Here is the basic breakdown:
+>$invalid_state *nb of determinators* *determinator 1 name* *range min* *range max* *determinator 2 name* *range min* *range max* <br />
 
 # Branching:
-Branching itself is defined with a $branch token, followed by a $begin and
+Branching itself is defined with a $branch token, followed by $begin and
 closed by an $end token. Here is an example in basicdraw.bss:
 
 >$branch texture == 1 <br />

@@ -11,6 +11,8 @@ All Rights Reserved.
 
 // Empty string character
 Char CString::EMPTY_STRING[] = "\0";
+// Pointer to string pool
+CStringPool* CString::g_pStringPool = CStringPool::Instance();
 
 //=============================================
 // @brief Default constructor
@@ -19,7 +21,9 @@ Char CString::EMPTY_STRING[] = "\0";
 //=============================================
 CString::CString():
 	m_pString(nullptr),
-	m_stringLength(0)
+	m_stringLength(0),
+	m_pPoolCacheEntry(nullptr),
+	m_flags(fl_str_none)
 {
 	m_pString = EMPTY_STRING;
 }
@@ -31,16 +35,18 @@ CString::CString():
 //=============================================
 CString::CString( const Char* pstr ):
 	m_pString(nullptr),
-	m_stringLength(0)
+	m_stringLength(0),
+	m_pPoolCacheEntry(nullptr),
+	m_flags(fl_str_none)
 {
 	if(pstr)
 	{
 		const Uint32 strlength = qstrlen(pstr);
 		if(strlength)
 		{
-			m_pString = new Char[strlength+1];
-			qstrcpy(m_pString, pstr);
-			m_stringLength = strlength;
+			Char* pString = new Char[strlength+1];
+			qstrcpy(pString, pstr);
+			setdata(pString, strlength);
 		}
 	}
 
@@ -55,7 +61,9 @@ CString::CString( const Char* pstr ):
 //=============================================
 CString::CString( const CString& str ):
 	m_pString(nullptr),
-	m_stringLength(0)
+	m_stringLength(0),
+	m_pPoolCacheEntry(nullptr),
+	m_flags(fl_str_none)
 {
 	const Char* psrc = str.c_str();
 	if(psrc)
@@ -63,9 +71,9 @@ CString::CString( const CString& str ):
 		const Uint32 length = str.length();
 		if(length)
 		{
-			m_pString = new Char[length+1];
-			qstrcpy(m_pString, psrc);
-			m_stringLength = length;
+			Char* pString = new Char[length+1];
+			qstrcpy(pString, psrc);
+			setdata(pString, length);
 		}
 	}
 
@@ -80,14 +88,16 @@ CString::CString( const CString& str ):
 //=============================================
 CString::CString( const Char* pstr, Uint32 length ):
 	m_pString(nullptr),
-	m_stringLength(length)
+	m_stringLength(length),
+	m_pPoolCacheEntry(nullptr),
+	m_flags(fl_str_none)
 {
 	if(pstr && length)
 	{
-		m_pString = new Char[length+1];
-		qstrncpy(m_pString, pstr, length);
-		m_pString[length] = '\0';
-		m_stringLength = length;
+		Char* pString = new Char[length+1];
+		qstrncpy(pString, pstr, length);
+		pString[length] = '\0';
+		setdata(pString, length);
 	}
 	else
 	{
@@ -96,11 +106,53 @@ CString::CString( const Char* pstr, Uint32 length ):
 }
 
 //=============================================
+// @brief Constructor with flags
+//
+//=============================================
+CString::CString( byte flags ):
+	m_pString(nullptr),
+	m_stringLength(0),
+	m_pPoolCacheEntry(nullptr),
+	m_flags(flags)
+{
+	m_pString = EMPTY_STRING;
+}
+//=============================================
 // @brief Destructor
 //
 //=============================================
 CString::~CString()
 {
 	if(m_pString && m_pString != EMPTY_STRING)
-		delete[] m_pString;
+	{
+		if(!(m_flags & fl_str_nopooling))
+			g_pStringPool->RemoveString(m_pPoolCacheEntry);
+		else
+			delete[] m_pString;
+	}
+}
+
+//=============================================
+// @brief Sets data for the string
+//
+//=============================================
+void CString::setdata( const Char* pString, Uint32 length )
+{
+	if(!(m_flags & fl_str_nopooling))
+	{
+		if(m_pString && m_pString != EMPTY_STRING)
+			g_pStringPool->RemoveString(m_pPoolCacheEntry);
+
+		m_pPoolCacheEntry = g_pStringPool->AddString(pString);
+		m_pString = m_pPoolCacheEntry->iterator->first.c_str();
+	}
+	else
+	{
+		if(m_pString && m_pString != EMPTY_STRING)
+			delete[] m_pString;
+
+		m_pString = pString;
+	}
+
+	m_stringLength = length;
 }

@@ -1451,6 +1451,9 @@ void CDynamicLightManager::FreeDynamicLight( cl_dlight_t* pdlight, bool ignoreSt
 	if(pdlight->psceneinfo)
 		delete pdlight->psceneinfo;
 
+	if(pdlight->psceneinfo_nonstatic)
+		delete pdlight->psceneinfo_nonstatic;
+
 	if(pdlight->pfrustum)
 		delete pdlight->pfrustum;
 

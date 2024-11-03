@@ -1051,6 +1051,44 @@ void Sys_Frame( Double frametime )
 }
 
 //=============================================
+// @brief Polls for events sent by SDL
+//
+//=============================================
+void Sys_PollEvents( void )
+{
+	SDL_Event mainEvent;
+	while(SDL_PollEvent(&mainEvent) != 0)
+	{
+		if(mainEvent.type == SDL_WINDOWEVENT)
+		{
+			switch(mainEvent.window.event)
+			{
+			case SDL_WINDOWEVENT_MINIMIZED:
+			case SDL_WINDOWEVENT_HIDDEN:
+			case SDL_WINDOWEVENT_FOCUS_LOST:
+				Sys_WindowFocusLost();
+				break;
+
+			case SDL_WINDOWEVENT_SHOWN:
+			case SDL_WINDOWEVENT_RESTORED:
+			case SDL_WINDOWEVENT_FOCUS_GAINED:
+				Sys_WindowFocusRegained();
+				break;
+
+			case SDL_WINDOWEVENT_CLOSE:
+				ens.exit = true;
+				break;
+			}
+		}
+		else if(gWindow.IsActive())
+		{
+			// Handle any other events with the input class
+			gInput.HandleSDLEvent(mainEvent);
+		}
+	}
+}
+
+//=============================================
 // @brief Manages the main application loop
 //
 // @param argsArray Array of launch args
@@ -1086,38 +1124,10 @@ Int32 Sys_Main( CArray<CString>* argsArray )
 	Double oldTime = Sys_FloatTime();
 
 	// Run the main loop
-	SDL_Event mainEvent;
 	while(!Sys_ShouldExit())
 	{
-		while(SDL_PollEvent(&mainEvent) != 0)
-		{
-			if(mainEvent.type == SDL_WINDOWEVENT)
-			{
-				switch(mainEvent.window.event)
-				{
-				case SDL_WINDOWEVENT_MINIMIZED:
-				case SDL_WINDOWEVENT_HIDDEN:
-				case SDL_WINDOWEVENT_FOCUS_LOST:
-					Sys_WindowFocusLost();
-					break;
-
-				case SDL_WINDOWEVENT_SHOWN:
-				case SDL_WINDOWEVENT_RESTORED:
-				case SDL_WINDOWEVENT_FOCUS_GAINED:
-					Sys_WindowFocusRegained();
-					break;
-
-				case SDL_WINDOWEVENT_CLOSE:
-					ens.exit = true;
-					break;
-				}
-			}
-			else if(gWindow.IsActive())
-			{
-				// Handle any other events with the input class
-				gInput.HandleSDLEvent(mainEvent);
-			}
-		}
+		// Poll for any events
+		Sys_PollEvents();
 
 		// Get current times
 		Double curTime = Sys_FloatTime();
@@ -1143,197 +1153,6 @@ Int32 Sys_Main( CArray<CString>* argsArray )
 	CloseHandle(hMutex);
 
 	return 0;
-}
-
-// To protect against infinite loops
-static bool g_conPrintfSemaphore = false;
-
-//=============================================
-// @brief Prints a formatted string to the console
-//
-// @param fmt String describing the format
-// @param ... Additional format input parameters
-//=============================================
-void Con_Printf( const Char *fmt, ... )
-{
-	if(g_conPrintfSemaphore)
-		return;
-
-	g_conPrintfSemaphore = true;
-
-	// Aquire lock on mutex
-	WaitForSingleObject(g_hPrintMutex, INFINITE);
-
-	va_list	vArgPtr;
-	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
-	
-	va_start(vArgPtr,fmt);
-	vsprintf_s(cMsg, fmt, vArgPtr);
-	va_end(vArgPtr);
-
-	if(ens.plogfile)
-		ens.plogfile->Write(cMsg);
-
-	gConsole.AddTextHistory(cMsg);
-
-	// Redraw if loading
-	if(ens.isloading && rns.basicsinitialized)
-		VID_DrawLoadingScreen();
-
-#ifdef _CONSOLE
-	printf(cMsg);
-#endif
-
-	ReleaseMutex(g_hPrintMutex);
-
-	g_conPrintfSemaphore = false;
-}
-
-// To protect against infinite loops
-static bool g_conDPrintfSemaphore = false;
-
-//=============================================
-// @brief Prints a formatted string to the console in debug mode
-//
-// @param fmt String describing the format
-// @param ... Additional format input parameters
-//=============================================
-void Con_DPrintf( const Char *fmt, ... )
-{
-	if(g_pCvarDeveloper->GetValue() < DEV_MODE_ON && !ens.plogfile)
-		return;
-
-	if(g_conDPrintfSemaphore)
-		return;
-
-	g_conDPrintfSemaphore = true;
-
-	// Aquire lock on mutex
-	WaitForSingleObject(g_hPrintMutex, INFINITE);
-
-	va_list	vArgPtr;
-	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
-	
-	va_start(vArgPtr,fmt);
-	vsprintf_s(cMsg, fmt, vArgPtr);
-	va_end(vArgPtr);
-
-	qstrins("DEBUG: ", cMsg, 0);
-
-	if(ens.plogfile)
-		ens.plogfile->Write(cMsg);
-
-	if(g_pCvarDeveloper->GetValue() >= DEV_MODE_ON)
-	{
-		gConsole.AddTextHistory(cMsg);
-
-		// Redraw if loading
-		if(ens.isloading && rns.basicsinitialized)
-			VID_DrawLoadingScreen();
-	}
-
-#ifdef _CONSOLE
-	printf(cMsg);
-#endif
-
-	ReleaseMutex(g_hPrintMutex);
-
-	g_conDPrintfSemaphore = false;
-}
-
-// To protect against infinite loops
-static bool g_conVPrintfSemaphore = false;
-
-//=============================================
-// @brief Prints a formatted string to the console in verbose mode
-//
-// @param fmt String describing the format
-// @param ... Additional format input parameters
-//=============================================
-void Con_VPrintf( const Char *fmt, ... )
-{
-	if(g_pCvarDeveloper->GetValue() < DEV_MODE_VERBOSE)
-		return;
-
-	if(g_conVPrintfSemaphore)
-		return;
-
-	g_conVPrintfSemaphore = true;
-
-	// Aquire lock on mutex
-	WaitForSingleObject(g_hPrintMutex, INFINITE);
-
-	va_list	vArgPtr;
-	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
-	
-	va_start(vArgPtr,fmt);
-	vsprintf_s(cMsg, fmt, vArgPtr);
-	va_end(vArgPtr);
-
-	qstrins("VERBOSE: ", cMsg, 0);
-
-	if(ens.plogfile)
-		ens.plogfile->Write(cMsg);
-
-	gConsole.AddTextHistory(cMsg);
-
-	// Redraw if loading
-	if(ens.isloading && rns.basicsinitialized)
-		VID_DrawLoadingScreen();
-
-#ifdef _CONSOLE
-	printf(cMsg);
-#endif
-
-	ReleaseMutex(g_hPrintMutex);
-
-	g_conVPrintfSemaphore = false;
-}
-
-// To protect against infinite loops
-static bool g_conEPrintfSemaphore = false;
-
-//=============================================
-// @brief Prints a formatted string to the console as an error, and to the log file too
-//
-// @param fmt String describing the format
-// @param ... Additional format input parameters
-//=============================================
-void Con_EPrintf( const Char *fmt, ... )
-{
-	if(g_conEPrintfSemaphore)
-		return;
-
-	g_conEPrintfSemaphore = true;
-
-	// Aquire lock on mutex
-	WaitForSingleObject(g_hPrintMutex, INFINITE);
-
-	va_list	vArgPtr;
-	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
-	
-	va_start(vArgPtr, fmt);
-	vsprintf_s(cMsg, fmt, vArgPtr);
-	va_end(vArgPtr);
-
-	qstrins("ERROR: ", cMsg, 0);
-
-	if(ens.plogfile)
-		ens.plogfile->Write(cMsg);
-
-	gConsole.AddTextHistory(cMsg);
-
-	// Redraw if loading
-	if(ens.isloading && rns.basicsinitialized)
-		VID_DrawLoadingScreen();
-
-#ifdef _CONSOLE
-	printf(cMsg);
-#endif
-
-	ReleaseMutex(g_hPrintMutex);
-
-	g_conEPrintfSemaphore = false;
 }
 
 //=============================================

@@ -933,6 +933,9 @@
     <ClCompile Include="mathcounter.cpp">
       <Filter>Source Files\entities\other</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\cstringpool.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gamedll.h">
@@ -1753,6 +1756,12 @@
     </ClInclude>
     <ClInclude Include="mathcounter.h">
       <Filter>Header Files\entities\other</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\cstringpool.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\cstringpool_inline.hpp">
+      <Filter>Header Files\common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

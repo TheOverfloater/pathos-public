@@ -45,7 +45,8 @@ enum surf_flags_t
 	SURF_DRAWSKY			= 4,
 	SURF_DRAWSPRITE			= 8,
 	SURF_DRAWTURB			= 16,
-	SURF_SHADERWATER		= 32
+	SURF_SHADERWATER		= 32,
+	SURF_LIGHT_DOWNSCALE	= 64
 };
 
 struct mvertex_t
@@ -203,6 +204,7 @@ struct msurface_t
 		firstedge(0),
 		numedges(0),
 		lightmapdivider(0),
+		base_samplesize(0),
 		ptexinfo(nullptr),
 		lightoffset(0),
 		infoindex(-1)
@@ -239,6 +241,8 @@ struct msurface_t
 	Uint32 light_t[MAX_SURFACE_STYLES];
 	// Divider to get lightmap size
 	Uint32 lightmapdivider;
+	// Base sample size
+	Uint32 base_samplesize;
 
 	// texinfo
 	mtexinfo_t* ptexinfo;
@@ -358,10 +362,7 @@ struct brushmodel_t
 		entdatasize(0)
 	{
 		for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
-		{
 			plightdata[i] = nullptr;
-			pbaselightdata[i] = nullptr;
-		}
 	}
 
 	~brushmodel_t()
@@ -403,10 +404,8 @@ struct brushmodel_t
 
 			for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
 			{
-				if(plightdata[i] && plightdata[i] != pbaselightdata[i])
+				if(plightdata[i])
 					delete[] plightdata[i];
-				if (pbaselightdata[i])
-					delete[] pbaselightdata[i];
 			}
 		}
 	}
@@ -490,9 +489,6 @@ struct brushmodel_t
 	// light data
 	color24_t* plightdata[NB_SURF_LIGHTMAP_LAYERS];
 	Uint32 lightdatasize;
-	
-	// original lightdata
-	color24_t* pbaselightdata[NB_SURF_LIGHTMAP_LAYERS];
 
 	// entities
 	Char* pentdata;

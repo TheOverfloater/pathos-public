@@ -658,7 +658,10 @@ void CBSPRenderer::InitLightmaps( void )
 		}
 
 		if(i > BASE_LIGHTMAP_INDEX && lightmapdatasize <= 0)
+		{
+			delete[] plightmap;
 			continue;
+		}
 
 		if(g_pCvarDumpLightmaps->GetValue() >= 1)
 		{
@@ -686,12 +689,9 @@ void CBSPRenderer::InitLightmaps( void )
 		if(!m_lightmapIndexes[i])
 			m_lightmapIndexes[i] = pTextureManager->GenTextureIndex(RS_GAME_LEVEL)->gl_index;
 
-		glBindTexture(GL_TEXTURE_2D, m_lightmapIndexes[i]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_lightmapWidths[i], m_lightmapHeights[i], 0, GL_RGBA, GL_UNSIGNED_BYTE, plightmap);
-
-		Con_Printf("Loaded 1 lightmaps for layer %d: %.2f mbytes.\n", i, static_cast<Float>(lightmapdatasize)/(1024.0f*1024.0f));
+		Uint32 resultsize;
+		R_SetLightmapTexture(m_lightmapIndexes[i], m_lightmapWidths[i], m_lightmapHeights[i], false, plightmap, resultsize);
+		Con_Printf("Loaded 1 lightmaps for layer %d: %.2f mbytes.\n", i, static_cast<Float>(resultsize)/(1024.0f*1024.0f));
 
 		if(i > 0)
 			m_useLightStyles = true;
@@ -768,8 +768,13 @@ void CBSPRenderer::InitLightmaps( void )
 			}
 
 			if(i > BASE_LIGHTMAP_INDEX && amblightdatasize <= 0 && diffuselightdatasize <= 0 && lightvecsdatasize <= 0)
+			{
+				delete[] pambientlightmap;
+				delete[] pdiffuselightmap;
+				delete[] plightvecslightmap;
 				continue;
-			
+			}
+
 			if(g_pCvarDumpLightmaps->GetValue() >= 1)
 			{
 				CString basename;
@@ -810,31 +815,25 @@ void CBSPRenderer::InitLightmaps( void )
 			if(!m_ambientLightmapIndexes[i])
 				m_ambientLightmapIndexes[i] = pTextureManager->GenTextureIndex(RS_GAME_LEVEL)->gl_index;
 
-			glBindTexture(GL_TEXTURE_2D, m_ambientLightmapIndexes[i]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_lightmapWidths[i], m_lightmapHeights[i], 0, GL_RGBA, GL_UNSIGNED_BYTE, pambientlightmap);
+			Uint32 resultsize_ambient;
+			R_SetLightmapTexture(m_ambientLightmapIndexes[i], m_lightmapWidths[i], m_lightmapHeights[i], false, pambientlightmap, resultsize_ambient);
 
 			// Load the diffuse lightmap
 			if(!m_diffuseLightmapIndexes[i])
 				m_diffuseLightmapIndexes[i] = pTextureManager->GenTextureIndex(RS_GAME_LEVEL)->gl_index;
 
-			glBindTexture(GL_TEXTURE_2D, m_diffuseLightmapIndexes[i]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_lightmapWidths[i], m_lightmapHeights[i], 0, GL_RGBA, GL_UNSIGNED_BYTE, pdiffuselightmap);
+			Uint32 resultsize_diffuse;
+			R_SetLightmapTexture(m_diffuseLightmapIndexes[i], m_lightmapWidths[i], m_lightmapHeights[i], false, pdiffuselightmap, resultsize_diffuse);
 
 			// Load the lightvecs lightmap
 			if(!m_lightVectorsIndexes[i])
 				m_lightVectorsIndexes[i] = pTextureManager->GenTextureIndex(RS_GAME_LEVEL)->gl_index;
 
-			glBindTexture(GL_TEXTURE_2D, m_lightVectorsIndexes[i]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_lightmapWidths[i], m_lightmapHeights[i], 0, GL_RGBA, GL_UNSIGNED_BYTE, plightvecslightmap);
+			Uint32 resultsize_lightvecs;
+			R_SetLightmapTexture(m_lightVectorsIndexes[i], m_lightmapWidths[i], m_lightmapHeights[i], true, plightvecslightmap, resultsize_lightvecs);
 
 			// Calculate total memory used
-			Uint32 totalSize = amblightdatasize + diffuselightdatasize + lightvecsdatasize;
+			Uint32 totalSize = resultsize_ambient + resultsize_diffuse + resultsize_lightvecs;
 			Con_Printf("Loaded 3 bumpmap lightmaps for layer %d: %.2f mbytes.\n", i, static_cast<Float>(totalSize)/(1024.0f*1024.0f)); 
 			m_bumpMaps = true;
 

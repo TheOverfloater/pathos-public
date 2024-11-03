@@ -271,3 +271,38 @@
   - Added player movement stuck fix from the HL25 updates.
   - Fix in CGLSLShader class for where the determinator array size was using the number of shaders instead of the number of determinators, causing a crash.
   - Removed max shader variations limit from CGLSLShader.
+  
+- 2024 November 3rd:
+  - Updated tools_readme.md with information about bspconvert and pbspv2update.
+  - Updated shaders.md to provide better information about invalid states.
+  - Recompiled the levels to use 4x lightmap upscaling.
+  - Added a new room to feature the new post-process effects added by valina354.
+  - Added new voice recordings to help explain new features.
+  - Added new constant to CString class to denote null result from find.
+  - Added lightmap data compression support to Pathos BSP V2 and the ALD file formats.
+  - Added string caching to CString class to help decrease memory usage.
+  - Modified lightmap data storage to store the default lightmap data on-disk if ALD files are present, instead of storing it in memory all the time.
+  - Modified CMD5 class to use a constant for the size of the hash result.
+  - Modify texture manager to use maps instead of linked lists for faster texture lookup.
+  - Modify various engine structures and classes to use std::map and std::unordered_map instead of the arrays and linked lists.
+  - Added CSysPrintInterface to allow for tokens that set how many times a message should be printed to the console per game or application instance.
+  - Added experimental lightmap data compression feature.
+  - Fix memory leak in dynamic light manager.
+  - Fix memory leak in menu particle system.
+  - Fix memory leak in portal renderer.
+  - Fix GL texture not being deleted in portal class.
+  - Fix two memory leaks in texture renderer.
+  - Got rid of hash arrays previously used to limit the number of repeating messages printed to the console.
+  - Modified ambient_generic entity to support playback of sentences.
+  - Improved VBM loading code by getting rid resizings/memory reallocations during level load.
+  - Extended math_counter entity to provide different increment values and operations per trigger mode.
+  - Fix trigger_relay_binary, where it would always trigger it's On target regardless of it's actual state.
+  - Fixes various problems in pathos_jack.fgd with the new entries.
+  - Added "Initially dark" spawnflags to light and light_spot entities.
+  - Added pbspv2update tool to help update V2 bsp files to V2.1.
+  - Updated DMC forest skybox to latest version.
+  - Updated compile scripts to use the lightmap scaling feature.
+  - Modified vhlt compile tools to now support lightmap upscaling up to 8x(still needs work).
+  - Modified vhlt compile tools to support miniz compression of lightmap data.
+  - Improved parameter design for new features in the compile tools.
+  

@@ -19,6 +19,7 @@ All Rights Reserved.
 #include "entitydata.h"
 #include "constants.h"
 #include "wad3file.h"
+#include "crc32.h"
 
 namespace Common
 {
@@ -679,5 +680,18 @@ namespace Common
 	{
 		for (Char *temp = pstring; *temp; temp++) 
 			*temp = ::tolower(*temp);
+	}
+
+	//=============================================
+	// @brief Gets the CRC32 hash of a string
+	//
+	//=============================================
+	Uint32 GetStringCRC32Hash( const Char* pstrString )
+	{
+		const byte* pdata = reinterpret_cast<const byte*>(pstrString);
+		Uint32 stringlength = qstrlen(pstrString);
+
+		CCRC32Hash hash(pdata, stringlength);
+		return hash.GetHashResult();
 	}
 };

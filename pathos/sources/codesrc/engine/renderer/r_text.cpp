@@ -383,7 +383,7 @@ bool CText :: RenderGlyphs( font_set_t *pset, fontsetglinfo_t* psetinfo, font_gl
 		FT_Stroker_New(m_pLibrary, &pStroker);
 		FT_Stroker_Set(pStroker, outlineradius * 64, FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
 	}
-
+	
 	// Get data from the .ttf
 	bool result = true;
 	for(Uint32 i = 32; i < NUM_GLYPHS; i++)
@@ -461,6 +461,7 @@ bool CText :: RenderGlyphs( font_set_t *pset, fontsetglinfo_t* psetinfo, font_gl
 		pGlyph->texcoords[3][0] = (iColumn*iGlyphSize+(iPadding/2.0f))/static_cast<Float>(iResX);
 		pGlyph->texcoords[3][1] = (iRow*iGlyphSize+pGlyph->height+(iPadding/2.0f)+yOffset)/static_cast<Float>(iResY);
 
+		FT_Done_Glyph(glyph);
 		FT_Done_Glyph(pFontGlyph);
 	}
 
@@ -591,6 +592,8 @@ bool CText :: RenderGlyphs( font_set_t *pset, fontsetglinfo_t* psetinfo, font_gl
 
 	psetinfo->pvbo->Append(pbuffer, NUM_GLYPHS*6*sizeof(font_vertex_t), nullptr, 0);
 	delete[] pbuffer;
+
+	FT_Stroker_Done(pStroker);
 
 	return true;
 }

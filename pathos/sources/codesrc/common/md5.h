@@ -26,17 +26,20 @@ CMD5
 class CMD5
 {
 public:
+	// MD5 hash size
+	static const Uint32 MD5_HASH_SIZE = 33;
+
+public:
 	CMD5();
 	CMD5( const byte* pbuffer, Uint32 bufsize );
 
 public:
+	void Init( void );
 	void Update( const byte *pinput, Uint32 length );
 	CMD5& Finalize( void );
 	CString HexDigest( void ) const;
 
 private:
-	void Init( void );
-
 	void Transform( const byte* pblock );
 	static void Decode( Uint32* poutput, const byte* pinput, Uint32 length );
 	static void Encode( byte* poutput, const Uint32* pinput, Uint32 length );

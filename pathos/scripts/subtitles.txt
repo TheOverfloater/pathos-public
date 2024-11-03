@@ -293,4 +293,18 @@ fog_blending
 In this area you can the fog entity with blending enabled between two fog states.
 }
 
+bumpmapping
+{
+The room you are seeing here showcases the more advanced lighting features of Pathos. The compilers support compiling levels with data that can then be used for bump mapping using static, pre-calculated lightmaps. If you have normal maps and gloss maps for your textures, then these can be combined with the precompiled data to give your levels bump mapping and specular reflections. I want to thank the Paranoia team and BUzer for the work they did, which is the same solution I based my own off of.
+The engine also supports cubemapping, and for that at minimum you need a gloss map, but a normal map is also preferrred for a full effect. Settings in the script can be used to specify the amount of reflectivity of a texture for cubemapping.
+}
 
+lightstyles
+{
+Pathos originally did not support the type of switchable and animated lights that Half-Life used. These are done using the HLRAD tool, and not using dynamic lighting as Pathos supports, so, per popular user request I finally implemented this feature.
+}
+
+postprocess_valina
+{
+This room showcases the new post-processing effects that were added by valina354, so I want to thank you for your contributions to Pathos. The three new post-processing effects are black and white(or grayscale effect), we have chromatic aberration, as well as a vignette effect.
+}

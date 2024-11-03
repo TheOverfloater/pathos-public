@@ -315,13 +315,11 @@ bool BSPV30_LoadLighting( const byte* pfile, brushmodel_t& model, const dv30lump
 		return false;
 	}
 
-	model.pbaselightdata[SURF_LIGHTMAP_DEFAULT] = reinterpret_cast<color24_t*>(new byte[lump.size]);
+	model.plightdata[SURF_LIGHTMAP_DEFAULT] = reinterpret_cast<color24_t*>(new byte[lump.size]);
 	model.lightdatasize = lump.size;
 
 	const byte* psrc = (pfile + lump.offset);
-	memcpy(model.pbaselightdata[SURF_LIGHTMAP_DEFAULT], psrc, sizeof(byte) * lump.size);
-
-	model.plightdata[SURF_LIGHTMAP_DEFAULT] = model.pbaselightdata[SURF_LIGHTMAP_DEFAULT];
+	memcpy(model.plightdata[SURF_LIGHTMAP_DEFAULT], psrc, sizeof(byte) * lump.size);
 
 	return true;
 }
@@ -471,6 +469,8 @@ bool BSPV30_LoadFaces( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 		pout->numedges = Common::ByteToInt16(reinterpret_cast<const byte *>(&pinfaces[i].numedges));
 		pout->flags = 0;
 		pout->lightmapdivider = 1.0;
+		pout->base_samplesize = V30_LM_BASE_SAMPLE_SIZE;
+		pout->lightmapdivider = V30_LM_BASE_SAMPLE_SIZE;
 
 		Uint16 planeindex = Common::ByteToUint16(reinterpret_cast<const byte*>(&pinfaces[i].planenum));
 		Int16 side = Common::ByteToInt16(reinterpret_cast<const byte*>(&pinfaces[i].side));
@@ -482,7 +482,6 @@ bool BSPV30_LoadFaces( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 		Int16 texinfoindex = Common::ByteToInt16(reinterpret_cast<const byte*>(&pinfaces[i].texinfo));
 		pout->ptexinfo = &model.ptexinfos[texinfoindex];
 
-		pout->lightmapdivider = V30_LM_BASE_SAMPLE_SIZE;
 		if(!BSP_CalcSurfaceExtents(pout, model))
 			return false;
 
@@ -564,8 +563,7 @@ bool BSPV30_LoadFaces( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 			memcpy(pfinaldata, plightdata[i], sizeof(byte)*lightdatasize);
 
 			// Set pointers and data sizes
-			model.pbaselightdata[i] = reinterpret_cast<color24_t*>(pfinaldata);
-			model.plightdata[i] = model.pbaselightdata[i];
+			model.plightdata[i] = reinterpret_cast<color24_t*>(pfinaldata);
 
 			// Delete temporary array we made
 			delete[] plightdata[i];

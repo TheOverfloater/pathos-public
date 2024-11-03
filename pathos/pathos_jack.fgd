@@ -8,7 +8,7 @@
 @SolidClass = worldspawn : "World entity" 
 [
   skyname(string) : "environment map (cl_skyname)"
-  chaptertitle(string) : "Chapter Title Message" : "" : "Chapter Title that appears onscreen when this level starts, must add it into titles.txt."
+  chaptertitle(string) : "Chapter Title Message"
 ]
 
 //
@@ -625,6 +625,7 @@
      [
           1: "Remove on fire" : 0
           2: "Loop music" : 0
+          4: "Turn off other entity" : 0
      ]
 ]
 
@@ -772,15 +773,15 @@
     6 : "Random"
   ]
 ]
-@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blackwhite : "Black and White Effect"
+@PointClass base(Targetname, Angles) size(-16 -16 -16, 16 16 16) color(255 0 0) = env_blood : "Blood Effects"  []
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blackandwhite : "Black and White Effect"
 [
-  strength(float) : "Effect strength" : "1.0"
+  strength(integer) : "Effect strength" : 1
   spawnflags(flags) = 
   [
     1 : "Start On" : 0
   ]
 ]
-@PointClass base(Targetname, Angles) size(-16 -16 -16, 16 16 16) color(255 0 0) = env_blood : "Blood Effects"  []
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blackhole : "Black Hole"
 [
   scale(integer) : "Scale" : 1
@@ -804,7 +805,7 @@
 ]
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_chromatic : "Chromatic Aberration Effect"
 [
-  strength(integer) : "Chromatic Aberration Strength" : "0"
+  strength(integer) : "Chromatic Aberration Strength" : 0
   spawnflags(flags) = 
   [
     1 : "Start On" : 0
@@ -966,7 +967,7 @@
 ]
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_filmgrain : "FilmGrain Effect"
 [
-  strength(float) : "Effect strength" : "0.001"
+  strength(string) : "Effect strength" : "0.001"
   spawnflags(flags) = 
   [
     1 : "Start On" : 0
@@ -1388,6 +1389,15 @@
 [
   netname(target_source) : "Sync target"
 ]
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_vignette : "Vignette Effect"
+[
+  strength(integer) : "Effect strength" : 0
+  radius(integer) : "Vignette radius" : 0
+  spawnflags(flags) = 
+  [
+    1 : "Start On" : 0
+  ]
+]
 @PointClass base(Targetname) size(-4 -4 -4, 4 4 4) color(200 100 50) = envpos_sky : "Sky Marker" 
 [
   target(target_source) : "First stop target"
@@ -1405,15 +1415,6 @@
   skytexture(string) : "Sky texture"
 ]
 @PointClass base(Targetname) size(-4 -4 -4, 4 4 4) color(200 100 50) = envpos_portal_world : "Portal world marker" [ ]
-@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_vignette : "Vignette Effect"
-[
-  strength(integer) : "Effect strength" : "0"
-  radius(integer) : "Vignette radius" : "0"
-  spawnflags(flags) = 
-  [
-    1 : "Start On" : 0
-  ]
-]
 @PointClass base(Targetname) size(-4 -4 -4, 4 4 4) color(200 100 50) = envpos_world : "Sky World Marker" 
 [
   health(string) : "Size" : "16"
@@ -1607,7 +1608,7 @@
 @SolidClass base(Targetname) = func_ladder : "Ladder" []
 
 @SolidClass base(Targetname, Appearflags) = func_mirror : "Mirror" []
-@SolidClass = func_null : "Null brush entity" 
+@SolidClass base(RenderFields) = func_null : "Null brush entity" 
 [
   zhlt_noclip(integer) : "Noclip" : 1
 ]
@@ -1645,6 +1646,8 @@
     1: "Start Off" : 0
   ]
 ]
+
+@SolidClass base(Targetname) = func_particle_blocker : "Particle blocker brush" []
 
 // not fully implemented
 @SolidClass base(Appearflags, Targetname, Global, RenderFields, Angles, ZHLT) = func_pendulum : "Swings back and forth" 
@@ -2179,29 +2182,46 @@
 
 @PointClass iconsprite("sprites/lightbulb.spr") base(Target, Targetname, Light, ZHLT_point) = light : "Invisible lightsource"
 [
+	spawnflags(Flags) = [ 1 : "Initially dark" : 0 ]
 ]
 
-@PointClass iconsprite("sprites/lightbulb.spr") base(Target, Targetname, Angles, ZHLT_point) = light_spot : "Spotlight" 
+@PointClass iconsprite("sprites/lightbulb.spr") base(Target, Targetname, Angles, Light, ZHLT_point) = light_spot : "Spotlight" 
 [
 	_cone(integer) : "Inner (bright) angle" : 30
 	_cone2(integer) : "Outer (fading) angle" : 45
 	pitch(integer) : "Pitch" : -90
-	_light(color255) : "Brightness" : "255 255 128 200"
 	_sky(Choices) : "Is Sky" : 0 = 
 	[ 
 		0 : "No"
 		1 : "Yes"
 	]
+	spawnflags(Flags) = [ 1 : "Initially dark" : 0 ]
 ]
 
-@PointClass base(Targetname, Angles) size(-16 -16 -16, 16 16 16) = math_counter : "Math Counter"
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = math_counter : "Math Counter"
 [
-  startvalue(integer) : "Start value" : "0"
-  increment(integer) : "Increment value" : "1"
-  maxvalue(integer) : "Maximum value" : "100"
-  minvalue(integer) : "Minimum value" : "0"
+  startvalue(string) : "Start value" : "0"
+  increment_off(string) : "Increment value on Off trigger" : "1"
+  increment_on(string) : "Increment value on On trigger" : "1"
+  increment_toggle(string) : "Increment value on Toggle trigger" : "1"
+  maxvalue(string) : "Maximum value" : "100"
+  minvalue(string) : "Minimum value" : "0"
   target(target_source) : "Target" : "0"
-  operation(Choices) : "Operation" : 0 =
+  operation_off(Choices) : "Operation on Off trigger" : 0 =
+  [ 
+     0 : "Addition"
+     1 : "Subtraction"
+	 2 : "Division"
+	 3 : "Multiplication"
+  ]
+  operation_on(Choices) : "Operation on On trigger" : 0 =
+  [ 
+     0 : "Addition"
+     1 : "Subtraction"
+	 2 : "Division"
+	 3 : "Multiplication"
+  ]
+  operation_toggle(Choices) : "Operation on Toggle trigger" : 0 =
   [ 
      0 : "Addition"
      1 : "Subtraction"

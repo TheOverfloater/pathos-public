@@ -88,6 +88,12 @@
     <ClCompile Include="..\..\shared\activitymappings.cpp">
       <Filter>src\shared</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\crc32.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\cstringpool.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include=".\viewerstate.h">
@@ -217,6 +223,15 @@
       <Filter>include\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\md5.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\crc32.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\cstringpool.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\cstringpool_inline.hpp">
       <Filter>include\common</Filter>
     </ClInclude>
   </ItemGroup>

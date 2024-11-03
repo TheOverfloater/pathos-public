@@ -28,12 +28,15 @@ LINK_ENTITY_TO_CLASS(math_counter, CMathCounter);
 CMathCounter::CMathCounter( edict_t* pedict ) :
     CPointEntity(pedict),
     m_value(DEFAULT_START_VALUE),
-    m_increment(DEFAULT_INCREMENT),
     m_maxValue(DEFAULT_MAX_VALUE),
     m_minValue(DEFAULT_MIN_VALUE),
-    m_target(nullptr),
-    m_operation(ADD)
+    m_originalStartValue(m_value),
+    m_operationToggleTrigger(ADD),
+    m_operationOnTrigger(ADD),
+    m_operationOffTrigger(ADD)
 {
+    for(Uint32 i = 0; i < NB_USEMODES; i++)
+        m_incrementValues[i] = DEFAULT_START_VALUE;
 }
 
 //=============================================
@@ -52,11 +55,15 @@ void CMathCounter::DeclareSaveFields( void )
     CPointEntity::DeclareSaveFields();
 
     DeclareSaveField(DEFINE_DATA_FIELD(CMathCounter, m_value, EFIELD_INT32));
-    DeclareSaveField(DEFINE_DATA_FIELD(CMathCounter, m_increment, EFIELD_INT32));
+    DeclareSaveField(DEFINE_DATA_FIELD(CMathCounter, m_originalStartValue, EFIELD_INT32));
     DeclareSaveField(DEFINE_DATA_FIELD(CMathCounter, m_maxValue, EFIELD_INT32));
     DeclareSaveField(DEFINE_DATA_FIELD(CMathCounter, m_minValue, EFIELD_INT32));
-    DeclareSaveField(DEFINE_DATA_FIELD(CMathCounter, m_target, EFIELD_STRING));
-    DeclareSaveField(DEFINE_DATA_FIELD(CMathCounter, m_operation, EFIELD_INT32));
+    DeclareSaveField(DEFINE_DATA_FIELD(CMathCounter, m_operationToggleTrigger, EFIELD_UINT32));
+    DeclareSaveField(DEFINE_DATA_FIELD(CMathCounter, m_operationOnTrigger, EFIELD_UINT32));
+    DeclareSaveField(DEFINE_DATA_FIELD(CMathCounter, m_operationOffTrigger, EFIELD_UINT32));
+
+    for(Uint32 i = 0; i < NB_USEMODES; i++)
+        DeclareSaveField(DEFINE_DATA_FIELD(CMathCounter, m_incrementValues[i], EFIELD_INT32));
 }
 
 //=============================================
@@ -67,11 +74,25 @@ bool CMathCounter::KeyValue( const keyvalue_t& kv )
     if (!qstrcmp(kv.keyname, "startvalue"))
     {
         m_value = SDL_atoi(kv.value);
+        m_originalStartValue = m_value;
         return true;
     }
-    else if (!qstrcmp(kv.keyname, "increment"))
+    // USE_OFF
+    if(!qstrcmp(kv.keyname, "increment_off"))
     {
-        m_increment = SDL_atoi(kv.value);
+        m_incrementValues[UM_OFF] = SDL_atoi(kv.value);
+        return true;
+    }
+    // USE_ON
+    else if(!qstrcmp(kv.keyname, "increment_on"))
+    {
+        m_incrementValues[UM_ON] = SDL_atoi(kv.value);
+        return true;
+    }
+    // USE_TOGGLE
+    else if(!qstrcmp(kv.keyname, "increment_toggle"))
+    {
+        m_incrementValues[UM_TOGGLE] = SDL_atoi(kv.value);
         return true;
     }
     else if (!qstrcmp(kv.keyname, "maxvalue"))
@@ -84,16 +105,25 @@ bool CMathCounter::KeyValue( const keyvalue_t& kv )
         m_minValue = SDL_atoi(kv.value);
         return true;
     }
-    else if (!qstrcmp(kv.keyname, "target"))
-    {
-        m_target = kv.value;
-        return true;
-    }
-    else if (!qstrcmp(kv.keyname, "operation"))
+    else if (!qstrcmp(kv.keyname, "operation_toggle"))
     {
         Int32 op = SDL_atoi(kv.value);
-        if (op >= 0 && op <= 3)
-            m_operation = static_cast<Operation>(op);
+        if (op >= ADD && op <= NB_OPERATIONS)
+            m_operationToggleTrigger = static_cast<operation_t>(op);
+        return true;
+    }
+    else if (!qstrcmp(kv.keyname, "operation_on"))
+    {
+        Int32 op = SDL_atoi(kv.value);
+        if (op >= ADD && op <= NB_OPERATIONS)
+            m_operationOnTrigger = static_cast<operation_t>(op);
+        return true;
+    }
+    else if (!qstrcmp(kv.keyname, "operation_off"))
+    {
+        Int32 op = SDL_atoi(kv.value);
+        if (op >= ADD && op <= NB_OPERATIONS)
+            m_operationOffTrigger = static_cast<operation_t>(op);
         return true;
     }
     else
@@ -119,33 +149,37 @@ bool CMathCounter::Spawn( void )
 //=============================================
 // @brief Increase or modify the counter value
 //=============================================
-void CMathCounter::IncrementValue( void )
+void CMathCounter::IncrementValue( operation_t operation, Int32 increment )
 {
-    switch (m_operation)
+    switch (operation)
     {
     case ADD:
-        m_value += m_increment;
-        break;
+        m_value += increment;
+    break;
     case SUBTRACT:
-        m_value -= m_increment;
-        break;
+        m_value -= increment;
+    break;
     case DIVIDE:
-        if (m_increment != 0)
-            m_value /= m_increment;
-        break;
+        if (increment != 0)
+            m_value /= increment;
+    break;
     case MULTIPLY:
-        m_value *= m_increment;
-        break;
+        m_value *= increment;
+    break;
     }
 
     if (HasSpawnFlag(FL_TRIGGER_ON_MAX) && m_value > m_maxValue)
     {
-        m_value = m_maxValue;
         UseTargets(m_activator, USE_TOGGLE, 0);
+
+        if (HasSpawnFlag(FL_RESET_ON_USE))
+            m_value = m_originalStartValue;
     }
     else if (HasSpawnFlag(FL_TRIGGER_ON_MIN) && m_value < m_minValue)
     {
-        m_value = m_minValue;
+        if (HasSpawnFlag(FL_RESET_ON_USE))
+            m_value = m_originalStartValue;
+
         UseTargets(m_activator, USE_TOGGLE, 0);
     }
 }
@@ -157,15 +191,24 @@ void CMathCounter::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemo
 {
     m_activator = pActivator;
 
+    Int32 increment;
+    Uint32 operation;
     switch (useMode)
     {
     case USE_ON:
+        operation = m_operationOnTrigger;
+        increment = m_incrementValues[UM_ON];
+        break;
     case USE_OFF:
+        operation = m_operationOffTrigger;
+        increment = m_incrementValues[UM_OFF];
+        break;
     case USE_TOGGLE:
     default:
-        IncrementValue();
-        if (HasSpawnFlag(FL_RESET_ON_USE))
-            m_value = DEFAULT_START_VALUE;
+        operation = m_operationToggleTrigger;
+        increment = m_incrementValues[UM_TOGGLE];
         break;
     }
+
+    IncrementValue(static_cast<operation_t>(operation), increment);
 }

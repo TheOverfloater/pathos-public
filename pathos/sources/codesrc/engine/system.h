@@ -10,16 +10,17 @@ All Rights Reserved.
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
-class CCVar;
+#include "sys_print.h"
 
-// Size of buffer for message prints
-static constexpr Uint32 PRINT_MSG_BUFFER_SIZE = 16384;
+class CCVar;
 
 // Gameinfo file name
 static const Char GAMEINFO_FILENAME[] = "gameinfo.cfg";
 
 // Timescale cvar
 extern CCVar* g_pCvarTimeScale;
+// Developer cvar
+extern CCVar* g_pCvarDeveloper;
 
 /*
 =================================
@@ -68,6 +69,7 @@ extern bool Sys_LoadGameInfo( CArray<CString>* argsArray );
 extern bool Sys_IsGameControlActive( void );
 extern void Sys_SetPaused( bool paused, bool print );
 
+extern void Sys_PollEvents( void );
 extern void Sys_InitCommands( void );
 extern void Sys_InitCVars( void );
 
@@ -80,11 +82,6 @@ extern void Sys_WindowFocusRegained( void );
 extern Int32 Sys_CheckLaunchArgs( const Char* pstrArg );
 extern const Char* Sys_LaunchArgv( Uint32 index );
 extern Uint32 Sys_LaunchArgc( void );
-
-extern void Con_Printf( const Char *fmt, ... );
-extern void Con_DPrintf( const Char *fmt, ... );
-extern void Con_VPrintf( const Char *fmt, ... );
-extern void Con_EPrintf( const Char *fmt, ... );
 
 extern bool Sys_GetDLLExports( const Char* pstrDLLName, void* pDLLHandle, CArray<dll_export_t>& destArray );
 
