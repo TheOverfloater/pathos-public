@@ -114,6 +114,7 @@ struct beam_t
 		amplitude(0),
 		speed(0),
 		noisespeed(0),
+		lifetime(0),
 		brightness(0),
 		colorfadetime(0),
 		colorfadedelay(0),
@@ -151,6 +152,7 @@ struct beam_t
 	Float amplitude;
 	Float speed;
 	Float noisespeed;
+	Float lifetime;
 
 	Vector color1;
 	Float brightness;

@@ -2940,7 +2940,7 @@ namespace Util
 	// @brief
 	//
 	//=============================================
-	void CreateBeamFollow( const CBaseEntity* pentity, Int32 attachment, const Char* pstrSpriteName, Float life, Float width, Float amplitude, Float brightness, Float r, Float g, Float b )
+	void CreateBeamFollow( const CBaseEntity* pentity, Int32 attachment, const Char* pstrSpriteName, Float life, Float width, Float brightness, Float r, Float g, Float b )
 	{
 		Int32 modelindex = gd_engfuncs.pfnPrecacheModel(pstrSpriteName);
 		if(modelindex == NO_PRECACHE)
@@ -2949,14 +2949,14 @@ namespace Util
 			return;
 		}
 
-		Util::CreateBeamFollow(pentity, attachment, modelindex, life, width, amplitude, brightness, r, g, b);
+		Util::CreateBeamFollow(pentity, attachment, modelindex, life, width, brightness, r, g, b);
 	}
 
 	//=============================================
 	// @brief
 	//
 	//=============================================
-	void CreateBeamFollow( const CBaseEntity* pentity, Int32 attachment, Int32 modelindex, Float life, Float width, Float amplitude, Float brightness, Float r, Float g, Float b )
+	void CreateBeamFollow( const CBaseEntity* pentity, Int32 attachment, Int32 modelindex, Float life, Float width, Float brightness, Float r, Float g, Float b )
 	{
 		if(!pentity)
 		{
@@ -2971,7 +2971,6 @@ namespace Util
 			gd_engfuncs.pfnMsgWriteInt16(modelindex);
 			gd_engfuncs.pfnMsgWriteSmallFloat(life*10);
 			gd_engfuncs.pfnMsgWriteSmallFloat(width);
-			gd_engfuncs.pfnMsgWriteByte(amplitude);
 			gd_engfuncs.pfnMsgWriteByte(clamp(r, 0, 255));
 			gd_engfuncs.pfnMsgWriteByte(clamp(g, 0, 255));
 			gd_engfuncs.pfnMsgWriteByte(clamp(b, 0, 255));

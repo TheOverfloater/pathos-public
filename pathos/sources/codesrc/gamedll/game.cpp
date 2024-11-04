@@ -59,6 +59,9 @@ static const Uint32 IMPACT_POSITION_MAX = 32;
 // Max penetrations by NPCs per frame
 static const Uint32 MAX_NPC_FRAME_PENETRATIONS = 8;
 
+// Smoke sprite precache index
+Int32 g_smokeSpriteIndex = NO_PRECACHE;
+
 // Counter for penetrations by NPCs
 Uint32 g_nbNPCPenetrations = 0;
 
@@ -421,6 +424,8 @@ void PrecacheGenericResources( void )
 
 	gd_engfuncs.pfnPrecacheDecal("bloodbigsplat");
 	gd_engfuncs.pfnPrecacheDecal("bloodbigsplat2");
+
+	g_smokeSpriteIndex = gd_engfuncs.pfnPrecacheModel("sprites/smoke.spr");
 
 	if(g_pCvarNPCDebug->GetValue() >= 1)
 	{

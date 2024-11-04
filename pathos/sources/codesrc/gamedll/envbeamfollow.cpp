@@ -24,7 +24,6 @@ CEnvBeamFollow::CEnvBeamFollow( edict_t* pedict ):
 	m_spriteModelName(NO_STRING_VALUE),
 	m_life(0),
 	m_width(0),
-	m_beamNoise(0),
 	m_attachment(0)
 {
 }
@@ -94,7 +93,6 @@ void CEnvBeamFollow::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvBeamFollow, m_spriteModelName, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvBeamFollow, m_life, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvBeamFollow, m_width, EFIELD_FLOAT));
-	DeclareSaveField(DEFINE_DATA_FIELD(CEnvBeamFollow, m_beamNoise, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD_FLAGS(CEnvBeamFollow, m_attachment, EFIELD_INT32, EFIELD_SAVE_ALWAYS));
 }
 
@@ -112,11 +110,6 @@ bool CEnvBeamFollow::KeyValue( const keyvalue_t& kv )
 	else if(!qstrcmp(kv.keyname, "width"))
 	{
 		m_width = SDL_atof(kv.value);
-		return true;
-	}
-	else if(!qstrcmp(kv.keyname, "beamnoise"))
-	{
-		m_beamNoise = SDL_atof(kv.value);
 		return true;
 	}
 	else if(!qstrcmp(kv.keyname, "texture"))
@@ -171,7 +164,7 @@ void CEnvBeamFollow::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, use
 
 	Int32 attachmentIndex = (m_attachment == 0) ? NO_POSITION : (m_attachment-1);
 	Util::CreateBeamFollow(pEntity, attachmentIndex, gd_engfuncs.pfnGetString(m_spriteModelName), 
-		m_life, m_width, m_beamNoise, m_pState->renderamt/255.0f, 
+		m_life, m_width, m_pState->renderamt/255.0f, 
 		m_pState->rendercolor.x, m_pState->rendercolor.y, m_pState->rendercolor.z);
 }
 

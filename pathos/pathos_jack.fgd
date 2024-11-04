@@ -717,7 +717,6 @@
   life(integer) : "Duration" : 4
   width(integer) : "Beam width" : 16
   texture(sprite) : "Sprite"
-  beamnoise(integer) : "Noise" : 0
   attachment(Choices) : "Attachment" : -1 =
   [ 
       0 : "None"

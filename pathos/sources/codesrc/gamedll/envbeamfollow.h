@@ -40,8 +40,6 @@ private:
 	Float m_life;
 	// Beam width
 	Float m_width;
-	// Beam noise
-	Float m_beamNoise;
 	// Attachment index
 	Int32 m_attachment;
 };

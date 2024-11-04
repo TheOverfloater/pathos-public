@@ -295,7 +295,8 @@ document:
 # env_beamfollow
 >This entity allows you to attach a beam to another entity that will follow this entity, leaving a fading
 >trail along it's path. The trails will fade out over the time specified in the entity one after the other,
->from back to the current position.
+>from back to the current position. Once all active segments have faded out, the beam effect is removed
+>completely.
 
  - Keyvalues:
    - "Name": Name of this entity.
@@ -305,7 +306,6 @@ document:
    - "Duration": The lifetime of each individual segment. Segments fade out completely after this time.
    - "Beam width": Width of the beam created.
    - "Sprite": Sprite to use for the beam trail effect.
-   - "Noise": Amount of noise in the beam effect.
    - "Attachment": If the target entity is a VBM type entity, then if you specify a non-zero attachment, 
    the beam will follow that attachment on the entity.
 

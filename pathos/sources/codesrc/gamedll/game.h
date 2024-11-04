@@ -31,6 +31,9 @@ extern CSentencesFile* g_pSentencesFile;
 
 extern Uint32 g_nbNPCPenetrations;
 
+// Smoke sprite precache index
+extern Int32 g_smokeSpriteIndex;
+
 extern bool InitGameObjects( void );
 extern void ClearGameObjects( void );
 extern bool InitGame( void );

@@ -1498,7 +1498,7 @@ void CBeamRenderer::DrawBeamFollow( beam_t* pbeam )
 	if(pnew)
 	{
 		pnew->position = pbeam->source;
-		pbeam->die = pnew->life = rns.time + pbeam->amplitude;
+		pbeam->die = pnew->life = rns.time + pbeam->lifetime;
 		pnext = pnew;
 	}
 
@@ -1509,18 +1509,11 @@ void CBeamRenderer::DrawBeamFollow( beam_t* pbeam )
 	Vector screenlast;
 	Vector screenstart;
 
-	if(!pnew && distance != 0)
+	if(!pnew && distance != 0 || pnext->pnext)
 	{
 		delta = pbeam->source;
 		R_WorldToScreenTransform(m_modelViewProjectionMatrix, pbeam->source, screenlast);
 		R_WorldToScreenTransform(m_modelViewProjectionMatrix, pnext->position, screenstart);
-	}
-	else if(pnext->pnext)
-	{
-		delta = pnext->position;
-		R_WorldToScreenTransform(m_modelViewProjectionMatrix, pnext->position, screenlast);
-		R_WorldToScreenTransform(m_modelViewProjectionMatrix, pnext->pnext->position, screenstart);
-		pnext = pnext->pnext;
 	}
 	else
 	{
@@ -1544,8 +1537,10 @@ void CBeamRenderer::DrawBeamFollow( beam_t* pbeam )
 	Float last = 0.0f;
 	Float step = 1.0f;
 
-	Float div = 1.0/pbeam->amplitude;
-	Float fraction = (pbeam->die - rns.time)*div;
+	Float div = 1.0/pbeam->lifetime;
+	distance = (pnext->position-delta).Length();
+	Float fraction = distance / BEAM_POSITION_SEGMENT_DISTANCE;
+	fraction = clamp(fraction, 0, 2) * div;
 
 	R_ValidateShader(m_pBasicDraw);
 
@@ -1572,7 +1567,7 @@ void CBeamRenderer::DrawBeamFollow( beam_t* pbeam )
 		last += step;
 
 		if(pnext->pnext)
-			fraction = (pnext->life - rns.time)*div;
+			fraction = clamp(pnext->life - rns.time, 0, 2)*div;
 		else
 			fraction = 0;
 
@@ -1664,7 +1659,7 @@ void CBeamRenderer::DrawBeamVaporTrail( beam_t* pbeam, Float fadealpha )
 	Float last = 0.0f;
 	Float step = 1.0f;
 
-	Float div = 1.0/pbeam->amplitude;
+	Float div = 1.0/pbeam->lifetime;
 	Float fraction = (pbeam->die - rns.time)*div;
 
 	// Create the segments
@@ -2160,7 +2155,7 @@ beam_t* CBeamRenderer::BeamFollow( entindex_t startentity, Int32 attachment, Int
 	if(!pstartentity)
 		return nullptr;
 
-	beam_t* pbeam = BeamLightning(ZERO_VECTOR, ZERO_VECTOR, modelindex, life, width, life, brightness, 1.0, 1.0, FL_BEAM_NONE);
+	beam_t* pbeam = BeamLightning(ZERO_VECTOR, ZERO_VECTOR, modelindex, life, width, 0, brightness, 1.0, 1.0, FL_BEAM_NONE);
 	if(!pbeam)
 		return nullptr;
 
@@ -2168,6 +2163,7 @@ beam_t* CBeamRenderer::BeamFollow( entindex_t startentity, Int32 attachment, Int
 	pbeam->flags |= FL_BEAM_STARTENTITY;
 	pbeam->startentity_index = startentity;
 	pbeam->attachment1 = attachment;
+	pbeam->lifetime = life;
 
 	SetBeamAttributes(pbeam, r, g, b, 1.0, 0);
 	return pbeam;
@@ -2178,7 +2174,7 @@ beam_t* CBeamRenderer::BeamFollow( entindex_t startentity, Int32 attachment, Int
 //====================================
 beam_t* CBeamRenderer::BeamVaporTrail( const Vector& src, const Vector& end, Int32 modelindex1, Int32 modelindex2, Float colorfadedelay, Float colorfadetime, Float life, Float width, Float brightness, Float r1, Float g1, Float b1, Float r2, Float g2, Float b2, Int32 flags )
 {
-	beam_t* pbeam = BeamLightning(src, end, modelindex1, life, width, life, brightness, 1.0, 1.0, flags);
+	beam_t* pbeam = BeamLightning(src, end, modelindex1, life, width, 0, brightness, 1.0, 1.0, flags);
 	if(!pbeam)
 		return nullptr;
 
@@ -2187,6 +2183,7 @@ beam_t* CBeamRenderer::BeamVaporTrail( const Vector& src, const Vector& end, Int
 	pbeam->modelindex2 = modelindex2;
 	pbeam->colorfadedelay = colorfadedelay;
 	pbeam->colorfadetime = colorfadetime;
+	pbeam->lifetime = life;
 
 	SetBeamAttributes(pbeam, r1, g1, b1, 1.0, 0);
 

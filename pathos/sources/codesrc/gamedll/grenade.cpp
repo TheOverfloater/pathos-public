@@ -351,6 +351,9 @@ CGrenade* CGrenade::CreateTimed( CBaseEntity* pOwner, const Vector& origin, cons
 
 	pGrenade->SetBodyGroup(WMODEL_BODY_BASE, WMODEL_GRENADE_PRIMED);
 
+	if(g_smokeSpriteIndex != NO_PRECACHE)
+		Util::CreateBeamFollow(pGrenade, NO_ATTACHMENT_INDEX, g_smokeSpriteIndex, 2, 8, 0.5, 255, 255, 255);
+
 	return pGrenade;
 }
 
@@ -386,6 +389,9 @@ CGrenade* CGrenade::CreateContact( CBaseEntity* pOwner, const Vector& origin, co
 
 	pGrenade->SetDamageAmount(damage);
 	pGrenade->SetDamageRadius(radius);
+
+	if(g_smokeSpriteIndex != NO_PRECACHE)
+		Util::CreateBeamFollow(pGrenade, NO_ATTACHMENT_INDEX, g_smokeSpriteIndex, 2, 8, 0.5, 255, 255, 255);
 
 	return pGrenade;
 }
