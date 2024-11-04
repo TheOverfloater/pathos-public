@@ -312,3 +312,9 @@
   - Fix crash on renderer reboot when changing display window properties.
   - Fix Uint32 being used for entindex in monitor renderer.
   - Add "Recent Skyboxes" list to Pathos Model Viewer.
+  
+2024 November 4th:
+  - Improve documentation of env_beamfollow and remove unused "Beam noise" keyvalue from FGD.
+  - Fix follow beam code causing incorrect brightness/color values to be used.
+  - Make beam follow and vapor trail code more readable by not reusing variables for different purposes.
+  - Added follow beam to grenade to help improve visiblity.
