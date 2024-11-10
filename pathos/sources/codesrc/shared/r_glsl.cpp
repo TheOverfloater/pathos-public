@@ -1533,7 +1533,15 @@ bool CGLSLShader::ShouldIncludeChunk( Uint32 id, shader_chunk_t *pchunk )
 		if(pconditional->boperator == OPERATOR_NONE && bComparisonResult
 			|| pconditional->boperator == OPERATOR_AND && bResult && bResult == bComparisonResult
 			|| pconditional->boperator == OPERATOR_ELSE && (bComparisonResult || bResult))
+		{
+			// Comparison is ok so far
 			bResult = true;
+		}
+		else
+		{
+			// Mark as failed
+			bResult = false;
+		}
 	}
 
 	return bResult;

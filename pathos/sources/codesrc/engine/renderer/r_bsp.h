@@ -265,8 +265,7 @@ struct stylebatches_t
 struct lightstyleinfo_t
 {
 	lightstyleinfo_t()
-	{
-	}
+	{}
 
 	CArray<stylebatches_t> stylebatches;
 };

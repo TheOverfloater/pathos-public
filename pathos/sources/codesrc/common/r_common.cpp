@@ -384,6 +384,106 @@ void R_ResizeTextureToPOT( Uint32& outwidth, Uint32& outheight, byte*& pdata )
 //
 // Function:
 //=============================================
+void R_ResizeTexture32( Uint32 width, Uint32 height, Uint32 targetwidth, Uint32 targetheight, const color32_t* pindata, color32_t*& poutdata )
+{
+	color32_t pix1, pix2, pix3, pix4;
+
+	// Allocate arrays
+	Int32* prow1 = new Int32[targetheight];
+	Int32* prow2 = new Int32[targetheight];
+	Int32* pcol1 = new Int32[targetwidth];
+	Int32* pcol2 = new Int32[targetwidth];
+
+	poutdata = new color32_t[targetwidth*targetheight];
+	byte* pout = reinterpret_cast<byte*>(poutdata);
+
+	for (Uint32 i = 0; i < targetwidth; i++)
+	{
+		pcol1[i] = static_cast<Int32>((i + 0.25) * (width / (Float)targetwidth));
+		pcol2[i] = static_cast<Int32>((i + 0.75) * (width / (Float)targetwidth));
+	}
+
+	for (Uint32 i = 0; i < targetheight; i++)
+	{
+		prow1[i] = static_cast<Int32>((i + 0.25) * (height / (Float)targetheight)) * width;
+		prow2[i] = static_cast<Int32>((i + 0.75) * (height / (Float)targetheight)) * width;
+	}
+
+	for (Uint32 i = 0; i < targetheight; i++)
+	{
+		for (Uint32 j = 0; j < targetwidth; j++, pout += 4)
+		{
+			pix1 = pindata[prow1[i] + pcol1[j]];
+			pix2 = pindata[prow1[i] + pcol2[j]];
+			pix3 = pindata[prow2[i] + pcol1[j]];
+			pix4 = pindata[prow2[i] + pcol2[j]];
+
+			pout[0] = (pix1.r + pix2.r + pix3.r + pix4.r)>>2;
+			pout[1] = (pix1.g + pix2.g + pix3.g + pix4.g)>>2;
+			pout[2] = (pix1.b + pix2.b + pix3.b + pix4.b)>>2;
+			pout[3] = (pix1.a + pix2.a + pix3.a + pix4.a)>>2;
+		}
+	}
+
+	delete[] prow1;
+	delete[] prow2;
+	delete[] pcol1;
+	delete[] pcol2;
+}
+
+//=============================================
+//
+// Function:
+//=============================================
+void R_ResizeTexture24( Uint32 width, Uint32 height, Uint32 targetwidth, Uint32 targetheight, const color24_t* pindata, color24_t*& poutdata )
+{
+	color24_t pix1, pix2, pix3, pix4;
+
+	// Allocate arrays
+	Int32* prow1 = new Int32[targetheight];
+	Int32* prow2 = new Int32[targetheight];
+	Int32* pcol1 = new Int32[targetwidth];
+	Int32* pcol2 = new Int32[targetwidth];
+
+	byte* pout = reinterpret_cast<byte*>(poutdata);
+
+	for (Uint32 i = 0; i < targetwidth; i++)
+	{
+		pcol1[i] = static_cast<Int32>((i + 0.25) * (width / (Float)targetwidth));
+		pcol2[i] = static_cast<Int32>((i + 0.75) * (width / (Float)targetwidth));
+	}
+
+	for (Uint32 i = 0; i < targetheight; i++)
+	{
+		prow1[i] = static_cast<Int32>((i + 0.25) * (height / (Float)targetheight)) * width;
+		prow2[i] = static_cast<Int32>((i + 0.75) * (height / (Float)targetheight)) * width;
+	}
+
+	for (Uint32 i = 0; i < targetheight; i++)
+	{
+		for (Uint32 j = 0; j < targetwidth; j++, pout += 3)
+		{
+			pix1 = pindata[prow1[i] + pcol1[j]];
+			pix2 = pindata[prow1[i] + pcol2[j]];
+			pix3 = pindata[prow2[i] + pcol1[j]];
+			pix4 = pindata[prow2[i] + pcol2[j]];
+
+			pout[0] = (pix1.r + pix2.r + pix3.r + pix4.r)>>2;
+			pout[1] = (pix1.g + pix2.g + pix3.g + pix4.g)>>2;
+			pout[2] = (pix1.b + pix2.b + pix3.b + pix4.b)>>2;
+		}
+	}
+
+	delete[] prow1;
+	delete[] prow2;
+	delete[] pcol1;
+	delete[] pcol2;
+}
+
+//=============================================
+//
+// Function:
+//=============================================
 void R_FlipTexture( Uint32 width, Uint32 height, Uint32 bpp, bool fliph, bool flipv, byte*& pdata )
 {
 	// Flip vertically and/or horizontally if needed

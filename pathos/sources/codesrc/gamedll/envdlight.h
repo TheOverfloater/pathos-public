@@ -37,6 +37,7 @@ public:
 	virtual void DeclareSaveFields( void ) override;
 	virtual bool KeyValue( const keyvalue_t& kv ) override;
 	virtual bool ShouldSetBoundsOnRestore( void ) override { return false; }
+	virtual bool ShouldOverrideKeyValue( const Char* pstrKeyValue ) override;
 
 public:
 	void ManageLightStyle( void );

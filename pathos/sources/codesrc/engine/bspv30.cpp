@@ -54,9 +54,6 @@ brushmodel_t* BSPV30_Load( const byte* pfile, const dv30header_t* pheader, const
 		return nullptr;
 	}
 
-	// Set up everything else
-	BSP_MakeHullZero((*pmodel));
-
 	return pmodel;
 }
 
@@ -321,6 +318,11 @@ bool BSPV30_LoadLighting( const byte* pfile, brushmodel_t& model, const dv30lump
 	const byte* psrc = (pfile + lump.offset);
 	memcpy(model.plightdata[SURF_LIGHTMAP_DEFAULT], psrc, sizeof(byte) * lump.size);
 
+	model.plightdata_original[SURF_LIGHTMAP_DEFAULT] = reinterpret_cast<byte*>(model.plightdata[SURF_LIGHTMAP_DEFAULT]);
+	model.original_lightdatasizes[SURF_LIGHTMAP_DEFAULT] = lump.size;
+	model.original_compressionlevel[SURF_LIGHTMAP_DEFAULT] = 0;
+	model.original_compressiontype[SURF_LIGHTMAP_DEFAULT] = BSP_LMAP_COMPRESSION_NONE;
+
 	return true;
 }
 
@@ -468,7 +470,6 @@ bool BSPV30_LoadFaces( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 		pout->firstedge = pinfaces[i].firstedge;
 		pout->numedges = Common::ByteToInt16(reinterpret_cast<const byte *>(&pinfaces[i].numedges));
 		pout->flags = 0;
-		pout->lightmapdivider = 1.0;
 		pout->base_samplesize = V30_LM_BASE_SAMPLE_SIZE;
 		pout->lightmapdivider = V30_LM_BASE_SAMPLE_SIZE;
 
@@ -527,7 +528,6 @@ bool BSPV30_LoadFaces( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 			else
 			{
 				// We only have the base layer
-				pout->psamples[SURF_LIGHTMAP_DEFAULT] = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(model.plightdata[SURF_LIGHTMAP_DEFAULT]) + pinfaces[i].lightoffset);
 				pout->lightoffset = pinfaces[i].lightoffset;
 			}
 
@@ -547,6 +547,8 @@ bool BSPV30_LoadFaces( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 		// Flag sky surfaces
 		if(!qstrncmp(pout->ptexinfo->ptexture->name.c_str(), "sky", 3))
 			pout->flags |= SURF_DRAWSKY;
+		else if(pout->ptexinfo->ptexture->name[0] == '!')
+			pout->flags |= SURF_DRAWTURB;
 	}
 
 	// Re-organize light data if needed
@@ -564,6 +566,10 @@ bool BSPV30_LoadFaces( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 
 			// Set pointers and data sizes
 			model.plightdata[i] = reinterpret_cast<color24_t*>(pfinaldata);
+			model.plightdata_original[i] = reinterpret_cast<byte*>(model.plightdata[i]);
+			model.original_lightdatasizes[i] = lightdatasize;
+			model.original_compressiontype[i] = BSP_LMAP_COMPRESSION_NONE;
+			model.original_compressionlevel[i] = 0;
 
 			// Delete temporary array we made
 			delete[] plightdata[i];
@@ -571,17 +577,6 @@ bool BSPV30_LoadFaces( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 
 		// Set final size
 		model.lightdatasize = lightdatasize;
-
-		// Now modify the data ptrs
-		for(Uint32 i = 0; i < model.numsurfaces; i++)
-		{
-			msurface_t* psurface = &model.psurfaces[i];
-			if(psurface->lightoffset == -1)
-				continue;
-
-			for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
-				psurface->psamples[j] = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(model.plightdata[j]) + psurface->lightoffset);
-		}
 	}
 
 	return true;

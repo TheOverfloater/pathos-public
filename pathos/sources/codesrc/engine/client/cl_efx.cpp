@@ -45,6 +45,7 @@ All Rights Reserved.
 #include "studio.h"
 #include "vbmformat.h"
 #include "enginestate.h"
+#include "bsp_shared.h"
 
 static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 {
@@ -310,23 +311,6 @@ void CL_SetDayStage( daystage_t daystage )
 	if (!ALD_Load(loadstage, pdatapointers))
 		return;
 
-	// Go through each surface and verify that the data size is correct
-	for (Uint32 i = 0; i < pworldmodel->numsurfaces; i++)
-	{
-		msurface_t* psurface = &pworldmodel->psurfaces[i];
-		if (psurface->lightoffset == -1)
-			continue;
-
-		// Re-set samples pointer to the new data
-		for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
-		{
-			if(pdatapointers[j])
-				psurface->psamples[j] = reinterpret_cast<color24_t*>(pdatapointers[j] + psurface->lightoffset);
-			else
-				psurface->psamples[j] = nullptr;
-		}
-	}
-
 	// Set the new pointer
 	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
 	{
@@ -336,6 +320,9 @@ void CL_SetDayStage( daystage_t daystage )
 
 		pworldmodel->plightdata[i] = reinterpret_cast<color24_t*>(pdatapointers[i]);
 	}
+
+	// Set new sampling data
+	BSP_SetSamplingLightData(*ens.pworld);
 
 	// Reset lighting on entities
 	CL_ResetLighting();
@@ -347,8 +334,13 @@ void CL_SetDayStage( daystage_t daystage )
 	gCubemaps.InitGame();
 
 	// Load day stage water scripts
+	BSP_ReserveWaterLighting();
+
 	gWaterShader.LoadScripts();
 	gWaterShader.ReloadLightmapData();
+
+	// Release the lightmap data
+	BSP_ReleaseLightmapData(*ens.pworld);
 }
 
 //====================================

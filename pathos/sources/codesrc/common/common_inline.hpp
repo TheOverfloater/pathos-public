@@ -607,6 +607,25 @@ namespace Common
 	// 
 	//
 	//====================================
+	inline void ParseVectorColor (Float* pout, const color24_t *plightmap)
+	{
+		color24_t lightcolor;
+		lightcolor.r = plightmap->r;
+		lightcolor.b = plightmap->b;
+
+		Int16 greenColor = plightmap->g;
+		greenColor = (greenColor-128);
+		lightcolor.g = (-1.0 * greenColor)+128;
+
+		pout[0] = static_cast<Float>(lightcolor.r / 255.0f);
+		pout[1] = static_cast<Float>(lightcolor.g / 255.0f);
+		pout[2] = static_cast<Float>(lightcolor.b / 255.0f);
+	}
+
+	//====================================
+	// 
+	//
+	//====================================
 	inline Float RemapValue( Float value, Float a, Float b, Float c, Float d )
 	{
 		return c + (d-c)*(value-a)/(b-a);

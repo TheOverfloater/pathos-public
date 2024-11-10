@@ -306,15 +306,31 @@
   - Modified vhlt compile tools to support miniz compression of lightmap data.
   - Improved parameter design for new features in the compile tools.
 
-2024 November 3rd 2nd update:
+- 2024 November 3rd 2nd update:
   - Fix sky lighting in entitytest2a.
   - Fix visible collision brushes on trees in entitytest2c.
   - Fix crash on renderer reboot when changing display window properties.
   - Fix Uint32 being used for entindex in monitor renderer.
   - Add "Recent Skyboxes" list to Pathos Model Viewer.
   
-2024 November 4th:
+- 2024 November 4th:
   - Improve documentation of env_beamfollow and remove unused "Beam noise" keyvalue from FGD.
   - Fix follow beam code causing incorrect brightness/color values to be used.
   - Make beam follow and vapor trail code more readable by not reusing variables for different purposes.
   - Added follow beam to grenade to help improve visiblity.
+  
+2024 November 10th:
+  - Fix fog triggers on entitytest2 breaking the monitor room.
+  - Added test case for switchable lights combined with water in entitytest2.
+  - Added switchable lightmap light support to shader water reflections.
+  - Applied numerous fixes to bump map data-based model lighting(still WIP).
+  - Added memory optimization to lightmap upscaling, to keep only base-resolution lightmap data in memory after uploading lightmaps to OpenGL.
+  - Major extension of ALD code to support faster and smoother light data exporting.
+  - Move frustum related code out of CBSPRenderer.
+  - Fix for current light origin not being set in light caching for VBM models.
+  - Added std::map to save-restore code to speed up string lookups.
+  - Fix "framerate" keyvalue in dynamic light and light entities by overriding "framerate" for them.
+  - Fix for CGLSLShader class's AND operator code not considering values properly.
+  - Adapt ALD code to allow on-disk storage of backup lighting data in case it is needed.
+  - Fix for some functions returning nullptr when they have a boolean return type.
+  - Modify current lighting export to use already-compressed data from BSP file instead of re-compressing it.

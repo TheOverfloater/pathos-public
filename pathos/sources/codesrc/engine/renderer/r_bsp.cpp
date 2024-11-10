@@ -652,8 +652,13 @@ void CBSPRenderer::InitLightmaps( void )
 			Float overdarkValue = (i == BASE_LIGHTMAP_INDEX) ? overdarken : 0;
 
 			// Build the base lightmap
-			color24_t* psrc = psurface->psamples[SURF_LIGHTMAP_DEFAULT];
-			R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrc, psurface, plightmap, i, m_lightmapWidths[i], overdarkValue, false, isfullbright);
+			color24_t* psrclightdata;
+			if(ens.pworld->plightdata[SURF_LIGHTMAP_DEFAULT])
+				psrclightdata = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(ens.pworld->plightdata[SURF_LIGHTMAP_DEFAULT]) + psurface->lightoffset);
+			else
+				psrclightdata = nullptr;
+
+			R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrclightdata, psurface, plightmap, i, m_lightmapWidths[i], overdarkValue, false, isfullbright);
 			lightmapdatasize += size*sizeof(color32_t);
 		}
 
@@ -752,17 +757,17 @@ void CBSPRenderer::InitLightmaps( void )
 				Uint32 size = xsize*ysize;
 
 				// Ambient lightmap
-				color24_t* psrc = psurface->psamples[SURF_LIGHTMAP_AMBIENT];
+				color24_t* psrc = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(ens.pworld->plightdata[SURF_LIGHTMAP_AMBIENT]) + psurface->lightoffset);
 				R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrc, psurface, pambientlightmap, i, m_lightmapWidths[i], overdarken);
 				amblightdatasize += size*sizeof(color32_t);
 
 				// Diffuse lightmap
-				psrc = psurface->psamples[SURF_LIGHTMAP_DIFFUSE];
+				psrc = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(ens.pworld->plightdata[SURF_LIGHTMAP_DIFFUSE]) + psurface->lightoffset);
 				R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrc, psurface, pdiffuselightmap, i, m_lightmapWidths[i], overdarken);
 				diffuselightdatasize += size*sizeof(color32_t);
 
 				// Light vectors lightmap
-				psrc = psurface->psamples[SURF_LIGHTMAP_VECTORS];
+				psrc = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(ens.pworld->plightdata[SURF_LIGHTMAP_VECTORS]) + psurface->lightoffset);
 				R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrc, psurface, plightvecslightmap, i, m_lightmapWidths[i], 0, true);
 				lightvecsdatasize += size*sizeof(color32_t);
 			}
@@ -1483,9 +1488,6 @@ bool CBSPRenderer::DrawSkyBox( bool inZElements )
 //=============================================
 bool CBSPRenderer::DrawWorld( void ) 
 {
-	// Set view frustum again after sky
-	R_SetFrustum(rns.view.frustum, rns.view.v_origin, rns.view.v_angles, rns.view.fov, rns.view.viewsize_x, rns.view.viewsize_y, true);
-
 	if(m_pCvarDrawWorld->GetValue() < 1)
 		return true;
 

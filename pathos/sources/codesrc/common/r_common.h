@@ -34,6 +34,8 @@ extern bool R_WorldToScreenTransform( CMatrix& matrix, const Vector& src, Vector
 extern Int32 R_GetRelativeX( Int32 xPos, Int32 baseWidth, Int32 windowWidth );
 extern Int32 R_GetRelativeY( Int32 yPos, Int32 baseHeight, Int32 windowHeight );
 extern void R_ResizeTextureToPOT( Uint32& outwidth, Uint32& outheight, byte*& pdata );
+extern void R_ResizeTexture32( Uint32 width, Uint32 height, Uint32 targetwidth, Uint32 targetheight, const color32_t* pindata, color32_t*& poutdata );
+extern void R_ResizeTexture24( Uint32 width, Uint32 height, Uint32 targetwidth, Uint32 targetheight, const color24_t* pindata, color24_t*& poutdata );
 extern void R_FlipTexture( Uint32 width, Uint32 height, Uint32 bpp, bool fliph, bool flipv, byte*& pdata );
 extern void R_SetMatrixData( const Float *pin, Float* pout, bool transpose = false );
 #endif

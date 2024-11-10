@@ -926,4 +926,13 @@ enum edict_removed_t
 	EDICT_REMOVED_AT_RESTORE,
 	EDICT_REMOVED_CLEAR_CLIENT
 };
+
+//
+// Lightmap data compression types
+//
+enum pbspv2_compressiontypes_t
+{
+	BSP_LMAP_COMPRESSION_NONE = 0,
+	BSP_LMAP_COMPRESSION_MINIZ
+};
 #endif //CONSTANTS_H

@@ -10,6 +10,8 @@ All Rights Reserved.
 #ifndef SAVERESTORE_H
 #define SAVERESTORE_H
 
+#include <map>
+
 #include "savefile.h"
 
 class CCVar;
@@ -67,6 +69,8 @@ public:
 		Int32 offset;
 		Uint32 length;
 	};
+
+	typedef std::map<CString, Int32> StringPositionMap_t;
 
 public:
 	CSaveRestore();
@@ -193,6 +197,8 @@ private:
 
 	// Array of saved string
 	CArray<saved_string_t> m_savedStringsArray;
+	// String->position map
+	StringPositionMap_t m_savedStringPositionMap;
 	// Number of elements in array
 	Uint32 m_numSavedStrings;
 

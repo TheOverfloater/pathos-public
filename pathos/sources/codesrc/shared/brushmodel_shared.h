@@ -207,14 +207,26 @@ struct msurface_t
 		base_samplesize(0),
 		ptexinfo(nullptr),
 		lightoffset(0),
+		lightoffset_water(0),
 		infoindex(-1)
 	{
 		memset(texturemins, 0, sizeof(texturemins));
+		memset(base_texturemins, 0, sizeof(base_texturemins));
 		memset(extents, 0, sizeof(extents));
+		memset(base_extents, 0, sizeof(base_extents));
 		memset(styles, 0, sizeof(styles));
 		memset(psamples, 0, sizeof(psamples));
 		memset(light_s, 0, sizeof(light_s));
 		memset(light_t, 0, sizeof(light_t));
+	}
+
+	~msurface_t()
+	{
+		for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
+		{
+			if(psamples[j])
+				delete[] psamples[j];
+		}
 	}
 
 	// Visframe this was drawn on
@@ -232,8 +244,12 @@ struct msurface_t
 
 	// Texture min/max values
 	Int32 texturemins[2];
+	// Texture min/max values
+	Int32 base_texturemins[2];
 	// Surface extents
 	Int32 extents[2];
+	// Surface extents
+	Int32 base_extents[2];
 
 	// Lightmap S coord
 	Uint32 light_s[MAX_SURFACE_STYLES];
@@ -261,6 +277,8 @@ struct msurface_t
 	color24_t* psamples[NB_SURF_LIGHTMAP_LAYERS];
 	// original offset value into samples
 	Int32 lightoffset;
+	// original offset value into samples
+	Int32 lightoffset_water;
 
 	// info index for rendering
 	Int32 infoindex;
@@ -358,11 +376,19 @@ struct brushmodel_t
 		ppasdata(nullptr),
 		pasdatasize(0),
 		lightdatasize(0),
+		lightmaplayercount(0),
 		pentdata(nullptr),
 		entdatasize(0)
 	{
 		for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+		{
 			plightdata[i] = nullptr;
+			plightdata_original[i] = nullptr;
+			original_lightdatasizes[i] = 0;
+			original_compressiontype[i] = 0;
+			original_compressionlevel[i] = 0;
+			plightdata_water[i] = nullptr;
+		}
 	}
 
 	~brushmodel_t()
@@ -404,8 +430,26 @@ struct brushmodel_t
 
 			for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
 			{
+				if(plightdata_original[i] && plightdata_original[i] != reinterpret_cast<byte*>(plightdata[i]))
+				{
+					delete[] plightdata_original[i];
+					plightdata_original[i] = nullptr;
+				}
+
 				if(plightdata[i])
+				{
 					delete[] plightdata[i];
+					plightdata[i] = nullptr;
+				}
+			}
+		}
+
+		for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+		{
+			if(plightdata_water[i])
+			{
+				delete[] plightdata_water[i];
+				plightdata_water[i] = nullptr;
 			}
 		}
 	}
@@ -489,6 +533,18 @@ struct brushmodel_t
 	// light data
 	color24_t* plightdata[NB_SURF_LIGHTMAP_LAYERS];
 	Uint32 lightdatasize;
+
+	// Original light data without decompression
+	byte* plightdata_original[NB_SURF_LIGHTMAP_LAYERS];
+	Uint32 original_lightdatasizes[NB_SURF_LIGHTMAP_LAYERS];
+	Int32 original_compressiontype[NB_SURF_LIGHTMAP_LAYERS];
+	Int32 original_compressionlevel[NB_SURF_LIGHTMAP_LAYERS];
+
+	// For water
+	color24_t* plightdata_water[NB_SURF_LIGHTMAP_LAYERS];
+
+	// Number of lightmap layers
+	Uint32 lightmaplayercount;
 
 	// entities
 	Char* pentdata;

@@ -185,3 +185,16 @@ void CLight::SetCurrentStyle( void )
 		gSVLightStyles.SetLightStyle("a", false, 0, m_styleIndex);
 	}
 }
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CLight::ShouldOverrideKeyValue( const Char* pstrKeyValue )
+{
+	// framerate is handled by this entity specially
+	if(!qstrcmp(pstrKeyValue, "framerate"))
+		return true;
+	else
+		return false;
+}

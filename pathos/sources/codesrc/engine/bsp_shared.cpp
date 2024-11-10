@@ -16,7 +16,8 @@ All Rights Reserved.
 #include "system.h"
 #include "logfile.h"
 #include "enginestate.h"
-
+#include "r_common.h"
+#include "modelcache.h"
 
 //=============================================
 // @brief
@@ -87,11 +88,25 @@ bool BSP_CalcSurfaceExtents( msurface_t* psurf, brushmodel_t& model )
 
 	for(Uint32 i = 0; i < 2; i++)
 	{
-		Int16 boundsmin = static_cast<Int16>(SDL_floor(mins[i]/psurf->lightmapdivider));
-		Int16 boundsmax = static_cast<Int16>(SDL_ceil(maxs[i]/psurf->lightmapdivider));
+		// Calculate the mins/maxs for the rendered lightmaps
+		Int32 boundsmin = static_cast<Int32>(SDL_floor(mins[i]/psurf->lightmapdivider));
+		Int32 boundsmax = static_cast<Int32>(SDL_ceil(maxs[i]/psurf->lightmapdivider));
 
 		psurf->texturemins[i] = boundsmin*psurf->lightmapdivider;
 		psurf->extents[i] = (boundsmax - boundsmin) * psurf->lightmapdivider;
+
+		if(!(ptexinfo->flags & TEXFLAG_SPECIAL) && psurf->extents[i] > MAX_SURFACE_EXTENTS)
+		{
+			Con_EPrintf("%s: Bad surface extents.\n", __FUNCTION__);
+			return false;
+		}
+
+		// Calculate the mins/maxs for the light sampling lightmaps
+		boundsmin = static_cast<Int32>(SDL_floor(mins[i]/psurf->base_samplesize));
+		boundsmax = static_cast<Int32>(SDL_ceil(maxs[i]/psurf->base_samplesize));
+
+		psurf->base_texturemins[i] = boundsmin*psurf->base_samplesize;
+		psurf->base_extents[i] = (boundsmax - boundsmin) * psurf->base_samplesize;
 
 		if(!(ptexinfo->flags & TEXFLAG_SPECIAL) && psurf->extents[i] > MAX_SURFACE_EXTENTS)
 		{
@@ -210,4 +225,249 @@ void BSP_SetupPAS( brushmodel_t& model )
 	delete[] uncompressed_pas;
 	delete[] visofs;
 	delete[] ppasdata;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void BSP_SetSamplingLightData( brushmodel_t& model )
+{
+	for(Uint32 i = 0; i < model.numsurfaces; i++)
+	{
+		msurface_t* psurf = &model.psurfaces[i];
+		if(psurf->flags & (SURF_DRAWTURB|SURF_DRAWSKY))
+			continue;
+
+		// Set lightdata ptrs to nullptr
+		color24_t* psrclightdata[NB_SURF_LIGHTMAP_LAYERS] = { nullptr };
+		for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
+		{
+			if(!model.plightdata[j])
+				break;
+
+			psrclightdata[j] = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(model.plightdata[j]) + psurf->lightoffset);
+		}
+
+		// Get lightmap size for rendered lightmaps
+		Uint32 xsize = (psurf->extents[0] / psurf->lightmapdivider)+1;
+		Uint32 ysize = (psurf->extents[1] / psurf->lightmapdivider)+1;
+		Uint32 srcsize = xsize * ysize;
+
+		// Now for the sampling size
+		Uint32 xsize_samp = (psurf->base_extents[0] / psurf->base_samplesize)+1;
+		Uint32 ysize_samp = (psurf->base_extents[1] / psurf->base_samplesize)+1;
+		Uint32 outsize = xsize_samp * ysize_samp;
+
+		// Count in styles
+		Uint32 sampledatasize = 0;
+		for(Uint32 j = 0; j < MAX_SURFACE_STYLES; j++)
+		{
+			if(psurf->styles[j] == NULL_LIGHTSTYLE_INDEX)
+				break;
+
+			sampledatasize += outsize;
+		}
+
+		if(xsize == xsize_samp && ysize == ysize_samp)
+		{
+			// No need for resizing
+			for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
+			{
+				if(!psrclightdata[j])
+					break;
+
+				if(!psurf->psamples[j])
+					psurf->psamples[j] = new color24_t[sampledatasize];
+
+				for(Uint32 k = 0; k < MAX_SURFACE_STYLES; k++)
+				{
+					if(psurf->styles[k] == NULL_LIGHTSTYLE_INDEX)
+						break;
+
+					color24_t* psrc = psrclightdata[j] + k * srcsize;
+					color24_t* pdest = psurf->psamples[j] + k * outsize;
+
+					memcpy(pdest, psrc, sizeof(color24_t)*outsize);
+				}
+			}
+		}
+		else
+		{
+			// Resize each layer's data
+			for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
+			{
+				if(!psrclightdata[j])
+					break;
+
+				if(!psurf->psamples[j])
+					psurf->psamples[j] = new color24_t[sampledatasize];
+
+				for(Uint32 k = 0; k < MAX_SURFACE_STYLES; k++)
+				{
+					if(psurf->styles[k] == NULL_LIGHTSTYLE_INDEX)
+						break;
+
+					color24_t* psrc = psrclightdata[j] + k * srcsize;
+					color24_t* pdest = psurf->psamples[j] + k * outsize;
+
+					R_ResizeTexture24(xsize, ysize, xsize_samp, ysize_samp, psrc, pdest);
+				}
+			}
+		}
+	}
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void BSP_ReserveWaterLighting( void )
+{
+	cache_model_t* pworldcache = gModelCache.GetModelByIndex(WORLD_MODEL_INDEX);
+	if(!pworldcache)
+		return;
+
+	brushmodel_t* pworldbrushmodel = pworldcache->getBrushmodel();
+	if(!pworldbrushmodel)
+		return;
+
+	for(Uint32 i = WORLD_MODEL_INDEX+1; i < (gModelCache.GetNbCachedModels()+1); i++)
+	{
+		cache_model_t* pmodel = gModelCache.GetModelByIndex(i);
+		if(!pmodel || pmodel->type != MOD_BRUSH)
+			continue;
+
+		brushmodel_t* pbrushmodel = pmodel->getBrushmodel();
+		if(!pbrushmodel)
+			continue;
+
+		BSP_Model_ReserveWaterLighting(*pbrushmodel, pworldbrushmodel->plightdata);
+	}
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void BSP_Model_ReserveWaterLighting( brushmodel_t& model, color24_t* psrclightdataptrs[] )
+{
+	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+	{
+		if(model.plightdata_water[i])
+		{
+			delete[] model.plightdata_water[i];
+			model.plightdata_water[i] = nullptr;
+		}
+	}
+
+	Uint32 lightdatasize = 0;
+	for(Uint32 i = 0; i < model.nummodelsurfaces; i++)
+	{
+		msurface_t* psurf = &model.psurfaces[model.firstmodelsurface+i];
+		if(!(psurf->flags & SURF_DRAWTURB))
+			continue;
+
+		Uint32 xsize = (psurf->extents[0] / psurf->lightmapdivider)+1;
+		Uint32 ysize = (psurf->extents[1] / psurf->lightmapdivider)+1;
+		Uint32 srcsize = xsize * ysize;
+
+		for(Uint32 j = 0; j < MAX_SURFACE_STYLES; j++)
+		{
+			if(j > 0 && psurf->styles[j] == NULL_LIGHTSTYLE_INDEX)
+				break;
+
+			lightdatasize += srcsize;
+		}
+	}
+
+	if(!lightdatasize)
+		return;
+
+	Uint32 lightoffset = 0;
+	color24_t* plightdataptrs[NB_SURF_LIGHTMAP_LAYERS] = { nullptr };
+
+	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+	{
+		if(!model.plightdata[i])
+			break;
+
+		plightdataptrs[i] = new color24_t[lightdatasize];
+		memset(plightdataptrs[i], 0, sizeof(color24_t)*lightdatasize);
+	}
+
+	for(Uint32 i = 0; i < model.nummodelsurfaces; i++)
+	{
+		msurface_t* psurf = &model.psurfaces[model.firstmodelsurface+i];
+		if(!(psurf->flags & SURF_DRAWTURB))
+			continue;
+
+		// Set offset
+		psurf->lightoffset_water = lightoffset * sizeof(color24_t);
+
+		// Set lightdata ptrs to nullptr
+		color24_t* psrclightdata[NB_SURF_LIGHTMAP_LAYERS] = { nullptr };
+		color24_t* pdestlightdata[NB_SURF_LIGHTMAP_LAYERS] = { nullptr };
+		for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
+		{
+			if(!model.plightdata[j])
+				break;
+
+			psrclightdata[j] = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(psrclightdataptrs[j]) + psurf->lightoffset);
+			pdestlightdata[j] = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(plightdataptrs[j]) + psurf->lightoffset_water);
+		}
+
+		Uint32 xsize = (psurf->extents[0] / psurf->lightmapdivider)+1;
+		Uint32 ysize = (psurf->extents[1] / psurf->lightmapdivider)+1;
+		Uint32 size = xsize*ysize;
+
+		for(Uint32 j = 0; j < MAX_SURFACE_STYLES; j++)
+		{
+			if(j > 0 && psurf->styles[j] == NULL_LIGHTSTYLE_INDEX)
+				break;
+
+			for(Uint32 k = 0; k < NB_SURF_LIGHTMAP_LAYERS; k++)
+			{
+				if(!model.plightdata[k])
+					break;
+
+				color24_t* psrc = psrclightdata[k] + j * size;
+				color24_t* pdest = pdestlightdata[k] + j * size;
+
+				memcpy(pdest, psrc, sizeof(color24_t)*size);
+			}
+
+			// Increment offset
+			lightoffset += size;
+		}
+	}
+
+	// Modify pointers
+	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+		model.plightdata_water[i] = plightdataptrs[i];
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void BSP_ReleaseLightmapData( brushmodel_t& model )
+{
+	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+	{
+		if(model.plightdata_original[i] && reinterpret_cast<byte*>(model.plightdata[i]) != model.plightdata_original[i])
+			delete[] model.plightdata_original[i];
+
+		model.plightdata_original[i] = nullptr;
+
+		model.original_lightdatasizes[i] = 0;
+		model.original_compressiontype[i] = 0;
+		model.original_compressionlevel[i] = 0;
+
+		if(model.plightdata[i])
+		{
+			delete[] model.plightdata[i];
+			model.plightdata[i] = nullptr;
+		}
+	}
 }

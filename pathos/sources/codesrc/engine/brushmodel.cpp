@@ -354,20 +354,20 @@ bool Mod_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const 
 		Int32 s = Math::DotProduct(mid, ptexinfo->vecs[0])+ptexinfo->vecs[0][3];
 		Int32 t = Math::DotProduct(mid, ptexinfo->vecs[1])+ptexinfo->vecs[1][3];
 
-		if (s < psurf->texturemins[0] || t < psurf->texturemins[1])
+		if (s < psurf->base_texturemins[0] || t < psurf->base_texturemins[1])
 			continue;
 		
-		Int32 ds = s - psurf->texturemins[0];
-		Int32 dt = t - psurf->texturemins[1];
+		Int32 ds = s - psurf->base_texturemins[0];
+		Int32 dt = t - psurf->base_texturemins[1];
 		
-		if (ds > psurf->extents[0] || dt > psurf->extents[1])
+		if (ds > psurf->base_extents[0] || dt > psurf->base_extents[1])
 			continue;
 
-		ds = ds / psurf->lightmapdivider;
-		dt = dt / psurf->lightmapdivider;
+		ds = ds / psurf->base_samplesize;
+		dt = dt / psurf->base_samplesize;
 
 		color24_t* plightmap = psurf->psamples[SURF_LIGHTMAP_DEFAULT];
-		plightmap += dt * ((psurf->extents[0] / psurf->lightmapdivider)+1) + ds;
+		plightmap += dt * ((psurf->base_extents[0] / psurf->base_samplesize)+1) + ds;
 
 		Float flIntensity = (plightmap->r + plightmap->g + plightmap->b)/3;
 		Float flScale = flIntensity/35;
@@ -382,8 +382,8 @@ bool Mod_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const 
 		// Check styles
 		if(poutstyles)
 		{
-			Uint32 xsize = (psurf->extents[0] / psurf->lightmapdivider) + 1;
-			Uint32 ysize = (psurf->extents[1] / psurf->lightmapdivider) + 1;
+			Uint32 xsize = (psurf->base_extents[0] / psurf->base_samplesize) + 1;
+			Uint32 ysize = (psurf->base_extents[1] / psurf->base_samplesize) + 1;
 			Uint32 size = xsize*ysize;
 
 			for(Uint32 k = 1; k < MAX_SURFACE_STYLES; k++)
@@ -453,20 +453,20 @@ bool Mod_RecursiveLightPoint_BumpData( const brushmodel_t* pworld, mnode_t *pnod
 		Int32 s = Math::DotProduct(mid, ptexinfo->vecs[0])+ptexinfo->vecs[0][3];
 		Int32 t = Math::DotProduct(mid, ptexinfo->vecs[1])+ptexinfo->vecs[1][3];
 
-		if (s < psurf->texturemins[0] || t < psurf->texturemins[1])
+		if (s < psurf->base_texturemins[0] || t < psurf->base_texturemins[1])
 			continue;
 		
-		Int32 ds = s - psurf->texturemins[0];
-		Int32 dt = t - psurf->texturemins[1];
+		Int32 ds = s - psurf->base_texturemins[0];
+		Int32 dt = t - psurf->base_texturemins[1];
 		
-		if (ds > psurf->extents[0] || dt > psurf->extents[1])
+		if (ds > psurf->base_extents[0] || dt > psurf->base_extents[1])
 			continue;
 
 		if (!psurf->psamples)
 			continue;
 
-		ds = ds / psurf->lightmapdivider;
-		dt = dt / psurf->lightmapdivider;
+		ds = ds / psurf->base_samplesize;
+		dt = dt / psurf->base_samplesize;
 
 		// Fail if the surface has no bump data
 		if(!psurf->psamples[SURF_LIGHTMAP_AMBIENT] 
@@ -474,20 +474,21 @@ bool Mod_RecursiveLightPoint_BumpData( const brushmodel_t* pworld, mnode_t *pnod
 			|| !psurf->psamples[SURF_LIGHTMAP_VECTORS])
 			return false;
 
-		Uint32 xsize = (psurf->extents[0] / psurf->lightmapdivider)+1;
-		Uint32 ysize = (psurf->extents[1] / psurf->lightmapdivider)+1;
+		Uint32 xsize = (psurf->base_extents[0] / psurf->base_samplesize)+1;
+		Uint32 ysize = (psurf->base_extents[1] / psurf->base_samplesize)+1;
 		Uint32 size = xsize*ysize;
 
 		// Use base lighting as reference for overdarkening
-		color24_t* pbaselightmap = psurf->psamples[SURF_LIGHTMAP_DEFAULT] + size;
+		color24_t* pbaselightmap = psurf->psamples[SURF_LIGHTMAP_DEFAULT];
 		pbaselightmap += dt * xsize + ds;
 
 		Float flIntensity = (pbaselightmap->r + pbaselightmap->g + pbaselightmap->b)/3;
 		Float flScale = flIntensity/35;
+		if(flScale > 1.0)
+			flScale = 1.0;
 
 		// Now process along with styles
-		Uint32 j = 0;
-		for(; j < MAX_SURFACE_STYLES; j++)
+		for(Uint32 j = 0; j < MAX_SURFACE_STYLES; j++)
 		{
 			if(psurf->styles[j] == NULL_LIGHTSTYLE_INDEX)
 				break;
@@ -509,34 +510,61 @@ bool Mod_RecursiveLightPoint_BumpData( const brushmodel_t* pworld, mnode_t *pnod
 				styleScale = 1.0;
 			}
 
-			// Get ambient light
-			color24_t* pambientlightmap = psurf->psamples[SURF_LIGHTMAP_AMBIENT] + size;
-			pambientlightmap += dt * xsize + ds;
-
-			Common::ParseColor(poutambientcolors[j], pambientlightmap);
-			Math::VectorScale(poutambientcolors[j], styleScale, poutambientcolors[j]);
-
-			// Get diffuse light
-			color24_t* pdiffuselightmap = psurf->psamples[SURF_LIGHTMAP_DIFFUSE] + size;
-			pdiffuselightmap += dt * xsize + ds;
-
-			Common::ParseColor(poutdiffusecolors[j], pdiffuselightmap);
-			Math::VectorScale(poutdiffusecolors[j], styleScale, poutdiffusecolors[j]);
-
 			// Get light direction
-			color24_t* plightdirdata = psurf->psamples[SURF_LIGHTMAP_VECTORS] + size;
-			plightdirdata += dt * ((psurf->extents[0] / psurf->lightmapdivider)+1) + ds;
+			color24_t* plightdirdata = psurf->psamples[SURF_LIGHTMAP_VECTORS] + size * j;
+			plightdirdata += dt * xsize + ds;
+
+			Vector tangent;
+			Math::VectorCopy(ptexinfo->vecs[0], tangent);
+			Math::VectorNormalize(tangent);
+
+			Vector binormal;
+			Math::VectorCopy(ptexinfo->vecs[1], binormal);
+			Math::VectorNormalize(binormal);
+
+			Vector normal;
+			Math::VectorCopy(psurf->pplane->normal, normal);
+			if(psurf->flags & SURF_PLANEBACK)
+				Math::VectorScale(normal, -1, normal);
 
 			// Turn byte data to light vectors
-			Vector stylelightdir;
-			stylelightdir = Vector(plightdirdata->r, plightdirdata->g, plightdirdata->b);
-			Math::VectorScale(stylelightdir, 1.0f/255.0f, stylelightdir);
+			Vector tmp;
+			Common::ParseVectorColor(tmp, plightdirdata);
+
+			// Note: Trying to get this to work right, I ended up doing what Paranoia does here
+			Math::VectorScale(tangent, (tmp[0]*2-1), poutlightdirs[j]);
+			Math::VectorMA(poutlightdirs[j], (tmp[1]*2-1), binormal, poutlightdirs[j]);
+			Math::VectorMA(poutlightdirs[j], (tmp[2]*2-1), normal, poutlightdirs[j]);
+
+			// Get ambient light
+			color24_t* pambientlightmap = psurf->psamples[SURF_LIGHTMAP_AMBIENT] + size * j;
+			pambientlightmap += dt * xsize + ds;
+
+			Vector ambientcolor;
+			Common::ParseColor(ambientcolor, pambientlightmap);
+			Math::VectorScale(ambientcolor, styleScale, ambientcolor);
+
+			// Get diffuse light
+			color24_t* pdiffuselightmap = psurf->psamples[SURF_LIGHTMAP_DIFFUSE] + size * j;
+			pdiffuselightmap += dt * xsize + ds;
+
+			Vector diffusecolor;
+			Common::ParseColor(diffusecolor, pdiffuselightmap);
+			Math::VectorScale(diffusecolor, styleScale, diffusecolor);
+
+			// Note: Trying to get this to work right, I ended up doing what Paranoia does here
+			// Still looks like shit though in 60% of cases
+			Vector scale;
+			Float dp = tmp[2] * 2 - 1;
+			Math::VectorScale(diffusecolor, dp, scale);
+			Math::VectorAdd(scale, ambientcolor, scale);
+			Math::VectorScale(scale, 2.0, scale);// ???
 
 			for(Uint32 k = 0; k < 3; k++)
-				poutlightdirs[j][k] = (2.0f * stylelightdir[k]) - 1.0;
+				poutdiffusecolors[j][k] = diffusecolor[k] * scale[k];
 
-			// Reverse green
-			poutlightdirs[j][1] *= -1.0;
+			for(Uint32 k = 0; k < 3; k++)
+				poutambientcolors[j][k] = ambientcolor[k] * scale[k];
 		}
 
 		// See if we need to set destination styles
