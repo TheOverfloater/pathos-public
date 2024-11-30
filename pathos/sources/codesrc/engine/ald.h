@@ -14,7 +14,7 @@ enum aldcompression_t;
 struct cache_model_t;
 
 extern bool ALD_Load( daystage_t stage, byte** pdestarrays );
-extern bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage, CString* pstrFilenameOut = nullptr );
+extern void ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage );
 extern void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstage, daystage_t dststage );
 extern bool ALD_HasStageData( daystage_t stage );
 extern void ALD_ClearGame( void );
