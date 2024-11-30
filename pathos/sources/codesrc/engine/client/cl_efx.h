@@ -17,6 +17,8 @@ struct tempentity_t;
 struct beam_t;
 
 enum beam_types_t;
+enum overlay_rendermode_t;
+enum overlay_effect_t;
 
 extern void CL_SetFade( Uint32 layerindex, Float duration, Float holdtime, Int32 flags, const color24_t& color, byte alpha, Float timeoffset );
 extern void CL_SetMotionBlur( bool active, Float blurfade, bool override );
@@ -24,6 +26,8 @@ extern void CL_SetVignette( bool active, Float strength, Float radius );
 extern void CL_SetFilmGrain( bool active, Float strength );
 extern void CL_SetBlackAndWhite( bool active, Float strength );
 extern void CL_SetChromatic( bool active, Float strength );
+extern void CL_SetScreenOverlay( Int32 layerindex, const Char* pstrtexturename, overlay_rendermode_t rendermode, const Vector& rendercolor, Float renderamt, overlay_effect_t effect, Float effectspeed, Float effectminalpha, Float fadetime );
+extern void CL_ClearScreenOverlay( Int32 layerindex, Float fadetime );
 extern void CL_SpawnParticleSystem( const Vector& origin, const Vector& direction, part_script_type_t scripttype, const Char* pstrFilepath, Int32 id, entindex_t entindex, Int32 attachment, Int32 boneindex, Int32 attachflags );
 extern void CL_RemoveParticleSystem( Uint32 id, entindex_t entindex, bool keepcached );
 extern void CL_KillEntityParticleSystems( Int32 entindex );

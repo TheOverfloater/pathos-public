@@ -11,9 +11,12 @@ All Rights Reserved.
 #ifndef WADTEXTURES_H
 #define WADTEXTURES_H
 
+#include <map>
+
 struct dmiptex_t;
 struct en_texture_t;
 struct en_material_t;
+struct dmiptexlump_t;
 
 // Path to legacy detail texture associations
 const Char DETAIL_TEXTURE_ASSOCIATION_FILE_PATH[] = "scripts/legacy/detailtextures.txt";
@@ -59,6 +62,9 @@ CWADTextureResource
 class CWADTextureResource
 {
 private:
+	typedef std::map<CString, Int32> NameIndexMap_t;
+
+private:
 	struct material_association_t
 	{
 		material_association_t():
@@ -91,6 +97,7 @@ private:
 
 		Char wadfilename[MAX_PARSE_LENGTH];
 		const byte* pwadfile;
+		NameIndexMap_t texturenameindexmap;
 
 		bool hasmissing;
 	};
@@ -120,11 +127,16 @@ private:
 	// Creates a material script for a WAD texture
 	void CreateMaterialScript( const dmiptex_t* ptexture, const Char* pstrContainerName );
 
+	// Return BSP texture data lump
+	const dmiptexlump_t* GetBSPTextureData( void );
+
 private:
 	// BSP file basename
 	CString				m_BSPFileName;
 	// BSP file pointer
 	byte*				m_pBSPFile;
+	// BSP texture name index map
+	NameIndexMap_t		m_bspTextureNameIndexMap;
 	// Array of WAD3 file ptrs
 	CArray<wad3file_t>	m_pWADFilesArray;
 

@@ -84,8 +84,8 @@ CSpriteRenderer
 class CSpriteRenderer
 {
 public:
-	// Max rendered sprites
-	static const Uint32 MAX_RENDERED_SPRITES;
+	// Draw buffer allocation size
+	static const Uint32 DRAWBUFFER_ALLOC_SIZE;
 
 	// Glow interpolation speed
 	static const Float GLOW_INTERP_SPEED;
@@ -154,6 +154,13 @@ private:
 	// Draws sprite arrays
 	bool DrawSpriteArrays( cl_entity_t* entitiesArray, Uint32 numEntities );
 
+	// Increases the draw buffer size
+	void AllocDrawBuffer( void );
+	// Releases the draw buffer
+	void ReleaseDrawBuffer( void );
+	// Creates the VBO
+	void CreateVBO( void );
+
 private:
 	// Array of temporary sprite entities
 	temp_sprite_t m_tempSpritesArray[MAX_TEMP_SPRITES];
@@ -183,12 +190,13 @@ private:
 	// Number of indexes to render
 	Uint32 m_numIndexes;
 
+	// Draw buffer alloc size
+	Uint32 m_drawBufferAllocSize;
+
 	// Array for vertex uploads to GPU
 	sprite_vertex_t* m_pVertexes;
 	// Number of vertexes batched
 	Uint32	m_numVertexes;
-	// TRUE if we prompted about limits this frame
-	bool m_promptedLimitsThisFrame;
 
 	// Left vector for glow occlusion
 	Vector m_aLeft;

@@ -11,7 +11,7 @@ $particlescript
 	$scale 8.000000
 	$scale_variation 1.000000
 	$scale_damping -40.000000
-	$particles_on_spawn 16
+	$particles_on_spawn 2
 	$lighting mix_primary_color
 	$gravity 0.050000
 	$rendermode alphablend

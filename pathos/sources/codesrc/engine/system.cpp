@@ -267,8 +267,13 @@ void Sys_Shutdown( void )
 	if(cls.cl_state != CLIENT_INACTIVE)
 		CL_Disconnect();
 
+	// Shut down video
 	VID_Shutdown();
 
+	// Clear temp files
+	Sys_DeleteTempFiles(RS_APP_LEVEL);
+
+	// Manage log file if set
 	if(ens.pgllogfile)
 	{
 		// Mark exit

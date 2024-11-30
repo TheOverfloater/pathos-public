@@ -11,8 +11,8 @@ $particlescript
 	$primary_color 150 0 0
 	$scale 8.000000
 	$scale_variation 6.000000
-	$max_particles 450
-	$particle_frequency 75.000000
+	$max_particles 2
+	$particle_frequency 1.000000
 	$lighting mix_primary_color
 	$collision decal
 	$gravity 1.000000
@@ -27,4 +27,5 @@ $particlescript
 	$decal_lifetime 30
 	$decal_fade_time 2
 	$decal_growth_time 1
+	$chance_to_create 4
 }

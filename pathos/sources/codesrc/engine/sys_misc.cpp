@@ -223,3 +223,55 @@ bool Sys_IsGameControlActive( void )
 
 	return true;
 }
+
+//=============================================
+// @brief
+//
+// @return
+//=============================================
+void Sys_AddTempFile( const Char* pstrFilepath, rs_level_t level )
+{
+	ens.tempfileslist.begin();
+	while(!ens.tempfileslist.end())
+	{
+		tempfile_t& tmp = ens.tempfileslist.get();
+		if(!qstrcmp(tmp.filepath, pstrFilepath))
+			return;
+
+		ens.tempfileslist.next();
+	}
+
+	tempfile_t newfile;
+	newfile.filepath = pstrFilepath;
+	newfile.level = level;
+
+	ens.tempfileslist.add(newfile);
+}
+
+//=============================================
+// @brief
+//
+// @return
+//=============================================
+void Sys_DeleteTempFiles( rs_level_t level )
+{
+	if(ens.tempfileslist.empty())
+		return;
+
+	ens.tempfileslist.begin();
+	while(!ens.tempfileslist.end())
+	{
+		tempfile_t& tmp = ens.tempfileslist.get();
+		if(tmp.level <= level)
+		{
+			if(!FL_DeleteFile(tmp.filepath.c_str()))
+				Con_EPrintf("%s - Failed to delete temporary file '%s'.\n", __FUNCTION__, tmp.filepath.c_str());
+
+			ens.tempfileslist.remove(ens.tempfileslist.get_link());
+			ens.tempfileslist.next();
+			continue;
+		}
+
+		ens.tempfileslist.next();
+	}
+}

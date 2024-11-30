@@ -145,6 +145,8 @@ const Uint32 CBaseNPC::NPC_MAX_SCHEDULE_CHANGES = 4;
 const Uint32 CBaseNPC::NPC_MAX_TASK_EXECUTIONS = 8;
 // Navigability minimum distance change
 const Float CBaseNPC::NAVIGABILITY_CHECK_MIN_DISTANCE_CHANGE = 64;
+// Max walk-move traces per frame
+const Uint32 CBaseNPC::MAX_FRAME_WALKMOVE_TRACES = 128;
 
 // AI state names
 static const Char* AI_STATE_NAMES[NB_AI_STATES] = 
@@ -161,6 +163,8 @@ static const Char* AI_STATE_NAMES[NB_AI_STATES] =
 Int32 CBaseNPC::g_lastCoverSearchNodeIndex = 0;
 // Last active idle search node
 Int32 CBaseNPC::g_lastActiveIdleSearchNodeIndex = 0;
+// Number of walk move traces this frame
+Uint32 CBaseNPC::g_numFrameWalkMoveTraces = 0;
 
 // Door group bits
 const Uint32 CBaseNPC::AI_CAP_DOORS_GROUP_BITS[] = {AI_CAP_USE, AI_CAP_AUTO_OPEN_DOORS, AI_CAP_OPEN_DOORS};
@@ -188,6 +192,7 @@ CBaseNPC::CBaseNPC( edict_t* pedict ):
 	m_scheduleTaskIndex(0),
 	m_failureScheduleIndex(AI_SCHED_NONE),
 	m_nextScheduleIndex(AI_SCHED_NONE),
+	m_ownPositionNavigability(false),
 	m_npcState(0),
 	m_idealNPCState(0),
 	m_currentScheduleIndex(0),
@@ -880,7 +885,7 @@ void CBaseNPC::PerformMovement( Double animInterval )
 	Float moveDistance = 0;
 
 	// Check our movement
-	localmove_t moveResult = CheckLocalMove(m_pState->origin, currentPoint.position, m_movementGoalEntity, &moveDistance);
+	localmove_t moveResult = CheckLocalMove(m_pState->origin, currentPoint.position, m_movementGoalEntity, &moveDistance, false, true);
 
 	// If we reached the target, then stop
 	if(moveResult == LOCAL_MOVE_REACHED_TARGET 
@@ -1710,7 +1715,7 @@ void CBaseNPC::DecapitateNPC( bool spawnGib, Int32 bodyGroup, Int32 bodyNumber )
 	if(!GetBonePosition(HEAD_BONE_NAME, boneOrigin))
 	{
 		Util::EntityConDPrintf(m_pEdict, "%s - No bone named '%s'.\n", __FUNCTION__, HEAD_BONE_NAME);
-		boneOrigin = GetEyePosition();
+		boneOrigin = GetEyePosition(false, true);
 	}
 
 	Util::CreateParticles("blood_effects_decap.txt", boneOrigin, Vector(0, 0, 1), PART_SCRIPT_CLUSTER);
@@ -4363,14 +4368,14 @@ bool CBaseNPC::FindCoverWithBestDistance( const Vector& threatPosition, Float mi
 
 	// Begin searching in circles
 	Vector forward;
-	for(Int32 i = 0; i < 36; i++)
+	for(Int32 i = 0; i < 6; i++)
 	{
 		Math::AngleVectors(threatAngle, &forward);
 
 		// Don't go running into it if we're far
 		if(Math::DotProduct(vecFromThreat, forward) > 0.5 && distToThreat > 128)
 		{
-			threatAngle[YAW] += 10;
+			threatAngle[YAW] += 60;
 			continue;
 		}
 
@@ -4382,11 +4387,11 @@ bool CBaseNPC::FindCoverWithBestDistance( const Vector& threatPosition, Float mi
 			bestDistance = traveledDist;
 		}
 
-		if(traveledDist >= optimalDistance && CheckLocalMove(m_pState->origin, arriveSpot, nullptr, nullptr) > LOCAL_MOVE_RESULT_FAILURE)
+		if(traveledDist >= optimalDistance)
 			break;
 
-		// Search by ten degrees
-		threatAngle[YAW] += 10;
+		// Search by thirty degrees
+		threatAngle[YAW] += 60;
 	}
 
 	if(bestDistance > minDistance)
@@ -4422,7 +4427,7 @@ bool CBaseNPC::FindDodgeCover( const Vector& threatPosition, Float minDistance, 
 
 	// Begin searching in circles
 	Vector vRight;
-	for(Int32 i = 0; i < 36; i++)
+	for(Int32 i = 0; i < 6; i++)
 	{
 		Vector arriveSpot;
 		Math::AngleVectors(threatAngle, nullptr, &vRight);
@@ -4432,7 +4437,7 @@ bool CBaseNPC::FindDodgeCover( const Vector& threatPosition, Float minDistance, 
 			// Don't go running into it if we're far
 			if(Math::DotProduct(vecFromThreat, vRight) > 0.5 && distToThreat > 128)
 			{
-				threatAngle[YAW] += 10;
+				threatAngle[YAW] += 60;
 				continue;
 			}
 
@@ -4449,7 +4454,7 @@ bool CBaseNPC::FindDodgeCover( const Vector& threatPosition, Float minDistance, 
 			// Don't go running into it if we're far
 			if(Math::DotProduct(vecFromThreat, -vRight) > 0.5 && distToThreat > 128)
 			{
-				threatAngle[YAW] += 10;
+				threatAngle[YAW] += 60;
 				continue;
 			}
 
@@ -4461,11 +4466,11 @@ bool CBaseNPC::FindDodgeCover( const Vector& threatPosition, Float minDistance, 
 			}
 		}
 
-		if(traveledDist >= 64 && CheckLocalMove(m_pState->origin, arriveSpot, nullptr, nullptr) > LOCAL_MOVE_RESULT_FAILURE)
+		if(traveledDist >= 64)
 			break;
 
-		// Search by ten degrees
-		threatAngle[YAW] += 10;
+		// Search by thirty degrees
+		threatAngle[YAW] += 60;
 	}
 
 	if(bestDistance > minDistance)
@@ -5227,6 +5232,8 @@ bool CBaseNPC::IsEnemyBodyTargetShootable( CBaseEntity& enemy, bool ignoreGlass,
 	trace_t tr;
 	Util::TraceLine(gunPosition, enemyBodyTarget, true, false, ignoreGlass, false, m_pEdict, tr);
 
+	CLinkedList<CBaseEntity*> prevEntitiesList;
+
 	if(!tr.noHit() && (ignoreBreakables || !ignoreGlass))
 	{
 		while(true)
@@ -5234,6 +5241,22 @@ bool CBaseNPC::IsEnemyBodyTargetShootable( CBaseEntity& enemy, bool ignoreGlass,
 			CBaseEntity* pEntity = Util::GetEntityFromTrace(tr);
 			if(!pEntity)
 				break;
+
+			// Check if we already tried this, to prevent infinite loops
+			if(!prevEntitiesList.empty())
+			{
+				prevEntitiesList.begin();
+				while(!prevEntitiesList.end())
+				{
+					if(pEntity == prevEntitiesList.get())
+						return false;
+
+					prevEntitiesList.next();
+				}
+			}
+
+			// Add to list
+			prevEntitiesList.add(pEntity);
 
 			// Check separately for penetrable glass
 			if(!ignoreGlass && pEntity->GetRenderMode() != RENDER_NORMAL
@@ -6061,6 +6084,11 @@ void CBaseNPC::SetSequenceByName( const Char* pstrName )
 //=============================================
 bool CBaseNPC::WalkMoveTrace( const Vector& origin, const Vector& moveDirection, Vector& outPosition, Float moveDistance, Float& distanceMoved, bool noNPCs )
 {
+	if(g_numFrameWalkMoveTraces >= MAX_FRAME_WALKMOVE_TRACES)
+		return false;
+
+	g_numFrameWalkMoveTraces++;
+
 	Vector originalPosition = m_pState->origin;
 	Vector startPosition = origin;
 	Vector endPosition = startPosition + moveDirection * moveDistance;
@@ -6154,7 +6182,7 @@ bool CBaseNPC::WalkMoveTrace( const Vector& origin, const Vector& moveDirection,
 // @brief
 //
 //=============================================
-localmove_t CBaseNPC::CheckLocalMove( const Vector startPosition, const Vector& endPosition, const CBaseEntity* pTargetEntity, Float* pDistance, bool isInitial )
+localmove_t CBaseNPC::CheckLocalMove( const Vector startPosition, const Vector& endPosition, const CBaseEntity* pTargetEntity, Float* pDistance, bool isInitial, bool isPerformingMovement )
 {
 	// Don't waste resources on objects significantly higher than us
 	if((startPosition.z - endPosition.z) > NPC_MAX_LOCALMOVE_HEIGHT_DIFF)
@@ -6173,13 +6201,19 @@ localmove_t CBaseNPC::CheckLocalMove( const Vector startPosition, const Vector& 
 		gd_engfuncs.pfnDropToFloor(m_pEdict);
 
 	// Make sure it's a valid position, not something inside a solid
-	if(!IsPositionNavigable(endPosition))
+	if(!Math::VectorCompare(m_pState->origin, m_lastCheckedNavigabilityPosition))
 	{
-		m_pState->flags = savedFlags;
-		m_pState->groundent = savedGroundEntity;
+		m_ownPositionNavigability = IsPositionNavigable(endPosition);
+		m_lastCheckedNavigabilityPosition = m_pState->origin;
 
-		gd_engfuncs.pfnSetOrigin(m_pEdict, moveStart);
-		return LOCAL_MOVE_INVALID_NO_TRIANGULATION;
+		if(!m_ownPositionNavigability)
+		{
+			m_pState->flags = savedFlags;
+			m_pState->groundent = savedGroundEntity;
+
+			gd_engfuncs.pfnSetOrigin(m_pEdict, moveStart);
+			return LOCAL_MOVE_INVALID_NO_TRIANGULATION;
+		}
 	}
 
 	// Reset blocker entity
@@ -6723,6 +6757,9 @@ bool CBaseNPC::BuildRoute( const Vector& destination, Uint64 moveFlags, CBaseEnt
 //=============================================
 bool CBaseNPC::IsPositionNavigable( const Vector& position )
 {
+	if(m_pState->origin == m_lastNavigabilityCheckPosition)
+		return false;
+
 	Uint64 savedFlags = m_pState->flags;
 	entindex_t savedGroundEntity = m_pState->groundent;
 
@@ -8128,6 +8165,9 @@ bool CBaseNPC::CheckMoveResult( localmove_t moveResult, Float moveDistance, cons
 	if(moveResult > LOCAL_MOVE_RESULT_FAILURE)
 		return true;
 
+	// Reset cached move
+	//m_cachedLocalMove = localmove_cache_t();
+
 	// Get the blocking entity
 	CBaseEntity* pBlocker = nullptr;
 	edict_t* pBlockerEdict = nullptr;
@@ -9041,4 +9081,13 @@ void CBaseNPC::SetNPCPuller( CBaseEntity* pPuller, const Vector& pullPosition )
 			ChangeSchedule(GetScheduleByIndex(AI_SCHED_RUN_FROM_NPC_PULLER));
 		}
 	}
+}
+
+//=============================================
+// @brief Reset frame-dependent counters
+//
+//=============================================
+void CBaseNPC::ResetFrameStates( void )
+{
+	g_numFrameWalkMoveTraces = 0;
 }

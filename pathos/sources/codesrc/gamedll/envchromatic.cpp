@@ -24,7 +24,8 @@ LINK_ENTITY_TO_CLASS(env_chromatic, CEnvChromatic);
 CEnvChromatic::CEnvChromatic( edict_t* pedict ) :
     CPointEntity(pedict),
     m_isActive(false),
-    m_chromaticStrength(0.01f) // Default chromatic aberration strength
+    m_chromaticStrength(0.01f), // Default chromatic aberration strength
+    m_globalTriggerMode(GTM_TOGGLE)
 {
 }
 
@@ -46,6 +47,7 @@ void CEnvChromatic::DeclareSaveFields( void )
     CPointEntity::DeclareSaveFields();
     DeclareSaveField(DEFINE_DATA_FIELD(CEnvChromatic, m_isActive, EFIELD_BOOLEAN));
     DeclareSaveField(DEFINE_DATA_FIELD(CEnvChromatic, m_chromaticStrength, EFIELD_FLOAT));
+    DeclareSaveField(DEFINE_DATA_FIELD(CEnvChromatic, m_globalTriggerMode, EFIELD_INT32));
 }
 
 //=============================================
@@ -57,6 +59,28 @@ bool CEnvChromatic::KeyValue( const keyvalue_t& kv )
     if (!qstrcmp(kv.keyname, "strength"))
     {
         m_chromaticStrength = SDL_atof(kv.value);
+        return true;
+    }
+    else if (!qstrcmp(kv.keyname, "globaltriggermode"))
+    {
+        Int32 value = SDL_atoi(kv.value);
+        switch(value)
+        {
+        case 0:
+            m_globalTriggerMode = GTM_TOGGLE;
+            break;
+        case 1:
+            m_globalTriggerMode = GTM_ON;
+            break;
+        case 2:
+            m_globalTriggerMode = GTM_OFF;
+            break;
+        default:
+            Util::EntityConPrintf(m_pEdict, "Keyvalue '%s' has invalid value '%s'.\n", kv.keyname, kv.value);
+            m_globalTriggerMode = GTM_TOGGLE;
+            break;
+        }
+
         return true;
     }
     else
@@ -72,7 +96,7 @@ bool CEnvChromatic::Spawn( void )
     if (!CPointEntity::Spawn())
         return false;
 
-    if (HasSpawnFlag(FL_START_ON))
+    if (!HasSpawnFlag(FL_GLOBAL_EFFECT) && HasSpawnFlag(FL_START_ON))
         m_isActive = true;
 
     return true;
@@ -84,6 +108,9 @@ bool CEnvChromatic::Spawn( void )
 //=============================================
 void CEnvChromatic::SendInitMessage( const CBaseEntity* pPlayer )
 {
+    if(HasSpawnFlag(FL_GLOBAL_EFFECT))
+        return;
+
     if (pPlayer && !m_isActive)
         return;
 
@@ -103,20 +130,53 @@ void CEnvChromatic::SendInitMessage( const CBaseEntity* pPlayer )
 //=============================================
 void CEnvChromatic::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value )
 {
-    bool prevstate = m_isActive;
-    switch (useMode)
+    if(HasSpawnFlag(FL_GLOBAL_EFFECT))
     {
-    case USE_ON:
-        m_isActive = true;
-        break;
-    case USE_OFF:
-        m_isActive = false;
-        break;
-    case USE_TOGGLE:
-        m_isActive = !m_isActive;
-        break;
-    }
+        CBaseEntity* pPlayer = Util::GetHostPlayer();
+        if(pPlayer)
+        {
+            bool prevState = pPlayer->IsChromaticAberrationActive();
 
-    if (m_isActive != prevstate)
-        SendInitMessage(nullptr);
+            bool desiredState = false;
+            switch (m_globalTriggerMode)
+            {
+            case GTM_ON:
+                desiredState = true;
+                break;
+            case GTM_OFF:
+                desiredState = false;
+                break;
+            case GTM_TOGGLE:
+                desiredState = !prevState;
+                break;
+            }
+
+            if(desiredState != prevState)
+            {
+                if(!desiredState)
+                    pPlayer->SetChromaticAberration(false, 0);
+                else
+                    pPlayer->SetChromaticAberration(true, m_chromaticStrength);
+            }
+        }
+    }
+    else
+    {
+        bool prevstate = m_isActive;
+        switch (useMode)
+        {
+        case USE_ON:
+            m_isActive = true;
+            break;
+        case USE_OFF:
+            m_isActive = false;
+            break;
+        case USE_TOGGLE:
+            m_isActive = !m_isActive;
+            break;
+        }
+
+        if (m_isActive != prevstate)
+            SendInitMessage(nullptr);
+   }
 }

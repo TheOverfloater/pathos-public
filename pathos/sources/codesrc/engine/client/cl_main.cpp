@@ -834,9 +834,6 @@ void CL_Disconnect( bool clearserver, bool clearloadingplaque )
 	// Call function on client
 	cls.dllfuncs.pfnClientDisconnected();
 
-	// Clean up the restore file if present
-	ALD_ClearGame();
-
 	// Manage disconnection with remote host
 	if(!CL_IsHostClient())
 	{
@@ -888,6 +885,10 @@ void CL_Disconnect( bool clearserver, bool clearloadingplaque )
 
 	// Reset game sounds
 	gSoundEngine.ResetGame();
+
+	// Clear temp files
+	if(!CL_IsHostClient() || !clearserver)
+		Sys_DeleteTempFiles(RS_GAME_LEVEL);
 
 	// Reset this
 	ens.gamestate = GAME_INACTIVE;

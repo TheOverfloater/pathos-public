@@ -40,7 +40,7 @@ extern CLogFile* g_pLogFile;
 extern void SV_ClientPrintf( const struct edict_t* pclient, const Char *fmt, ... );
 
 // How much to increase the buffer's size by each time
-const Uint32 CConsole::CONSOLE_BUFFER_CHUNKSIZE = 1024*1024*8;
+const Uint32 CConsole::CONSOLE_BUFFER_CHUNKSIZE = 4096;
 // Name of the toggleconsole command
 const Char CConsole::TOGGLECONSOLE_CMD_NAME[] = "toggleconsole";
 

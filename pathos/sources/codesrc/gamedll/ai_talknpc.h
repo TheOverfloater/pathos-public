@@ -126,6 +126,8 @@ public:
 	virtual ~CTalkNPC( void );
 
 public:
+	// Sets extra model info after setting the model
+	virtual void PostModelSet( void ) override;
 	// Performs precache functions
 	virtual void Precache( void ) override;
 	// Declares save-restore fields
@@ -163,7 +165,7 @@ public:
 	// Returns the ideal activity
 	virtual Int32 GetIdealActivity( void ) override;
 	// Returns the view position
-	virtual Vector GetEyePosition( bool addlean = false ) const override;
+	virtual Vector GetEyePosition( bool addlean = false, bool usebone = false ) const override;
 	// Tells if the entity is a talking NPC
 	virtual bool IsTalkNPC( void ) const override { return true; }
 	// Stops following the target
@@ -262,6 +264,9 @@ public:
 	CEntityHandle	m_talkTargetEntity;
 	// Next follow target
 	CEntityHandle	m_nextFollowTarget;
+
+	// Eye bone position
+	Int32			m_eyeBoneIndex;
 
 protected:
 	// Wait time until we can talk again

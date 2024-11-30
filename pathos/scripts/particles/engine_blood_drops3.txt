@@ -12,8 +12,8 @@ $particlescript
 	$scale 6.000000
 	$scale_variation 4.000000
 	$scale_damping -4.000000
-	$max_particles 20
-	$particle_frequency 200.000000
+	$max_particles 4
+	$particle_frequency 8.000000
 	$lighting mix_primary_color
 	$collision decal
 	$gravity 0.700000

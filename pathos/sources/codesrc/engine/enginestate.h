@@ -43,6 +43,16 @@ enum gamestate_t
 	GAME_RUNNING
 };
 
+struct tempfile_t
+{
+	tempfile_t():
+		level(RS_LEVEL_UNDEFINED)
+	{}
+
+	CString filepath;
+	rs_level_t level;
+};
+
 struct engine_state_t
 {
 	engine_state_t():
@@ -165,6 +175,9 @@ struct engine_state_t
 
 	// wad resource
 	CWADTextureResource* pwadresource;
+
+	// temporary file array
+	CLinkedList<tempfile_t> tempfileslist;
 };
 extern engine_state_t ens;
 #endif // ENGINESTATE_H

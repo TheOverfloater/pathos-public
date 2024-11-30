@@ -43,7 +43,7 @@ public:
 	// Erases an element from the array
 	inline void erase( Uint32 index );
 	// Erases an element from the array
-	inline void erase( const T& element );
+	inline void erase_object( const T& element );
 
 	// Indexing operator
 	inline T& operator[] ( Uint32 n ) const;

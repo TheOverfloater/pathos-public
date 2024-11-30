@@ -310,6 +310,9 @@ void CTextureManager::DeleteMaterials( rs_level_t level )
 		}
 	}
 
+	if(level == RS_WINDOW_LEVEL)
+		m_pDummyMaterial = nullptr;
+
 	// Delete from alias mappings as well
 	if(!m_aliasMappingsMap.empty())
 	{
@@ -373,6 +376,9 @@ void CTextureManager::DeleteTextures( rs_level_t level, bool keepentry )
 			it++;
 		}
 	}
+
+	if(level == RS_WINDOW_LEVEL && !keepentry)
+		m_pDummyTexture = nullptr;
 
 	// Delete any non-texture file binds
 	DeleteBinds(level);
@@ -531,24 +537,26 @@ void CTextureManager::CreateDummyTexture( void )
 	delete[] pdata;
 
 	// Create the dummy material object
-	en_material_t* pdummymaterial = new en_material_t();
+	if(!m_pDummyMaterial)
+	{
+		m_pDummyMaterial = new en_material_t();
+		m_pDummyMaterial->alpha = 1.0;
+		m_pDummyMaterial->dt_scalex = 0;
+		m_pDummyMaterial->dt_scaley = 0;
+		m_pDummyMaterial->filepath = "dummy";
+		m_pDummyMaterial->int_height = 16;
+		m_pDummyMaterial->int_width = 16;
+		m_pDummyMaterial->level = RS_WINDOW_LEVEL;
+	}
 
-	pdummymaterial->alpha = 1.0;
-	pdummymaterial->dt_scalex = 0;
-	pdummymaterial->dt_scaley = 0;
-	pdummymaterial->filepath = "dummy";
-	pdummymaterial->int_height = 16;
-	pdummymaterial->int_width = 16;
-	pdummymaterial->level = RS_WINDOW_LEVEL;
-	pdummymaterial->index = m_materialsMap.size();
+	m_pDummyMaterial->index = m_materialsIndexPtrArray.size();
+	m_pDummyMaterial->ptextures[MT_TX_DIFFUSE] = m_pDummyTexture;
 
-	pdummymaterial->ptextures[MT_TX_DIFFUSE] = m_pDummyTexture;
-
-	m_pDummyMaterial = pdummymaterial;
-	m_materialsMap.insert(std::pair<HashResourceTypeKey_t, en_material_t*>(key, pdummymaterial));
+	if(m_materialsMap.find(key) == m_materialsMap.end())
+		m_materialsMap.insert(std::pair<HashResourceTypeKey_t, en_material_t*>(key, m_pDummyMaterial));
 
 	// Add it to the index list
-	m_materialsIndexPtrArray.push_back(pdummymaterial);
+	m_materialsIndexPtrArray.push_back(m_pDummyMaterial);
 }
 
 //=============================================
@@ -683,7 +691,7 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 		// Set basic info
 		pmaterial->filepath = pstrFilename;
 		pmaterial->level = level;
-		pmaterial->index = m_materialsMap.size();
+		pmaterial->index = m_materialsIndexPtrArray.size();
 
 		// Set defaults
 		pmaterial->alpha = 1.0;

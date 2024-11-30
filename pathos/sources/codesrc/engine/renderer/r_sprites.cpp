@@ -29,8 +29,8 @@ All Rights Reserved.
 #include "cl_utils.h"
 #include "r_glqueries.h"
 
-// Max rendered sprites
-const Uint32 CSpriteRenderer::MAX_RENDERED_SPRITES = 4096;
+// Draw buffer allocation size
+const Uint32 CSpriteRenderer::DRAWBUFFER_ALLOC_SIZE = 128; // I really don't expect 666 sprites to render even on the busiest map
 
 // Glow interpolation speed
 const Float CSpriteRenderer::GLOW_INTERP_SPEED = 2;
@@ -54,20 +54,13 @@ CSpriteRenderer::CSpriteRenderer( void ) :
 	m_pShader(nullptr),
 	m_pVBO(nullptr),
 	m_numIndexes(0),
+	m_drawBufferAllocSize(0),
 	m_pVertexes(nullptr),
 	m_occlusionQueryVBOBufferOffset(0),
 	m_numVertexes(0),
-	m_promptedLimitsThisFrame(false),
 	m_glowStep(0)
 {
 	memset(m_viewMatrix, 0, sizeof(m_viewMatrix));
-
-	// Allocate vertex array
-	Uint32 vertexBufferSize = MAX_RENDERED_SPRITES*4;
-	m_occlusionQueryVBOBufferOffset = vertexBufferSize;
-	vertexBufferSize += GLOW_NUM_TRACES;
-
-	m_pVertexes = new sprite_vertex_t[vertexBufferSize];
 }
 
 //====================================
@@ -151,27 +144,23 @@ bool CSpriteRenderer::InitGL( void )
 			return false;
 	}
 
-	if(!m_pVBO)
-	{
-		Uint32 *pindexes = new Uint32[MAX_RENDERED_SPRITES*6];
-		for(Uint32 i = 0, j = 0; i < MAX_RENDERED_SPRITES; i++, j += 6)
-		{
-			Uint32 baseval = (i*4);
-			pindexes[j] = baseval; pindexes[j+1] = baseval+1; pindexes[j+2] = baseval+2;
-			pindexes[j+3] = baseval; pindexes[j+4] = baseval+2; pindexes[j+5] = baseval+3;
-		}
-
-		Uint32 vertexBufferSize = MAX_RENDERED_SPRITES*4 + GLOW_NUM_TRACES;
-		m_pVBO = new CVBO(gGLExtF, m_pVertexes, sizeof(sprite_vertex_t)*vertexBufferSize, pindexes, sizeof(Uint32)*MAX_RENDERED_SPRITES*6);
-		m_pShader->SetVBO(m_pVBO);
-
-		delete[] pindexes;
-	}
-
 	if(CL_IsGameActive())
 	{
 		// Reload any sprite textures
-		InitGame();
+		for(Uint32 i = 0; i < gModelCache.GetNbCachedModels(); i++)
+		{
+			cache_model_t* pmodel = gModelCache.GetModelByIndex(i+1);
+			if(pmodel->type != MOD_SPRITE)
+				continue;
+
+			if(pmodel->isloaded)
+				continue;
+
+			R_LoadSprite(pmodel);
+		}
+
+		// Re-create the VBO
+		CreateVBO();
 	}
 
 	return true;
@@ -213,6 +202,9 @@ bool CSpriteRenderer::InitGame( void )
 		R_LoadSprite(pmodel);
 	}
 	
+	// Allocate draw buffer
+	AllocDrawBuffer();
+
 	return true;
 }
 
@@ -226,6 +218,16 @@ void CSpriteRenderer::ClearGame( void )
 
 	for(Uint32 i = 0; i < MAX_TEMP_SPRITES; i++)
 		m_tempSpritesArray[i] = temp_sprite_t();
+
+	// Release the draw buffer
+	ReleaseDrawBuffer();
+
+	// Release the VBO
+	if(m_pVBO)
+	{
+		delete m_pVBO;
+		m_pVBO = nullptr;
+	}
 }
 
 //====================================
@@ -466,8 +468,6 @@ bool CSpriteRenderer::DrawSprites( void )
 		return true;
 	}
 
-	m_promptedLimitsThisFrame = false;
-
 	// Bind now for glows
 	m_pVBO->Bind();
 
@@ -641,15 +641,10 @@ bool CSpriteRenderer::DrawSprites( void )
 //====================================
 bool CSpriteRenderer::BatchSprite( cl_entity_t *pEntity ) 
 {
-	if(m_numVertexes >= MAX_RENDERED_SPRITES*4)
+	if(m_numVertexes >= m_drawBufferAllocSize)
 	{
-		if(!m_promptedLimitsThisFrame)
-		{
-			Con_Printf("%s - Exceeded MAX_RENDERED_SPRITES*4.\n", __FUNCTION__);
-			m_promptedLimitsThisFrame = true;
-		}
-
-		return false;
+		// Increase draw buffer size
+		AllocDrawBuffer();
 	}
 
 	vec4_t vColor;
@@ -954,6 +949,83 @@ void CSpriteRenderer::DrawFunction( const Vector& origin )
 	m_pVBO->VBOSubBufferData(sizeof(sprite_vertex_t)*m_occlusionQueryVBOBufferOffset, pVertex, sizeof(sprite_vertex_t));
 
 	glDrawArrays(GL_POINTS, m_occlusionQueryVBOBufferOffset, 1);
+}
+
+//====================================
+//
+//====================================
+void CSpriteRenderer::AllocDrawBuffer( void )
+{
+	Uint32 prevDrawBufferSize = m_drawBufferAllocSize;
+	m_drawBufferAllocSize += DRAWBUFFER_ALLOC_SIZE * 4;
+
+	// Allocate vertex array
+	Uint32 vertexBufferSize = m_drawBufferAllocSize;
+	m_occlusionQueryVBOBufferOffset = vertexBufferSize;
+	vertexBufferSize += GLOW_NUM_TRACES;
+
+	sprite_vertex_t* pNew = new sprite_vertex_t[vertexBufferSize];
+
+	if(m_pVertexes)
+	{
+		memcpy(pNew, m_pVertexes, sizeof(sprite_vertex_t)*prevDrawBufferSize);
+		delete[] m_pVertexes;
+	}
+
+	// Set final ptr
+	m_pVertexes = pNew;
+
+	// Recreate the VBO
+	CreateVBO();
+}
+
+//====================================
+//
+//====================================
+void CSpriteRenderer::ReleaseDrawBuffer( void )
+{
+	if(m_pVertexes)
+	{
+		delete[] m_pVertexes;
+		m_pVertexes = nullptr;
+	}
+
+	m_drawBufferAllocSize = 0;
+}
+
+//====================================
+//
+//====================================
+void CSpriteRenderer::CreateVBO( void )
+{
+	bool isActive = false;
+
+	if(m_pVBO)
+	{
+		isActive = m_pVBO->IsActive();
+		if(isActive)
+			m_pVBO->UnBind();
+
+		delete m_pVBO;
+	}
+
+	Uint32 *pindexes = new Uint32[m_drawBufferAllocSize*6];
+	for(Uint32 i = 0, j = 0; i < m_drawBufferAllocSize; i++, j += 6)
+	{
+		Uint32 baseval = (i*4);
+		pindexes[j] = baseval; pindexes[j+1] = baseval+1; pindexes[j+2] = baseval+2;
+		pindexes[j+3] = baseval; pindexes[j+4] = baseval+2; pindexes[j+5] = baseval+3;
+	}
+
+	Uint32 vertexBufferSize = m_drawBufferAllocSize + GLOW_NUM_TRACES;
+	m_pVBO = new CVBO(gGLExtF, m_pVertexes, sizeof(sprite_vertex_t)*vertexBufferSize, pindexes, sizeof(Uint32)*m_drawBufferAllocSize*6);
+
+	if(isActive)
+		m_pVBO->Bind();
+
+	m_pShader->SetVBO(m_pVBO);
+
+	delete[] pindexes;
 }
 
 //====================================

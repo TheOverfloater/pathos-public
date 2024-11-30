@@ -190,7 +190,7 @@ void CLegacyParticles::ClearGame( void )
 void CLegacyParticles::AllocateParticles( void )
 {
 	// Allocate particles
-	for(Uint32 i = 0; i < MAX_LEGACY_PARTICLES; i++)
+	for(Uint32 i = 0; i < LEGACY_PARTICLE_ALLOC_COUNT; i++)
 	{
 		particle_t* pnew = new particle_t;
 
@@ -202,8 +202,8 @@ void CLegacyParticles::AllocateParticles( void )
 	}
 
 	Uint32 prevSize = m_pSortedParticles.size();
-	m_pSortedParticles.resize(prevSize + MAX_LEGACY_PARTICLES);
-	for(Uint32 i = prevSize; i < MAX_LEGACY_PARTICLES; i++)
+	m_pSortedParticles.resize(prevSize + LEGACY_PARTICLE_ALLOC_COUNT);
+	for(Uint32 i = prevSize; i < LEGACY_PARTICLE_ALLOC_COUNT; i++)
 		m_pSortedParticles[i] = nullptr;
 }
 

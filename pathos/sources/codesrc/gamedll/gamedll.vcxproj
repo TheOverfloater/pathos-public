@@ -100,13 +100,13 @@
       <AdditionalIncludeDirectories>..\common;..\libs\sdl2.0\include\;..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;4018;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalDependencies>..\Win32\Debug\SDL2.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
     <PostBuildEvent>
       <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../dlls/$(TargetName)$(TargetExt)"</Command>
@@ -241,6 +241,7 @@
     <ClCompile Include="envlightning.cpp" />
     <ClCompile Include="envmodelbreakable.cpp" />
     <ClCompile Include="envmodeltrain.cpp" />
+    <ClCompile Include="envoverlay.cpp" />
     <ClCompile Include="envparticleeffect.cpp" />
     <ClCompile Include="envposportal.cpp" />
     <ClCompile Include="envposportalworld.cpp" />
@@ -519,6 +520,7 @@
     <ClInclude Include="envlaser.h" />
     <ClInclude Include="envlensflare.h" />
     <ClInclude Include="envlightning.h" />
+    <ClInclude Include="envoverlay.h" />
     <ClInclude Include="envparticleeffect.h" />
     <ClInclude Include="envposportal.h" />
     <ClInclude Include="envposportalworld.h" />

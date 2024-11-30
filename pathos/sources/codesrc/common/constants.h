@@ -315,6 +315,7 @@ enum walkmove_t
 
 enum hull_types_t
 {
+	HULL_BBOX = -2, // Request box hull only
 	HULL_AUTO = -1, // Hull will be determined by engine
 	HULL_POINT = 0, // Point sized hull
 	HULL_HUMAN = 1, // Player/human npcs
@@ -432,7 +433,8 @@ enum breakmaterials_t
 
 enum localmove_t
 {
-	LOCAL_MOVE_INVALID = 0,
+	LOCAL_MOVE_NULL		= -1,
+	LOCAL_MOVE_INVALID	= 0,
 	LOCAL_MOVE_INVALID_NO_TRIANGULATION,
 	LOCAL_MOVE_RESULT_FAILURE,
 
@@ -926,4 +928,35 @@ enum edict_removed_t
 	EDICT_REMOVED_AT_RESTORE,
 	EDICT_REMOVED_CLEAR_CLIENT
 };
+
+//
+// Lightmap data compression types
+//
+enum pbspv2_compressiontypes_t
+{
+	BSP_LMAP_COMPRESSION_NONE = 0,
+	BSP_LMAP_COMPRESSION_MINIZ
+};
+
+enum overlay_rendermode_t
+{
+	OVERLAY_RENDER_NORMAL = 0,
+	OVERLAY_RENDER_ADDITIVE,
+	OVERLAY_RENDER_ALPHATEST,
+	OVERLAY_RENDER_ALPHABLEND
+};
+
+enum overlay_effect_t
+{
+	OVERLAY_EFFECT_NONE = 0,
+	OVERLAY_EFFECT_PULSATE
+};
+
+enum overlay_msg_type_t
+{
+	OVERLAY_MSG_SET = 0,
+	OVERLAY_MSG_CLEAR_FADEOUT,
+	OVERLAY_MSG_CLEAR
+};
+
 #endif //CONSTANTS_H

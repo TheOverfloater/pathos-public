@@ -447,7 +447,7 @@ Int32 SV_LinkContents( areanode_t& node, const Vector& position )
 const hull_t* SV_HullForEntity( const edict_t* pentity, const Vector& mins, const Vector& maxs, Vector* poffset, hull_types_t hulltype )
 {
 	// Decide which clipping hull to use
-	if(pentity->state.solid == SOLID_BSP)
+	if(pentity->state.solid == SOLID_BSP && hulltype != HULL_BBOX)
 	{
 		// explicit hulls in the bsp model
 		if(pentity->state.movetype != MOVETYPE_PUSH && pentity->state.movetype != MOVETYPE_PUSHSTEP)
@@ -455,15 +455,61 @@ const hull_t* SV_HullForEntity( const edict_t* pentity, const Vector& mins, cons
 
 		return SV_HullForBSP(pentity, mins, maxs, poffset, hulltype);
 	}
+	else
+	{
+		Vector hullmins, hullmaxs;
+		Math::VectorSubtract(pentity->state.mins, maxs, hullmins);
+		Math::VectorSubtract(pentity->state.maxs, mins, hullmaxs);
 
+		if(poffset)
+			Math::VectorCopy(pentity->state.origin, *poffset);
+
+		return TR_HullForBox(hullmins, hullmaxs);
+	}
+}
+
+//=============================================
+//
+//=============================================
+bool SV_TracelineBBoxCheck( edict_t* pentity, const cache_model_t* pcachemodel, const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs )
+{
+	trace_t tr;
+	tr.endpos = end;
+	tr.fraction = 1.0;
+	tr.flags |= FL_TR_ALLSOLID;
+
+	// Calculate hull mins/maxs
 	Vector hullmins, hullmaxs;
-	Math::VectorSubtract(pentity->state.mins, maxs, hullmins);
-	Math::VectorSubtract(pentity->state.maxs, mins, hullmaxs);
+	if(pcachemodel->type == MOD_BRUSH && !pentity->state.angles.IsZero())
+	{
+		for(Uint32 i = 0; i < 3; i++)
+		{
+			hullmins[i] = -pcachemodel->radius - maxs[i];
+			hullmaxs[i] = pcachemodel->radius - mins[i];
+		}
+	}
+	else
+	{
+		Math::VectorSubtract(pentity->state.mins, maxs, hullmins);
+		Math::VectorSubtract(pentity->state.maxs, mins, hullmaxs);
+	}
+	// Some very small mins/maxs need to be extended, otherwise the trace fails
+	for(Uint32 i = 0; i < 3; i++)
+	{
+		hullmins[i] -= 1;
+		hullmaxs[i] += 1;
+	}
 
-	if(poffset)
-		Math::VectorCopy(pentity->state.origin, *poffset);
+	const hull_t* phull = TR_HullForBox(hullmins, hullmaxs);
 
-	return TR_HullForBox(hullmins, hullmaxs);
+	Vector start_l;
+	Vector end_l;
+	Math::VectorSubtract(start, pentity->state.origin, start_l);
+	Math::VectorSubtract(end, pentity->state.origin, end_l);
+
+	// Regular trace
+	TR_RecursiveHullCheck(phull, phull->firstclipnode, 0.0f, 1.0f, start_l, end_l, tr);
+	return (tr.fraction != 1.0f || tr.startSolid() || tr.allSolid()) ? true : false;
 }
 
 //=============================================
@@ -471,15 +517,33 @@ const hull_t* SV_HullForEntity( const edict_t* pentity, const Vector& mins, cons
 //=============================================
 void SV_SingleClipMoveToEntity( edict_t* pentity, const Vector& start, const Vector& mins, const Vector& maxs, const Vector& end, trace_t& trace, Int32 flags, hull_types_t hulltype )
 {
-	// Set basic parameters
+	// Set these first
 	trace.endpos = end;
 	trace.fraction = 1.0;
-	trace.flags |= FL_TR_ALLSOLID;
 
 	Vector offset;
-	cache_model_t* pmodel = gModelCache.GetModelByIndex(pentity->state.modelindex);
+	const cache_model_t* pmodel = Cache_GetModel(pentity->state.modelindex);
 	if(!pmodel)
+	{
+		Con_EPrintf("%s - Called on entity %s with no model.\n", __FUNCTION__, SV_GetString(pentity->fields.classname));
 		return;
+	}
+
+	if(pmodel->type != MOD_BRUSH && pmodel->type != MOD_VBM)
+	{
+		Con_EPrintf("%s - Called on entity %s with model that is not a brush or vbm model.\n", __FUNCTION__, SV_GetString(pentity->fields.classname));
+		return;
+	}
+
+	// Do an inexpensive check first, but only if either the entity is mod_brush, or mod_vbm AND has hitboxes specified to be used
+	if(pmodel->cacheindex != WORLD_MODEL_INDEX && (pmodel->type == MOD_BRUSH || pmodel->type == MOD_VBM && (flags & FL_TRACE_HITBOXES || pmodel->flags & STUDIO_MF_TRACE_HITBOX)))
+	{
+		if(!SV_TracelineBBoxCheck(pentity, pmodel, start, end, mins, maxs))
+			return;
+	}
+
+	// Set this only if we passed the basic check
+	trace.flags |= FL_TR_ALLSOLID;
 
 	const hull_t* phull = nullptr;
 	const CArray<vbmhitboxhull_t>* pvbmhulls = nullptr;
@@ -546,10 +610,9 @@ void SV_SingleClipMoveToEntity( edict_t* pentity, const Vector& start, const Vec
 //=============================================
 void SV_SingleClipMoveToEntityPoint( edict_t* pentity, const Vector& start, const Vector& end, Int32 flags, trace_t& trace )
 {
-	// Set basic parameters
+	// Set these first
 	trace.endpos = end;
 	trace.fraction = 1.0;
-	trace.flags |= FL_TR_ALLSOLID;
 
 	const cache_model_t* pmodel = Cache_GetModel(pentity->state.modelindex);
 	if(!pmodel)
@@ -563,6 +626,16 @@ void SV_SingleClipMoveToEntityPoint( edict_t* pentity, const Vector& start, cons
 		Con_EPrintf("%s - Called on entity %s with model that is not a brush or vbm model.\n", __FUNCTION__, SV_GetString(pentity->fields.classname));
 		return;
 	}
+
+	// Do an inexpensive check first, but only if either the entity is mod_brush, or mod_vbm AND has hitboxes specified to be used
+	if(pmodel->cacheindex != WORLD_MODEL_INDEX && (pmodel->type == MOD_BRUSH || pmodel->type == MOD_VBM && (flags & FL_TRACE_HITBOXES || pmodel->flags & STUDIO_MF_TRACE_HITBOX)))
+	{
+		if(!SV_TracelineBBoxCheck(pentity, pmodel, start, end, ZERO_VECTOR, ZERO_VECTOR))
+			return;
+	}
+
+	// Set this only if we passed the basic check
+	trace.flags |= FL_TR_ALLSOLID;
 
 	const hull_t* phull = nullptr;
 	const CArray<vbmhitboxhull_t>* pvbmhulls = nullptr;

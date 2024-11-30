@@ -330,6 +330,8 @@ void CNPCSecurity::PostModelSet( void )
 		m_weaponTRG42SubmodelIndex = GetSubmodelIndexByName(m_weaponsBodyGroupIndex, NPC_SUBMODEL_WEAPON_TRG42_NAME);
 		m_weaponBlankSubmodelIndex = GetSubmodelIndexByName(m_weaponsBodyGroupIndex, NPC_SUBMODEL_WEAPON_BLANK_NAME);
 	}
+
+	CWanderNPC::PostModelSet();
 }
 
 //=============================================

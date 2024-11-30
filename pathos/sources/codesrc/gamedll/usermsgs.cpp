@@ -85,6 +85,7 @@ void InitClientUserMessages( void )
 	g_usermsgs.newobjective = gd_engfuncs.pfnRegisterUserMessage("NewObjective", -1);
 	g_usermsgs.addskytextureset = gd_engfuncs.pfnRegisterUserMessage("AddSkyTextureSet", -1);
 	g_usermsgs.setskytexture = gd_engfuncs.pfnRegisterUserMessage("SetSkyTexture", -1);
+	g_usermsgs.screenoverlay = gd_engfuncs.pfnRegisterUserMessage("SetScreenOverlay", -1);
 }
 
 //=============================================

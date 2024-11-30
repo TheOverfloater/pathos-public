@@ -562,7 +562,19 @@ CPlayerEntity::CPlayerEntity( edict_t* pedict ):
 	m_countdownTimerTitle(NO_STRING_VALUE),
 	m_delayedGlobalTriggerTime(0),
 	m_delayedGlobalTriggerTarget(NO_STRING_VALUE),
-	m_isOnTarget(false)
+	m_isOnTarget(false),
+	m_isChromaticAberrationActive(false),
+	m_chromaticAberrationStrength(0),
+	m_isBlackAndWhiteActive(false),
+	m_blackAndWhiteStrength(0),
+	m_isMotionBlurActive(false),
+	m_motionBlurFade(0),
+	m_isVignetteActive(false),
+	m_vignetteStrength(0),
+	m_vignetteRadius(0),
+	m_isFilmGrainActive(false),
+	m_filmGrainStrength(0),
+	m_numOverlays(0)
 {
 	for(Uint32 i = 0; i < NUM_TIMEBASED_DMG; i++)
 	{
@@ -680,6 +692,28 @@ void CPlayerEntity::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_dialougePlaybackTime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_sprintStaminaDrainMultiplier, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_normalMovementStaminaDrainFactor, EFIELD_FLOAT));
+
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_isChromaticAberrationActive, EFIELD_BOOLEAN));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_chromaticAberrationStrength, EFIELD_FLOAT));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_isBlackAndWhiteActive, EFIELD_BOOLEAN));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_blackAndWhiteStrength, EFIELD_FLOAT));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_isMotionBlurActive, EFIELD_BOOLEAN));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_motionBlurFade, EFIELD_FLOAT));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_isVignetteActive, EFIELD_BOOLEAN));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_vignetteStrength, EFIELD_FLOAT));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_vignetteRadius, EFIELD_FLOAT));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_isFilmGrainActive, EFIELD_BOOLEAN));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_filmGrainStrength, EFIELD_FLOAT));
+
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_overlayLayerIndexArray, EFIELD_CARRAY_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_overlayTextureArray, EFIELD_CARRAY_STRING));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_overlayRenderModeArray, EFIELD_CARRAY_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_overlayRenderColorArray, EFIELD_CARRAY_VECTOR));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_overlayRenderAmountArray, EFIELD_CARRAY_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_overlayEffectArray, EFIELD_CARRAY_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_overlayEffectSpeedArray, EFIELD_CARRAY_FLOAT));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_overlayEffectMinAlphaArray, EFIELD_CARRAY_FLOAT));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_numOverlays, EFIELD_UINT32));
 }
 
 //=============================================
@@ -983,6 +1017,7 @@ bool CPlayerEntity::Restore( void )
 		}
 	}
 
+	// Restore "new objective" flag
 	if(m_objectivesNewFlags != 0)
 	{
 		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.newobjective, nullptr, m_pEdict);
@@ -990,6 +1025,7 @@ bool CPlayerEntity::Restore( void )
 		gd_engfuncs.pfnUserMessageEnd();
 	}
 
+	// Restore countdown timer
 	if(m_countdownTimerEndTime)
 	{
 		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.hudsetcountdowntimer, nullptr, m_pEdict);
@@ -1000,6 +1036,83 @@ bool CPlayerEntity::Restore( void )
 
 	// Force re-send of all weapon types
 	m_forceWeaponUpdate = true;
+
+	// Restore global motion blur
+	if(m_isMotionBlurActive)
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.motionblur, nullptr, m_pEdict);
+			gd_engfuncs.pfnMsgWriteByte(m_isMotionBlurActive);
+			gd_engfuncs.pfnMsgWriteSmallFloat(m_motionBlurFade);
+			gd_engfuncs.pfnMsgWriteByte(false);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	// Restore global chromatic aberration
+	if(m_isChromaticAberrationActive)
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.chromatic, nullptr, m_pEdict);
+			gd_engfuncs.pfnMsgWriteByte(m_isChromaticAberrationActive);
+			gd_engfuncs.pfnMsgWriteFloat(m_chromaticAberrationStrength);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	// Restore global black and white effect
+	if(m_isBlackAndWhiteActive)
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.blackandwhite, nullptr, m_pEdict);
+			gd_engfuncs.pfnMsgWriteByte(m_isBlackAndWhiteActive);
+			gd_engfuncs.pfnMsgWriteFloat(m_blackAndWhiteStrength);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	// Restore global vignette effect
+	if(m_isVignetteActive)
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.vignette, nullptr, m_pEdict);
+			gd_engfuncs.pfnMsgWriteByte(m_isVignetteActive);
+			gd_engfuncs.pfnMsgWriteFloat(m_vignetteStrength);
+			gd_engfuncs.pfnMsgWriteFloat(m_vignetteRadius);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	// Restore global film grain
+	if(m_isFilmGrainActive)
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.filmgrain, nullptr, m_pEdict);
+			gd_engfuncs.pfnMsgWriteByte(m_isFilmGrainActive);
+			gd_engfuncs.pfnMsgWriteFloat(m_filmGrainStrength);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	// Restore any overlays
+	for(Uint32 i = 0; i < m_numOverlays; i++)
+	{
+		Int32 overlayIndex = m_overlayLayerIndexArray[i];
+		const Char* pstrTextureName = gd_engfuncs.pfnGetString(m_overlayTextureArray[i]);
+		Int32 rendermode = m_overlayRenderModeArray[i];
+		Vector rendercolor = m_overlayRenderColorArray[i];
+		Int32 renderamt = m_overlayRenderAmountArray[i];
+		Int32 effect = m_overlayEffectArray[i];
+		Float effectspeed = m_overlayEffectSpeedArray[i];
+		Float effectminalpha = m_overlayEffectMinAlphaArray[i];
+
+		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.screenoverlay, nullptr, m_pEdict);
+			gd_engfuncs.pfnMsgWriteByte(overlayIndex);
+			gd_engfuncs.pfnMsgWriteByte(OVERLAY_MSG_SET);
+			gd_engfuncs.pfnMsgWriteString(pstrTextureName);
+			gd_engfuncs.pfnMsgWriteByte(rendermode);
+			for(Uint32 j = 0; j < 3; j++)
+				gd_engfuncs.pfnMsgWriteByte(rendercolor[j]);
+			gd_engfuncs.pfnMsgWriteByte(renderamt);
+			gd_engfuncs.pfnMsgWriteByte(effect);
+			if(effect != OVERLAY_EFFECT_NONE)
+			{
+				gd_engfuncs.pfnMsgWriteSmallFloat(effectspeed);
+				gd_engfuncs.pfnMsgWriteSmallFloat(effectminalpha);
+			}
+			gd_engfuncs.pfnMsgWriteSmallFloat(0);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
 
 	return true;
 }
@@ -5689,7 +5802,7 @@ Vector CPlayerEntity::GetGunAngles( bool addPunch ) const
 // @brief
 //
 //=============================================
-Vector CPlayerEntity::GetEyePosition( bool addlean ) const
+Vector CPlayerEntity::GetEyePosition( bool addlean, bool usebone ) const
 {
 	Vector origin = m_pState->origin + m_pState->view_offset;
 
@@ -6711,4 +6824,197 @@ void CPlayerEntity::DelayedGlobalTriggerThink( void )
 		UseTargets(this, USE_TOGGLE, 0, m_delayedGlobalTriggerTarget);
 		ClearGlobalDelayedTrigger();
 	}
+}
+
+//=============================================
+// @brief Set motion blur values
+//
+//=============================================
+void CPlayerEntity::SetMotionBlur( bool isActive, Float blurFade )
+{
+	m_isMotionBlurActive = isActive;
+	m_motionBlurFade = blurFade;
+
+	gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.motionblur, nullptr, m_pEdict);
+	gd_engfuncs.pfnMsgWriteByte(m_isMotionBlurActive);
+	if(m_isMotionBlurActive)
+		gd_engfuncs.pfnMsgWriteSmallFloat(m_motionBlurFade);
+	gd_engfuncs.pfnMsgWriteByte(false);
+	gd_engfuncs.pfnUserMessageEnd();
+}
+
+//=============================================
+// @brief Set chromatic aberration values
+//
+//=============================================
+void CPlayerEntity::SetChromaticAberration( bool isActive, Float strength )
+{
+	m_isChromaticAberrationActive = isActive;
+	m_chromaticAberrationStrength = strength;
+
+	gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.chromatic, nullptr, m_pEdict);
+	gd_engfuncs.pfnMsgWriteByte(m_isChromaticAberrationActive);
+	if (m_isChromaticAberrationActive)
+		gd_engfuncs.pfnMsgWriteFloat(m_chromaticAberrationStrength);
+	gd_engfuncs.pfnUserMessageEnd();
+}
+
+//=============================================
+// @brief Set chromatic aberration values
+//
+//=============================================
+void CPlayerEntity::SetBlackAndWhite( bool isActive, Float strength )
+{
+	m_isBlackAndWhiteActive = isActive;
+	m_blackAndWhiteStrength = strength;
+
+	gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.blackandwhite, nullptr, m_pEdict);
+	gd_engfuncs.pfnMsgWriteByte(m_isBlackAndWhiteActive);
+	if (m_isBlackAndWhiteActive)
+		gd_engfuncs.pfnMsgWriteFloat(m_blackAndWhiteStrength);
+	gd_engfuncs.pfnUserMessageEnd();
+}
+
+//=============================================
+// @brief Set vignette effect values
+//
+//=============================================
+void CPlayerEntity::SetVignetteEffect( bool isActive, Float radius, Float strength )
+{
+	m_isVignetteActive = isActive;
+	m_vignetteStrength = strength;
+	m_vignetteRadius = radius;
+
+	gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.vignette, nullptr, m_pEdict);
+    gd_engfuncs.pfnMsgWriteByte(m_isVignetteActive);
+    if (m_isVignetteActive)
+    {
+        gd_engfuncs.pfnMsgWriteFloat(m_vignetteStrength);
+        gd_engfuncs.pfnMsgWriteFloat(m_vignetteRadius);
+    }
+    gd_engfuncs.pfnUserMessageEnd();
+}
+ 
+//=============================================
+// @brief Set chromatic aberration values
+//
+//=============================================
+void CPlayerEntity::SetFilmGrain( bool isActive, Float strength )
+{
+	m_isFilmGrainActive = isActive;
+	m_filmGrainStrength = strength;
+
+	gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.filmgrain, nullptr, m_pEdict);
+    gd_engfuncs.pfnMsgWriteByte(m_isFilmGrainActive);
+    if (m_isFilmGrainActive)
+        gd_engfuncs.pfnMsgWriteFloat(m_filmGrainStrength);
+    gd_engfuncs.pfnUserMessageEnd();
+}
+
+//=============================================
+// @brief Set overlay effect
+//
+//=============================================
+void CPlayerEntity::SetScreenOverlay( Int32 layerindex, const Char* pstrTextureName, overlay_rendermode_t rendermode, const Vector& rendercolor, Float renderamt, overlay_effect_t effect, Float effectspeed, Float effectminalpha, Float fadetime )
+{
+	// Try and find previous
+	bool prevState;
+	Uint32 i = 0;
+	for(; i < m_numOverlays; i++)
+	{
+		if(m_overlayLayerIndexArray[i] == layerindex)
+		{
+			prevState = true;
+			break;
+		}
+	}
+
+	// Create new slot
+	if(i == m_numOverlays)
+	{
+		m_overlayLayerIndexArray.resize(m_numOverlays+1);
+		m_overlayTextureArray.resize(m_numOverlays+1);
+		m_overlayRenderModeArray.resize(m_numOverlays+1);
+		m_overlayRenderColorArray.resize(m_numOverlays+1);
+		m_overlayRenderAmountArray.resize(m_numOverlays+1);
+		m_overlayEffectArray.resize(m_numOverlays+1);
+		m_overlayEffectSpeedArray.resize(m_numOverlays+1);
+		m_overlayEffectMinAlphaArray.resize(m_numOverlays+1);
+
+		i = m_numOverlays;
+		m_numOverlays++;
+
+		prevState = false;
+	}
+
+	// Set values
+	m_overlayLayerIndexArray[i] = layerindex;
+	m_overlayTextureArray[i] = gd_engfuncs.pfnAllocString(pstrTextureName);
+	m_overlayRenderModeArray[i] = rendermode;
+	m_overlayRenderColorArray[i] = rendercolor;
+	m_overlayRenderAmountArray[i] = renderamt;
+	m_overlayEffectArray[i] = effect;
+	m_overlayEffectSpeedArray[i] = effectspeed;
+	m_overlayEffectMinAlphaArray[i] = effectminalpha;
+
+	// Send to client
+	gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.screenoverlay, nullptr, m_pEdict);
+	gd_engfuncs.pfnMsgWriteByte(layerindex);
+    gd_engfuncs.pfnMsgWriteByte(OVERLAY_MSG_SET);
+	gd_engfuncs.pfnMsgWriteString(pstrTextureName);
+	gd_engfuncs.pfnMsgWriteByte(rendermode);
+	for(Uint32 j = 0; j < 3; j++)
+		gd_engfuncs.pfnMsgWriteByte(rendercolor[j]);
+	gd_engfuncs.pfnMsgWriteByte(renderamt);
+	gd_engfuncs.pfnMsgWriteByte(effect);
+	if(effect != OVERLAY_EFFECT_NONE)
+	{
+		gd_engfuncs.pfnMsgWriteSmallFloat(effectspeed);
+		gd_engfuncs.pfnMsgWriteSmallFloat(effectminalpha);
+	}
+	gd_engfuncs.pfnMsgWriteSmallFloat(fadetime);
+    gd_engfuncs.pfnUserMessageEnd();
+}
+
+//=============================================
+// @brief Clears an overlay
+//
+//=============================================
+void CPlayerEntity::ClearOverlay( Int32 layerindex, Float fadetime )
+{
+	Uint32 i = 0;
+	for(; i < m_numOverlays; i++)
+	{
+		if(m_overlayLayerIndexArray[i] == layerindex)
+			break;
+	}
+
+	if(i == m_numOverlays)
+		return;
+
+	if(fadetime > 0)
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.screenoverlay, nullptr, m_pEdict);
+		gd_engfuncs.pfnMsgWriteByte(layerindex);
+		gd_engfuncs.pfnMsgWriteByte(OVERLAY_MSG_CLEAR_FADEOUT);
+		gd_engfuncs.pfnMsgWriteSmallFloat(fadetime);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+	else
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.screenoverlay, nullptr, m_pEdict);
+		gd_engfuncs.pfnMsgWriteByte(layerindex);
+		gd_engfuncs.pfnMsgWriteByte(OVERLAY_MSG_CLEAR);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	m_overlayLayerIndexArray.erase(i);
+	m_overlayTextureArray.erase(i);
+	m_overlayRenderModeArray.erase(i);
+	m_overlayRenderColorArray.erase(i);
+	m_overlayRenderAmountArray.erase(i);
+	m_overlayEffectArray.erase(i);
+	m_overlayEffectSpeedArray.erase(i);
+	m_overlayEffectMinAlphaArray.erase(i);
+	m_numOverlays--;
 }

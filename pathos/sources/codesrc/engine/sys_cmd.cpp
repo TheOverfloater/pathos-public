@@ -92,7 +92,7 @@ void Cmd_LoadMap( void )
 void Cmd_ListMaps() 
 {
 	CString searchPath;
-	searchPath << DEFAULT_GAMEDIR << PATH_SLASH_CHAR << "maps" << PATH_SLASH_CHAR << "*.bsp";
+	searchPath << ens.gamedir << PATH_SLASH_CHAR << "maps" << PATH_SLASH_CHAR << "*.bsp";
 
 	WIN32_FIND_DATA fileData;
 	HANDLE hFind = FindFirstFile(searchPath.c_str(), &fileData);

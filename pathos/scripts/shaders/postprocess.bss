@@ -18,7 +18,7 @@ void main()
 }
 $end
 $shader_fragment 
-$determinator pp_type 0 14
+$determinator pp_type 0 16
 $begin
 #version 130
 #extension GL_ARB_texture_rectangle : enable
@@ -48,6 +48,10 @@ $end
 $branch pp_type == 4
 $begin
 	uniform sampler2DRect blurtextureRect;
+$end
+$branch pp_type == 15 || pp_type == 16
+$begin
+	uniform sampler2D normal2dTexture;
 $end
 
 in vec2 ps_texcoord;
@@ -316,6 +320,19 @@ void main()
 		float distance = length(centeredUV);
 		float vignette = smoothstep(vignetteRadius, vignetteRadius - vignetteStrength, distance);
 		oColor = color * vignette;
+    $end
+	$branch pp_type == 15 || pp_type == 16
+    $begin
+		vec2 flip_texcoord;
+		flip_texcoord.x = ps_texcoord.x;
+		flip_texcoord.y = 1.0 - ps_texcoord.y;
+		oColor = texture(normal2dTexture, flip_texcoord)*u_color;
+	
+		$branch pp_type == 16
+		$begin
+			if(oColor.a < 0.5)
+				discard;
+		$end
     $end
 }
 $end

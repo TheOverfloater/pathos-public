@@ -86,6 +86,7 @@ glowquery_t* R_AllocQueryObject( Int32 key, Uint32 numqueries, Uint32 renderpass
 			if(rns.objects.glowqueryarray[i].key == NO_POSITION)
 			{
 				pQuery = &rns.objects.glowqueryarray[i];
+				pQuery->queried = false;
 				break;
 			}
 		}

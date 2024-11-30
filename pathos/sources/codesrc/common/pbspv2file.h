@@ -78,15 +78,6 @@ enum pbspv2_flags_t
 };
 
 //
-// Lightmap data compression types
-//
-enum pbspv2_compressiontypes_t
-{
-	PBSPV2_LMAP_COMPRESSION_NONE = 0,
-	PBSPV2_LMAP_COMPRESSION_MINIZ
-};
-
-//
 // Header for Pathos BSP V1
 //
 

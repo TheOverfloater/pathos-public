@@ -71,6 +71,7 @@ public:
 	void DeleteCaches( void );
 
 	bool IsValid( void ) const { return m_isValid; }
+	bool IsActive( void ) const { return m_bActive; }
 
 public:
 	GLuint GetVBOIndex( void ) const { return m_uiVBOIndex; }

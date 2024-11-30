@@ -776,9 +776,16 @@
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blackandwhite : "Black and White Effect"
 [
   strength(integer) : "Effect strength" : 1
+  globaltriggermode(Choices) : "Global trigger mode" : 0 =
+  [ 
+      0 : "Toggle"
+      1 : "On"
+      2 : "Off"
+  ]
   spawnflags(flags) = 
   [
     1 : "Start On" : 0
+	2 : "Global" : 0
   ]
 ]
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blackhole : "Black Hole"
@@ -797,17 +804,31 @@
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_blur : "Motion Blur" 
 [
   fade(string) : "Blur fade" : "0.1"
+  globaltriggermode(Choices) : "Global trigger mode" : 0 =
+  [ 
+      0 : "Toggle"
+      1 : "On"
+      2 : "Off"
+  ]
   spawnflags(flags) =
   [
     1 : "Start On" : 0
+	2 : "Global" : 0
   ]
 ]
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_chromatic : "Chromatic Aberration Effect"
 [
   strength(integer) : "Chromatic Aberration Strength" : 0
+  globaltriggermode(Choices) : "Global trigger mode" : 0 =
+  [ 
+      0 : "Toggle"
+      1 : "On"
+      2 : "Off"
+  ]
   spawnflags(flags) = 
   [
     1 : "Start On" : 0
+	2 : "Global" : 0
   ]
 ]
 @SolidClass base(Targetname, ZHLT) = env_bubbles : "Bubble Volume" 
@@ -967,9 +988,16 @@
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_filmgrain : "FilmGrain Effect"
 [
   strength(string) : "Effect strength" : "0.001"
+  globaltriggermode(Choices) : "Global trigger mode" : 0 =
+  [ 
+      0 : "Toggle"
+      1 : "On"
+      2 : "Off"
+  ]
   spawnflags(flags) = 
   [
     1 : "Start On" : 0
+	2 : "Global" : 0
   ]
 ]
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_fog : "Client Fog" 
@@ -1132,6 +1160,39 @@
     16 : "No fire pass" : 0
     512 : "Start On" : 0
   ]      
+]
+@PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_overlay : "Screen Overlay"
+[
+  setmode(Choices) : "Mode" : 0 =
+  [
+      0 : "Set overlay"
+      1 : "Clear overlay"
+  ]
+  layerindex(Choices) : "Overlay index" : 0 =
+  [
+      0 : "Layer 0"
+      1 : "Layer 1"
+      2 : "Layer 2"
+      3 : "Layer 3"
+  ]
+  texturename(string) : "Texture name"
+  layer_rendermode(Choices) : "Render mode" : 0 =
+  [
+      0 : "Normal"
+      1 : "Additive"
+      2 : "Alpha Tested"
+      3 : "Alpha Blended"
+  ]
+  layer_effect(Choices) : "Effect" : 0 =
+  [
+      0 : "None"
+      1 : "Pulsate"
+  ]
+  renderamt(integer) : "Render Alpha" : 255
+  rendercolor(color255) : "Render Color" : "0 0 0"
+  effectspeed(string) : "Effect speed multiplier" : "1.0"
+  effectminalpha(string) : "Effect minimum alpha" : "0.2"
+  fadetime(string) : "Effect fade in/out time" : "0"
 ]
 @PointClass base(Targetname, Target, Angles) = env_particle_system: "Particle System"
 [
@@ -1392,9 +1453,16 @@
 [
   strength(integer) : "Effect strength" : 0
   radius(integer) : "Vignette radius" : 0
+  globaltriggermode(Choices) : "Global trigger mode" : 0 =
+  [ 
+      0 : "Toggle"
+      1 : "On"
+      2 : "Off"
+  ]
   spawnflags(flags) = 
   [
     1 : "Start On" : 0
+	2 : "Global" : 0
   ]
 ]
 @PointClass base(Targetname) size(-4 -4 -4, 4 4 4) color(200 100 50) = envpos_sky : "Sky Marker" 

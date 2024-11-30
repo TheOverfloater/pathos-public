@@ -53,8 +53,8 @@ CParticleEngine::CParticleEngine( void ):
 	m_pCvarParticleDebug(nullptr),
 	m_pCvarGravity(nullptr),
 	m_pWeatherDensity(nullptr),
-	m_pParticles(nullptr),
 	m_pFreeParticles(nullptr),
+	m_particleAllocCount(0),
 	m_iNumFreedParticles(0),
 	m_iNumCreatedParticles(0),
 	m_iNumFreedSystems(0),
@@ -88,20 +88,6 @@ bool CParticleEngine::Init( void )
 
 	m_pCvarGravity = gConsole.GetCVar("sv_gravity");
 
-	// Initialize free linked list
-	m_pParticles = new cl_particle_t[MAX_ACTIVE_PARTICLES];
-
-	// Link up the particles
-	m_pFreeParticles = m_pParticles;
-	for(Uint32 i = 0; i < (MAX_ACTIVE_PARTICLES-1); i++)
-	{
-		m_pParticles[i].next = &m_pParticles[i+1];
-		m_pParticles[i+1].prev = &m_pParticles[i];
-	}
-
-	// Create vertexes array
-	m_pVertexes = new particle_vertex_t[MAX_ACTIVE_PARTICLES*4+6];
-
 	return true;
 };
 
@@ -114,12 +100,6 @@ void CParticleEngine::Shutdown( void )
 	{
 		delete[] m_pVertexes;
 		m_pVertexes = nullptr;
-	}
-
-	if(m_pParticles)
-	{
-		delete[] m_pParticles;
-		m_pParticles = nullptr;
 	}
 
 	ClearGame();
@@ -245,63 +225,10 @@ bool CParticleEngine::InitGL( void )
 			return false;
 	}
 
-	if(!m_pVBO)
+	if(CL_IsGameActive())
 	{
-		// Initialize the indexes
-		Uint32 *indexes = new Uint32[MAX_ACTIVE_PARTICLES*6];
-		for(Uint32 i = 0, j = 0; i < MAX_ACTIVE_PARTICLES; i++, j += 6)
-		{
-			Uint32 baseindex = (i*4);
-			indexes[j] = baseindex; indexes[j+1] = baseindex+1; indexes[j+2] = baseindex+2;
-			indexes[j+3] = baseindex; indexes[j+4] = baseindex+2; indexes[j+5] = baseindex+3;
-		}
-
-		Uint32 numvert = MAX_ACTIVE_PARTICLES*4+6;
-		for(Uint32 i = 0; i < numvert; i++)
-			m_pVertexes[i] = particle_vertex_t();
-
-		// Screen rectangle comes after particles
-		m_screenRectangleBase = MAX_ACTIVE_PARTICLES*4;
-		Uint32 base = m_screenRectangleBase;
-
-		m_pVertexes[base].origin[0] = 0; m_pVertexes[base].origin[1] = 1; 
-		m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
-		m_pVertexes[base].texcoord[0] = 0; m_pVertexes[base].texcoord[1] = 0;
-		base++;
-
-		m_pVertexes[base].origin[0] = 0; m_pVertexes[base].origin[1] = 0; 
-		m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
-		m_pVertexes[base].texcoord[0] = 0; m_pVertexes[base].texcoord[1] = 1.0f;
-		base++;
-
-		m_pVertexes[base].origin[0] = 1; m_pVertexes[base].origin[1] = 0; 
-		m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
-		m_pVertexes[base].texcoord[0] = 1.0f; m_pVertexes[base].texcoord[1] = 1.0f;
-		base++;
-
-		m_pVertexes[base].origin[0] = 0; m_pVertexes[base].origin[1] = 1; 
-		m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
-		m_pVertexes[base].texcoord[0] = 0; m_pVertexes[base].texcoord[1] = 0;
-		base++;
-
-		m_pVertexes[base].origin[0] = 1; m_pVertexes[base].origin[1] = 0; 
-		m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
-		m_pVertexes[base].texcoord[0] = 1.0f; m_pVertexes[base].texcoord[1] = 1.0f;
-		base++;
-
-		m_pVertexes[base].origin[0] = 1; m_pVertexes[base].origin[1] = 1; 
-		m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
-		m_pVertexes[base].texcoord[0] = 1.0f; m_pVertexes[base].texcoord[1] = 0;
-
-		Uint32 vertexcount = MAX_ACTIVE_PARTICLES*4+6;
-		m_pVBO = new CVBO(gGLExtF, m_pVertexes, sizeof(particle_vertex_t)*vertexcount, indexes, sizeof(Uint32)*MAX_ACTIVE_PARTICLES*6);
-
-		for(Uint32 i = 0; i < MAX_ACTIVE_PARTICLES*4; i++)
-			m_pVertexes[i].origin[3] = 1.0;
-
-		delete[] indexes;
-
-		m_pShader->SetVBO(m_pVBO);
+		// If active, re-create VBO
+		CreateVBO();
 	}
 
 	return true;
@@ -330,7 +257,9 @@ void CParticleEngine::ClearGL( void )
 //====================================
 bool CParticleEngine::InitGame( void ) 
 {
-	// Nothing here yet
+	// Create first allocation of particles
+	AllocParticles();
+
 	return true;
 }
 
@@ -376,6 +305,9 @@ void CParticleEngine::ClearGame( void )
 
 	if(!m_msgCache.empty())
 		m_msgCache.clear();
+
+	// Release particle cache
+	ReleaseParticles();
 };
 
 //====================================
@@ -399,7 +331,7 @@ particle_system_t *CParticleEngine::AllocSystem( void )
 __forceinline cl_particle_t *CParticleEngine::AllocParticle( particle_system_t *psystem ) 
 {
 	if(!m_pFreeParticles)
-		return nullptr;
+		AllocParticles();
 
 	cl_particle_t *pparticle = m_pFreeParticles;
 	m_pFreeParticles = pparticle->next;
@@ -3058,12 +2990,6 @@ void CParticleEngine::BatchParticle( cl_particle_t *pparticle, Float flup, Float
 
 	Float sqLength;		
 
-	if(m_numParticles == MAX_ACTIVE_PARTICLES)
-	{
-		Con_Printf("%s - Overflow on maximum rendered particles.\n", __FUNCTION__);
-		return;
-	}
-
 	Math::VectorCopy(pparticle->origin, vorigin);
 
 	if((pparticle->psystem->attachflags & PARTICLE_ATTACH_TO_PARENT) 
@@ -3959,4 +3885,130 @@ void CParticleEngine::KillEntityParticleSystems( Int32 entindex )
 
 		m_msgCache.next();
 	}
+}
+
+//====================================
+//
+//====================================
+void CParticleEngine::AllocParticles( void )
+{
+	// Allocate particles
+	for(Uint32 i = 0; i < PARTICLE_ALLOC_SIZE; i++)
+	{
+		cl_particle_t* pnew = new cl_particle_t;
+
+		if(m_pFreeParticles)
+			m_pFreeParticles->prev = pnew;
+		pnew->next = m_pFreeParticles;
+
+		m_pFreeParticles = pnew;
+	}
+
+	// Increase counter
+	m_particleAllocCount += PARTICLE_ALLOC_SIZE;
+
+	// Recreate VBO
+	CreateVBO();
+}
+
+//====================================
+//
+//====================================
+void CParticleEngine::ReleaseParticles( void )
+{
+	if(m_pFreeParticles)
+	{
+		cl_particle_t* pnext = m_pFreeParticles;
+		while(pnext)
+		{
+			cl_particle_t* pfree = pnext;
+			pnext = pfree->next;
+
+			delete pfree;
+		}
+
+		m_pFreeParticles = nullptr;
+	}
+
+	if(m_pVertexes)
+	{
+		delete[] m_pVertexes;
+		m_pVertexes = nullptr;
+	}
+
+	if(m_pVBO)
+	{
+		delete m_pVBO;
+		m_pVBO = nullptr;
+	}
+
+	m_particleAllocCount = 0;
+}
+
+//====================================
+//
+//====================================
+void CParticleEngine::CreateVBO( void )
+{
+	if(m_pVBO)
+		delete m_pVBO;
+
+	// Resize vertex array
+	if(m_pVertexes)
+		delete[] m_pVertexes;
+
+	// Allocate local vertex array
+	Uint32 vertexArraySize = m_particleAllocCount * 4 + 6;
+	m_pVertexes = new particle_vertex_t[vertexArraySize];
+
+	// Initialize the indexes
+	Uint32 *indexes = new Uint32[m_particleAllocCount * 6];
+	for(Uint32 i = 0, j = 0; i < m_particleAllocCount; i++, j += 6)
+	{
+		Uint32 baseindex = (i*4);
+		indexes[j] = baseindex; indexes[j+1] = baseindex+1; indexes[j+2] = baseindex+2;
+		indexes[j+3] = baseindex; indexes[j+4] = baseindex+2; indexes[j+5] = baseindex+3;
+	}
+
+	// Screen rectangle comes after particles
+	m_screenRectangleBase = m_particleAllocCount*4;
+	Uint32 base = m_screenRectangleBase;
+
+	m_pVertexes[base].origin[0] = 0; m_pVertexes[base].origin[1] = 1; 
+	m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
+	m_pVertexes[base].texcoord[0] = 0; m_pVertexes[base].texcoord[1] = 0;
+	base++;
+
+	m_pVertexes[base].origin[0] = 0; m_pVertexes[base].origin[1] = 0; 
+	m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
+	m_pVertexes[base].texcoord[0] = 0; m_pVertexes[base].texcoord[1] = 1.0f;
+	base++;
+
+	m_pVertexes[base].origin[0] = 1; m_pVertexes[base].origin[1] = 0; 
+	m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
+	m_pVertexes[base].texcoord[0] = 1.0f; m_pVertexes[base].texcoord[1] = 1.0f;
+	base++;
+
+	m_pVertexes[base].origin[0] = 0; m_pVertexes[base].origin[1] = 1; 
+	m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
+	m_pVertexes[base].texcoord[0] = 0; m_pVertexes[base].texcoord[1] = 0;
+	base++;
+
+	m_pVertexes[base].origin[0] = 1; m_pVertexes[base].origin[1] = 0; 
+	m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
+	m_pVertexes[base].texcoord[0] = 1.0f; m_pVertexes[base].texcoord[1] = 1.0f;
+	base++;
+
+	m_pVertexes[base].origin[0] = 1; m_pVertexes[base].origin[1] = 1; 
+	m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
+	m_pVertexes[base].texcoord[0] = 1.0f; m_pVertexes[base].texcoord[1] = 0;
+
+	m_pVBO = new CVBO(gGLExtF, m_pVertexes, sizeof(particle_vertex_t)*vertexArraySize, indexes, sizeof(Uint32)*m_particleAllocCount*6);
+
+	for(Uint32 i = 0; i < m_particleAllocCount*4; i++)
+		m_pVertexes[i].origin[3] = 1.0;
+
+	delete[] indexes;
+
+	m_pShader->SetVBO(m_pVBO);
 }

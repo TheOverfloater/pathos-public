@@ -109,7 +109,7 @@ public:
 	virtual bool TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Float amount, Int32 damageFlags ) override;
 	virtual void TraceAttack( CBaseEntity* pAttacker, Float damage, const Vector& direction, trace_t& tr, Int32 damageFlags ) override;
 
-	virtual Vector GetEyePosition( bool addlean = false ) const override { return GetBrushModelCenter(); };
+	virtual Vector GetEyePosition( bool addlean = false, bool usebone = false ) const override { return GetBrushModelCenter(); };
 	virtual Vector GetNavigablePosition( void ) const override { return GetBrushModelCenter(); }
 
 public:

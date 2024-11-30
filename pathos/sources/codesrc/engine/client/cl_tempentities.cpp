@@ -25,7 +25,7 @@ All Rights Reserved.
 #include "r_blackhole.h"
 
 // Tempentity allocation size
-const Uint32 CTempEntityManager::TEMPENT_ALLOC_SIZE = 4096;
+const Uint32 CTempEntityManager::TEMPENT_ALLOC_SIZE = 256;
 // One shard every n^3 units
 const Float CTempEntityManager::SHARD_VOLUME = 12.0;
 

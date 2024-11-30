@@ -18,6 +18,8 @@ struct mlight_t;
 struct beam_t;
 
 enum beam_types_t;
+enum overlay_rendermode_t;
+enum overlay_effect_t;
 
 struct cl_efxapi_t
 {
@@ -54,6 +56,8 @@ struct cl_efxapi_t
 	void					(*pfnSetFilmGrain)(bool active, Float strength);
 	void					(*pfnSetBlackAndWhite)(bool active, Float strength);
 	void					(*pfnSetChromatic)(bool active, Float strength);
+	void					(*pfnSetScreenOverlay)( Int32 layerindex, const Char* pstrtexturename, overlay_rendermode_t rendermode, const Vector& rendercolor, Float renderamt, overlay_effect_t effect, Float effectspeed, Float effectminalpha, Float fadetime );
+	void					(*pfnClearScreenOverlay)( Int32 layerindex, Float fadetime );
 	void					(*pfnSetFade)( Uint32 layerindex, Float duration, Float holdtime, Int32 flags, const color24_t& color, byte alpha, Float timeoffset );
 	void					(*pfnSetGaussianBlur)( bool active, Float alpha );
 

@@ -339,6 +339,9 @@ void ServerFrame( void )
 
 	// Reset these
 	g_nbNPCPenetrations = 0;
+
+	// Reset this
+	CBaseNPC::ResetFrameStates();
 }
 
 //=============================================

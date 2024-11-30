@@ -690,6 +690,44 @@ bool CAnimatingEntity::GetBonePosition( const Char* pstrbonename, Vector& origin
 }
 
 //=============================================
+// @brief
+//
+//=============================================
+Int32 CAnimatingEntity::GetBoneIndex( const Char* pstrbonename )
+{
+	const cache_model_t* pmodel = gd_engfuncs.pfnGetModel(m_pState->modelindex);
+	if(!pmodel)
+	{
+		gd_engfuncs.pfnCon_Printf("%s - Called on entity with no model.\n", __FUNCTION__);
+		return NO_POSITION;
+	}
+
+	if(pmodel->type != MOD_VBM)
+	{
+		gd_engfuncs.pfnCon_Printf("%s - Model '%s' is not a VBM model.\n", __FUNCTION__, pmodel->name.c_str());
+		return NO_POSITION;
+	}
+
+	// get pointer to studio data
+	const vbmcache_t* pcache = pmodel->getVBMCache();
+	const studiohdr_t* pstudiohdr = pcache->pstudiohdr;
+	if(!pstudiohdr)
+	{
+		gd_engfuncs.pfnCon_Printf("%s - Called on model '%s' which has no valid studio data.\n", __FUNCTION__, pmodel->name.c_str());
+		return 0;
+	}
+
+	for(Uint32 i = 0; i < pstudiohdr->numbones; i++)
+	{
+		const mstudiobone_t* pbone = pstudiohdr->getBone(i);
+		if(!qstrcmp(pbone->name, pstrbonename))
+			return i;
+	}
+
+	return NO_POSITION;
+}
+
+//=============================================
 // @brief Returns the bodygroup index by name
 //
 //=============================================

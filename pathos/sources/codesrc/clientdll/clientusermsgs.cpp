@@ -2490,3 +2490,101 @@ MSGFN MsgFunc_Chromatic(const Char* pstrName, const byte* pdata, Uint32 msgsize)
 	cl_efxapi.pfnSetChromatic(isActive, strength);
 	return true;
 }
+
+//=============================================
+// @brief
+//
+//=============================================
+MSGFN MsgFunc_SetScreenOverlay(const Char* pstrName, const byte* pdata, Uint32 msgsize)
+{
+	CMSGReader reader(pdata, msgsize);
+	Int32 layerindex = reader.ReadByte();
+	Int32 msgType = reader.ReadByte();
+	switch(msgType)
+	{
+	case OVERLAY_MSG_SET:
+		{
+			CString texturename = reader.ReadString();
+
+			overlay_rendermode_t rendermode;
+			Int32 msgrendermode = reader.ReadByte();
+			switch(msgrendermode)
+			{
+			case 0: 
+				rendermode = OVERLAY_RENDER_NORMAL; 
+				break;
+			case 1:
+				rendermode = OVERLAY_RENDER_ADDITIVE; 
+				break;
+			case 2:
+				rendermode = OVERLAY_RENDER_ALPHATEST; 
+				break;
+			case 3:
+				rendermode = OVERLAY_RENDER_ALPHABLEND; 
+				break;
+			default:
+				cl_engfuncs.pfnCon_Printf("%s - Error reading message: Invalid rendermode %d read.\n", __FUNCTION__, msgrendermode);
+				rendermode = OVERLAY_RENDER_NORMAL;
+				break;
+			}
+
+			Vector rendercolor;
+			for(Uint32 i = 0; i < 3; i++)
+				rendercolor[i] = static_cast<Float>(reader.ReadByte()) / 255.0f;
+
+			Float renderamt = static_cast<Float>(reader.ReadByte()) / 255.0f;
+
+			overlay_effect_t effect;
+			Int32 msgeffect = reader.ReadByte();
+			switch(msgeffect)
+			{
+			case 0: 
+				effect = OVERLAY_EFFECT_NONE; 
+				break;
+			case 1:
+				effect = OVERLAY_EFFECT_PULSATE; 
+				break;
+			default:
+				cl_engfuncs.pfnCon_Printf("%s - Error reading message: Invalid effect %d read.\n", __FUNCTION__, msgrendermode);
+				effect = OVERLAY_EFFECT_NONE;
+				break;
+			}
+		
+			Float effectspeed;
+			Float effectminalpha;
+			if(msgeffect != OVERLAY_EFFECT_NONE)
+			{
+				effectspeed = reader.ReadSmallFloat();
+				effectminalpha = reader.ReadSmallFloat();
+			}
+			else
+			{
+				effectspeed = 0;
+				effectminalpha = 0;
+			}
+
+			Float fadetime = reader.ReadSmallFloat();
+			cl_efxapi.pfnSetScreenOverlay(layerindex, texturename.c_str(), rendermode, rendercolor, renderamt, effect, effectspeed, effectminalpha, fadetime);
+		}
+		break;
+	case OVERLAY_MSG_CLEAR_FADEOUT:
+		{
+			Float duration = reader.ReadSmallFloat();
+			cl_efxapi.pfnClearScreenOverlay(layerindex, duration);
+		}
+		break;
+	case OVERLAY_MSG_CLEAR:
+		{
+			cl_efxapi.pfnClearScreenOverlay(layerindex, 0);
+		}
+		break;
+	}
+
+	if (reader.HasError())
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+		return false;
+	}
+	else
+		return true;
+}

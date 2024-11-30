@@ -99,7 +99,7 @@ public:
 	// Adds a child to this object
 	void addChild( CUIObject* pChild );
 	// Removes a child object from this object
-	void removeChild( CUIObject* pChild ) { m_childrenArray.erase(pChild); }
+	void removeChild( CUIObject* pChild ) { m_childrenArray.erase_object(pChild); }
 
 	// Returns the number of children
 	Uint32 getNbChildren( void ) const { return m_childrenArray.size(); }

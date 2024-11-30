@@ -3159,7 +3159,7 @@ void CAINodeGraph::CheckNode( const Vector& origin, Int32 nodeIndex, Uint64 node
 	// Factor in NPCs for path testing
 	if(pEntity && pEntity->IsNPC())
 	{
-		localmove_t moveResult = pEntity->CheckLocalMove(origin, pnode->origin, pTargetEntity, nullptr, true);
+		localmove_t moveResult = pEntity->CheckLocalMove(origin, pnode->origin, pTargetEntity, nullptr, true, true);
 		if(moveResult > LOCAL_MOVE_RESULT_FAILURE)
 			result = true;
 	}

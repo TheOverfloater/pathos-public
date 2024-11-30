@@ -58,9 +58,6 @@ brushmodel_t* PBSPV2_Load( const byte* pfile, const dpbspv2header_t* pheader, co
 		return nullptr;
 	}
 
-	// Set up everything else
-	BSP_MakeHullZero((*pmodel));
-
 	return pmodel;
 }
 
@@ -307,7 +304,7 @@ bool PBSPV2_LoadTextures( const byte* pfile, brushmodel_t& model, const dpbspv2l
 // @brief
 //
 //=============================================
-bool PBSPV2_DecompressLightingData( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump, color24_t*& pdestptr, Uint32& destsize )
+bool PBSPV2_DecompressLightingData( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump, color24_t*& pdestptr, Uint32& destsize, byte*& poriginaldataptr, Uint32& originalsize, Int32& compression, Int32 compressionlevel )
 {
 	const dpbspv2lmapdata_t* plightmapdata = reinterpret_cast<const dpbspv2lmapdata_t*>(pfile + lump.offset);
 	if(plightmapdata->noncompressedsize % sizeof(color24_t))
@@ -320,12 +317,20 @@ bool PBSPV2_DecompressLightingData( const byte* pfile, brushmodel_t& model, cons
 	byte* poutputdataptr = new byte[plightmapdata->noncompressedsize];
 	memset(poutputdataptr, 0, sizeof(byte)*plightmapdata->noncompressedsize);
 
+	// Fill in original info
+	poriginaldataptr = new byte[plightmapdata->datasize];
+	memcpy(poriginaldataptr, prawdatasrc, plightmapdata->datasize);
+	originalsize = plightmapdata->datasize;
+	compression = plightmapdata->compression;
+	compressionlevel = plightmapdata->compressionlevel;
+
+	// Set final data
 	switch(plightmapdata->compression)
 	{
-	case PBSPV2_LMAP_COMPRESSION_NONE:
+	case BSP_LMAP_COMPRESSION_NONE:
 		memcpy(poutputdataptr, prawdatasrc, sizeof(byte)*plightmapdata->noncompressedsize);
 		break;
-	case PBSPV2_LMAP_COMPRESSION_MINIZ:
+	case BSP_LMAP_COMPRESSION_MINIZ:
 		{
 			mz_ulong destinationsize = plightmapdata->noncompressedsize;
 			Int32 status = uncompress(poutputdataptr, &destinationsize, prawdatasrc, plightmapdata->datasize);
@@ -336,7 +341,7 @@ bool PBSPV2_DecompressLightingData( const byte* pfile, brushmodel_t& model, cons
 				return false;
 			}
 
-			if(plightmapdata->noncompressedsize != destinationsize)
+			if(plightmapdata->noncompressedsize != static_cast<Int32>(destinationsize))
 			{
 				Con_EPrintf("%s - Miniz uncompress produced inconsistent output size (expected %d, got %d instead).\n", __FUNCTION__, plightmapdata->noncompressedsize, destinationsize);
 				delete[] poutputdataptr;
@@ -368,7 +373,9 @@ bool PBSPV2_LoadDefaultLighting( const byte* pfile, brushmodel_t& model, const d
 		return false;
 	}
 
-	return PBSPV2_DecompressLightingData(pfile, model, lump, model.plightdata[SURF_LIGHTMAP_DEFAULT], model.lightdatasize);
+	return PBSPV2_DecompressLightingData(pfile, model, lump, model.plightdata[SURF_LIGHTMAP_DEFAULT], model.lightdatasize, 
+		model.plightdata_original[SURF_LIGHTMAP_DEFAULT], model.original_lightdatasizes[SURF_LIGHTMAP_DEFAULT],
+		model.original_compressiontype[SURF_LIGHTMAP_DEFAULT], model.original_compressionlevel[SURF_LIGHTMAP_DEFAULT]);
 }
 
 //=============================================
@@ -388,7 +395,10 @@ bool PBSPV2_LoadLightingDataLayer( const byte* pfile, brushmodel_t& model, const
 	}
 
 	Uint32 datasize = 0;
-	bool result = PBSPV2_DecompressLightingData(pfile, model, lump, model.plightdata[layer], datasize);
+	bool result = PBSPV2_DecompressLightingData(pfile, model, lump, model.plightdata[layer], datasize, 
+		model.plightdata_original[layer], model.original_lightdatasizes[layer],
+		model.original_compressiontype[layer], model.original_compressionlevel[layer]);
+
 	if(result)
 	{
 		if(datasize != model.lightdatasize)
@@ -537,17 +547,7 @@ bool PBSPV2_LoadFaces( const byte* pfile, brushmodel_t& model, const dpbspv2lump
 		if(pinfaces[i].lightoffset != -1)
 		{
 			// We only have the base layer
-			pout->psamples[SURF_LIGHTMAP_DEFAULT] = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(model.plightdata[SURF_LIGHTMAP_DEFAULT]) + pinfaces[i].lightoffset);
 			pout->lightoffset = pinfaces[i].lightoffset;
-
-			// Also set for other layers if we have valid data on them
-			if(model.plightdata[SURF_LIGHTMAP_AMBIENT] 
-				&& model.plightdata[SURF_LIGHTMAP_DIFFUSE] 
-				&& model.plightdata[SURF_LIGHTMAP_VECTORS])
-			{
-				for(Uint32 j = 1; j < NB_SURF_LIGHTMAP_LAYERS; j++)
-					pout->psamples[j] = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(model.plightdata[j]) + pout->lightoffset);
-			}
 		}
 		else
 		{
@@ -558,6 +558,8 @@ bool PBSPV2_LoadFaces( const byte* pfile, brushmodel_t& model, const dpbspv2lump
 		// Flag sky surfaces
 		if(!qstrncmp(pout->ptexinfo->ptexture->name.c_str(), "sky", 3))
 			pout->flags |= SURF_DRAWSKY;
+		else if(pout->ptexinfo->ptexture->name[0] == '!')
+			pout->flags |= SURF_DRAWTURB;
 	}
 
 	return true;

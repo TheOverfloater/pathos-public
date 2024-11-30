@@ -89,6 +89,8 @@ public:
 	virtual bool GetBonePosition( Uint32 boneindex, Vector& origin );
 	// Gets bone position by name
 	virtual bool GetBonePosition( const Char* pstrbonename, Vector& origin );
+	// Gets bone index by name
+	virtual Int32 GetBoneIndex( const Char* pstrbonename );
 
 	// Returns the bodygroup setting
 	virtual Int32 GetBodyGroupValue( Int32 groupindex );

@@ -925,7 +925,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_FLOAT:
 		case EFIELD_CARRAY_FLOAT:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Float)*fieldsize))
+				if(field.type != EFIELD_CARRAY_FLOAT && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Float)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
@@ -937,7 +937,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_DOUBLE:
 		case EFIELD_CARRAY_DOUBLE:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Double)*fieldsize))
+				if(field.type != EFIELD_CARRAY_DOUBLE && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Double)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
@@ -949,7 +949,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_ENTINDEX:
 		case EFIELD_CARRAY_ENTINDEX:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS))
+				if(field.type != EFIELD_CARRAY_ENTINDEX && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS))
 				{
 					Uint32 i = 0;
 					for(; i < fieldsize; i++)
@@ -986,7 +986,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 						ptempbuffer[j] = NO_ENTITY_INDEX;
 				}
 
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && !hasData)
+				if(field.type != EFIELD_CARRAY_ENTPOINTER && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && !hasData)
 				{
 					m_saveFieldsList.next();
 					delete[] ptempbuffer;
@@ -1014,7 +1014,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 						ptempbuffer[j] = NO_ENTITY_INDEX;
 				}
 
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && !hasData)
+				if(field.type != EFIELD_CARRAY_EDICT && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && !hasData)
 				{
 					m_saveFieldsList.next();
 					delete[] ptempbuffer;
@@ -1042,7 +1042,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 						ptempbuffer[j] = NO_ENTITY_INDEX;
 				}
 
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && !hasData)
+				if(field.type != EFIELD_CARRAY_ENTSTATE && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && !hasData)
 				{
 					m_saveFieldsList.next();
 					delete[] ptempbuffer;
@@ -1070,7 +1070,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 						ptempbuffer[j] = NO_ENTITY_INDEX;
 				}
 
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && !hasData)
+				if(field.type != EFIELD_CARRAY_EHANDLE && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && !hasData)
 				{
 					m_saveFieldsList.next();
 					delete[] ptempbuffer;
@@ -1084,7 +1084,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_VECTOR:
 		case EFIELD_CARRAY_VECTOR:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS))
+				if(field.type != EFIELD_CARRAY_VECTOR && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS))
 				{
 					Uint32 i = 0;
 					for(; i < fieldsize; i++)
@@ -1115,7 +1115,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_INT16:
 		case EFIELD_CARRAY_INT16:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int16)*fieldsize))
+				if(field.type != EFIELD_CARRAY_INT16 && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int16)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
@@ -1127,7 +1127,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_UINT16:
 		case EFIELD_CARRAY_UINT16:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Uint16)*fieldsize))
+				if(field.type != EFIELD_CARRAY_UINT16 && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Uint16)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
@@ -1139,7 +1139,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_INT32:
 		case EFIELD_CARRAY_INT32:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int32)*fieldsize))
+				if(field.type != EFIELD_CARRAY_INT32 && field.type != EFIELD_CARRAY_INT32 && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int32)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
@@ -1151,7 +1151,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_UINT32:
 		case EFIELD_CARRAY_UINT32:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Uint32)*fieldsize))
+				if(field.type != EFIELD_CARRAY_UINT32 && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Uint32)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
@@ -1163,7 +1163,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_INT64:
 		case EFIELD_CARRAY_INT64:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int64)*fieldsize))
+				if(field.type != EFIELD_CARRAY_INT64 && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int64)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
@@ -1175,7 +1175,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_UINT64:
 		case EFIELD_CARRAY_UINT64:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Uint64)*fieldsize))
+				if(field.type != EFIELD_CARRAY_UINT64 && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Uint64)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
@@ -1211,7 +1211,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_BOOLEAN:
 		case EFIELD_CARRAY_BOOLEAN:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(bool)*fieldsize))
+				if(field.type != EFIELD_CARRAY_BOOLEAN && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(bool)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;
@@ -1245,7 +1245,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_TIME:
 		case EFIELD_CARRAY_TIME:
 			{
-				if(!istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Double)*fieldsize))
+				if(field.type != EFIELD_CARRAY_TIME && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Double)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;

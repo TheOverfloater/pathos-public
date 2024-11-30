@@ -1685,208 +1685,187 @@ void CVBMRenderer::SetupLighting ( void )
 	if(!gotLighting)
 	{
 		// Trace against the world
-		if(ens.pworld->plightdata[SURF_LIGHTMAP_DEFAULT] && !(m_pStudioHeader->flags & STUDIO_MF_SKYLIGHT))
+		Vector lighttop;
+		Vector lightbottom;
+		const brushmodel_t* pbrushmodel = nullptr;
+
+		if(m_pCurrentEntity->curstate.groundent != NO_ENTITY_INDEX && 
+			m_pCurrentEntity->curstate.groundent != WORLDSPAWN_ENTITY_INDEX
+			&& !(m_pCurrentEntity->curstate.effects & EF_ALTLIGHTORIGIN)
+			&& (m_pCurrentEntity->curstate.rendermode == RENDER_NORMAL
+			|| (m_pCurrentEntity->curstate.rendermode & RENDERMODE_BITMASK) == RENDER_TRANSALPHA
+			|| m_pCurrentEntity->curstate.renderamt > 0))
 		{
-			Vector lighttop;
-			Vector lightbottom;
-			const brushmodel_t* pbrushmodel = nullptr;
-
-			if(m_pCurrentEntity->curstate.groundent != NO_ENTITY_INDEX && 
-				m_pCurrentEntity->curstate.groundent != WORLDSPAWN_ENTITY_INDEX
-				&& !(m_pCurrentEntity->curstate.effects & EF_ALTLIGHTORIGIN)
-				&& (m_pCurrentEntity->curstate.rendermode == RENDER_NORMAL
-				|| (m_pCurrentEntity->curstate.rendermode & RENDERMODE_BITMASK) == RENDER_TRANSALPHA
-				|| m_pCurrentEntity->curstate.renderamt > 0))
+			cl_entity_t* pentity = CL_GetEntityByIndex(m_pCurrentEntity->curstate.groundent);
+			if(pentity && pentity->pmodel && pentity->pmodel->type == MOD_BRUSH
+				&& !(pentity->curstate.effects &EF_COLLISION))
 			{
-				cl_entity_t* pentity = CL_GetEntityByIndex(m_pCurrentEntity->curstate.groundent);
-				if(pentity && pentity->pmodel && pentity->pmodel->type == MOD_BRUSH
-					&& !(pentity->curstate.effects &EF_COLLISION))
-				{
-					Vector offsetorigin;
-					Math::VectorSubtract(lightorigin, pentity->curstate.origin, offsetorigin);
-					if(!pentity->curstate.angles.IsZero())
-						Math::RotateToEntitySpace(pentity->curstate.angles, offsetorigin);
+				Vector offsetorigin;
+				Math::VectorSubtract(lightorigin, pentity->curstate.origin, offsetorigin);
+				if(!pentity->curstate.angles.IsZero())
+					Math::RotateToEntitySpace(pentity->curstate.angles, offsetorigin);
 
-					Math::VectorCopy(offsetorigin, lighttop);
-					Math::VectorCopy(offsetorigin, lightbottom);
-					if (m_pCurrentEntity->curstate.effects & EF_INVLIGHT) 
-						lightbottom[2] += 8196;
-					else
-						lightbottom[2] -= 8196;
-
-					const brushmodel_t* pentbrushmodel = pentity->pmodel->getBrushmodel();
-
-					// Try and get bump data if possible
-					if(m_pCvarUseBumpData->GetValue() >= 1.0 
-						&& ens.pworld->plightdata[SURF_LIGHTMAP_AMBIENT]
-						&& ens.pworld->plightdata[SURF_LIGHTMAP_DIFFUSE]
-						&& ens.pworld->plightdata[SURF_LIGHTMAP_VECTORS])
-					{
-						gotLightmapLighting = Mod_RecursiveLightPoint_BumpData(pentbrushmodel, &pentbrushmodel->pnodes[pentbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolors, lmapdiffusecolors, lightdirs, &surfnormal, lightstyles);
-						if(gotLightmapLighting)
-						{
-							if(lightcolors[SURF_LIGHTMAP_DEFAULT].Length() < lmapdiffusecolors[SURF_LIGHTMAP_DEFAULT].Length())
-							{
-								gotBumpLighting = true;
-								gotLighting = true;
-							}
-							else
-							{
-								// We sometimes have an odd case where we have no diffuse light
-								// In this case, switch color values so it doesn't look unnatural
-								gotLightmapLighting = false;
-							}
-						}
-					}
-
-					// If we didn't get bump data, use normal light data
-					if(!gotLightmapLighting)
-						gotLightmapLighting = Mod_RecursiveLightPoint(pentbrushmodel, &pentbrushmodel->pnodes[pentbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolors, lightstyles);
-
-					if(gotLightmapLighting)
-					{
-						// Use this brushmodel for further lighting
-						pbrushmodel = pentbrushmodel;
-					}
-				}
-			}
-
-			if(!pbrushmodel)
-			{
-				// Take lighting from world
-				pbrushmodel = ens.pworld;
-
-				// Set the trace bottom
-				Math::VectorCopy(lightorigin, lighttop);
-				Math::VectorCopy(lightorigin, lightbottom);
-		
+				Math::VectorCopy(offsetorigin, lighttop);
+				Math::VectorCopy(offsetorigin, lightbottom);
 				if (m_pCurrentEntity->curstate.effects & EF_INVLIGHT) 
 					lightbottom[2] += 8196;
 				else
 					lightbottom[2] -= 8196;
 
+				const brushmodel_t* pentbrushmodel = pentity->pmodel->getBrushmodel();
+
 				// Try and get bump data if possible
-				if(m_pCvarUseBumpData->GetValue() >= 1.0)
+				if(m_pCvarUseBumpData->GetValue() >= 1.0 
+					&& ens.pworld->plightdata[SURF_LIGHTMAP_AMBIENT]
+					&& ens.pworld->plightdata[SURF_LIGHTMAP_DIFFUSE]
+					&& ens.pworld->plightdata[SURF_LIGHTMAP_VECTORS])
 				{
-					gotLightmapLighting = Mod_RecursiveLightPoint_BumpData(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolors, lmapdiffusecolors, lightdirs, &surfnormal, lightstyles);
+					gotLightmapLighting = Mod_RecursiveLightPoint_BumpData(pentbrushmodel, &pentbrushmodel->pnodes[pentbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolors, lmapdiffusecolors, lightdirs, &surfnormal, lightstyles);
 					if(gotLightmapLighting)
 					{
-						if(lightcolors[SURF_LIGHTMAP_DEFAULT].Length() < lmapdiffusecolors[SURF_LIGHTMAP_DEFAULT].Length())
-						{
-							gotBumpLighting = true;
-							gotLighting = true;
-						}
-						else
-						{
-							// We sometimes have an odd case where we have no diffuse light
-							// In this case, switch color values so it doesn't look unnatural
-							gotLightmapLighting = false;
-						}
+						gotBumpLighting = true;
+						gotLighting = true;
 					}
 				}
 
 				// If we didn't get bump data, use normal light data
 				if(!gotLightmapLighting)
-					gotLightmapLighting = Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolors, lightstyles);
-			}
+					gotLightmapLighting = Mod_RecursiveLightPoint(pentbrushmodel, &pentbrushmodel->pnodes[pentbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolors, lightstyles);
 
-			// Only do this thing if we don't have bump data
-			if(gotLightmapLighting && !gotBumpLighting)
+				if(gotLightmapLighting)
+				{
+					// Use this brushmodel for further lighting
+					pbrushmodel = pentbrushmodel;
+				}
+			}
+		}
+
+		if(!pbrushmodel)
+		{
+			// Take lighting from world
+			pbrushmodel = ens.pworld;
+
+			// Set the trace bottom
+			Math::VectorCopy(lightorigin, lighttop);
+			Math::VectorCopy(lightorigin, lightbottom);
+		
+			if (m_pCurrentEntity->curstate.effects & EF_INVLIGHT) 
+				lightbottom[2] += 8196;
+			else
+				lightbottom[2] -= 8196;
+
+			// Try and get bump data if possible
+			if(m_pCvarUseBumpData->GetValue() >= 1.0)
 			{
-				Float offset = m_pCvarSampleOffset->GetValue();
-				if(offset != 0)
+				gotLightmapLighting = Mod_RecursiveLightPoint_BumpData(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolors, lmapdiffusecolors, lightdirs, &surfnormal, lightstyles);
+				if(gotLightmapLighting)
 				{
-					if(offset < 0)
-						offset = DEFAULT_LIGHTMAP_SAMPLE_OFFSET;
-
-					// Sample 1
-					Float strengths[4];
-					Vector offsetu = lighttop +  Vector(-offset, -offset, 0);
-					Vector offsetd = lightbottom + Vector(-offset, -offset, 0);
-
-					Vector samplecolor;
-					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor)
-						&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
-					{
-						offsetu = lightorigin + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
-						offsetd = lightbottom + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
-
-						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor);
-					}
-
-					strengths[0] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
-
-					// Sample 2
-					offsetu = lighttop + Vector(offset, -offset, 0);
-					offsetd = lightbottom + Vector(offset, -offset, 0);
-
-					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor)
-						&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
-					{
-						offsetu = lightorigin + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
-						offsetd = lightbottom + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
-
-						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor);
-					}
-
-					strengths[1] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
-
-					// Sample 3
-					offsetu = lighttop + Vector(offset, offset, 0);
-					offsetd = lightbottom + Vector(offset, offset, 0);
-
-					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor)
-						&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
-					{
-						offsetu = lightorigin + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
-						offsetd = lightbottom + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
-
-						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor);
-					}
-
-					strengths[2] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
-
-					// Sample 4
-					offsetu = lighttop + Vector(-offset, offset, 0);
-					offsetd = lightbottom + Vector(-offset, offset, 0);
-
-					if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor)
-						&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
-					{
-						offsetu = lightorigin + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
-						offsetd = lightbottom + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
-
-						Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor);
-					}
-
-					strengths[3] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
-
-					Float length = Math::DotProduct4(strengths, strengths);
-					length = SDL_sqrt(length);
-
-					if(length)
-					{
-						Float ilength = 1.0f/length;
-						for(Uint32 i = 0; i < 4; i++)
-							strengths[i] *= ilength;
-					}
-
-					// Calculate final result
-					lightdirs[BASE_LIGHTMAP_INDEX][0] = strengths[0] - strengths[1] - strengths[2] + strengths[3];
-					lightdirs[BASE_LIGHTMAP_INDEX][1] = strengths[1] + strengths[0] - strengths[2] - strengths[3];
-					lightdirs[BASE_LIGHTMAP_INDEX][2] = -1.0;
-
-					Math::VectorNormalize(lightdirs[BASE_LIGHTMAP_INDEX]);
+					gotBumpLighting = true;
+					gotLighting = true;
 				}
-				else
-				{
-					// Default to basic lightdir
-					lightdirs[BASE_LIGHTMAP_INDEX] = Vector(0, 0, -1);
-				}
-
-				// We got proper lighting
-				gotLighting = true;
 			}
+
+			// If we didn't get bump data, use normal light data
+			if(!gotLightmapLighting)
+				gotLightmapLighting = Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], lighttop, lightbottom, lightcolors, lightstyles);
+		}
+
+		// Only do this thing if we don't have bump data
+		if(gotLightmapLighting && !gotBumpLighting)
+		{
+			Float offset = m_pCvarSampleOffset->GetValue();
+			if(offset != 0)
+			{
+				if(offset < 0)
+					offset = DEFAULT_LIGHTMAP_SAMPLE_OFFSET;
+
+				// Sample 1
+				Float strengths[4];
+				Vector offsetu = lighttop +  Vector(-offset, -offset, 0);
+				Vector offsetd = lightbottom + Vector(-offset, -offset, 0);
+
+				Vector samplecolor;
+				if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor)
+					&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
+				{
+					offsetu = lightorigin + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
+					offsetd = lightbottom + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
+
+					Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor);
+				}
+
+				strengths[0] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
+
+				// Sample 2
+				offsetu = lighttop + Vector(offset, -offset, 0);
+				offsetd = lightbottom + Vector(offset, -offset, 0);
+
+				if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor)
+					&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
+				{
+					offsetu = lightorigin + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
+					offsetd = lightbottom + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, -DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
+
+					Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor);
+				}
+
+				strengths[1] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
+
+				// Sample 3
+				offsetu = lighttop + Vector(offset, offset, 0);
+				offsetd = lightbottom + Vector(offset, offset, 0);
+
+				if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor)
+					&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
+				{
+					offsetu = lightorigin + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
+					offsetd = lightbottom + Vector(DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
+
+					Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor);
+				}
+
+				strengths[2] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
+
+				// Sample 4
+				offsetu = lighttop + Vector(-offset, offset, 0);
+				offsetd = lightbottom + Vector(-offset, offset, 0);
+
+				if(!Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor)
+					&& offset != DEFAULT_LIGHTMAP_SAMPLE_OFFSET)
+				{
+					offsetu = lightorigin + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
+					offsetd = lightbottom + Vector(-DEFAULT_LIGHTMAP_SAMPLE_OFFSET, DEFAULT_LIGHTMAP_SAMPLE_OFFSET, 0);
+
+					Mod_RecursiveLightPoint(pbrushmodel, &pbrushmodel->pnodes[pbrushmodel->hulls[0].firstclipnode], offsetu, offsetd, &samplecolor);
+				}
+
+				strengths[3] = (samplecolor.x + samplecolor.y + samplecolor.z) / 3.0f;
+
+				Float length = Math::DotProduct4(strengths, strengths);
+				length = SDL_sqrt(length);
+
+				if(length)
+				{
+					Float ilength = 1.0f/length;
+					for(Uint32 i = 0; i < 4; i++)
+						strengths[i] *= ilength;
+				}
+
+				// Calculate final result
+				lightdirs[BASE_LIGHTMAP_INDEX][0] = strengths[0] - strengths[1] - strengths[2] + strengths[3];
+				lightdirs[BASE_LIGHTMAP_INDEX][1] = strengths[1] + strengths[0] - strengths[2] - strengths[3];
+				lightdirs[BASE_LIGHTMAP_INDEX][2] = -1.0;
+
+				Math::VectorNormalize(lightdirs[BASE_LIGHTMAP_INDEX]);
+			}
+			else
+			{
+				// Default to basic lightdir
+				lightdirs[BASE_LIGHTMAP_INDEX] = Vector(0, 0, -1);
+			}
+
+			// We got proper lighting
+			gotLighting = true;
 		}
 	}
 
@@ -1934,7 +1913,7 @@ void CVBMRenderer::SetupLighting ( void )
 		Math::VectorCopy(lightcolors[BASE_LIGHTMAP_INDEX], ambientcolors[BASE_LIGHTMAP_INDEX]);
 		Math::VectorCopy(lightdirs[BASE_LIGHTMAP_INDEX], lightdir);
 
-		for(Uint32 j = 0; j < MAX_SURFACE_STYLES; j++)
+		for(Uint32 j = 1; j < MAX_SURFACE_STYLES; j++)
 		{
 			if(lightstyles[j] == NULL_LIGHTSTYLE_INDEX)
 				break;
@@ -2051,13 +2030,15 @@ void CVBMRenderer::SetupLighting ( void )
 
 				// Set time because target light values changed
 				m_pLightingInfo->lighttime = rns.time;
-				m_pLightingInfo->lastlightorigin = lightorigin;
 			}
 		}
 
 		// Make sure this flag is removed
 		if(m_pLightingInfo->reset)
 			m_pLightingInfo->reset = false;
+
+		// Always set this
+		m_pLightingInfo->lastlightorigin = lightorigin;
 	}
 	else
 	{

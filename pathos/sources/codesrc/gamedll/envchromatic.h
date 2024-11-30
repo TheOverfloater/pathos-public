@@ -22,7 +22,14 @@ class CEnvChromatic : public CPointEntity
 public:
     enum
     {
-        FL_START_ON = (1 << 1)
+        FL_START_ON         = (1 << 0),
+        FL_GLOBAL_EFFECT    = (1 << 1)
+    };
+    enum globaltriggermode_t
+    {
+       GTM_TOGGLE = 0,
+       GTM_ON,
+       GTM_OFF
     };
 
 public:
@@ -39,5 +46,6 @@ public:
 private:
     bool m_isActive;
     Float m_chromaticStrength;
+    Int32 m_globalTriggerMode;
 };
 #endif //ENVCHROMATIC

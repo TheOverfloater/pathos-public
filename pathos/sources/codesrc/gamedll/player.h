@@ -270,7 +270,7 @@ public:
 	virtual Int32 GetClientIndex( void ) const override { return m_pEdict->clientindex; }
 
 	// Returns the view position
-	virtual Vector GetEyePosition( bool addlean = false ) const override;
+	virtual Vector GetEyePosition( bool addlean = false, bool usebone = false ) const override;
 	// Returns a navigable position
 	virtual Vector GetNavigablePosition( void ) const override;
 	// Returns the view origin for VIS checks
@@ -654,6 +654,38 @@ public:
 	void DelayedGlobalTriggerThink( void );
 
 public:
+	// Set motion blur values
+	virtual void SetMotionBlur( bool isActive, Float blurFade ) override;
+	// Tells if motion blur is active
+	virtual bool IsMotionBlurActive( void ) const override { return m_isMotionBlurActive; }
+
+	// Set chromatic aberration values
+	virtual void SetChromaticAberration( bool isActive, Float strength ) override;
+	// Tells if chromatic aberration is active
+	virtual bool IsChromaticAberrationActive( void ) const override { return m_isChromaticAberrationActive; }
+
+	// Set chromatic aberration values
+	virtual void SetBlackAndWhite( bool isActive, Float strength ) override;
+	// Tells if chromatic aberration is active
+	virtual bool IsBlackAndwhiteActive( void ) const override { return m_isBlackAndWhiteActive; }
+
+	// Set vignette effect values
+	virtual void SetVignetteEffect( bool isActive, Float radius, Float strength ) override;
+	// Tells if vignette is active
+	virtual bool IsVignetteEffectActive( void ) const override { return m_isVignetteActive; }
+
+	// Set chromatic aberration values
+	virtual void SetFilmGrain( bool isActive, Float strength ) override;
+	// Tells if chromatic aberration is active
+	virtual bool IsFilmGrainActive( void ) const override { return m_isFilmGrainActive; }
+
+public:
+	// Set overlay effect
+	virtual void SetScreenOverlay( Int32 layerindex, const Char* pstrTextureName, overlay_rendermode_t rendermode, const Vector& rendercolor, Float renderamt, overlay_effect_t effect, Float effectspeed, Float effectminalpha, Float fadetime ) override;
+	// Clears an overlay
+	virtual void ClearOverlay( Int32 layerindex, Float fadetime ) override;
+
+public:
 	// Tells if a cheat command is active
 	static bool IsUsingCheatCommand( void );
 
@@ -1005,6 +1037,47 @@ private:
 	Vector						m_lastAutoAimVector;
 	// Tells if autoaim is on-target
 	bool						m_isOnTarget;
+
+private:
+	// TRUE if chromatic aberration is active
+	bool						m_isChromaticAberrationActive;
+	// Chromatic aberration strength
+	Float						m_chromaticAberrationStrength;
+
+	// TRUE if b&w effect is active
+	bool						m_isBlackAndWhiteActive;
+	// B&W strength
+	Float						m_blackAndWhiteStrength;
+
+	// TRUE if motion blur is active
+	bool						m_isMotionBlurActive;
+	// Motion blur fade value
+	Float						m_motionBlurFade;
+
+	// TRUE if vignette effect is active
+	bool						m_isVignetteActive;
+	// Vignette strength
+	Float						m_vignetteStrength;
+	// Vignette radius
+	Float						m_vignetteRadius;
+
+	// TRUE if film grain is active
+	bool						m_isFilmGrainActive;
+	// Film grain strength
+	Float						m_filmGrainStrength;
+
+private:
+	// Overlay effect arrays
+	CArray<Int32>				m_overlayLayerIndexArray;
+	CArray<string_t>			m_overlayTextureArray;
+	CArray<Int32>				m_overlayRenderModeArray;
+	CArray<Vector>				m_overlayRenderColorArray;
+	CArray<Int32>				m_overlayRenderAmountArray;
+	CArray<Int32>				m_overlayEffectArray;
+	CArray<Float>				m_overlayEffectSpeedArray;
+	CArray<Float>				m_overlayEffectMinAlphaArray;
+	// Number of overlay effects
+	Uint32						m_numOverlays;
 
 private:
 	// TRUE if using cheat commands

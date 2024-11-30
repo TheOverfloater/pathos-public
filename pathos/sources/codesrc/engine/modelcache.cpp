@@ -371,6 +371,9 @@ cache_model_t* CModelCache::LoadBSPModel( const Char* pstrFilename, const byte* 
 	if(!pmodel)
 		return nullptr;
 
+	// Set up everything else
+	BSP_MakeHullZero((*pmodel));
+
 	// Setup the submodels too
 	SetupBSPSubmodels(*pmodel, pstrFilename);
 
@@ -382,6 +385,18 @@ cache_model_t* CModelCache::LoadBSPModel( const Char* pstrFilename, const byte* 
 	cache_model_t* pcache = m_modelCacheArray[0];
 	pmodel = pcache->getBrushmodel();
 	BSP_SetupPAS((*pmodel));
+
+	pmodel->lightmaplayercount = 0;
+	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+	{
+		if(!pmodel->plightdata[i])
+			break;
+
+		pmodel->lightmaplayercount++;
+	}
+
+	// Set sampling data
+	BSP_SetSamplingLightData(*pmodel);
 
 	return pcache;
 }
@@ -410,6 +425,7 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 		pnewmodel->ppasdata = model.ppasdata;
 		pnewmodel->pasdatasize = model.pasdatasize;
 		pnewmodel->lightdatasize = model.lightdatasize;
+		pnewmodel->lightmaplayercount = model.lightmaplayercount;
 		pnewmodel->pclipnodes = model.pclipnodes;
 		pnewmodel->numclipnodes = model.numclipnodes;
 		pnewmodel->pedges = model.pedges;
@@ -437,7 +453,13 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 		pnewmodel->freedata = (i == 0) ? true : false;
 
 		for(Uint32 j = 0 ; j < NB_SURF_LIGHTMAP_LAYERS; j++)
+		{
 			pnewmodel->plightdata[j] = model.plightdata[j];
+			pnewmodel->plightdata_original[j] = model.plightdata_original[j];
+			pnewmodel->original_lightdatasizes[j] = model.original_lightdatasizes[j];
+			pnewmodel->original_compressiontype[j] = model.original_compressiontype[j];
+			pnewmodel->original_compressionlevel[j] = model.original_compressionlevel[j];
+		}
 
 		pnewmodel->hulls[0].firstclipnode = psubmodel->headnode[0];
 		for(Uint32 j = 1; j < MAX_MAP_HULLS; j++)

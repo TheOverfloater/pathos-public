@@ -22,7 +22,8 @@ LINK_ENTITY_TO_CLASS(env_blur, CEnvBlur);
 CEnvBlur::CEnvBlur( edict_t* pedict ):
 	CPointEntity(pedict),
 	m_isActive(false),
-	m_blurFade(0)
+	m_blurFade(0),
+    m_globalTriggerMode(GTM_TOGGLE)
 {
 }
 
@@ -45,6 +46,7 @@ void CEnvBlur::DeclareSaveFields( void )
 	
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvBlur, m_isActive, EFIELD_BOOLEAN));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvBlur, m_blurFade, EFIELD_FLOAT));
+    DeclareSaveField(DEFINE_DATA_FIELD(CEnvBlur, m_globalTriggerMode, EFIELD_INT32));
 }
 
 //=============================================
@@ -58,6 +60,28 @@ bool CEnvBlur::KeyValue( const keyvalue_t& kv )
 		m_blurFade = SDL_atof(kv.value);
 		return true;
 	}
+    else if (!qstrcmp(kv.keyname, "globaltriggermode"))
+    {
+        Int32 value = SDL_atoi(kv.value);
+        switch(value)
+        {
+        case 0:
+            m_globalTriggerMode = GTM_TOGGLE;
+            break;
+        case 1:
+            m_globalTriggerMode = GTM_ON;
+            break;
+        case 2:
+            m_globalTriggerMode = GTM_OFF;
+            break;
+        default:
+            Util::EntityConPrintf(m_pEdict, "Keyvalue '%s' has invalid value '%s'.\n", kv.keyname, kv.value);
+            m_globalTriggerMode = GTM_TOGGLE;
+            break;
+        }
+
+        return true;
+    }
 	else
 		return CPointEntity::KeyValue(kv);
 }
@@ -71,7 +95,7 @@ bool CEnvBlur::Spawn( void )
 	if(!CPointEntity::Spawn())
 		return false;
 
-	if(HasSpawnFlag(FL_START_ON))
+	if(!HasSpawnFlag(FL_GLOBAL_EFFECT) && HasSpawnFlag(FL_START_ON))
 		m_isActive = true;
 
 	return true;
@@ -83,6 +107,9 @@ bool CEnvBlur::Spawn( void )
 //=============================================
 void CEnvBlur::SendInitMessage( const CBaseEntity* pPlayer )
 {
+	if(HasSpawnFlag(FL_GLOBAL_EFFECT))
+		return;
+
 	if(pPlayer && !m_isActive)
 		return;
 
@@ -104,20 +131,53 @@ void CEnvBlur::SendInitMessage( const CBaseEntity* pPlayer )
 //=============================================
 void CEnvBlur::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value )
 {
-	bool prevstate = m_isActive;
-	switch(useMode)
-	{
-	case USE_ON:
-		m_isActive = true;
-		break;
-	case USE_OFF:
-		m_isActive = false;
-		break;
-	case USE_TOGGLE:
-		m_isActive = !m_isActive;
-		break;
-	}
+    if(HasSpawnFlag(FL_GLOBAL_EFFECT))
+    {
+        CBaseEntity* pPlayer = Util::GetHostPlayer();
+        if(pPlayer)
+        {
+            bool prevState = pPlayer->IsMotionBlurActive();
 
-	if(m_isActive != prevstate)
-		SendInitMessage(nullptr);
+            bool desiredState = false;
+            switch (m_globalTriggerMode)
+            {
+            case GTM_ON:
+                desiredState = true;
+                break;
+            case GTM_OFF:
+                desiredState = false;
+                break;
+            case GTM_TOGGLE:
+                desiredState = !prevState;
+                break;
+            }
+
+            if(desiredState != prevState)
+            {
+                if(!desiredState)
+                    pPlayer->SetMotionBlur(false, 0);
+                else
+                    pPlayer->SetMotionBlur(true, m_blurFade);
+            }
+        }
+    }
+    else
+    {
+		bool prevstate = m_isActive;
+		switch(useMode)
+		{
+		case USE_ON:
+			m_isActive = true;
+			break;
+		case USE_OFF:
+			m_isActive = false;
+			break;
+		case USE_TOGGLE:
+			m_isActive = !m_isActive;
+			break;
+		}
+
+		if(m_isActive != prevstate)
+			SendInitMessage(nullptr);
+   }
 }

@@ -16,7 +16,7 @@ All Rights Reserved.
 #include "constants.h"
 
 // Buffer size
-const Uint32 CLogFile::LOG_BUFFER_SIZE = 16384;
+const Uint32 CLogFile::LOG_BUFFER_SIZE = 4096;
 // Size of buffer for message prints
 const Uint32 CLogFile::PRINT_MSG_BUFFER_SIZE = 16384;
 

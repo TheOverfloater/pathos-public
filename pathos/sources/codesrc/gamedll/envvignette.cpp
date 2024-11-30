@@ -25,7 +25,8 @@ CEnvVignette::CEnvVignette( edict_t* pedict ) :
     CPointEntity(pedict),
     m_isActive(false),
     m_vignetteStrength(0.5f),
-    m_vignetteRadius(0.5f)
+    m_vignetteRadius(0.5f),
+    m_globalTriggerMode(GTM_TOGGLE)
 {
 }
 
@@ -49,6 +50,7 @@ void CEnvVignette::DeclareSaveFields( void )
     DeclareSaveField(DEFINE_DATA_FIELD(CEnvVignette, m_isActive, EFIELD_BOOLEAN));
     DeclareSaveField(DEFINE_DATA_FIELD(CEnvVignette, m_vignetteStrength, EFIELD_FLOAT));
     DeclareSaveField(DEFINE_DATA_FIELD(CEnvVignette, m_vignetteRadius, EFIELD_FLOAT));
+    DeclareSaveField(DEFINE_DATA_FIELD(CEnvVignette, m_globalTriggerMode, EFIELD_INT32));
 }
 
 //=============================================
@@ -67,6 +69,28 @@ bool CEnvVignette::KeyValue( const keyvalue_t& kv )
         m_vignetteRadius = SDL_atof(kv.value);
         return true;
     }
+    else if (!qstrcmp(kv.keyname, "globaltriggermode"))
+    {
+        Int32 value = SDL_atoi(kv.value);
+        switch(value)
+        {
+        case 0:
+            m_globalTriggerMode = GTM_TOGGLE;
+            break;
+        case 1:
+            m_globalTriggerMode = GTM_ON;
+            break;
+        case 2:
+            m_globalTriggerMode = GTM_OFF;
+            break;
+        default:
+            Util::EntityConPrintf(m_pEdict, "Keyvalue '%s' has invalid value '%s'.\n", kv.keyname, kv.value);
+            m_globalTriggerMode = GTM_TOGGLE;
+            break;
+        }
+
+        return true;
+    }
     else
         return CPointEntity::KeyValue(kv);
 }
@@ -80,7 +104,7 @@ bool CEnvVignette::Spawn( void )
     if (!CPointEntity::Spawn())
         return false;
 
-    if (HasSpawnFlag(FL_START_ON))
+    if (!HasSpawnFlag(FL_GLOBAL_EFFECT) && HasSpawnFlag(FL_START_ON))
         m_isActive = true;
 
     return true;
@@ -92,6 +116,9 @@ bool CEnvVignette::Spawn( void )
 //=============================================
 void CEnvVignette::SendInitMessage( const CBaseEntity* pPlayer )
 {
+    if(HasSpawnFlag(FL_GLOBAL_EFFECT))
+        return;
+
     if (pPlayer && !m_isActive)
         return;
 
@@ -115,20 +142,53 @@ void CEnvVignette::SendInitMessage( const CBaseEntity* pPlayer )
 //=============================================
 void CEnvVignette::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value )
 {
-    bool prevstate = m_isActive;
-    switch (useMode)
+    if(HasSpawnFlag(FL_GLOBAL_EFFECT))
     {
-    case USE_ON:
-        m_isActive = true;
-        break;
-    case USE_OFF:
-        m_isActive = false;
-        break;
-    case USE_TOGGLE:
-        m_isActive = !m_isActive;
-        break;
-    }
+        CBaseEntity* pPlayer = Util::GetHostPlayer();
+        if(pPlayer)
+        {
+            bool prevState = pPlayer->IsVignetteEffectActive();
 
-    if (m_isActive != prevstate)
-        SendInitMessage(nullptr);
+            bool desiredState = false;
+            switch (m_globalTriggerMode)
+            {
+            case GTM_ON:
+                desiredState = true;
+                break;
+            case GTM_OFF:
+                desiredState = false;
+                break;
+            case GTM_TOGGLE:
+                desiredState = !prevState;
+                break;
+            }
+
+            if(desiredState != prevState)
+            {
+                if(!desiredState)
+                    pPlayer->SetVignetteEffect(false, 0, 0);
+                else
+                    pPlayer->SetVignetteEffect(true, m_vignetteRadius, m_vignetteStrength);
+            }
+        }
+    }
+    else
+    {
+        bool prevstate = m_isActive;
+        switch (useMode)
+        {
+        case USE_ON:
+            m_isActive = true;
+            break;
+        case USE_OFF:
+            m_isActive = false;
+            break;
+        case USE_TOGGLE:
+            m_isActive = !m_isActive;
+            break;
+        }
+
+        if (m_isActive != prevstate)
+            SendInitMessage(nullptr);
+    }
 }

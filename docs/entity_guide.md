@@ -359,10 +359,15 @@ document:
  - Keyvalues:
    - "Name": Name of this entity.
    - "Effect strength": The strength of the aberration. Best values are in the 0-16 range.
-   
- - Spawnflags:
-   - "Start On": The entity will start enabled.   
-   
+   - "Global trigger mode": If the "Global" flag is set, then this determines how triggering this entity will affect the currently set black and white effect.
+     - "Toggle": The global black and white effect will be toggled based on current state. 
+     - "On": The global black and white effect will be turned on regardless of it's current state. 
+     - "Off": The global black and white effect will be turned off regardless of it's current state. 
+	 
+ - Spawn flags:
+   - "Start on": The black and white effect will be enabled by default.
+   - "Global": If set, the black and white effect will be carried across levels instead of being present only on the level where the env_blackandwhite is present.
+
 # env_blackhole
 >Creates a black hole effect, complete with a shader effect that distorts the light around it like a real
 >black hole would. It can also pull in objects, particles, client-side temporary entities, killing them. If
@@ -389,9 +394,14 @@ document:
    - "Name": Name of this entity.
    - "Blur fade": The fade time of the individual blur frames, set to a higher value to have a slower fade, 
    or to a low amount for a faster fade.
- 
+   - "Global trigger mode": If the "Global" flag is set, then this determines how triggering this entity will affect the currently set blur effect.
+     - "Toggle": The global blur effect will be toggled based on current state. 
+     - "On": The global blur effect will be turned on regardless of it's current state. 
+     - "Off": The global blur effect will be turned off regardless of it's current state. 
+	 
  - Spawn flags:
    - "Start on": The blur will be enabled by default.
+   - "Global": If set, the blur effect will be carried across levels instead of being present only on the level where the env_blur is present.
    
 # env_bubbles
 >A brush-based entity, env_bubbles will spawn bubble trails within it's volume that will rise to the height
@@ -434,9 +444,14 @@ document:
  - Keyvalues:
    - "Name": Name of this entity.
    - "Chromatic Aberration Strength": The strength of the aberration. Best values are in the 0-16 range.
-   
- - Spawnflags:
-   - "Start On": The entity will start enabled.
+   - "Global trigger mode": If the "Global" flag is set, then this determines how triggering this entity will affect the currently set chromatic aberration effect.
+     - "Toggle": The global chromatic aberration effect will be toggled based on current state. 
+     - "On": The global chromatic aberration effect will be turned on regardless of it's current state. 
+     - "Off": The global chromatic aberration effect will be turned off regardless of it's current state. 
+	 
+ - Spawn flags:
+   - "Start on": The chromatic aberration will be enabled by default.
+   - "Global": If set, the chromatic aberration effect will be carried across levels instead of being present only on the level where the env_chromatic is present.
    
 # env_decal
 >The engine's version of infodecal, this entity allows you to spawn a specific decal, or a random one from
@@ -859,6 +874,25 @@ document:
    passing one.
    - "Start On": The entity will start moving on spawn.
    
+# env_overlay
+>This entity allows you to put an overlay over the screen with specific rendering effects. The overlay's
+>transparency can be set, or it can be set to be alpha masked. The overlay can also be set to pulsate when
+>it is blended. The texture is picked by the user, and the engine will pick an overlay texture based in the
+>ratio of the screen. You can set the layer index based on the "Overlay index" parameter, which will also
+>define the order in which the effects are added ontop of eachother.
+
+ - Keyvalues:
+   - "Name": Name of this entity.
+   - "Mode": If set to "Set Overlay", the overlay effect will be applied. Otherwise if set to "Clear Overlay", any overlay effects on the given layer will be cleared.
+   - "Overlay index": This defines the order of overlays, and how they will be added ontop of eachother.
+   - "Texture name": Path to the texture file to use. The final part of the texture file's name can be the ratio, so a texture named "overlay_16_9.tga" will be used for widescreen resolution, while "overlay_4_3.tga" will be used for standard resolutions. The engine will choose the proper texture based on the naming, but if no such files exist, it'll just use the original filename name specified in the entity.
+   - "Effect": Apply a special effect to the overlay. Currently only "Pulsate" is supported.
+   - "Render Alpha": The base alpha value of the overlay.
+   - "Render Color": The color of the overlay.
+   - "Effect speed multiplier": Controls the speed of the effect applied.
+   - "Effect minimum alpha": Defines the minimum alpha the effect can get to at it's minimum.
+   - "Effect fade in/out time": Determines whether, and how fast the overlay fades in when set, or fades out when cleared.
+   
 # env_particle_system
 >The particle system entity allows you to spawn particle effects defined by a system or cluster script. The
 >type of script needs to be specified properly, otherwise you will encounter an error. Particle systems can
@@ -1180,10 +1214,15 @@ document:
    - "Effect strength": The strength of the effect. It should be less than the "radius value".
    - "Vignette radius": This is the radius of the effect, in the 0-1 range. A value of 0.5 will occupy 
    half of the screen, while a value of 0.9 will occupy 90% of it.
-   
- - Spawn flags:   
-   - "Start On": The effect will be enabled on spawn.
-   
+   - "Global trigger mode": If the "Global" flag is set, then this determines how triggering this entity will affect the currently set vignette effect.
+     - "Toggle": The global vignette effect will be toggled based on current state. 
+     - "On": The global vignette effect will be turned on regardless of it's current state. 
+     - "Off": The global vignette effect will be turned off regardless of it's current state. 
+	 
+ - Spawn flags:
+   - "Start on": The vignette effect will be enabled by default.
+   - "Global": If set, the black and white effect will be carried across levels instead of being present only on the level where the env_vignette is present.
+
 # envpos_sky
 >This entity marks the position of the 3D sky's skybox dome, where your skybox objects are. This entity
 >can also function like a train entity, and move around in the skybox dome. It is to be used in conjuction

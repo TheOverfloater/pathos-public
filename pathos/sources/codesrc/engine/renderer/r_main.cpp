@@ -75,6 +75,7 @@ All Rights Reserved.
 #include "stepsound.h"
 #include "aldformat.h"
 #include "stb_dxt.h"
+#include "bsp_shared.h"
 
 // Global cvars
 CCVar* g_pCvarBumpMaps = nullptr;
@@ -470,6 +471,33 @@ bool R_InitGL( void )
 	rns.fboblitsupported = R_IsExtensionSupported("GL_EXT_framebuffer_blit");
 	rns.fboused = gWindow.AreFBOsEnabled();
 
+	// Restore full-size lightmap data
+	if(cls.cl_state == CLIENT_ACTIVE)
+	{
+		daystage_t loadstage;
+		if(rns.daystage != DAYSTAGE_NORMAL)
+			loadstage = rns.daystage;
+		else
+			loadstage = DAYSTAGE_NORMAL_RESTORE;
+
+		byte* pdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
+		if(ALD_Load(loadstage, pdatapointers))
+		{
+			for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+			{
+				// All data was successfully set, so release original data
+				if (ens.pworld->plightdata[i])
+					delete[] ens.pworld->plightdata[i];
+
+				ens.pworld->plightdata[i] = reinterpret_cast<color24_t*>(pdatapointers[i]);
+			}
+		}
+		else
+		{
+			Con_EPrintf("%s - Failed to restore lightmap data from backup.\n", __FUNCTION__);
+		}
+	}
+
 	// Load any textures
 	R_LoadTextures();
 
@@ -576,6 +604,14 @@ bool R_InitGL( void )
 
 	if(!cls.dllfuncs.pfnGLInit())
 		return false;
+
+	if(cls.cl_state == CLIENT_ACTIVE)
+	{
+		// Set sampling data and release full-size data
+		BSP_ReserveWaterLighting();
+		BSP_SetSamplingLightData(*ens.pworld);
+		BSP_ReleaseLightmapData(*ens.pworld);
+	}
 
 	// Create query objects
 	R_InitQueryObjects();
@@ -701,6 +737,13 @@ bool R_LoadResources( void )
 	if (!gFBOCache.InitGame())
 		return false;
 
+	// Release lightmap data
+	if(cls.cl_state == CLIENT_ACTIVE)
+	{
+		BSP_ReserveWaterLighting();
+		BSP_ReleaseLightmapData(*ens.pworld);
+	}
+
 	VID_DrawLoadingScreen("Renderer ready");
 
 	return true;
@@ -812,6 +855,9 @@ void R_ResetGame( void )
 	gFBOCache.ClearGame();
 
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
+
+	// Clean up the restore file if present
+	ALD_ClearGame();
 
 	// Tell texloader to release all game-level resources
 	pTextureManager->DeleteTextures(RS_GAME_LEVEL, false);
@@ -1123,12 +1169,14 @@ void R_SetProjectionMatrix( Float znear, Float fovY )
 	// Set in renderer info structure
 	rns.view.znear = znear;
 
-	if(rns.fog.settings.active && rns.fog.settings.affectsky && g_pCvarWireFrame->GetValue() <= 0)
+	if(rns.fog.settings.active 
+		&& rns.fog.settings.affectsky 
+		&& g_pCvarWireFrame->GetValue() <= 0)
 		rns.view.zfar = rns.fog.settings.end;
 	else
 		rns.view.zfar = g_pCvarFarZ->GetValue();
 
-	Float ratio = static_cast<Float>(rns.screenwidth)/ static_cast<Float>(rns.screenheight);
+	Float ratio = static_cast<Float>(rns.view.viewsize_x)/static_cast<Float>(rns.view.viewsize_y);
 	Float fovX = GetXFOVFromY(fovY, ratio * 0.75f);
 
 	Float width = 2*rns.view.znear*SDL_tan(fovX*M_PI/360.0f);
@@ -1960,6 +2008,9 @@ bool R_DrawNormal( void )
 		if(!gSkyRenderer.DrawSky())
 			return false;		
 	}
+
+	// Set view frustum again after sky
+	R_SetFrustum(rns.view.frustum, rns.view.v_origin, rns.view.v_angles, rns.view.fov, rns.view.viewsize_x, rns.view.viewsize_y, true);
 
 	// Create cached decals
 	gDecals.CreateCached();
@@ -3067,7 +3118,7 @@ void R_LoadSprite( cache_model_t* pmodel )
 
 			CString name, basename;
 			Common::Basename(pmodel->name.c_str(), basename);
-			name << basename << static_cast<Int32>(frameindex) << ".spr";
+			name << "spr_" << pmodel->cacheindex << "_" << basename << static_cast<Int32>(frameindex) << ".spr";
 			frameindex++;
 
 			const color24_t* ppalette = reinterpret_cast<const color24_t*>(psprite->palette);
@@ -3087,7 +3138,7 @@ void R_LoadSprite( cache_model_t* pmodel )
 
 				CString name, basename;
 				Common::Basename(pmodel->name.c_str(), basename);
-				name << basename << static_cast<Int32>(frameindex) << ".spr";
+				name << "spr_" << pmodel->cacheindex << "_" << basename << static_cast<Int32>(frameindex) << ".spr";
 				frameindex++;
 
 				const color24_t* ppalette = reinterpret_cast<const color24_t*>(psprite->palette);
@@ -3368,7 +3419,7 @@ Vector R_GetLightingForPosition( const Vector& position, const Vector& defaultco
 	Vector end = position - Vector(0, 0, 8192);
 
 	// Get lightstyle values array
-	CArray<Float>* pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
+	CArray<Float>* pStyleValuesArray = nullptr;
 
 	if(Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, position, end, lightcolors, lightstyles))
 	{
@@ -3377,6 +3428,9 @@ Vector R_GetLightingForPosition( const Vector& position, const Vector& defaultco
 		{
 			if(lightstyles[j] == NULL_LIGHTSTYLE_INDEX)
 				break;
+
+			if(!pStyleValuesArray)
+				pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
 
 			Float value = (*pStyleValuesArray)[lightstyles[j]];
 			Math::VectorMA(lcolor, value, lightcolors[j], lcolor);
@@ -4883,6 +4937,19 @@ void Cmd_BSPToSMD_Lightmap( void )
 
 	Con_Printf("Exported %s.\n", filepath.c_str());
 
+	daystage_t loadstage;
+	if(rns.daystage != DAYSTAGE_NORMAL)
+		loadstage = rns.daystage;
+	else
+		loadstage = DAYSTAGE_NORMAL_RESTORE;
+
+	byte* pdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
+	if(!ALD_Load(loadstage, pdatapointers))
+	{
+		Con_EPrintf("%s - Failed to restore lightmap data from backup.\n", __FUNCTION__);
+		return;
+	}
+
 	// alloc lightmap data ptrs
 	Uint32 lightmapdatasize = 0;
 	color32_t* plightmap = new color32_t[lightmapWidth*lightmapHeight];
@@ -4919,24 +4986,27 @@ void Cmd_BSPToSMD_Lightmap( void )
 		Uint32 size = xsize*ysize;
 
 		// Build the base lightmap
-		color24_t* psrc = psurface->psamples[SURF_LIGHTMAP_DEFAULT];
+		color24_t* psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_DEFAULT] + psurface->lightoffset);
 		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightmap, styleIndex, lightmapWidth, false, false);
 		lightmapdatasize += size*sizeof(color32_t);
 
-		// Ambient lightmap
-		psrc = psurface->psamples[SURF_LIGHTMAP_AMBIENT];
-		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pambientlightmap, styleIndex, lightmapWidth, 0);
-		amblightdatasize += size*sizeof(color32_t);
+		if(pdatapointers[SURF_LIGHTMAP_AMBIENT] && pdatapointers[SURF_LIGHTMAP_DIFFUSE] && pdatapointers[SURF_LIGHTMAP_VECTORS])
+		{
+			// Ambient lightmap
+			psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_AMBIENT] + psurface->lightoffset);
+			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pambientlightmap, styleIndex, lightmapWidth, 0);
+			amblightdatasize += size*sizeof(color32_t);
 
-		// Diffuse lightmap
-		psrc = psurface->psamples[SURF_LIGHTMAP_DIFFUSE];
-		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pdiffuselightmap, styleIndex, lightmapWidth, 0);
-		diffuselightdatasize += size*sizeof(color32_t);
+			// Diffuse lightmap
+			psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_DIFFUSE] + psurface->lightoffset);
+			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pdiffuselightmap, styleIndex, lightmapWidth, 0);
+			diffuselightdatasize += size*sizeof(color32_t);
 
-		// Light vectors lightmap
-		psrc = psurface->psamples[SURF_LIGHTMAP_VECTORS];
-		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightvecslightmap, styleIndex, lightmapWidth, 0, true);
-		lightvecsdatasize += size*sizeof(color32_t);
+			// Light vectors lightmap
+			psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_VECTORS] + psurface->lightoffset);
+			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightvecslightmap, styleIndex, lightmapWidth, 0, true);
+			lightvecsdatasize += size*sizeof(color32_t);
+		}
 	}
 
 	CString lightmapfilebasename;
@@ -4977,6 +5047,9 @@ void Cmd_BSPToSMD_Lightmap( void )
 		if(TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf))
 			Con_Printf("Exported %s.\n", filepath.c_str());
 	}
+
+	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
+		delete[] pdatapointers[i];
 
 	delete[] plightmap;
 	delete[] pambientlightmap;
@@ -5400,32 +5473,15 @@ void Cmd_LoadAllParticleScripts( void )
 //====================================
 void Cmd_ExportALD( void )
 {
-	if(gCommands.Cmd_Argc() < 3)
+	if(gCommands.Cmd_Argc() < 2)
 	{
-		Con_Printf("r_exportald usage: r_exportald <compression(none or miniz) <stage of day(nightstage or daylightreturn)>\n");
-		return;
-	}
-
-	// Get compression
-	aldcompression_t compression;
-	CString compressionarg = gCommands.Cmd_Argv(1);
-	if(!qstrcmp(compressionarg, "none"))
-	{
-		compression = ALD_COMPRESSION_NONE;
-	}
-	else if(!qstrcmp(compressionarg, "miniz"))
-	{
-		compression = ALD_COMPRESSION_MINIZ;
-	}
-	else
-	{
-		Con_EPrintf("r_show_list_material - Invalid compression type '%s' specified.\n", compressionarg.c_str());
+		Con_Printf("r_exportald usage: r_exportald <stage of day(nightstage or daylightreturn)>\n");
 		return;
 	}
 
 	// Get day stage
 	daystage_t daystage;
-	CString daystagearg = gCommands.Cmd_Argv(2);
+	CString daystagearg = gCommands.Cmd_Argv(1);
 	if(!qstrcmp(daystagearg, "nightstage"))
 	{
 		daystage = DAYSTAGE_NIGHTSTAGE;
@@ -5436,9 +5492,22 @@ void Cmd_ExportALD( void )
 	}
 	else
 	{
-		Con_EPrintf("r_show_list_material - Invalid day stage '%s' specified.\n", daystagearg.c_str());
+		Con_EPrintf("r_exportald - Invalid day stage '%s' specified.\n", daystagearg.c_str());
 		return;
 	}
 
-	ALD_ExportLightmaps(compression, daystage);
+	// Get worldmodel
+	cache_model_t* pworldcache = gModelCache.GetModelByIndex(WORLD_MODEL_INDEX);
+	if(!pworldcache)
+	{
+		Con_EPrintf("r_exportald - Failed to get world model.\n", daystagearg.c_str());
+		return;
+	}
+
+	// Fetch data from the backup file
+	CString srcFilename = ALD_GetFilePath(DAYSTAGE_NORMAL_RESTORE, pworldcache);
+	if(srcFilename.empty())
+		return;
+
+	ALD_CopyAndExportLightmaps(srcFilename.c_str(), DAYSTAGE_NORMAL_RESTORE, daystage);
 }

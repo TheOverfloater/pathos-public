@@ -18,8 +18,8 @@ struct en_texalloc_t;
 // Distance between light checks
 static constexpr Uint32 LIGHTCHECK_DISTANCE			= 16;
 
-// Max active particles
-static constexpr Uint32 MAX_ACTIVE_PARTICLES		= 32768;
+// Particle allocation size
+static constexpr Uint32 PARTICLE_ALLOC_SIZE			= 1024;
 
 // Max lights for projective type
 static constexpr Uint32 MAX_PARTICLE_POINT_LIGHTS	= 4;
@@ -715,6 +715,14 @@ private:
 	Int32 PointContentsParticle( const Vector& position );
 
 private:
+	// Allocates a new batch of particles
+	void AllocParticles( void );
+	// Releases all particles
+	void ReleaseParticles( void );
+	// Creates or recreates the VBO used
+	void CreateVBO( void );
+
+private:
 	// Controls rendering of particles
 	CCVar *m_pCvarDrawParticles;
 	// Controls particle debug info printing
@@ -728,11 +736,6 @@ private:
 	CLinkedList<particle_system_t*> m_particleSystemsList;
 
 private:
-	// Array of active particle allocations
-	cl_particle_t* m_pParticles;
-	// Linked list of free particles
-	cl_particle_t *m_pFreeParticles;
-
 	// Number of freed particles
 	Uint32 m_iNumFreedParticles;
 	// Number of created particles
@@ -762,6 +765,11 @@ private:
 	Uint32 m_screenRectangleBase;
 
 private:
+	// Linked list of free particles
+	cl_particle_t *m_pFreeParticles;
+	// Particle allocation counter
+	Uint32 m_particleAllocCount;
+
 	// Array holding particle vertexes
 	particle_vertex_t* m_pVertexes;
 

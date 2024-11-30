@@ -235,7 +235,7 @@ template <typename T> inline void CArray<T>::erase( Uint32 index )
 //
 // @param element Element to remove
 //=============================================
-template <typename T> inline void CArray<T>::erase( const T& element )
+template <typename T> inline void CArray<T>::erase_object( const T& element )
 {
 	Uint32 i = 0;
 	for(; i < m_arraySize; i++)

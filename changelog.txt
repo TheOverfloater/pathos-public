@@ -306,15 +306,68 @@
   - Modified vhlt compile tools to support miniz compression of lightmap data.
   - Improved parameter design for new features in the compile tools.
 
-2024 November 3rd 2nd update:
+- 2024 November 3rd 2nd update:
   - Fix sky lighting in entitytest2a.
   - Fix visible collision brushes on trees in entitytest2c.
   - Fix crash on renderer reboot when changing display window properties.
   - Fix Uint32 being used for entindex in monitor renderer.
   - Add "Recent Skyboxes" list to Pathos Model Viewer.
   
-2024 November 4th:
+- 2024 November 4th:
   - Improve documentation of env_beamfollow and remove unused "Beam noise" keyvalue from FGD.
   - Fix follow beam code causing incorrect brightness/color values to be used.
   - Make beam follow and vapor trail code more readable by not reusing variables for different purposes.
   - Added follow beam to grenade to help improve visiblity.
+  
+2024 November 10th:
+  - Fix fog triggers on entitytest2 breaking the monitor room.
+  - Added test case for switchable lights combined with water in entitytest2.
+  - Added switchable lightmap light support to shader water reflections.
+  - Applied numerous fixes to bump map data-based model lighting(still WIP).
+  - Added memory optimization to lightmap upscaling, to keep only base-resolution lightmap data in memory after uploading lightmaps to OpenGL.
+  - Major extension of ALD code to support faster and smoother light data exporting.
+  - Move frustum related code out of CBSPRenderer.
+  - Fix for current light origin not being set in light caching for VBM models.
+  - Added std::map to save-restore code to speed up string lookups.
+  - Fix "framerate" keyvalue in dynamic light and light entities by overriding "framerate" for them.
+  - Fix for CGLSLShader class's AND operator code not considering values properly.
+  - Adapt ALD code to allow on-disk storage of backup lighting data in case it is needed.
+  - Fix for some functions returning nullptr when they have a boolean return type.
+  - Modify current lighting export to use already-compressed data from BSP file instead of re-compressing it.
+
+2024 November 30th:
+  - Added "Global" flag to several env_ post-process entities to allow persistence over levels.
+  - Added new env_overlay entity.
+  - Optimized blood effects to address performance issues when too much shooting occurs.
+  - Add support for lightstyle reflections on water.
+  - Modify CArray to fix ambigous datatype errors when using erase.
+  - Memory optimization for CLogFile to reduce memory load.
+  - Add new function for getting aspect ratio as string.
+  - Modified lighting data to use base resolution lightmaps for model/particle light sampling even if using upscaled lightmaps.
+  - Added temp file tracking to engine to help cleanup any temporary files.
+  - Added optimization to tracelines to use a preliminary bbox traceline test on entities prior to performing tracelines on their actual hull data.
+  - Reduced temporary entity allocation size to reduce memory load.
+  - Reduced console string buffer allocation size to reduce memory load.
+  - Split decals into a separate VBO for the BSP renderer to reduce memory load.
+  - Fix GL occlusion queries not being reset when taken out of free cache.
+  - Reduce particle allocation size on legacy Q1 particles to reduce memory load.
+  - Modify ALD data storage to rely on an external file for storing base lightmap data.
+  - Fix some client command msgs using the wrong command name.
+  - Modify particles to use dynamic allocation with smaller counts in order to reduce memory load.
+  - Modify sprites to use dynamic allocation with smaller counts in order to reduce memory load.
+  - Several fixes and improvements to model light sampling from lightmap data.
+  - Speed up WAD texture loading by adding maps for faster texture lookup.
+  - Add map to save-restore string lookup to improve performance.
+  - Fix SV_GetBonePositionByIndex returning false even when succeeding.
+  - Reduce MAX_VISIBLE_ENTITIES	and DEFAULT_MAX_EDICTS to 2048 from 4096 to reduce memory load.
+  - Fix Cmd_ListMaps using DEFAULT_GAMEDIR instead of ens.gamedir.
+  - Several performance improvements done to AI code to improve performance.
+  - Modify talking NPC code to use head controller's bone index instead of name for lookups.
+  - Added CAnimatingEntity::GetBoneIndex for looking up bone indexes by name.
+  - Added safeguard for always saving CArray types when creating a save file.
+  - Added fix in CEnvDLight, CLight to override "framerate" keyvalue.
+  - Added PostModelSet base class calls in several classes.
+  - Added several performance improvements to CGLSLShader.
+  - Modified several datatypes in CGLSLShader to use Int16 instead of Int32 to reduce memory load.
+  - Fix in CVBO class to use memmove instead of memcpy to fix memory corruptions.
+  - Fix in CTextureManager class to handle dummy material and texture properly when doing reset.

@@ -284,6 +284,20 @@ void CEnvDLight::OscillateThink( void )
 // @brief
 //
 //=============================================
+bool CEnvDLight::ShouldOverrideKeyValue( const Char* pstrKeyValue )
+{
+	// framerate is handled by this entity specially
+	if(!qstrcmp(pstrKeyValue, "framerate"))
+		return true;
+	else
+		return false;
+}
+
+
+//=============================================
+// @brief
+//
+//=============================================
 CEnvDLight* CEnvDLight::SpawnLight( const Vector& origin, const Vector& color, Uint32 radius )
 {
 	edict_t* pedict = gd_engfuncs.pfnCreateEntity("env_dlight");

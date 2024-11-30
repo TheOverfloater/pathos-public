@@ -101,8 +101,8 @@ public:
 
 		operator_e boperator;
 		comparison_e bcomparison;
-		Int32 determinatorindex;
-		Int32 value;
+		Int16 determinatorindex;
+		Int16 value;
 	};
 
 	// <glsl_determinator_t>
@@ -118,8 +118,8 @@ public:
 		CArray<Int16> values;
 		determinator_e type;
 
-		Int32 minval;
-		Int32 maxval;
+		Int16 minval;
+		Int16 maxval;
 	};
 
 	// <glsl_uniform_t>
@@ -241,11 +241,11 @@ public:
 			memset(dt_maxrange, 0, sizeof(dt_maxrange));
 		}
 
-		Uint32 dt_indexes[MAX_DETERMINATORS];
-		Int32 dt_minrange[MAX_DETERMINATORS];
-		Int32 dt_maxrange[MAX_DETERMINATORS];
+		Uint16 dt_indexes[MAX_DETERMINATORS];
+		Int16 dt_minrange[MAX_DETERMINATORS];
+		Int16 dt_maxrange[MAX_DETERMINATORS];
 
-		Uint32 numdts;
+		Uint16 numdts;
 	};
 
 	// <disabled_state_t>
@@ -257,8 +257,8 @@ public:
 		{}
 
 		CString dt_name;
-		Int32 dt_setting;
-		Int32 dt_index;
+		Int16 dt_setting;
+		Int16 dt_index;
 	};
 
 	// <csdheader_t>
@@ -547,6 +547,8 @@ private:
 	Int32 m_shaderIndex;
 	// Index of the last shader bound
 	Int32 m_lastIndex;
+	// TRUE if VBO was changed
+	bool m_vboChanged;
 
 	// Array of determinators
 	CArray<glsl_determinator_t> m_determinatorArray;
@@ -564,7 +566,9 @@ private:
 	CArray<disabled_state_t> m_disabledStatesArray;
 
 	// Used to store permutation arrays
-	Int32 *m_pDeterminatorValues;
+	Int16 *m_pDeterminatorValues;
+	// Shader determinator values
+	Int16 *m_pShaderDeterminatorValues;
 
 	// Pointer to VBO associated with this shader
 	CVBO *m_pVBO;

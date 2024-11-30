@@ -1159,6 +1159,9 @@ void SV_ClearGame(  bool clearloadingscreen, bool clearconnections )
 	// End loading plaque
 	if(clearloadingscreen)
 		VID_EndLoading();
+
+	// Delete any temp files
+	Sys_DeleteTempFiles(RS_GAME_LEVEL);
 }
 
 //=============================================
@@ -2125,7 +2128,7 @@ bool SV_GetBonePositionByIndex( edict_t* pedict, Uint32 boneindex, Vector& posit
 	position[1] = pedict->pvbmhulldata->bonetransform[boneindex][1][3];
 	position[2] = pedict->pvbmhulldata->bonetransform[boneindex][2][3];
 	
-	return false;
+	return true;
 }
 
 //=============================================

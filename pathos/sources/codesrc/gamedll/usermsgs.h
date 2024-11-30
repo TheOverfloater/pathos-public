@@ -75,7 +75,8 @@ struct usermsglist_t
 		npcawareness(0),
 		newobjective(0),
 		addskytextureset(0),
-		setskytexture(0)
+		setskytexture(0),
+		screenoverlay(0)
 		{
 		}
 
@@ -140,6 +141,7 @@ struct usermsglist_t
 	Int32 newobjective;
 	Int32 addskytextureset;
 	Int32 setskytexture;
+	Int32 screenoverlay;
 }; 
 extern usermsglist_t g_usermsgs;
 

@@ -83,6 +83,9 @@ extern Int32 Sys_CheckLaunchArgs( const Char* pstrArg );
 extern const Char* Sys_LaunchArgv( Uint32 index );
 extern Uint32 Sys_LaunchArgc( void );
 
+extern void Sys_AddTempFile( const Char* pstrFilepath, rs_level_t level );
+extern void Sys_DeleteTempFiles( rs_level_t level );
+
 extern bool Sys_GetDLLExports( const Char* pstrDLLName, void* pDLLHandle, CArray<dll_export_t>& destArray );
 
 extern CCVar* g_pCVarPort;

@@ -265,8 +265,7 @@ struct stylebatches_t
 struct lightstyleinfo_t
 {
 	lightstyleinfo_t()
-	{
-	}
+	{}
 
 	CArray<stylebatches_t> stylebatches;
 };
@@ -475,6 +474,8 @@ public:
 	void SetLightmapCoords( void );
 	// Initializes the main VBO
 	void InitVBO( void );
+	// Initializes the decal VBO
+	void InitDecalVBO( void );
 
 	// Returns the lightmap width
 	Uint32 GetLightmapWidth( Uint32 index ) { if(index < MAX_SURFACE_STYLES) return m_lightmapWidths[index]; else return 0; }
@@ -626,6 +627,8 @@ private:
 	class CGLSLShader *m_pShader;
 	// VBO object
 	class CVBO *m_pVBO;
+	// VBO object
+	class CVBO *m_pDecalVBO;
 
 	// Shader attrib info
 	bsp_shader_attribs m_attribs;

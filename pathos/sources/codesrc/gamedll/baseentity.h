@@ -170,7 +170,7 @@ public:
 	// Returns the entity's targeting origin
 	virtual Vector GetBodyTarget( const Vector& targetingPosition );
 	// Returns the view position
-	virtual Vector GetEyePosition( bool addlean = false ) const { return m_pState->origin + m_pState->view_offset; };
+	virtual Vector GetEyePosition( bool addlean = false, bool usebone = false ) const { return m_pState->origin + m_pState->view_offset; };
 	// Returns a navigable position
 	virtual Vector GetNavigablePosition( void ) const { return m_pState->origin; }
 	// Returns the view origin for VIS checks
@@ -493,7 +493,7 @@ public:
 	// Performs pfnWalkMove on the entity
 	bool WalkMove( Float yaw, Float dist, enum walkmove_t movemode );
 	// Checks a localmove between two points
-	virtual localmove_t CheckLocalMove( const Vector startPosition, const Vector& endPosition, const CBaseEntity* pTargetEntity, Float* pDistance = nullptr, bool isInitial = false ) { STUBWARNING; return LOCAL_MOVE_INVALID_NO_TRIANGULATION; }
+	virtual localmove_t CheckLocalMove( const Vector startPosition, const Vector& endPosition, const CBaseEntity* pTargetEntity, Float* pDistance = nullptr, bool isInitial = false, bool isPerformingMovement = false ) { STUBWARNING; return LOCAL_MOVE_INVALID_NO_TRIANGULATION; }
 
 	// Sets the goal entity for npcs
 	virtual void SetGoalEntity( CBaseEntity* pEntity ) { STUBWARNING; };
@@ -807,6 +807,36 @@ public:
 
 	// Set stamina modifiers
 	virtual void SetStaminaModifiers( Float sprintStaminaDrainMultiplier, Float normalMovementStaminaDrainFactor ) { STUBWARNING; };
+
+	// Set motion blur values
+	virtual void SetMotionBlur( bool isActive, Float blurFade ) { STUBWARNING; }
+	// Tells if motion blur is active
+	virtual bool IsMotionBlurActive( void ) const { STUBWARNING; return false; }
+
+	// Set chromatic aberration values
+	virtual void SetChromaticAberration( bool isActive, Float strength ) { STUBWARNING; }
+	// Tells if chromatic aberration is active
+	virtual bool IsChromaticAberrationActive( void ) const { STUBWARNING; return false; }
+
+	// Set chromatic aberration values
+	virtual void SetBlackAndWhite( bool isActive, Float strength ) { STUBWARNING; }
+	// Tells if chromatic aberration is active
+	virtual bool IsBlackAndwhiteActive( void ) const { STUBWARNING; return false; }
+
+	// Set vignette effect values
+	virtual void SetVignetteEffect( bool isActive, Float radius, Float strength ) { STUBWARNING; } 
+	// Tells if vignette is active
+	virtual bool IsVignetteEffectActive( void ) const { STUBWARNING; return false; }
+
+	// Set chromatic aberration values
+	virtual void SetFilmGrain( bool isActive, Float strength ) { STUBWARNING; }
+	// Tells if chromatic aberration is active
+	virtual bool IsFilmGrainActive( void ) const { STUBWARNING; return false; }
+
+	// Set overlay effect
+	virtual void SetScreenOverlay( Int32 layerindex, const Char* pstrTextureName, overlay_rendermode_t rendermode, const Vector& rendercolor, Float renderamt, overlay_effect_t effect, Float effectspeed, Float effectminalpha, Float fadetime ) { STUBWARNING; }
+	// Clears an overlay
+	virtual void ClearOverlay( Int32 layerindex, Float fadetime ) { STUBWARNING; }
 
 public:
 	//

@@ -21,8 +21,8 @@ CLegacyParticles
 class CLegacyParticles
 {
 public:
-	// Max particles
-	static const Uint32 MAX_LEGACY_PARTICLES = 4096;
+	// alloc count for legacy particles
+	static const Uint32 LEGACY_PARTICLE_ALLOC_COUNT = 256;
 	// Path to particle texture
 	static const Char PARTICLE_TEXTURE_FILEPATH[];
 	// Path to palette file
