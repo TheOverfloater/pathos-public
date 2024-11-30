@@ -481,7 +481,7 @@ bool R_InitGL( void )
 			loadstage = DAYSTAGE_NORMAL_RESTORE;
 
 		byte* pdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
-		if(ALD_Load(DAYSTAGE_NORMAL_RESTORE, pdatapointers))
+		if(ALD_Load(loadstage, pdatapointers))
 		{
 			for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
 			{
@@ -856,6 +856,9 @@ void R_ResetGame( void )
 
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 
+	// Clean up the restore file if present
+	ALD_ClearGame();
+
 	// Tell texloader to release all game-level resources
 	pTextureManager->DeleteTextures(RS_GAME_LEVEL, false);
 	pTextureManager->DeleteMaterials(RS_GAME_LEVEL);
@@ -1166,12 +1169,14 @@ void R_SetProjectionMatrix( Float znear, Float fovY )
 	// Set in renderer info structure
 	rns.view.znear = znear;
 
-	if(rns.fog.settings.active && rns.fog.settings.affectsky && g_pCvarWireFrame->GetValue() <= 0)
+	if(rns.fog.settings.active 
+		&& rns.fog.settings.affectsky 
+		&& g_pCvarWireFrame->GetValue() <= 0)
 		rns.view.zfar = rns.fog.settings.end;
 	else
 		rns.view.zfar = g_pCvarFarZ->GetValue();
 
-	Float ratio = static_cast<Float>(rns.view.viewsize_x)/ static_cast<Float>(rns.view.viewsize_y);
+	Float ratio = static_cast<Float>(rns.view.viewsize_x)/static_cast<Float>(rns.view.viewsize_y);
 	Float fovX = GetXFOVFromY(fovY, ratio * 0.75f);
 
 	Float width = 2*rns.view.znear*SDL_tan(fovX*M_PI/360.0f);
@@ -3113,7 +3118,7 @@ void R_LoadSprite( cache_model_t* pmodel )
 
 			CString name, basename;
 			Common::Basename(pmodel->name.c_str(), basename);
-			name << basename << static_cast<Int32>(frameindex) << ".spr";
+			name << "spr_" << pmodel->cacheindex << "_" << basename << static_cast<Int32>(frameindex) << ".spr";
 			frameindex++;
 
 			const color24_t* ppalette = reinterpret_cast<const color24_t*>(psprite->palette);
@@ -3133,7 +3138,7 @@ void R_LoadSprite( cache_model_t* pmodel )
 
 				CString name, basename;
 				Common::Basename(pmodel->name.c_str(), basename);
-				name << basename << static_cast<Int32>(frameindex) << ".spr";
+				name << "spr_" << pmodel->cacheindex << "_" << basename << static_cast<Int32>(frameindex) << ".spr";
 				frameindex++;
 
 				const color24_t* ppalette = reinterpret_cast<const color24_t*>(psprite->palette);
@@ -3414,7 +3419,7 @@ Vector R_GetLightingForPosition( const Vector& position, const Vector& defaultco
 	Vector end = position - Vector(0, 0, 8192);
 
 	// Get lightstyle values array
-	CArray<Float>* pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
+	CArray<Float>* pStyleValuesArray = nullptr;
 
 	if(Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, position, end, lightcolors, lightstyles))
 	{
@@ -3423,6 +3428,9 @@ Vector R_GetLightingForPosition( const Vector& position, const Vector& defaultco
 		{
 			if(lightstyles[j] == NULL_LIGHTSTYLE_INDEX)
 				break;
+
+			if(!pStyleValuesArray)
+				pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
 
 			Float value = (*pStyleValuesArray)[lightstyles[j]];
 			Math::VectorMA(lcolor, value, lightcolors[j], lcolor);
@@ -4936,7 +4944,7 @@ void Cmd_BSPToSMD_Lightmap( void )
 		loadstage = DAYSTAGE_NORMAL_RESTORE;
 
 	byte* pdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
-	if(!ALD_Load(DAYSTAGE_NORMAL_RESTORE, pdatapointers))
+	if(!ALD_Load(loadstage, pdatapointers))
 	{
 		Con_EPrintf("%s - Failed to restore lightmap data from backup.\n", __FUNCTION__);
 		return;

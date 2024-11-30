@@ -226,13 +226,13 @@ bool ALD_Load( daystage_t stage, byte** pdestarrays )
 // @brief
 //
 //=============================================
-void ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage )
+bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage, CString* pstrFilenameOut )
 {
 	cache_model_t* pworldcache = gModelCache.GetModelByIndex(WORLD_MODEL_INDEX);
 	if(!pworldcache)
 	{
 		Con_Printf("%s - Couldn't get world model.\n", __FUNCTION__);
-		return;
+		return false;
 	}
 
 	// Get worldmodel ptr
@@ -275,8 +275,12 @@ void ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage 
 	if(filename.empty())
 	{
 		Con_Printf("%s - Failure while trying to set up ALD file path.\n", __FUNCTION__);
-		return;
+		return false;
 	}
+
+	// Set output filename if present
+	if(pstrFilenameOut)
+		(*pstrFilenameOut) = filename;
 
 	// Create buffer
 	Int32 initialSize = sizeof(aldheader_t);
@@ -443,9 +447,9 @@ void ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage 
 					Int32 result = compress2(pdestination, &resultsize, pdatasrc, pworldmodel->lightdatasize, MZ_DEFAULT_COMPRESSION);
 					if(result != MZ_OK)
 					{
-						printf("%s - Failed to compress layer %d, compress returned %d.\n", __FUNCTION__, i, result);
+						Con_EPrintf("%s - Failed to compress layer %d, compress returned %d.\n", __FUNCTION__, i, result);
 						delete[] pdestination;
-						return;
+						return false;
 					}
 
 					fileBuffer.append(pdestination, resultsize);
@@ -465,7 +469,12 @@ void ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage 
 	// Re-set data ptr
 	const byte* pdata = reinterpret_cast<const byte*>(fileBuffer.getbufferdata());
 	if(!FL_WriteFile(pdata, fileBuffer.getsize(), filename.c_str()))
+	{
 		Con_Printf("%s - Failed to write '%s'.\n", __FUNCTION__, filename.c_str());
+		return false;
+	}
+
+	return true;
 }
 
 //=============================================
@@ -865,33 +874,12 @@ CString ALD_GetFilePath( daystage_t daystage, cache_model_t* pworldcache )
 // @brief
 //
 //=============================================
-void ALD_DeleteRestoreFile( void )
-{
-	// Get worldmodel
-	cache_model_t* pworldcache = gModelCache.GetModelByIndex(WORLD_MODEL_INDEX);
-	if(!pworldcache)
-		return;
-
-	// See if a "restore" file is present
-	CString filename = ALD_GetFilePath(DAYSTAGE_NORMAL_RESTORE, pworldcache);
-	if(filename.empty())
-	{
-		Con_Printf("%s - Failure while trying to set up ALD file path.\n", __FUNCTION__);
-		return;
-	}
-
-	if(FL_FileExists(filename.c_str()))
-		FL_DeleteFile(filename.c_str());
-}
-
-//=============================================
-// @brief
-//
-//=============================================
 void ALD_InitGame( void )
 {
 	// Write a temporary restore file
-	ALD_ExportLightmaps(ALD_COMPRESSION_MINIZ, DAYSTAGE_NORMAL_RESTORE);
+	CString filepath;
+	if(ALD_ExportLightmaps(ALD_COMPRESSION_MINIZ, DAYSTAGE_NORMAL_RESTORE, &filepath))
+		Sys_AddTempFile(filepath.c_str(), RS_GAME_LEVEL);
 }
 
 //=============================================
@@ -900,6 +888,5 @@ void ALD_InitGame( void )
 //=============================================
 void ALD_ClearGame( void )
 {
-	// Make sure this is cleaned up
-	ALD_DeleteRestoreFile();
+	// Nothing here atm
 }
