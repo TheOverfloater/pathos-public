@@ -45,6 +45,6 @@ public:
 private:
 	bool m_isActive;
 	Float m_delay;
-	CString m_soundName;
+	string_t m_soundName;
 };
 #endif //ENVSPARK_H

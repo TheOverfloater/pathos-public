@@ -1,3 +1,16 @@
+/*
+===============================================
+Pathos Engine - Created by Andrew Stephen "Overfloater" Lucas
+
+Copyright 2016
+All Rights Reserved.
+
+===============================================
+*/
+
+// Code by valina354
+// Modified by Overfloater
+
 #ifndef BMP_H
 #define BMP_H
 

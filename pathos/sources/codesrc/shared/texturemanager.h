@@ -49,6 +49,9 @@ public:
 	// Anisotropy off value
 	static const Uint32 ANISOTROPY_OFF_VALUE;
 
+	// Extensions of the texture formats used
+	static const Char* TEXTURE_FORMAT_EXTENSIONS[];
+
 private:
 	// Map key type for the textures list hash
 	typedef std::pair<CString, rs_level_t> HashResourceTypeKey_t;
@@ -142,6 +145,9 @@ private:
 	
 	// Sets the material index array
 	void ResetMaterialsIndexArray( void );
+
+	// Loads a texture file and retrieves it's type
+	const byte* LoadFile( const Char* pstrFileName, texture_format_t& outFormat );
 
 private:
 	// Array of loaded textures

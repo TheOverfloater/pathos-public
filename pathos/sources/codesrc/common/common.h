@@ -225,11 +225,7 @@ namespace Common
 	extern inline Uint64 ByteToUint64( const byte *pdata );
 	extern inline Double ByteToDouble( const byte *pdata );
 
-	extern bool IsPowerOfTwo(uint32_t size);
-	extern bool IsPowerOfFour(uint32_t size);
-	extern bool IsPowerOfEight(uint32_t size);
-	extern bool IsPowerOfSixteen(uint32_t size);
-	extern bool IsPowerOfThirtyTwo(uint32_t size);
+	extern bool IsPowerOfTwo( Uint32 size );
 	extern inline CString GetDate( void );
 	extern inline Int32 IsPitchReversed( Float pitch );
 	extern void FixVector( Float* pflVector );

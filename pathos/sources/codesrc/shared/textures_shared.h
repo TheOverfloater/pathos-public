@@ -58,7 +58,10 @@ enum texture_format_t
 	TX_FORMAT_TGA,
 	TX_FORMAT_DDS,
 	TX_FORMAT_BMP,
-	TX_FORMAT_MEMORY
+	TX_FORMAT_MEMORY,
+
+	// Must be last
+	NB_TEXTURE_FORMATS
 };
 
 enum texture_compression_t

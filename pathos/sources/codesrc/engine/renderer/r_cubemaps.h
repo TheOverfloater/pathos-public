@@ -11,7 +11,7 @@ All Rights Reserved.
 #define R_CUBEMAPS_H
 
 // Number of cubemap resolutions
-static constexpr Uint32 NUM_CUBEMAP_SIZES = 9;
+static constexpr Uint32 NUM_CUBEMAP_SIZES = 7;
 
 // Encoded cubemap header
 #define ECD_HEADER_ENCODED (('2'<<24)+('D'<<16)+('C'<<8)+'E')

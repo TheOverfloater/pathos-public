@@ -36,6 +36,16 @@ const Uint32 CTextureManager::ANISOTROPY_OFF_VALUE = 1;
 // Texture manager instance
 CTextureManager* CTextureManager::g_pInstance = nullptr;
 
+// Extensions of the texture formats used
+const Char* CTextureManager::TEXTURE_FORMAT_EXTENSIONS[] = 
+{
+	"",
+	"tga",
+	"dds",
+	"bmp",
+	""
+};
+
 //=============================================
 // @brief Constructor
 //
@@ -567,11 +577,19 @@ void CTextureManager::CreateDummyTexture( void )
 //=============================================
 texture_format_t CTextureManager::GetFormat( const Char* pstrFilename )
 {
-	if(!qstrcicmp(pstrFilename + qstrlen(pstrFilename) - 3, "tga"))
+	CString filename(pstrFilename);
+	Int32 dotpos = filename.find(0, ".");
+	if(dotpos == CString::CSTRING_NO_POSITION)
+		return TX_FORMAT_UNDEFINED;
+
+	Uint32 extensionlength = filename.length() - (dotpos + 1);
+	CString extension(filename.c_str() + (dotpos+1), extensionlength);
+
+	if(!qstrcicmp(extension, "tga"))
 		return TX_FORMAT_TGA;
-	else if(!qstrcicmp(pstrFilename + qstrlen(pstrFilename) - 3, "dds"))
+	else if(!qstrcicmp(extension, "dds"))
 		return TX_FORMAT_DDS;
-	else if (!qstrcicmp(pstrFilename + qstrlen(pstrFilename) - 3, "bmp"))
+	else if (!qstrcicmp(extension, "bmp"))
 		return TX_FORMAT_BMP;
 	else
 		return TX_FORMAT_UNDEFINED;
@@ -974,6 +992,57 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 }
 
 //=============================================
+// @brief Loads a texture file of any format and returns the output format and file dataptr
+//
+// @param pstrFileName Filename to load
+// @param outFormat Output variable for the texture format
+// @return Pointer to file data
+//=============================================
+const byte* CTextureManager::LoadFile( const Char* pstrFileName, texture_format_t& outFormat )
+{
+	const byte* pfile = m_fileFuncs.pfnLoadFile(pstrFileName, nullptr);
+	outFormat = GetFormat(pstrFileName);
+
+	if(pfile)
+		return pfile;
+
+	CString basefilename(pstrFileName);
+	Int32 dotpos = basefilename.find(0, ".");
+	if(dotpos != CString::CSTRING_NO_POSITION)
+	{
+		Uint32 nberase = basefilename.length() - dotpos;
+		basefilename.erase(dotpos, nberase);
+	}
+
+	Int32 triedFormats = (1<<(Int32)outFormat);
+	for(Uint32 i = 0; i < NB_TEXTURE_FORMATS; i++)
+	{
+		// Don't bother with non-file based formats
+		if(!qstrlen(TEXTURE_FORMAT_EXTENSIONS[i]))
+			continue;
+
+		Int32 bitflag = (1<<i);
+		if(triedFormats & bitflag)
+			continue;
+
+		CString filename;
+		filename << basefilename << "." << TEXTURE_FORMAT_EXTENSIONS[i];
+
+		pfile = m_fileFuncs.pfnLoadFile(filename.c_str(), nullptr);
+		if(pfile)
+		{
+			outFormat = static_cast<texture_format_t>(i);
+			return pfile;
+		}
+
+		triedFormats |= bitflag;
+	}
+
+	outFormat = TX_FORMAT_UNDEFINED;
+	return nullptr;
+}
+
+//=============================================
 // @brief Loads a texture into OpenGL
 //
 // @param pstrFilename Path to the file to load
@@ -1020,36 +1089,15 @@ en_texture_t* CTextureManager::LoadTexture( const Char* pstrFilename, rs_level_t
 		filePath = pstrFilename;
 
 	// Load the file
-	const byte* pfile = m_fileFuncs.pfnLoadFile(filePath.c_str(), nullptr);
+	texture_format_t format = TX_FORMAT_UNDEFINED;
+	const byte* pfile = LoadFile(filePath.c_str(), format);
 	if(!pfile)
 	{
-		// If it's a DDS, try looking for TGA
-		if(filePath.find(0, ".dds") != CString::CSTRING_NO_POSITION 
-			|| filePath.find(0, ".DDS") != CString::CSTRING_NO_POSITION)
-		{
-			filePath.erase(filePath.length()-3, 3);
-			filePath << "tga";
-
-			pfile = m_fileFuncs.pfnLoadFile(filePath.c_str(), nullptr);
-		}
-		
-		if (filePath.find(0, ".bmp") != -1 || filePath.find(0, ".BMP") != -1)
-		{
-			filePath.erase(filePath.length() - 3, 3);
-			filePath << "bmp";
-
-			pfile = m_fileFuncs.pfnLoadFile(filePath.c_str(), nullptr);
-		}
-
-		if(!pfile)
-		{
-			m_printErrorFunction("Failed to load texture '%s'.\n", filePath.c_str());
-			return nullptr;
-		}
+		m_printErrorFunction("Failed to load texture '%s'.\n", filePath.c_str());
+		return nullptr;
 	}
 
-	// Determine the format
-	texture_format_t format = GetFormat(filePath.c_str());
+	// Check the format
 	if(format == TX_FORMAT_UNDEFINED)
 	{
 		m_printErrorFunction("Unknown or unsupported file format for '%s'\n", pstrFilename);
@@ -1074,8 +1122,10 @@ en_texture_t* CTextureManager::LoadTexture( const Char* pstrFilename, rs_level_t
 			return nullptr;
 		}
 	}
-	else if (format == TX_FORMAT_BMP) {
-		if (!BMP_Load(pstrFilename, pfile, pdata, width, height, bpp, datasize, compression, m_printErrorFunction)) {
+	else if (format == TX_FORMAT_BMP) 
+	{
+		if (!BMP_Load(pstrFilename, pfile, pdata, width, height, bpp, datasize, compression, m_printErrorFunction)) 
+		{
 			m_printErrorFunction("Failed to load BMP image file '%s'.\n", pstrFilename);
 			m_fileFuncs.pfnFreeFile(pfile);
 			return nullptr;

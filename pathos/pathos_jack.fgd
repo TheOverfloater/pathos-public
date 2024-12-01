@@ -850,17 +850,15 @@
 ]
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_cubemap : "Cubemap"
 [
-  size(Choices) : "Size" : 3 =
+  size(Choices) : "Size" : 2 =
   [ 
-      0 : "4*4"
-      1 : "8*8"
-      2 : "16*16"
-      3 : "32*32"
-      4 : "64*64"
-      5 : "128*128"
-	  6 : "256*256"
-	  7 : "512*512"
-	  8 : "1024*1024"
+      0 : "16*16"
+      1 : "32*32"
+      2 : "64*64"
+      3 : "128*128"
+      4 : "256*256"
+      4 : "512*512"
+	  5 : "1024*1024"
   ]
 ]
 @PointClass base(Targetname) size(-8 -8 -8, 8 8 8) color(230 230 255) = env_decal: "Decal Entity" 
@@ -1365,7 +1363,6 @@
 @PointClass base(Targetname, Angles) size(-16 -16 -16, 16 16 16) = env_spark : "Spark" 
 [
   MaxDelay(string) : "Max Delay" : "0"
-  sound(sound) : "Sound of the spark" : "0"
   spawnflags(flags) =
   [
     32: "Toggle" : 0

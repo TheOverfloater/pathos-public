@@ -371,3 +371,11 @@
   - Modified several datatypes in CGLSLShader to use Int16 instead of Int32 to reduce memory load.
   - Fix in CVBO class to use memmove instead of memcpy to fix memory corruptions.
   - Fix in CTextureManager class to handle dummy material and texture properly when doing reset.
+  
+2024 December 1st
+  - Merge changes from PR # 50 from Valina354
+    - Add 1024x1024 cubemap resolution support.
+	- Add BMP format support to texture loader.
+	- Add custom sound support to env_spark.
+  - Improve management and loading of texture formats in CTextureLoader.
+  - Fixed hlrad crashing when exporting ALD data without bump map info having been compiled.

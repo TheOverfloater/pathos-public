@@ -33,8 +33,6 @@ void Cmd_BuildCubemaps( void ) { gCubemaps.BuildCubemaps(); }
 // Cubemap resolutions available
 Uint32 CCubemapManager::g_cubemapResolutions[NUM_CUBEMAP_SIZES][2] =
 { 
-	{ 4, 4 },
-	{ 8, 8 },
 	{ 16, 16 },
 	{ 32, 32 },
 	{ 64, 64 },

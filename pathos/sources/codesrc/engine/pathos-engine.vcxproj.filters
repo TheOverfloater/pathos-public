@@ -414,6 +414,9 @@
     <ClCompile Include="..\common\miniz.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\bmp.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="system.h">
@@ -924,6 +927,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\miniz.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\bmp.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\bmpformat.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
   </ItemGroup>

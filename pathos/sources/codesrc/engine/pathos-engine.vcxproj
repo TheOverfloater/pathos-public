@@ -221,6 +221,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\bmp.cpp" />
     <ClCompile Include="..\common\cbitset.cpp" />
     <ClCompile Include="..\common\cbuffer.cpp" />
     <ClCompile Include="..\common\common.cpp" />
@@ -341,6 +342,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\aldformat.h" />
+    <ClInclude Include="..\common\bmp.h" />
+    <ClInclude Include="..\common\bmpformat.h" />
     <ClInclude Include="..\common\bspv30file.h" />
     <ClInclude Include="..\common\cache_model.h" />
     <ClInclude Include="..\common\carray.h" />

@@ -25,7 +25,7 @@ CEnvSpark::CEnvSpark( edict_t* pedict ):
 	CPointEntity(pedict),
 	m_isActive(false),
 	m_delay(0),
-	m_soundName(0)
+	m_soundName(NO_STRING_VALUE)
 {
 }
 
@@ -64,7 +64,7 @@ bool CEnvSpark::KeyValue( const keyvalue_t& kv )
 	}
 	else if (!qstrcmp(kv.keyname, "sound"))
 	{
-		m_soundName = kv.value;
+		m_soundName = gd_engfuncs.pfnAllocString(kv.value);
 		return true;
 	}
 	else
@@ -77,9 +77,10 @@ bool CEnvSpark::KeyValue( const keyvalue_t& kv )
 //=============================================
 void CEnvSpark::Precache( void )
 {
-	if (!m_soundName.empty())
-		gd_engfuncs.pfnPrecacheSound(m_soundName.c_str());
-	Util::PrecacheFixedNbSounds("misc/spark%d.wav", 6);
+	if (m_soundName != NO_STRING_VALUE)
+		gd_engfuncs.pfnPrecacheSound(gd_engfuncs.pfnGetString(m_soundName));
+	else
+		Util::PrecacheFixedNbSounds("misc/spark%d.wav", 6);
 }
 
 //=============================================
@@ -116,8 +117,8 @@ void CEnvSpark::SparkThink( void )
 	Util::CreateSparks(m_pState->origin);
 
 	CString soundfile;
-	if (!m_soundName.empty())
-		soundfile = m_soundName;
+	if (m_soundName != NO_STRING_VALUE)
+		soundfile = gd_engfuncs.pfnGetString(m_soundName);
 	else
 		soundfile << "misc/spark" << (Int32)Common::RandomLong(1, 6) << ".wav";
 
