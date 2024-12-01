@@ -390,6 +390,51 @@ namespace Common
 
 		return true;
 	}
+	
+	bool IsPowerOfFour(Uint32 size)
+	{
+		if (size < 1) return false;
+		while (size != 1)
+		{
+			if ((size % 4) != 0)
+				return false;
+			size /= 4;
+		}
+		return true;
+	}
+	bool IsPowerOfEight(Uint32 size)
+	{
+		if (size < 1) return false;
+		while (size != 1)
+		{
+			if ((size % 8) != 0)
+				return false;
+			size /= 8;
+		}
+		return true;
+	}
+	bool IsPowerOfSixteen(Uint32 size)
+	{
+		if (size < 1) return false;
+		while (size != 1)
+		{
+			if ((size % 16) != 0)
+				return false;
+			size /= 16;
+		}
+		return true;
+	}
+	bool IsPowerOfThirtyTwo(Uint32 size)
+	{
+		if (size < 1) return false;
+		while (size != 1)
+		{
+			if ((size % 32) != 0)
+				return false;
+			size /= 32;
+		}
+		return true;
+	}
 
 	//=============================================
 	// @brief Tells if a string represents an integer number

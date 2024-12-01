@@ -57,6 +57,7 @@ enum texture_format_t
 	TX_FORMAT_UNDEFINED = 0,
 	TX_FORMAT_TGA,
 	TX_FORMAT_DDS,
+	TX_FORMAT_BMP,
 	TX_FORMAT_MEMORY
 };
 
@@ -141,6 +142,7 @@ struct en_material_t
 	inline en_texture_t* getdetail( void ) { return ptextures[MT_TX_DETAIL]; }
 	inline en_texture_t* getspecular( void ) { return ptextures[MT_TX_SPECULAR]; }
 	inline en_texture_t* getluminance( void ) { return ptextures[MT_TX_LUMINANCE]; }
+	inline en_texture_t* getao( void ) { return ptextures[MT_TX_AO]; }
 
 	CString filepath;
 	rs_level_t level;

@@ -24,7 +24,8 @@ LINK_ENTITY_TO_CLASS(env_spark, CEnvSpark);
 CEnvSpark::CEnvSpark( edict_t* pedict ):
 	CPointEntity(pedict),
 	m_isActive(false),
-	m_delay(0)
+	m_delay(0),
+	m_soundName(0)
 {
 }
 
@@ -47,6 +48,7 @@ void CEnvSpark::DeclareSaveFields( void )
 	
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvSpark, m_isActive, EFIELD_BOOLEAN));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvSpark, m_delay, EFIELD_FLOAT));
+	DeclareSaveField(DEFINE_DATA_FIELD(CEnvSpark, m_soundName, EFIELD_STRING));
 }
 
 //=============================================
@@ -60,6 +62,11 @@ bool CEnvSpark::KeyValue( const keyvalue_t& kv )
 		m_delay = SDL_atof(kv.value);
 		return true;
 	}
+	else if (!qstrcmp(kv.keyname, "sound"))
+	{
+		m_soundName = kv.value;
+		return true;
+	}
 	else
 		return CPointEntity::KeyValue(kv);
 }
@@ -70,6 +77,8 @@ bool CEnvSpark::KeyValue( const keyvalue_t& kv )
 //=============================================
 void CEnvSpark::Precache( void )
 {
+	if (!m_soundName.empty())
+		gd_engfuncs.pfnPrecacheSound(m_soundName.c_str());
 	Util::PrecacheFixedNbSounds("misc/spark%d.wav", 6);
 }
 
@@ -107,7 +116,10 @@ void CEnvSpark::SparkThink( void )
 	Util::CreateSparks(m_pState->origin);
 
 	CString soundfile;
-	soundfile << "misc/spark" << (Int32)Common::RandomLong(1, 6) << ".wav";
+	if (!m_soundName.empty())
+		soundfile = m_soundName;
+	else
+		soundfile << "misc/spark" << (Int32)Common::RandomLong(1, 6) << ".wav";
 
 	Float volume = Common::RandomFloat(0.1, 0.6);
 	Util::EmitAmbientSound(m_pState->origin, soundfile.c_str(), volume);
