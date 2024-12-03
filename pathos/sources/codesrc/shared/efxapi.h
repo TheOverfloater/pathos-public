@@ -16,10 +16,12 @@ struct decalgroupentry_t;
 struct tempentity_t;
 struct mlight_t;
 struct beam_t;
+struct tracer_t;
 
 enum beam_types_t;
 enum overlay_rendermode_t;
 enum overlay_effect_t;
+enum tracer_type_t;
 
 struct cl_efxapi_t
 {
@@ -69,6 +71,7 @@ struct cl_efxapi_t
 	void					(*pfnSphereModel)( const Vector& origin, Float speed, Float life, Uint32 num, Uint32 modelindex, Float buoyancy, Float waterfriction, Int32 sound );
 	tempentity_t*			(*pfnTempModel)( const Vector& origin, const Vector& velocity, const Vector& angles, Float life, Uint32 modelindex, Int32 sound, Float buoyancy, Float waterfriction, Int32 flags );
 	tempentity_t*			(*pfnTempSprite)( const Vector& origin, const Vector& velocity, Float scale, Uint32 modelindex, Int32 rendermode, Int32 renderfx, Float alpha, Float life, Int32 sound, Int32 flags );
+	tracer_t*				(*pfnCreateTracer)( const Vector& origin, const Vector& velocity, const Vector& color, Float alpha, Float width, Float length, Float life, tracer_type_t type );
 
 	// Legacy particle effects
 	void					(*pfnParticleExplosion1)( const Vector& origin );

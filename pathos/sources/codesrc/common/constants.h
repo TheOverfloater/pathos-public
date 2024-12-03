@@ -826,7 +826,8 @@ enum tempentitytypes_t
 	TE_PARTICLEEFFECT,
 	TE_LAVASPLASH,
 	TE_TELEPORTSPLASH,
-	TE_ROCKETTRAIL
+	TE_ROCKETTRAIL,
+	TE_TRACER
 };
 
 enum trailtype_t
@@ -958,5 +959,4 @@ enum overlay_msg_type_t
 	OVERLAY_MSG_CLEAR_FADEOUT,
 	OVERLAY_MSG_CLEAR
 };
-
 #endif //CONSTANTS_H

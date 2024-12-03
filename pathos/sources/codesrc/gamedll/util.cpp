@@ -560,6 +560,31 @@ namespace Util
 	//=============================================
 	//
 	//=============================================
+	void CreateTracer( const Vector& origin, const Vector& velocity, const Vector& color, Float alpha, Float width, Float length, Float life, enum tracer_type_t type )
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
+		gd_engfuncs.pfnMsgWriteByte(TE_TRACER);
+
+		for(Uint32 i = 0; i < 3; i++)
+			gd_engfuncs.pfnMsgWriteFloat(origin[i]);
+
+		for(Uint32 i = 0; i < 3; i++)
+			gd_engfuncs.pfnMsgWriteFloat(velocity[i]);
+
+		for(Uint32 i = 0; i < 3; i++)
+			gd_engfuncs.pfnMsgWriteByte(color[i]);
+
+		gd_engfuncs.pfnMsgWriteByte(alpha);
+		gd_engfuncs.pfnMsgWriteByte(width);
+		gd_engfuncs.pfnMsgWriteSmallFloat(length);
+		gd_engfuncs.pfnMsgWriteSmallFloat(life);
+		gd_engfuncs.pfnMsgWriteByte(type);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	//=============================================
+	//
+	//=============================================
 	void PrecacheEntity( const Char* pstrClassname )
 	{
 		edict_t* pedict = gd_engfuncs.pfnCreateEntity(pstrClassname);

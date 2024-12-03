@@ -28,6 +28,7 @@ All Rights Reserved.
 #include "timedamage.h"
 #include "ai_militianpc.h"
 #include "lightenvironment.h"
+#include "tracer.h"
 
 // Path to impact effects script
 static const Char MATERIAL_DEFINITIONS_SCRIPT_PATH[] = "scripts/materialdefs.txt";
@@ -640,7 +641,7 @@ bool ShootTrace( const Vector& gunPosition, const Vector& endPos, const Vector& 
 		Util::TraceModel(pTraceModel, gunPosition, endPos, true, HULL_POINT, tr);
 	else
 		Util::TraceLine(gunPosition, endPos, false, true, false, true, isRicochetShot ? nullptr : pAttacker->GetEdict(), tr);
-		
+
 	// Don't bother if we hit nothing
 	if(tr.noHit())
 		return false;
@@ -824,6 +825,9 @@ void FireBullets( Uint32 nbshots,
 		gunTracePosition = gunPosition;
 		endPos = gunTracePosition + shootDirection*distance;
 
+		trace_t tr;
+		bool shootResult = ShootTrace(gunTracePosition, endPos, shootDirection, pAttacker, pAttacker, pWeapon, damage, 1.0, shotDmgFlags, bulletType, hitgroup, tr, impactPositions, numImpactPositions, false, false, nullptr);
+
 		// Spawn the tracer
 		if(tracerFrequency != 0)
 		{
@@ -837,12 +841,26 @@ void FireBullets( Uint32 nbshots,
 				if(pAttacker->IsPlayer())
 					tracerOrigin += Vector(0, 0, -4)+aimRight*2+aimForward*16;
 
-				Util::CreateParticles("bullet_tracer.txt", tracerOrigin, shootDirection, PART_SCRIPT_SYSTEM);
+				const Float tracerSpeed = 6000;
+				const Float tracerOffset = 30;
+
+				Vector tmp = (tr.endpos - tracerOrigin);
+				Float length = tmp.Length();
+				Float scale1 = 1.0 / length;
+				Float scale2 = Common::RandomFloat(-10, 9) + tracerOffset;
+
+				Vector velocity, start;
+				Math::VectorScale(tmp, scale1, tmp);
+				Math::VectorScale(tmp, scale2, velocity);
+				Math::VectorAdd(tracerOrigin, velocity, start);
+				Math::VectorScale(tmp, tracerSpeed, velocity);
+				
+				Float life = length / tracerSpeed;
+				Util::CreateTracer(tracerOrigin, velocity, Vector(255, 192, 64), 255, 2, 2, life, TRACER_NORMAL);
 			}
 		}
 
-		trace_t tr;
-		if(ShootTrace(gunTracePosition, endPos, shootDirection, pAttacker, pAttacker, pWeapon, damage, 1.0, shotDmgFlags, bulletType, hitgroup, tr, impactPositions, numImpactPositions, false, false, nullptr))
+		if(shootResult)
 		{
 			// Number of ricochets
 			Uint32 numRicochets = 0;

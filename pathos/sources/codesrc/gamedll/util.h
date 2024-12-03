@@ -13,6 +13,7 @@ All Rights Reserved.
 #include "snd_shared.h"
 #include "beam_shared.h"
 #include "trace.h"
+#include "tracer.h"
 
 enum part_script_type_t;
 enum flextypes_t;
@@ -52,6 +53,7 @@ namespace Util
 	extern void EntityConDPrintf( const edict_t* pentity, const Char *fmt, ... );
 	extern void CreateParticles( const Char* pstrscriptname, const Vector& origin, const Vector& direction, part_script_type_t type );
 	extern void CreateParticles( const Char* pstrscriptname, const Vector& origin, const Vector& direction, part_script_type_t type, const edict_t* pentity, Uint32 attachment, Int32 id, Int32 boneindex = NO_POSITION, Int32 attachflags = PARTICLE_ATTACH_NONE );
+	extern void CreateTracer( const Vector& origin, const Vector& velocity, const Vector& color, Float alpha, Float width, Float length, Float life, tracer_type_t type );
 	extern void PrecacheEntity( const Char* pstrClassname );
 	extern void ShowMessage( const Char* pmsgname, CBaseEntity* pPlayer );
 	extern void ShowMessageAllPlayers( const Char* pmsgname );

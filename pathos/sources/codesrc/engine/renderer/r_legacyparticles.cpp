@@ -263,7 +263,7 @@ CLegacyParticles::particle_t* CLegacyParticles::AllocParticle( void )
 	if(m_pFreeParticleHeader)
 		m_pFreeParticleHeader->pprev = nullptr;
 
-	// Clear tempentity state
+	// Clear particle state
 	(*pnew) = particle_t();
 
 	// Add system into pointer array
@@ -849,12 +849,13 @@ bool CLegacyParticles::DrawParticles( void )
 		pDraw->Color4f(color.x, color.y, color.z, 1.0);
 		pDraw->TexCoord2f(0.0, 1.0);
 		pDraw->Vertex3fv(vpoint);
-		nbVertexes += 6;
+		nbVertexes += 4;
 
-		if(i < (m_nbSortedParticles-1) && (nbVertexes+6) >= CBasicDraw::BASICDRAW_VERTEX_CACHE_SIZE)
+		if(i < (m_nbSortedParticles-1) && (nbVertexes+4) >= CBasicDraw::BASICDRAW_VERTEX_CACHE_SIZE)
 		{
 			pDraw->End();
 			pDraw->Begin(CBasicDraw::DRAW_QUADS);
+			nbVertexes = 0;
 		}
 	}
 

@@ -71,6 +71,7 @@ All Rights Reserved.
 #include "r_sky.h"
 #include "r_fbocache.h"
 #include "r_lightstyles.h"
+#include "r_tracers.h"
 
 #include "stepsound.h"
 #include "aldformat.h"
@@ -247,6 +248,7 @@ bool R_Init( void )
 	gCommands.CreateCommand("efx_beampoints", Cmd_EFX_BeamPoints, "Creates a beam between two points");
 	gCommands.CreateCommand("efx_beamring", Cmd_EFX_BeamRing, "Creates a beam ring between two entities");
 	gCommands.CreateCommand("efx_createparticle", Cmd_EFX_CreateParticle, "Creates a particle system in front of the view");
+	gCommands.CreateCommand("efx_createtracer", Cmd_EFX_CreateTracer, "Creates a tracer in front of the view");
 
 	gCommands.CreateCommand("r_bsp2smd_lm", Cmd_BSPToSMD_Lightmap, "Exports BSP geometry to smd with lightmap texcoords");
 	gCommands.CreateCommand("r_bsp2smd_tx", Cmd_BSPToSMD_Textures, "Exports BSP geometry to smd with regular texcoords");
@@ -319,6 +321,9 @@ bool R_Init( void )
 	if (!gFBOCache.Init())
 		return false;
 
+	if (!gTracers.Init())
+		return false;
+
 	// Init decal class
 	gDecals.Init();
 
@@ -349,6 +354,7 @@ void R_Shutdown( void )
 	gPortalManager.Shutdown();
 	gLensFlareRenderer.Shutdown();
 	gFBOCache.Shutdown();
+	gTracers.Shutdown();
 
 	CBasicDraw::DeleteInstance();
 }
@@ -737,6 +743,9 @@ bool R_LoadResources( void )
 	if (!gFBOCache.InitGame())
 		return false;
 
+	if (!gTracers.InitGame())
+		return false;
+
 	// Release lightmap data
 	if(cls.cl_state == CLIENT_ACTIVE)
 	{
@@ -853,6 +862,7 @@ void R_ResetGame( void )
 	gBlackHoleRenderer.ClearGame();
 	gLensFlareRenderer.ClearGame();
 	gFBOCache.ClearGame();
+	gTracers.ClearGame();
 
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 
@@ -2136,6 +2146,10 @@ bool R_DrawTransparent( void )
 			if(!gBlackHoleRenderer.DrawBlackHoles())
 				return false;
 
+			// Draw tracers
+			if(!gTracers.DrawTracers())
+				return false;
+
 			if(rns.mainframe)
 			{
 				// Draw glow auras
@@ -2814,6 +2828,9 @@ bool R_Update( void )
 	
 	// Update beams
 	gBeamRenderer.Update();
+
+	// Update tracers
+	gTracers.Update();
 
 	return true;
 }
@@ -4616,6 +4633,62 @@ void Cmd_EFX_CreateParticle( void )
 //====================================
 //
 //====================================
+void Cmd_EFX_CreateTracer( void )
+{
+	if(!CL_IsGameActive())
+	{
+		Con_Printf("%s - No active game.\n", __FUNCTION__);
+		return;
+	}
+
+	if(gCommands.Cmd_Argc() < 10)
+	{
+		Con_Printf("efx_createtracer usage: efx_createtracer <color r(0-255)> <color g(0-255)> <color b(0-255)> <alpha value(0-255)> <width> <length> <velocity> <life> <type(0 = no gravity, 1 = default gravity, 2 = slow gravity)>\n");
+		return;
+	}
+
+	Vector color;
+	color[0] = SDL_atof(gCommands.Cmd_Argv(1)) / 255.0f;
+	color[1] = SDL_atof(gCommands.Cmd_Argv(2)) / 255.0f;
+	color[2] = SDL_atof(gCommands.Cmd_Argv(3)) / 255.0f;
+	Float alpha = SDL_atof(gCommands.Cmd_Argv(4)) / 255.0f;
+	Float width = SDL_atof(gCommands.Cmd_Argv(5));
+	Float length = SDL_atof(gCommands.Cmd_Argv(6));
+	Float velocity = SDL_atof(gCommands.Cmd_Argv(7));
+	Float life = SDL_atof(gCommands.Cmd_Argv(8));
+	Int32 type = SDL_atoi(gCommands.Cmd_Argv(9));
+
+	tracer_type_t ttype;
+	switch(type)
+	{
+	case 0:
+		ttype = TRACER_NORMAL;
+		break;
+	case 1:
+		ttype = TRACER_GRAVITY;
+		break;
+	case 2:
+		ttype = TRACER_SLOW_GRAVITY;
+		break;
+	default:
+		{
+			Con_Printf("efx_createtracer - Unknown tracer type %d specified.\n", type);
+			ttype = TRACER_NORMAL;
+		}
+		break;
+	}
+
+	// Calculate velocity
+	Vector vforward;
+	Math::AngleVectors(rns.view.v_angles, &vforward, nullptr, nullptr);
+	Math::VectorScale(vforward, velocity, vforward);
+
+	gTracers.CreateTracer(rns.view.v_origin, vforward, color, alpha, width, length, life, ttype); 
+}
+
+//====================================
+//
+//====================================
 void Cmd_BSPToSMD_Textures( void )
 {
 	if(!CL_IsGameActive() || !ens.pworld)
@@ -5511,3 +5584,4 @@ void Cmd_ExportALD( void )
 
 	ALD_CopyAndExportLightmaps(srcFilename.c_str(), DAYSTAGE_NORMAL_RESTORE, daystage);
 }
+

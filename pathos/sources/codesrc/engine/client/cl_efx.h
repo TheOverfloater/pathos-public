@@ -15,10 +15,12 @@ struct cl_dlight_t;
 struct cl_entity_t;
 struct tempentity_t;
 struct beam_t;
+struct tracer_t;
 
 enum beam_types_t;
 enum overlay_rendermode_t;
 enum overlay_effect_t;
+enum tracer_type_t;
 
 extern void CL_SetFade( Uint32 layerindex, Float duration, Float holdtime, Int32 flags, const color24_t& color, byte alpha, Float timeoffset );
 extern void CL_SetMotionBlur( bool active, Float blurfade, bool override );
@@ -79,4 +81,5 @@ extern void CL_KillBlackHole( Int32 key );
 extern void CL_SetSunFlare( entindex_t entindex, bool active, Float pitch, Float roll, Float scale, const Vector& color, bool portalSunFlare );
 extern void CL_AddSkyTextureSet( const Char* pstrSkyTextureName, Int32 skysetindex );
 extern void CL_SetSkyTexture( Int32 skysetindex );
+extern tracer_t* CL_CreateTracer( const Vector& origin, const Vector& velocity, const Vector& color, Float alpha, Float width, Float length, Float life, tracer_type_t type );
 #endif //CL_EFX_H

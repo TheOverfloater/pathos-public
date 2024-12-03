@@ -591,6 +591,7 @@ extern void Cmd_EFX_BeamVaporTrail( void );
 extern void Cmd_EFX_BeamPoints( void );
 extern void Cmd_EFX_BeamRing( void );
 extern void Cmd_EFX_CreateParticle( void );
+extern void Cmd_EFX_CreateTracer( void );
 
 extern void Cmd_BSPToSMD_Lightmap( void );
 extern void Cmd_BSPToSMD_Textures( void );

@@ -34,6 +34,7 @@ All Rights Reserved.
 #include "r_lensflare.h"
 #include "r_sky.h"
 #include "r_lightstyles.h"
+#include "r_tracers.h"
 
 #include "ald.h"
 #include "aldformat.h"
@@ -85,6 +86,7 @@ static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 	CL_SphereModel,					//pfnSphereModel
 	CL_TempModel,					//pfnTempModel
 	CL_TempSprite,					//pfnTempSprite
+	CL_CreateTracer,				//pfnCreateTracer
 	CL_ParticleExplosion1,			//pfnParticleExplosion1
 	CL_ParticleExplosion2,			//pfnParticleExplosion2
 	CL_BlobExplosion,				//pfnBlobExplosion
@@ -782,4 +784,12 @@ void CL_AddSkyTextureSet( const Char* pstrSkyTextureName, Int32 skysetindex )
 void CL_SetSkyTexture( Int32 skysetindex )
 {
 	gSkyRenderer.SetSkyTexture(skysetindex);
+}
+
+//====================================
+//
+//====================================
+tracer_t* CL_CreateTracer( const Vector& origin, const Vector& velocity, const Vector& color, Float alpha, Float width, Float length, Float life, tracer_type_t type )
+{
+	return gTracers.CreateTracer(origin, velocity, color, alpha, width, length, life, type);
 }

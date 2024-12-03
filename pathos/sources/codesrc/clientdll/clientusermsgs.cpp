@@ -29,6 +29,7 @@ All Rights Reserved.
 #include "screentext.h"
 #include "beam_shared.h"
 #include "flex_shared.h"
+#include "tracer.h"
 
 #include "gameui_shared.h"
 #include "gameuimanager.h"
@@ -867,6 +868,35 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 			}
 
 			cl_efxapi.pfnRocketTrail(start, end, parttype);
+		}
+		break;
+	case TE_TRACER:
+		{
+			Vector origin;
+			for(Uint32 i = 0; i < 3; i++)
+				origin[i] = reader.ReadFloat();
+
+			Vector velocity;
+			for(Uint32 i = 0; i < 3; i++)
+				velocity[i] = reader.ReadFloat();
+
+			Vector color;
+			for(Uint32 i = 0; i < 3; i++)
+				color[i] = static_cast<Float>(reader.ReadByte()) / 255.0f;
+
+			Float alpha = static_cast<Float>(reader.ReadByte()) / 255.0f;
+			Float width = reader.ReadByte();
+			Float length = reader.ReadSmallFloat();
+			Float life = reader.ReadSmallFloat();
+			tracer_type_t tracertype = static_cast<tracer_type_t>(reader.ReadByte());
+
+			if(reader.HasError())
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+				return false;
+			}
+
+			cl_efxapi.pfnCreateTracer(origin, velocity, color, alpha, width, length, life, tracertype);
 		}
 		break;
 	case TE_UNDEFINED:

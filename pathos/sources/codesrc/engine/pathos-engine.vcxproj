@@ -282,6 +282,7 @@
     <ClCompile Include="renderer\r_nsmoothing.cpp" />
     <ClCompile Include="renderer\r_portals.cpp" />
     <ClCompile Include="renderer\r_sky.cpp" />
+    <ClCompile Include="renderer\r_tracers.cpp" />
     <ClCompile Include="renderer\r_wadtextures.cpp" />
     <ClCompile Include="renderer\r_mirror.cpp" />
     <ClCompile Include="renderer\r_monitor.cpp" />
@@ -382,6 +383,7 @@
     <ClInclude Include="..\common\sprformat.h" />
     <ClInclude Include="..\common\tempentity.h" />
     <ClInclude Include="..\common\tgaformat.h" />
+    <ClInclude Include="..\common\tracer.h" />
     <ClInclude Include="..\common\vector.h" />
     <ClInclude Include="..\common\dds.h" />
     <ClInclude Include="..\common\logfile.h" />
@@ -441,6 +443,7 @@
     <ClInclude Include="renderer\r_nsmoothing.h" />
     <ClInclude Include="renderer\r_portals.h" />
     <ClInclude Include="renderer\r_sky.h" />
+    <ClInclude Include="renderer\r_tracers.h" />
     <ClInclude Include="renderer\r_wadtextures.h" />
     <ClInclude Include="renderer\r_mirror.h" />
     <ClInclude Include="renderer\r_monitor.h" />

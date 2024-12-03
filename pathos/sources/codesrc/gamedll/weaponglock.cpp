@@ -287,7 +287,7 @@ void CWeaponGlock::PrimaryAttack( void )
 	Vector forward, right, up;
 	Math::AngleVectors(aimAngles, &forward, &right, &up);
 
-	FireBullets(1, gunPosition, forward, right, up, GetCone(), BULLET_MAX_DISTANCE, BULLET_PLAYER_GLOCK, 0, 0, m_pPlayer);
+	FireBullets(1, gunPosition, forward, right, up, GetCone(), BULLET_MAX_DISTANCE, BULLET_PLAYER_GLOCK, 1, 0, m_pPlayer);
 
 	// Apply view punch
 	m_pPlayer->ApplyAxisPunch( 0, -Common::RandomFloat( 6, 12 ) );
