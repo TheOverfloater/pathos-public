@@ -379,3 +379,7 @@
 	- Add custom sound support to env_spark.
   - Improve management and loading of texture formats in CTextureLoader.
   - Fixed hlrad crashing when exporting ALD data without bump map info having been compiled.
+  
+2024 December 3rd
+  - Added simple tracer tempentity like in Half-Life 1.
+  - Fix for BasicDraw cache flushing in Q1 Legacy Particle renderer code.
