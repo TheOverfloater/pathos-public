@@ -383,3 +383,14 @@
 2024 December 3rd
   - Added simple tracer tempentity like in Half-Life 1.
   - Fix for BasicDraw cache flushing in Q1 Legacy Particle renderer code.
+  
+2024 December 9th:
+  - Add custom particle scripts for bullet ricochet effect.
+  - Fix for decal VBO cleaning code causing crashes on lower framerates.
+  - Fix issue with tracers not having fog properly applied.
+  - Fix for CSquadNPC not alerting squad leader about new enemy.
+  - Fix for CTalkNPC not using head bone position for facing talk targets.
+  - Refine bullet tracers to be better visible based on distance travelled.
+  - Add support for mirroring bullet tracer spawn position based on boolean parameter.
+  - Add tracers for ricocheting and penetrating rounds also.
+  - Fix CVBO::IBOSubBufferData so it also uses memmove instead of memcpy. 

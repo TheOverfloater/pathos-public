@@ -423,6 +423,7 @@ void CVBO :: VBOSubBufferData ( Uint32 offset, const void *pdata, Uint32 size )
 		byte* pdest = static_cast<byte*>(m_pVBOData) + offset;
 		memmove(pdest, pdata, sizeof(byte)*size);
 	}
+
 	if(!m_bActive)
 	{
 		m_glExtF.glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -452,7 +453,7 @@ void CVBO::IBOSubBufferData ( Uint32 offset, const void *pdata, Uint32 size )
 	if(m_pVBOData)
 	{
 		byte* pdest = static_cast<byte*>(m_pIBOData) + offset;
-		memcpy(pdest, pdata, sizeof(byte)*size);
+		memmove(pdest, pdata, sizeof(byte)*size);
 	}
 
 	if(!m_bActive)

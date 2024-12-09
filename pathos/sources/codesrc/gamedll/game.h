@@ -46,6 +46,6 @@ extern void ToggleBikeBlockers( bool enable );
 extern void PrecacheGenericResources( void );
 extern bool InitSentences( void );
 
-extern void FireBullets( Uint32 nbshots, const Vector& gunPosition, const Vector& aimForward, const Vector& aimRight, const Vector& aimUp, const Vector& spread, Float distance, bullet_types_t bulletType, Int32 tracerFrequency, Float damage, CBaseEntity* pAttacker, CBaseEntity* pWeapon = nullptr );
+extern void FireBullets( Uint32 nbshots, const Vector& gunPosition, const Vector& aimForward, const Vector& aimRight, const Vector& aimUp, const Vector& spread, Float distance, bullet_types_t bulletType, Int32 tracerFrequency, Float damage, CBaseEntity* pAttacker, CBaseEntity* pWeapon = nullptr, bool mirrorTracer = false );
 extern void RadiusDamage( const Vector& vecPosition, CBaseEntity* pInflictor, CBaseEntity* pAttacker, Float damageDealt, Float damageRadius, Int32 classToIgnore, Int32 damageFlags );
 #endif //GAME_H

@@ -748,7 +748,7 @@ void CTalkNPC::PlayScriptedSentence( const Char* pstrSentenceName, Float duratio
 
 	// Make us face the talk target
 	if(m_talkTargetEntity && m_npcState != NPC_STATE_SCRIPT)
-		SetIdealYaw(m_talkTargetEntity->GetEyePosition());
+		SetIdealYaw(m_talkTargetEntity->GetEyePosition(true, true));
 
 	CSquadNPC::PlayScriptedSentence(pstrSentenceName, duration, volume, attenuation, timeOffset, subtitleOnlyInRadius, isConcurrent, pListener, pPlayer);
 }
@@ -959,7 +959,7 @@ void CTalkNPC::RunTask( const ai_task_t* pTask )
 				CBaseEntity* pPlayer = Util::GetHostPlayer();
 				if(pPlayer)
 				{
-					Vector eyePosition = pPlayer->GetEyePosition(true);
+					Vector eyePosition = pPlayer->GetEyePosition(true, true);
 					IdleHeadTurn(&eyePosition);
 				}
 			}
@@ -1011,7 +1011,7 @@ void CTalkNPC::RunTask( const ai_task_t* pTask )
 
 			SetIdealYaw(pPlayer->GetOrigin());
 
-			Vector eyePosition = pPlayer->GetEyePosition(true);
+			Vector eyePosition = pPlayer->GetEyePosition(true, true);
 			IdleHeadTurn(&eyePosition);
 			if(g_pGameVars->time > m_waitFinishedTime && GetYawDifference() < IDEALYAW_DIFF_TRESHOLD)
 				SetTaskCompleted();
@@ -1021,7 +1021,7 @@ void CTalkNPC::RunTask( const ai_task_t* pTask )
 		{
 			if(!IsMoving() && IsTalking() && m_talkTargetEntity)
 			{
-				Vector eyePosition = m_talkTargetEntity->GetEyePosition(true);
+				Vector eyePosition = m_talkTargetEntity->GetEyePosition(true, true);
 				IdleHeadTurn(&eyePosition);
 			}
 			else
@@ -1032,7 +1032,7 @@ void CTalkNPC::RunTask( const ai_task_t* pTask )
 		{
 			if(IsTalking() && m_talkTargetEntity)
 			{
-				Vector eyePosition = m_talkTargetEntity->GetEyePosition(true);
+				Vector eyePosition = m_talkTargetEntity->GetEyePosition(true, true);
 				IdleHeadTurn(&eyePosition);
 			}
 			else
@@ -1054,7 +1054,7 @@ void CTalkNPC::RunTask( const ai_task_t* pTask )
 		{
 			if(IsTalking() && m_talkTargetEntity)
 			{
-				Vector eyePosition = m_talkTargetEntity->GetEyePosition(true);
+				Vector eyePosition = m_talkTargetEntity->GetEyePosition(true, true);
 				IdleHeadTurn(&eyePosition);
 			}
 			else

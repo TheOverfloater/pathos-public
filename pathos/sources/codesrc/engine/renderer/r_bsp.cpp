@@ -4822,43 +4822,48 @@ void CBSPRenderer::RemoveDecalFromVBO( bsp_decal_t *pdelete )
 	Uint32 vertexend = plastgroup->start_vertex + plastgroup->num_vertexes;
 	Uint32 nbremoved = vertexend - vertexstart;
 
+	assert(vertexend <= m_vertexCacheIndex);
 	Uint32 nbshift = m_vertexCacheIndex - vertexend;
 	m_vertexCacheIndex -= nbremoved;
 
 	// See if there's anything to shift
-	if(!nbshift)
-		return;
-
-	// Get VBO vertex data
-	const bsp_vertex_t* pvertexdata = static_cast<const bsp_vertex_t*>(m_pDecalVBO->GetVBOData());
-	const bsp_vertex_t* psrcdata = pvertexdata + vertexend;
-
-	m_pDecalVBO->VBOSubBufferData(sizeof(bsp_vertex_t)*vertexstart, psrcdata, sizeof(bsp_vertex_t)*nbshift);
-
-	m_decalsList.push_iterator();
-	m_decalsList.begin();
-	while(!m_decalsList.end())
+	if(nbshift > 0)
 	{
-		bsp_decal_t* pdecal = m_decalsList.get();
-		for(Uint32 i = 0; i < pdecal->polygroups.size(); i++)
+		const bsp_vertex_t* pvertexdata = reinterpret_cast<const bsp_vertex_t*>(m_pDecalVBO->GetVBOData());
+		const bsp_vertex_t* psrcdata = pvertexdata + vertexend;
+
+		Uint32 offsetsize = sizeof(bsp_vertex_t)*vertexstart;
+		Uint32 sizemove = sizeof(bsp_vertex_t)*nbshift;
+
+		m_pDecalVBO->VBOSubBufferData(offsetsize, psrcdata, sizemove);
+
+		// Now shift existing decals
+		m_decalsList.push_iterator();
+		m_decalsList.begin();
+		while(!m_decalsList.end())
 		{
-			decalpolygroup_t* pgroup = pdecal->polygroups[i];
-			if(pgroup->start_vertex > vertexstart)
-				pgroup->start_vertex -= nbremoved;
+			bsp_decal_t* pdecal = m_decalsList.get();
+			for(Uint32 i = 0; i < pdecal->polygroups.size(); i++)
+			{
+				decalpolygroup_t* pgroup = pdecal->polygroups[i];
+				if(pgroup->start_vertex >= vertexstart)
+					pgroup->start_vertex -= nbremoved;
+			}
+
+			m_decalsList.next();
 		}
+		m_decalsList.pop_iterator();
 
-		m_decalsList.next();
-	}
-	m_decalsList.pop_iterator();
-
-	for(Uint32 i = 0; i < m_staticDecalsArray.size(); i++)
-	{
-		bsp_decal_t* pdecal = m_staticDecalsArray[i];
-		for(Uint32 j = 0; j < pdecal->polygroups.size(); j++)
+		// Shift static ones too
+		for(Uint32 i = 0; i < m_staticDecalsArray.size(); i++)
 		{
-			decalpolygroup_t* pgroup = pdecal->polygroups[j];
-			if(pgroup->start_vertex > vertexstart)
-				pgroup->start_vertex -= nbremoved;
+			bsp_decal_t* pdecal = m_staticDecalsArray[i];
+			for(Uint32 j = 0; j < pdecal->polygroups.size(); j++)
+			{
+				decalpolygroup_t* pgroup = pdecal->polygroups[j];
+				if(pgroup->start_vertex >= vertexstart)
+					pgroup->start_vertex -= nbremoved;
+			}
 		}
 	}
 }
@@ -5484,8 +5489,6 @@ void CBSPRenderer::Think( void )
 {
 	if(!m_decalsList.empty())
 	{
-		CLinkedList<bsp_decal_t*> removedDecalsList;
-
 		m_decalsList.begin();
 		while(!m_decalsList.end())
 		{
@@ -5496,23 +5499,15 @@ void CBSPRenderer::Think( void )
 				if(deathtime <= cls.cl_time)
 				{
 					// Delete this decal
-					removedDecalsList.add(pdecal);
 					m_decalsList.remove(m_decalsList.get_link());
 					m_decalsList.next();
+
+					RemoveDecalFromVBO(pdecal);
+					delete pdecal;
 				}
 			}
 
 			m_decalsList.next();
-		}
-
-		removedDecalsList.begin();
-		while(!removedDecalsList.end())
-		{
-			bsp_decal_t* pdecal = removedDecalsList.get();
-			RemoveDecalFromVBO(pdecal);
-			delete pdecal;
-
-			removedDecalsList.next();
 		}
 	}
 }

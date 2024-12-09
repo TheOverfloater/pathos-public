@@ -932,7 +932,7 @@ namespace Util
 	//=============================================
 	void Ricochet( const Vector &position, const Vector &direction, bool metalsound )
 	{
-		Util::CreateParticles("cluster_impact_metal.txt", position, direction, PART_SCRIPT_CLUSTER);
+		Util::CreateParticles("cluster_impact_ricochet.txt", position, direction, PART_SCRIPT_CLUSTER);
 
 		if(!metalsound)
 			Util::PlayRandomAmbientSound(position, "impact/ricochet%d.wav", 3);

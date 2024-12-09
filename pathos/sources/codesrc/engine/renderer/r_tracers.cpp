@@ -152,8 +152,8 @@ bool CTracerRenderer::DrawTracers( void )
 			return false;
 		}
 
-		// We use black fog on beams
-		pDraw->SetFogParams(rns.fog.settings.color, rns.fog.settings.start, rns.fog.settings.end);
+		// We use black fog on tracers
+		pDraw->SetFogParams(ZERO_VECTOR, rns.fog.settings.start, rns.fog.settings.end);
 	}
 
 	R_ValidateShader(pDraw);
