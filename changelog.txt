@@ -1,4 +1,159 @@
--2024 July 19th:
+2024 March 6th:
+ - Updated README.md to add link to YT playlist for Pathos videos.
+ 
+2024 March 7th:
+ - Fixing typos and other issues, and adding some extra notes in README.md.
+
+2024 March 8th:
+ - Fix debug compile for Win32 mode.
+
+2024 March 9th:
+ - Fix for issue #1 where values set by the settings menu would shift due to precision issues.
+ - Fix for issue #3 where font colors were incorrect due to improperly filled RGB values.
+ - Text schema file support to allow dynamic, non-hardcoded specifying of fonts to use.
+ - Support for specifying font sizes based on resolution.
+ - Support for adding outlines to fonts with custom outline color.
+ - Fix Save/Load UI window where the Save button would not properly be disabled when clicking on an existing save.
+ - Add "Delete Save" button to allow deletion of save files.
+ - Change copyright date in README.md.
+
+2024 March 10th:
+ - Remove temporary compile files.
+ - Remove maps not supposed to be in the repo.
+ - Modify project settings for proper compile directory paths based on platform.
+ - Fix issue #4 when trying to load a map from command line.
+ - Modify shader code to compile BSD files into platform-dependent folders.
+ - Fix an issue with text rendering where empty lines caused corrupted rendering of text.
+ - Modify the Game UI windows to use text schemas.
+ - Modify Game UI and Menu UI to keep their own default fonts.
+ - Fix an issue with text custom color segment outlines not being drawn.
+ - Add font schema use to:
+   - Console history box.
+   - Titles.txt text messages.
+ - Change save/load window so it doesn't automatically select saves on spawn.
+ - Fix for when r_drawsky is set to 0 with a skybox set, it would break world rendering.
+ - Add new documentation for debugging nodes, material type assignment, and for useful cvars/cmds.
+ - Fix an issue where for BSPs with embedded textures, the first texture would be used for everything.
+ - Fix an issue where material scripts generated for BSP embedded textures would not be loaded properly.
+
+2024 March 11th:
+ - Add JACK compatible pathos_jack.fgd.
+ - Fix #6 by adding full projects for libogg, libvorbis and libvorbisfile.
+ - Fix #5 when skybox water entities would cause other parts of the world to render.
+ - Fix progress counter on shader compile screens.
+ - Fix merge issues from previous update.
+ - Fix for water shader causing maps not to rendered.
+
+2024 March 12th:
+ - Fix windowed mode always being borderless.
+
+2024 March 14th:
+ - Added support for legacy transparent entities.
+ - Add color tint to BSPRenderer shader types.
+ - Order rendermodes in JACK FGD in numerical order.
+ - Fix #10 - Decals not spawning properly when there's a skybox used.
+ - Fix console function call causing rounding issue exceptions.
+ - Fix issue in env_setskytexture thinking it's active due to m_isActive not being initialized in the constructor.
+ - Adjust legacy rendermode implementation by @Kleadron to properly set shader determinators and vertex attributes.
+ - Added RENDERMODE_BITMASK constant to use instead of "255" at rendermode bitmask & checks.
+ - Add cvar to enable/disable legacy rendering of transparent rendermodes.
+ - Fix erroneous entry in uisaveloadwindow.txt script.
+ - Add outline to default text.
+ - Update Sys_CheckLaunchArgs to use NO_POSITION constant instead of just returning -1.
+
+2024 March 15th:
+ - Fix "Color Lit" rendermode being too dim due to lack of overbright.
+ - Also removed skybox entity exception in VBM renderer for bbox culling.
+ - Several fixes in BSP renderer for cubemap rendering.
+ - Idealyaw was not re-set after AdvanceRoute was called, which caused issues when the AI tried to perform a move.
+ - MoveToOrigin should use a yaw value supplied as a parameter instead of relying on idealyaw to begin with, so I changed this bit.
+ 
+2024 March 16th:
+ - Fix BSP rendered dynamic lights. Due to a stupid mistake, light values calculated for dynamic lights were added twice when rendering them for the BSP. This commit fixes this issue.
+ 
+2024 March 17th:
+ - Fix error prompt on console with "sv_keepoldsaves".
+ - Add final version of BSP drawbatches.
+ - Fix error caused by legacy transparents due to invalid states when combined with fog.
+ - Fix dynamic lighting for VBM models also.
+ 
+2024 March 19th:
+ - Replace r_wadchecks with r_wadtexturechecks and r_bsptexturechecks.
+ - Add dynamic light batching optimization.
+ - Add shadowmap cache blitting optimization.
+ - Add options to Advanced tab for shadowmap resolution, shadowmap blit and dynamic light batching.
+ - Increase max number of dynamic light sources per type from 2 to 4 for particle systems.
+ - Increase flashlight brightness to compensate for dynamic light fix.
+ - Fix CString::insert crashing if the string doesn't yet have a size(is empty).
+ - Modify msurface_t->styles from being a fixed size array to CArray, sized based on BSP format.
+ - Fix issues in PR #11.
+ - Modify shader compile progress message to display whether the cache is being rebuilt.
+ - Fix issue in CWindow class not clearing the multisample settings array before filling it back up.
+ - Modify brushmodels to only set EF_STATICENTITY flag if they lack a targetname.
+ - Increase limits on BSS(branching shader script) format.
+ - Fix broken material associations on client. The change to add support for disabling BSP wad checks separately introduced an issue where the client-side material definitions were not filled out if the client was the local host. This is a fix for that issue.
+
+2024 March 20th:
+ - Fix assert failure due to m_pCurrentEntity in CBSPRenderer being set to the first vis packet entity instead of being set to WorldSpawn
+ - Fix lighting inconsistency between multipass and single-pass due to light glare with overly intense lighting
+ - Fix issue with non-static entities not casting shadows. The recent shadowmap blitting changes introduced a bug where if a non-static entity didn't have velocity or angular velocity, it would not cast a shadow.
+ 
+2024 March 26th:
+ - Fix JACK issue with scale being 0 on env_models. This fixes an issue, where models would be infinitely small in JACK because of the "scale" keyvalue on env_models being set to 0 by default.
+ - Fix for issue #13 where mod support was broken, due to not reading the -game parameter before loading any resources.
+ - Remove capping on specular highlights, as these do not suffer from the color clamping issue like non-specular lightvalues do.
+ 
+2024 April 5th:
+ - Add VHE 3.5 to the repository.
+ - Remove VHLT from repository.
+ - Rename func_detail entity to func_clipeconomy.
+ - Modify FGD files for entity name change.
+ - Updated .bsp files for name change and new VHLT tools.
+ - Fix sound engine bug encountered during game test.
+ - Minor updates to dynamic light system.
+ - Fix crash that encountered with scripted npcs.
+ - Add VBM renderer point light tweak.
+ - Fix r_bsp2smd_lm and r_bsp2smd_tx commands to name dumps properly, and properly check for previous files. Also dumps into "dumps" folder now instead of root directory.
+ - Fix for FGD entries that got un-fixed because of a merge issue, also change env_spotlight "Scale" to "Field of View".
+ 
+2024 April 7th:
+ - Fix for generating missing PMF files for WAD textures. This commit fixes an issue where, due to a recent update to the WAD PMF generator class, WAD files would not have PMF files generated for textures that were missing them.
+ 
+2024 April 25th:
+ - Modify info_null to use CNullEntity.
+ - Add cvar to alter overdarkening.
+ - Fix broken dlight blitting optimization code.
+ - Fix mins/maxs in extrainfo not being set.
+ 
+2024 April 30th: 
+ - Update readme.txt to clarify clean room design. 
+ - Updated disclaimer to clarify in what way the HLSDK code influenced the creation of the studio.h file.
+ 
+2024 May 6th:
+ - Remove obsolete demolock feature that is no longer used in studiomodels.
+ - Update studio.h header to remove HLSDK license, as this file does not actually contain any HLSDK code.
+ - Modify studio.h to reflect modern Pathos coding standards rather than what was a more or less an almost same reproduction of HLSDK's studio.h, to avoid confusion in the future in regards to code originality.
+ 
+2024 June 1st:
+ - Update credits.txt.
+ 
+2024 June 11th:
+ - Fix crash when equipping grenade due to the obsolete demolock feature having been removed.
+ - Fix issue when NPCs not realizing if their opponents are dead.
+ 
+2024 June 17th:
+ - Update readme.txt.
+
+2024 June 17th:
+ - Update readme.txt - Adding clarification for referenced code and legality.
+ 
+2024 June 23rd:
+ - Fix asserts for NPC classifications.
+ 
+2024 Jul 4th:
+ - Fix flexes tab and crashes in PMDLViewer.
+ 
+2024 July 19th:
  - Add credits_placeholder.txt for placeholder viewmodel meshes/textures.
  - Add FAQ.
  - Added water_scrpts.md documentation for water scripts.
@@ -116,281 +271,282 @@
  - Updated VHLT tools that automatically remove clipping hulls from func_clipeconomy without needing the "zhlt_noclip" setting to be "1".
  - Added high-resolution DMC Forest skybox.
  
--2024 July 19th additional fixes:
+2024 July 19th additional fixes:
  - Fix broken FGD entry for env_blur.
  - Fix black hole render routines being run even if no black holes are present.
  - Fix FBO cache causing first-frame bug with black holes and other effects.
  - Fix post-process breaking motion blur after level change or save load.
  
-- 2024 July 21st:
-  - Fix cheap refraction being broken with HDR enabled
-  - Fix minlight being broken when particles are in a totally dark area.
-  - Add missing "secondary_color" option to lighting flags in particle scripts.
-  - Add new "mix_secondary_color" option to lighting flags in particle scripts.
-  - Fix potential, rare crash when creating decals on VBM models and add safeguards.
-  - Fix NPCs not sensing players who are made partially visible by leaning.
-  - Fix shader uniform value caching for uniforms that set arrays of input values.
+2024 July 21st:
+ - Fix cheap refraction being broken with HDR enabled
+ - Fix minlight being broken when particles are in a totally dark area.
+ - Add missing "secondary_color" option to lighting flags in particle scripts.
+ - Add new "mix_secondary_color" option to lighting flags in particle scripts.
+ - Fix potential, rare crash when creating decals on VBM models and add safeguards.
+ - Fix NPCs not sensing players who are made partially visible by leaning.
+ - Fix shader uniform value caching for uniforms that set arrays of input values.
 
-- 2024 September 14th:
-  - Add missing entries for knife to hud script.
-  - Add support for displaying ammo counts for item/ammo/weapon pickup history.
-  - Add "Documents" viewer Game UI feature.
-  - Add muzzleflash particle script for silenced weapons.
-  - Remove HDR feature due to severe performance issues caused by FBO blitting.
-  - Add experimental Bloom post-process feature to Pathos.
-  - Add missing schema definition for screen text.
-  - Add explosion gibbing burn damage to gibs.
-  - Make pressing Escape key while in a Game UI window always close the window.
-  - Add support for Bitsets to client/server User Message system.
-  - Add support for custom colors to AI awareness bar.
-  - Added GameUIScrollableSurface class.
-  - Add support for 32 mission objectives max in Objectives Window.
-  - Fix view model snapping issue when exiting ladders due to view model lag.
-  - Expand CBitSet class to cover all basic bitset operations/checks/features.
-  - Fix issue with flashlight disappearing for 1 frame after exiting ladders.
-  - Hide engine command _set_hrtf from users.
-  - Improve overdarkening feature used by lightmaps.
-  - Fix it so that the "stopmusic" command completely clears music, no longer letting it continue on reload.
-  - Add engine function to server to allow retrieval of the invoking player edict on an issued command.
-  - Fix issues with engine render code not filtering skybox/portal entities properly when rendering.
-  - Fix issue with alpha to coverage corrupting the menu when used with legacy transparents enabled.
-  - Fix engine to use R_BindCubemapTexture for all cubemap texture binds now.
-  - Fix dynamic lights set to not be culled by the main view frustum still being culled regardless.
-  - Fix lightstyle for dynlights being broken if shadows are disabled via cvar.
-  - Add safeguard against problematic angle values in dynamic light code.
-  - Change usable object glow aura color from blue to green for better visibility.
-  - Remove more C-style casts in favor of C++ ones.
-  - Modify any rectangle texture binds to use R_BindRectangleTexture instead.
-  - Fix an issue with portal surfaces not always binding the rectangle texture properly.
-  - Fix decal generation code memory corruption issue with bone index arrays.
-  - Add support for dynamic-sized CArray<> basic variable types to the save-restore system.
-  - Add support for CBitSet to the save-restore system.
-  - Optimize memory used by entities by only declaring save-restore field data when being saved/restored.
-  - Add data sync issue on level change with player prediction when on moving entities.
-  - Fix MSG_SNDENGINE_OGG message reading channel as unsigned and not letting all chanels be specified.
-  - Fix prediction being run on client even when local server is halted.
-  - Add error message to schema loader if file is not found.
-  - Fix issue with SDL_INIT_VIDEO not being called in the right order, not allowing context version to be set.
-  - Modify NPC AI code to use CBitSet for AI bitflags instead of Uint64.
-  - Expand AI lean/enemy awareness code to support awareness levels for multiple entities.
-  - Fix crash issue in NPC enemy awareness code.
-  - Modify NPC code to support determining whether to proritize enemies that can be melee attacked.
-  - Modify Patrol NPC code to clear the patrol history far more infrequently when errors occur.
-  - Modify some schedule names to feature the names of the base classes.
-  - Added support in ambient_oggstream to fade out/stop a specific music track played by another such entity.
-  - Add index/name consistency check to player weapon type enums/definitions arrays.
-  - Add index/name consistency check to sequence activity type enums/definitions arrays.
-  - Add index/name consistency check to bullet type enums/definitions arrays.
-  - Fix light_environments on levels not using alternate lightmaps not being setting env lighting values at all.
-  - Improve materials definition script code to be more efficient with memory.
-  - Add feature for spawning entities with "give" command that allows givin them targetnames using a third parameter.
-  - Modify saved passcode system in player code to rely on dynamically sized string_t CArray type.
-  - Modify weapon pickup code to leave empty weapons behind in special cases.
-  - Add new HUD weapon slot for submachine guns.
-  - Modify mission objectives code to use string_t CArray dynamic array instead of fixed-sizeo one.
-  - Fix weapon code to properly play pickup animations if player picks up a matching weapon with the clip empty.
-  - Modify same ammo types shared by weapons to be single pools of ammo instead of separate.
+2024 September 14th:
+ - Add missing entries for knife to hud script.
+ - Add support for displaying ammo counts for item/ammo/weapon pickup history.
+ - Add "Documents" viewer Game UI feature.
+ - Add muzzleflash particle script for silenced weapons.
+ - Remove HDR feature due to severe performance issues caused by FBO blitting.
+ - Add experimental Bloom post-process feature to Pathos.
+ - Add missing schema definition for screen text.
+ - Add explosion gibbing burn damage to gibs.
+ - Make pressing Escape key while in a Game UI window always close the window.
+ - Add support for Bitsets to client/server User Message system.
+ - Add support for custom colors to AI awareness bar.
+ - Added GameUIScrollableSurface class.
+ - Add support for 32 mission objectives max in Objectives Window.
+ - Fix view model snapping issue when exiting ladders due to view model lag.
+ - Expand CBitSet class to cover all basic bitset operations/checks/features.
+ - Fix issue with flashlight disappearing for 1 frame after exiting ladders.
+ - Hide engine command _set_hrtf from users.
+ - Improve overdarkening feature used by lightmaps.
+ - Fix it so that the "stopmusic" command completely clears music, no longer letting it continue on reload.
+ - Add engine function to server to allow retrieval of the invoking player edict on an issued command.
+ - Fix issues with engine render code not filtering skybox/portal entities properly when rendering.
+ - Fix issue with alpha to coverage corrupting the menu when used with legacy transparents enabled.
+ - Fix engine to use R_BindCubemapTexture for all cubemap texture binds now.
+ - Fix dynamic lights set to not be culled by the main view frustum still being culled regardless.
+ - Fix lightstyle for dynlights being broken if shadows are disabled via cvar.
+ - Add safeguard against problematic angle values in dynamic light code.
+ - Change usable object glow aura color from blue to green for better visibility.
+ - Remove more C-style casts in favor of C++ ones.
+ - Modify any rectangle texture binds to use R_BindRectangleTexture instead.
+ - Fix an issue with portal surfaces not always binding the rectangle texture properly.
+ - Fix decal generation code memory corruption issue with bone index arrays.
+ - Add support for dynamic-sized CArray<> basic variable types to the save-restore system.
+ - Add support for CBitSet to the save-restore system.
+ - Optimize memory used by entities by only declaring save-restore field data when being saved/restored.
+ - Add data sync issue on level change with player prediction when on moving entities.
+ - Fix MSG_SNDENGINE_OGG message reading channel as unsigned and not letting all chanels be specified.
+ - Fix prediction being run on client even when local server is halted.
+ - Add error message to schema loader if file is not found.
+ - Fix issue with SDL_INIT_VIDEO not being called in the right order, not allowing context version to be set.
+ - Modify NPC AI code to use CBitSet for AI bitflags instead of Uint64.
+ - Expand AI lean/enemy awareness code to support awareness levels for multiple entities.
+ - Fix crash issue in NPC enemy awareness code.
+ - Modify NPC code to support determining whether to proritize enemies that can be melee attacked.
+ - Modify Patrol NPC code to clear the patrol history far more infrequently when errors occur.
+ - Modify some schedule names to feature the names of the base classes.
+ - Added support in ambient_oggstream to fade out/stop a specific music track played by another such entity.
+ - Add index/name consistency check to player weapon type enums/definitions arrays.
+ - Add index/name consistency check to sequence activity type enums/definitions arrays.
+ - Add index/name consistency check to bullet type enums/definitions arrays.
+ - Fix light_environments on levels not using alternate lightmaps not being setting env lighting values at all.
+ - Improve materials definition script code to be more efficient with memory.
+ - Add feature for spawning entities with "give" command that allows givin them targetnames using a third parameter.
+ - Modify saved passcode system in player code to rely on dynamically sized string_t CArray type.
+ - Modify weapon pickup code to leave empty weapons behind in special cases.
+ - Add new HUD weapon slot for submachine guns.
+ - Modify mission objectives code to use string_t CArray dynamic array instead of fixed-sizeo one.
+ - Fix weapon code to properly play pickup animations if player picks up a matching weapon with the clip empty.
+ - Modify same ammo types shared by weapons to be single pools of ammo instead of separate.
 
-- 2024 October 12th
-  - Merged custom normalmap feature from PR #43.
-  - Reformat PR #43 changes to be in line with Pathos coding standards. 
-  - Fixed issue in PR #43 where the last set current water pointer would override any custom water normalmap textures.
-  - Merged "pos" and "maps" command from PR #38.
-  - Reformat PR #38 to be in line with Pathos coding standards.
-  - Fixed PR #38 to report player position in world, instead of the last view origin used for rendering.
-  - Implementation of Pathos BSP Version 2 format.
-    - Custom storage for ambient, diffuse light data, and light vectors.
-	- Add data variable in face data for potential lightmap scaling feature in the future.
-	- Add data variable in face data for potential smoothing groups feature in the future.
-  - Support added for Half-Life 1-type animated lights.
-  - Extend light and light_spot entities to support the animated/switchable lighting feature.
-  - Add FGD entries for styles to light and light_ entities.
-  - Optimize CBasicDraw class by adding support for rendering quads using indexes.
-  - Added func_particleblocker entity to specify select brush entities that particles can collide with.
-  - Modify ALD format to support animated lights along with bump mapping data generation.
-  - Modify renderer to support bump map data generation together with animated lights.
-  - Added function header comments in some files.
-  - Extension of file interface by adding a function to query the game folder name.
-  - Cleanup of model cache code that identifies and loads BSP files.
-  - Optimized beam rendering and vapor trail beam code to be more performant by rendering them as quads with indexes.
-  - Optimize vapor trail beam lighting retrieval code by only doing it once per a given distance.
-  - Optimized lightmap generation code by extending the AllocBlock code to extend both height and width from now on.
-  - Added debug cvar to enable dumping of lightmaps generated by BSP renderer.
-  - Added game_staminamodifier entity.
-  - Modify worldspawn entity to now send lightstyles to client.
-  - Fix worldspawn not calling base class's spawn function in derived function.
-  - Fix CGLSLShader not creating logs file folder when an error occurs, causing logs not to be created.
-  - Add bspconvert tool, which can convert Pathos V1 BSP files to Pathos V2 version.
-  - Extend entitytest2 map to showcase switchable lights.
-  - Move some BSP processing code to shared file.
-  - Move lightstyle code in renderer out of dynamic light class and into it's own.
-  - Optimize on lightstyle array code.
-  - Add compatibility code for V30 BSP and Pathos V1 BSP to support legacy bump map data storage solution.
-  - Clean up struct usage in BSP loading code to specifically use named structures for V30 and Pathos V1 BSP.
-  - Move lightstyle array code out of CEnvDLight and into server-side lightstyle class.
+2024 October 12th
+ - Merged custom normalmap feature from PR #43.
+ - Reformat PR #43 changes to be in line with Pathos coding standards. 
+ - Fixed issue in PR #43 where the last set current water pointer would override any custom water normalmap textures.
+ - Merged "pos" and "maps" command from PR #38.
+ - Reformat PR #38 to be in line with Pathos coding standards.
+ - Fixed PR #38 to report player position in world, instead of the last view origin used for rendering.
+ - Implementation of Pathos BSP Version 2 format.
+   - Custom storage for ambient, diffuse light data, and light vectors.
+   - Add data variable in face data for potential lightmap scaling feature in the future.
+   - Add data variable in face data for potential smoothing groups feature in the future.
+ - Support added for Half-Life 1-type animated lights.
+ - Extend light and light_spot entities to support the animated/switchable lighting feature.
+ - Add FGD entries for styles to light and light_ entities.
+ - Optimize CBasicDraw class by adding support for rendering quads using indexes.
+ - Added func_particleblocker entity to specify select brush entities that particles can collide with.
+ - Modify ALD format to support animated lights along with bump mapping data generation.
+ - Modify renderer to support bump map data generation together with animated lights.
+ - Added function header comments in some files.
+ - Extension of file interface by adding a function to query the game folder name.
+ - Cleanup of model cache code that identifies and loads BSP files.
+ - Optimized beam rendering and vapor trail beam code to be more performant by rendering them as quads with indexes.
+ - Optimize vapor trail beam lighting retrieval code by only doing it once per a given distance.
+ - Optimized lightmap generation code by extending the AllocBlock code to extend both height and width from now on.
+ - Added debug cvar to enable dumping of lightmaps generated by BSP renderer.
+ - Added game_staminamodifier entity.
+ - Modify worldspawn entity to now send lightstyles to client.
+ - Fix worldspawn not calling base class's spawn function in derived function.
+ - Fix CGLSLShader not creating logs file folder when an error occurs, causing logs not to be created.
+ - Add bspconvert tool, which can convert Pathos V1 BSP files to Pathos V2 version.
+ - Extend entitytest2 map to showcase switchable lights.
+ - Move some BSP processing code to shared file.
+ - Move lightstyle code in renderer out of dynamic light class and into it's own.
+ - Optimize on lightstyle array code.
+ - Add compatibility code for V30 BSP and Pathos V1 BSP to support legacy bump map data storage solution.
+ - Clean up struct usage in BSP loading code to specifically use named structures for V30 and Pathos V1 BSP.
+ - Move lightstyle array code out of CEnvDLight and into server-side lightstyle class.
   
-- 2024 October 14th:
-  - Fix potential crash inside HLRAD.
-  - Fix issue with outdoor areas not getting lit properly by light_environment entities.
-  - Add support for smoothing between the faces of different entities that share the same edge.
+2024 October 14th:
+ - Fix potential crash inside HLRAD.
+ - Fix issue with outdoor areas not getting lit properly by light_environment entities.
+ - Add support for smoothing between the faces of different entities that share the same edge.
 
-- 2024 October 15th:
-  - Fix crash in water shader class due to a pointer not being initialized to null on object creation.
+2024 October 15th:
+ - Fix crash in water shader class due to a pointer not being initialized to null on object creation.
 
-- 2024 October 18th:
-  - Recompiled all levels to use the new smoothing improvement in HLRAD.
-  - Added r_model_light_ratio to allow user-defining of ambient/diffuse lighting split when not fetching bump map model lighting data.
-  - Added NULL_LIGHTSTYLE_INDEX constant to track lightstyle value 255, which stands for unused lightstyles slots.
-  - Disable overdarkening of lightstyle layers above the base lightmap.
-  - Rework of RecursiveLightPoint functions to fetch raw lighting values per style layer instead of a single combined value multiplied with lightstyles.
-  - Add R_GetLightingForPosition renderer function to simplify lighting data fetches for general purpose lighting.
-  - Extend r_bsp2smd_lm command to support specifying the lightstyle layer to be exported.
-  - Add capping of lightstyle values to 0-255 range.
-  - Update VBM renderer's level lighting blending code to better support lightstyle value blending(Still a work in progress).
-  - Several fixes added to HLRAD to properly account for bump data lightmaps/vector map when it comes to coring and empty lightmap reduction.
+2024 October 18th:
+ - Recompiled all levels to use the new smoothing improvement in HLRAD.
+ - Added r_model_light_ratio to allow user-defining of ambient/diffuse lighting split when not fetching bump map model lighting data.
+ - Added NULL_LIGHTSTYLE_INDEX constant to track lightstyle value 255, which stands for unused lightstyles slots.
+ - Disable overdarkening of lightstyle layers above the base lightmap.
+ - Rework of RecursiveLightPoint functions to fetch raw lighting values per style layer instead of a single combined value multiplied with lightstyles.
+ - Add R_GetLightingForPosition renderer function to simplify lighting data fetches for general purpose lighting.
+ - Extend r_bsp2smd_lm command to support specifying the lightstyle layer to be exported.
+ - Add capping of lightstyle values to 0-255 range.
+ - Update VBM renderer's level lighting blending code to better support lightstyle value blending(Still a work in progress).
+ - Several fixes added to HLRAD to properly account for bump data lightmaps/vector map when it comes to coring and empty lightmap reduction.
   
-- 2024 October 25th:
-  - Added entities and effects created by valina354, which include:
-    - AO mapping for world and VBM models.
-	- Vignette effect.
-	- Chromatic aberration.
-	- Black and white/Grayscale effect.
-	- Entity-controllable film grain effect.
-	- Water flowmapping.
-  - Added new room to entitytest2 to show off bump mapping, specular highlight and cubemapping effects.
-  - Fix to the blur division of the bloom effect.
-  - Preliminary changes for updating the Pathos BSP V2 format to support compression of lightmap data to reduce disk space load.
-  - Modified FL_CreateDirectory function to support creation of directories recursively.
-  - Updated dumping code for cubemap faces, lightmaps, and r_bsp2smd_* functions to dump in separate directories under "dumps" folder.
-  - Major improvements to the cubemap data format to dynamically support storage slots for different day stages.
-  - Added DXT1 compression as default for cubemap files now.
-  - Expanded R_ClearBinds function to support clearing units only above a specific unit.
-  - Fixed an issue with the func_mirror entity where, when standing in some places, the world would stop rendering in the mirror.
-  - Fixed cubemap generation issue described in Issue #19, where the entity list used for generation was still taken from the packet entity list.
-  - Major improvements and optimizations to VBM model light caching and blending between light values taken from the lightmap.
-  - Added player movement stuck fix from the HL25 updates.
-  - Fix in CGLSLShader class for where the determinator array size was using the number of shaders instead of the number of determinators, causing a crash.
-  - Removed max shader variations limit from CGLSLShader.
+2024 October 25th:
+ - Added entities and effects created by valina354, which include:
+   - AO mapping for world and VBM models.
+   - Vignette effect.
+   - Chromatic aberration.
+   - Black and white/Grayscale effect.  
+   - Entity-controllable film grain effect.
+   - Water flowmapping.
+ - Added new room to entitytest2 to show off bump mapping, specular highlight and cubemapping effects.
+ - Fix to the blur division of the bloom effect.
+ - Preliminary changes for updating the Pathos BSP V2 format to support compression of lightmap data to reduce disk space load.
+ - Modified FL_CreateDirectory function to support creation of directories recursively.
+ - Updated dumping code for cubemap faces, lightmaps, and r_bsp2smd_* functions to dump in separate directories under "dumps" folder.
+ - Major improvements to the cubemap data format to dynamically support storage slots for different day stages.
+ - Added DXT1 compression as default for cubemap files now.
+ - Expanded R_ClearBinds function to support clearing units only above a specific unit.
+ - Fixed an issue with the func_mirror entity where, when standing in some places, the world would stop rendering in the mirror.
+ - Fixed cubemap generation issue described in Issue #19, where the entity list used for generation was still taken from the packet entity list.
+ - Major improvements and optimizations to VBM model light caching and blending between light values taken from the lightmap.
+ - Added player movement stuck fix from the HL25 updates.
+ - Fix in CGLSLShader class for where the determinator array size was using the number of shaders instead of the number of determinators, causing a crash.
+ - Removed max shader variations limit from CGLSLShader.
   
-- 2024 November 3rd:
-  - Updated tools_readme.md with information about bspconvert and pbspv2update.
-  - Updated shaders.md to provide better information about invalid states.
-  - Recompiled the levels to use 4x lightmap upscaling.
-  - Added a new room to feature the new post-process effects added by valina354.
-  - Added new voice recordings to help explain new features.
-  - Added new constant to CString class to denote null result from find.
-  - Added lightmap data compression support to Pathos BSP V2 and the ALD file formats.
-  - Added string caching to CString class to help decrease memory usage.
-  - Modified lightmap data storage to store the default lightmap data on-disk if ALD files are present, instead of storing it in memory all the time.
-  - Modified CMD5 class to use a constant for the size of the hash result.
-  - Modify texture manager to use maps instead of linked lists for faster texture lookup.
-  - Modify various engine structures and classes to use std::map and std::unordered_map instead of the arrays and linked lists.
-  - Added CSysPrintInterface to allow for tokens that set how many times a message should be printed to the console per game or application instance.
-  - Added experimental lightmap data compression feature.
-  - Fix memory leak in dynamic light manager.
-  - Fix memory leak in menu particle system.
-  - Fix memory leak in portal renderer.
-  - Fix GL texture not being deleted in portal class.
-  - Fix two memory leaks in texture renderer.
-  - Got rid of hash arrays previously used to limit the number of repeating messages printed to the console.
-  - Modified ambient_generic entity to support playback of sentences.
-  - Improved VBM loading code by getting rid resizings/memory reallocations during level load.
-  - Extended math_counter entity to provide different increment values and operations per trigger mode.
-  - Fix trigger_relay_binary, where it would always trigger it's On target regardless of it's actual state.
-  - Fixes various problems in pathos_jack.fgd with the new entries.
-  - Added "Initially dark" spawnflags to light and light_spot entities.
-  - Added pbspv2update tool to help update V2 bsp files to V2.1.
-  - Updated DMC forest skybox to latest version.
-  - Updated compile scripts to use the lightmap scaling feature.
-  - Modified vhlt compile tools to now support lightmap upscaling up to 8x(still needs work).
-  - Modified vhlt compile tools to support miniz compression of lightmap data.
-  - Improved parameter design for new features in the compile tools.
+2024 November 3rd:
+ - Updated tools_readme.md with information about bspconvert and pbspv2update.
+ - Updated shaders.md to provide better information about invalid states.
+ - Recompiled the levels to use 4x lightmap upscaling.
+ - Added a new room to feature the new post-process effects added by valina354.
+ - Added new voice recordings to help explain new features.
+ - Added new constant to CString class to denote null result from find.
+ - Added lightmap data compression support to Pathos BSP V2 and the ALD file formats.
+ - Added string caching to CString class to help decrease memory usage.
+ - Modified lightmap data storage to store the default lightmap data on-disk if ALD files are present, instead of storing it in memory all the time.
+ - Modified CMD5 class to use a constant for the size of the hash result.
+ - Modify texture manager to use maps instead of linked lists for faster texture lookup.
+ - Modify various engine structures and classes to use std::map and std::unordered_map instead of the arrays and linked lists.
+ - Added CSysPrintInterface to allow for tokens that set how many times a message should be printed to the console per game or application instance.
+ - Added experimental lightmap data compression feature.
+ - Fix memory leak in dynamic light manager.
+ - Fix memory leak in menu particle system.
+ - Fix memory leak in portal renderer.
+ - Fix GL texture not being deleted in portal class.
+ - Fix two memory leaks in texture renderer.
+ - Got rid of hash arrays previously used to limit the number of repeating messages printed to the console.
+ - Modified ambient_generic entity to support playback of sentences.
+ - Improved VBM loading code by getting rid resizings/memory reallocations during level load.
+ - Extended math_counter entity to provide different increment values and operations per trigger mode.
+ - Fix trigger_relay_binary, where it would always trigger it's On target regardless of it's actual state.
+ - Fixes various problems in pathos_jack.fgd with the new entries.
+ - Added "Initially dark" spawnflags to light and light_spot entities.
+ - Added pbspv2update tool to help update V2 bsp files to V2.1.
+ - Updated DMC forest skybox to latest version.
+ - Updated compile scripts to use the lightmap scaling feature.
+ - Modified vhlt compile tools to now support lightmap upscaling up to 8x(still needs work).
+ - Modified vhlt compile tools to support miniz compression of lightmap data.
+ - Improved parameter design for new features in the compile tools.
 
-- 2024 November 3rd 2nd update:
-  - Fix sky lighting in entitytest2a.
-  - Fix visible collision brushes on trees in entitytest2c.
-  - Fix crash on renderer reboot when changing display window properties.
-  - Fix Uint32 being used for entindex in monitor renderer.
-  - Add "Recent Skyboxes" list to Pathos Model Viewer.
+2024 November 3rd 2nd update:
+ - Fix sky lighting in entitytest2a.
+ - Fix visible collision brushes on trees in entitytest2c.
+ - Fix crash on renderer reboot when changing display window properties.
+ - Fix Uint32 being used for entindex in monitor renderer.
+ - Add "Recent Skyboxes" list to Pathos Model Viewer.
   
-- 2024 November 4th:
-  - Improve documentation of env_beamfollow and remove unused "Beam noise" keyvalue from FGD.
-  - Fix follow beam code causing incorrect brightness/color values to be used.
-  - Make beam follow and vapor trail code more readable by not reusing variables for different purposes.
-  - Added follow beam to grenade to help improve visiblity.
+2024 November 4th:
+ - Improve documentation of env_beamfollow and remove unused "Beam noise" keyvalue from FGD.
+ - Fix follow beam code causing incorrect brightness/color values to be used.
+ - Make beam follow and vapor trail code more readable by not reusing variables for different purposes.
+ - Added follow beam to grenade to help improve visiblity.
   
 2024 November 10th:
-  - Fix fog triggers on entitytest2 breaking the monitor room.
-  - Added test case for switchable lights combined with water in entitytest2.
-  - Added switchable lightmap light support to shader water reflections.
-  - Applied numerous fixes to bump map data-based model lighting(still WIP).
-  - Added memory optimization to lightmap upscaling, to keep only base-resolution lightmap data in memory after uploading lightmaps to OpenGL.
-  - Major extension of ALD code to support faster and smoother light data exporting.
-  - Move frustum related code out of CBSPRenderer.
-  - Fix for current light origin not being set in light caching for VBM models.
-  - Added std::map to save-restore code to speed up string lookups.
-  - Fix "framerate" keyvalue in dynamic light and light entities by overriding "framerate" for them.
-  - Fix for CGLSLShader class's AND operator code not considering values properly.
-  - Adapt ALD code to allow on-disk storage of backup lighting data in case it is needed.
-  - Fix for some functions returning nullptr when they have a boolean return type.
-  - Modify current lighting export to use already-compressed data from BSP file instead of re-compressing it.
+ - Fix fog triggers on entitytest2 breaking the monitor room.
+ - Added test case for switchable lights combined with water in entitytest2.
+ - Added switchable lightmap light support to shader water reflections.
+ - Applied numerous fixes to bump map data-based model lighting(still WIP).
+ - Added memory optimization to lightmap upscaling, to keep only base-resolution lightmap data in memory after uploading lightmaps to OpenGL.
+ - Major extension of ALD code to support faster and smoother light data exporting.
+ - Move frustum related code out of CBSPRenderer.
+ - Fix for current light origin not being set in light caching for VBM models.
+ - Added std::map to save-restore code to speed up string lookups.
+ - Fix "framerate" keyvalue in dynamic light and light entities by overriding "framerate" for them.
+ - Fix for CGLSLShader class's AND operator code not considering values properly.
+ - Adapt ALD code to allow on-disk storage of backup lighting data in case it is needed.
+ - Fix for some functions returning nullptr when they have a boolean return type.
+ - Modify current lighting export to use already-compressed data from BSP file instead of re-compressing it.
 
 2024 November 30th:
-  - Added "Global" flag to several env_ post-process entities to allow persistence over levels.
-  - Added new env_overlay entity.
-  - Optimized blood effects to address performance issues when too much shooting occurs.
-  - Add support for lightstyle reflections on water.
-  - Modify CArray to fix ambigous datatype errors when using erase.
-  - Memory optimization for CLogFile to reduce memory load.
-  - Add new function for getting aspect ratio as string.
-  - Modified lighting data to use base resolution lightmaps for model/particle light sampling even if using upscaled lightmaps.
-  - Added temp file tracking to engine to help cleanup any temporary files.
-  - Added optimization to tracelines to use a preliminary bbox traceline test on entities prior to performing tracelines on their actual hull data.
-  - Reduced temporary entity allocation size to reduce memory load.
-  - Reduced console string buffer allocation size to reduce memory load.
-  - Split decals into a separate VBO for the BSP renderer to reduce memory load.
-  - Fix GL occlusion queries not being reset when taken out of free cache.
-  - Reduce particle allocation size on legacy Q1 particles to reduce memory load.
-  - Modify ALD data storage to rely on an external file for storing base lightmap data.
-  - Fix some client command msgs using the wrong command name.
-  - Modify particles to use dynamic allocation with smaller counts in order to reduce memory load.
-  - Modify sprites to use dynamic allocation with smaller counts in order to reduce memory load.
-  - Several fixes and improvements to model light sampling from lightmap data.
-  - Speed up WAD texture loading by adding maps for faster texture lookup.
-  - Add map to save-restore string lookup to improve performance.
-  - Fix SV_GetBonePositionByIndex returning false even when succeeding.
-  - Reduce MAX_VISIBLE_ENTITIES	and DEFAULT_MAX_EDICTS to 2048 from 4096 to reduce memory load.
-  - Fix Cmd_ListMaps using DEFAULT_GAMEDIR instead of ens.gamedir.
-  - Several performance improvements done to AI code to improve performance.
-  - Modify talking NPC code to use head controller's bone index instead of name for lookups.
-  - Added CAnimatingEntity::GetBoneIndex for looking up bone indexes by name.
-  - Added safeguard for always saving CArray types when creating a save file.
-  - Added fix in CEnvDLight, CLight to override "framerate" keyvalue.
-  - Added PostModelSet base class calls in several classes.
-  - Added several performance improvements to CGLSLShader.
-  - Modified several datatypes in CGLSLShader to use Int16 instead of Int32 to reduce memory load.
-  - Fix in CVBO class to use memmove instead of memcpy to fix memory corruptions.
-  - Fix in CTextureManager class to handle dummy material and texture properly when doing reset.
+ - Added "Global" flag to several env_ post-process entities to allow persistence over levels.
+ - Added new env_overlay entity.
+ - Optimized blood effects to address performance issues when too much shooting occurs.
+ - Add support for lightstyle reflections on water.
+ - Modify CArray to fix ambigous datatype errors when using erase.
+ - Memory optimization for CLogFile to reduce memory load.
+ - Add new function for getting aspect ratio as string.
+ - Modified lighting data to use base resolution lightmaps for model/particle light sampling even if using upscaled lightmaps.
+ - Added temp file tracking to engine to help cleanup any temporary files.
+ - Added optimization to tracelines to use a preliminary bbox traceline test on entities prior to performing tracelines on their actual hull data.
+ - Reduced temporary entity allocation size to reduce memory load.
+ - Reduced console string buffer allocation size to reduce memory load.
+ - Split decals into a separate VBO for the BSP renderer to reduce memory load.
+ - Fix GL occlusion queries not being reset when taken out of free cache.
+ - Reduce particle allocation size on legacy Q1 particles to reduce memory load.
+ - Modify ALD data storage to rely on an external file for storing base lightmap data.
+ - Fix some client command msgs using the wrong command name.
+ - Modify particles to use dynamic allocation with smaller counts in order to reduce memory load.
+ - Modify sprites to use dynamic allocation with smaller counts in order to reduce memory load.
+ - Several fixes and improvements to model light sampling from lightmap data.
+ - Speed up WAD texture loading by adding maps for faster texture lookup.
+ - Add map to save-restore string lookup to improve performance.
+ - Fix SV_GetBonePositionByIndex returning false even when succeeding.
+ - Reduce MAX_VISIBLE_ENTITIES	and DEFAULT_MAX_EDICTS to 2048 from 4096 to reduce memory load.
+ - Fix Cmd_ListMaps using DEFAULT_GAMEDIR instead of ens.gamedir.
+ - Several performance improvements done to AI code to improve performance.
+ - Modify talking NPC code to use head controller's bone index instead of name for lookups.
+ - Added CAnimatingEntity::GetBoneIndex for looking up bone indexes by name.
+ - Added safeguard for always saving CArray types when creating a save file.
+ - Added fix in CEnvDLight, CLight to override "framerate" keyvalue.
+ - Added PostModelSet base class calls in several classes.
+ - Added several performance improvements to CGLSLShader.
+ - Modified several datatypes in CGLSLShader to use Int16 instead of Int32 to reduce memory load.
+ - Fix in CVBO class to use memmove instead of memcpy to fix memory corruptions.
+ - Fix in CTextureManager class to handle dummy material and texture properly when doing reset.
   
 2024 December 1st
-  - Merge changes from PR # 50 from Valina354
-    - Add 1024x1024 cubemap resolution support.
-	- Add BMP format support to texture loader.
-	- Add custom sound support to env_spark.
-  - Improve management and loading of texture formats in CTextureLoader.
-  - Fixed hlrad crashing when exporting ALD data without bump map info having been compiled.
+ - Merge changes from PR # 50 from Valina354
+   - Add 1024x1024 cubemap resolution support.
+   - Add BMP format support to texture loader.
+   - Add custom sound support to env_spark.
+ - Improve management and loading of texture formats in CTextureLoader.
+ - Fixed hlrad crashing when exporting ALD data without bump map info having been compiled.
   
 2024 December 3rd
-  - Added simple tracer tempentity like in Half-Life 1.
-  - Fix for BasicDraw cache flushing in Q1 Legacy Particle renderer code.
+ - Added simple tracer tempentity like in Half-Life 1.
+ - Fix for BasicDraw cache flushing in Q1 Legacy Particle renderer code.
   
 2024 December 9th:
-  - Add custom particle scripts for bullet ricochet effect.
-  - Fix for decal VBO cleaning code causing crashes on lower framerates.
-  - Fix issue with tracers not having fog properly applied.
-  - Fix for CSquadNPC not alerting squad leader about new enemy.
-  - Fix for CTalkNPC not using head bone position for facing talk targets.
-  - Refine bullet tracers to be better visible based on distance travelled.
-  - Add support for mirroring bullet tracer spawn position based on boolean parameter.
-  - Add tracers for ricocheting and penetrating rounds also.
-  - Fix CVBO::IBOSubBufferData so it also uses memmove instead of memcpy. 
+ - Add custom particle scripts for bullet ricochet effect.
+ - Fix for decal VBO cleaning code causing crashes on lower framerates.
+ - Fix issue with tracers not having fog properly applied.
+ - Fix for CSquadNPC not alerting squad leader about new enemy.
+ - Fix for CTalkNPC not using head bone position for facing talk targets.
+ - Refine bullet tracers to be better visible based on distance travelled.
+ - Add support for mirroring bullet tracer spawn position based on boolean parameter.
+ - Add tracers for ricocheting and penetrating rounds also.
+ - Fix CVBO::IBOSubBufferData so it also uses memmove instead of memcpy. 
+  
