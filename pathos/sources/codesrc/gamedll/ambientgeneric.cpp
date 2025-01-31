@@ -213,6 +213,10 @@ bool CAmbientGeneric::Spawn( void )
 	if(HasSpawnFlag(FL_MUTE_OTHERS))
 		m_sndFlags |= SND_FL_MUTEIGNORE;
 
+	// Check for subtitle only in radius flag
+	if(HasSpawnFlag(FL_SUB_ONLY_IN_RADIUS))
+		m_sndFlags |= SND_FL_SUB_ONLY_RADIUS;
+
 	// Check for custom radius
 	if(m_soundRadius)
 	{

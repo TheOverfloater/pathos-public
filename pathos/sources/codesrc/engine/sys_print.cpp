@@ -172,14 +172,11 @@ void CSysPrintInterface::EPrintf( const Char *pstring )
 	if(ens.plogfile)
 		ens.plogfile->Write(msg.c_str());
 
-	if(g_pCvarDeveloper->GetValue() >= DEV_MODE_ON)
-	{
-		gConsole.AddTextHistory(msg.c_str());
+	gConsole.AddTextHistory(msg.c_str());
 
-		// Redraw if loading
-		if(ens.isloading && rns.basicsinitialized)
-			VID_DrawLoadingScreen();
-	}
+	// Redraw if loading
+	if(ens.isloading && rns.basicsinitialized)
+		VID_DrawLoadingScreen();
 
 #ifdef _CONSOLE
 	printf(msg.c_str());

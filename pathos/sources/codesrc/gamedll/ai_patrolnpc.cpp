@@ -579,7 +579,7 @@ void CPatrolNPC::PatrolErrorPrompt( CBaseEntity* pEntity )
 			return;
 	}
 
-	if((m_numPatrolErrorPrompts+1) >= GetNbSquadMembers() || m_numPatrolErrorPrompts >= MAX_SQUAD_MEMBERS)
+	if(m_numPatrolErrorPrompts > GetNbSquadMembers() || m_numPatrolErrorPrompts >= MAX_SQUAD_MEMBERS)
 	{
 		ClearPatrolHistory();
 		return;
@@ -649,52 +649,62 @@ bool CPatrolNPC::BuildPatrolPath( Float minDistance, Float maxDistance )
 	Float lastClosestDistance = maxDistance;
 
 	Int32 numNodes = gNodeGraph.GetNumNodes();
-	if(g_lastActiveIdleSearchNodeIndex >= numNodes)
-		g_lastActiveIdleSearchNodeIndex = 0;
-
-	for(Int32 i = g_lastActiveIdleSearchNodeIndex; i < numNodes; i++)
+	bool retryLookup = true;
+	while(retryLookup)
 	{
-		// Make sure someone else hasn't already chosen this node
-		if(i == m_myLastPatrolNodeIndex || i == squadLastPatrolNodeIndex)
-			continue;
-
-		g_lastActiveIdleSearchNodeIndex = i + 1;
-		const CAINodeGraph::node_t* pNode = gNodeGraph.GetNode(i);
-		if(!pNode)
-			continue;
-
-		// Make sure distance is valid
-		Float distance = (m_pState->origin - pNode->origin).Length();
-		if(distance < _minDistance || distance > maxDistance)
-			continue;
-
-		// Check for node regions
-		if(m_nodeRegionName != NO_STRING_VALUE)
+		if(g_lastActiveIdleSearchNodeIndex >= numNodes)
 		{
-			if(qstrcmp(gd_engfuncs.pfnGetString(m_nodeRegionName), pNode->noderegionname))
+			g_lastActiveIdleSearchNodeIndex = 0;
+			retryLookup = false;
+		}
+
+		for(Int32 i = g_lastActiveIdleSearchNodeIndex; i < numNodes; i++)
+		{
+			// Make sure someone else hasn't already chosen this node
+			if(i == m_myLastPatrolNodeIndex || i == squadLastPatrolNodeIndex)
 				continue;
+
+			g_lastActiveIdleSearchNodeIndex = i + 1;
+			const CAINodeGraph::node_t* pNode = gNodeGraph.GetNode(i);
+			if(!pNode)
+				continue;
+
+			// Make sure distance is valid
+			Float distance = (m_pState->origin - pNode->origin).Length();
+			if(distance < _minDistance || distance > maxDistance)
+				continue;
+
+			// Check for node regions
+			if(m_nodeRegionName != NO_STRING_VALUE)
+			{
+				if(qstrcmp(gd_engfuncs.pfnGetString(m_nodeRegionName), pNode->noderegionname))
+					continue;
+			}
+
+			// Make sure it's reachable
+			if(gNodeGraph.GetNextNodeInRoute(myNode, i, hullType, capIndex) == myNode)
+				continue;
+
+			// Make sure it's not visible from my current position
+			trace_t tr;
+			Vector nodeLookOffset = pNode->origin + m_pState->view_offset;
+			Util::TraceLine(eyesPosition, nodeLookOffset, true, false, m_pEdict, tr);
+			if(tr.noHit())
+				continue;
+
+			// See if squad leader validates this position
+			if(!pSquadLeader->ValidatePatrolDestination(pNode->origin))
+				continue;
+
+			if(distance < lastClosestDistance && CheckRoute(m_pState->origin, pNode->origin))
+			{
+				lastClosestNodeIndex = i;
+				lastClosestDistance = distance;
+			}
 		}
 
-		// Make sure it's reachable
-		if(gNodeGraph.GetNextNodeInRoute(myNode, i, hullType, capIndex) == myNode)
-			continue;
-
-		// Make sure it's not visible from my current position
-		trace_t tr;
-		Vector nodeLookOffset = pNode->origin + m_pState->view_offset;
-		Util::TraceLine(eyesPosition, nodeLookOffset, true, false, m_pEdict, tr);
-		if(tr.noHit())
-			continue;
-
-		// See if squad leader validates this position
-		if(!pSquadLeader->ValidatePatrolDestination(pNode->origin))
-			continue;
-
-		if(distance < lastClosestDistance && CheckRoute(m_pState->origin, pNode->origin))
-		{
-			lastClosestNodeIndex = i;
-			lastClosestDistance = distance;
-		}
+		if(lastClosestNodeIndex != NO_POSITION)
+			break;
 	}
 
 	if(lastClosestNodeIndex == NO_POSITION)

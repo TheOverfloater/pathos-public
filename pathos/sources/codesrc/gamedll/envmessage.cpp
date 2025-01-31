@@ -155,10 +155,7 @@ void CEnvMessage::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemod
 	}
 
 	if(HasSpawnFlag(FL_ONLY_ONCE))
-	{
 		Util::RemoveEntity(m_pEdict);
-		return;
-	}
 
 	UseTargets(this, USE_TOGGLE, 0);
 }

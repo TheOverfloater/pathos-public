@@ -699,6 +699,18 @@ document:
    - "Sprite Name": Path to the sprite to use.
    - "Scale": Scale factor to be applied to the sprite.
    
+# env_hudpickupmsg
+>This entity allows you to display an item pickup message just like those used for ammo and weapon pickups,
+>which show up on the right side of the HUD.
+   
+ - Keyvalues:
+   - "Name": Name of this entity.
+   - "Target": Entity to trigger upon being triggered.
+   - "Message to Display": The message string to display.
+   
+ - Spawnflags:
+   - "Play Once": Entity can only be triggered once, after which it'll remove itself.
+   
 # env_ladder
 >This entity allows you to place a ladder into the game, that uses first-person animations to provide a more
 >realistic ladder climbing experience. You need to place the origin of the ladder directly near the wall

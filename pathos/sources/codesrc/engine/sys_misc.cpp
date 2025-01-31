@@ -84,7 +84,7 @@ bool Sys_LoadGameInfo( CArray<CString>* argsArray )
 		const Char* ppstr = Common::Parse(line.c_str(), token);
 		if(!ppstr)
 		{
-			Con_EPrintf("Missing value token in %s.\n", GAMEINFO_FILENAME);
+			Con_EPrintf("%s - Missing value token in %s.\n", __FUNCTION__, GAMEINFO_FILENAME);
 			break;
 		}
 
@@ -127,21 +127,44 @@ bool Sys_LoadGameInfo( CArray<CString>* argsArray )
 			{
 				if(!Common::IsNumber(value))
 				{
-					Con_Printf("$stencilbits value '%s' is not a valid number", value.c_str());
+					Con_Printf("%s - %s value '%s' is not a valid number", __FUNCTION__, token.c_str(), value.c_str());
 					continue;
 				}
 
 				if(qstrcmp(value, "0") && qstrcmp(value, "1"))
 				{
-					Con_Printf("$stencilbits value '%s' is not valid, only 0 or 1 allowed.", value.c_str());
+					Con_Printf("%s - %s value is not valid, only 0 or 1 allowed.", __FUNCTION__, token.c_str(), value.c_str());
 					continue;
 				}
 
 				gConfig.SetValue("Display", "StencilBits", value.c_str());
 			}
+			else if(!qstrcmp(token, "$max_edicts"))
+			{
+				if(!Common::IsNumber(value))
+				{
+					Con_Printf("%s - %s value '%s' is not a valid number", __FUNCTION__, token.c_str(), value.c_str());
+					continue;
+				}
+
+				if(ens.arg_max_edicts != 0)
+				{
+					Con_Printf("%s - %s setting ignored, as the '-num_edicts' launch argument was set.\n", __FUNCTION__, token.c_str());
+					continue;
+				}
+
+				Int32 integervalue = SDL_atoi(value.c_str());
+				if(integervalue <= 0 || integervalue > MAX_SERVER_ENTITIES)
+				{
+					Con_Printf("%s - %s setting %d invalid, only 0 to %d allowed.\n", __FUNCTION__, token.c_str(), MAX_SERVER_ENTITIES);
+					continue;
+				}
+
+				ens.arg_max_edicts = integervalue;
+			}
 			else
 			{
-				Con_Printf("Unknown field %s in %s.\n", token.c_str(), GAMEINFO_FILENAME);
+				Con_Printf("%s - Unknown field %s in %s.\n", __FUNCTION__, token.c_str(), GAMEINFO_FILENAME);
 			}
 		}
 	}

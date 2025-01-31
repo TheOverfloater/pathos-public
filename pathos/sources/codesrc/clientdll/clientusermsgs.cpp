@@ -1161,6 +1161,26 @@ MSGFN MsgFunc_ItemPickup( const Char* pstrName, const byte* pdata, Uint32 msgsiz
 // @brief
 //
 //=============================================
+MSGFN MsgFunc_CustomItemPickup( const Char* pstrName, const byte* pdata, Uint32 msgsize )
+{
+	CMSGReader reader(pdata, msgsize);
+	const Char *szString = reader.ReadString();
+
+	if(reader.HasError())
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+		return false;
+	}
+
+	// Add the weapon to the history
+	gHUD.CustomPickupMessage(szString);
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 MSGFN MsgFunc_SetHUDActive( const Char* pstrName, const byte* pdata, Uint32 msgsize )
 {
 	CMSGReader reader(pdata, msgsize);

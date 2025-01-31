@@ -3159,9 +3159,20 @@ void CAINodeGraph::CheckNode( const Vector& origin, Int32 nodeIndex, Uint64 node
 	// Factor in NPCs for path testing
 	if(pEntity && pEntity->IsNPC())
 	{
-		localmove_t moveResult = pEntity->CheckLocalMove(origin, pnode->origin, pTargetEntity, nullptr, true, true);
-		if(moveResult > LOCAL_MOVE_RESULT_FAILURE)
-			result = true;
+		Float heightDiff = SDL_fabs(origin.z - pnode->origin.z);
+		if(heightDiff < 1.0f)
+		{
+			trace_t tr;
+			Util::TraceHull(origin, pnode->origin, false, false, HULL_AUTO, pEntity->GetEdict(), tr);
+			if(tr.noHit() || tr.hitentity != NO_ENTITY_INDEX && pTargetEntity && tr.hitentity == pTargetEntity->GetEntityIndex())
+				result = true;
+		}
+		else
+		{
+			localmove_t moveResult = pEntity->CheckLocalMove(origin, pnode->origin, pTargetEntity, nullptr, true, true);
+			if(moveResult > LOCAL_MOVE_RESULT_FAILURE)
+				result = true;
+		}
 	}
 	else
 	{

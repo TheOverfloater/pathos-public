@@ -76,7 +76,8 @@ struct usermsglist_t
 		newobjective(0),
 		addskytextureset(0),
 		setskytexture(0),
-		screenoverlay(0)
+		screenoverlay(0),
+		customitempickup(0)
 		{
 		}
 
@@ -142,6 +143,7 @@ struct usermsglist_t
 	Int32 addskytextureset;
 	Int32 setskytexture;
 	Int32 screenoverlay;
+	Int32 customitempickup;
 }; 
 extern usermsglist_t g_usermsgs;
 

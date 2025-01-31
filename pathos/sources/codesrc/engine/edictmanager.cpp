@@ -197,6 +197,10 @@ bool CEdictManager::LoadEntities( const Char* pstrEntdata )
 		else
 			pedict = AllocEdict();
 		
+		// Make sure we have enough edicts
+		if(!pedict)
+			return false;
+
 		// Set this to false;
 		pedict->free = false;
 
@@ -329,7 +333,7 @@ edict_t* CEdictManager::AllocEdict( void )
 
 	if(i == m_edictsArray.size())
 	{
-		Con_EPrintf("%s - No free edicts left.\n", __FUNCTION__);
+		Con_EPrintf("[flags=onlyonce_game]%s - No free edicts left.\n", __FUNCTION__);
 		return nullptr;
 	}
 

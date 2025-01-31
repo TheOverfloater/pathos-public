@@ -128,11 +128,18 @@ bool CEntityHandle::operator != (const CEntityHandle& entity) const
 //=============================================
 bool CEntityHandle::operator != (const CBaseEntity* pEntity) const
 {
-	const edict_t* pedict = pEntity->GetEdict();
-	if(pedict == m_pEdict && pedict->identifier == m_identifier && !pedict->free)
-		return false;
+	if(!pEntity)
+	{
+		return (m_pEdict == nullptr) ? false : true;
+	}
 	else
-		return true;
+	{
+		const edict_t* pedict = pEntity->GetEdict();
+		if(pedict == m_pEdict && pedict->identifier == m_identifier && !pedict->free)
+			return false;
+		else
+			return true;
+	}
 }
 
 //=============================================

@@ -772,7 +772,7 @@ void CBaseNPC::StartTask( const ai_task_t* pTask )
 				break;
 			}
 
-			Float maxSoundDistance = (m_pState->origin - m_currentCheckSound.position).Length() * 2;
+			const Float maxSoundDistance = 2048;
 			if(BuildRoute(m_currentCheckSound.position, MF_TO_LOCATION, m_currentCheckSound.emitter)
 				|| BuildNearestVisibleRoute(m_currentCheckSound.position, m_pState->view_offset, 0, maxSoundDistance)
 				|| BuildNearestRoute(m_currentCheckSound.position, 0, maxSoundDistance))
@@ -827,7 +827,10 @@ void CBaseNPC::StartTask( const ai_task_t* pTask )
 		break;
 	case AI_TASK_FLINCH:
 		{
+			// Set appropriate flinch activity
 			SetIdealActivity(GetFlinchActivity());
+			// Disable interpolation on animation change
+			m_pState->effects |= EF_NOLERP;
 		}
 		break;
 	case AI_TASK_DIE:

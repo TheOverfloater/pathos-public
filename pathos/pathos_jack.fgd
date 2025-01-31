@@ -662,6 +662,7 @@
     1024: "No occlusion dimming" : 0
     2048: "Dim other sounds" : 0
     4096: "Mute all other sounds" : 0
+    8192: "Subtitles only in radius" : 0
   ]
 ]
 
@@ -1059,6 +1060,15 @@
 [
 	model(sprite) : "Sprite Name" : "sprites/glow01.spr"
 	scale(integer) : "Scale" : 1
+]
+
+@PointClass base(Targetname, Target) = env_hudpickupmsg : "Custom HUD Pickup Text Message" 
+[
+  message(string) : "Message to Display"
+  spawnflags(flags) =
+  [
+    1: "Play Once" : 0
+  ]
 ]
 @PointClass base(Angles, Targetname, RenderFields) size(-16 -16 0, 16 16 36) studio() = env_ladder : "Ladder" 
 [

@@ -414,7 +414,7 @@ void CSquadNPC::ForgetPlayer( CBaseEntity* pPlayer )
 {
 	if(IsSquadLeader())
 	{
-		for(Uint32 i = 0; i < (MAX_SQUAD_MEMBERS-1); i++)
+		for(Uint32 i = 0; i < MAX_SQUAD_MEMBERS; i++)
 		{
 			CBaseEntity* pMember = GetSquadMember(i);
 			if(!pMember || pMember == this)
@@ -810,22 +810,8 @@ void CSquadNPC::SetSquadEnemy( CBaseEntity* pEnemy )
 		return;
 	}
 
-	// If squad leader has no enemy, publish ours to them
-	if(pSquadLeader != this)
-	{
-		CBaseEntity* pLeaderEnemy = pSquadLeader->GetEnemy();
-		if(!pLeaderEnemy)
-		{
-			// Set new enemy
-			pSquadLeader->SetEnemy(pEnemy);
-			pSquadLeader->SetEnemyInfo(pEnemy->GetNavigablePosition(), pEnemy->GetAngles());
-			pSquadLeader->SetCondition(AI_COND_NEW_ENEMY);
-			pSquadLeader->SetLastEnemySightTime(m_lastEnemySightTime);
-		}
-	}
-
 	// Copy to rest of squad
-	for(Uint32 i = 0; i < (MAX_SQUAD_MEMBERS-1); i++)
+	for(Uint32 i = 0; i < MAX_SQUAD_MEMBERS; i++)
 	{
 		CBaseEntity* pMember = pSquadLeader->GetSquadMember(i);
 		if(!pMember || pMember == this)

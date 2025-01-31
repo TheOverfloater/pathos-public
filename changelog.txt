@@ -550,3 +550,19 @@
  - Add tracers for ricocheting and penetrating rounds also.
  - Fix CVBO::IBOSubBufferData so it also uses memmove instead of memcpy. 
   
+2025 January 31st:
+ - Added env_hudpickupmsg entity.
+ - Added error check in EdictManager to detect no free edicts error during map load.
+ - Increaed default max edicts from 2048 to 4096.
+ - Added $max_edicts setting to gameinfo,.cfg file.
+ - Fix for error messages not being shown due to dev mode check.
+ - Added blowback damage activity definitions and code for heavy damage weapons.
+ - Optimization for node graph code to not do walk move tests on flat surfaces, and to instead use a traceline.
+ - Fix for patrolling NPCs to not immediately clear the history if one entity has reported an error in a single-member squad.
+ - Fix for patrolling NPC patrol destination lookup code to better manage turnarounds in loop.
+ - Fix for squad NPCs, where the leader would not have enemy data copied to them.
+ - Reduce max sound check distance to 2048.
+ - Added "Subtitle only in Radius" flag to ambient_generic entity.
+ - Fixes for CEntityHandle entity to avoid crash when checking for null.
+ - Fix for env_message, where the entity would remove itself before triggering a target if "Play Once" spawnflag was set.
+ - Fix bulletproof impact model code not spawning bullets.

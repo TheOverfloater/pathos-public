@@ -166,7 +166,8 @@ public:
 	{
 		HISTORY_AMMO = 0,
 		HISTORY_WEAPON,
-		HISTORY_ITEM
+		HISTORY_ITEM,
+		HISTORY_CUSTOM_MSG
 	};
 
 public:
@@ -203,7 +204,9 @@ public:
 	// Adds a history element
 	void AddElement( Uint32 type, Uint32 id, Uint32 count = 0 );
 	// Adds a history element
-	void AddElement( Uint32 type, const Char* pstrname, Uint32 count = 0 );
+	void AddElement( Uint32 type, const Char* pstrname, Uint32 count );
+	// Adds a history element
+	void AddElement( Uint32 type, const Char* pstrmsg );
 
 	// Tells if we have any elements to draw
 	bool HasActiveElements( void );
@@ -448,6 +451,8 @@ public:
 	void WeaponPickup( Int32 id, Uint32 ammoCount );
 	// Manages an item pickup event
 	void ItemPickup( const Char* pstrentityname );
+	// Custom pickup message
+	void CustomPickupMessage( const Char* pstrpickuptext );
 	// Sets active state for HUD
 	void SetActive( bool active );
 	// Sets tactical battery value and state

@@ -204,6 +204,7 @@ CBaseNPC::CBaseNPC( edict_t* pedict ):
 	m_disabledCapabilityBits(AI_CAP_BITS_COUNT),
 	m_damageBits(0),
 	m_lastDamageAmount(0),
+	m_lastHeavyFlinchTime(0),
 	m_enemyBodyTarget(BODYTARGET_CENTER),
 	m_fieldOfView(0),
 	m_waitFinishedTime(0),
@@ -1383,6 +1384,10 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 
 	m_damageBits |= damageFlags;
 
+	// Clear blowback dmg flag if not present in this damage call
+	if(!(damageFlags & DMG_BLOWBACK))
+		m_damageBits &= ~DMG_BLOWBACK;
+
 	if(damageFlags & DMG_UNUSED2)
 		AddClearDamage(DMG_UNUSED2, 1.0);
 
@@ -1393,13 +1398,17 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 		AddClearDamage(DMG_EXPLOSION, 1.0);
 
 	// Grab the direction from the inflictor
-	Vector dmgDirection;
 	if(pInflictor)
 	{
 		// Change attack dir to use centers
-		dmgDirection = (pInflictor->GetCenter() - Vector(0, 0, 8) - GetCenter()).Normalize();
+		m_damageDirection = (pInflictor->GetCenter() - Vector(0, 0, 8) - GetCenter()).Normalize();
 		// Alter in multidamage also
-		gMultiDamage.SetAttackDirection(dmgDirection); 
+		gMultiDamage.SetAttackDirection(m_damageDirection); 
+	}
+	else
+	{
+		// Set to clear
+		m_damageDirection.Clear();
 	}
 
 	// Deal the damage to the NPC
@@ -1455,6 +1464,26 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 	{
 		// Play a pain sound
 		EmitPainSound();
+
+		// If damaged by weapon that'll cause blowback, always flinch
+		if((m_damageBits & DMG_BLOWBACK) && (g_pGameVars->time - m_lastHeavyFlinchTime) > 0.2 )
+		{
+			// Reset this so the NPC flinches for each shot
+			m_currentActivity = ACT_RESET;
+
+			// Set velocity and angles
+			const Float blowbackReferenceDmg = 100;
+			m_pState->velocity -= m_damageDirection * Common::RandomFloat(105, 125) * (amount / blowbackReferenceDmg);
+			m_pState->angles[YAW] = Util::VectorToYaw(m_damageDirection);
+			m_pState->idealyaw = m_pState->angles[YAW];
+			m_updateYaw = false;
+
+			// Set timer
+			m_lastHeavyFlinchTime = g_pGameVars->time;
+
+			ClearSchedule();
+			ChangeSchedule(GetScheduleByIndex(AI_SCHED_SMALL_FLINCH));
+		}
 	}
 
 	// React to the damage
@@ -4961,21 +4990,24 @@ bool CBaseNPC::BuildNearestVisibleRoute( const Vector& destination, const Vector
 			if(!pNode)
 				continue;
 
-			if(gNodeGraph.GetNextNodeInRoute(startNode, nodeIndex, hullType, capIndex) != startNode)
+			// See if we can get there
+			Float distance = (destination - pNode->origin).Length();
+			if(distance > _minDistance && distance < _maxDistance)
 			{
-				// See if we can get there
-				Float distance = (destination - pNode->origin).Length();
-				if(distance > _minDistance && distance < _maxDistance)
+				if(gNodeGraph.GetNextNodeInRoute(startNode, nodeIndex, hullType, capIndex) != startNode)
 				{
 					// Check if we can see our target
 					Vector testPosition = pNode->origin + (GetGunPosition(STANCE_CROUCHING) - m_pState->origin);
 					
 					trace_t tr;
 					Util::TraceLine(testPosition, lookerOffset, true, false, m_pEdict, tr);
-					if(tr.noHit() && !tr.startSolid() && CheckRoute(m_pState->origin, pNode->origin, nullptr))
+					if(tr.noHit() && !tr.startSolid())
 					{
-						closestNodeIndex = nodeIndex;
-						_maxDistance = distance;
+						if(CheckNodeRoute(startNode, nodeIndex, nullptr))
+						{
+							closestNodeIndex = nodeIndex;
+							_maxDistance = distance;
+						}
 					}
 				}
 			}
@@ -4992,18 +5024,21 @@ bool CBaseNPC::BuildNearestVisibleRoute( const Vector& destination, const Vector
 			if(!pNode)
 				continue;
 
+			// See if we can get there
+			Float distance = (destination - pNode->origin).Length();
+			if(distance < _minDistance || distance > _maxDistance)
+				continue;
+
 			if(gNodeGraph.GetNextNodeInRoute(startNode, nodeIndex, hullType, capIndex) != startNode)
 			{
-				// See if we can get there
-				Float distance = (destination - pNode->origin).Length();
-				if(distance > _minDistance && distance < _maxDistance)
-				{
-					// Check if we can see our target
-					Vector testPosition = pNode->origin + (GetGunPosition(STANCE_CROUCHING) - m_pState->origin);
+				// Check if we can see our target
+				Vector testPosition = pNode->origin + (GetGunPosition(STANCE_CROUCHING) - m_pState->origin);
 
-					trace_t tr;
-					Util::TraceLine(testPosition, lookerOffset, true, false, m_pEdict, tr);
-					if(tr.noHit() && !tr.startSolid() && CheckRoute(m_pState->origin, pNode->origin, nullptr))
+				trace_t tr;
+				Util::TraceLine(testPosition, lookerOffset, true, false, m_pEdict, tr);
+				if(tr.noHit() && !tr.startSolid())
+				{
+					if(CheckNodeRoute(startNode, nodeIndex, nullptr))
 					{
 						closestNodeIndex = nodeIndex;
 						_maxDistance = distance;
@@ -5078,17 +5113,17 @@ bool CBaseNPC::BuildNearestRoute( const Vector& destination, Float minDistance, 
 		if(!pNode)
 			continue;
 
+		// See if we can get there
+		Float distance = (destination - pNode->origin).Length();
+		if(distance < _minDistance || distance > _maxDistance)
+			continue;
+
 		if(gNodeGraph.GetNextNodeInRoute(startNode, nodeIndex, hullType, capIndex) != startNode)
 		{
-			// See if we can get there
-			Float distance = (destination - pNode->origin).Length();
-			if(distance > _minDistance && distance < _maxDistance)
+			if(CheckNodeRoute(startNode, nodeIndex, nullptr))
 			{
-				if(BuildRoute(pNode->origin, MF_TO_LOCATION, nullptr))
-				{
-					_maxDistance = distance;
-					nearestNodeIndex = i;
-				}
+				_maxDistance = distance;
+				nearestNodeIndex = i;
 			}
 		}
 	}
@@ -7043,6 +7078,17 @@ bool CBaseNPC::FindUnseenNode( void )
 		return false;
 	}
 
+	Uint64 nodeTypeBits = Util::GetNodeTypeForNPC(this);
+	Int32 startNode = gNodeGraph.GetNearestNode(m_pState->origin, nodeTypeBits, this, nullptr);
+	if(startNode == NO_POSITION)
+		return false;
+
+	// Get the capability index we'll use
+	CAINodeGraph::capability_indexes_t capIndex = gNodeGraph.GetCapabilityIndex(m_capabilityBits);
+	
+	// Get the hull type for this NPC
+	node_hull_types_t hullType = Util::GetNodeHullForNPC(this);
+
 	// Make sure we're in the limit
 	if(g_lastActiveIdleSearchNodeIndex >= gNodeGraph.GetNumNodes())
 		g_lastActiveIdleSearchNodeIndex = 0;
@@ -7070,7 +7116,10 @@ bool CBaseNPC::FindUnseenNode( void )
 
 		if(!tr.noHit())
 		{
-			if(!CheckRoute(GetNavigablePosition(), pNode->origin, m_enemy))
+			if(gNodeGraph.GetNextNodeInRoute(startNode, i, hullType, capIndex) == startNode)
+				continue;
+
+			if(!CheckNodeRoute(startNode, i, m_enemy))
 				continue;
 
 			if(m_lastEnemySeekPosition.IsZero())
@@ -7318,6 +7367,20 @@ bool CBaseNPC::CheckNodeRoute( const Vector& startPosition, const Vector& endPos
 	node_hull_types_t nodeHull = Util::GetNodeHullForNPC(this);
 
 	if(gNodeGraph.GetShortestPath(startNode, endNode, nodeHull, m_capabilityBits, nullptr, this, pTargetEntity) > 0)
+		return true;
+	else
+		return false;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CBaseNPC::CheckNodeRoute( Int32 startNodeIndex, Int32 endNodeIndex, CBaseEntity* pTargetEntity )
+{
+	node_hull_types_t nodeHull = Util::GetNodeHullForNPC(this);
+
+	if(gNodeGraph.GetShortestPath(startNodeIndex, endNodeIndex, nodeHull, m_capabilityBits, nullptr, this, pTargetEntity) > 0)
 		return true;
 	else
 		return false;
@@ -8527,34 +8590,41 @@ Float CBaseNPC::GetCoverDistance( void )
 activity_t CBaseNPC::GetFlinchActivity( void )
 {
 	activity_t flinchActivity = ACT_RESET;
+
+	bool isBlowbackHit = (m_damageBits & DMG_BLOWBACK) ? true : false;
 	switch(m_lastHitGroup)
 	{
 	case HITGROUP_HEAD:
-		flinchActivity = ACT_FLINCH_HEAD;
+		flinchActivity = isBlowbackHit ? ACT_FLINCH_HEAD_HEAVY : ACT_FLINCH_HEAD;
 		break;
 	case HITGROUP_STOMACH:
-		flinchActivity = ACT_FLINCH_STOMACH;
+		flinchActivity = isBlowbackHit ? ACT_FLINCH_STOMACH_HEAVY : ACT_FLINCH_STOMACH;
 		break;
 	case HITGROUP_LEFT_ARM:
-		flinchActivity = ACT_FLINCH_LEFTARM;
+		flinchActivity = isBlowbackHit ? ACT_FLINCH_LEFTARM_HEAVY : ACT_FLINCH_LEFTARM;
 		break;
 	case HITGROUP_RIGHT_ARM:
-		flinchActivity = ACT_FLINCH_RIGHTARM;
+		flinchActivity = isBlowbackHit ? ACT_FLINCH_RIGHTARM_HEAVY : ACT_FLINCH_RIGHTARM;
 		break;
 	case HITGROUP_LEFT_LEG:
-		flinchActivity = ACT_FLINCH_LEFTLEG;
+		flinchActivity = isBlowbackHit ? ACT_FLINCH_LEFTLEG_HEAVY : ACT_FLINCH_LEFTLEG;
 		break;
 	case HITGROUP_RIGHT_LEG:
-		flinchActivity = ACT_FLINCH_RIGHTLEG;
+		flinchActivity = isBlowbackHit ? ACT_FLINCH_RIGHTLEG_HEAVY : ACT_FLINCH_RIGHTLEG;
 		break;
 	default:
-		flinchActivity = ACT_SMALL_FLINCH;
+		flinchActivity = isBlowbackHit ? ACT_SMALL_FLINCH_HEAVY : ACT_SMALL_FLINCH;
 		break;
 	}
 
 	// Default to ACT_SMALL_FLINCH if activity is not available
 	if(FindActivity(flinchActivity) == NO_SEQUENCE_VALUE)
-		flinchActivity = ACT_SMALL_FLINCH;
+	{
+		if(isBlowbackHit && FindActivity(ACT_SMALL_FLINCH_HEAVY) != NO_SEQUENCE_VALUE)
+			flinchActivity = ACT_SMALL_FLINCH_HEAVY;
+		else
+			flinchActivity = ACT_SMALL_FLINCH;
+	}
 
 	return flinchActivity;
 }

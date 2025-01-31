@@ -2568,7 +2568,16 @@ void CGameHUD::WeaponPickup( Int32 id, Uint32 ammoCount)
 //=============================================
 void CGameHUD::ItemPickup( const Char* pstrentityname )
 {
-	m_pHistory->AddElement(CHUDHistory::HISTORY_ITEM, pstrentityname);
+	m_pHistory->AddElement(CHUDHistory::HISTORY_ITEM, pstrentityname, 0);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CGameHUD::CustomPickupMessage( const Char* pstrpickuptext )
+{
+	m_pHistory->AddElement(CHUDHistory::HISTORY_CUSTOM_MSG, pstrpickuptext);
 }
 
 //=============================================
@@ -3606,6 +3615,12 @@ void CHUDHistory::AddElement( Uint32 type, Uint32 id, Uint32 count )
 	if(type == HISTORY_AMMO && !count)
 		return;
 
+	if(type == HISTORY_CUSTOM_MSG)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - This version of the function cannot be called with a type of HISTORY_CUSTOM_MSG.\n", __FUNCTION__);
+		return;
+	}
+
 	weaponid_t weaponId = (weaponid_t)id;
 	CString description;
 	CString unitname;
@@ -3637,6 +3652,12 @@ void CHUDHistory::AddElement( Uint32 type, const Char* pstrname, Uint32 count )
 	if(type == HISTORY_AMMO && !count)
 		return;
 
+	if(type == HISTORY_CUSTOM_MSG)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - This version of the function cannot be called with a type of HISTORY_CUSTOM_MSG.\n", __FUNCTION__);
+		return;
+	}
+
 	CString description;
 	CString unitname;
 
@@ -3653,6 +3674,25 @@ void CHUDHistory::AddElement( Uint32 type, const Char* pstrname, Uint32 count )
 
 	hudhistory_t newhistory;
 	newhistory.description = finalDescription;
+	newhistory.die = cl_engfuncs.pfnGetClientTime() + HUD_HISTORY_DRAW_TIME;
+
+	m_historyList.add(newhistory);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CHUDHistory::AddElement( Uint32 type, const Char* pstrmsg )
+{
+	if(type != HISTORY_CUSTOM_MSG)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - This version of the function can only be called with a type of HISTORY_CUSTOM_MSG.\n", __FUNCTION__);
+		return;
+	}
+
+	hudhistory_t newhistory;
+	newhistory.description = pstrmsg;
 	newhistory.die = cl_engfuncs.pfnGetClientTime() + HUD_HISTORY_DRAW_TIME;
 
 	m_historyList.add(newhistory);

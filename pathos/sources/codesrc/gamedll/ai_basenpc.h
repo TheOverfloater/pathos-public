@@ -796,6 +796,8 @@ protected:
 	bool BuildNodeRoute( const Vector& destination, CBaseEntity* pTargetEntity = nullptr );
 	// Checks if a node route is available from start to end
 	bool CheckNodeRoute( const Vector& startPosition, const Vector& endPosition, CBaseEntity* pTargetEntity = nullptr );
+	// Checks if a node route is available from start to end
+	bool CheckNodeRoute( Int32 startNodeIndex, Int32 endNodeIndex, CBaseEntity* pTargetEntity );
 	// Builds a node detour route around an obstable marked by some nodes
 	bool BuildNodeDetourRoute( const Vector& destination, CBaseEntity* pBlocker, CBaseEntity* pTargetEntity = nullptr );
 	// Builds a route where a position vector is visible
@@ -1177,12 +1179,16 @@ protected:
 	CBitSet						m_disabledCapabilityBits;
 	// Damage bits taken
 	Uint64						m_damageBits;
+	// Damage direction
+	Vector						m_damageDirection;
 	// Last damage amount we took
 	Float						m_lastDamageAmount;
 	// Last attack vector
 	Vector						m_lastAttackVector;
 	// For damage types that need to be cleared after a while
 	CLinkedList<cleardamage_t>	m_damageClearList;
+	// Last heavy flinch time
+	Double						m_lastHeavyFlinchTime;
 
 	// Current enemy
 	CEntityHandle				m_enemy;

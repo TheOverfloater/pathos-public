@@ -939,6 +939,9 @@
     <ClCompile Include="envoverlay.cpp">
       <Filter>Source Files\entities\env</Filter>
     </ClCompile>
+    <ClCompile Include="envhudpickupmsg.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gamedll.h">
@@ -1767,6 +1770,9 @@
       <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="envoverlay.h">
+      <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="envhudpickupmsg.h">
       <Filter>Header Files\entities\env</Filter>
     </ClInclude>
   </ItemGroup>

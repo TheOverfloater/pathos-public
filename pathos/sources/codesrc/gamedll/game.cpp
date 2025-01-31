@@ -901,14 +901,9 @@ void FireBullets( Uint32 nbshots,
 				if(pAttacker->IsNPC())
 				{
 					if(g_nbNPCPenetrations >= MAX_NPC_FRAME_PENETRATIONS)
-					{
-						// Do not allow too many NPC penetration shots, for performance
-						break;
-					}
+						break; // Do not allow too many NPC penetration shots, for performance
 					else
-					{
 						g_nbNPCPenetrations++;
-					}
 				}
 
 				// Only penetrate brushmodels, world or npcs
@@ -933,11 +928,9 @@ void FireBullets( Uint32 nbshots,
 					// Check if penetration is allowed
 					if(pmaterial->flags & TX_FL_NO_PENETRATION)
 					{
-						if(pmaterial->flags & TX_FL_BULLETPROOF)
-						{
-							// Spawn bullet if set to bulletproof
+						// Spawn bullet if set to bulletproof
+						if(pmaterial->flags & TX_FL_BULLETPROOF && pHitEntity->GetEffectFlags() & EF_STATICENTITY)
 							CreateBulletProofImpactModel(tr.endpos, shootDirection, bulletType);
-						}
 
 						break;
 					}
