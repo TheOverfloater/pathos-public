@@ -12,16 +12,16 @@ tools for your animation/modelling program to have these features.
 This modified studiomdl adds on several new features. These include the original ones
 that came with studiomdl, and new ones. Among these are the following command launch 
 arguments:
- -s - Strips geometry information from the HL1MDL output. I recommend this if you want
+ - s - Strips geometry information from the HL1MDL output. I recommend this if you want
       to save on disk space consumed.
- -q - Strips texture data, and places only a single blank white texture into the file
+ - q - Strips texture data, and places only a single blank white texture into the file
       in order to not make level editors like JACK or VHE error out.
- -l - Normally studiomdl will try to limit polygon counts in the HL1MDL data to the
+ - l - Normally studiomdl will try to limit polygon counts in the HL1MDL data to the
       2048 vertex/normal limit. Useful if you still want to have model data in the
 	  HL1MDL so you can map using the original Valve Hammer Editor. However if you
 	  want to have the full model data, just set the -l argument, and the models will
 	  be compiled with their full geometry information.
- -w - The studiomdl command line will wait for a key input before closing the window.
+ - w - The studiomdl command line will wait for a key input before closing the window.
  
 # New QC options
 In order to support facial animations, a new feature was added. When specifying a
