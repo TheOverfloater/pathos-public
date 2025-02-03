@@ -10,6 +10,11 @@ All Rights Reserved.
 #ifndef R_GLSL_H
 #define R_GLSL_H
 
+#include <map>
+#include <vector>
+
+#define USE_SHADER_VALUES_MAP
+
 #include "file_interface.h"
 
 class CGLExtF;
@@ -36,7 +41,14 @@ class CGLSLShader
 public:
 	// Typedef for progress update function
 	typedef void (*pfnProgressUpdateFunction_t)( const Char* pstrShaderName, Uint32 totalCount, Uint32 completedCount, bool buildingCache );
-
+#ifdef USE_SHADER_VALUES_MAP
+	// Shader values vector type
+	typedef std::string ShaderValuesStringType_t;
+	// Shader values->index map pair type
+	typedef std::pair<ShaderValuesStringType_t, Int32> ShaderValuesIndexMapPairType_t;
+	// Shader values->index map datatype
+	typedef std::unordered_map<ShaderValuesStringType_t, Int32> ShaderValuesIndexMapType_t;
+#endif
 public:
 	enum shaderflags_t
 	{
@@ -564,7 +576,10 @@ private:
 	CArray<invalid_state_t> m_invalidStatesArray;
 	// Array of disabled determinator states
 	CArray<disabled_state_t> m_disabledStatesArray;
-
+#ifdef USE_SHADER_VALUES_MAP
+	// Shader value map
+	ShaderValuesIndexMapType_t m_shaderValuesIndexMap;
+#endif
 	// Used to store permutation arrays
 	Int16 *m_pDeterminatorValues;
 	// Shader determinator values

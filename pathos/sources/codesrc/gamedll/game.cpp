@@ -774,7 +774,6 @@ void SpawnTracer( const Vector& gunTracePosition, const Vector& tracerEndPos, CB
 	Float tracerSpeed;
 	if(pAttacker->IsPlayer())
 	{
-		const Float tracerSpeedMax = 2600;
 		const Float tracerDistMax = 2048;
 		const Float tracerSpeedMin = 1200;
 		const Float tracerDistMin = 256;
@@ -1005,7 +1004,7 @@ void FireBullets( Uint32 nbshots,
 							// Add ricochet and tracer effect
 							Util::Ricochet(tr.endpos, tr.plane.normal, false);
 							
-							bool shootResult = ShootTrace(startPosition, endPos, shootDirection, pAttacker,
+							shootResult = ShootTrace(startPosition, endPos, shootDirection, pAttacker,
 								pAttacker, pWeapon, damage, dmgMultiplier, shotDmgFlags, bulletType,
 								hitgroup, tr, impactPositions, numImpactPositions, numPenetrations > 0 ? true : false, true, nullptr);
 
@@ -1108,7 +1107,7 @@ void FireBullets( Uint32 nbshots,
 						if (pPenetrationInfo->damagefalloff < 1.0)
 							dmgMultiplier *= pPenetrationInfo->damagefalloff;
 
-						bool shootResult = ShootTrace(startPosition, endPos, shootDirection, pAttacker, pAttacker, pWeapon, damage, dmgMultiplier, shotDmgFlags, 
+						shootResult = ShootTrace(startPosition, endPos, shootDirection, pAttacker, pAttacker, pWeapon, damage, dmgMultiplier, shotDmgFlags, 
 							bulletType, hitgroup, tr, impactPositions, numImpactPositions, true, false, nullptr);
 
 						// Spawn a tracer before checking anything

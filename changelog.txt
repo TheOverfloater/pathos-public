@@ -566,3 +566,11 @@
  - Fixes for CEntityHandle entity to avoid crash when checking for null.
  - Fix for env_message, where the entity would remove itself before triggering a target if "Play Once" spawnflag was set.
  - Fix bulletproof impact model code not spawning bullets.
+ 
+2025 February 3rd:
+ - Fix for ladders not caching lighting, and impacting performance by getting lightvalues for each segment on each frame.
+ - Fix for lightmap restore failing on renderer reboot when there's no lightdata for the currently set daystage that's not the default daystage.
+ - Several performance optimizations in the BSP renderer's dynamic lighting code.
+ - Renamed a function in the dynamic light manager class to have a name more specific to it's actual function.
+ - Fix some variable shadowing in the firing code in the server binary.
+ - Major performance optimization for GLSL shaders by using std::unordered_map to look up shader variations instead of the for loop and memcmp solution.

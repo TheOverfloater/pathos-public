@@ -467,7 +467,7 @@ private:
 	// Updates currently fetched light values
 	void UpdateLightValues( void );
 	// Sets up model lighting
-	void SetupLighting( void );
+	void SetupLighting( Int32 flags );
 	// Compare light values with light info
 	bool CompareLightValues( const Vector* pambientlightvalues, const Vector* pdiffuselightvalues, const Vector& lightdir, const byte* plightstyles );
 

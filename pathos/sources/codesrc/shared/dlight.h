@@ -87,6 +87,9 @@ public:
 	bool	followentity;
 	Int32	attachment;
 
+	Vector	mins;
+	Vector	maxs;
+
 private:
 	bool	isstatic;
 	bool	noshadow;

@@ -160,7 +160,7 @@ private:
 	// Clears shadow maps
 	void ClearShadowMaps( void );
 	// Updates static lights
-	void UpdateLights( void );
+	void UpdateShadowingLights( void );
 
 	// Allocates a cubemap shadowmap
 	shadowmap_t *AllocCubemapShadowMap( bool allocblitmap );

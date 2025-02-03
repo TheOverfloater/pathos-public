@@ -481,7 +481,7 @@ bool R_InitGL( void )
 	if(cls.cl_state == CLIENT_ACTIVE)
 	{
 		daystage_t loadstage;
-		if(rns.daystage != DAYSTAGE_NORMAL)
+		if(rns.hasdaystagedata && rns.daystage != DAYSTAGE_NORMAL)
 			loadstage = rns.daystage;
 		else
 			loadstage = DAYSTAGE_NORMAL_RESTORE;
@@ -823,6 +823,7 @@ void R_ResetGame( void )
 	rns.isgameready = false;
 	rns.daystage = DAYSTAGE_NORMAL;
 	rns.numskipframes = 0;
+	rns.hasdaystagedata = false;
 
 	g_beamStartPosition.Clear();
 	g_pBeamStartEntity = nullptr;
@@ -5011,7 +5012,7 @@ void Cmd_BSPToSMD_Lightmap( void )
 	Con_Printf("Exported %s.\n", filepath.c_str());
 
 	daystage_t loadstage;
-	if(rns.daystage != DAYSTAGE_NORMAL)
+	if(rns.hasdaystagedata && rns.daystage != DAYSTAGE_NORMAL)
 		loadstage = rns.daystage;
 	else
 		loadstage = DAYSTAGE_NORMAL_RESTORE;

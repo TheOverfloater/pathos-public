@@ -674,7 +674,11 @@ bool CLadder::DrawLadder( cl_entity_t *pLadder )
 	entity_extrainfo_t* pextrainfo = cl_engfuncs.pfnGetEntityExtraData(pLadder);
 	pextrainfo->plightinfo->flags |= MDL_LIGHT_NOBLEND;
 
-	if(!cl_renderfuncs.pfnDrawVBMModel(pLadder, VBM_RENDER))
+	// To prevent unnecessary light caching
+	pLadder->curstate.effects |= EF_ALTLIGHTORIGIN;
+	pLadder->curstate.lightorigin = pLadder->curstate.origin;
+
+	if(!cl_renderfuncs.pfnDrawVBMModel(pLadder, (VBM_RENDER)))
 	{
 		cl_renderfuncs.pfnVBMEndDraw();
 		return false;
@@ -688,7 +692,7 @@ bool CLadder::DrawLadder( cl_entity_t *pLadder )
 	{
 		// Subtract piece height
 		pLadder->curstate.origin.z -= LADDER_PIECE_HEIGHT;
-		if(!cl_renderfuncs.pfnDrawVBMModel(pLadder, VBM_RENDER))
+		if(!cl_renderfuncs.pfnDrawVBMModel(pLadder, (VBM_RENDER)))
 		{
 			cl_renderfuncs.pfnVBMEndDraw();
 			return false;

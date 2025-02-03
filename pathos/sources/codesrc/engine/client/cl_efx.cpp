@@ -313,7 +313,11 @@ void CL_SetDayStage( daystage_t daystage )
 		loadstage = rns.daystage;
 
 	if (!ALD_Load(loadstage, pdatapointers))
+	{
+		// Mark as having relevant data
+		rns.hasdaystagedata = false;
 		return;
+	}
 
 	// Set the new pointer
 	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
@@ -345,6 +349,9 @@ void CL_SetDayStage( daystage_t daystage )
 
 	// Release the lightmap data
 	BSP_ReleaseLightmapData(*ens.pworld);
+
+	// Mark as having relevant data
+	rns.hasdaystagedata = true;
 }
 
 //====================================

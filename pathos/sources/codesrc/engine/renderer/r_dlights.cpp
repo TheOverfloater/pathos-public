@@ -804,7 +804,7 @@ void CDynamicLightManager::SetVIS( void )
 //====================================
 //
 //====================================
-void CDynamicLightManager::UpdateLights( void )
+void CDynamicLightManager::UpdateShadowingLights( void )
 {
 	// Loop through dynlights
 	m_dlightsList.begin();
@@ -925,8 +925,9 @@ bool CDynamicLightManager::DrawPasses( void )
 	if(g_pCvarDynamicLights->GetValue() < 1)
 		return true;
 
-	// Update static lights
-	UpdateLights();
+	// Update shadowing lights
+	UpdateShadowingLights();
+
 	// And set vis too
 	SetVIS();
 
@@ -1518,6 +1519,14 @@ bool CDynamicLightManager::Update( void )
 			pdl->pfrustum->SetFrustum(pdl->angles, pdl->origin, pdl->cone_size, 
 			Vector(pdl->radius, pdl->radius, pdl->radius).Length());
 
+		// Update mins/maxs
+		for(Uint32 i = 0; i < 3; i++)
+		{
+			pdl->mins[i] = pdl->origin[i] - pdl->radius;
+			pdl->maxs[i] = pdl->origin[i] + pdl->radius;
+		}
+
+		// See if dlight should still be active
 		if(( pdl->die == -1 
 			&& pdl->lastframe == rns.framecount_main 
 			|| pdl->die >= rns.time )

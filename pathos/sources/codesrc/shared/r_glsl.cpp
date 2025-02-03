@@ -209,6 +209,10 @@ void CGLSLShader::FreeShaderData ( void )
 
 		m_shadersArray.clear();
 	}
+#ifdef USE_SHADER_VALUES_MAP
+	if(!m_shaderValuesIndexMap.empty())
+		m_shaderValuesIndexMap.clear();
+#endif
 }
 
 //=============================================
@@ -533,6 +537,17 @@ bool CGLSLShader::CompileFromCSD( void )
 		for(Uint32 j = 0; j < m_pCSDHeader->numshaders; j++)
 			m_pShaderDeterminatorValues[j * m_pCSDHeader->numdeterminators + i] = pinvalues[j];
 	}
+
+#ifdef USE_SHADER_VALUES_MAP
+	// Create map
+	for(Uint32 i = 0; i < m_pCSDHeader->numshaders; i++)
+	{
+		Char* pshadervaluesbytes = reinterpret_cast<Char*>(m_pShaderDeterminatorValues + m_pCSDHeader->numdeterminators * i);
+		ShaderValuesStringType_t valuestr(pshadervaluesbytes, m_pCSDHeader->numdeterminators * sizeof(Int16));
+		std::pair<ShaderValuesIndexMapType_t::iterator, bool> insertResult = m_shaderValuesIndexMap.insert(ShaderValuesIndexMapPairType_t(valuestr, i));
+		assert(insertResult.second == true);
+	}
+#endif
 
 	// Allocate the shaders
 	m_shadersArray.resize(m_pCSDHeader->numshaders);
@@ -2630,28 +2645,46 @@ bool CGLSLShader :: VerifyDeterminators ( void )
 		}
 	}
 
+	// Shader to bind
+	Int32 shaderIndex = NO_POSITION;
+
+#ifdef USE_SHADER_VALUES_MAP
+	Char* pvaluesbytes = reinterpret_cast<Char*>(m_pDeterminatorValues);
+	ShaderValuesStringType_t valuestr(pvaluesbytes, m_determinatorArray.size() * sizeof(Int16));
+
+	ShaderValuesIndexMapType_t::iterator it = m_shaderValuesIndexMap.find(valuestr);
+	if(it != m_shaderValuesIndexMap.end())
+		shaderIndex = it->second;
+#else
 	Uint32 determinatorCount = m_determinatorArray.size();
 	for(Uint32 i = 0; i < m_shadersArray.size(); i++)
 	{
 		Int16* pCheckValues = m_pShaderDeterminatorValues + i * determinatorCount;
 		if(memcmp(pCheckValues, m_pDeterminatorValues, sizeof(Int16)*determinatorCount) == 0)
 		{
-			if(m_shaderIndex == static_cast<Int32>(i))
-				return true;
+			shaderIndex = static_cast<Int32>(i);
+			break;
+		}
+	}
+#endif
 
-			m_shaderIndex = i;
-			if(m_isActive)
-			{
-				if(EnableShader())
-					return true;
-				else
-					return false;
-			}
-			else
-			{
-				// Will be tested later
+	if(shaderIndex != NO_POSITION)
+	{
+		if(m_shaderIndex == shaderIndex)
+			return true;
+
+		m_shaderIndex = shaderIndex;
+		if(m_isActive)
+		{
+			if(EnableShader())
 				return true;
-			}
+			else
+				return false;
+		}
+		else
+		{
+			// Will be tested later
+			return true;
 		}
 	}
 
@@ -2664,6 +2697,7 @@ bool CGLSLShader :: VerifyDeterminators ( void )
 	m_errorString = buffer;
 	return false;
 }
+
 
 //=============================================
 // @brief Returns the index of a determinator

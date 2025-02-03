@@ -280,6 +280,7 @@ struct renderer_state_t
 		validateshaders(false),
 		msaa(false),
 		fboblitsupported(false),
+		hasdaystagedata(false),
 		pvisbuffer(nullptr),
 		psecondaryvisbuffer(nullptr),
 		ploadbackground(nullptr),
@@ -369,6 +370,8 @@ struct renderer_state_t
 	bool msaa;
 	// true if fbo blit is supported
 	bool fboblitsupported;
+	// true if we have relevant daystage data
+	bool hasdaystagedata;
 
 	// day stage
 	daystage_t daystage;

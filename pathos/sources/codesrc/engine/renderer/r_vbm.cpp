@@ -1205,7 +1205,7 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 	{
 		GetModelLights();
 		GetDynamicLights();
-		SetupLighting();
+		SetupLighting(flags);
 
 		if(m_pStudioHeader->flags & STUDIO_MF_HAS_FLEXES)
 			m_pFlexManager->UpdateValues( rns.time, m_pCurrentEntity->curstate.health, m_pCurrentEntity->mouth.mouthopen, m_pExtraInfo->pflexstate, false );
@@ -1588,7 +1588,7 @@ void CVBMRenderer::UpdateLightValues ( void )
 //
 //
 //=============================================
-void CVBMRenderer::SetupLighting ( void )
+void CVBMRenderer::SetupLighting ( Int32 flags )
 {
 	// Rebuild the entity's light origin each frame
 	Vector lightorigin;
@@ -1596,6 +1596,7 @@ void CVBMRenderer::SetupLighting ( void )
 
 	if(m_pCurrentEntity->curstate.effects & EF_ALTLIGHTORIGIN)
 	{
+		// Use light origin if it's set
 		Math::VectorCopy(m_pCurrentEntity->curstate.lightorigin, lightorigin);
 	}
 	else if(m_pCurrentEntity->curstate.renderfx != RenderFx_SkyEnt
@@ -2381,16 +2382,8 @@ void CVBMRenderer::GetDynamicLights( void )
 	{
 		cl_dlight_t* pdl = dlList.get();
 
-		// Build mins/maxs
-		Vector mins, maxs;
-		for(Uint32 i = 0; i < 3; i++)
-		{
-			mins[i] = pdl->origin[i] - pdl->radius;
-			maxs[i] = pdl->origin[i] + pdl->radius;
-		}
-
 		// This needs to be set every time(also, be sure to use the viewsize from view_params!)
-		if(!DL_IsLightVisible(rns.view.frustum, mins, maxs, pdl))
+		if(!DL_IsLightVisible(rns.view.frustum, pdl->mins, pdl->maxs, pdl))
 		{
 			dlList.next();
 			continue;
@@ -2409,14 +2402,7 @@ void CVBMRenderer::GetDynamicLights( void )
 		}
 		else
 		{
-			Vector vmins, vmaxs;
-			for(Uint32 i = 0; i < 3; i++)
-			{
-				vmins[i] = pdl->origin[i]-pdl->radius;
-				vmaxs[i] = pdl->origin[i]+pdl->radius;
-			}
-
-			if(Math::CheckMinsMaxs(vmins, vmaxs, m_mins, m_maxs))
+			if(Math::CheckMinsMaxs(pdl->mins, pdl->maxs, m_mins, m_maxs))
 			{
 				dlList.next();
 				continue;

@@ -1919,7 +1919,6 @@ __forceinline void CBSPRenderer::AddBatch( CArray<drawbatch_t>& batches, Uint32&
 //=============================================
 void CBSPRenderer::FlagIfDynamicLighted( const Vector& mins, const Vector& maxs ) 
 {
-	Vector lmins, lmaxs;
 	cl_dlight_t *dl;
 
 	if(m_disableMultiPass)
@@ -1960,6 +1959,12 @@ void CBSPRenderer::FlagIfDynamicLighted( const Vector& mins, const Vector& maxs 
 	while(!dlightlist.end())
 	{
 		dl = dlightlist.get();
+		if(Math::CheckMinsMaxs(mins, maxs, dl->mins, dl->maxs))
+		{
+			dlightlist.next();
+			continue;
+		}
+
 		if(dl->pfrustum)
 		{
 			if(dl->pfrustum->CullBBox(mins, maxs))
@@ -1968,21 +1973,7 @@ void CBSPRenderer::FlagIfDynamicLighted( const Vector& mins, const Vector& maxs 
 				continue;
 			}
 		}
-		else
-		{
-			for(Uint32 i = 0; i < 3; i++)
-			{
-				lmins[i] = dl->origin[i] - dl->radius;
-				lmaxs[i] = dl->origin[i] + dl->radius;
-			}
 
-			if(Math::CheckMinsMaxs(mins, maxs, lmins, lmaxs))
-			{
-				dlightlist.next();
-				continue;
-			}
-		}
-		
 		m_addMulti = true;
 		return;
 	}
@@ -3285,15 +3276,7 @@ bool CBSPRenderer::DrawLights( bool specular )
 	while(!dlightlist.end())
 	{
 		cl_dlight_t* dl = dlightlist.get();
-
-		Vector mins, maxs;
-		for(Uint32 i = 0; i < 3; i++)
-		{
-			mins[i] = dl->origin[i] - dl->radius;
-			maxs[i] = dl->origin[i] + dl->radius;
-		}
-
-		if(!DL_IsLightVisible(rns.view.frustum, mins, maxs, dl))
+		if(!DL_IsLightVisible(rns.view.frustum, dl->mins, dl->maxs, dl))
 		{
 			dlightlist.next();
 			continue;
@@ -3320,7 +3303,7 @@ bool CBSPRenderer::DrawLights( bool specular )
 				Math::VectorAdd(m_pCurrentEntity->curstate.origin, pmodel->maxs, entitymaxs);
 			}
 
-			if(Math::CheckMinsMaxs(mins, maxs, entitymins, entitymaxs))
+			if(Math::CheckMinsMaxs(dl->mins, dl->maxs, entitymins, entitymaxs))
 			{
 				dlightlist.next();
 				continue;
@@ -3356,7 +3339,7 @@ bool CBSPRenderer::DrawLights( bool specular )
 				lightbatch_t& curbatch = lightBatches.get();
 				if(curbatch.type == type && curbatch.lightslist.size() < MAX_BATCH_LIGHTS)
 				{
-					if(!Math::CheckMinsMaxs(curbatch.mins, curbatch.maxs, mins, maxs))
+					if(!Math::CheckMinsMaxs(curbatch.mins, curbatch.maxs, dl->mins, dl->maxs))
 					{
 						pbatch = &curbatch;
 						break;
@@ -3377,29 +3360,32 @@ bool CBSPRenderer::DrawLights( bool specular )
 				Math::RotateToEntitySpace(m_pCurrentEntity->curstate.angles, vorigin);
 		}
 
+		Vector lmins, lmaxs;
 		for(Uint32 i = 0; i < 3; i++)
 		{
-			mins[i] = vorigin[i] - dl->radius;
-			maxs[i] = vorigin[i] + dl->radius;
+			lmins[i] = vorigin[i] - dl->radius;
+			lmaxs[i] = vorigin[i] + dl->radius;
 		}
 
 		if(!pbatch)
 		{
 			lightbatch_t newbatch;
 			newbatch.type = type;
-			newbatch.mins = mins;
-			newbatch.maxs = maxs;
+			newbatch.mins = lmins;
+			newbatch.maxs = lmaxs;
 
 			pbatch = &lightBatches.add(newbatch)->_val;
 		}
-
-		for(Uint32 i = 0; i < 3; i++)
+		else
 		{
-			if(pbatch->mins[i] > mins[i])
-				pbatch->mins[i] = mins[i];
+			for(Uint32 i = 0; i < 3; i++)
+			{
+				if(pbatch->mins[i] > lmins[i])
+					pbatch->mins[i] = lmins[i];
 
-			if(pbatch->maxs[i] < maxs[i])
-				pbatch->maxs[i] = maxs[i];
+				if(pbatch->maxs[i] < lmaxs[i])
+					pbatch->maxs[i] = lmaxs[i];
+			}
 		}
 
 		pbatch->lightslist.add(dl);
@@ -3432,16 +3418,7 @@ bool CBSPRenderer::DrawLights( bool specular )
 		while(!batch.lightslist.end())
 		{
 			cl_dlight_t* pdlight = batch.lightslist.get();
-
-			// Build mins/maxs
-			Vector mins, maxs;
-			for(Uint32 i = 0; i < 3; i++)
-			{
-				mins[i] = pdlight->origin[i] - pdlight->radius;
-				maxs[i] = pdlight->origin[i] + pdlight->radius;
-			}
-
-			if(!DL_IsLightVisible(rns.view.frustum, mins, maxs, pdlight))
+			if(!DL_IsLightVisible(rns.view.frustum, pdlight->mins, pdlight->maxs, pdlight))
 			{
 				dlightlist.next();
 				continue;
