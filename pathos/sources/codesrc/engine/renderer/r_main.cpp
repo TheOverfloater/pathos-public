@@ -1156,17 +1156,13 @@ void R_SetupView( const ref_params_t& params )
 	cls.dllfuncs.pfnSetupView(params);
 
 	// Mark visible leaves
-	if(!rns.sky.skybox || rns.fog.settings.affectsky 
-		|| rns.water_skydraw || rns.portalpass)
-	{
-		Vector vieworigin;
-		if(rns.usevisorigin)
-			vieworigin = rns.view.v_visorigin;
-		else
-			vieworigin = rns.view.v_origin;
+	Vector vieworigin;
+	if(rns.usevisorigin)
+		vieworigin = rns.view.v_visorigin;
+	else
+		vieworigin = rns.view.v_origin;
 
-		R_MarkLeaves(vieworigin);
-	}
+	R_MarkLeaves(vieworigin);
 
 	// Sort entities by distance
 	qsort(&rns.objects.pvisents[0], rns.objects.numvisents, sizeof(cl_entity_t*), R_SortEntities);

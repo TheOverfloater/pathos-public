@@ -1,0 +1,6 @@
+$clusterscript
+{
+	$script engine_enl_shot_cloud.txt
+	$script engine_enl_shot_flecks1.txt
+	$script engine_enl_shot_flecks2.txt
+}

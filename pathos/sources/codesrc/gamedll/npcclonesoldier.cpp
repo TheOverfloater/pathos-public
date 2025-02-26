@@ -698,6 +698,24 @@ const CAISchedule* CNPCCloneSoldier::GetSchedule( void )
 				// Call base class to manage dead enemies
 				return CPatrolNPC::GetSchedule();
 			}
+			else if((CheckCondition(AI_COND_LIGHT_DAMAGE) || CheckCondition(AI_COND_HEAVY_DAMAGE)) && m_nextFlinchTime < g_pGameVars->time)
+			{
+				if(Common::RandomLong(0, 99) <= 90 && m_enemy 
+					&& (GetNavigablePosition()-m_enemy->GetNavigablePosition()).Length() < NPC_MIN_ENEMY_DISTANCE)
+				{
+					if(CanSpeak())
+					{
+						PlaySentence("RP_COVER", 0, VOL_NORM, ATTN_NORM, 0, true);
+						Spoke();
+					}
+
+					return GetScheduleByIndex(AI_SCHED_TAKE_COVER_FROM_ENEMY);
+				}
+				else
+				{
+					return GetScheduleByIndex(AI_SCHED_SMALL_FLINCH);
+				}
+			}
 			else if(CheckCondition(AI_COND_NEW_ENEMY) && IsInSquad())
 			{
 				CBaseEntity* pSquadLeader = GetSquadLeader();
@@ -723,24 +741,6 @@ const CAISchedule* CNPCCloneSoldier::GetSchedule( void )
 			else if(CheckCondition(AI_COND_NO_AMMO_LOADED))
 			{
 				return GetReloadSchedule();
-			}
-			else if(CheckCondition(AI_COND_LIGHT_DAMAGE))
-			{
-				if(Common::RandomLong(0, 99) <= 90 && m_enemy 
-					&& (GetNavigablePosition()-m_enemy->GetNavigablePosition()).Length() < NPC_MIN_ENEMY_DISTANCE)
-				{
-					if(CanSpeak())
-					{
-						PlaySentence("RP_COVER", 0, VOL_NORM, ATTN_NORM, 0, true);
-						Spoke();
-					}
-
-					return GetScheduleByIndex(AI_SCHED_TAKE_COVER_FROM_ENEMY);
-				}
-				else
-				{
-					return GetScheduleByIndex(AI_SCHED_SMALL_FLINCH);
-				}
 			}
 			else if(CheckCondition(AI_COND_CAN_MELEE_ATTACK1))
 			{

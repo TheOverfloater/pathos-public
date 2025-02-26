@@ -121,8 +121,19 @@ $sequence "diegutshot" "../shared/diegutshot" X fps 27 ACT_DIE_GUTSHOT 1 { event
 $sequence "dieforward" "../shared/dieforward" X fps 33 ACT_DIEFORWARD 1 { event 2001 8 }
 $sequence "diebackward" "../shared/diebackward" X fps 35 ACT_DIEBACKWARD 1 { event 2001 54 }
 $sequence "diecrump" "../shared/diecrump" X fps 40 ACT_DIESIMPLE 2 { event 2001 33 }
-$sequence "laflinch" "laflinch" fps 16 ACT_FLINCH_LEFTARM 1 
-$sequence "raflinch" "raflinch" fps 16 ACT_FLINCH_RIGHTARM 1 
-$sequence "llflinch" "llflinch" fps 20 ACT_FLINCH_LEFTLEG 1 
-$sequence "rlflinch" "rlflinch" fps 20 ACT_FLINCH_RIGHTLEG 1 
-$sequence "smlflinch" "smlflinch" fps 30 ACT_SMALL_FLINCH 1 
+$sequence "blowback_fly" "../shared/blowback_fly" fps 70 ACT_BLOWBACK_FLY 1
+$sequence "blowback_land_flat1" "../shared/blowback_land_flat1" fps 70 ACT_BLOWBACK_LAND_FLAT 50 { event 2001 30 }
+$sequence "blowback_land_flat_back1" "../shared/blowback_land_flat_back1" fps 70 ACT_BLOWBACK_LAND_FLAT_BACK 50 { event 2001 18 }
+$sequence "blowback_land_seated1" "../shared/blowback_land_seated1" fps 70 ACT_BLOWBACK_LAND_SEATED 50 { event 2001 4 } { event 2001 30 }
+$sequence "blowback_land_stomach1" "../shared/blowback_land_stomach1" fps 70 ACT_BLOWBACK_LAND_STOMACH 50 { event 2001 16 }
+$sequence "larmflinch" "../shared/larmflinch" fps 16 ACT_FLINCH_LEFTARM 1 
+$sequence "rarmflinch" "../shared/rarmflinch" fps 16 ACT_FLINCH_RIGHTARM 1 
+$sequence "llegflinch" "../shared/llegflinch" fps 20 ACT_FLINCH_LEFTLEG 1 
+$sequence "rlegflinch" "../shared/rlegflinch" fps 20 ACT_FLINCH_RIGHTLEG 1 
+$sequence "smflinch" "../shared/smflinch" fps 30 ACT_SMALL_FLINCH 1 
+$sequence "larmflinch_heavy" "../shared/larmflinch_heavy" fps 16 ACT_FLINCH_LEFTARM_HEAVY 1 
+$sequence "rarmflinch_heavy" "../shared/rarmflinch_heavy" fps 16 ACT_FLINCH_RIGHTARM_HEAVY 1 
+$sequence "llegflinch_heavy" "../shared/llegflinch_heavy" fps 20 ACT_FLINCH_LEFTLEG_HEAVY 1 
+$sequence "rlegflinch_heavy" "../shared/rlegflinch_heavy" fps 20 ACT_FLINCH_RIGHTLEG_HEAVY 1 
+$sequence "flinch_heavy1" "../shared/flinch_heavy1" fps 30 ACT_FLINCH_HEAVY 50 
+$sequence "flinch_heavy2" "../shared/flinch_heavy2" fps 30 ACT_FLINCH_HEAVY 50 

@@ -34,6 +34,9 @@ lenayrossouw
 For a detailed list of people credited for the Pathos code, check:
 pathos/sources/codesrc/readme.txt
 
+Models:
+ - Glock model by BrussTrigger
+
 Thanks to valina354 for his contributions from the Matrix Engine, which 
 include ambient occlusion, chromatic aberration, the vignette effect, 
 the film grain entity, math_counter, the black and white effect, water 

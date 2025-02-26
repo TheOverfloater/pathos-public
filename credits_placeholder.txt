@@ -5,5 +5,4 @@ Note: These models are all placeholders, and will be removed as development prog
 forward. There's no plans to make these models the final ones.
 
  - Knife: Havok101, Loyen, BlackHoleSon, Sebhael
- - Glock: Twinke Masta, FxDarkloki, Dr. Zoidberg, Jennifer!!. Sparkwire, Bushmasta101
  - Grenade: Kaskad, Malignant, DrHubbler, Xander the Sailor

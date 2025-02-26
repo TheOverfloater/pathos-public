@@ -3,7 +3,7 @@ $particlescript
 	$shape point
 	$min_velocity 160.000000
 	$max_velocity 170.000000
-	$max_offset 160.000000
+	$max_offset 80.000000
 	$fade_in_time 0.100000
 	$fade_out_delay 0.400000
 	$lifetime 0.600000
@@ -20,7 +20,6 @@ $particlescript
 	$create blood_drops
 	$rendermode alphablend
 	$alpha 0.800000
-	$alignment tracer
 	$texture blood_core
 	$render_flags nocull
 	$rotate_z_speed 200.000000

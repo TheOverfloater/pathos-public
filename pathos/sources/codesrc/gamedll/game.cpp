@@ -47,6 +47,8 @@ CCVar* g_pCvarHoldToZoom = nullptr;
 CCVar* g_pCvarGravity = nullptr;
 // Autoaim cvar ptr
 CCVar* g_pCvarAutoAim = nullptr;
+// Hold to walk cvar
+CCVar* g_pCvarHoldToWalk = nullptr;
 
 // Decal list object
 CDecalList gDecalList;
@@ -84,6 +86,7 @@ bool InitGameObjects( void )
 	g_pCvarHoldToZoom = gd_engfuncs.pfnCreateCVar(CVAR_FLOAT, (FL_CV_SV_ONLY|FL_CV_SAVE), "sv_holdtozoom", "1", "Make zooming be active only when holding the zoom button");
 	g_pCvarGravity = gd_engfuncs.pfnGetCVarPointer(GRAVITY_CVAR_NAME);
 	g_pCvarAutoAim = gd_engfuncs.pfnGetCVarPointer(AUTOAIM_CVAR_NAME);
+	g_pCvarHoldToWalk = gd_engfuncs.pfnCreateCVar(CVAR_FLOAT, (FL_CV_SV_ONLY|FL_CV_SAVE), "sv_holdtowalk", "0", "Make walking speed be applied only when holding the walk button");
 
 	// Create commands
 	gd_engfuncs.pfnCreateCommand("dumpcheats", DumpCheatCodes, "Dumps cheat codes");
@@ -379,11 +382,7 @@ void PrecacheGenericResources( void )
 
 	gd_engfuncs.pfnPrecacheParticleScript("bullet_tracer.txt", PART_SCRIPT_SYSTEM);
 
-	gd_engfuncs.pfnPrecacheParticleScript("engine_muzzleflash_cluster1.txt", PART_SCRIPT_CLUSTER);
-	gd_engfuncs.pfnPrecacheParticleScript("engine_muzzleflash_cluster2.txt", PART_SCRIPT_CLUSTER);
-	gd_engfuncs.pfnPrecacheParticleScript("engine_muzzleflash_cluster3.txt", PART_SCRIPT_CLUSTER);
-	gd_engfuncs.pfnPrecacheParticleScript("engine_muzzleflash_cluster4.txt", PART_SCRIPT_CLUSTER);
-	gd_engfuncs.pfnPrecacheParticleScript("engine_muzzleflash_cluster5.txt", PART_SCRIPT_CLUSTER);
+	gd_engfuncs.pfnPrecacheParticleScript(MUZZLEFLASH_PARTICLE_SCRIPT_SIMPLE, PART_SCRIPT_CLUSTER);
 	gd_engfuncs.pfnPrecacheParticleScript("explosion_cluster.txt", PART_SCRIPT_CLUSTER);
 	gd_engfuncs.pfnPrecacheParticleScript("explosion_underwater_cluster.txt", PART_SCRIPT_CLUSTER);
 	gd_engfuncs.pfnPrecacheParticleScript("spark_cluster.txt", PART_SCRIPT_CLUSTER);
@@ -392,7 +391,7 @@ void PrecacheGenericResources( void )
 	gd_engfuncs.pfnPrecacheParticleScript("engine_gib_small_cluster.txt", PART_SCRIPT_CLUSTER);
 	gd_engfuncs.pfnPrecacheParticleScript("engine_gib_explode_cluster.txt", PART_SCRIPT_CLUSTER);
 	gd_engfuncs.pfnPrecacheParticleScript("engine_plasma_trails.txt", PART_SCRIPT_SYSTEM);
-	gd_engfuncs.pfnPrecacheParticleScript("engine_muzzle_smoke.txt", PART_SCRIPT_SYSTEM);
+	gd_engfuncs.pfnPrecacheParticleScript(MUZZLE_PARTICLE_SMOKE, PART_SCRIPT_SYSTEM);
 	gd_engfuncs.pfnPrecacheParticleScript("blood_effects_cluster_player.txt", PART_SCRIPT_CLUSTER);
 	gd_engfuncs.pfnPrecacheParticleScript("blood_effects_decap.txt", PART_SCRIPT_CLUSTER);
 	gd_engfuncs.pfnPrecacheParticleScript("blood_effects_cluster.txt", PART_SCRIPT_CLUSTER);
@@ -1134,5 +1133,5 @@ void FireBullets( Uint32 nbshots,
 	}
 
 	// Apply the damage
-	gMultiDamage.ApplyDamage(pAttacker, pAttacker, hitgroup);
+	gMultiDamage.ApplyDamage(pAttacker, pAttacker, hitgroup, bulletType, nbshots);
 }

@@ -7,7 +7,7 @@ $particlescript
 	$primary_color 255 255 255
 	$scale 6.000000
 	$scale_variation 5.000000
-	$scale_damping -15.000000
+	$scale_damping -19.000000
 	$particles_on_spawn 1
 	$rendermode additive
 	$alpha 1.000000

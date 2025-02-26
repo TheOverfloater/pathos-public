@@ -529,6 +529,10 @@ public:
 	static const Char MOUSE_TAB_AUTOAIM_BOX_OBJ_NAME[];
 	// Auto-aim label object name
 	static const Char MOUSE_TAB_AUTOAIM_LABEL_OBJ_NAME[];
+	// Raw input tickbox object name
+	static const Char MOUSE_TAB_RAWINPUT_BOX_OBJ_NAME[];
+	// Raw input label object name
+	static const Char MOUSE_TAB_RAWINPUT_LABEL_OBJ_NAME[];
 	// Mouse sensitivity slider object name
 	static const Char MOUSE_TAB_SENSITIVITY_SLIDER_OBJ_NAME[];
 	// Mouse sensitivity slider object name
@@ -591,6 +595,15 @@ public:
 	static const Char GAMEPLAY_TAB_LIST_OBJ_NAME[];
 	// View roll value text object name
 	static const Char GAMEPLAY_TAB_VIEWROLL_TEXT_OBJ_NAME[];
+
+	// FOV slider object name
+	static const Char GAMEPLAY_TAB_FOV_SLIDER_OBJ_NAME[];
+	// FOV slider object name
+	static const Char GAMEPLAY_TAB_FOV_LABEL_OBJ_NAME[];
+	// FOV value tab object name
+	static const Char GAMEPLAY_TAB_FOV_TAB_OBJ_NAME[];
+	// FOV value text object name
+	static const Char GAMEPLAY_TAB_FOV_TEXT_OBJ_NAME[];
 
 	// Gameplay tab options list file
 	static const Char GAMEPLAY_DESC_FILE[];
@@ -695,6 +708,8 @@ public:
 	void SetViewBobTabText( const Char* pstrText );
 	// Sets view roll tab text
 	void SetViewRollTabText( const Char* pstrText );
+	// Sets FOV tab text
+	void SetFOVTabText( const Char* pstrText );
 
 public:
 	// Toggles ontop flag for a row in the Advanced Options tab
@@ -779,6 +794,8 @@ private:
 	CUIText* m_pViewBobValueText;
 	// View roll display tab
 	CUIText* m_pViewRollValueText;
+	// FOV display tab
+	CUIText* m_pFOVValueText;
 
 public:
 	// Current instance

@@ -2275,6 +2275,13 @@ void CPlayerEntity::PreCmdThink( void )
 
 			m_previousWeaponSlowdownState = desiredState;
 		}
+		else if(g_pCvarHoldToWalk->GetValue() >= 1)
+		{
+			if((m_pState->buttons & IN_WALKMODE) && !(m_pState->flags & FL_SLOWMOVE))
+				m_pState->flags |= FL_SLOWMOVE;
+			else if(!(m_pState->buttons & IN_WALKMODE) && (m_pState->flags & FL_SLOWMOVE))
+				m_pState->flags &= ~FL_SLOWMOVE;
+		}
 		else if(m_buttonsPressed & IN_WALKMODE)
 		{
 			if(m_pState->flags & FL_SLOWMOVE)

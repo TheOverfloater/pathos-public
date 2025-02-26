@@ -1,0 +1,7 @@
+$texture
+{
+	$nomipmaps
+	$texture diffuse models/v_glock/attachments.dds
+	$texture normal models/v_glock/attachments_normal.dds
+	$texture specular models/v_glock/attachments_gloss.dds
+}

@@ -266,6 +266,9 @@ public:
 	// Sets the view model's bodygroup
 	void SetViewModelBodyGroup( Int32 group, Int32 value );
 
+	// Applies weapon kickback velocity to player
+	void ApplyWeaponKickbackVelocity( const Vector& forwardVector, Float velMin, Float velMax );
+
 	// Returns the recoil degradation speed
 	virtual Float GetRecoilDegradeFactor( void ) { return DEFAULT_RECOIL_DEGRADE; }
 	// Returns the recoil max limit

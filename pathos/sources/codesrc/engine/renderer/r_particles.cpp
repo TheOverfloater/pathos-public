@@ -1084,15 +1084,24 @@ bool CParticleEngine::LoadSystemScript( script_cache_t* pCache, const Char* pstr
 			continue;
 
 		// Read first token
-		const Char* plstr = Common::Parse(line, token);
+		const Char* plstr = line;
 
-		// Stop if reached end
-		if(!qstrcmp(token, "}"))
-			break;
+		// Skip whitespaces
+		while(*plstr != '\0' && SDL_isspace(*plstr))
+			plstr++;
+		
+		// Check if we still have data
+		if(*plstr == '\0')
+			continue;
 
 		// Skip any comments
-		if(!qstrncmp(token, "//", 2))
+		if(!qstrncmp(plstr, "//", 2))
 			continue;
+
+		// Parse first token
+		plstr = Common::Parse(plstr, token);
+		if(!qstrcmp(token, "}")) // Stop if reached end
+			break;
 
 		// Token must always have '$' at beginning
 		if(token[0] != '$')
@@ -1203,15 +1212,24 @@ bool CParticleEngine::LoadClusterScript( script_cache_t* pCache, const Char* pst
 			continue;
 
 		// Read first token
-		const Char* plstr = Common::Parse(line, token);
+		const Char* plstr = line;
 
-		// Stop if reached end
-		if(!qstrcmp(token, "}"))
-			break;
-
+		// Skip whitespaces
+		while(*plstr != '\0' && SDL_isspace(*plstr))
+			plstr++;
+		
+		// Check if we still have data
+		if(*plstr == '\0')
+			continue;
+		
 		// Skip any comments
 		if(!qstrncmp(token, "//", 2))
 			continue;
+
+		// Parse first token
+		plstr = Common::Parse(plstr, token);
+		if(!qstrcmp(token, "}")) // Stop if reached end
+			break;
 
 		if(!plstr)
 		{
@@ -1531,6 +1549,12 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 			vforward[1] = 0;
 			vforward[2] = -1;
 		}
+		else if(pdefinition->flags & SYSTEM_FL_RANDOM_DIR)
+		{
+			vforward[0] = Common::RandomFloat(-1, 1);
+			vforward[1] = Common::RandomFloat(-1, 1);
+			vforward[2] = Common::RandomFloat(-1, 1);
+		}
 		else if((psystem->attachflags & PARTICLE_ATTACH_TO_PARENT)
 			&& (psystem->attachflags & PARTICLE_ATTACH_ATTACHMENT_VECTOR) 
 			&& psystem->parententity)
@@ -1546,12 +1570,6 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 			&& psystem->parententity)
 		{
 			GetBoneRotatedVector(psystem->dir, psystem->parententity, psystem->boneindex, vforward, false);
-		}
-		else if(pdefinition->flags & SYSTEM_FL_RANDOM_DIR)
-		{
-			vforward[0] = Common::RandomFloat(-1, 1);
-			vforward[1] = Common::RandomFloat(-1, 1);
-			vforward[2] = Common::RandomFloat(-1, 1);
 		}
 		else if(pflorigin && pflnormal)
 		{
@@ -2714,7 +2732,7 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 	//
 	// Spawn tracer particles
 	//
-	if(pdefinition->tracerdist)
+	if(pdefinition->tracerdist && psystem->createsystem)
 	{
 		Vector vdistance, vorigin;
 		Math::VectorSubtract(vbaseorigin, pparticle->lastspawn, vdistance);

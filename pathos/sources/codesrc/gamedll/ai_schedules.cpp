@@ -471,7 +471,9 @@ Uint32 interruptBitsScheduleCombatFace[] =
 	AI_COND_CAN_SPECIAL_ATTACK2,
 	AI_COND_NEW_ENEMY,
 	AI_COND_SEE_ENEMY,
-	AI_COND_ENEMY_DEAD
+	AI_COND_ENEMY_DEAD,
+	AI_COND_LIGHT_DAMAGE,
+	AI_COND_HEAVY_DAMAGE
 };
 
 const CAISchedule scheduleCombatFace(
@@ -967,6 +969,31 @@ const CAISchedule scheduleDie(
 );
 
 //=============================================
+// @brief Death schedule
+//
+//=============================================
+ai_task_t taskListScheduleDieBlowback[] = 
+{
+	AITASK(AI_TASK_STOP_MOVING,					0),
+	AITASK(AI_TASK_SOUND_DIE,					0),
+	AITASK(AI_TASK_WAIT_DIE_LAND,				0),
+	AITASK(AI_TASK_DIE_LAND,					0),
+};
+
+const CAISchedule scheduleDieBlowback(
+	// Task list
+	taskListScheduleDieBlowback, 
+	// Number of tasks
+	PT_ARRAYSIZE(taskListScheduleDieBlowback),
+	// AI interrupt mask
+	CBitSet(AI_COND_BITSET_SIZE),
+	// Sound mask
+	AI_SOUND_NONE, 
+	// Name
+	"Blowback Death"
+);
+
+//=============================================
 // @brief Victory dance schedule
 //
 //=============================================
@@ -1333,8 +1360,8 @@ const CAISchedule scheduleTakeCoverFromBestSoundWithCower(
 //=============================================
 ai_task_t taskListScheduleTakeCoverFromEnemy[] = 
 {
+	AITASK(AI_TASK_SET_FAIL_SCHEDULE,			AI_SCHED_SMALL_FLINCH),
 	AITASK(AI_TASK_STOP_MOVING,					0),
-	AITASK(AI_TASK_WAIT,						0.2f),
 	AITASK(AI_TASK_FIND_COVER_FROM_ENEMY,		0),
 	AITASK(AI_TASK_RUN_PATH,					0),
 	AITASK(AI_TASK_WAIT_FOR_MOVEMENT,			0),
@@ -1844,7 +1871,8 @@ Uint32 interruptBitsScheduleRangeAttack1Long[] =
 	AI_COND_ENEMY_OCCLUDED,
 	AI_COND_HEAR_SOUND,
 	AI_COND_NO_AMMO_LOADED,
-	AI_COND_FRIENDLY_FIRE
+	AI_COND_FRIENDLY_FIRE,
+	AI_COND_LIGHT_DAMAGE
 };
 
 const CAISchedule scheduleRangeAttack1Long(
@@ -3152,9 +3180,13 @@ const CAISchedule* CBaseNPC::GetSchedule( void )
 	case NPC_STATE_ALERT:
 		{
 			if(CheckCondition(AI_COND_BLOCKING_PATH))
+			{
 				return GetScheduleByIndex(AI_SCHED_MOVE_OUT_OF_WAY);
+			}
 			else if(CheckCondition(AI_COND_ENEMY_DEAD) && FindActivity(ACT_VICTORY_DANCE) != NO_SEQUENCE_VALUE)
+			{
 				return GetScheduleByIndex(AI_SCHED_VICTORY_DANCE);
+			}
 			else if(CheckCondition(AI_COND_LIGHT_DAMAGE) || CheckCondition(AI_COND_HEAVY_DAMAGE))
 			{
 				Float coverYaw = SDL_fabs(GetYawDifference());
@@ -3164,9 +3196,13 @@ const CAISchedule* CBaseNPC::GetSchedule( void )
 					return GetScheduleByIndex(AI_SCHED_ALERT_SMALL_FLINCH);
 			}
 			else if(CheckCondition(AI_COND_HEAR_SOUND))
+			{
 				return GetScheduleByIndex(AI_SCHED_ALERT_FACE);
+			}
 			else
+			{
 				return GetScheduleByIndex(AI_SCHED_ALERT_STAND);
+			}
 		}
 		break;
 	case NPC_STATE_COMBAT:
@@ -3197,13 +3233,19 @@ const CAISchedule* CBaseNPC::GetSchedule( void )
 					return GetScheduleByIndex(AI_SCHED_STANDOFF);
 			}
 			else if(CheckCondition(AI_COND_NEW_ENEMY))
+			{
 				return GetScheduleByIndex(AI_SCHED_BECOME_ALERT);
+			}
 			else if(CheckCondition(AI_COND_LIGHT_DAMAGE) && !HasMemory(AI_MEMORY_FLINCHED))
+			{
 				return GetScheduleByIndex(AI_SCHED_SMALL_FLINCH);
+			}
 			else if(!CheckCondition(AI_COND_SEE_ENEMY))
 			{
 				if(!CheckCondition(AI_COND_ENEMY_OCCLUDED))
+				{
 					return GetScheduleByIndex(AI_SCHED_COMBAT_FACE);
+				}
 				else if(m_enemy->IsNPCDangerous())
 				{
 					Float fogEndDistance = CEnvFog::GetFogEndDistance();
@@ -3216,33 +3258,58 @@ const CAISchedule* CBaseNPC::GetSchedule( void )
 						return GetScheduleByIndex(AI_SCHED_COMBAT_FACE);
 				}
 				else if(!CheckCondition(AI_COND_ENEMY_NOT_FOUND))
+				{
 					return GetScheduleByIndex(AI_SCHED_CHASE_ENEMY);
+				}
 				else
+				{
 					return GetScheduleByIndex(AI_SCHED_FIND_ENEMIES);
+				}
 			}
 			else if(CheckCondition(AI_COND_CAN_RANGE_ATTACK1))
+			{
 				return GetScheduleByIndex(AI_SCHED_RANGE_ATTACK1);
+			}
 			else if(CheckCondition(AI_COND_CAN_RANGE_ATTACK2))
+			{
 				return GetScheduleByIndex(AI_SCHED_RANGE_ATTACK2);
+			}
 			else if(CheckCondition(AI_COND_CAN_MELEE_ATTACK1))
+			{
 				return GetScheduleByIndex(AI_SCHED_MELEE_ATTACK1);
+			}
 			else if(CheckCondition(AI_COND_CAN_MELEE_ATTACK2))
+			{
 				return GetScheduleByIndex(AI_SCHED_MELEE_ATTACK2);
+			}
 			else if(CheckCondition(AI_COND_CAN_SPECIAL_ATTACK1))
+			{
 				return GetScheduleByIndex(AI_SCHED_SPECIAL_ATTACK1);
+			}
 			else if(CheckCondition(AI_COND_CAN_SPECIAL_ATTACK2))
+			{
 				return GetScheduleByIndex(AI_SCHED_SPECIAL_ATTACK2);
+			}
 			else if(!CheckCondition(AI_COND_CAN_RANGE_ATTACK1) && !CheckCondition(AI_COND_CAN_RANGE_ATTACK2))
+			{
 				return GetScheduleByIndex(AI_SCHED_CHASE_ENEMY);
+			}
 			else if(!IsFacingIdealYaw())
+			{
 				return GetScheduleByIndex(AI_SCHED_COMBAT_FACE);
+			}
 			else
+			{
 				Util::EntityConDPrintf(m_pEdict, "No fitting combat schedule.\n");
+			}
 		}
 		break;
 	case NPC_STATE_DEAD:
 		{
-			return GetScheduleByIndex(AI_SCHED_DIE);
+			if(HasCapability(AI_CAP_BLOWBACK_ANIMS) && m_deathMode == DEATH_BLOWBACK)
+				return GetScheduleByIndex(AI_SCHED_DIE_BLOWBACK);
+			else
+				return GetScheduleByIndex(AI_SCHED_DIE);
 		}
 		break;
 	case NPC_STATE_SCRIPT:
@@ -3450,6 +3517,11 @@ const CAISchedule* CBaseNPC::GetScheduleByIndex( Int32 scheduleIndex )
 	case AI_SCHED_DIE:
 		{
 			return &scheduleDie;
+		}
+		break;
+	case AI_SCHED_DIE_BLOWBACK:
+		{
+			return &scheduleDieBlowback;
 		}
 		break;
 	case AI_SCHED_TAKE_COVER_FROM_ORIGIN:

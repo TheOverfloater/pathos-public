@@ -242,7 +242,7 @@ bool CL_Init( void )
 	CString referencefovvalue;
 	referencefovvalue << static_cast<Int32>(REFERENCE_FOV_VALUE);
 
-	g_pCvarDefaultFOV = Engine_CreateCVar(CVAR_FLOAT, FL_CV_CLIENT, DEFAULT_FOV_CVAR_NAME, defaultfovvalue.c_str(), "Default field of view value.");
+	g_pCvarDefaultFOV = Engine_CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), DEFAULT_FOV_CVAR_NAME, defaultfovvalue.c_str(), "Default field of view value.");
 	g_pCvarReferenceFOV = Engine_CreateCVar(CVAR_FLOAT, FL_CV_CLIENT, REFERENCE_FOV_CVAR_NAME, referencefovvalue.c_str(), "Reference field of view value.");
 	g_pCvarName = Engine_CreateCVar(CVAR_STRING, (FL_CV_CLIENT|FL_CV_SAVE), "name", "Chris Cornell", "Player's name.");
 	g_pCvarPredictiton = Engine_CreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "cl_predict", "1", "Toggles player prediction.");

@@ -1,0 +1,6 @@
+$texture
+{
+	$nomipmaps
+	$texture diffuse models/v_glock/mag_glock.dds
+	$texture normal models/v_glock/mag_glock_normal.dds
+}

@@ -222,12 +222,77 @@ void CAnimatingEntity::PrecacheSequenceSounds( Int32 modelIndex, Int32 sequenceI
 	for(Int32 i = 0; i < pseqdesc->numevents; i++)
 	{
 		const mstudioevent_t* pevent = pseqdesc->getEvent(pstudiohdr, i);
-		if(pevent->event != CBaseNPC::NPC_AE_SOUND 
-			&& pevent->event != CBaseNPC::NPC_AE_SENTENCE
-			&& pevent->event != EVENT_CLIENTDLL_PLAYSOUND_A1)
-			continue;
+		switch(pevent->event)
+		{
+		case CBaseNPC::NPC_AE_SOUND:
+		case CBaseNPC::NPC_AE_SENTENCE:
+		case EVENT_CLIENTDLL_PLAYSOUND_A1:
+			gd_engfuncs.pfnPrecacheSound(pevent->options);
+			break;
+		case EVENT_CLIENTDLL_MUZZLEFLASH_2A_A1:
+		case EVENT_CLIENTDLL_MUZZLEFLASH_1A_A1:
+		case EVENT_CLIENTDLL_MUZZLEFLASH_1A_A2:
+			{
+				CString filepath(MUZZLEFLASH_PARTICLE_SCRIPT_BASENAME);
+				Int32 tokenpos = filepath.find(0, "%s");
+				if(tokenpos == CString::CSTRING_NO_POSITION)
+				{
+					gd_engfuncs.pfnCon_Printf("%s - String token not found in string '%s'.\n", __FUNCTION__, MUZZLEFLASH_PARTICLE_SCRIPT_BASENAME);
+					continue;
+				}
 
-		gd_engfuncs.pfnPrecacheSound(pevent->options);
+				CString replacestring(filepath);
+				replacestring.erase(tokenpos, 2);
+				replacestring.insert(tokenpos, pevent->options);
+
+				gd_engfuncs.pfnPrecacheParticleScript(replacestring.c_str(), PART_SCRIPT_CLUSTER);
+			}
+			break;
+		case EVENT_CLIENTDLL_CREATE_PARTICLE_SYSTEM_A1:
+		case EVENT_CLIENTDLL_CREATE_PARTICLE_SYSTEM_A2:
+		case EVENT_CLIENTDLL_CREATE_PARTICLE_SYSTEM_A3:
+		case EVENT_CLIENTDLL_CREATE_PARTICLE_SYSTEM_A4:
+			gd_engfuncs.pfnPrecacheParticleScript(pevent->options, PART_SCRIPT_SYSTEM);
+			break;
+		case EVENT_CLIENTDLL_CREATE_PARTICLE_CLUSTER_A1:
+		case EVENT_CLIENTDLL_CREATE_PARTICLE_CLUSTER_A2:
+		case EVENT_CLIENTDLL_CREATE_PARTICLE_CLUSTER_A3:
+		case EVENT_CLIENTDLL_CREATE_PARTICLE_CLUSTER_A4:
+			gd_engfuncs.pfnPrecacheParticleScript(pevent->options, PART_SCRIPT_CLUSTER);
+			break;
+		case EVENT_CLIENTDLL_MUZZLEFLASH_2A_USER:
+			{
+				const Char* pstrString = pevent->options;
+				const Char* pstrSeparator = qstrstr(pstrString, ";");
+				if (!pstrSeparator)
+				{
+					gd_engfuncs.pfnCon_Printf("%s - Event option string '%s' is missing ';' separator in sequence '%s' of model '%s'.\n", __FUNCTION__, pstrString, pseqdesc->label, pmodel->name.c_str());
+					continue;
+				}
+
+				CString strToken(pstrSeparator + 1);
+				if(strToken.empty())
+				{
+					gd_engfuncs.pfnCon_Printf("%s - Event option string '%s' is missing option after ';' separator in sequence '%s' of model '%s'.\n", __FUNCTION__, pstrString, pseqdesc->label, pmodel->name.c_str());
+					continue;
+				}
+
+				CString filepath(MUZZLEFLASH_PARTICLE_SCRIPT_BASENAME);
+				Int32 tokenpos = filepath.find(0, "%s");
+				if(tokenpos == CString::CSTRING_NO_POSITION)
+				{
+					gd_engfuncs.pfnCon_Printf("%s - String token not found in string '%s'.\n", __FUNCTION__, MUZZLEFLASH_PARTICLE_SCRIPT_BASENAME);
+					continue;
+				}
+
+				CString replacestring(filepath);
+				replacestring.erase(tokenpos, 2);
+				replacestring.insert(tokenpos, strToken.c_str());
+
+				gd_engfuncs.pfnPrecacheParticleScript(replacestring.c_str(), PART_SCRIPT_CLUSTER);
+			}
+			break;
+		}
 	}
 }
 

@@ -163,7 +163,7 @@ void CEnvExplosion::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usem
 	if(!HasSpawnFlag(FL_NO_DAMAGE))
 	{
 		CBaseEntity* pInflictor = m_inflictor ? m_inflictor : this;
-		RadiusDamage(explosionPosition, pInflictor, m_attacker, m_dmgAmount, m_dmgRadius, CLASS_UNDEFINED, DMG_EXPLOSION);
+		RadiusDamage(explosionPosition, pInflictor, m_attacker, m_dmgAmount, m_dmgRadius, CLASS_UNDEFINED, (DMG_EXPLOSION|DMG_BLOWBACK));
 	}
 
 	// Spawn smoke if set

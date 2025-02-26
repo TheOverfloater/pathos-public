@@ -183,6 +183,11 @@ $sequence "diegutshot" "../shared/diegutshot" X fps 27 ACT_DIE_GUTSHOT 1 { event
 $sequence "dieforward" "../shared/dieforward" X fps 33 ACT_DIEFORWARD 1 { event 2001 8 } { event 11 5 }
 $sequence "diebackward" "../shared/diebackward" X fps 35 ACT_DIEBACKWARD 1 { event 2001 54 } { event 11 5 }
 $sequence "diecrump" "../shared/diecrump" X fps 40 ACT_DIESIMPLE 2 { event 2001 33 } { event 11 5 }
+$sequence "blowback_fly" "../shared/blowback_fly" fps 70 ACT_BLOWBACK_FLY 1
+$sequence "blowback_land_flat1" "../shared/blowback_land_flat1" fps 70 ACT_BLOWBACK_LAND_FLAT 50 { event 2001 30 } { event 11 51 }
+$sequence "blowback_land_flat_back1" "../shared/blowback_land_flat_back1" fps 70 ACT_BLOWBACK_LAND_FLAT_BACK 50 { event 2001 18 } { event 11 55 }
+$sequence "blowback_land_seated1" "../shared/blowback_land_seated1" fps 70 ACT_BLOWBACK_LAND_SEATED 50 { event 2001 4 } { event 2001 30 } { event 11 55 }
+$sequence "blowback_land_stomach1" "../shared/blowback_land_stomach1" fps 70 ACT_BLOWBACK_LAND_STOMACH 50 { event 2001 16 } { event 11 20 }
 $sequence "lying_on_back" "lying_on_back" fps 1 
 $sequence "lying_on_side" "lying_on_side" fps 1 
 $sequence "lying_on_stomach" "lying_on_stomach" fps 1 

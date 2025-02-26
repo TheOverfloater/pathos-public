@@ -1,0 +1,32 @@
+$particlescript
+{
+	$shape box
+	$system_size 8.000000
+	$min_velocity 300.000000
+	$max_velocity 400.000000
+	$max_offset 130.000000
+	$fade_in_time 0.100000
+	$fade_out_delay 1.200000
+	$flags random_direction
+	$lifetime 2.000000
+	$lifetime_variation 0.500000
+	$primary_color 150 0 0
+	$scale 6.000000
+	$scale_variation 3.000000
+	$max_particles 8
+	$particle_frequency 16.000000
+	$lighting mix_primary_color
+	$particles_on_spawn 8
+	$collision bounce
+	$gravity 1.000000
+	$rendermode alphablend
+	$alpha 0.800000
+	$texture blood_core
+	$render_flags nocull
+	$rotate_z_speed 40.000000
+	$rotate_z_variation 5.000000
+	$render_flags nocull
+	$create engine_gib_tracers.txt
+	$tracer_distance 6.000000
+	$impact_velocity_dampening 0.600000
+}

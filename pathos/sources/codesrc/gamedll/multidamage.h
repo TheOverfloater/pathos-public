@@ -10,6 +10,8 @@ All Rights Reserved.
 #ifndef MULTIDAMAGE_H
 #define MULTIDAMAGE_H
 
+#include "weapons_shared.h"
+
 class CBaseEntity;
 
 /*
@@ -27,13 +29,15 @@ public:
 			pentity(nullptr),
 			dmgamount(0),
 			dmgtype(0),
-			hitgroup(0)
+			hitgroup(0),
+			hitcount(0)
 			{}
 
 		CBaseEntity* pentity;
 		Float dmgamount;
 		Int32 dmgtype;
 		Int32 hitgroup;
+		Uint32 hitcount;
 	};
 
 public:
@@ -42,7 +46,7 @@ public:
 
 public:
 	void Clear( void );
-	void ApplyDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Int32 hitgroup = HITGROUP_GENERIC );
+	void ApplyDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Int32 hitgroup = HITGROUP_GENERIC, Int32 bullettype = BULLET_NONE, Uint32 shotcount = 0 );
 	void AddDamage( CBaseEntity* pentity, Float damage, Int32 dmgtype );
 	void SetDamageFlags( Int32 dmgtype );
 

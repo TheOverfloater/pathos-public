@@ -772,38 +772,6 @@ void CDynamicLightManager::ClearShadowMaps( void )
 //====================================
 //
 //====================================
-void CDynamicLightManager::SetVIS( void )
-{
-	if( g_pCvarShadows->GetValue() < 1 )
-		return;
-	
-	// Mark leaves
-	R_MarkLeaves(rns.view.params.v_origin);
-
-	m_dlightsList.begin();
-	while(!m_dlightsList.end())
-	{
-		cl_dlight_t *plight = m_dlightsList.get();
-
-		if(!DL_CanShadow(plight) || plight->key == CL_GetLocalPlayer()->entindex 
-			|| plight->isstatic && plight->psceneinfo->drawframe != rns.framecount_main)
-		{
-			m_dlightsList.next();
-			continue;
-		}
-
-		// Make sure the spotlight sees it's polygons
-		const mleaf_t *pleaf = Mod_PointInLeaf(plight->origin, *ens.pworld);
-		R_ForceMarkLeaves(pleaf, rns.view.pviewleaf->visframe);
-
-		// Advance
-		m_dlightsList.next();
-	}
-}
-
-//====================================
-//
-//====================================
 void CDynamicLightManager::UpdateShadowingLights( void )
 {
 	// Loop through dynlights
@@ -928,9 +896,6 @@ bool CDynamicLightManager::DrawPasses( void )
 	// Update shadowing lights
 	UpdateShadowingLights();
 
-	// And set vis too
-	SetVIS();
-
 	// Holds our main view frustum params
 	CFrustum mainFrustum;
 	R_SetFrustum(mainFrustum, rns.view.params.v_origin, rns.view.params.v_angles, rns.view.fov, rns.view.viewsize_x, rns.view.viewsize_y, true);
@@ -1030,6 +995,9 @@ bool CDynamicLightManager::DrawPasses( void )
 //====================================
 bool CDynamicLightManager::DrawShadowMapPasses( cl_dlight_t *dl, cl_entity_t** pentityarray, Int32 numentities, bool isfinal)
 {
+	// Set VIS for this light
+	R_MarkLeaves(dl->origin);
+
 	if(dl->cone_size)
 	{
 		glViewport(GL_ZERO, GL_ZERO, GetShadowmapSize(), GetShadowmapSize());

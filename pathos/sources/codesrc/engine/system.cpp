@@ -1061,6 +1061,8 @@ void Sys_Frame( Double frametime )
 //=============================================
 void Sys_PollEvents( void )
 {
+	SDL_PumpEvents();
+
 	SDL_Event mainEvent;
 	while(SDL_PollEvent(&mainEvent) != 0)
 	{

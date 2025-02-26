@@ -1,6 +1,0 @@
-$clusterscript
-{
-	$script engine_muzzleflash2_cannon.txt
-	$script engine_muzzleflash3_cannon.txt
-	$script engine_muzzleflash_smoke_cannon.txt
-}

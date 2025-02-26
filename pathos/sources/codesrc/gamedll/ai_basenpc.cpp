@@ -205,6 +205,7 @@ CBaseNPC::CBaseNPC( edict_t* pedict ):
 	m_damageBits(0),
 	m_lastDamageAmount(0),
 	m_lastHeavyFlinchTime(0),
+	m_nextFlinchTime(0),
 	m_enemyBodyTarget(BODYTARGET_CENTER),
 	m_fieldOfView(0),
 	m_waitFinishedTime(0),
@@ -231,7 +232,9 @@ CBaseNPC::CBaseNPC( edict_t* pedict ):
 	m_lastClearNode(0),
 	m_lastEnemySightTime(0),
 	m_deathDamageBits(0),
+	m_deathDamageAmount(0),
 	m_deathExplodeTime(0),
+	m_deathFlags(NPC_DF_NONE),
 	m_deathMode(DEATH_NORMAL),
 	m_lastDangerDistance(0),
 	m_dangerExposure(0),
@@ -337,6 +340,7 @@ void CBaseNPC::DeclareSaveFields( void )
 
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_lastEnemySightTime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_deathMode, EFIELD_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_deathFlags, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_dontDropWeapons, EFIELD_BOOLEAN));
 	DeclareSaveField(DEFINE_DATA_FIELD(CBaseNPC, m_talkTime, EFIELD_TIME));
 }
@@ -1174,14 +1178,17 @@ void CBaseNPC::BecomeDead( bool startedDead )
 	m_pState->health = m_pState->maxhealth * 0.5f;
 	m_pState->maxhealth = 5;
 
-	m_pState->movetype = MOVETYPE_TOSS;
 	m_pState->solid = SOLID_SLIDEBOX;
 	m_pState->flags |= FL_DEAD;
-	m_pState->forcehull = HULL_POINT;
+	m_pState->groundent = NO_ENTITY_INDEX;
 
 	// Reset these so the corpse drops
-	m_pState->flags &= ~FL_ONGROUND;
-	m_pState->groundent = NO_ENTITY_INDEX;
+	bool wasOnground = false;
+	if(m_pState->flags & FL_ONGROUND)
+	{
+		m_pState->flags &= ~FL_ONGROUND;
+		wasOnground = true;
+	}
 
 	if(!startedDead)
 	{
@@ -1193,33 +1200,50 @@ void CBaseNPC::BecomeDead( bool startedDead )
 	UpdateExpressions();
 
 	// Bullets, melee, crush and slash create decals
-	if(m_damageBits & (DMG_BULLET|DMG_MELEE|DMG_AXE|DMG_SLASH|DMG_CRUSH))
+	if(m_deathMode == DEATH_BLOWBACK && HasCapability(AI_CAP_BLOWBACK_ANIMS))
 	{
-		Vector traceStart = m_pState->origin + Vector(0, 0, 8);
-		Vector traceEnd = m_pState->origin - Vector(0, 0, 32);
+		// Set animation for blowback and death flag
+		m_idealActivity = ACT_BLOWBACK_FLY;
 
-		trace_t tr;
-		Util::TraceLine(traceStart, traceEnd, true, false, m_pEdict, tr);
-		if(!tr.noHit())
-		{
-			CString decalName;
-			switch(Common::RandomLong(0, 1))
-			{
-			case 0: 
-				decalName = "bloodbigsplat";
-				break;
-			case 1: 
-				decalName = "bloodbigsplat2";
-				break;
-			}
+		// Remove onground flag and disable anim blending
+		m_pState->effects |= EF_NOLERP;
+		m_pState->friction = 2.0;
+		// use this, as TOSS cancels velocity when hitting ground
+		m_pState->movetype = MOVETYPE_STEP; 
 
-			// Create on client
-			Int32 decalFlags = (FL_DECAL_SPECIFIC_TEXTURE);
-			Util::CreateGenericDecal(tr.endpos, &tr.plane.normal, decalName.c_str(), decalFlags, NO_ENTITY_INDEX, 0, 0, 20);
+		// Remove us off the ground a little bit
+		Vector newOrigin = m_pState->origin + Vector(0, 0, 4);
+		SetOrigin(newOrigin);
 
-			// Add to save-restore
-			gd_engfuncs.pfnAddSavedDecal(tr.endpos, tr.plane.normal, tr.hitentity, decalName.c_str(), decalFlags);
-		}
+		Float upDp = -Math::DotProduct(Vector(0, 0, 1), m_damageDirection);
+		upDp = clamp(upDp, 0, 1);
+		Float blastVelocity = upDp * Common::RandomFloat(250, 350) + (1.0 - upDp) * Common::RandomFloat(1250, 1450);
+
+		// Set angles
+		m_pState->angles = Math::VectorToAngles(m_damageDirection);
+		m_pState->idealyaw = m_pState->angles[YAW];
+		m_updateYaw = false;
+
+		// Set velocity to make us fly off
+		const Float blowbackReferenceDmg = 100;
+		Float blastDmgVelocity = blastVelocity * (m_deathDamageAmount / blowbackReferenceDmg);
+		if(blastDmgVelocity > 950)
+			blastDmgVelocity = 950;
+
+		m_pState->velocity -= m_damageDirection * blastDmgVelocity + Vector(0, 0, 1) * blastDmgVelocity * 0.25;
+
+		// So we know we're flying upwards
+		if(!wasOnground || upDp > 0.5)
+			m_deathFlags |= NPC_DF_BLOWBACK_FLYING;
+
+		SetTouch(&CBaseNPC::CorpseTouch);
+	}
+	else
+	{
+		// Set hull point
+		m_pState->forcehull = HULL_POINT;
+		m_pState->movetype = MOVETYPE_TOSS;
+		m_pState->friction = 1.0;
 	}
 }
 
@@ -1229,7 +1253,9 @@ void CBaseNPC::BecomeDead( bool startedDead )
 //=============================================
 bool CBaseNPC::ShouldGibNPC( gibbing_t gibFlag ) const
 {
-	if(gibFlag == GIB_NORMAL && m_pState->health < NPC_GIB_HEALTH_VALUE || gibFlag == GIB_ALWAYS)
+	if(gibFlag == GIB_NORMAL 
+		&& m_pState->health < NPC_GIB_HEALTH_VALUE 
+		|| gibFlag == GIB_ALWAYS)
 		return true;
 	else
 		return false;
@@ -1258,12 +1284,14 @@ void CBaseNPC::CallGibNPC( void )
 //=============================================
 void CBaseNPC::Killed( CBaseEntity* pAttacker, gibbing_t gibbing, deathmode_t deathMode )
 {
+	// Check if this was already called
 	if(HasMemory(AI_MEMORY_KILLED))
 	{
 		// Gib if we can
-		if(ShouldGibNPC(gibbing))
+		if(m_deathFlags & NPC_DF_GIB_CORPSE)
 			CallGibNPC();
 
+		// Don't do anything else
 		return;
 	}
 
@@ -1293,7 +1321,7 @@ void CBaseNPC::Killed( CBaseEntity* pAttacker, gibbing_t gibbing, deathmode_t de
 	// Remember this
 	m_deathDamageBits = m_damageBits;
 
-	if(ShouldGibNPC(gibbing))
+	if(m_deathFlags & NPC_DF_GIB_CORPSE)
 	{
 		CallGibNPC();
 		return;
@@ -1312,11 +1340,11 @@ void CBaseNPC::Killed( CBaseEntity* pAttacker, gibbing_t gibbing, deathmode_t de
 		m_enemy->SetNPCAwareness(0, this, 0, false);
 
 	// Explode in a few seconds
-	if(deathMode == DEATH_NORMAL
+	if((deathMode == DEATH_NORMAL || deathMode == DEATH_BLOWBACK)
 		&& (m_damageBits & DMG_UNUSED2) 
 		&& (m_damageBits & DMG_UNUSED3))
 	{
-		m_deathMode = DEATH_EXPLODE;
+		m_deathFlags |= NPC_DF_EXPLODE;
 		m_deathExplodeTime = g_pGameVars->time + Common::RandomFloat(1, 3);
 	}
 }
@@ -1368,35 +1396,6 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 		Util::EmitEntitySound(pSoundEntity, soundName.c_str(), SND_CHAN_BODY);
 	}
 
-	// If not alive, run the function for corpses
-	if(!IsAlive())
-		return TakeDamageDead(pInflictor, pAttacker, amount, damageFlags);
-
-	// Get distance to enemy
-	Float shooterDistance = (pInflictor->GetCenter() - GetCenter()).Length();
-
-	// If insta-decapitated, then change amount to our full health
-	Float _dmgAmount = amount;
-	Int32 hitgroup = gMultiDamage.GetHitGroupForEntity(this);
-	if(shooterDistance < NPC_DECAP_MAX_DISTANCE && hitgroup == HITGROUP_HEAD 
-		&& (damageFlags & DMG_INSTANTDECAP) && CanBeInstantlyDecapitated())
-		_dmgAmount = m_pState->health;
-
-	m_damageBits |= damageFlags;
-
-	// Clear blowback dmg flag if not present in this damage call
-	if(!(damageFlags & DMG_BLOWBACK))
-		m_damageBits &= ~DMG_BLOWBACK;
-
-	if(damageFlags & DMG_UNUSED2)
-		AddClearDamage(DMG_UNUSED2, 1.0);
-
-	if(damageFlags & DMG_UNUSED3)
-		AddClearDamage(DMG_UNUSED3, 1.0);
-
-	if(damageFlags & DMG_EXPLOSION)
-		AddClearDamage(DMG_EXPLOSION, 1.0);
-
 	// Grab the direction from the inflictor
 	if(pInflictor)
 	{
@@ -1410,6 +1409,41 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 		// Set to clear
 		m_damageDirection.Clear();
 	}
+
+	// Remember dmg flags and amount
+	m_damageBits |= damageFlags;
+	m_deathDamageAmount = amount;
+
+	// If not alive, run the function for corpses
+	if(!IsAlive())
+		return TakeDamageDead(pInflictor, pAttacker, amount, damageFlags);
+
+	// Get distance to enemy
+	Float shooterDistance = (pInflictor->GetCenter() - GetCenter()).Length();
+
+	// If insta-decapitated, then change amount to our full health
+	Float _dmgAmount = amount;
+	bool wasInstantDecpitated = false;
+	Int32 hitgroup = gMultiDamage.GetHitGroupForEntity(this);
+	if(shooterDistance < NPC_DECAP_MAX_DISTANCE && hitgroup == HITGROUP_HEAD 
+		&& (damageFlags & DMG_INSTANTDECAP) && CanBeInstantlyDecapitated())
+	{
+		wasInstantDecpitated = true;
+		_dmgAmount = m_pState->health;
+	}
+
+	// Clear blowback dmg flag if not present in this damage call
+	if(!(damageFlags & DMG_BLOWBACK))
+		m_damageBits &= ~DMG_BLOWBACK;
+
+	if(damageFlags & DMG_UNUSED2)
+		AddClearDamage(DMG_UNUSED2, 1.0);
+
+	if(damageFlags & DMG_UNUSED3)
+		AddClearDamage(DMG_UNUSED3, 1.0);
+
+	if(damageFlags & DMG_EXPLOSION)
+		AddClearDamage(DMG_EXPLOSION, 1.0);
 
 	// Deal the damage to the NPC
 	Float prevHealth = m_pState->health;
@@ -1426,15 +1460,12 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 	}
 
 	// If we're dead, then manage death
-	if(m_pState->health <= 0)
+	if(m_pState->health <= 0 || wasInstantDecpitated)
 	{
-		// True if the NPC was decapitated
-		bool wasDecapitated = false;
-
 		// If hit by a gibbing or insta-decap bullet in the head/helmet, then decapitate the NPC
-		if((!(damageFlags & DMG_BUCKSHOT) || shooterDistance < NPC_DECAP_MAX_DISTANCE) 
-			&& (hitgroup == HITGROUP_HEAD || hitgroup == HITGROUP_HELMET) 
-			&& (damageFlags & (DMG_BULLETGIB|DMG_INSTANTDECAP|DMG_AXE)))
+		bool wasDecapitated = false;
+		if(wasInstantDecpitated || (!(damageFlags & DMG_BUCKSHOT) || shooterDistance < NPC_DECAP_MAX_DISTANCE) 
+			&& (hitgroup == HITGROUP_HEAD || hitgroup == HITGROUP_HELMET) && (damageFlags & (DMG_BULLETGIB|DMG_AXE)))
 		{
 			Decapitate((damageFlags & DMG_AXE) ? true : false);
 			wasDecapitated = true;
@@ -1443,18 +1474,32 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 		// Gibbing and death mode depend on damage types
 		gibbing_t gibFlag = GIB_NORMAL;
 		deathmode_t deathMode = DEATH_NORMAL;
-
-		if(shooterDistance < NPC_BULLETGIB_MAX_DISTANCE 
-			&& ShouldDamageGibNPC(_dmgAmount, prevHealth, damageFlags, wasDecapitated))
-			gibFlag = GIB_ALWAYS;
-		else if((damageFlags & DMG_NEVERGIB) || wasDecapitated)
+		
+		// Get this separately
+		bool shouldGib = shooterDistance < NPC_BULLETGIB_MAX_DISTANCE && ShouldDamageGibNPC(_dmgAmount, prevHealth, damageFlags, wasDecapitated);
+		if(ShouldApplyDeathBlowback(shouldGib, damageFlags, hitgroup) && HasCapability(AI_CAP_BLOWBACK_ANIMS))
+		{
+			// Never gib when blowing NPC back
+			deathMode = DEATH_BLOWBACK;
 			gibFlag = GIB_NEVER;
+		}
 		else
-			gibFlag = GIB_NORMAL;
+		{
+			if(shouldGib)
+				gibFlag = GIB_ALWAYS;
+			else if((damageFlags & DMG_NEVERGIB) || wasDecapitated)
+				gibFlag = GIB_NEVER;
+			else
+				gibFlag = GIB_NORMAL;
 
-		// If we got decapitated, then set the death mode
-		if(wasDecapitated && gibFlag != GIB_ALWAYS)
-			deathMode = DEATH_DECAPITATED;
+			// If we got decapitated, then set the death mode
+			if(wasDecapitated && gibFlag != GIB_ALWAYS)
+				deathMode = DEATH_DECAPITATED;
+		}
+
+		// Check the big flag set against our conditions
+		if(gibFlag != GIB_NEVER && ShouldGibNPC(gibFlag))
+			m_deathFlags |= NPC_DF_GIB_CORPSE;
 
 		// Kill the NPC
 		Killed(pAttacker, gibFlag, deathMode);
@@ -1466,20 +1511,22 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 		EmitPainSound();
 
 		// If damaged by weapon that'll cause blowback, always flinch
-		if((m_damageBits & DMG_BLOWBACK) && (g_pGameVars->time - m_lastHeavyFlinchTime) > 0.2 )
+		if(HasCapability(AI_CAP_HEAVY_FLINCH_ANIMS) && (amount >= NPC_LIGHT_DAMAGE_TRESHOLD)
+			&& (m_damageBits & DMG_BLOWBACK) && (g_pGameVars->time - m_lastHeavyFlinchTime) > 0.2)
 		{
 			// Reset this so the NPC flinches for each shot
 			m_currentActivity = ACT_RESET;
 
 			// Set velocity and angles
 			const Float blowbackReferenceDmg = 100;
-			m_pState->velocity -= m_damageDirection * Common::RandomFloat(105, 125) * (amount / blowbackReferenceDmg);
+			m_pState->velocity -= m_damageDirection * Common::RandomFloat(105, 125) * (_dmgAmount / blowbackReferenceDmg) * GetBlowbackDmgAccelerationMultiplier();
 			m_pState->angles[YAW] = Util::VectorToYaw(m_damageDirection);
 			m_pState->idealyaw = m_pState->angles[YAW];
 			m_updateYaw = false;
 
 			// Set timer
 			m_lastHeavyFlinchTime = g_pGameVars->time;
+			m_nextFlinchTime = g_pGameVars->time + Common::RandomFloat(2, 4);
 
 			ClearSchedule();
 			ChangeSchedule(GetScheduleByIndex(AI_SCHED_SMALL_FLINCH));
@@ -1521,6 +1568,15 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 }
 
 //=============================================
+// @brief Tells if NPC should be blown back by death inducing damage
+//
+//=============================================
+bool CBaseNPC::ShouldApplyDeathBlowback( bool shouldGib, Int32 damageFlags, Int32 hitgroup )
+{
+	return  ((damageFlags & DMG_BLOWBACK) && hitgroup != HITGROUP_HEAD && !shouldGib) ? true : false;
+}
+
+//=============================================
 // @brief Tells if the NPC should be gibbed
 //
 //=============================================
@@ -1530,7 +1586,7 @@ bool CBaseNPC::ShouldDamageGibNPC( Float damageAmount, Float prevHealth, Int32 d
 	// and we're at a minimum health, or at a one out of three random chance. Also never gib 
 	// if we already got decapitated
 	if(((dmgFlags & DMG_BULLETGIB) && damageAmount >= NPC_BULLETGIB_DMG_TRESHOLD 
-		&& (prevHealth <= NPC_BULLETGIB_MIN_HEALTH || Common::RandomLong(0, 2) == 1) 
+		&& (prevHealth <= NPC_BULLETGIB_MIN_HEALTH || Common::RandomLong(0, 4) == 1) 
 		&& !wasDecapitated || (dmgFlags & DMG_ALWAYSGIB)) && !(dmgFlags & DMG_NEVERGIB))
 		return true;
 	else
@@ -1564,6 +1620,30 @@ bool CBaseNPC::TakeDamageDead( CBaseEntity* pInflictor, CBaseEntity* pAttacker, 
 		}
 
 		m_pState->health -= amount * 0.1f;
+	}
+
+	// If we got killed with a blowback weapon, then apply further blowback
+	if(m_deathMode == DEATH_BLOWBACK 
+		&& HasCapability(AI_CAP_BLOWBACK_ANIMS) 
+		&& m_pState->velocity.Length() > 0)
+	{
+		Float upDp = -Math::DotProduct(Vector(0, 0, 1), m_damageDirection);
+		upDp = clamp(upDp, 0, 1);
+		Float blastVelocity = upDp * Common::RandomFloat(250, 350) + (1.0 - upDp) * Common::RandomFloat(1250, 1450);
+
+		// Set angles
+		m_pState->flags &= FL_ONGROUND;
+		m_pState->angles = Math::VectorToAngles(m_damageDirection);
+		m_pState->idealyaw = m_pState->angles[YAW];
+		m_updateYaw = false;
+
+		// Set velocity to make us fly off
+		const Float blowbackReferenceDmg = 100;
+		Float blastDmgVelocity = blastVelocity * (m_deathDamageAmount / blowbackReferenceDmg);
+		if(blastDmgVelocity > 950)
+			blastDmgVelocity = 950;
+
+		m_pState->velocity -= m_damageDirection * blastDmgVelocity + Vector(0, 0, 1) * blastDmgVelocity * 0.25;
 	}
 
 	return true;
@@ -1688,7 +1768,7 @@ void CBaseNPC::TraceAttack( CBaseEntity* pAttacker, Float damage, const Vector& 
 		}
 
 		m_lastHitGroup = tr.hitgroup;
-		if(_dmgAmount >= 1.0)
+		if(_dmgAmount >= NPC_LIGHT_DAMAGE_TRESHOLD)
 			SpawnBloodDecals(damage, direction, tr, damageFlags);
 
 		if(tr.hitgroup == HITGROUP_HEAD)
@@ -1707,7 +1787,7 @@ void CBaseNPC::TraceAttack( CBaseEntity* pAttacker, Float damage, const Vector& 
 		// Calculate final damage
 		_dmgAmount *= GetHitgroupDmgMultiplier(tr.hitgroup);
 
-		if(!(damageFlags & DMG_MELEE) && _dmgAmount >= 1.0)
+		if(!(damageFlags & DMG_MELEE) && _dmgAmount >= NPC_LIGHT_DAMAGE_TRESHOLD)
 			Util::SpawnBloodParticles(tr, GetBloodColor(), false);
 
 		gMultiDamage.AddDamage(this, _dmgAmount, damageFlags);
@@ -1780,34 +1860,65 @@ void CBaseNPC::NPCInitThink( void )
 //=============================================
 void CBaseNPC::StartNPC( void )
 {
-	// See if range attacks exists as animations
-	if(CAnimatingEntity::FindActivity(ACT_RANGE_ATTACK1) != NO_SEQUENCE_VALUE)
-		SetCapability(AI_CAP_RANGE_ATTACK1);
+	if(m_pState->modelindex)
+	{
+		// See if range attacks exists as animations
+		if(CAnimatingEntity::FindActivity(ACT_RANGE_ATTACK1) != NO_SEQUENCE_VALUE)
+			SetCapability(AI_CAP_RANGE_ATTACK1);
 
-	if(CAnimatingEntity::FindActivity(ACT_RANGE_ATTACK2) != NO_SEQUENCE_VALUE)
-		SetCapability(AI_CAP_RANGE_ATTACK2);
+		if(CAnimatingEntity::FindActivity(ACT_RANGE_ATTACK2) != NO_SEQUENCE_VALUE)
+			SetCapability(AI_CAP_RANGE_ATTACK2);
 
-	// See if range attacks exists as animations
-	if(CAnimatingEntity::FindActivity(ACT_MELEE_ATTACK1) != NO_SEQUENCE_VALUE)
-		SetCapability(AI_CAP_MELEE_ATTACK1);
+		// See if range attacks exists as animations
+		if(CAnimatingEntity::FindActivity(ACT_MELEE_ATTACK1) != NO_SEQUENCE_VALUE)
+			SetCapability(AI_CAP_MELEE_ATTACK1);
 
-	if(CAnimatingEntity::FindActivity(ACT_MELEE_ATTACK2) != NO_SEQUENCE_VALUE)
-		SetCapability(AI_CAP_MELEE_ATTACK2);
+		if(CAnimatingEntity::FindActivity(ACT_MELEE_ATTACK2) != NO_SEQUENCE_VALUE)
+			SetCapability(AI_CAP_MELEE_ATTACK2);
 
-	// See if range attacks exists as animations
-	if(CAnimatingEntity::FindActivity(ACT_SPECIAL_ATTACK1) != NO_SEQUENCE_VALUE)
-		SetCapability(AI_CAP_SPECIAL_ATTACK1);
+		// See if range attacks exists as animations
+		if(CAnimatingEntity::FindActivity(ACT_SPECIAL_ATTACK1) != NO_SEQUENCE_VALUE)
+			SetCapability(AI_CAP_SPECIAL_ATTACK1);
 
-	if(CAnimatingEntity::FindActivity(ACT_SPECIAL_ATTACK2) != NO_SEQUENCE_VALUE)
-		SetCapability(AI_CAP_SPECIAL_ATTACK2);
+		if(CAnimatingEntity::FindActivity(ACT_SPECIAL_ATTACK2) != NO_SEQUENCE_VALUE)
+			SetCapability(AI_CAP_SPECIAL_ATTACK2);
 
-	// Check for medkit pickups
-	if(CAnimatingEntity::FindActivity(ACT_USE_MEDKIT) != NO_SEQUENCE_VALUE)
-		SetCapability(AI_CAP_USE_MEDKITS);
+		// Check for medkit pickups
+		if(CAnimatingEntity::FindActivity(ACT_USE_MEDKIT) != NO_SEQUENCE_VALUE)
+			SetCapability(AI_CAP_USE_MEDKITS);
 
-	// Check for flex support
-	if(GetModelFlags() & STUDIO_MF_HAS_FLEXES)
-		SetCapability(AI_CAP_EXPRESSIONS);
+		// Check for blowback anims
+		if(CAnimatingEntity::FindActivity(ACT_BLOWBACK_FLY) != NO_SEQUENCE_VALUE
+			&& CAnimatingEntity::FindActivity(ACT_BLOWBACK_LAND_FLAT) != NO_SEQUENCE_VALUE
+			&& CAnimatingEntity::FindActivity(ACT_BLOWBACK_LAND_FLAT_BACK) != NO_SEQUENCE_VALUE
+			&& CAnimatingEntity::FindActivity(ACT_BLOWBACK_LAND_SEATED) != NO_SEQUENCE_VALUE
+			&& CAnimatingEntity::FindActivity(ACT_BLOWBACK_LAND_STOMACH) != NO_SEQUENCE_VALUE)
+		{
+			// We can use blowback crap
+			SetCapability(AI_CAP_BLOWBACK_ANIMS);
+		}
+		else
+		{
+			// Alert developer
+			gd_engfuncs.pfnCon_DPrintf("[flags=onlyonce_game]NPC with model '%s' missing blowback animation set.\n", GetModelName());
+		}
+
+		// Check for heavy flinch anims
+		if(CAnimatingEntity::FindActivity(ACT_FLINCH_HEAVY) != NO_SEQUENCE_VALUE)
+		{
+			// Mark as having heavy flinch anims
+			SetCapability(AI_CAP_HEAVY_FLINCH_ANIMS);
+		}
+		else
+		{
+			// Alert developer
+			gd_engfuncs.pfnCon_DPrintf("[flags=onlyonce_game]NPC with model '%s' missing heavy flinch animation set.\n", GetModelName());
+		}
+
+		// Check for flex support
+		if(GetModelFlags() & STUDIO_MF_HAS_FLEXES)
+			SetCapability(AI_CAP_EXPRESSIONS);
+	}
 
 	if(m_pState->movetype != MOVETYPE_FLY 
 		&& m_pState->movetype != MOVETYPE_NONE 
@@ -1915,6 +2026,14 @@ CBitSet CBaseNPC::GetIgnoreConditions( void )
 			|| m_triggerCondition1 == AI_TRIGGER_HEAR_PLAYER || m_triggerCondition2 == AI_TRIGGER_HEAR_PLAYER
 			|| m_triggerCondition1 == AI_TRIGGER_HEAR_COMBAT || m_triggerCondition2 == AI_TRIGGER_HEAR_COMBAT)
 			ignoreConditions.reset(AI_COND_HEAR_SOUND);
+	}
+	else
+	{
+		if(m_nextFlinchTime > g_pGameVars->time)
+		{
+			ignoreConditions.reset(AI_COND_LIGHT_DAMAGE);
+			ignoreConditions.reset(AI_COND_HEAVY_DAMAGE);
+		}
 	}
 
 	return ignoreConditions;
@@ -2313,7 +2432,7 @@ void CBaseNPC::NPCUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t 
 //=============================================
 void CBaseNPC::SpawnGibbedParticles( void )
 {
-	if(m_deathMode == DEATH_EXPLODE)
+	if(m_deathFlags & NPC_DF_EXPLODE)
 		Util::CreateParticles("engine_gib_explode_cluster.txt", GetCenter(), ZERO_VECTOR, PART_SCRIPT_CLUSTER);
 	else
 		Util::CreateParticles("engine_gib_cluster.txt", GetCenter(), ZERO_VECTOR, PART_SCRIPT_CLUSTER);
@@ -3006,6 +3125,13 @@ bool CBaseNPC::CheckAITrigger( Int32 triggerCondition )
 	case AI_TRIGGER_SEE_ENEMY:
 		{
 			if(m_enemy && CheckCondition(AI_COND_SEE_ENEMY))
+				return true;
+		}
+		break;
+	case AI_TRIGGER_KILLED_BY_PLAYER:
+		{
+			if (m_pState->deadstate != DEADSTATE_NONE
+				&& m_killer && m_killer->IsPlayer())
 				return true;
 		}
 		break;
@@ -3833,7 +3959,7 @@ void CBaseNPC::ClearRoute( void )
 	m_movementGoal = MOVE_GOAL_NONE;
 	m_movementActivity = ACT_IDLE;
 
-	if(IsMoving())
+	if(IsMoving() && m_idealActivity != ACT_BLOWBACK_FLY)
 		SetIdealActivity(m_movementActivity);
 
 	ClearMemory(AI_MEMORY_MOVE_FAILED);
@@ -5887,6 +6013,43 @@ bool CBaseNPC::GetNextEnemy( void )
 }
 
 //=============================================
+// @brief Get an ideal weapon drop position
+//
+//=============================================
+bool CBaseNPC::GetWeaponDropPosition( Uint32 attachmentIndex, Vector& outPosition )
+{
+	// Get the gun pos first
+	Vector gunPosition;
+	GetAttachment(attachmentIndex, gunPosition);
+
+	trace_t tr;
+	Util::TraceLine(gunPosition, gunPosition, true, false, m_pEdict, tr);
+	if(!tr.startSolid() && !tr.allSolid())
+	{
+		outPosition = gunPosition;
+		return true;
+	}
+
+	Float fraction = 1.0;
+	Float maxHeight = m_pState->maxs[2] - m_pState->mins[2];
+	while(fraction > 0)
+	{
+		Vector startPosition = gunPosition + Vector(0, 0, maxHeight)*fraction;
+		Util::TraceLine(startPosition, gunPosition, true, false, m_pEdict, tr);
+		if(!tr.startSolid() && !tr.allSolid() && !tr.noHit())
+		{
+			outPosition = tr.endpos;
+			return true;
+		}
+
+		fraction -= 0.25;
+	}
+
+	outPosition = gunPosition;
+	return false;
+}
+
+//=============================================
 // @brief
 //
 //=============================================
@@ -5899,7 +6062,8 @@ CBaseEntity* CBaseNPC::DropItem( weaponid_t weaponId, Uint32 attachmentIndex, bo
 		return nullptr;
 
 	Vector gunPosition;
-	GetAttachment(attachmentIndex, gunPosition);
+	if(!GetWeaponDropPosition(attachmentIndex, gunPosition))
+		return nullptr;
 
 	Vector angles(m_pState->angles);
 	angles[PITCH] = angles[ROLL] = 0;
@@ -8479,8 +8643,7 @@ void CBaseNPC::NPCDeadThink( void )
 	m_pState->nextthink = g_pGameVars->time + NPC_THINK_TIME;
 
 	// Check for gibbing from explode death mode
-	if(m_deathMode == DEATH_EXPLODE 
-		&& m_deathExplodeTime <= g_pGameVars->time)
+	if((m_deathFlags & NPC_DF_EXPLODE) && m_deathExplodeTime <= g_pGameVars->time)
 	{
 		CallGibNPC();
 		return;
@@ -8505,8 +8668,7 @@ void CBaseNPC::NPCThink( void )
 		SetCondition(AI_COND_NOT_ONGROUND);
 
 	// Check for gibbing from explode death mode
-	if(m_deathMode == DEATH_EXPLODE 
-		&& m_deathExplodeTime <= g_pGameVars->time)
+	if((m_deathFlags & NPC_DF_EXPLODE) && m_deathExplodeTime <= g_pGameVars->time)
 	{
 		CallGibNPC();
 		return;
@@ -8591,7 +8753,7 @@ activity_t CBaseNPC::GetFlinchActivity( void )
 {
 	activity_t flinchActivity = ACT_RESET;
 
-	bool isBlowbackHit = (m_damageBits & DMG_BLOWBACK) ? true : false;
+	bool isBlowbackHit = (m_deathMode == DEATH_BLOWBACK) ? true : false;
 	switch(m_lastHitGroup)
 	{
 	case HITGROUP_HEAD:
@@ -8613,15 +8775,15 @@ activity_t CBaseNPC::GetFlinchActivity( void )
 		flinchActivity = isBlowbackHit ? ACT_FLINCH_RIGHTLEG_HEAVY : ACT_FLINCH_RIGHTLEG;
 		break;
 	default:
-		flinchActivity = isBlowbackHit ? ACT_SMALL_FLINCH_HEAVY : ACT_SMALL_FLINCH;
+		flinchActivity = isBlowbackHit ? ACT_FLINCH_HEAVY : ACT_SMALL_FLINCH;
 		break;
 	}
 
 	// Default to ACT_SMALL_FLINCH if activity is not available
 	if(FindActivity(flinchActivity) == NO_SEQUENCE_VALUE)
 	{
-		if(isBlowbackHit && FindActivity(ACT_SMALL_FLINCH_HEAVY) != NO_SEQUENCE_VALUE)
-			flinchActivity = ACT_SMALL_FLINCH_HEAVY;
+		if(isBlowbackHit && FindActivity(ACT_FLINCH_HEAVY) != NO_SEQUENCE_VALUE)
+			flinchActivity = ACT_FLINCH_HEAVY;
 		else
 			flinchActivity = ACT_SMALL_FLINCH;
 	}
@@ -8640,13 +8802,17 @@ activity_t CBaseNPC::GetDeathActivity( void )
 
 	// Manage special death modes
 	if(m_deathMode != DEATH_NORMAL 
-		&& m_deathMode != DEATH_EXPLODE)
+		&& !(m_deathFlags & NPC_DF_EXPLODE))
 	{
-		activity_t activity;
+		activity_t activity = ACT_RESET;
 		switch(m_deathMode)
 		{
 		case DEATH_DECAPITATED:
 			activity = ACT_DIE_HEADSHOT;
+			break;
+		case DEATH_BLOWBACK:
+			// Reset this to normal
+			m_deathMode = DEATH_NORMAL;
 			break;
 		default:
 			Util::EntityConPrintf(m_pEdict, "Unhandled special death mode '%d'.\n", (Int32)m_deathMode);
@@ -8654,10 +8820,14 @@ activity_t CBaseNPC::GetDeathActivity( void )
 			break;
 		}
 
-		if(FindActivity(activity) == NO_SEQUENCE_VALUE)
-			activity = ACT_DIESIMPLE;
+		// m_deathMode might've been changed
+		if(m_deathMode != DEATH_NORMAL && activity != ACT_RESET)
+		{
+			if(FindActivity(activity) == NO_SEQUENCE_VALUE)
+				activity = ACT_DIESIMPLE;
 
-		return activity;
+			return activity;
+		}
 	}
 
 	bool triedDirection = false;
@@ -8727,6 +8897,87 @@ activity_t CBaseNPC::GetDeathActivity( void )
 	}
 
 	return deathActivity;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+activity_t CBaseNPC::GetBlowbackDeathActivity( void )
+{
+	Vector forward;
+	Math::AngleVectors(m_pState->angles, &forward);
+
+	// Clear all angles but yaw
+	m_pState->angles[PITCH] = m_pState->angles[ROLL] = 0;
+	m_pState->effects |= EF_NOLERP;
+
+	if(m_deathFlags & NPC_DF_LANDED_AGAINST_WALL && (m_pState->flags & FL_ONGROUND))
+	{
+		// See if we're flat against a wall up to the neck or so
+		// Test up till waist
+		Float height = m_pState->absmax[2] - m_pState->absmin[2];
+		Vector testPoint = m_pState->origin + Vector(0, 0, height*0.33);
+		Vector testEnd = testPoint - forward * 40;
+
+		trace_t tr;
+		Util::TraceLine(testPoint, testEnd, true, false, m_pEdict, tr);
+		if(!tr.allSolid() && !tr.startSolid() && !tr.noHit())
+		{
+			CBaseEntity* pHitEntity = Util::GetEntityFromTrace(tr);
+			if(pHitEntity->IsWorldSpawn() || (pHitEntity->GetEffectFlags() & EF_STATICENTITY))
+			{
+				// Test up till neck
+				testPoint = m_pState->origin + Vector(0, 0, height*0.66);
+				testEnd = testPoint - forward * 40;
+
+				Util::TraceLine(testPoint, testEnd, true, false, m_pEdict, tr);
+				if(!tr.allSolid() && !tr.startSolid() && !tr.noHit())
+				{
+					m_pState->velocity.Clear();
+					return ACT_BLOWBACK_LAND_SEATED;
+				}
+			}
+		}
+	}
+
+	// Check if we're landing aimed towards ground
+	Float downDot = Math::DotProduct(forward, Vector(0, 0, 1));
+	downDot = clamp(downDot, 0, 1);
+
+	// Determine if there's space behind us
+	Vector traceForward(forward);
+	traceForward[2] = 0;
+	traceForward.Normalize();
+
+	// See if we have space to land flat on our back
+	Vector testStart = m_pState->origin + Vector(0, 0, SDL_fabs(VEC_DUCK_HULL_MIN[2]));
+	Vector testEnd = testStart - traceForward*24;
+
+	trace_t tr;
+	Util::TraceHull(testStart, testEnd, true, false, HULL_SMALL, m_pEdict, tr);
+	if(!tr.startSolid() && !tr.allSolid() && tr.noHit())
+	{
+		testStart = Vector(testEnd.x, testEnd.y, m_pState->origin.z);
+		testEnd = testStart - Vector(0, 0, 16);
+		Util::TraceLine(testStart, testEnd, true, false, m_pEdict, tr);
+		if(!tr.startSolid() && !tr.allSolid() && !tr.noHit())
+		{
+			if(downDot > 0.5)
+			{
+				// Land flat on stomach
+				return ACT_BLOWBACK_LAND_STOMACH;
+			}
+			else
+			{
+				// Land flat on back
+				return ACT_BLOWBACK_LAND_FLAT_BACK;
+			}
+		}
+	}
+
+	// Default to landing flat on our side, our back to the wall
+	return ACT_BLOWBACK_LAND_FLAT;
 }
 
 //=============================================
@@ -9151,6 +9402,81 @@ void CBaseNPC::SetNPCPuller( CBaseEntity* pPuller, const Vector& pullPosition )
 			ChangeSchedule(GetScheduleByIndex(AI_SCHED_RUN_FROM_NPC_PULLER));
 		}
 	}
+}
+
+//=============================================
+// @brief For blowback death
+//
+//=============================================
+void CBaseNPC::CorpseTouch( CBaseEntity* pOther )
+{
+	// Global trace should be our collision trace
+	trace_t& tr = g_pGameVars->globaltrace;
+	if(!tr.allSolid() && !tr.startSolid() && !tr.noHit()
+		&& SDL_fabs(tr.plane.normal[2]) < 0.5)
+	{
+		Vector flatDir = tr.plane.normal;
+		flatDir[2] = 0;
+		flatDir.Normalize();
+
+		Vector angle = Math::VectorToAngles(flatDir);
+		m_pState->angles[YAW] = angle[YAW];
+
+		// See if we're near ground
+		trace_t groundtr;
+		Vector endPos = m_pState->origin - Vector(0, 0, 16);
+		Util::TraceLine(m_pState->origin, endPos, true, false, m_pEdict, groundtr);
+
+		// If landed against a wall without having been blown back, then
+		// stop moving and execute the appropriate code
+		if(!groundtr.allSolid() && !tr.startSolid() && !tr.noHit()
+			&& !(m_deathFlags & NPC_DF_BLOWBACK_FLYING))
+		{
+			// Mark as having landed against a wall
+			m_deathFlags |= NPC_DF_LANDED_AGAINST_WALL;
+
+			// Call appropriate fn to handle setting states
+			CorpseStopMoving(true, true);
+		}
+	}
+	else if((m_deathFlags & NPC_DF_BLOWBACK_FLYING) && (m_pState->flags & FL_ONGROUND))
+	{
+		// Clear flying flag and set landed onground one
+		m_deathFlags |= NPC_DF_LANDED_ONGROUND;
+
+		// Call appropriate fn to handle setting states
+		CorpseStopMoving(false, false);
+	}
+}
+
+//=============================================
+// @brief Corpse stop moving function
+//
+//=============================================
+void CBaseNPC::CorpseStopMoving( bool clearVelocity, bool dropToGround )
+{
+	if(m_deathFlags & NPC_DF_LANDED)
+		return;
+
+	// Drop us to the ground if specified
+	if(dropToGround)
+		gd_engfuncs.pfnDropToFloor(m_pEdict);
+
+	// Clear velocity and touch
+	if(!clearVelocity && SDL_fabs(m_pState->velocity[2]) > 0)
+		m_pState->velocity[2] = 0;
+	else if(clearVelocity)
+		m_pState->velocity.Clear();
+
+	SetTouch(nullptr);
+
+	// Set hull point
+	m_pState->forcehull = HULL_POINT;
+	m_pState->movetype = MOVETYPE_TOSS;
+
+	// Set appropriate death animation
+	m_idealActivity = GetBlowbackDeathActivity();
+	m_deathFlags |= NPC_DF_LANDED;
 }
 
 //=============================================

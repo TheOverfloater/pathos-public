@@ -284,6 +284,22 @@ text "AutoAimLabel"
 	$originx 220
 	$originy 80
 }
+tickbox "RawInputTickBox"
+{
+	$schema "defaultcheckbox.txt"
+	$originx 8
+	$originy 104
+	$width 32
+	$height 32
+	$textinset 8
+	$text "Raw mouse input"
+}
+text "RawInputLabel"
+{
+	$text "Use raw input data for mouse"
+	$originx 220
+	$originy 112
+}
 text "MouseSensitivityLabel"
 {
 	$flags align_left align_bottom
@@ -490,7 +506,7 @@ text "ViewRollLabel"
 	$flags align_left align_top
 	$text "View roll"
 	$originx 16
-	$originy 100
+	$originy 90
 }
 tab "ViewRollTab"
 {
@@ -499,7 +515,7 @@ tab "ViewRollTab"
 	$width 48
 	$height 32
 	$originx 64
-	$originy 122
+	$originy 110
 }
 text "ViewRollText"
 {
@@ -513,16 +529,49 @@ slider "ViewRollSlider"
 	$width 400
 	$height 32
 	$originx 16
-	$originy 122
+	$originy 110
 	$minvalue 0
 	$maxvalue 6
 	$markerdistance 5
 }
+text "FOVLabel"
+{
+	$flags align_left align_top
+	$text "Field of View"
+	$originx 16
+	$originy 166
+}
+tab "FOVTab"
+{
+	$schema "indentedwindow.txt"
+	$flags align_right align_top
+	$width 48
+	$height 32
+	$originx 64
+	$originy 186
+}
+text "FOVText"
+{
+	$originx 10
+	$originy 8
+}
+slider "FOVSlider"
+{
+	$schema "defaultslider.txt"
+	$flags align_top align_left
+	$width 400
+	$height 32
+	$originx 16
+	$originy 186
+	$minvalue 60
+	$maxvalue 100
+	$markerdistance 0.5
+}
 list "GameplayTabList"
 {
 	$schema "indentedwindow.txt"
-	$originy 190
-	$height 165
+	$originy 240
+	$height 125
 	$width 585
 	$rowheight 32
 }

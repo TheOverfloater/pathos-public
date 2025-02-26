@@ -20,19 +20,6 @@ All Rights Reserved.
 #include "weapons_shared.h"
 #include "beam_shared.h"
 
-// Regular muzzleflash particle effect
-static const Char MUZZLEFLASH_PARTICLE_REGULAR[] = "engine_muzzleflash_cluster1.txt";
-// Muzzleflash particle effect with sparks
-static const Char MUZZLEFLASH_PARTICLE_SPARKS[] = "engine_muzzleflash_cluster2.txt";
-// Muzzleflash particle effect with sparks
-static const Char MUZZLEFLASH_PARTICLE_SIMPLE[] = "engine_muzzleflash_cluster3.txt";
-// Muzzleflash particle effect for railgun
-static const Char MUZZLEFLASH_PARTICLE_CANNON[] = "engine_muzzleflash_cluster4.txt";
-// Muzzleflash particle effect for silenced weapons
-static const Char MUZZLEFLASH_PARTICLE_SILENCER[] = "engine_muzzleflash_cluster5.txt";
-// Muzzleflash smoke particle effect
-static const Char MUZZLE_PARTICLE_SMOKE[] = "engine_muzzle_smoke.txt";
-
 // Vapor trail smoke sprite
 static const Char VAPORTRAIL_SMOKE_SPRITE[] = "sprites/smoke.spr";
 // Vapor trail glow sprite
@@ -68,7 +55,7 @@ void EV_SimpleMuzzleFlash( const Vector& position, const Vector& angles, entinde
 	Math::AngleVectors(angles, &forward);
 
 	cl_efxapi.pfnRemoveParticleSystem(entindex, entindex, true);
-	cl_efxapi.pfnSpawnParticleSystem(position, forward, PART_SCRIPT_CLUSTER, MUZZLEFLASH_PARTICLE_SIMPLE, attachment+1, entindex, attachment, NO_POSITION, PARTICLE_ATTACH_ATTACHMENT_VECTOR|PARTICLE_ATTACH_RELATIVE);
+	cl_efxapi.pfnSpawnParticleSystem(position, forward, PART_SCRIPT_CLUSTER, MUZZLEFLASH_PARTICLE_SCRIPT_SIMPLE, attachment+1, entindex, attachment, NO_POSITION, PARTICLE_ATTACH_ATTACHMENT_VECTOR|PARTICLE_ATTACH_RELATIVE);
 	cl_efxapi.pfnSpawnParticleSystem(position, forward, PART_SCRIPT_SYSTEM, MUZZLE_PARTICLE_SMOKE, attachment+1, entindex, attachment, NO_POSITION, PARTICLE_ATTACH_ATTACHMENT_VECTOR|PARTICLE_ATTACH_RELATIVE);
 }
 
@@ -82,20 +69,22 @@ void EV_AttachmentDirectionMuzzleFlash( const cl_entity_t *pentity, const Char* 
 	Vector attach2 = pentity->getAttachment(attachment2);
 	Vector direction = (attach2 - attach1).Normalize();
 
-	if (strcmp(pstroptions, "silencer"))
+	if (!qstrstr(pstroptions, "silencer"))
 		EV_MuzzleFlashLight(attach1, pentity->entindex);
 
-	CString scriptname;
-	if(!strcmp(pstroptions, "sparks"))
-		scriptname = MUZZLEFLASH_PARTICLE_SPARKS;
-	else if(!strcmp(pstroptions, "cannon"))
-		scriptname = MUZZLEFLASH_PARTICLE_CANNON;
-	else if (!strcmp(pstroptions, "silencer"))
-		scriptname = MUZZLEFLASH_PARTICLE_SILENCER;
-	else
-		scriptname = MUZZLEFLASH_PARTICLE_REGULAR;
+	CString filepath(MUZZLEFLASH_PARTICLE_SCRIPT_BASENAME);
+	Int32 tokenpos = filepath.find(0, "%s");
+	if(tokenpos == CString::CSTRING_NO_POSITION)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - String token not found in string '%s'.\n", __FUNCTION__, MUZZLEFLASH_PARTICLE_SCRIPT_BASENAME);
+		return;
+	}
 
-	cl_efxapi.pfnSpawnParticleSystem(attach1, direction, PART_SCRIPT_CLUSTER, scriptname.c_str(), attachment1+1, pentity->entindex, attachment1, NO_POSITION, (PARTICLE_ATTACH_TO_PARENT|PARTICLE_ATTACH_TO_ATTACHMENT|PARTICLE_ATTACH_RELATIVE));
+	CString replacestring(filepath);
+	replacestring.erase(tokenpos, 2);
+	replacestring.insert(tokenpos, pstroptions);
+
+	cl_efxapi.pfnSpawnParticleSystem(attach1, direction, PART_SCRIPT_CLUSTER, replacestring.c_str(), attachment1+1, pentity->entindex, attachment1, NO_POSITION, (PARTICLE_ATTACH_TO_PARENT|PARTICLE_ATTACH_TO_ATTACHMENT|PARTICLE_ATTACH_RELATIVE));
 }
 
 //=============================================
@@ -113,17 +102,24 @@ void EV_AngleForwardMuzzleFlash( Int32 attachment, const Vector origin, const cl
 	forward.Normalize();
 
 	// Create dynamic light
-	EV_MuzzleFlashLight(origin, pentity->entindex);
+	if (!qstrstr(pevent->options, "silencer"))
+		EV_MuzzleFlashLight(origin, pentity->entindex);
 
-	CString scriptname;
-	if(!strcmp(pevent->options, "sparks"))
-		scriptname = MUZZLEFLASH_PARTICLE_SPARKS;
-	else
-		scriptname = MUZZLEFLASH_PARTICLE_REGULAR;
+	CString filepath(MUZZLEFLASH_PARTICLE_SCRIPT_BASENAME);
+	Int32 tokenpos = filepath.find(0, "%s");
+	if(tokenpos == CString::CSTRING_NO_POSITION)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - String token not found in string '%s'.\n", __FUNCTION__, MUZZLEFLASH_PARTICLE_SCRIPT_BASENAME);
+		return;
+	}
+
+	CString replacestring(filepath);
+	replacestring.erase(tokenpos, 2);
+	replacestring.insert(tokenpos, pevent->options);
 
 	// Delete previous attached particle systems
 	cl_efxapi.pfnRemoveParticleSystem(attachment+1, pentity->entindex, true);
-	cl_efxapi.pfnSpawnParticleSystem(origin, forward, PART_SCRIPT_CLUSTER, scriptname.c_str(), attachment+1, pentity->entindex, attachment, NO_POSITION, (PARTICLE_ATTACH_TO_PARENT|PARTICLE_ATTACH_TO_ATTACHMENT|PARTICLE_ATTACH_RELATIVE));
+	cl_efxapi.pfnSpawnParticleSystem(origin, forward, PART_SCRIPT_CLUSTER, replacestring.c_str(), attachment+1, pentity->entindex, attachment, NO_POSITION, (PARTICLE_ATTACH_TO_PARENT|PARTICLE_ATTACH_TO_ATTACHMENT|PARTICLE_ATTACH_RELATIVE));
 	cl_efxapi.pfnSpawnParticleSystem(origin, forward, PART_SCRIPT_SYSTEM, MUZZLE_PARTICLE_SMOKE, attachment+1, pentity->entindex, attachment, NO_POSITION, PARTICLE_ATTACH_NONE);
 }
 

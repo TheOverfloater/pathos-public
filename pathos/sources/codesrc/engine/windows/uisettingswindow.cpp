@@ -107,6 +107,10 @@ const Char CUISettingsWindow::MOUSE_TAB_FILTER_MOUSE_LABEL_OBJ_NAME[] = "FilterM
 const Char CUISettingsWindow::MOUSE_TAB_AUTOAIM_BOX_OBJ_NAME[] = "AutoAimTickBox";
 // Auto-aim label object name
 const Char CUISettingsWindow::MOUSE_TAB_AUTOAIM_LABEL_OBJ_NAME[] = "AutoAimLabel";
+// Raw input tickbox object name
+const Char CUISettingsWindow::MOUSE_TAB_RAWINPUT_BOX_OBJ_NAME[] = "RawInputTickBox";
+// Raw input label object name
+const Char CUISettingsWindow::MOUSE_TAB_RAWINPUT_LABEL_OBJ_NAME[] = "RawInputLabel";
 // Mouse sensitivity slider object name
 const Char CUISettingsWindow::MOUSE_TAB_SENSITIVITY_SLIDER_OBJ_NAME[] = "MouseSensitivitySlider";
 // Mouse sensitivity slider object name
@@ -163,6 +167,14 @@ const Char CUISettingsWindow::GAMEPLAY_TAB_VIEWROLL_LABEL_OBJ_NAME[] = "ViewRoll
 const Char CUISettingsWindow::GAMEPLAY_TAB_VIEWROLL_TAB_OBJ_NAME[] = "ViewRollTab";
 // View roll value text object name
 const Char CUISettingsWindow::GAMEPLAY_TAB_VIEWROLL_TEXT_OBJ_NAME[] = "ViewRollText";
+// FOV slider object name
+const Char CUISettingsWindow::GAMEPLAY_TAB_FOV_SLIDER_OBJ_NAME[] = "FOVSlider";
+// FOV slider object name
+const Char CUISettingsWindow::GAMEPLAY_TAB_FOV_LABEL_OBJ_NAME[] = "FOVLabel";
+// FOV value tab object name
+const Char CUISettingsWindow::GAMEPLAY_TAB_FOV_TAB_OBJ_NAME[] = "FOVTab";
+// FOV value text object name
+const Char CUISettingsWindow::GAMEPLAY_TAB_FOV_TEXT_OBJ_NAME[] = "FOVText";
 // Gameplay tab list object name
 const Char CUISettingsWindow::GAMEPLAY_TAB_LIST_OBJ_NAME[] = "GameplayTabList";
 // Advanced tab options list file
@@ -197,7 +209,8 @@ CUISettingsWindow::CUISettingsWindow( Int32 flags, Uint32 width, Uint32 height, 
 	m_pSensitivityValueText(nullptr),
 	m_pFilterFramesValueText(nullptr),
 	m_pViewBobValueText(nullptr),
-	m_pViewRollValueText(nullptr)
+	m_pViewRollValueText(nullptr),
+	m_pFOVValueText(nullptr)
 {
 }
 
@@ -1816,6 +1829,13 @@ CUITabBody* CUISettingsWindow::InitMouseTab( CUITabList* pTabList, const ui_wind
 		return nullptr;
 	}
 
+	// Add tick box for auto-aim
+	if(!AddTickBox(pMouseTab, pWinDesc, pTabObject, MOUSE_TAB_RAWINPUT_BOX_OBJ_NAME, MOUSE_TAB_RAWINPUT_LABEL_OBJ_NAME, MOUSE_RAWINPUT_CVAR_NAME))
+	{
+		Con_EPrintf("Failed to create tick box for settings window.\n");
+		return nullptr;
+	}
+
 	// Create the slider
 	const ui_objectinfo_t* pSensitivitySliderObjectInfo = pWinDesc->getObject(UI_OBJECT_SLIDER, MOUSE_TAB_SENSITIVITY_SLIDER_OBJ_NAME);
 	if(!pSensitivitySliderObjectInfo)
@@ -2250,6 +2270,112 @@ CUITabBody* CUISettingsWindow::InitGameplayTab( CUITabList* pTabList, const ui_w
 	else
 	{
 		Con_EPrintf("CVar '%s' for 'CUISlider' not found.\n", VIEW_ROLL_CVAR_NAME);
+	}
+
+	// Create the slider
+	const ui_objectinfo_t* pFOVSliderObjectInfo = pWinDesc->getObject(UI_OBJECT_SLIDER, GAMEPLAY_TAB_FOV_SLIDER_OBJ_NAME);
+	if(!pFOVSliderObjectInfo)
+	{
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, GAMEPLAY_TAB_FOV_SLIDER_OBJ_NAME);
+		return false;
+	}
+
+	// Create object
+	CUISliderAdjustEvent* pFOVSliderEvent = new CUISliderAdjustEvent(this, DEFAULT_FOV_CVAR_NAME);
+	CUISlider* pFOVSlider = new CUISlider(pFOVSliderObjectInfo->getFlags(),
+		pFOVSliderEvent,
+		pFOVSliderObjectInfo->getWidth(),
+		pFOVSliderObjectInfo->getHeight(),
+		pTabObject->getXInset() + pFOVSliderObjectInfo->getXOrigin(), 
+		pTabObject->getYInset() + pFOVSliderObjectInfo->getYOrigin(),
+		pFOVSliderObjectInfo->getMinValue(),
+		pFOVSliderObjectInfo->getMaxValue(),
+		pFOVSliderObjectInfo->getMarkerDistance());
+
+	pFOVSlider->setParent(pGameplayTab);
+
+	if(!pFOVSlider->init(pFOVSliderObjectInfo->getSchema().c_str()))
+	{
+		Con_EPrintf("Failed to initialize slider object for settings UI window.\n");
+		return false;
+	}
+
+	// Create the slider label
+	const ui_objectinfo_t* pFOVLabelObjectInfo = pWinDesc->getObject(UI_OBJECT_TEXT, GAMEPLAY_TAB_FOV_LABEL_OBJ_NAME);
+	if(!pFOVLabelObjectInfo)
+	{
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, GAMEPLAY_TAB_FOV_LABEL_OBJ_NAME);
+		return false;
+	}
+
+	CUIText* pFOVText = new CUIText(pFOVLabelObjectInfo->getFlags(),
+		pFOVLabelObjectInfo->getFont(),
+		pFOVLabelObjectInfo->getText().c_str(),
+		pTabObject->getXInset() + pFOVLabelObjectInfo->getXOrigin(), 
+		pTabObject->getYInset() + pFOVLabelObjectInfo->getYOrigin());
+
+	pFOVText->setParent(pGameplayTab);
+
+	// Create the display for the value
+	const ui_objectinfo_t* pFOVTabObjectInfo = pWinDesc->getObject(UI_OBJECT_TAB, GAMEPLAY_TAB_FOV_TAB_OBJ_NAME);
+	if(!pFOVTabObjectInfo)
+	{
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, GAMEPLAY_TAB_FOV_TAB_OBJ_NAME);
+		return false;
+	}
+
+	CUISurface* pFOVSurface = new CUISurface(pFOVTabObjectInfo->getFlags(),
+		pFOVTabObjectInfo->getWidth(),
+		pFOVTabObjectInfo->getHeight(),
+		pTabObject->getXInset() + pFOVTabObjectInfo->getXOrigin(), 
+		pTabObject->getYInset() + pFOVTabObjectInfo->getYOrigin());
+
+	pFOVSurface->setParent(pGameplayTab);
+
+	if(!pFOVSurface->init(pFOVTabObjectInfo->getSchema().c_str()))
+	{
+		Con_EPrintf("Failed to initialize tab object for settings UI window.\n");
+		return false;
+	}
+
+	// Create the text
+	const ui_objectinfo_t* pFOVTextObjectInfo = pWinDesc->getObject(UI_OBJECT_TEXT, GAMEPLAY_TAB_FOV_TEXT_OBJ_NAME);
+	if(!pFOVTextObjectInfo)
+	{
+		Con_EPrintf("Window description file '%s' has no definition for '%s'.\n", WINDOW_DESC_FILE, GAMEPLAY_TAB_FOV_TEXT_OBJ_NAME);
+		return false;
+	}
+
+	m_pFOVValueText = new CUIText(pFOVTextObjectInfo->getFlags(), 
+		pFOVTabObjectInfo->getFont(),
+		"",
+		pFOVTabObjectInfo->getXInset() + pFOVTextObjectInfo->getXOrigin(),
+		pFOVTabObjectInfo->getYInset() + pFOVTextObjectInfo->getYOrigin());
+
+	m_pFOVValueText->setParent(pFOVSurface);
+
+	CCVar* pFOVCVar = gConsole.GetCVar(DEFAULT_FOV_CVAR_NAME);
+	if(pFOVCVar)
+	{
+		if(pFOVCVar->GetType() != CVAR_FLOAT)
+		{
+			m_pFOVValueText->setText("");
+			Con_EPrintf("CVar '%s' for 'CUISlider' object is not of float type.\n", DEFAULT_FOV_CVAR_NAME);
+		}
+		else
+		{
+			Float value = pFOVCVar->GetValue();
+			pFOVSlider->setValue(value);
+
+			Char szValue[64];
+			sprintf(szValue, "%0.1f", value);
+
+			m_pFOVValueText->setText(szValue);
+		}
+	}
+	else
+	{
+		Con_EPrintf("CVar '%s' for 'CUISlider' not found.\n", DEFAULT_FOV_CVAR_NAME);
 	}
 
 	if(!LoadScrollableOptionsList(pGameplayTab, pWinDesc, pTabObject, GAMEPLAY_TAB_LIST_OBJ_NAME, GAMEPLAY_DESC_FILE))
@@ -2927,6 +3053,15 @@ void CUISettingsWindow::SetViewBobTabText( const Char* pstrText )
 }
 
 //=============================================
+// @brief
+//
+//=============================================
+void CUISettingsWindow::SetFOVTabText( const Char* pstrText )
+{
+	m_pFOVValueText->setText(pstrText);
+}
+
+//=============================================
 // @brief Peforms the action of the button
 //
 //=============================================
@@ -3158,6 +3293,12 @@ void CUISliderAdjustEvent::PerformAction( Float param )
 		Char szValue[64];
 		sprintf(szValue, "%0.1f", param);
 		m_pWindow->SetViewBobTabText(szValue);
+	}
+	else if(!qstrcmp(m_cvarName, DEFAULT_FOV_CVAR_NAME))
+	{
+		Char szValue[64];
+		sprintf(szValue, "%d", static_cast<Int32>(param));
+		m_pWindow->SetFOVTabText(szValue);
 	}
 }
 

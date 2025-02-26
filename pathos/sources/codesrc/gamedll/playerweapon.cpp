@@ -1179,6 +1179,39 @@ void CPlayerWeapon::AddRecoil( Float recoil )
 // @brief
 //
 //=============================================
+void CPlayerWeapon::ApplyWeaponKickbackVelocity( const Vector& forwardVector, Float velMin, Float velMax )
+{
+	Vector plrForward(forwardVector);
+	plrForward[2] = 0;
+	plrForward.Normalize();
+
+	// If onground, check whether being pushed back would plant us over an edge
+	// into a gaping abyss(Looking at you Sonic Heroes)
+	if(m_pPlayer->GetFlags() & FL_ONGROUND)
+	{
+		Vector playerPosition = m_pPlayer->GetNavigablePosition();
+		Vector testPointStart = playerPosition + Vector(0, 0, 16) - plrForward * (VEC_HULL_MAX[0] + 4);
+
+		trace_t tr;
+		Util::TraceLine(playerPosition, testPointStart, false, false, m_pPlayer->GetEdict(), tr);
+		if(!tr.allSolid() && !tr.startSolid() && tr.noHit())
+		{
+			Vector testPointEnd = testPointStart - Vector(0, 0, 32);
+			Util::TraceLine(testPointStart, testPointEnd, false, false, m_pPlayer->GetEdict(), tr);
+			if(!tr.allSolid() && !tr.startSolid() && tr.noHit())
+				return; // Don't apply the force if we'd fell into a hole
+		}
+	}
+
+	Vector plrVelocity = m_pPlayer->GetVelocity();
+	plrVelocity -= plrForward * Common::RandomFloat(velMin, velMax);
+	m_pPlayer->SetVelocity(plrVelocity);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 Float CPlayerWeapon::GetAutoAimDegrees( void )
 {
 	assert(WEAPON_INFO_LIST[m_weaponId].autoaimdegrees >= 0 

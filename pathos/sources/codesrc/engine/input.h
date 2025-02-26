@@ -90,6 +90,8 @@ public:
 	// Handles a mouse wheel event
 	void MouseWheelEvent( Int32 button, bool keyDown, Int32 scroll );
 
+	// Called when raw mouse cvar changes
+	void OnSetRawMouse( bool isEnabled );
 	// Handles an SDL eent
 	void HandleSDLEvent( const SDL_Event& sdlEvent );
 
@@ -136,11 +138,16 @@ private:
 	bool m_isShiftDown;
 	// TRUE if we should ignore delta on the next frame
 	bool m_resetMouse;
+	// TRUE if relative mouse mode was set
+	bool m_relativeMouseModeSet;
 
 	// Mouse positions on previous frame
 	Int32 m_oldMousePosition[2];
 	// Current mouse positions
 	Int32 m_mousePosition[2];
+
+	// Raw input cvar
+	CCVar* m_pCvarRawMouseInput;
 };
 extern CInput gInput;
 #endif // CINPUT_H

@@ -637,17 +637,35 @@ void CL_AddMouseMove( usercmd_t& cmd )
 	Float mouseX, mouseY;
 	if(g_pCvarFilterMouse->GetValue() > 0)
 	{
+		// Filter frames depends on FPS
+		static Double lasttime = 0;
+		Double curtime = cl_engfuncs.pfnGetEngineTime();
+		Double frametime = curtime - lasttime;
+		lasttime = curtime;
+
+		if(frametime > 1.0)
+			frametime = 0;
+
+		// Reference FPS is 60 fps
+		const Uint32 referenceFPS = 60;
+		Uint32 fpsCount = 1.0f / frametime;
+		if(fpsCount > referenceFPS)
+			fpsCount = referenceFPS;
+		
+		Uint32 filterFrameCount = (static_cast<Float>(fpsCount) / static_cast<Float>(referenceFPS)) * g_mouseFilterInfo.numframes;
+		if(filterFrameCount < 1)
+			filterFrameCount = 1;
+
 		mouseX = 0;
 		mouseY = 0;
-		
-		for(Uint32 i = 0; i < g_mouseFilterInfo.numframes; i++)
+		for(Uint32 i = 0; i < filterFrameCount; i++)
 		{
 			mouseX += (Float)g_mouseFilterInfo.filterframes[i].mousex;
 			mouseY += (Float)g_mouseFilterInfo.filterframes[i].mousey;
 		}
 
-		mouseX = mouseX / (Float)g_mouseFilterInfo.numframes;
-		mouseY = mouseY / (Float)g_mouseFilterInfo.numframes;
+		mouseX = mouseX / (Float)filterFrameCount;
+		mouseY = mouseY / (Float)filterFrameCount;
 	}
 	else
 	{

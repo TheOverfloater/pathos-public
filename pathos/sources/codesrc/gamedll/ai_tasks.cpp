@@ -831,22 +831,64 @@ void CBaseNPC::StartTask( const ai_task_t* pTask )
 			SetIdealActivity(GetFlinchActivity());
 			// Disable interpolation on animation change
 			m_pState->effects |= EF_NOLERP;
+			// Set timer for next flinch
+			m_nextFlinchTime = g_pGameVars->time + Common::RandomFloat(2, 4);
 		}
 		break;
 	case AI_TASK_DIE:
+	case AI_TASK_DIE_LAND:
 		{
+			// Clear states
 			ClearRoute();
-			SetIdealActivity(GetDeathActivity());
+
+			// This depends on whether we're blowback killed
+			if(pTask->task != AI_TASK_DIE_LAND)
+				SetIdealActivity(GetDeathActivity());
+
 			m_pState->deadstate = DEADSTATE_DYING;
 
 			// Make sure the bbox is of valid size
 			SetSequenceBox(false);
+
+			// Plant an expanding decal if not infested or grabbed
+			if(m_deathDamageBits & (DMG_BULLET|DMG_MELEE|DMG_AXE|DMG_SLASH|DMG_CRUSH)
+				&& !(m_deathFlags & NPC_DF_NO_PUDDLE))
+			{
+				Vector traceStart = m_pState->origin + Vector(0, 0, 8);
+				Vector traceEnd = m_pState->origin - Vector(0, 0, 32);
+
+				trace_t tr;
+				Util::TraceLine(traceStart, traceEnd, true, false, m_pEdict, tr);
+				if(!tr.noHit())
+				{
+					CString decalName;
+					switch(Common::RandomLong(0, 1))
+					{
+					case 0: 
+						decalName = "bloodbigsplat";
+						break;
+					case 1: 
+						decalName = "bloodbigsplat2";
+						break;
+					}
+
+					// Create on client
+					Int32 decalFlags = (FL_DECAL_SPECIFIC_TEXTURE);
+					Util::CreateGenericDecal(tr.endpos, &tr.plane.normal, decalName.c_str(), decalFlags, NO_ENTITY_INDEX, 0, 0, 20);
+
+					// Add to save-restore
+					gd_engfuncs.pfnAddSavedDecal(tr.endpos, tr.plane.normal, tr.hitentity, decalName.c_str(), decalFlags);
+				}
+			}
 		}
+		break;
+	case AI_TASK_WAIT_DIE_LAND:
 		break;
 	case AI_TASK_SOUND_DIE:
 		{
 			switch(m_deathMode)
 			{
+			case DEATH_BLOWBACK:
 			case DEATH_NORMAL:
 				EmitDeathSound();
 			case DEATH_DECAPITATED:
@@ -1244,6 +1286,7 @@ void CBaseNPC::RunTask( const ai_task_t* pTask )
 		}
 		break;
 	case AI_TASK_DIE:
+	case AI_TASK_DIE_LAND:
 		{
 			if(m_isSequenceFinished && m_pState->frame >= 255)
 			{
@@ -1254,6 +1297,20 @@ void CBaseNPC::RunTask( const ai_task_t* pTask )
 				m_pState->nextthink = g_pGameVars->time + NPC_THINK_TIME;
 				StopAnimation();
 			}
+		}
+		break;
+	case AI_TASK_WAIT_DIE_LAND:
+		{	
+			// If not blowback flying and we stopped moving, then finish up
+			if((!(m_deathFlags & NPC_DF_BLOWBACK_FLYING) || (m_deathFlags & NPC_DF_LANDED_ONGROUND)) 
+				&& m_pState->velocity.Length() < 150)
+			{
+				if(!(m_deathFlags & NPC_DF_LANDED_AGAINST_WALL))
+					CorpseStopMoving(false, false);
+				
+				// Mark task as completed
+				SetTaskCompleted();
+			};
 		}
 		break;
 	case AI_TASK_RANGE_ATTACK1_NO_TURN:

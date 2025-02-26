@@ -30,7 +30,6 @@ extern cl_entity_t* CL_GetLocalPlayer( void );
 extern Double CL_GetClientTime( void );
 extern const Vector& CL_GetViewAngles( void );
 extern void CL_SetViewAngles( const Vector& angles );
-extern void CL_GetMouseDelta( Int32& deltaX, Int32 deltaY );
 extern void CL_GetMouseDelta( Int32& deltaX, Int32& deltaY );
 extern const movevars_t* CL_GetMoveVars( void );
 extern Int32 CL_GetNumEntities( void );

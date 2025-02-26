@@ -47,7 +47,7 @@ void CMultiDamage::Clear( void )
 // @brief
 //
 //=============================================
-void CMultiDamage::ApplyDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Int32 hitgroup )
+void CMultiDamage::ApplyDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Int32 hitgroup, Int32 bullettype, Uint32 shotcount )
 {
 	if(m_damagedEntities.empty())
 		return;
@@ -57,6 +57,17 @@ void CMultiDamage::ApplyDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker,
 	{
 		entitydamage_t& dmg = m_damagedEntities.get();
 		dmg.hitgroup = hitgroup;
+
+		// If firing a shotgun from a close range, apply blowback
+		if(bullettype == BULLET_NPC_BUCKSHOT)
+		{
+			if(dmg.hitcount > shotcount * 0.5)
+			{
+				Float length = (pAttacker->GetOrigin() - dmg.pentity->GetOrigin()).Length();
+				if(length < 256)
+					dmg.dmgtype |= DMG_BLOWBACK;
+			}
+		}
 		if(dmg.pentity)
 			dmg.pentity->TakeDamage(pInflictor, pAttacker, dmg.dmgamount, dmg.dmgtype);
 
@@ -106,6 +117,7 @@ void CMultiDamage::AddDamage( CBaseEntity* pentity, Float damage, Int32 dmgtype 
 		pdamage->dmgtype |= dmgtype;
 
 	pdamage->dmgamount += damage;
+	pdamage->hitcount++;
 }
 
 //=============================================

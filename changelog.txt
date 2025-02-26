@@ -574,3 +574,22 @@
  - Renamed a function in the dynamic light manager class to have a name more specific to it's actual function.
  - Fix some variable shadowing in the firing code in the server binary.
  - Major performance optimization for GLSL shaders by using std::unordered_map to look up shader variations instead of the for loop and memcmp solution.
+
+2025 February 26th:
+ - Replaced placeholder Glock with one created by BrussTrigger for Pathos/my game.
+ - Added Hold-To-Walk mode to walking movement.
+ - Massive improvement to blood and gore particle effects.
+ - Massive improvement to the muzzleflash effects code and particles.
+ - Added support for raw mouse movement mode.
+ - Added support for FOV slider to "Gameplay" tab.
+ - Value of "default_fov" cvar will now be saved.
+ - Modified mouse filter frames to be FPS dependent, with 60 FPS being the reference value.
+ - Added blowback death animation support to NPC code.
+ - Added blowback and heavy flinch animation sets to example NPCs.
+ - Dynamic light performance optimizations to make more optimized and by-case use of VIS data.
+ - Fix for particle scripts not supporting comments properly.
+ - Fix for random dir flag on particles being ignored when tied to a bone on an entity.
+ - Fix for crash with particle systems that use tracer spawn particles without a valid script for the tracers.
+ - Modified NPC flinching to be delayed based on timing.
+ - Added smart weapon spawning code to NPCs, so that weapons won't spawn in solids on drop.
+ - Added code to animating entities, which now makes sure that particle scripts referenced in animation events are properly precached on map load.

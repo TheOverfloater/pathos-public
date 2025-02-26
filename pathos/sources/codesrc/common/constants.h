@@ -184,6 +184,13 @@ static const Char SHELLCASINGS_MODEL_FILENAME[] = "models/shellcasings.mdl";
 // Particle script base path
 static const Char PARTICLE_SCRIPT_PATH[] = "/scripts/particles/";
 
+// Simple muzzleflash script name
+static const Char MUZZLEFLASH_PARTICLE_SCRIPT_SIMPLE[] = "engine_muzzleflash_cluster_simple.txt";
+// Regular muzzleflash particle effect for handguns
+static const Char MUZZLEFLASH_PARTICLE_SCRIPT_BASENAME[] = "engine_muzzleflash_cluster_%s.txt";
+// Muzzleflash smoke particle effect
+static const Char MUZZLE_PARTICLE_SMOKE[] = "engine_muzzle_smoke.txt";
+
 // Debris sound file path
 static const Char DEBRIS_SOUND_BASE_DIR[] = "debris";
 
@@ -212,6 +219,8 @@ const Char MOUSE_FILTER_CVAR_NAME[] = "m_filter";
 const Char MOUSE_FILTER_FRAMES_CVAR_NAME[] = "m_filter_frames";
 // Mouse reverse cvar
 const Char MOUSE_REVERSE_CVAR_NAME[] = "m_reverse";
+// Mouse raw input cvar
+const Char MOUSE_RAWINPUT_CVAR_NAME[] = "m_rawinput";
 // Stop music command name
 const Char STOP_MUSIC_CMD_NAME[] = "stopmusic";
 // Set HRTF setting command name
@@ -371,7 +380,9 @@ enum deathmode_t
 {
 	DEATH_NORMAL = 0,
 	DEATH_DECAPITATED,
-	DEATH_EXPLODE
+	DEATH_UNUSED1,
+	DEATH_UNUSED2,
+	DEATH_BLOWBACK
 };
 
 enum deathstate_t

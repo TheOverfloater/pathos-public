@@ -40,6 +40,17 @@ void Cmd_UnbindAll( void ) { gInput.CmdUnbindAll(); }
 // Class definition
 CInput gInput;
 
+//=============================================
+//
+//=============================================
+void IN_RawMouseCvarCallback( CCVar* pCVar )
+{
+	// Inform the input class object
+	gInput.OnSetRawMouse((pCVar->GetValue() >= 1) ? true : false);
+	
+}
+
+// Mouse wheel input names
 const CString CInput::MOUSE_WHEEL_NAMES[] = {
 	"MWHEELUP",
 	"MWHEELDOWN",
@@ -58,12 +69,12 @@ CInput::CInput( void ):
 	m_numKeyInputs(0),
 	m_isCursorVisible(true),
 	m_isShiftDown(false),
-	m_resetMouse(false)
+	m_resetMouse(false),
+	m_relativeMouseModeSet(false)
 {
 	m_oldMousePosition[0] = m_mousePosition[0] = 0;
 	m_oldMousePosition[1] = m_mousePosition[1] = 0;
 }
-
 
 //=============================================
 // @brief Destructor
@@ -83,6 +94,9 @@ bool CInput::Init( void )
 	gCommands.CreateCommand("bind", Cmd_BindKey, "Binds a command to a key");
 	gCommands.CreateCommand("unbind", Cmd_UnbindKey, "Unbinds commands from a key");
 	gCommands.CreateCommand("unbindall", Cmd_UnbindAll, "Unbinds commands from all keys");
+
+	// Create cvar for raw mouse
+	m_pCvarRawMouseInput = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), MOUSE_RAWINPUT_CVAR_NAME, "0", "Toggle raw mouse input.", IN_RawMouseCvarCallback);
 
 	// Allocate keyinfos
 	m_keyInfoArray.resize(SDL_NUM_SCANCODES+NUM_EXTRA_KEYS);
@@ -295,10 +309,29 @@ bool CInput::LoadKeyNames( void )
 //=============================================
 void CInput::ShowMouse( void )
 {
-	if(!m_isCursorVisible)
+	if(m_isCursorVisible)
+		return;
+
+	// Show the cursor
+	SDL_ShowCursor(SDL_ENABLE);
+	m_isCursorVisible = true;
+
+	// Manage raw input mode
+	if(m_pCvarRawMouseInput->GetValue() >= 1)
 	{
-		SDL_ShowCursor(SDL_ENABLE);
-		m_isCursorVisible = true;
+		// Ensure proper toggling of relative mode
+		if(m_relativeMouseModeSet)
+		{
+			SDL_SetRelativeMouseMode(SDL_FALSE);
+			m_relativeMouseModeSet = false;
+		}
+
+		// Cancel out any movement of the mouse
+		Int32 dummyX, dummyY;
+		SDL_GetRelativeMouseState(&dummyX, &dummyY);
+
+		// Reset mouse to screen center
+		ResetMouse();
 	}
 }
 
@@ -308,10 +341,55 @@ void CInput::ShowMouse( void )
 //=============================================
 void CInput::HideMouse( void )
 {
-	if(m_isCursorVisible)
+	if(!m_isCursorVisible)
+		return;
+
+	// Hide the cursor
+	SDL_ShowCursor(SDL_DISABLE);
+	m_isCursorVisible = false;
+
+	// Manage raw input
+	if(m_pCvarRawMouseInput->GetValue() >= 1)
 	{
-		SDL_ShowCursor(SDL_DISABLE);
-		m_isCursorVisible = false;
+		// Enable relative mode
+		if(!m_relativeMouseModeSet)
+		{
+			SDL_SetRelativeMouseMode(SDL_TRUE);
+			m_relativeMouseModeSet = true;
+		}
+
+		// Cancel out any mouse movement
+		Int32 dummyX, dummyY;
+		SDL_GetRelativeMouseState(&dummyX, &dummyY);
+	}
+}
+
+//=============================================
+// @brief Called when raw mouse cvar changes
+//
+//=============================================
+void CInput::OnSetRawMouse( bool isEnabled )
+{
+	switch(isEnabled)
+	{
+	case true:
+		{
+			if(!m_relativeMouseModeSet)
+			{
+				SDL_SetRelativeMouseMode(SDL_TRUE);
+				m_relativeMouseModeSet = true;
+			}
+		}
+		break;
+	case false:
+		{
+			if(m_relativeMouseModeSet)
+			{
+				SDL_SetRelativeMouseMode(SDL_FALSE);
+				m_relativeMouseModeSet = false;
+			}
+		}
+		break;
 	}
 }
 
@@ -388,6 +466,9 @@ void CInput::HandleSDLEvent( const SDL_Event& sdlEvent )
 		}
 		break;
 	case SDL_MOUSEMOTION:
+		{
+		}
+		break;
 	default:
 		// Not an event we want to handle
 		break;
@@ -713,9 +794,14 @@ void CInput::GetMouseDelta( Int32 &deltaX, Int32 &deltaY )
 	if(!pWindow)
 		return;
 
+	bool rawInput = (m_pCvarRawMouseInput->GetValue() >= 1) ? true : false;
+	
 	// For cursor offset
 	Int32 x, y;
-	SDL_GetWindowPosition(pWindow, &x, &y);
+	if(!rawInput)
+		SDL_GetWindowPosition(pWindow, &x, &y);
+	else
+		x = y = 0;
 
 	// Store old mouse position
 	for(Uint32 i = 0; i < 2; i++)
@@ -731,11 +817,18 @@ void CInput::GetMouseDelta( Int32 &deltaX, Int32 &deltaY )
 	}
 	else
 	{
-		POINT p;
-		GetCursorPos(&p);
+		if(!rawInput)
+		{
+			POINT p;
+			GetCursorPos(&p);
 
-		deltaX = (p.x-x) - centerX;
-		deltaY = (p.y-y) - centerY;
+			deltaX = (p.x-x) - centerX;
+			deltaY = (p.y-y) - centerY;
+		}
+		else
+		{
+			SDL_GetRelativeMouseState(&deltaX, &deltaY);
+		}
 	}
 
 	m_mousePosition[0] += deltaX;
@@ -755,7 +848,8 @@ void CInput::GetMouseDelta( Int32 &deltaX, Int32 &deltaY )
 		m_mousePosition[1] = winHeight;
 
 	// Reposition mouse on center
-	SetCursorPos(x + centerX, y + centerY);
+	if(!rawInput)
+		SetCursorPos(x + centerX, y + centerY);
 }
 
 //=============================================
@@ -771,9 +865,14 @@ void CInput::UpdateMousePositions( bool clearReset )
 	if(!pWindow)
 		return;
 
+	bool rawInput = (m_pCvarRawMouseInput->GetValue() >= 1) ? true : false;
+
 	// For cursor offset
 	Int32 x, y;
-	SDL_GetWindowPosition(pWindow, &x, &y);
+	if(!rawInput)
+		SDL_GetWindowPosition(pWindow, &x, &y);
+	else
+		x = y = 0;
 
 	// Store old mouse position
 	for(Uint32 i = 0; i < 2; i++)
@@ -796,11 +895,18 @@ void CInput::UpdateMousePositions( bool clearReset )
 	}
 	else
 	{
-		POINT p;
-		GetCursorPos(&p);
+		if(!rawInput)
+		{
+			POINT p;
+			GetCursorPos(&p);
 
-		deltaX = (p.x-x) - centerX;
-		deltaY = (p.y-y) - centerY;
+			deltaX = (p.x-x) - centerX;
+			deltaY = (p.y-y) - centerY;
+		}
+		else
+		{
+			SDL_GetRelativeMouseState(&deltaX, &deltaY);
+		}
 	}
 
 	m_mousePosition[0] += deltaX;
@@ -820,7 +926,8 @@ void CInput::UpdateMousePositions( bool clearReset )
 		m_mousePosition[1] = winHeight;
 
 	// Reposition mouse on center
-	SetCursorPos(x + centerX, y + centerY);
+	if(!rawInput)
+		SetCursorPos(x + centerX, y + centerY);
 }
 
 //=============================================

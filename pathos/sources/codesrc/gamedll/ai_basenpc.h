@@ -128,6 +128,18 @@ enum bodytarget_t
 	BODYTARGET_LEGS
 };
 
+enum deathflags_t
+{
+	NPC_DF_NONE					= 0,
+	NPC_DF_BLOWBACK_FLYING		= (1<<0), // We were blown off the ground when killed with a weapon that blows us back
+	NPC_DF_LANDED_ONGROUND		= (1<<1), // We landed completely onground after we were sent flying upon death
+	NPC_DF_LANDED_AGAINST_WALL	= (1<<2), // We landed with our backs against a wall after being blown back
+	NPC_DF_LANDED				= (1<<3), // We've landed completely after beign sent flying
+	NPC_DF_EXPLODE				= (1<<4), // We are set to explode from something like a plasma burn, etc
+	NPC_DF_GIB_CORPSE			= (1<<5), // The corpse should be gibbed
+	NPC_DF_NO_PUDDLE			= (1<<6), // Don't spawn puddle decal
+};
+
 //=============================================
 //
 //=============================================
@@ -315,6 +327,8 @@ public:
 		AI_CAP_ATTACK_BLEND_SEQ,
 		AI_CAP_SPECIAL_ATTACK1,
 		AI_CAP_SPECIAL_ATTACK2,
+		AI_CAP_BLOWBACK_ANIMS,
+		AI_CAP_HEAVY_FLINCH_ANIMS,
 
 		AI_CAP_BITS_COUNT		= 64
 	};
@@ -646,7 +660,6 @@ public:
 	// Tells if the NPC should be gibbed
 	bool ShouldGibNPC( gibbing_t gibFlag ) const;
 
-
 protected:
 	// Calls for the NPC think code
 	void EXPORTFN CallNPCThink( void );
@@ -698,7 +711,9 @@ protected:
 	void PerformMovement( Double animInterval );
 	// Stops the movement
 	void StopMovement( void );
-
+	
+	// Get an ideal weapon drop position
+	bool GetWeaponDropPosition( Uint32 attachmentIndex, Vector& outPosition );
 	// Drops an item/weapon
 	CBaseEntity* DropItem( weaponid_t weaponId, Uint32 attachmentIndex, bool wasGibbed );
 
@@ -949,6 +964,11 @@ protected:
 	// Removes a capability
 	void RemoveCapability( Uint32 capabilityBit );
 
+	// For blowback death
+	void EXPORTFN CorpseTouch( CBaseEntity* pOther );
+	// Corpse stop moving function
+	void CorpseStopMoving( bool clearVelocity, bool dropToGround );
+
 protected:
 	// Initializes the NPC
 	virtual void InitNPC( void );
@@ -960,6 +980,8 @@ protected:
 
 	// Returns the ideal death activity
 	virtual activity_t GetDeathActivity( void );
+	// Returns the ideal death activity for blowback deaths
+	virtual activity_t GetBlowbackDeathActivity( void );
 
 	// Performs sight-related functions
 	virtual void Look( void );
@@ -1097,6 +1119,10 @@ protected:
 	virtual bool ShouldDamageGibNPC( Float damageAmount, Float prevHealth, Int32 dmgFlags, bool wasDecapitated );
 	// Spawns particles when NPC is gibbed
 	virtual void SpawnGibbedParticles( void );
+	// Tells if NPC should be blown back by death inducing damage
+	virtual bool ShouldApplyDeathBlowback( bool shouldGib, Int32 damageFlags, Int32 hitgroup );
+	// Gets the blowback damage acceleration multiplier
+	virtual Float GetBlowbackDmgAccelerationMultiplier ( void ) { return 1.0; };
 
 	// Picks a proper reload schedule
 	virtual const CAISchedule* GetReloadSchedule( void );
@@ -1189,6 +1215,8 @@ protected:
 	CLinkedList<cleardamage_t>	m_damageClearList;
 	// Last heavy flinch time
 	Double						m_lastHeavyFlinchTime;
+	// Next flinch time(non-heavy only)
+	Double						m_nextFlinchTime;
 
 	// Current enemy
 	CEntityHandle				m_enemy;
@@ -1296,8 +1324,12 @@ protected:
 	Int32						m_deathMode;
 	// Damage bits at death
 	Int32						m_deathDamageBits;
+	// Damage dealt at death
+	Float						m_deathDamageAmount;
 	// Delay before NPC explodes
 	Double						m_deathExplodeTime;
+	// Flags for dying/death
+	Int32						m_deathFlags;
 
 	// Last distance from danger source
 	Float						m_lastDangerDistance;

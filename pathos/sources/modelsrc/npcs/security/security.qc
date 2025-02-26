@@ -80,11 +80,17 @@ $sequence "walk" "walk" LX fps 30 loop ACT_WALK 1 { event 9002 3 "0" } { event 9
 $sequence "run" "run" LX fps 37 loop ACT_RUN 1 { event 9002 5 "0" } { event 9002 16 "0" } 
 $sequence "turnleft" "../shared/turnleft" fps 35 ACT_TURN_LEFT 1 
 $sequence "turnright" "../shared/turnright" fps 35 ACT_TURN_RIGHT 1  
-$sequence "laflinch" "laflinch" fps 16 ACT_FLINCH_LEFTARM 1 
-$sequence "raflinch" "raflinch" fps 16 ACT_FLINCH_RIGHTARM 1 
-$sequence "llflinch" "llflinch" fps 20 ACT_FLINCH_LEFTLEG 1 
-$sequence "rlflinch" "rlflinch" fps 20 ACT_FLINCH_RIGHTLEG 1 
-$sequence "smlflinch" "smlflinch" fps 30 ACT_SMALL_FLINCH 1 
+$sequence "larmflinch" "../shared/larmflinch" fps 16 ACT_FLINCH_LEFTARM 1 
+$sequence "rarmflinch" "../shared/rarmflinch" fps 16 ACT_FLINCH_RIGHTARM 1 
+$sequence "llegflinch" "../shared/llegflinch" fps 20 ACT_FLINCH_LEFTLEG 1 
+$sequence "rlegflinch" "../shared/rlegflinch" fps 20 ACT_FLINCH_RIGHTLEG 1 
+$sequence "smflinch" "../shared/smflinch" fps 30 ACT_SMALL_FLINCH 1 
+$sequence "larmflinch_heavy" "../shared/larmflinch_heavy" fps 16 ACT_FLINCH_LEFTARM_HEAVY 1 
+$sequence "rarmflinch_heavy" "../shared/rarmflinch_heavy" fps 16 ACT_FLINCH_RIGHTARM_HEAVY 1 
+$sequence "llegflinch_heavy" "../shared/llegflinch_heavy" fps 20 ACT_FLINCH_LEFTLEG_HEAVY 1 
+$sequence "rlegflinch_heavy" "../shared/rlegflinch_heavy" fps 20 ACT_FLINCH_RIGHTLEG_HEAVY 1 
+$sequence "flinch_heavy1" "../shared/flinch_heavy1" fps 30 ACT_FLINCH_HEAVY 50 
+$sequence "flinch_heavy2" "../shared/flinch_heavy2" fps 30 ACT_FLINCH_HEAVY 50 
 $sequence "draw" "draw" fps 30 ACT_ARM 1 { event 2 18 }
 $sequence "aim_pistol" "aim_pistol" fps 85 ACT_IDLE_ANGRY loop 
 $sequence "fire_glock" "fire_pistol_standing_blend1" "fire_pistol_standing_blend2" blend XR -50 50 fps 25 loop ACT_RANGE_ATTACK1 1 {
@@ -113,6 +119,11 @@ $sequence "diegutshot" "../shared/diegutshot" X fps 27 ACT_DIE_GUTSHOT 1 { event
 $sequence "dieforward" "../shared/dieforward" X fps 33 ACT_DIEFORWARD 1 { event 2001 8 }
 $sequence "diebackward" "../shared/diebackward" X fps 35 ACT_DIEBACKWARD 1 { event 2001 54 }
 $sequence "diecrump" "../shared/diecrump" X fps 40 ACT_DIESIMPLE 2 { event 2001 33 }
+$sequence "blowback_fly" "../shared/blowback_fly" fps 70 ACT_BLOWBACK_FLY 1
+$sequence "blowback_land_flat1" "../shared/blowback_land_flat1" fps 70 ACT_BLOWBACK_LAND_FLAT 50 { event 2001 30 }
+$sequence "blowback_land_flat_back1" "../shared/blowback_land_flat_back1" fps 70 ACT_BLOWBACK_LAND_FLAT_BACK 50 { event 2001 18 }
+$sequence "blowback_land_seated1" "../shared/blowback_land_seated1" fps 70 ACT_BLOWBACK_LAND_SEATED 50 { event 2001 4 } { event 2001 30 }
+$sequence "blowback_land_stomach1" "../shared/blowback_land_stomach1" fps 70 ACT_BLOWBACK_LAND_STOMACH 50 { event 2001 16 }
 $sequence "c3a2_draw" "c3a2_draw" fps 30 { event 2 18 }
 $sequence "lying_on_back" "lying_on_back" fps 1 
 $sequence "lying_on_side" "lying_on_side" fps 1 

@@ -20,7 +20,7 @@ $particlescript
 	$rendermode additive
 	$alpha 0.100000
 	$alignment tiled
-	$texture smoke03
+	$texture smoke02
 	$rotate_z_speed 80.000000
 	$rotate_z_dampening 0.020000
 	$attachment_flags to_parent to_attachment

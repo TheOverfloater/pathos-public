@@ -11,7 +11,7 @@ $particlescript
 	$scale 2.000000
 	$scale_variation 1.000000
 	$scale_damping -7.000000
-	$particles_on_spawn 15
+	$particles_on_spawn 3
 	$rendermode additive
 	$alpha 0.800000
 	$alignment tiled
