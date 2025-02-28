@@ -593,3 +593,15 @@
  - Modified NPC flinching to be delayed based on timing.
  - Added smart weapon spawning code to NPCs, so that weapons won't spawn in solids on drop.
  - Added code to animating entities, which now makes sure that particle scripts referenced in animation events are properly precached on map load.
+ 
+2025 February 28th:
+ - Removed x86 binaries from repo due to numerous issues caused by the move to VS2022. Will be fixed later.
+ - Added Spark streak, streak splash, large funnel, blood stream and blood particles effects to legacy particle code.
+ - Optimized tempentity code related to sprite funnel effect.
+ - Fixes for "Raw Mouse Input" feature, including fixing a bug that was causing the cursor to disappear.
+ - Added new "FPS Graph" feature.
+ - Modified "Time Graph" to take FPS graph into account when positioning the graph.
+ - Modified screenshot code, so that film grain is not drawn for screenshots.
+ - Modified NPC code related to decapitation/blowback/bullet gibbing to be more optimized.
+ - Modified CMultiDamage class to track hitbox hit counts indidually.
+ - Modified some NPC AI schedules to react to damage AI conditions.
