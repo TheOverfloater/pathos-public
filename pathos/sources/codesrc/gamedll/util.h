@@ -101,6 +101,11 @@ namespace Util
 	extern void CreateLavaSplash( const Vector& origin );
 	extern void CreateTeleportSplash( const Vector& origin );
 	extern void CreateRocketTrail( const Vector& start, const Vector& end, Uint32 type );
+	extern void CreateSparkStreak( const Vector& origin, Uint32 count, Float minVelocity, Float maxVelocity );
+	extern void CreateStreakSplash( const Vector& origin, const Vector& direction, Uint32 color, Uint32 count, Float speed, Float minVelocity, Float maxVelocity );
+	extern void CreateLargeFunnel( const Vector& origin, bool reverse );
+	extern void CreateBloodStream( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
+	extern void CreateBloodParticles( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
 	extern void PrecacheFixedNbSounds( const Char* pstrPattern, Uint32 count );
 	extern void PrecacheVariableNbSounds( const Char* pstrPattern, Uint32& outcount );
 	extern CString PlayRandomEntitySound( CBaseEntity* pEntity, const Char* pstrPattern, Int32 count, snd_channels_t channel = SND_CHAN_AUTO, Float volume = VOL_NORM, Float attenuation = ATTN_NORM, Int32 pitch = PITCH_NORM, Int32 flags = SND_FL_NONE );

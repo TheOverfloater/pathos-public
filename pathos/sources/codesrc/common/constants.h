@@ -545,6 +545,7 @@ enum envdecalflags_t
 // Move these out of const
 enum hitgroups_t
 {
+	HITGROUP_NONE = -1,
 	HITGROUP_GENERIC = 0,
 	HITGROUP_HEAD,
 	HITGROUP_CHEST,
@@ -553,7 +554,10 @@ enum hitgroups_t
 	HITGROUP_RIGHT_ARM,
 	HITGROUP_LEFT_LEG,
 	HITGROUP_RIGHT_LEG,
-	HITGROUP_HELMET = 11
+	HITGROUP_HELMET = 11,
+
+	// MUST BE LAST
+	NB_HITGROUPS
 };
 
 // Move these out of const
@@ -839,7 +843,12 @@ enum tempentitytypes_t
 	TE_LAVASPLASH,
 	TE_TELEPORTSPLASH,
 	TE_ROCKETTRAIL,
-	TE_TRACER
+	TE_TRACER,
+	TE_SPARKSTREAK,
+	TE_STREAKSPLASH,
+	TE_LARGEFUNNEL,
+	TE_BLOODSTREAM,
+	TE_BLOODPARTICLES
 };
 
 enum trailtype_t
@@ -971,4 +980,5 @@ enum overlay_msg_type_t
 	OVERLAY_MSG_CLEAR_FADEOUT,
 	OVERLAY_MSG_CLEAR
 };
+
 #endif //CONSTANTS_H

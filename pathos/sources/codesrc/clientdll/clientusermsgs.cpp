@@ -899,6 +899,80 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 			cl_efxapi.pfnCreateTracer(origin, velocity, color, alpha, width, length, life, tracertype);
 		}
 		break;
+	case TE_SPARKSTREAK:
+		{
+			Vector origin;
+			for(Uint32 i = 0; i < 3; i++)
+				origin[i] = reader.ReadFloat();
+
+			Uint32 count = reader.ReadUint16();
+			Float minVelocity = reader.ReadFloat();
+			Float maxVelocity = reader.ReadFloat();
+
+			cl_efxapi.pfnCreateSparkStreak(origin, count, minVelocity, maxVelocity);
+		}
+		break;
+	case TE_STREAKSPLASH:
+		{
+			Vector origin;
+			for(Uint32 i = 0; i < 3; i++)
+				origin[i] = reader.ReadFloat();
+
+			Vector direction;
+			for(Uint32 i = 0; i < 3; i++)
+				direction[i] = reader.ReadFloat();
+
+			Uint32 color = reader.ReadByte();
+			Uint32 count = reader.ReadUint16();
+			Float speed = reader.ReadFloat();
+			Float minVelocity = reader.ReadFloat();
+			Float maxVelocity = reader.ReadFloat();
+
+			cl_efxapi.pfnCreateStreakSplash(origin, direction, color, count, speed, minVelocity, maxVelocity);
+		}
+		break;
+	case TE_LARGEFUNNEL:
+		{
+			Vector origin;
+			for(Uint32 i = 0; i < 3; i++)
+				origin[i] = reader.ReadFloat();
+
+			bool reverse = (reader.ReadByte() == 1) ? true : false;
+			cl_efxapi.pfnCreateLargeFunnel(origin, reverse);
+		}
+		break;
+	case TE_BLOODSTREAM:
+		{
+			Vector origin;
+			for(Uint32 i = 0; i < 3; i++)
+				origin[i] = reader.ReadFloat();
+
+			Vector direction;
+			for(Uint32 i = 0; i < 3; i++)
+				direction[i] = reader.ReadFloat();
+
+			Uint32 color = reader.ReadByte();
+			Float speed = reader.ReadFloat();
+
+			cl_efxapi.pfnCreateBloodStream(origin, direction, color, speed);
+		}
+		break;
+	case TE_BLOODPARTICLES:
+		{
+			Vector origin;
+			for(Uint32 i = 0; i < 3; i++)
+				origin[i] = reader.ReadFloat();
+
+			Vector direction;
+			for(Uint32 i = 0; i < 3; i++)
+				direction[i] = reader.ReadFloat();
+
+			Uint32 color = reader.ReadByte();
+			Float speed = reader.ReadFloat();
+
+			cl_efxapi.pfnCreateBloodParticles(origin, direction, color, speed);
+		}
+		break;
 	case TE_UNDEFINED:
 	default:
 			cl_engfuncs.pfnCon_Printf("%s - Unknown tempentity type '%d'.\n", __FUNCTION__, (Int32)type);

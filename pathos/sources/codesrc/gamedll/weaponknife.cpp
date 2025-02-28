@@ -202,7 +202,7 @@ void CWeaponKnife::PostThink( void )
 			Vector vecBaseSrc = m_pPlayer->GetGunPosition();
 			Vector vecBaseEnd = vecBaseSrc + forward * 60 - up * 12;
 
-			gMultiDamage.Clear( );
+			gMultiDamage.Prepare(BULLET_PLAYER_KNIFE, forward);
 
 			Vector vecSrc;
 			Vector vecEnd;
@@ -272,7 +272,7 @@ void CWeaponKnife::PostThink( void )
 			}
 
 			// Apply the damage
-			gMultiDamage.ApplyDamage(m_pPlayer, m_pPlayer, tr.hitgroup);
+			gMultiDamage.ApplyDamage(m_pPlayer, m_pPlayer);
 
 			m_knifeHit = false;
 		}

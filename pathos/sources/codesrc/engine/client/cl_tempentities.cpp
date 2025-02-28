@@ -582,13 +582,12 @@ void CTempEntityManager::CreateFunnel( const Vector& origin, const Vector& color
 
 			Vector dir;
 			Float velocity;
+			Vector entorigin;
 
 			if(reverse)
 			{
-				// Set particle origin
-				ptemp = AllocTempEntity(origin, pmodel);
-				if(!ptemp)
-					return;
+				// Set tempent origin
+				entorigin = origin;
 
 				// Set final destination
 				Vector dest;
@@ -603,19 +602,19 @@ void CTempEntityManager::CreateFunnel( const Vector& origin, const Vector& color
 			else
 			{
 				// Set tempent origin
-				Vector entorigin;
 				entorigin[0] = origin[0] + i;
 				entorigin[1] = origin[1] + j;
 				entorigin[2] = origin[2] + Common::RandomFloat(100, 800);
-
-				ptemp = AllocTempEntity(entorigin, pmodel);
-				if(!ptemp)
-					return;
 
 				// Calculate direction and velocity
 				dir = origin-ptemp->entity.curstate.origin;
 				velocity = SDL_fabs(dir[2])/8;
 			}
+
+			// Set particle origin
+			ptemp = AllocTempEntity(entorigin, pmodel);
+			if(!ptemp)
+				return;
 
 			if(color.IsZero())
 				ptemp->entity.curstate.rendercolor = Vector(0, 255, 0);

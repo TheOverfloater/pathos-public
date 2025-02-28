@@ -1631,6 +1631,85 @@ namespace Util
 	//=============================================
 	//
 	//=============================================
+	void CreateSparkStreak( const Vector& origin, Uint32 count, Float minVelocity, Float maxVelocity )
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
+			gd_engfuncs.pfnMsgWriteByte(TE_SPARKSTREAK);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
+			gd_engfuncs.pfnMsgWriteUint16(count);
+			gd_engfuncs.pfnMsgWriteFloat(minVelocity);
+			gd_engfuncs.pfnMsgWriteFloat(maxVelocity);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	//=============================================
+	//
+	//=============================================
+	void CreateStreakSplash( const Vector& origin, const Vector& direction, Uint32 color, Uint32 count, Float speed, Float minVelocity, Float maxVelocity )
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
+			gd_engfuncs.pfnMsgWriteByte(TE_STREAKSPLASH);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(direction[i]);
+			gd_engfuncs.pfnMsgWriteByte(color);
+			gd_engfuncs.pfnMsgWriteUint16(count);
+			gd_engfuncs.pfnMsgWriteFloat(speed);
+			gd_engfuncs.pfnMsgWriteFloat(minVelocity);
+			gd_engfuncs.pfnMsgWriteFloat(maxVelocity);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	//=============================================
+	//
+	//=============================================
+	void CreateLargeFunnel( const Vector& origin, bool reverse )
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
+			gd_engfuncs.pfnMsgWriteByte(TE_LARGEFUNNEL);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
+			gd_engfuncs.pfnMsgWriteByte(reverse);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	//=============================================
+	//
+	//=============================================
+	void CreateBloodStream( const Vector& origin, const Vector& direction, Uint32 color, Float speed )
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
+			gd_engfuncs.pfnMsgWriteByte(TE_BLOODSTREAM);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(direction[i]);
+			gd_engfuncs.pfnMsgWriteByte(color);
+			gd_engfuncs.pfnMsgWriteFloat(speed);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	//=============================================
+	//
+	//=============================================
+	void CreateBloodParticles( const Vector& origin, const Vector& direction, Uint32 color, Float speed )
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
+			gd_engfuncs.pfnMsgWriteByte(TE_BLOODPARTICLES);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(direction[i]);
+			gd_engfuncs.pfnMsgWriteByte(color);
+			gd_engfuncs.pfnMsgWriteFloat(speed);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	//=============================================
+	//
+	//=============================================
 	void PrecacheFixedNbSounds( const Char* pstrPattern, Uint32 count )
 	{
 		CString filepath(pstrPattern);

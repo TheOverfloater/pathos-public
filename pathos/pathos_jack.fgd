@@ -1244,10 +1244,16 @@
   	    5 : "Lava Splash"
   	    6 : "Teleport Splash"
   	    7 : "Rocket Trail"
+		8 : "Spark Streak"
+		9 : "Streak Splash"
+		10 : "Large Funnel"
+		11 : "Blood Stream"
+		12 : "Blood Particles"
   	]
 	startcolor(integer) : "Start color index" : 0
 	endcolor(integer) : "End color index" : 255
 	count(integer) : "Particle count" : 25
+	speed(integer) : "Velocity" : 10
 	trailtype(Choices) : "Rocket trail type" : 0 =
   	[
   	    0 : "Rocket"
@@ -1260,9 +1266,12 @@
   	]
 	mindelay(integer) : "Minimum repeat delay" : 0
 	maxdelay(integer) : "Maximum repeat delay" : 0
+	minvelocity(integer) : "Minimum velocity" : 0
+	maxvelocity(integer) : "Maximum velocity" : 100
 	spawnflags(flags) =
 	[
 		1: "Start On" : 0
+		2: "Reverse Funnel" : 0
 	]
 ]
 @PointClass base(Targetname, Target, RenderFields) size(-16 -16 -16, 16 16 16) color(100 100 0) = env_render : "Render Controls"

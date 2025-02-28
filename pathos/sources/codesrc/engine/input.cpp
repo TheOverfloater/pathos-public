@@ -370,6 +370,9 @@ void CInput::HideMouse( void )
 //=============================================
 void CInput::OnSetRawMouse( bool isEnabled )
 {
+	if(m_isCursorVisible)
+		return;
+
 	switch(isEnabled)
 	{
 	case true:
@@ -952,6 +955,12 @@ void CInput::ResetMouse( void )
 		return;
 
 	SDL_WarpMouseInWindow(pWindow, centerX, centerY);
+
+	if(m_pCvarRawMouseInput->GetValue() >= 1)
+	{
+		Int32 dummyX, dummyY;
+		SDL_GetRelativeMouseState(&dummyX, &dummyY);
+	}
 }
 
 //=============================================

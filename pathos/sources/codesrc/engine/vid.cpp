@@ -41,6 +41,7 @@ All Rights Reserved.
 #include "file.h"
 
 extern CCVar* g_pCvarTimeGraph;
+extern CCVar* g_pCvarFPSGraph;
 
 //=============================================
 //=============================================
@@ -715,6 +716,20 @@ void VID_Draw( void )
 		{
 			CBasicDraw* pDraw = CBasicDraw::GetInstance();
 			Sys_ErrorPopup("Shader error: %s.\n", pDraw->GetShaderError());
+			Con_Printf("%s - Fatal error while drawing time graph.\n", __FUNCTION__);
+			CL_Disconnect();
+			ens.exit = true;
+			return;
+		}
+	}
+
+	// Draw FPS graph
+	if(g_pCvarFPSGraph->GetValue() >= 1)
+	{
+		if(!R_DrawFPSGraph())
+		{
+			CBasicDraw* pDraw = CBasicDraw::GetInstance();
+			Sys_ErrorPopup("Shader error: %s.\n", pDraw->GetShaderError());
 			Con_Printf("%s - Fatal error while drawing console history.\n", __FUNCTION__);
 			CL_Disconnect();
 			ens.exit = true;
@@ -807,7 +822,7 @@ void VID_DrawSceneOnly( void )
 			return;
 		}
 
-		if(!R_DrawHUD(true))
+		if(!R_DrawHUD(true, true))
 		{
 			Con_Printf("%s - Fatal error while drawing HUD.\n", __FUNCTION__);
 			CL_Disconnect();

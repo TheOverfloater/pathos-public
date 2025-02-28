@@ -875,7 +875,7 @@ bool CConsole::ProcessCommand( void )
 				return true;
 			}
 
-			Float value = atof(pstrValue)*sgn;
+			Float value = SDL_atof(pstrValue)*sgn;
 			if(!CVarSetFloatValue(pstrName, value))
 				return false;
 		}

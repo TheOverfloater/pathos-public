@@ -134,9 +134,9 @@ const Float CBaseNPC::NPC_FIRING_ANGLE_TRESHOLD = 0.5f;
 // Max localmove height diff in start and end
 const Float CBaseNPC::NPC_MAX_LOCALMOVE_HEIGHT_DIFF = 1024.0f;
 // Distance at which we can be decapitated
-const Float CBaseNPC::NPC_DECAP_MAX_DISTANCE = 512.0f;
+const Float CBaseNPC::NPC_DECAP_MAX_DISTANCE = 256.0f;
 // Distance at which we can be gibbed by a bullet
-const Float CBaseNPC::NPC_BULLETGIB_MAX_DISTANCE = 512.0f;
+const Float CBaseNPC::NPC_BULLETGIB_MAX_DISTANCE = 256.0f;
 // Number of coverage checks
 const Uint32 CBaseNPC::NPC_NUM_COVERAGE_CHECKS = 6;
 // Max number of schedule changes per think
@@ -1418,18 +1418,40 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 	if(!IsAlive())
 		return TakeDamageDead(pInflictor, pAttacker, amount, damageFlags);
 
-	// Get distance to enemy
-	Float shooterDistance = (pInflictor->GetCenter() - GetCenter()).Length();
 
-	// If insta-decapitated, then change amount to our full health
+	// Get basic infos
+	Uint32 totalNbShots = gMultiDamage.GetShotCount();
+	Uint32 npcNpcHitShots = gMultiDamage.GetEntityHitCount(this);
+	hitgroups_t highestHitGrp = gMultiDamage.GetHitHighestCountGroupForEntity(this);
+
+	// Get distance to shooter
+	Float shooterDistance = (pInflictor->GetCenter() - GetCenter()).Length();
 	Float _dmgAmount = amount;
-	bool wasInstantDecpitated = false;
-	Int32 hitgroup = gMultiDamage.GetHitGroupForEntity(this);
-	if(shooterDistance < NPC_DECAP_MAX_DISTANCE && hitgroup == HITGROUP_HEAD 
-		&& (damageFlags & DMG_INSTANTDECAP) && CanBeInstantlyDecapitated())
+
+	// If firing a shotgun from a close range, apply blowback dmg flag
+	bullet_types_t bulletType = gMultiDamage.GetBulletType();
+	if((bulletType == BULLET_NPC_BUCKSHOT) && npcNpcHitShots > totalNbShots * 0.5 && shooterDistance < NPC_BULLETGIB_MAX_DISTANCE)
+		damageFlags |= DMG_BLOWBACK;
+
+	// Check if we got insta-decapitated
+	bool wasDecapitated = false;
+	if((damageFlags & DMG_INSTANTDECAP) && highestHitGrp == HITGROUP_HEAD 
+		&& CanBeInstantlyDecapitated() && shooterDistance < NPC_DECAP_MAX_DISTANCE)
 	{
-		wasInstantDecpitated = true;
-		_dmgAmount = m_pState->health;
+		Uint32 groupHitCount = gMultiDamage.GetHitGroupHitCountForEntity(this, highestHitGrp);
+		Uint32 totalShotCount = gMultiDamage.GetShotCount();
+
+		// Apply if it's one bullet, or the shots to the head are the majority
+		if((totalShotCount <= 1 || groupHitCount > totalShotCount * 0.5))
+		{
+			// Mark us as having been insta-decapped
+			wasDecapitated = true;
+			// Change this to take full health
+			_dmgAmount = m_pState->health; 
+
+			// Decapitate the NPC
+			Decapitate((damageFlags & DMG_AXE) ? true : false);
+		}
 	}
 
 	// Clear blowback dmg flag if not present in this damage call
@@ -1460,15 +1482,19 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 	}
 
 	// If we're dead, then manage death
-	if(m_pState->health <= 0 || wasInstantDecpitated)
+	if(m_pState->health <= 0 || wasDecapitated)
 	{
-		// If hit by a gibbing or insta-decap bullet in the head/helmet, then decapitate the NPC
-		bool wasDecapitated = false;
-		if(wasInstantDecpitated || (!(damageFlags & DMG_BUCKSHOT) || shooterDistance < NPC_DECAP_MAX_DISTANCE) 
-			&& (hitgroup == HITGROUP_HEAD || hitgroup == HITGROUP_HELMET) && (damageFlags & (DMG_BULLETGIB|DMG_AXE)))
+		// Do additional check here if we did not get insta-decapitated
+		if(!wasDecapitated)
 		{
-			Decapitate((damageFlags & DMG_AXE) ? true : false);
-			wasDecapitated = true;
+			if((damageFlags & (DMG_BULLETGIB|DMG_AXE)) && shooterDistance < NPC_DECAP_MAX_DISTANCE
+				&& (highestHitGrp == HITGROUP_HEAD || highestHitGrp == HITGROUP_HELMET))
+			{
+				// Mark NPC to be decapitated
+				wasDecapitated = true;
+				// Decapitate the NPC
+				Decapitate((damageFlags & DMG_AXE) ? true : false);
+			}
 		}
 		
 		// Gibbing and death mode depend on damage types
@@ -1477,7 +1503,9 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 		
 		// Get this separately
 		bool shouldGib = shooterDistance < NPC_BULLETGIB_MAX_DISTANCE && ShouldDamageGibNPC(_dmgAmount, prevHealth, damageFlags, wasDecapitated);
-		if(ShouldApplyDeathBlowback(shouldGib, damageFlags, hitgroup) && HasCapability(AI_CAP_BLOWBACK_ANIMS))
+
+		// Infestation can never gib
+		if(ShouldApplyDeathBlowback(shouldGib, damageFlags, highestHitGrp) && HasCapability(AI_CAP_BLOWBACK_ANIMS))
 		{
 			// Never gib when blowing NPC back
 			deathMode = DEATH_BLOWBACK;
@@ -1586,7 +1614,7 @@ bool CBaseNPC::ShouldDamageGibNPC( Float damageAmount, Float prevHealth, Int32 d
 	// and we're at a minimum health, or at a one out of three random chance. Also never gib 
 	// if we already got decapitated
 	if(((dmgFlags & DMG_BULLETGIB) && damageAmount >= NPC_BULLETGIB_DMG_TRESHOLD 
-		&& (prevHealth <= NPC_BULLETGIB_MIN_HEALTH || Common::RandomLong(0, 4) == 1) 
+		&& (prevHealth <= NPC_BULLETGIB_MIN_HEALTH || ((dmgFlags & DMG_BLOWBACK) && Common::RandomLong(0, 7) == 1 || Common::RandomLong(0, 4) == 1))
 		&& !wasDecapitated || (dmgFlags & DMG_ALWAYSGIB)) && !(dmgFlags & DMG_NEVERGIB))
 		return true;
 	else
@@ -1627,13 +1655,13 @@ bool CBaseNPC::TakeDamageDead( CBaseEntity* pInflictor, CBaseEntity* pAttacker, 
 		&& HasCapability(AI_CAP_BLOWBACK_ANIMS) 
 		&& m_pState->velocity.Length() > 0)
 	{
-		Float upDp = -Math::DotProduct(Vector(0, 0, 1), m_damageDirection);
+		Float upDp = -Math::DotProduct(Vector(0, 0, 1), gMultiDamage.GetShotDirection());
 		upDp = clamp(upDp, 0, 1);
 		Float blastVelocity = upDp * Common::RandomFloat(250, 350) + (1.0 - upDp) * Common::RandomFloat(1250, 1450);
 
 		// Set angles
 		m_pState->flags &= FL_ONGROUND;
-		m_pState->angles = Math::VectorToAngles(m_damageDirection);
+		m_pState->angles = Math::VectorToAngles(gMultiDamage.GetShotDirection());
 		m_pState->idealyaw = m_pState->angles[YAW];
 		m_updateYaw = false;
 
@@ -1790,7 +1818,7 @@ void CBaseNPC::TraceAttack( CBaseEntity* pAttacker, Float damage, const Vector& 
 		if(!(damageFlags & DMG_MELEE) && _dmgAmount >= NPC_LIGHT_DAMAGE_TRESHOLD)
 			Util::SpawnBloodParticles(tr, GetBloodColor(), false);
 
-		gMultiDamage.AddDamage(this, _dmgAmount, damageFlags);
+		gMultiDamage.AddDamage(this, _dmgAmount, damageFlags, static_cast<hitgroups_t>(tr.hitgroup));
 	}
 
 	// Spawn blood decal on NPC if you can

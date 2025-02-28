@@ -24,7 +24,8 @@ public:
 	// Spawnflags
 	enum
 	{
-		FL_START_ON = (1<<0)
+		FL_START_ON			= (1<<0),
+		FL_REVERSE_FUNNEL	= (1<<1)
 	};
 
 public:
@@ -38,6 +39,13 @@ public:
 		EFFECT_LAVASPLASH,
 		EFFECT_TELEPORTSPLASH,
 		EFFECT_ROCKETTRAIL,
+		EFFECT_SPARKSTREAK,
+		EFFECT_STREAKSPLASH,
+		EFFECT_LARGEFUNNEL,
+		EFFECT_BLOODSTREAM,
+		EFFECT_BLOODPARTICLES,
+
+		// MUST BE LAST
 		NB_EFFECT_TYPES
 	};
 
@@ -76,6 +84,10 @@ private:
 	Float m_minRepeatDelay;
 	// Max repeat delay
 	Float m_maxRepeatDelay;
+	// Min velocity
+	Float m_minVelocity;
+	// Max velocity
+	Float m_maxVelocity;
 	// True if we're actively repeating
 	bool m_isActive;
 };

@@ -950,15 +950,24 @@ document:
 	 - "Lava Splash": Lava splash effect in a rectangular area.
 	 - "Teleport Splash": Teleport splash effect from Quake 1.
 	 - "Rocket Trail": Rocket trail type, needs "Target" to be set.
+	 - "Spark Streak": Half-Life 1 spark streak particles.
+	 - "Streak Splash": Half-Life 1 streak splash effect.
+	 - "Large Funnel": Resonance cascade funnel effect.
+	 - "Blood Stream": Blood stream effect.
+	 - "Blood Particles": Blood drop effect.
    - "Start color index": Beginning of color index range in the Quake 1 palette.
    - "End color index": End of color index range in the Quake 1 palette.
    - "Particle count": Number of particles to spawn, for "Particle Effect" only.
+   - "Velocity": Velocity of particles spawned.
    - "Rocket trail type": Type of rocket trail to spawn.
    - "Minimum repeat delay": Minimum delay before the effect occurs again.
-   - "Maximum repeat delay": Maximum delay before the effect occurs again.   
+   - "Maximum repeat delay": Maximum delay before the effect occurs again.
+   - "Minimum velocity": Minimum velocity of streak particles.
+   - "Maximum velocity": Maximum velocity of streak particles.
    
  - Spawn flags:
    - "Start On": If set, this entity will spawn on the "On" state.
+   - "Reverse Funnel": Sets whether particles should be blowing out from origin with the funnel effect.
    
 # env_render
 >Use this entity to set the render properties of another entity. It can be used to change the render mode,

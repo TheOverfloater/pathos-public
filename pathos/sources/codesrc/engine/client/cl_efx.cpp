@@ -95,6 +95,11 @@ static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 	CL_LavaSplash,					//pfnLavaSplash
 	CL_TeleportSplash,				//pfnTeleportSplash
 	CL_RocketTrail,					//pfnRocketTrail
+	CL_CreateSparkStreak,			//pfnCreateSparkStreak
+	CL_CreateStreakSplash,			//pfnCreateStreakSplash			
+	CL_CreateLargeFunnel,			//pfnCreateLargeFunnel
+	CL_CreateBloodStream,			//pfnCreateBloodStream
+	CL_CreateBloodParticles,		//pfnCreateBloodParticles
 	CL_BeamLightning,				//pfnBeamLightning	
 	CL_BeamCirclePoints,			//pfnBeamCirclePoints
 	CL_BeamEntityPoint,				//pfnBeamEntityPoint
@@ -671,6 +676,46 @@ void CL_TeleportSplash( const Vector& origin )
 void CL_RocketTrail( const Vector& start, const Vector& end, Uint32 type )
 {
 	gLegacyParticles.CreateRocketTrail(start, end, type);
+}
+
+//====================================
+//
+//====================================
+void CL_CreateSparkStreak( const Vector& origin, Uint32 count, Float minVelocity, Float maxVelocity )
+{
+	gLegacyParticles.CreateSparkStreak(origin, count, minVelocity, maxVelocity);
+}
+
+//====================================
+//
+//====================================
+void CL_CreateStreakSplash( const Vector& origin, const Vector& direction, Uint32 color, Uint32 count, Float speed, Float minVelocity, Float maxVelocity )
+{
+	gLegacyParticles.CreateStreakSplash(origin, direction, color, count, speed, minVelocity, maxVelocity);
+}
+
+//====================================
+//
+//====================================
+void CL_CreateLargeFunnel( const Vector& origin, bool reverse )
+{
+	gLegacyParticles.CreateLargeFunnel(origin, reverse);
+}
+
+//====================================
+//
+//====================================
+void CL_CreateBloodStream( const Vector& origin, const Vector& direction, Uint32 color, Float speed )
+{
+	gLegacyParticles.CreateBloodStream(origin, direction, color, speed);
+}
+
+//====================================
+//
+//====================================
+void CL_CreateBloodParticles( const Vector& origin, const Vector& direction, Uint32 color, Float speed )
+{
+	gLegacyParticles.CreateBloodParticles(origin, direction, color, speed);
 }
 
 //====================================

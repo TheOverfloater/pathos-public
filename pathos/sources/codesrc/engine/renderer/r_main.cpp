@@ -110,6 +110,9 @@ CCVar* g_pCvarBatchDynamicLights = nullptr;
 CCVar* g_pCvarOverdarkenTreshold = nullptr;
 CCVar* g_pCvarDumpLightmaps = nullptr;
 CCVar* g_pCvarLightmapCompression = nullptr;
+CCVar* g_pCvarFPSGraphHeight = nullptr;
+CCVar* g_pCvarFPSGraphWidth = nullptr;
+CCVar* g_pCvarFPSGraph = nullptr;
 
 // Caustics texture list file path
 static const Char CAUSTICS_TEXTURE_FILE_PATH[] = "textures/general/caustics_textures.txt";
@@ -207,6 +210,9 @@ bool R_Init( void )
 	g_pCvarOverdarkenTreshold = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_overdarken_treshold", "35", "Overdarkening treshold setting, default is 35." );
 	g_pCvarDumpLightmaps = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_lightmap_dumping", "0", "Toggle whether lightmap data should be exported to TGAs on level load." );
 	g_pCvarLightmapCompression = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_lightmap_compression", "0", "Controls whether lightmap data is compressed to the DXT1 format(Experimental)." );
+	g_pCvarFPSGraphHeight = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_fpsgraphheight", "60", "Height of the FPS graph." );
+	g_pCvarFPSGraphWidth = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_fpsgraphwidth", "256", "Width of the FPS graph." );
+	g_pCvarFPSGraph = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_fpsgraph", "0", "Show render FPS timegraph." );
 
 	gCommands.CreateCommand("r_exportald", Cmd_ExportALD, "Exports current lightmap info as nightstage light info");
 	gCommands.CreateCommand("r_detail_auto", Cmd_DetailAuto, "Generates detail texture entries for world textures without");
@@ -2334,6 +2340,7 @@ void R_DrawLineGraph( CBasicDraw* pDraw, Int32 x, Int32 y, Int32 h, Int32 s )
 	pDraw->End();
 }
 
+
 //====================================
 //
 //====================================
@@ -2382,6 +2389,19 @@ bool R_DrawTimeGraph( Double& time1, Double& time2 )
 	Int32 s = g_pCvarGraphHeight->GetValue();
 	Int32 y = rns.screenheight-16;
 
+	if(g_pCvarFPSGraph->GetValue() >= 1)
+	{
+		Float fpsGraphHeightCvarValue = g_pCvarFPSGraphHeight->GetValue();
+		if(fpsGraphHeightCvarValue < 32)
+			fpsGraphHeightCvarValue = 32;
+		else if(fpsGraphHeightCvarValue > 256)
+			fpsGraphHeightCvarValue = 256;
+
+		y -= (fpsGraphHeightCvarValue+16);
+	}
+
+	glLineWidth(1.0);
+
 	// Draw the graph bars
 	pDraw->Color4f(1.0, 1.0, 1.0, 1.0);
 	pDraw->Begin(CBasicDraw::DRAW_LINES);
@@ -2395,7 +2415,7 @@ bool R_DrawTimeGraph( Double& time1, Double& time2 )
 
 	do
 	{
-		R_DrawLineGraph(pDraw, x, rns.screenheight-16, timings[a], s);
+		R_DrawLineGraph(pDraw, x, y-1, timings[a], s);
 		if(x == 0)
 			break;
 
@@ -2409,6 +2429,269 @@ bool R_DrawTimeGraph( Double& time1, Double& time2 )
 
 	// Set timex
 	timex = (timex+1) % MAX_TIMINGS;
+
+	rns.view.modelview.PopMatrix();
+	rns.view.projection.PopMatrix();
+
+	pDraw->Disable();
+	return true;
+}
+
+//====================================
+//
+//====================================
+bool R_DrawFPSGraph( void )
+{
+	static Uint32 nbTimings = 0;
+	static Float fpsHistory[MAX_TIMINGS];
+	static byte spikeDots[MAX_TIMINGS];
+
+	// All UI elements use the simple draw interface
+	CBasicDraw* pDraw = CBasicDraw::GetInstance();
+	if(!pDraw->Enable())
+	{
+		Sys_ErrorPopup("Shader error: %s.\n", pDraw->GetShaderError());
+		return false;
+	}
+
+	if(!pDraw->DisableTexture())
+	{
+		Sys_ErrorPopup("Shader error: %s.\n", pDraw->GetShaderError());
+		return false;
+	}
+
+	rns.view.modelview.PushMatrix();
+	rns.view.modelview.LoadIdentity();
+	rns.view.modelview.Scale(1.0/ static_cast<Float>(gWindow.GetWidth()), 1.0/ static_cast<Float>(gWindow.GetHeight()), 1.0);
+
+	rns.view.projection.PushMatrix();
+	rns.view.projection.LoadIdentity();
+	rns.view.projection.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, 0.1f, 100);
+
+	pDraw->SetModelview(rns.view.modelview.GetMatrix());
+	pDraw->SetProjection(rns.view.projection.GetMatrix());
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// Calculate FPS
+	static Double lasttime = 0;
+	Double curtime = Sys_FloatTime();
+	Double frametime = curtime - lasttime;
+	lasttime = curtime;
+
+	if(frametime > 1.0)
+		frametime = 0;
+
+	// Reference FPS is 60 fps
+	const Uint32 referenceFPS = 60;
+	Uint32 fpsCount = 1.0f / frametime;
+	if(fpsCount > referenceFPS)
+		fpsCount = referenceFPS;
+
+	byte spikeValue = 0;
+	if(nbTimings > 0)
+	{
+		Float prevFPS = fpsHistory[nbTimings-1];
+		if(SDL_abs(fpsCount - prevFPS) > 5)
+		{
+			if(fpsCount - prevFPS > 0)
+				spikeValue = 1;
+			else
+				spikeValue = 2;
+		}
+	}
+
+	// Remember past timing
+	if(nbTimings < MAX_TIMINGS)
+	{
+		if(nbTimings > 0 || fpsCount)
+		{
+			fpsHistory[nbTimings] = fpsCount;
+			spikeDots[nbTimings] = spikeValue;
+			nbTimings++;
+		}
+	}
+	else
+	{
+		// Shift to accomodate new
+		for(Uint32 i = 1; i < MAX_TIMINGS; i++)
+		{
+			fpsHistory[i-1] = fpsHistory[i];
+			spikeDots[i-1] = spikeDots[i];
+		}
+
+		// Add new at very end
+		fpsHistory[MAX_TIMINGS-1] = fpsCount;
+		spikeDots[MAX_TIMINGS-1] = spikeValue;
+	}
+
+	Uint32 barThickness = 2;
+	Float graphWidthCvarValue = g_pCvarFPSGraphWidth->GetValue();
+	if(graphWidthCvarValue < 32)
+		graphWidthCvarValue = 32;
+
+	Uint32 graphWidth = graphWidthCvarValue;
+	if(graphWidth % barThickness != 0)
+		graphWidth += 1;
+
+	Uint32 maxTotalWidth = (MAX_TIMINGS * barThickness + 2 * barThickness);
+	if(graphWidth > maxTotalWidth)
+		graphWidth = maxTotalWidth;
+
+	if(rns.screenwidth < graphWidth)
+		graphWidth = rns.screenwidth - (2 * barThickness);
+
+	// Set x and y coordinates
+	Float graphHeightCvarValue = g_pCvarFPSGraphHeight->GetValue();
+	if(graphHeightCvarValue < 32)
+		graphHeightCvarValue = 32;
+	else if(graphHeightCvarValue > 256)
+		graphHeightCvarValue = 256;
+
+	Int32 graphHeight = graphHeightCvarValue + barThickness * 2;
+	Int32 x = (rns.screenwidth / 2) - (graphWidth / 2);
+	Int32 y = rns.screenheight - 16 - graphHeight;
+
+	Float innerWidth = graphWidth - barThickness * 2;
+	Float innerHeight = graphHeight - barThickness * 2;
+
+	// Draw the graph bars
+	pDraw->Begin(CBasicDraw::DRAW_TRIANGLES);
+	pDraw->Color4f(0.5, 0.5, 0.5, 0.5);
+
+	// Draw left bar
+	pDraw->Vertex3f(x, y, -1);
+	pDraw->Vertex3f(x+barThickness, y, -1);
+	pDraw->Vertex3f(x, y+innerHeight+barThickness, -1);
+
+	pDraw->Vertex3f(x, y+innerHeight+barThickness, -1);
+	pDraw->Vertex3f(x+barThickness, y, -1);
+	pDraw->Vertex3f(x+barThickness, y+innerHeight+barThickness, -1);
+
+	// Draw top bar
+	Float x1 = x + barThickness;
+	
+	pDraw->Vertex3f(x1, y, -1);
+	pDraw->Vertex3f(x1+innerWidth, y, -1);
+	pDraw->Vertex3f(x1, y+barThickness, -1);
+
+	pDraw->Vertex3f(x1, y+barThickness, -1);
+	pDraw->Vertex3f(x1+innerWidth, y, -1);
+	pDraw->Vertex3f(x1+innerWidth, y+barThickness, -1);
+
+	// Draw bottom bar
+	Float y1 = y + innerHeight;
+	pDraw->Vertex3f(x1, y1, -1);
+	pDraw->Vertex3f(x1+innerWidth, y1, -1);
+	pDraw->Vertex3f(x1, y1+barThickness, -1);
+
+	pDraw->Vertex3f(x1, y1+barThickness, -1);
+	pDraw->Vertex3f(x1+innerWidth, y1, -1);
+	pDraw->Vertex3f(x1+innerWidth, y1+barThickness, -1);
+
+	// Draw right bar
+	x1 += innerWidth;
+	pDraw->Vertex3f(x1, y, -1);
+	pDraw->Vertex3f(x1+barThickness, y, -1);
+	pDraw->Vertex3f(x1, y+innerHeight+barThickness, -1);
+
+	pDraw->Vertex3f(x1, y+innerHeight+barThickness, -1);
+	pDraw->Vertex3f(x1+barThickness, y, -1);
+	pDraw->Vertex3f(x1+barThickness, y+innerHeight+barThickness, -1);
+
+	pDraw->End();
+
+	// Draw the dots in the middle
+	Float dotSpacing = 8;
+	x1 = x + barThickness + dotSpacing;
+	y1 = y + innerHeight / 2.0f;
+
+	glPointSize(1);
+	
+	pDraw->Begin(CBasicDraw::DRAW_POINTS);
+	pDraw->Color4f(0.4, 0.4, 0.4, 0.75);
+	
+	while(x1 < (x + barThickness + innerWidth))
+	{
+		pDraw->Vertex3f(x1, y1, -1);
+		x1 += dotSpacing;
+	}
+
+	pDraw->End();
+
+	Vector highColor = Vector(0.3, 0.75, 0.68);
+	Vector lowColor = Vector(0.0, 0.0, 1.0);
+
+	Float lineThickness = 2.0;
+	glLineWidth(lineThickness);
+
+	// Now draw the individual lines
+	x1 = x + barThickness;
+	y1 = y + barThickness + lineThickness * 0.5;
+	innerHeight -= barThickness;
+	innerHeight -= lineThickness * 0.5;
+
+	Uint32 i;
+	Uint32 maxWidthTimings = (graphWidth-barThickness*2) / barThickness;
+	if(nbTimings > maxWidthTimings)
+		i = nbTimings - maxWidthTimings + 1;
+	else
+		i = 1;
+
+	for(; i < nbTimings; i++)
+	{
+		// Calculate first value
+		Float fpsValue1 = fpsHistory[i-1];
+		Float fpsValue1Frac = fpsValue1 / static_cast<Float>(referenceFPS);
+		fpsValue1Frac = clamp(fpsValue1Frac, 0.0, 1.0);
+
+		Vector value1Color = highColor * fpsValue1Frac + lowColor * (1.0 - fpsValue1Frac);
+		Float value1YCoord = y1 + (1.0 - fpsValue1Frac) * innerHeight;
+
+		// Calculate second value
+		Float fpsValue2 = fpsHistory[i];
+		Float fpsValue2Frac = fpsValue2 / static_cast<Float>(referenceFPS);
+		fpsValue2Frac = clamp(fpsValue2Frac, 0.0, 1.0);
+
+		Vector value2Color = highColor * fpsValue2Frac + lowColor * (1.0 - fpsValue2Frac);
+		Float value2YCoord = y1 + (1.0 - fpsValue2Frac) * innerHeight;
+
+		// Draw the lines
+		pDraw->Begin(CBasicDraw::DRAW_LINES);
+		pDraw->Color4f(value1Color.x, value1Color.y, value1Color.z, 0.75);
+		pDraw->Vertex3f(x1, value1YCoord, -1);
+		x1 += barThickness;
+
+		pDraw->Color4f(value2Color.x, value2Color.y, value2Color.z, 0.75);
+		pDraw->Vertex3f(x1, value2YCoord, -1);
+
+		if(i == (MAX_TIMINGS-1) || i == (nbTimings-1))
+		{
+			pDraw->Vertex3f(x1, value2YCoord, -1);
+			pDraw->Vertex3f(x1, y1 + innerHeight, -1);
+		}
+		pDraw->End();
+
+		// Draw spike dot if we had any
+		if(spikeDots[i])
+		{
+			Float dotYCoord = y + barThickness + innerHeight / 2.0f;
+			pDraw->Begin(CBasicDraw::DRAW_POINTS);
+			if(spikeDots[i] == 2)
+				pDraw->Color4f(1.0, 0.0, 0.0, 1.0);
+			else
+				pDraw->Color4f(0.0, 1.0, 0.0, 1.0);
+
+			pDraw->Vertex3f(x1, dotYCoord, -1);
+			pDraw->End();
+		}
+	}
+
+	glLineWidth(1.0);
+	glPointSize(1.0);
+
+	glDisable(GL_BLEND);
 
 	rns.view.modelview.PopMatrix();
 	rns.view.projection.PopMatrix();
@@ -2496,10 +2779,10 @@ bool R_DrawInterface( void )
 //====================================
 //
 //====================================
-bool R_DrawHUD( bool hudOnly )
+bool R_DrawHUD( bool hudOnly, bool noFilmGrain )
 {
-	// Draw postprocess
-	if(!gPostProcess.Draw())
+	// Draw postprocess effects
+	if(!gPostProcess.Draw(noFilmGrain))
 		return false;
 
 	// Call client to draw it's overlay stuff

@@ -529,11 +529,9 @@ void RadiusDamage( const Vector& vecPosition,
 
 		if(tr.fraction != 1.0)
 		{
-			gMultiDamage.Clear();
-
 			Vector dmgDirection = (tr.endpos - explodePosition).Normalize();
+			gMultiDamage.Prepare(BULLET_NONE, dmgDirection);
 			pEntity->TraceAttack(pAttacker, adjustedDmg, dmgDirection, tr, damageFlags);
-
 			gMultiDamage.ApplyDamage(pInflictor, pAttacker);
 		}
 		else
@@ -824,7 +822,7 @@ void FireBullets( Uint32 nbshots,
 	}
 
 	// Clear multidamage
-	gMultiDamage.Clear();
+	gMultiDamage.Prepare(bulletType, aimForward);
 	
 	// Set basic flags
 	Int32 dmgFlags = DMG_BULLET;
@@ -1133,5 +1131,5 @@ void FireBullets( Uint32 nbshots,
 	}
 
 	// Apply the damage
-	gMultiDamage.ApplyDamage(pAttacker, pAttacker, hitgroup, bulletType, nbshots);
+	gMultiDamage.ApplyDamage(pAttacker, pAttacker);
 }

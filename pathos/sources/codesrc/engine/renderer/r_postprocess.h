@@ -164,7 +164,7 @@ public:
 	void ClearGame( void );
 
 	// Draws postprocess effects
-	bool Draw( void );
+	bool Draw( bool noFilmGrain );
 
 private:
 	// Draws gamma correction

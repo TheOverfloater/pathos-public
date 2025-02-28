@@ -107,9 +107,9 @@ void CGrenade::BounceTouch( CBaseEntity* pOther )
 				Vector direction = m_pState->velocity;
 				direction.Normalize();
 
-				gMultiDamage.Clear();
+				gMultiDamage.Prepare(BULLET_NONE, direction);
 				pOther->TraceAttack(pOwner, 1, direction, g_pGameVars->globaltrace, DMG_SLASH);
-				gMultiDamage.ApplyDamage(this, m_attacker, 0);
+				gMultiDamage.ApplyDamage(this, m_attacker);
 			}
 
 			m_nextDmgTime = g_pGameVars->time + 1.0;

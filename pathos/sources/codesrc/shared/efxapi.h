@@ -82,6 +82,11 @@ struct cl_efxapi_t
 	void					(*pfnLavaSplash)( const Vector& origin );
 	void					(*pfnTeleportSplash)( const Vector& origin );
 	void					(*pfnRocketTrail)( const Vector& start, const Vector& end, Uint32 type );
+	void					(*pfnCreateSparkStreak)( const Vector& origin, Uint32 count, Float minVelocity, Float maxVelocity );
+	void					(*pfnCreateStreakSplash)( const Vector& origin, const Vector& direction, Uint32 color, Uint32 count, Float speed, Float minVelocity, Float maxVelocity );
+	void					(*pfnCreateLargeFunnel)( const Vector& origin, bool reverse );
+	void					(*pfnCreateBloodStream)( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
+	void					(*pfnCreateBloodParticles)( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
 
 	// Beam effects
 	beam_t*					(*pfnBeamLightning)( const Vector& src, const Vector& end, Int32 modelindex, Float life, Float width, Float amplitude, Float brightness, Float speed, Float noisespeed, Int32 flags );

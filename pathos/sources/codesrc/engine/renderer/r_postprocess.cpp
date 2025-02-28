@@ -853,7 +853,7 @@ void CPostProcess :: CreateBlurScreenTexture( void )
 // @brief
 //
 //=============================================
-bool CPostProcess :: Draw( void )
+bool CPostProcess :: Draw( bool noFilmGrain )
 {
 	Int32 viewcontents = CL_PointContents(rns.view.params.v_origin, 0);
 	if(viewcontents == CONTENTS_WATER)
@@ -1032,7 +1032,7 @@ bool CPostProcess :: Draw( void )
 	}
 
 	// Render film grain
-	if (m_pCvarPostProcess->GetValue() > 0 && (m_pCvarFilmGrain->GetValue() > 0 || m_filmGrainActive))
+	if (!noFilmGrain && m_pCvarPostProcess->GetValue() > 0 && (m_pCvarFilmGrain->GetValue() > 0 || m_filmGrainActive))
 	{
 		if(!DrawFilmGrain())
 		{

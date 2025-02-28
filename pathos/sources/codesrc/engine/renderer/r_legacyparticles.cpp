@@ -297,11 +297,17 @@ void CLegacyParticles::CreateParticleExplosion1( const Vector& origin )
 		else
 			pnew->type = pt_explode2;
 
-		for(Uint32 j = 0; j < 3; j++)
+		while(true)
 		{
-			pnew->origin[j] = origin[j] + Common::RandomFloat(-16, 16);
-			pnew->velocity[j] = Common::RandomFloat(-256, 256);
+			for(Uint32 j = 0; j < 3; j++)
+				pnew->velocity[j] = Common::RandomFloat(-512, 512);
+
+			if(pnew->velocity.Length() <= 512)
+				break;
 		}
+
+		for(Uint32 j = 0; j < 3; j++)
+			pnew->origin[j] = origin[j] + pnew->velocity[j] * 0.25;
 	}
 }
 
@@ -610,6 +616,221 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 //====================================
 //
 //====================================
+void CLegacyParticles::CreateSparkStreak( const Vector& origin, Uint32 count, Float minVelocity, Float maxVelocity )
+{
+	for(Uint32 i = 0; i < count; i++)
+	{
+		particle_t* pnew = AllocParticle();
+		if(!pnew)
+			return;
+
+		pnew->color = 5;
+		pnew->type = pt_slowgravity;
+		pnew->die = cls.cl_time + Common::RandomFloat(0.1, 0.5);
+		pnew->ramp = 0.5;
+		pnew->origin = origin;
+		
+		for(Uint32 j = 0; j < 3; j++)
+			pnew->velocity[j] = Common::RandomFloat(minVelocity, maxVelocity);
+	}
+}
+
+//====================================
+//
+//====================================
+void CLegacyParticles::CreateStreakSplash( const Vector& origin, const Vector& direction, Uint32 color, Uint32 count, Float speed, Float minVelocity, Float maxVelocity )
+{
+	Vector initialVelocity = direction * speed;
+	for(Uint32 i = 0; i < count; i++)
+	{
+		particle_t* pnew = AllocParticle();
+		if(!pnew)
+			return;
+
+		pnew->color = color;
+		pnew->type = pt_gravity;
+		pnew->die = cls.cl_time + Common::RandomFloat(0.1, 0.5);
+		pnew->ramp = 1.0;
+		pnew->origin = origin;
+
+		for(Uint32 j = 0; j < 3; j++)
+			pnew->velocity[j] = initialVelocity[j] + Common::RandomFloat(minVelocity, maxVelocity);
+	}
+}
+
+//====================================
+//
+//====================================
+void CLegacyParticles::CreateLargeFunnel( const Vector& origin, bool reverse )
+{
+	for(Int32 i = -256; i <= 256; i += 32)
+	{
+		for(Int32 j = -256; j <= 256; j += 32)
+		{
+			particle_t* pnew = AllocParticle();
+			if(!pnew)
+				return;
+
+			Vector dir;
+			Float velocity;
+			if(reverse)
+			{
+				pnew->origin = origin;
+
+				// Set final destination
+				Vector dest;
+				dest[0] = origin[0]+i;
+				dest[1] = origin[1]+j;
+				dest[2] = origin[2] + Common::RandomFloat(100, 800);
+
+				// Calculate velocity
+				dir = dest - pnew->origin;
+			}
+			else
+			{
+				// Set tempent origin
+				pnew->origin[0] = origin[0] + i;
+				pnew->origin[1] = origin[1] + j;
+				pnew->origin[2] = origin[2] + Common::RandomFloat(100, 800);
+
+				// Calculate direction and velocity
+				dir = origin - pnew->origin;
+			}
+
+			pnew->type = pt_static;
+			pnew->color = 244;
+
+			velocity = SDL_fabs(dir[2])/8;
+			if(velocity < 64)
+				velocity = 64;
+
+			velocity += Common::RandomFloat(64, 128);
+			Float distance = Math::VectorNormalize(dir);
+			pnew->velocity = velocity * dir;
+
+			pnew->die = cls.cl_time + (distance / velocity);
+		}
+	}
+}
+
+//====================================
+//
+//====================================
+void CLegacyParticles::CreateBloodStream( const Vector& origin, const Vector& direction, Uint32 color, Float speed )
+{
+	Vector normDirection(direction);
+	normDirection.Normalize();
+
+	Float arc = 0.05;
+	Float particleSpeed = speed;
+
+	for(Uint32 i = 0; i < 100; i++)
+	{
+		particle_t* pnew = AllocParticle();
+		if(!pnew)
+			return;
+
+		pnew->die = cls.cl_time + 2.0;
+		pnew->color = color + Common::RandomLong(0, 9);
+		pnew->type = pt_vox_gravity;
+		pnew->origin = origin;
+
+		Vector particleDirection(normDirection);
+		particleDirection[2] -= arc;
+		arc -= 0.005;
+
+		pnew->velocity = particleDirection * particleSpeed;
+		particleSpeed -= 0.00001;
+	}
+
+	arc = 0.75;
+	for(Uint32 i = 0; i < (speed/5); i++)
+	{
+		particle_t* pnew = AllocParticle();
+		if(!pnew)
+			return;
+
+		pnew->die = cls.cl_time + 3.0;
+		pnew->type = pt_vox_slowgravity;
+		pnew->color = color + Common::RandomLong(0, 9);
+		pnew->origin = origin;
+
+		Vector particleDirection(normDirection);
+		particleDirection[2] -= arc;
+		arc -= 0.005;
+
+		Float num = Common::RandomFloat(0, 1);
+		particleSpeed = speed * num;
+		num *= 1.7;
+
+		particleDirection = particleDirection * num;
+		pnew->velocity = particleDirection * particleSpeed;
+
+		for(Uint32 j = 0; j < 2; j++)
+		{
+			pnew = AllocParticle();
+			if(!pnew)
+				return;
+
+			pnew->die = cls.cl_time + 3.0;
+			pnew->type = pt_vox_slowgravity;
+			pnew->color = color + Common::RandomLong(0, 9);
+
+			for(Uint32 k = 0; k < 3; k++)
+				pnew->origin[k] = origin[k] + Common::RandomFloat(-1, 1);
+
+			particleDirection = normDirection;
+			particleDirection[2] -= arc;
+
+			particleDirection = particleDirection * num;
+			pnew->velocity = particleDirection * particleSpeed;
+		}
+	}
+}
+
+//====================================
+//
+//====================================
+void CLegacyParticles::CreateBloodParticles( const Vector& origin, const Vector& direction, Uint32 color, Float speed )
+{
+	Vector normDirection(direction);
+	normDirection.Normalize();
+
+	Float arc = 0.06;
+	Float particleSpeed = speed * 3;
+
+	for(Uint32 i = 0; i < (speed / 2.0); i++)
+	{
+		Vector particleOrigin;
+		Vector particleDirection;
+
+		for(Uint32 j = 0; j < 3; j++)
+		{
+			particleOrigin[j] = origin[j] + Common::RandomFloat(-3, 3);
+			particleDirection[j] = normDirection[j] + Common::RandomFloat(-arc, arc);
+		}
+
+		for(Uint32 j = 0; j < 8; j++)
+		{
+			particle_t* pnew = AllocParticle();
+			if(!pnew)
+				return;
+
+			pnew->die = cls.cl_time + 1.5;
+			pnew->color = color + Common::RandomLong(0, 9);
+			pnew->type = pt_vox_gravity;
+
+			for(Uint32 k = 0; k < 3; k++)
+				pnew->origin[k] = particleOrigin[k] + Common::RandomFloat(-1, 1);
+
+			pnew->velocity = particleDirection * particleSpeed;
+		}
+	}
+}
+
+//====================================
+//
+//====================================
 void CLegacyParticles::UpdateParticles( void )
 {
 	if(!m_pActiveParticleHeader)
@@ -632,8 +853,8 @@ void CLegacyParticles::UpdateParticles( void )
 		}
 
 		// Determine gravity amount
+		// This comes from Quake 1, where particle_gravity is particle gravity multiplied by 0.05
 		Float particle_gravity = 0;
-
 		switch(pnext->type)
 		{
 		case pt_fire:
@@ -646,6 +867,12 @@ void CLegacyParticles::UpdateParticles( void )
 		case pt_gravity:
 				particle_gravity = 1.0;
 			break;
+		case pt_vox_gravity:
+				particle_gravity = 0.4;
+				break;
+		case pt_vox_slowgravity:
+				particle_gravity = 0.2;
+				break;
 		case pt_static:
 		default:
 			break;
@@ -719,11 +946,9 @@ void CLegacyParticles::UpdateParticles( void )
 			}
 			break;
 		case pt_gravity:
-			{
-				pnext->velocity[2] -= cls.frametime * particle_gravity * gravity;
-			}
-			break;
 		case pt_slowgravity:
+		case pt_vox_gravity:
+		case pt_vox_slowgravity:
 			{
 				pnext->velocity[2] -= cls.frametime * particle_gravity * gravity;
 			}
