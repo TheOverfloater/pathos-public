@@ -7,40 +7,47 @@ All Rights Reserved.
 ===============================================
 */
 
-#ifndef ENVFUNNEL_H
-#define ENVFUNNEL_H
+#ifndef ENVIMPLOSION_H
+#define ENVIMPLOSION_H
 
 #include "pointentity.h"
 
 //=============================================
 //
 //=============================================
-class CEnvFunnel : public CPointEntity
+class CEnvImplosion : public CPointEntity
 {
 public:
-	// The default sprite model
-	static const Char DEFAULT_SPRITE_NAME[];
+	// Default tracer color
+	static const Vector DEFAULT_COLOR;
 
 public:
 	enum
 	{
-		FL_REVERSE			= (1<<0),
-		FL_REMOVE_ON_FIRE	= (1<<1)
+		FL_REVERSE_DIRECTION	= (1<<0),
+		FL_REVERSE_INTENSITY	= (1<<1)
 	};
 
 public:
-	explicit CEnvFunnel( edict_t* pedict );
-	virtual ~CEnvFunnel( void );
+	explicit CEnvImplosion( edict_t* pedict );
+	virtual ~CEnvImplosion( void );
 
 public:
 	virtual bool Spawn( void ) override;
-	virtual void Precache( void ) override;
 	virtual void DeclareSaveFields( void ) override;
 	virtual bool KeyValue( const keyvalue_t& kv ) override;
 	virtual void CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value ) override;
 	
 private:
-	string_t m_spriteName;
-	Int32 m_spriteModel;
+	void EXPORTFN SpawnThink( void );
+
+private:
+	Float m_radius;
+	Uint32 m_tracerCount;
+	Float m_life;
+	Float m_duration;
+	Double m_lastSpawnTime;
+	Uint32 m_spawnCount;
+	Double m_spawnBeginTime;
 };
-#endif //ENVFUNNEL_H
+#endif //ENVIMPLOSION_H

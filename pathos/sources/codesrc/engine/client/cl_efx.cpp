@@ -87,6 +87,7 @@ static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 	CL_TempModel,					//pfnTempModel
 	CL_TempSprite,					//pfnTempSprite
 	CL_CreateTracer,				//pfnCreateTracer
+	CL_CreateTracerImplosion,		//pfnCreateTracerImplosion
 	CL_ParticleExplosion1,			//pfnParticleExplosion1
 	CL_ParticleExplosion2,			//pfnParticleExplosion2
 	CL_BlobExplosion,				//pfnBlobExplosion
@@ -716,6 +717,14 @@ void CL_CreateBloodStream( const Vector& origin, const Vector& direction, Uint32
 void CL_CreateBloodParticles( const Vector& origin, const Vector& direction, Uint32 color, Float speed )
 {
 	gLegacyParticles.CreateBloodParticles(origin, direction, color, speed);
+}
+
+//====================================
+//
+//====================================
+void CL_CreateTracerImplosion( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, bool reverse )
+{
+	gTracers.CreateImplosionEffect(destination, radius, count, life, color, alpha, reverse);
 }
 
 //====================================

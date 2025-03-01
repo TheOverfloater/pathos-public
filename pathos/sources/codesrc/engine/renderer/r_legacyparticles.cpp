@@ -743,7 +743,7 @@ void CLegacyParticles::CreateBloodStream( const Vector& origin, const Vector& di
 		particleSpeed -= 0.00001;
 	}
 
-	arc = 0.75;
+	arc = 0.075;
 	for(Uint32 i = 0; i < (speed/5); i++)
 	{
 		particle_t* pnew = AllocParticle();
@@ -825,6 +825,8 @@ void CLegacyParticles::CreateBloodParticles( const Vector& origin, const Vector&
 
 			pnew->velocity = particleDirection * particleSpeed;
 		}
+
+		particleSpeed -= speed;
 	}
 }
 

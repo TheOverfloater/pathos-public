@@ -596,7 +596,7 @@ void CTempEntityManager::CreateFunnel( const Vector& origin, const Vector& color
 				dest[2] = origin[2] + Common::RandomFloat(100, 800);
 
 				// Calculate velocity
-				dir = dest - ptemp->entity.curstate.origin;
+				dir = dest - entorigin;
 				velocity = SDL_fabs(dir[2])/8;
 			}
 			else
@@ -607,7 +607,7 @@ void CTempEntityManager::CreateFunnel( const Vector& origin, const Vector& color
 				entorigin[2] = origin[2] + Common::RandomFloat(100, 800);
 
 				// Calculate direction and velocity
-				dir = origin-ptemp->entity.curstate.origin;
+				dir = origin - entorigin;
 				velocity = SDL_fabs(dir[2])/8;
 			}
 

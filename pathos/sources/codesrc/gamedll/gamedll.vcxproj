@@ -237,6 +237,7 @@
     <ClCompile Include="envelighttrain.cpp" />
     <ClCompile Include="envfilmgrain.cpp" />
     <ClCompile Include="envhudpickupmsg.cpp" />
+    <ClCompile Include="envimplosion.cpp" />
     <ClCompile Include="envlaser.cpp" />
     <ClCompile Include="envlensflare.cpp" />
     <ClCompile Include="envlightning.cpp" />
@@ -519,6 +520,7 @@
     <ClInclude Include="envelighttrain.h" />
     <ClInclude Include="envfilmgrain.h" />
     <ClInclude Include="envhudpickupmsg.h" />
+    <ClInclude Include="envimplosion.h" />
     <ClInclude Include="envlaser.h" />
     <ClInclude Include="envlensflare.h" />
     <ClInclude Include="envlightning.h" />

@@ -17,6 +17,7 @@ extern CCVar* g_pCvarHoldToZoom;
 extern CCVar* g_pCvarGravity;
 extern CCVar* g_pCvarAutoAim;
 extern CCVar* g_pCvarHoldToWalk;
+extern CCVar* g_pCvarOldSchoolBlood;
 
 enum bullet_types_t;
 

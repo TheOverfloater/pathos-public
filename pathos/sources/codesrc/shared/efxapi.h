@@ -72,6 +72,7 @@ struct cl_efxapi_t
 	tempentity_t*			(*pfnTempModel)( const Vector& origin, const Vector& velocity, const Vector& angles, Float life, Uint32 modelindex, Int32 sound, Float buoyancy, Float waterfriction, Int32 flags );
 	tempentity_t*			(*pfnTempSprite)( const Vector& origin, const Vector& velocity, Float scale, Uint32 modelindex, Int32 rendermode, Int32 renderfx, Float alpha, Float life, Int32 sound, Int32 flags );
 	tracer_t*				(*pfnCreateTracer)( const Vector& origin, const Vector& velocity, const Vector& color, Float alpha, Float width, Float length, Float life, tracer_type_t type );
+	void					(*pfnCreateTracerImplosion)( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, bool reverse );
 
 	// Legacy particle effects
 	void					(*pfnParticleExplosion1)( const Vector& origin );

@@ -375,6 +375,38 @@ tracer_t* CTracerRenderer::CreateTracer( const Vector& origin, const Vector& vel
 //====================================
 //
 //====================================
+void CTracerRenderer::CreateImplosionEffect( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, bool reverse )
+{
+	Float velscale = (-1.0f / life);
+
+	for(Uint32 i = 0; i < count; i++)
+	{
+		Vector tmp;
+		for(Uint32 j = 0; j < 3; j++)
+			tmp[j] = Common::RandomFloat((j == 2) ? 0 : -100.0f, 100.0f) * (radius/100.0f);
+
+		Vector origin;
+		Vector velocity;
+		if(!reverse)
+		{
+			origin = destination + tmp;
+			velocity = tmp * velscale;
+		}
+		else
+		{
+			origin = destination;
+			velocity = tmp * velscale * -1;
+		}
+
+		tracer_t* pnew = CreateTracer(origin, velocity, color, alpha, 1.5f, 0.8f, life, TRACER_NORMAL);
+		if(!pnew)
+			break;
+	}
+}
+
+//====================================
+//
+//====================================
 void CTracerRenderer::AllocTracers( void )
 {
 	// Allocate particles

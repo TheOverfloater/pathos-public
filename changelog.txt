@@ -605,3 +605,13 @@
  - Modified NPC code related to decapitation/blowback/bullet gibbing to be more optimized.
  - Modified CMultiDamage class to track hitbox hit counts indidually.
  - Modified some NPC AI schedules to react to damage AI conditions.
+
+2025 March 1st:
+ - Added new TE_TACERIMPLOSION tempentity effect.
+ - Added new env_implosion entity for tracer particle implosion effects.
+ - Added sv_oldschoolblood cvar to enable Quake 1-like blood particle effects.
+ - Fix for crash with sprite funnel effect.
+ - Added Q1 particle funnel effect to the env_funnel entity.
+ - Replaced Q1 palette with the Half-Life 1 palette file.
+ - Some fixes to the blood stream effect.
+ - Fix for GLSL shaders erroring out with invalid states when CSD files needed to be rebuilt.

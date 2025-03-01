@@ -49,6 +49,8 @@ CCVar* g_pCvarGravity = nullptr;
 CCVar* g_pCvarAutoAim = nullptr;
 // Hold to walk cvar
 CCVar* g_pCvarHoldToWalk = nullptr;
+// Old school blood effects cvar
+CCVar* g_pCvarOldSchoolBlood = nullptr;
 
 // Decal list object
 CDecalList gDecalList;
@@ -87,6 +89,7 @@ bool InitGameObjects( void )
 	g_pCvarGravity = gd_engfuncs.pfnGetCVarPointer(GRAVITY_CVAR_NAME);
 	g_pCvarAutoAim = gd_engfuncs.pfnGetCVarPointer(AUTOAIM_CVAR_NAME);
 	g_pCvarHoldToWalk = gd_engfuncs.pfnCreateCVar(CVAR_FLOAT, (FL_CV_SV_ONLY|FL_CV_SAVE), "sv_holdtowalk", "0", "Make walking speed be applied only when holding the walk button");
+	g_pCvarOldSchoolBlood = gd_engfuncs.pfnCreateCVar(CVAR_FLOAT, (FL_CV_SV_ONLY|FL_CV_SAVE), "sv_oldschoolblood", "0", "Use classic Quake-like particles for blood effects");
 
 	// Create commands
 	gd_engfuncs.pfnCreateCommand("dumpcheats", DumpCheatCodes, "Dumps cheat codes");

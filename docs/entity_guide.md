@@ -711,6 +711,32 @@ document:
  - Spawnflags:
    - "Play Once": Entity can only be triggered once, after which it'll remove itself.
    
+# env_implosion
+>This entity was added to make use of the tracer implosion tempentity effect, another effect from GoldSrc that
+>I recreated for Pathos. This effect will spawn a bunch of tracers around a point that will all move towards
+>the center and then disappear. This effect can be reversed, turning the implosion into an explosion of tracer
+>particles. The entity can spawn a single instance of these tracers, or it can spawn them over a period of time
+>as they coalesce or explode. With the timed spawn, the tracers become faster or slower as time goes by, which
+>depends on the spawn flags set.
+
+ - Keyvalues:
+   - "Name": Name of this entity.
+   - "FX Amount (1 - 255)": Degree of transparency for the tracers.
+   - "FX Color (R G B)": The color to be applied to the tracers.
+   - "Radius": The max distance at which the tracers will be spawned at or travel to.
+   - "Tracer Count": The total number of tracers spawned. With a duration specified, this'll be spread out
+   over the duration of the effect.
+   - "Life": The max life of an individual tracer. With a duration specified, this'll decrease as the duration
+   of the effect reaches it's end, or with the "Reverse Intensity" flag set, the particles will spawn with a
+   short lifetime and rapid speed, and then travel slower and live longer as the end of the duration is reached.
+   - "Duration": The duration of the time during which tracers are spawned. If zero, then all the tracers will
+   spawn at once.
+   
+ - Spawnflags:
+   - "Reverse Direction": Instead of an implosion, tracers will explode from the center out.
+   - "Reverse Intensity": With a duration set, instead of tracers becoming faster as the end of the duration is
+   reached, the tracers will start with a rapid speed and then slow down towards the end of the effect.
+   
 # env_ladder
 >This entity allows you to place a ladder into the game, that uses first-person animations to provide a more
 >realistic ladder climbing experience. You need to place the origin of the ladder directly near the wall

@@ -1774,20 +1774,32 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 	Uint32 nbShaders = 1;
 	if(!m_determinatorArray.empty())
 	{
-		m_pDeterminatorValues = new Int16[m_determinatorArray.size()];
-		memset(m_pDeterminatorValues, 0, sizeof(Int16)*m_determinatorArray.size());
+		Uint32 nbDeterminators = m_determinatorArray.size();
+		m_pDeterminatorValues = new Int16[nbDeterminators];
+		memset(m_pDeterminatorValues, 0, sizeof(Int16)*nbDeterminators);
 
 		nbShaders = 0;
 		RecursiveFillValues(0, nbShaders);
 
 		// Fill the fast seek array
-		m_pShaderDeterminatorValues = new Int16[nbShaders * m_determinatorArray.size()];
-		for(Uint32 i = 0; i < m_determinatorArray.size(); i++)
+		m_pShaderDeterminatorValues = new Int16[nbShaders * nbDeterminators];
+		for(Uint32 i = 0; i < nbDeterminators; i++)
 		{
 			glsl_determinator_t& dt = m_determinatorArray[i];
 			for(Uint32 j = 0; j < nbShaders; j++)
-				m_pShaderDeterminatorValues[j * m_determinatorArray.size() + i] = dt.values[j];
+				m_pShaderDeterminatorValues[j * nbDeterminators + i] = dt.values[j];
 		}
+
+#ifdef USE_SHADER_VALUES_MAP
+		// Create map
+		for(Uint32 i = 0; i < nbShaders; i++)
+		{
+			Char* pshadervaluesbytes = reinterpret_cast<Char*>(m_pShaderDeterminatorValues + nbDeterminators * i);
+			ShaderValuesStringType_t valuestr(pshadervaluesbytes, nbDeterminators * sizeof(Int16));
+			std::pair<ShaderValuesIndexMapType_t::iterator, bool> insertResult = m_shaderValuesIndexMap.insert(ShaderValuesIndexMapPairType_t(valuestr, i));
+			assert(insertResult.second == true);
+		}
+#endif
 	}
 
 	// Get the temp buffer for writing the file

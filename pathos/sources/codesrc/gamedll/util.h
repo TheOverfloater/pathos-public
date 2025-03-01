@@ -106,6 +106,7 @@ namespace Util
 	extern void CreateLargeFunnel( const Vector& origin, bool reverse );
 	extern void CreateBloodStream( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
 	extern void CreateBloodParticles( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
+	extern void CreateTracerImplosion( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, bool reverse );
 	extern void PrecacheFixedNbSounds( const Char* pstrPattern, Uint32 count );
 	extern void PrecacheVariableNbSounds( const Char* pstrPattern, Uint32& outcount );
 	extern CString PlayRandomEntitySound( CBaseEntity* pEntity, const Char* pstrPattern, Int32 count, snd_channels_t channel = SND_CHAN_AUTO, Float volume = VOL_NORM, Float attenuation = ATTN_NORM, Int32 pitch = PITCH_NORM, Int32 flags = SND_FL_NONE );

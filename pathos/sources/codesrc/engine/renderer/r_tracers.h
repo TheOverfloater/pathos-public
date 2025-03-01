@@ -49,6 +49,8 @@ public:
 
 	// Creates a tracer
 	tracer_t* CreateTracer( const Vector& origin, const Vector& velocity, const Vector& color, Float alpha, Float width, Float length, Float life, tracer_type_t type );
+	// Creates an implosion effect
+	void CreateImplosionEffect( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, bool reverse );
 
 private:
 	// Allocates tracers

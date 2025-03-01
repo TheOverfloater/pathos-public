@@ -68,6 +68,7 @@ extern void CL_CreateStreakSplash( const Vector& origin, const Vector& direction
 extern void CL_CreateLargeFunnel( const Vector& origin, bool reverse );
 extern void CL_CreateBloodStream( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
 extern void CL_CreateBloodParticles( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
+extern void CL_CreateTracerImplosion( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, bool reverse );
 extern void CL_InitEffectsInterface( cl_efxapi_t &efxAPI );
 extern void CL_SetGaussianBlur( bool active, Float alpha );
 extern cl_entity_t* CL_AllocTempSpriteEntity( Int32 key, Float life );
