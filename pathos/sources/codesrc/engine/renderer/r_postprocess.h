@@ -46,6 +46,7 @@ struct pp_shader_attribs
 		u_screenwidth(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_screenheight(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_timer(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_grainammount(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_chromatic_strength(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_bw_strength(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_vignette_strength(CGLSLShader::PROPERTY_UNAVAILABLE),

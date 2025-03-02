@@ -16,31 +16,31 @@ All Rights Reserved.
 // BSP limits
 //
 
-static const Uint32 V30_MAX_MAP_HULLS			= 4;
+static constexpr Uint32 V30_MAX_MAP_HULLS			= 4;
 
-static const Uint32 V30_MAX_MAP_MODELS			= 1024;
-static const Uint32 V30_MAX_MAP_BRUSHES			= 65536;
-static const Uint32 V30_MAX_MAP_ENTITIES		= 8192;
-static const Uint32 V30_MAX_MAP_ENTSTRING		= 65536;
+static constexpr Uint32 V30_MAX_MAP_MODELS			= 1024;
+static constexpr Uint32 V30_MAX_MAP_BRUSHES			= 65536;
+static constexpr Uint32 V30_MAX_MAP_ENTITIES		= 8192;
+static constexpr Uint32 V30_MAX_MAP_ENTSTRING		= 65536;
 
-static const Uint32 V30_MAX_MAP_PLANES			= 32768;
-static const Uint32 V30_MAX_MAP_NODES			= 32768;
-static const Uint32 V30_MAX_MAP_CLIPNODES		= 32768;
-static const Uint32 V30_MAX_MAP_LEAFS			= 32768;
-static const Uint32 V30_MAX_MAP_VERTS			= 65536;
-static const Uint32 V30_MAX_MAP_FACES			= 65536;
-static const Uint32 V30_MAX_MAP_MARKSURFACES	= 65536;
-static const Uint32 V30_MAX_MAP_TEXINFO			= 32768;
-static const Uint32 V30_MAX_MAP_EDGES			= 262144;
-static const Uint32 V30_MAX_MAP_SURFEDGES		= 524288;
-static const Uint32 V30_MAX_MAP_TEXTURES		= 4096;
-static const Uint32 V30_MAX_MAP_LIGHTING		= 16777216;
-static const Uint32 V30_MAX_MAP_VISIBILITY		= 16777216;
+static constexpr Uint32 V30_MAX_MAP_PLANES			= 32768;
+static constexpr Uint32 V30_MAX_MAP_NODES			= 32768;
+static constexpr Uint32 V30_MAX_MAP_CLIPNODES		= 32768;
+static constexpr Uint32 V30_MAX_MAP_LEAFS			= 32768;
+static constexpr Uint32 V30_MAX_MAP_VERTS			= 65536;
+static constexpr Uint32 V30_MAX_MAP_FACES			= 65536;
+static constexpr Uint32 V30_MAX_MAP_MARKSURFACES	= 65536;
+static constexpr Uint32 V30_MAX_MAP_TEXINFO			= 32768;
+static constexpr Uint32 V30_MAX_MAP_EDGES			= 262144;
+static constexpr Uint32 V30_MAX_MAP_SURFEDGES		= 524288;
+static constexpr Uint32 V30_MAX_MAP_TEXTURES		= 4096;
+static constexpr Uint32 V30_MAX_MAP_LIGHTING		= 16777216;
+static constexpr Uint32 V30_MAX_MAP_VISIBILITY		= 16777216;
 
-static const Uint32 V30_MAX_LIGHTMAPS			= 4;
-static const Uint32 V30_LM_BASE_SAMPLE_SIZE		= 16;
+static constexpr Uint32 V30_MAX_LIGHTMAPS			= 4;
+static constexpr Uint32 V30_LM_BASE_SAMPLE_SIZE		= 16;
 
-static const Uint32 V30_NUM_AMBIENTS			= 4;
+static constexpr Uint32 V30_NUM_AMBIENTS			= 4;
 
 //
 // The lightstyles reserved for bump map data

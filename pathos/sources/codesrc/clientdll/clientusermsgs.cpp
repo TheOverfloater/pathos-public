@@ -628,9 +628,9 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 
 			Vector color;
 			for(Uint32 i = 0; i < 3; i++)
-				color[i] = reader.ReadSmallFloat();
+				color[i] = reader.ReadByte();
 
-			Float alpha = reader.ReadSmallFloat();
+			Float alpha = reader.ReadByte();
 
 			Uint32 modelindex = reader.ReadUint16();
 			bool reverse = (reader.ReadByte() == 1) ? true : false;
@@ -906,10 +906,20 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 				origin[i] = reader.ReadFloat();
 
 			Uint32 count = reader.ReadUint16();
+			
+			Vector color;
+			for(Uint32 i = 0; i < 3; i++)
+				color[i] = static_cast<Float>(reader.ReadByte()) / 255.0f;
+
+			Float alpha = static_cast<Float>(reader.ReadByte()) / 255.0f;		
+			Float minLifetime = reader.ReadFloat();
+			Float maxLifetime = reader.ReadFloat();
 			Float minVelocity = reader.ReadFloat();
 			Float maxVelocity = reader.ReadFloat();
+			Float width = reader.ReadSmallFloat();
+			Float length = reader.ReadSmallFloat();
 
-			cl_efxapi.pfnCreateSparkStreak(origin, count, minVelocity, maxVelocity);
+			cl_efxapi.pfnCreateSparkStreak(origin, count, color, alpha, width, length, minLifetime, maxLifetime, minVelocity, maxVelocity);
 		}
 		break;
 	case TE_STREAKSPLASH:
@@ -922,13 +932,22 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 			for(Uint32 i = 0; i < 3; i++)
 				direction[i] = reader.ReadFloat();
 
-			Uint32 color = reader.ReadByte();
+			Vector color;
+			for(Uint32 i = 0; i < 3; i++)
+				color[i] = static_cast<Float>(reader.ReadByte()) / 255.0f;
+
+			Float alpha = static_cast<Float>(reader.ReadByte()) / 255.0f;
+
 			Uint32 count = reader.ReadUint16();
 			Float speed = reader.ReadFloat();
+			Float minLifetime = reader.ReadFloat();
+			Float maxLifetime = reader.ReadFloat();
 			Float minVelocity = reader.ReadFloat();
 			Float maxVelocity = reader.ReadFloat();
+			Float width = reader.ReadSmallFloat();
+			Float length = reader.ReadSmallFloat();
 
-			cl_efxapi.pfnCreateStreakSplash(origin, direction, color, count, speed, minVelocity, maxVelocity);
+			cl_efxapi.pfnCreateStreakSplash(origin, direction, color, alpha, width, length, count, speed, minLifetime, maxLifetime, minVelocity, maxVelocity);
 		}
 		break;
 	case TE_LARGEFUNNEL:
@@ -971,6 +990,29 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 			Float speed = reader.ReadFloat();
 
 			cl_efxapi.pfnCreateBloodParticles(origin, direction, color, speed);
+		}
+		break;
+	case TE_TRACERIMPLOSION:
+		{
+			Vector destination;
+			for(Uint32 i = 0; i < 3; i++)
+				destination[i] = reader.ReadFloat();
+
+			Float radius = reader.ReadSmallFloat();
+			Uint32 count = reader.ReadUint32();
+			Float life = reader.ReadSmallFloat();
+
+			Vector color;
+			for(Uint32 i = 0; i < 3; i++)
+				color[i] = static_cast<Float>(reader.ReadByte()) / 255.0f;
+
+			Float alpha = static_cast<Float>(reader.ReadByte()) / 255.0f;
+			bool reverse = (reader.ReadByte() == 1) ? true : false;
+
+			Float width = reader.ReadSmallFloat();
+			Float length = reader.ReadSmallFloat();
+
+			cl_efxapi.pfnCreateTracerImplosion(destination, radius, count, life, color, alpha, width, length, reverse);
 		}
 		break;
 	case TE_UNDEFINED:

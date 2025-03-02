@@ -39,8 +39,6 @@ public:
 		EFFECT_LAVASPLASH,
 		EFFECT_TELEPORTSPLASH,
 		EFFECT_ROCKETTRAIL,
-		EFFECT_SPARKSTREAK,
-		EFFECT_STREAKSPLASH,
 		EFFECT_LARGEFUNNEL,
 		EFFECT_BLOODSTREAM,
 		EFFECT_BLOODPARTICLES,
@@ -84,10 +82,6 @@ private:
 	Float m_minRepeatDelay;
 	// Max repeat delay
 	Float m_maxRepeatDelay;
-	// Min velocity
-	Float m_minVelocity;
-	// Max velocity
-	Float m_maxVelocity;
 	// True if we're actively repeating
 	bool m_isActive;
 };

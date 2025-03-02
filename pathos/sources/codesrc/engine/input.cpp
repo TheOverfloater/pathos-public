@@ -70,7 +70,8 @@ CInput::CInput( void ):
 	m_isCursorVisible(true),
 	m_isShiftDown(false),
 	m_resetMouse(false),
-	m_relativeMouseModeSet(false)
+	m_relativeMouseModeSet(false),
+	m_pCvarRawMouseInput(nullptr)
 {
 	m_oldMousePosition[0] = m_mousePosition[0] = 0;
 	m_oldMousePosition[1] = m_mousePosition[1] = 0;

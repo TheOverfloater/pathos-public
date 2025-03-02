@@ -2716,7 +2716,7 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 	//
 	// See if we need to blend colors
 	// 
-	if (!(pdefinition->lighting_flags & PARTICLE_LIGHTCHECK_NORMAL) && (pdefinition->transitiontime > 0 || pdefinition->transitiontime > 0))
+	if (!(pdefinition->lighting_flags & PARTICLE_LIGHTCHECK_NORMAL) && pdefinition->transitiontime > 0)
 	{
 		if ((pparticle->secondarydelay < rns.time) && (rns.time < (pparticle->secondarydelay + pparticle->secondarytime)))
 		{

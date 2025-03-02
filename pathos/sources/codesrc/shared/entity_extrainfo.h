@@ -36,7 +36,7 @@ struct entity_lightinfo_t
 		numsavedmlights(0),
 		reset(false)
 	{
-		for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
+		for(Uint32 i = 0; i < (MAX_SURFACE_STYLES-1); i++)
 		{
 			prev_lightstyles[i] = 0;
 			target_lightstyles[i] = 0;

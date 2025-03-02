@@ -1139,7 +1139,7 @@ void CBaseEntity::SaveEntityClassData( bool istransitionsave )
 		case EFIELD_INT32:
 		case EFIELD_CARRAY_INT32:
 			{
-				if(field.type != EFIELD_CARRAY_INT32 && field.type != EFIELD_CARRAY_INT32 && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int32)*fieldsize))
+				if(field.type != EFIELD_CARRAY_INT32 && !istransitionsave && !(field.flags & EFIELD_SAVE_ALWAYS) && Util::IsDataEmpty(pdata, sizeof(Int32)*fieldsize))
 				{
 					m_saveFieldsList.next();
 					continue;

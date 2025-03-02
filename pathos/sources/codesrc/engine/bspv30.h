@@ -13,7 +13,7 @@ All Rights Reserved.
 //
 // BSP version
 //
-static const Uint32 BSPV30_VERSION = 30;
+static constexpr Uint32 BSPV30_VERSION = 30;
 
 //
 // Load functions

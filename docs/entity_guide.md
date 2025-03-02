@@ -731,6 +731,8 @@ document:
    short lifetime and rapid speed, and then travel slower and live longer as the end of the duration is reached.
    - "Duration": The duration of the time during which tracers are spawned. If zero, then all the tracers will
    spawn at once.
+   - "Tracer width": Width of the tracer.
+   - "Tracer length": Length of the tracer.
    
  - Spawnflags:
    - "Reverse Direction": Instead of an implosion, tracers will explode from the center out.
@@ -976,8 +978,6 @@ document:
 	 - "Lava Splash": Lava splash effect in a rectangular area.
 	 - "Teleport Splash": Teleport splash effect from Quake 1.
 	 - "Rocket Trail": Rocket trail type, needs "Target" to be set.
-	 - "Spark Streak": Half-Life 1 spark streak particles.
-	 - "Streak Splash": Half-Life 1 streak splash effect.
 	 - "Large Funnel": Resonance cascade funnel effect.
 	 - "Blood Stream": Blood stream effect.
 	 - "Blood Particles": Blood drop effect.
@@ -988,8 +988,6 @@ document:
    - "Rocket trail type": Type of rocket trail to spawn.
    - "Minimum repeat delay": Minimum delay before the effect occurs again.
    - "Maximum repeat delay": Maximum delay before the effect occurs again.
-   - "Minimum velocity": Minimum velocity of streak particles.
-   - "Maximum velocity": Maximum velocity of streak particles.
    
  - Spawn flags:
    - "Start On": If set, this entity will spawn on the "On" state.
@@ -1250,6 +1248,41 @@ document:
    - "Name": Name of this entity.
    - "Target": The entity to sync up.
    - "Sync target": The entity to sync the entity specified in "Target" to.
+   
+# env_tracereffect
+>An entity designed to be used for spawning tracer effects. The type of effect can be specified in the "Type"
+>field of the entity. Tracers are beam-like particles that spawn from a point and have a given velocity, can
+>have gravity applied, and are removed after a given time.
+
+ - Keyvalues:
+   - "Name": Name of this entity.
+   - "Target": If specified, the tracers will shoot towards this entity.
+   - "Pitch Yaw Roll(Y Z X)": Defines the direction of the tracers.
+   - "FX Amount (1 - 255)": Degree of transparency for the tracers.
+   - "FX Color (R G B)": The color to be applied to the tracers.
+   - "Effect type":
+     - "Simple Tracer": Regular tracer moving towards a direction.
+	 - "Spark Streak": Half-Life 1 spark streak particles.
+	 - "Streak Splash": Half-Life 1 streak splash effect.
+   - "Particle count": Number of particles to spawn.
+   - "Velocity": Velocity of tracers to spawn.
+   - "Minimum repeat delay": Minimum time between repeats of the effect.
+   - "Maximum repeat delay": Minimum time between repeats of the effect.
+   - "Minimum velocity": Minimum velocity of streak particles.
+   - "Maximum velocity": Maximum velocity of streak particles.     
+   - "Tracer width": Width of the tracer.
+   - "Tracer length": Length of the tracer.
+   - "Minimum lifetime": Minimum lifetime of an individual tracer. If left as zero and tracer type if simple,
+   and with a target specified, then the lifetime is calculated based on time travelled to the target.
+   - "Maximum lifetime": Maximum lifetime of an individual tracer. If left as zero, only the minimum is used.
+   - "Gravity":
+     - "None": The tracers won't be affected by gravity.
+	 - "Normal": Tracers are fully affected by gravity.
+	 - "Low": Tracers are mildly affected by gravity.
+   
+ - Spawn flags:
+   - "Start On": If the entity has a targetname and this flag is set, the entity will spawn in the "On"
+   state. 
    
 # env_vignette
 >Coded by valina354, this post-processing effect adds a tunnel vision-like effect to the screen, where

@@ -215,6 +215,7 @@ struct clientstate_t
 		frametime(0),
 		parsecount(0),
 		framecount(0),
+		numparticleblockers(0),
 		numentities(0),
 		numextrainfos(0),
 		maxclients(0),

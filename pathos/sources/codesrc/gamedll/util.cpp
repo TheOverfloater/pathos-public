@@ -1645,22 +1645,29 @@ namespace Util
 	//=============================================
 	//
 	//=============================================
-	void CreateSparkStreak( const Vector& origin, Uint32 count, Float minVelocity, Float maxVelocity )
+	void CreateSparkStreak( const Vector& origin, Uint32 count, const Vector& color, Float alpha, Float width, Float length, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity )
 	{
 		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
 			gd_engfuncs.pfnMsgWriteByte(TE_SPARKSTREAK);
 			for(Uint32 i = 0; i < 3; i++)
 				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
 			gd_engfuncs.pfnMsgWriteUint16(count);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteByte(color[i]);
+			gd_engfuncs.pfnMsgWriteByte(alpha);
+			gd_engfuncs.pfnMsgWriteFloat(minLifetime);
+			gd_engfuncs.pfnMsgWriteFloat(maxLifetime);
 			gd_engfuncs.pfnMsgWriteFloat(minVelocity);
 			gd_engfuncs.pfnMsgWriteFloat(maxVelocity);
+			gd_engfuncs.pfnMsgWriteSmallFloat(width);
+			gd_engfuncs.pfnMsgWriteSmallFloat(length);
 		gd_engfuncs.pfnUserMessageEnd();
 	}
 
 	//=============================================
 	//
 	//=============================================
-	void CreateStreakSplash( const Vector& origin, const Vector& direction, Uint32 color, Uint32 count, Float speed, Float minVelocity, Float maxVelocity )
+	void CreateStreakSplash( const Vector& origin, const Vector& direction, const Vector& color, Float alpha, Float width, Float length, Uint32 count, Float speed, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity )
 	{
 		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
 			gd_engfuncs.pfnMsgWriteByte(TE_STREAKSPLASH);
@@ -1668,11 +1675,17 @@ namespace Util
 				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
 			for(Uint32 i = 0; i < 3; i++)
 				gd_engfuncs.pfnMsgWriteFloat(direction[i]);
-			gd_engfuncs.pfnMsgWriteByte(color);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteByte(color[i]);
+			gd_engfuncs.pfnMsgWriteByte(alpha);
 			gd_engfuncs.pfnMsgWriteUint16(count);
 			gd_engfuncs.pfnMsgWriteFloat(speed);
+			gd_engfuncs.pfnMsgWriteFloat(minLifetime);
+			gd_engfuncs.pfnMsgWriteFloat(maxLifetime);
 			gd_engfuncs.pfnMsgWriteFloat(minVelocity);
 			gd_engfuncs.pfnMsgWriteFloat(maxVelocity);
+			gd_engfuncs.pfnMsgWriteSmallFloat(width);
+			gd_engfuncs.pfnMsgWriteSmallFloat(length);
 		gd_engfuncs.pfnUserMessageEnd();
 	}
 
@@ -1724,7 +1737,7 @@ namespace Util
 	//=============================================
 	//
 	//=============================================
-	void CreateTracerImplosion( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, bool reverse )
+	void CreateTracerImplosion( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, Float width, Float length, bool reverse )
 	{
 		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
 			gd_engfuncs.pfnMsgWriteByte(TE_TRACERIMPLOSION);
@@ -1737,6 +1750,8 @@ namespace Util
 				gd_engfuncs.pfnMsgWriteByte(color[i]);
 			gd_engfuncs.pfnMsgWriteByte(alpha);
 			gd_engfuncs.pfnMsgWriteByte(reverse ? TRUE : FALSE);
+			gd_engfuncs.pfnMsgWriteSmallFloat(width);
+			gd_engfuncs.pfnMsgWriteSmallFloat(length);
 		gd_engfuncs.pfnUserMessageEnd();
 	}
 

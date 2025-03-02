@@ -14,6 +14,10 @@ class CCVar;
 
 struct saved_move_t
 {
+	saved_move_t():
+		psave_edict(nullptr)
+	{}
+
 	Vector saved_origin;
 	edict_t* psave_edict;
 };

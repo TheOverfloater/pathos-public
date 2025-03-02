@@ -75,10 +75,12 @@ CPostProcess::CPostProcess( void ):
 	m_pVBO(nullptr),
 	m_pCvarFilmGrain(nullptr),
 	m_pCvarPostProcess(nullptr),
+	m_pCvarBloom(nullptr),
 	m_pCvarBloomDarkenSteps(nullptr),
 	m_pCvarBloomDarkenMultiplier(nullptr),
 	m_pCvarBloomBlurSteps(nullptr),
 	m_pCvarBloomBrightenMultiplier(nullptr),
+	m_pCvarBloomBrightnessTreshold(nullptr),
 	m_pScreenRTT(nullptr),
 	m_pBlurScreenTexture(nullptr),
 	m_vignetteActive(false),
@@ -1358,10 +1360,10 @@ void CPostProcess :: SetOverlay( Int32 layerindex, const Char* pstrtexturename, 
 
 	poverlay->layerindex = layerindex;
 	poverlay->ptexture = ptexture;
-	poverlay->rendermode = (overlay_rendermode_t)rendermode;
+	poverlay->rendermode = static_cast<overlay_rendermode_t>(rendermode);
 	poverlay->rendercolor = rendercolor;
 	poverlay->renderamt = renderamt;
-	poverlay->effect = (overlay_effect_t)effect;
+	poverlay->effect = static_cast<overlay_effect_t>(effect);
 	poverlay->effectspeed = effectspeed;
 	poverlay->effectminalpha = effectminalpha;
 	poverlay->fadeout = false;

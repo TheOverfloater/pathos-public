@@ -106,6 +106,7 @@ struct water_settings_t
 		lightstrength(0),
 		specularstrength(0),
 		wavefresnelstrength(0),
+		flowmapspeed(0),
 		phongexponent(0),
 		refractonly(false),
 		cheaprefraction(false),

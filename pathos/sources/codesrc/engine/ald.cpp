@@ -189,6 +189,7 @@ bool ALD_Load( daystage_t stage, byte** pdestarrays )
 		switch(player->compression)
 		{
 		case ALD_COMPRESSION_NONE:
+		default:
 			memcpy(paldlightdata, pdatasrc, sizeof(byte)*ploadheader->lightdatasize);
 			break;
 		case ALD_COMPRESSION_MINIZ:

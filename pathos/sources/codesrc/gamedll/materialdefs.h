@@ -24,6 +24,7 @@ public:
 	struct penetration_t
 	{
 		penetration_t():
+			bullettypeindex(0),
 			penetrationdepth(0),
 			maxpenetration(0),
 			penetrationchance(0),
@@ -43,6 +44,7 @@ public:
 	struct ricochetinfo_t
 	{
 		ricochetinfo_t():
+			bullettypeindex(0),
 			maxangle(0),
 			maxdeviation(0),
 			ricochetchance(0),

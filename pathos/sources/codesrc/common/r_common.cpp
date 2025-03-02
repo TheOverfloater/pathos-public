@@ -405,14 +405,14 @@ void R_ResizeTexture32( Uint32 width, Uint32 height, Uint32 targetwidth, Uint32 
 
 	for (Uint32 i = 0; i < targetwidth; i++)
 	{
-		pcol1[i] = static_cast<Int32>((i + 0.25) * (width / (Float)targetwidth));
-		pcol2[i] = static_cast<Int32>((i + 0.75) * (width / (Float)targetwidth));
+		pcol1[i] = static_cast<Int32>((i + 0.25) * (width / static_cast<Float>(targetwidth)));
+		pcol2[i] = static_cast<Int32>((i + 0.75) * (width / static_cast<Float>(targetwidth)));
 	}
 
 	for (Uint32 i = 0; i < targetheight; i++)
 	{
-		prow1[i] = static_cast<Int32>((i + 0.25) * (height / (Float)targetheight)) * width;
-		prow2[i] = static_cast<Int32>((i + 0.75) * (height / (Float)targetheight)) * width;
+		prow1[i] = static_cast<Int32>((i + 0.25) * (height / static_cast<Float>(targetheight))) * width;
+		prow2[i] = static_cast<Int32>((i + 0.75) * (height / static_cast<Float>(targetheight))) * width;
 	}
 
 	for (Uint32 i = 0; i < targetheight; i++)
@@ -455,14 +455,14 @@ void R_ResizeTexture24( Uint32 width, Uint32 height, Uint32 targetwidth, Uint32 
 
 	for (Uint32 i = 0; i < targetwidth; i++)
 	{
-		pcol1[i] = static_cast<Int32>((i + 0.25) * (width / (Float)targetwidth));
-		pcol2[i] = static_cast<Int32>((i + 0.75) * (width / (Float)targetwidth));
+		pcol1[i] = static_cast<Int32>((i + 0.25) * (width / static_cast<Float>(targetwidth)));
+		pcol2[i] = static_cast<Int32>((i + 0.75) * (width / static_cast<Float>(targetwidth)));
 	}
 
 	for (Uint32 i = 0; i < targetheight; i++)
 	{
-		prow1[i] = static_cast<Int32>((i + 0.25) * (height / (Float)targetheight)) * width;
-		prow2[i] = static_cast<Int32>((i + 0.75) * (height / (Float)targetheight)) * width;
+		prow1[i] = static_cast<Int32>((i + 0.25) * (height / static_cast<Float>(targetheight))) * width;
+		prow2[i] = static_cast<Int32>((i + 0.75) * (height / static_cast<Float>(targetheight))) * width;
 	}
 
 	for (Uint32 i = 0; i < targetheight; i++)

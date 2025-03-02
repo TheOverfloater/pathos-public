@@ -30,8 +30,6 @@ CEnvParticleEffect::CEnvParticleEffect( edict_t* pedict ):
 	m_trailType(0),
 	m_minRepeatDelay(0),
 	m_maxRepeatDelay(0),
-	m_minVelocity(0),
-	m_maxVelocity(0),
 	m_isActive(false)
 {
 }
@@ -100,15 +98,6 @@ bool CEnvParticleEffect::Spawn( void )
 			return false;
 		}
 	}
-	else if(m_type == EFFECT_SPARKSTREAK || m_type == EFFECT_STREAKSPLASH)
-	{
-		if(m_minVelocity > m_maxVelocity)
-		{
-			Util::EntityConPrintf(m_pEdict, "Min velocity greather than max velocity.\n");
-			Util::RemoveEntity(m_pEdict);
-			return false;
-		}
-	}
 
 	if(m_maxRepeatDelay)
 	{
@@ -152,8 +141,6 @@ void CEnvParticleEffect::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_minRepeatDelay, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_maxRepeatDelay, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_isActive, EFIELD_BOOLEAN));
-	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_minVelocity, EFIELD_FLOAT));
-	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_maxVelocity, EFIELD_FLOAT));
 }
 
 //=============================================
@@ -195,16 +182,6 @@ bool CEnvParticleEffect::KeyValue( const keyvalue_t& kv )
 	else if(!qstrcmp(kv.keyname, "maxdelay"))
 	{
 		m_maxRepeatDelay = SDL_atof(kv.value);
-		return true;
-	}
-	else if(!qstrcmp(kv.keyname, "minvelocity"))
-	{
-		m_minVelocity = SDL_atof(kv.value);
-		return true;
-	}
-	else if(!qstrcmp(kv.keyname, "maxvelocity"))
-	{
-		m_maxVelocity = SDL_atof(kv.value);
 		return true;
 	}
 	else 
@@ -335,19 +312,6 @@ void CEnvParticleEffect::CreateEffect( void )
 			}
 
 			Util::CreateRocketTrail(m_pState->origin, pEdict->state.origin, m_trailType);
-		}
-		break;
-	case EFFECT_SPARKSTREAK:
-		{
-			Util::CreateSparkStreak(m_pState->origin, m_particleCount, m_minVelocity, m_maxVelocity);
-		}
-		break;
-	case EFFECT_STREAKSPLASH:
-		{
-			Vector forward;
-			Math::AngleVectors(m_pState->angles, &forward);
-
-			Util::CreateStreakSplash(m_pState->origin, forward, clamp(m_startColor, 0, 255), m_particleCount, m_pState->speed, m_minVelocity, m_maxVelocity);
 		}
 		break;
 	case EFFECT_LARGEFUNNEL:

@@ -571,13 +571,11 @@ namespace Common
 	//=============================================
 	inline Float SplineFraction( Float value, Float scale )
 	{
-		Float valueSquared;
-
-		value = scale * value;
-		valueSquared = value * value;
+		Float _value = scale * value;
+		Float valueSquared = _value * _value;
 
 		// Nice little ease-in, ease-out spline-like curve
-		return 3 * valueSquared - 2 * valueSquared * value;
+		return 3 * valueSquared - 2 * valueSquared * _value;
 	}
 
 	//====================================

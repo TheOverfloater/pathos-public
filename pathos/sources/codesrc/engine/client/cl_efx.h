@@ -63,12 +63,12 @@ extern void CL_ParticleEffect( const Vector& origin, const Vector& velocity, Uin
 extern void CL_LavaSplash( const Vector& origin );
 extern void CL_TeleportSplash( const Vector& origin );
 extern void CL_RocketTrail( const Vector& start, const Vector& end, Uint32 type );
-extern void CL_CreateSparkStreak( const Vector& origin, Uint32 count, Float minVelocity, Float maxVelocity );
-extern void CL_CreateStreakSplash( const Vector& origin, const Vector& direction, Uint32 color, Uint32 count, Float speed, Float minVelocity, Float maxVelocity );
+extern void CL_CreateSparkStreak( const Vector& origin, Uint32 count, const Vector& color, Float alpha, Float width, Float length, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity );
+extern void CL_CreateStreakSplash( const Vector& origin, const Vector& direction, const Vector& color, Float alpha, Float width, Float length, Uint32 count, Float speed, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity );
 extern void CL_CreateLargeFunnel( const Vector& origin, bool reverse );
 extern void CL_CreateBloodStream( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
 extern void CL_CreateBloodParticles( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
-extern void CL_CreateTracerImplosion( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, bool reverse );
+extern void CL_CreateTracerImplosion( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, Float width, Float length, bool reverse );
 extern void CL_InitEffectsInterface( cl_efxapi_t &efxAPI );
 extern void CL_SetGaussianBlur( bool active, Float alpha );
 extern cl_entity_t* CL_AllocTempSpriteEntity( Int32 key, Float life );

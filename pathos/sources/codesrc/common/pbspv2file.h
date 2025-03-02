@@ -18,29 +18,29 @@ All Rights Reserved.
 // BSP limits
 //
 
-static const Uint32 PBSPV2_MAX_MAP_HULLS			= 4;
-static const Uint32 PBSPV2_MAX_MAP_MODELS			= 4096;
-static const Uint32 PBSPV2_MAX_MAP_BRUSHES			= 262144;
-static const Uint32 PBSPV2_MAX_MAP_ENTITIES			= 65535;
-static const Uint32 PBSPV2_MAX_MAP_ENTSTRING		= 2097152;
-static const Uint32 PBSPV2_MAX_MAP_PLANES			= 262144;
-static const Uint32 PBSPV2_MAX_MAP_NODES			= 262144;
-static const Uint32 PBSPV2_MAX_MAP_CLIPNODES		= 262144;
-static const Uint32 PBSPV2_MAX_MAP_LEAFS			= 262144;
-static const Uint32 PBSPV2_MAX_MAP_VERTS			= 262144;
-static const Uint32 PBSPV2_MAX_MAP_FACES			= 262144;
-static const Uint32 PBSPV2_MAX_MAP_MARKSURFACES		= 262144;
-static const Uint32 PBSPV2_MAX_MAP_TEXINFO			= 262144;
-static const Uint32 PBSPV2_MAX_MAP_EDGES			= 524288;
-static const Uint32 PBSPV2_MAX_MAP_SURFEDGES		= 1048576;
-static const Uint32 PBSPV2_MAX_MAP_TEXTURES			= 16384;
-static const Uint32 PBSPV2_MAX_MAP_LIGHTING			= 16777216;
-static const Uint32 PBSPV2_MAX_MAP_VISIBILITY		= 16777216;
+static constexpr Uint32 PBSPV2_MAX_MAP_HULLS			= 4;
+static constexpr Uint32 PBSPV2_MAX_MAP_MODELS			= 4096;
+static constexpr Uint32 PBSPV2_MAX_MAP_BRUSHES			= 262144;
+static constexpr Uint32 PBSPV2_MAX_MAP_ENTITIES			= 65535;
+static constexpr Uint32 PBSPV2_MAX_MAP_ENTSTRING		= 2097152;
+static constexpr Uint32 PBSPV2_MAX_MAP_PLANES			= 262144;
+static constexpr Uint32 PBSPV2_MAX_MAP_NODES			= 262144;
+static constexpr Uint32 PBSPV2_MAX_MAP_CLIPNODES		= 262144;
+static constexpr Uint32 PBSPV2_MAX_MAP_LEAFS			= 262144;
+static constexpr Uint32 PBSPV2_MAX_MAP_VERTS			= 262144;
+static constexpr Uint32 PBSPV2_MAX_MAP_FACES			= 262144;
+static constexpr Uint32 PBSPV2_MAX_MAP_MARKSURFACES		= 262144;
+static constexpr Uint32 PBSPV2_MAX_MAP_TEXINFO			= 262144;
+static constexpr Uint32 PBSPV2_MAX_MAP_EDGES			= 524288;
+static constexpr Uint32 PBSPV2_MAX_MAP_SURFEDGES		= 1048576;
+static constexpr Uint32 PBSPV2_MAX_MAP_TEXTURES			= 16384;
+static constexpr Uint32 PBSPV2_MAX_MAP_LIGHTING			= 16777216;
+static constexpr Uint32 PBSPV2_MAX_MAP_VISIBILITY		= 16777216;
 
-static const Uint32 PBSPV2_MAX_LIGHTMAPS			= 4;
-static const Uint32 PBSPV2_LM_SAMPLE_SIZE			= 16;
-static const Uint32 PBSPV2_NUM_AMBIENTS				= 4;
-static const Uint32 PBSPV2_VERSION					= 2;
+static constexpr Uint32 PBSPV2_MAX_LIGHTMAPS			= 4;
+static constexpr Uint32 PBSPV2_LM_SAMPLE_SIZE			= 16;
+static constexpr Uint32 PBSPV2_NUM_AMBIENTS				= 4;
+static constexpr Uint32 PBSPV2_VERSION					= 2;
 
 //
 // BSP lumps

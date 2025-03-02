@@ -104,17 +104,8 @@ bool CEnvFunnel::Spawn( void )
 void CEnvFunnel::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value )
 {
 	bool isReverse = HasSpawnFlag(FL_REVERSE) ? true : false;
-	gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
-		gd_engfuncs.pfnMsgWriteByte(TE_FUNNELSPRITE);
-		for(Uint32 i = 0; i < 3; i++)
-			gd_engfuncs.pfnMsgWriteFloat(m_pState->origin[i]);
-		for(Uint32 i = 0; i < 3; i++)
-			gd_engfuncs.pfnMsgWriteSmallFloat(m_pState->rendercolor[i]);
-		gd_engfuncs.pfnMsgWriteSmallFloat(m_pState->renderamt);
-		gd_engfuncs.pfnMsgWriteUint16(m_spriteModel);
-		gd_engfuncs.pfnMsgWriteByte(isReverse);
-	gd_engfuncs.pfnUserMessageEnd();
-
+	// Create using sprite version
+	Util::CreateFunnelSprite(m_pState->origin, m_pState->rendercolor, m_pState->renderamt, m_spriteModel, isReverse);
 	// Also legacy particle effect now
 	Util::CreateLargeFunnel(m_pState->origin, isReverse);
 

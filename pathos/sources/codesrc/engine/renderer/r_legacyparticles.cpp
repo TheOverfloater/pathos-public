@@ -616,51 +616,6 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 //====================================
 //
 //====================================
-void CLegacyParticles::CreateSparkStreak( const Vector& origin, Uint32 count, Float minVelocity, Float maxVelocity )
-{
-	for(Uint32 i = 0; i < count; i++)
-	{
-		particle_t* pnew = AllocParticle();
-		if(!pnew)
-			return;
-
-		pnew->color = 5;
-		pnew->type = pt_slowgravity;
-		pnew->die = cls.cl_time + Common::RandomFloat(0.1, 0.5);
-		pnew->ramp = 0.5;
-		pnew->origin = origin;
-		
-		for(Uint32 j = 0; j < 3; j++)
-			pnew->velocity[j] = Common::RandomFloat(minVelocity, maxVelocity);
-	}
-}
-
-//====================================
-//
-//====================================
-void CLegacyParticles::CreateStreakSplash( const Vector& origin, const Vector& direction, Uint32 color, Uint32 count, Float speed, Float minVelocity, Float maxVelocity )
-{
-	Vector initialVelocity = direction * speed;
-	for(Uint32 i = 0; i < count; i++)
-	{
-		particle_t* pnew = AllocParticle();
-		if(!pnew)
-			return;
-
-		pnew->color = color;
-		pnew->type = pt_gravity;
-		pnew->die = cls.cl_time + Common::RandomFloat(0.1, 0.5);
-		pnew->ramp = 1.0;
-		pnew->origin = origin;
-
-		for(Uint32 j = 0; j < 3; j++)
-			pnew->velocity[j] = initialVelocity[j] + Common::RandomFloat(minVelocity, maxVelocity);
-	}
-}
-
-//====================================
-//
-//====================================
 void CLegacyParticles::CreateLargeFunnel( const Vector& origin, bool reverse )
 {
 	for(Int32 i = -256; i <= 256; i += 32)
@@ -740,7 +695,10 @@ void CLegacyParticles::CreateBloodStream( const Vector& origin, const Vector& di
 		arc -= 0.005;
 
 		pnew->velocity = particleDirection * particleSpeed;
-		particleSpeed -= 0.00001;
+
+		// Reduce speed by 1 per each particle to make it look
+		// like the original effect from Half-Life 1
+		particleSpeed -= 1;
 	}
 
 	arc = 0.075;

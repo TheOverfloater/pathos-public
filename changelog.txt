@@ -615,3 +615,19 @@
  - Replaced Q1 palette with the Half-Life 1 palette file.
  - Some fixes to the blood stream effect.
  - Fix for GLSL shaders erroring out with invalid states when CSD files needed to be rebuilt.
+
+2025 March 2nd:
+ - Fix "Spark streaks" and "Streak splash" effects to be tracers, NOT Q1 particle effects.
+ - Created separate env_tracereffect entity for tracer effects.
+ - Removed "Spark streaks" and "Streak splash" from env_particleeffect entity.
+ - Removed Reckoning icon from pathos mod folder.
+ - Updated entitytest2 level to feature test rooms for env_implosion and env_tracereffect.
+ - Added tracer size customization to env_implosion entity.
+ - Optimization of tempent messages to use bytes for color/alpha values instead of small floats.
+ - Fixed numerous cases of member variables not being initialized in class/struct constructors.
+ - Various fixes for issues in the code found during static code analysis.
+ - Fixed blood stream effect to look like the effect in Half-Life.
+ - Fix for issue in AI with NPCs not playing/setting blowback death anims properly.
+ - Moved all tempentity creation calls to use the interface functions from Util namespace.
+ - Modified env_funnel to also use the Q1 particle funnel effect like in Half-Life 1.
+ - Fix overindexing in entity_lightinfo_t struct when initializing lightstyle structs.

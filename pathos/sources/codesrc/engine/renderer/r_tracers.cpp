@@ -36,7 +36,8 @@ CTracerRenderer::CTracerRenderer( void ):
 	m_pFreeTracersHeader(nullptr),
 	m_pActiveTracersHeader(nullptr),
 	m_pCvarDrawTracers(nullptr),
-	m_pCvarGravity(nullptr)
+	m_pCvarGravity(nullptr),
+	m_pTracerTexture(nullptr)
 {
 }
 
@@ -375,7 +376,7 @@ tracer_t* CTracerRenderer::CreateTracer( const Vector& origin, const Vector& vel
 //====================================
 //
 //====================================
-void CTracerRenderer::CreateImplosionEffect( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, bool reverse )
+void CTracerRenderer::CreateImplosionEffect( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, Float width, Float length, bool reverse )
 {
 	Float velscale = (-1.0f / life);
 
@@ -398,9 +399,45 @@ void CTracerRenderer::CreateImplosionEffect( const Vector& destination, Float ra
 			velocity = tmp * velscale * -1;
 		}
 
-		tracer_t* pnew = CreateTracer(origin, velocity, color, alpha, 1.5f, 0.8f, life, TRACER_NORMAL);
+		tracer_t* pnew = CreateTracer(origin, velocity, color, alpha, width, length, life, TRACER_NORMAL);
 		if(!pnew)
 			break;
+	}
+}
+
+//====================================
+//
+//====================================
+void CTracerRenderer::CreateSparkStreak( const Vector& origin, Uint32 count, const Vector& color, Float alpha, Float width, Float length, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity )
+{
+	for(Uint32 i = 0; i < count; i++)
+	{
+		Vector velocity;
+		for(Uint32 j = 0; j < 3; j++)
+			velocity[j] = Common::RandomFloat(minVelocity, maxVelocity);
+
+		Float life = maxLifetime > minLifetime ? Common::RandomFloat(minLifetime, maxLifetime) : minLifetime;
+		tracer_t* pnew = CreateTracer(origin, velocity, color, alpha, width, length, life, TRACER_SLOW_GRAVITY);
+		if(!pnew)
+			return;
+	}
+}
+//====================================
+//
+//====================================
+void CTracerRenderer::CreateStreakSplash( const Vector& origin, const Vector& direction, const Vector& color, Float alpha, Float width, Float length, Uint32 count, Float speed, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity )
+{
+	Vector initialVelocity = direction * speed;
+	for(Uint32 i = 0; i < count; i++)
+	{
+		Vector velocity;
+		for(Uint32 j = 0; j < 3; j++)
+			velocity[j] = initialVelocity[j] + Common::RandomFloat(minVelocity, maxVelocity);
+
+		Float life = maxLifetime > minLifetime ? Common::RandomFloat(minLifetime, maxLifetime) : minLifetime;
+		tracer_t* pnew = CreateTracer(origin, velocity, color, alpha, width, length, life, TRACER_GRAVITY);
+		if(!pnew)
+			return;
 	}
 }
 

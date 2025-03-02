@@ -28,6 +28,7 @@ struct cl_portal_t
 		num_vertexes(0),
 		renderpassidx(0),
 		ptexture(nullptr),
+		pfbo(nullptr),
 		pvisset(nullptr)
 		{}
 
@@ -69,6 +70,7 @@ struct portal_attribs
 		u_modelview(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_projection(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_texture(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_texturerect(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_screenwidth(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_screenheight(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_fogcolor(CGLSLShader::PROPERTY_UNAVAILABLE),

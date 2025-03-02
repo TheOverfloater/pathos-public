@@ -842,8 +842,16 @@ void CBaseNPC::StartTask( const ai_task_t* pTask )
 			ClearRoute();
 
 			// This depends on whether we're blowback killed
-			if(pTask->task != AI_TASK_DIE_LAND)
+			if(pTask->task == AI_TASK_DIE)
+			{
+				// Set regular death activity
 				SetIdealActivity(GetDeathActivity());
+			}
+			else if(!(m_deathFlags & m_deathFlags))
+			{
+				m_idealActivity = GetBlowbackDeathActivity();
+				m_deathFlags |= NPC_DF_LANDED;
+			}
 
 			m_pState->deadstate = DEADSTATE_DYING;
 

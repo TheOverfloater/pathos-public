@@ -88,6 +88,8 @@ static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 	CL_TempSprite,					//pfnTempSprite
 	CL_CreateTracer,				//pfnCreateTracer
 	CL_CreateTracerImplosion,		//pfnCreateTracerImplosion
+	CL_CreateSparkStreak,			//pfnCreateSparkStreak
+	CL_CreateStreakSplash,			//pfnCreateStreakSplash	
 	CL_ParticleExplosion1,			//pfnParticleExplosion1
 	CL_ParticleExplosion2,			//pfnParticleExplosion2
 	CL_BlobExplosion,				//pfnBlobExplosion
@@ -95,9 +97,7 @@ static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 	CL_ParticleEffect,				//pfnParticleEffect
 	CL_LavaSplash,					//pfnLavaSplash
 	CL_TeleportSplash,				//pfnTeleportSplash
-	CL_RocketTrail,					//pfnRocketTrail
-	CL_CreateSparkStreak,			//pfnCreateSparkStreak
-	CL_CreateStreakSplash,			//pfnCreateStreakSplash			
+	CL_RocketTrail,					//pfnRocketTrail		
 	CL_CreateLargeFunnel,			//pfnCreateLargeFunnel
 	CL_CreateBloodStream,			//pfnCreateBloodStream
 	CL_CreateBloodParticles,		//pfnCreateBloodParticles
@@ -682,17 +682,17 @@ void CL_RocketTrail( const Vector& start, const Vector& end, Uint32 type )
 //====================================
 //
 //====================================
-void CL_CreateSparkStreak( const Vector& origin, Uint32 count, Float minVelocity, Float maxVelocity )
+void CL_CreateSparkStreak( const Vector& origin, Uint32 count, const Vector& color, Float alpha, Float width, Float length, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity )
 {
-	gLegacyParticles.CreateSparkStreak(origin, count, minVelocity, maxVelocity);
+	gTracers.CreateSparkStreak(origin, count, color, alpha, width, length, minLifetime, maxLifetime, minVelocity, maxVelocity);
 }
 
 //====================================
 //
 //====================================
-void CL_CreateStreakSplash( const Vector& origin, const Vector& direction, Uint32 color, Uint32 count, Float speed, Float minVelocity, Float maxVelocity )
+void CL_CreateStreakSplash( const Vector& origin, const Vector& direction, const Vector& color, Float alpha, Float width, Float length, Uint32 count, Float speed, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity )
 {
-	gLegacyParticles.CreateStreakSplash(origin, direction, color, count, speed, minVelocity, maxVelocity);
+	gTracers.CreateStreakSplash(origin, direction, color, alpha, width, length, count, speed, minLifetime, maxLifetime, minVelocity, maxVelocity);
 }
 
 //====================================
@@ -722,9 +722,9 @@ void CL_CreateBloodParticles( const Vector& origin, const Vector& direction, Uin
 //====================================
 //
 //====================================
-void CL_CreateTracerImplosion( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, bool reverse )
+void CL_CreateTracerImplosion( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, Float width, Float length, bool reverse )
 {
-	gTracers.CreateImplosionEffect(destination, radius, count, life, color, alpha, reverse);
+	gTracers.CreateImplosionEffect(destination, radius, count, life, color, alpha, width, length, reverse);
 }
 
 //====================================

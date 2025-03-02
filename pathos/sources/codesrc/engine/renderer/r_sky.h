@@ -15,6 +15,7 @@ struct sky_attribs_t
 	sky_attribs_t():
 		u_projection(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_color(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_texture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_modelview(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_texcoord(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_origin(CGLSLShader::PROPERTY_UNAVAILABLE),

@@ -3316,7 +3316,7 @@ const CAISchedule* CBaseNPC::GetSchedule( void )
 		break;
 	case NPC_STATE_DEAD:
 		{
-			if(HasCapability(AI_CAP_BLOWBACK_ANIMS) && m_deathMode == DEATH_BLOWBACK)
+			if(m_deathMode == DEATH_BLOWBACK)
 				return GetScheduleByIndex(AI_SCHED_DIE_BLOWBACK);
 			else
 				return GetScheduleByIndex(AI_SCHED_DIE);

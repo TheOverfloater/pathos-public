@@ -133,18 +133,7 @@ void CEnvBubbles::Precache( void )
 void CEnvBubbles::BubblingThink( void )
 {
 	Float bubbleHeight = m_pState->absmax[2] - m_pState->absmin[2];
-
-	gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
-		gd_engfuncs.pfnMsgWriteByte(TE_BUBBLES);
-		for(Uint32 i = 0; i < 3; i++)
-			gd_engfuncs.pfnMsgWriteFloat(m_pState->absmin[i]);
-		for(Uint32 i = 0; i < 3; i++)
-			gd_engfuncs.pfnMsgWriteFloat(m_pState->absmax[i]);
-		gd_engfuncs.pfnMsgWriteSmallFloat(bubbleHeight);
-		gd_engfuncs.pfnMsgWriteUint16(m_bubbleSprite);
-		gd_engfuncs.pfnMsgWriteUint16(m_density);
-		gd_engfuncs.pfnMsgWriteSmallFloat(m_current);
-	gd_engfuncs.pfnUserMessageEnd();
+	Util::CreateBubbles(m_pState->absmin, m_pState->absmax, bubbleHeight, m_bubbleSprite, m_density, m_current);
 
 	m_pState->nextthink = g_pGameVars->time + 2.5 - (0.1*m_frequency);
 }

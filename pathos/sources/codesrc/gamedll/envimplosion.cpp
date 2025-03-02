@@ -29,7 +29,9 @@ CEnvImplosion::CEnvImplosion( edict_t* pedict ):
 	m_duration(0),
 	m_lastSpawnTime(0),
 	m_spawnCount(0),
-	m_spawnBeginTime(0)
+	m_spawnBeginTime(0),
+	m_tracerLength(0),
+	m_tracerWidth(0)
 {
 }
 
@@ -92,6 +94,16 @@ bool CEnvImplosion::KeyValue( const keyvalue_t& kv )
 		m_duration = SDL_atof(kv.value);
 		return true;
 	}
+	else if(!qstrcmp(kv.keyname, "tracerlength"))
+	{
+		m_tracerLength = SDL_atof(kv.value);
+		return true;
+	}
+	else if(!qstrcmp(kv.keyname, "tracerwidth"))
+	{
+		m_tracerWidth = SDL_atof(kv.value);
+		return true;
+	}
 	else
 		return CPointEntity::KeyValue(kv);
 }
@@ -110,6 +122,15 @@ bool CEnvImplosion::Spawn( void )
 
 	if(m_pState->rendercolor.IsZero())
 		m_pState->rendercolor = DEFAULT_COLOR;
+
+	if(m_tracerLength <= 0)
+		m_tracerLength = 1.5;
+
+	if(m_tracerWidth <= 0)
+		m_tracerWidth = 0.8;
+
+	if(m_life <= 0)
+		m_life = 1.5;
 
 	return true;
 }
@@ -132,7 +153,7 @@ void CEnvImplosion::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usem
 	else
 	{
 		bool reverse = HasSpawnFlag(FL_REVERSE_DIRECTION) ? true : false;
-		Util::CreateTracerImplosion(m_pState->origin, m_radius, m_tracerCount, m_life, m_pState->rendercolor, m_pState->renderamt, reverse);
+		Util::CreateTracerImplosion(m_pState->origin, m_radius, m_tracerCount, m_life, m_pState->rendercolor, m_pState->renderamt, m_tracerWidth, m_tracerWidth, reverse);
 	}
 }
 
@@ -162,7 +183,7 @@ VOID CEnvImplosion::SpawnThink( void )
 			nbSpawn = m_tracerCount - m_spawnCount;
 
 		bool reverse = HasSpawnFlag(FL_REVERSE_DIRECTION) ? true : false;
-		Util::CreateTracerImplosion(m_pState->origin, m_radius, nbSpawn, life, m_pState->rendercolor, m_pState->renderamt, reverse);
+		Util::CreateTracerImplosion(m_pState->origin, m_radius, nbSpawn, life, m_pState->rendercolor, m_pState->renderamt, m_tracerWidth, m_tracerWidth, reverse);
 
 		m_spawnCount += nbSpawn;
 		m_lastSpawnTime = g_pGameVars->time;

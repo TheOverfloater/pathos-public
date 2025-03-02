@@ -63,6 +63,7 @@ CGameUIDocumentsWindow::CGameUIDocumentsWindow( Int32 flags, Int32 originX, Int3
 	m_tabYSpacing(0),
 	m_tabWidth(0),
 	m_pReaderTitleText(nullptr),
+	m_pButtonsTab(nullptr),
 	m_pReaderTextTab(nullptr),
 	m_pFontSet(nullptr)
 {

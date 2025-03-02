@@ -19,6 +19,7 @@ CMultiDamage gMultiDamage;
 //
 //=============================================
 CMultiDamage::CMultiDamage( void ):
+	m_bulletType(BULLET_NONE),
 	m_damageFlags(0),
 	m_nbTotalShots(0)
 {

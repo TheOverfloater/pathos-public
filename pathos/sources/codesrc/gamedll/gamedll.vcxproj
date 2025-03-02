@@ -254,6 +254,7 @@
     <ClCompile Include="envbeamfx.cpp" />
     <ClCompile Include="envsun.cpp" />
     <ClCompile Include="envsyncanimation.cpp" />
+    <ClCompile Include="envtracereffect.cpp" />
     <ClCompile Include="envvignette.cpp" />
     <ClCompile Include="funcbreakable.cpp" />
     <ClCompile Include="funcbutton.cpp" />
@@ -533,6 +534,7 @@
     <ClInclude Include="envsetskytexture.h" />
     <ClInclude Include="envsun.h" />
     <ClInclude Include="envsyncanimation.h" />
+    <ClInclude Include="envtracereffect.h" />
     <ClInclude Include="envvignette.h" />
     <ClInclude Include="funcparticleblocker.h" />
     <ClInclude Include="funcportalsurface.h" />

@@ -39,6 +39,7 @@ CGLExtF::CGLExtF ( void ):
 	glTexStorage2DMultisample(nullptr),
 	glFramebufferRenderbuffer(nullptr),
 	glFramebufferTexture2D(nullptr),
+	glFramebufferTexture(nullptr),
 	glCheckFramebufferStatus(nullptr),
 	glBindFramebuffer(nullptr),
 	glGenFramebuffers(nullptr),
@@ -100,6 +101,7 @@ CGLExtF::CGLExtF ( void ):
 	glGetStringi(nullptr),
 	glDebugMessageCallback(nullptr),
 	glSampleCoverage(nullptr),
+	glClampColor(nullptr),
 	m_bSuccessful(true)
 {
 }

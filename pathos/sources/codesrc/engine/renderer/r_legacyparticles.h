@@ -114,10 +114,6 @@ public:
 	void CreateTeleportSplash( const Vector& origin );
 	// Creates a rocket trail effect
 	void CreateRocketTrail( const Vector& start, const Vector& end, Uint32 type );
-	// Creates a spark streak effect
-	void CreateSparkStreak( const Vector& origin, Uint32 count, Float minVelocity, Float maxVelocity );
-	// Creates a streak splash effect
-	void CreateStreakSplash( const Vector& origin, const Vector& direction, Uint32 color, Uint32 count, Float speed, Float minVelocity, Float maxVelocity );
 	// Creates a funnel effect
 	void CreateLargeFunnel( const Vector& origin, bool reverse );
 	// Creates a blood stream effect

@@ -49,5 +49,7 @@ private:
 	Double m_lastSpawnTime;
 	Uint32 m_spawnCount;
 	Double m_spawnBeginTime;
+	Float m_tracerLength;
+	Float m_tracerWidth;
 };
 #endif //ENVIMPLOSION_H

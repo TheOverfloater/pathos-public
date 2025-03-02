@@ -1078,7 +1078,9 @@
   count(integer) : "Tracer count" : 50
   life(string) : "Life" : "1.5"
   duration(string) : "Duration" : "0"
-
+	tracerwidth(string) : "Tracer width": "0.8"
+	tracerlength(string) : "Tracer length": "1.5"
+	
   spawnflags(flags) =
   [
     1: "Reverse Direction" : 0
@@ -1260,11 +1262,9 @@
   	    5 : "Lava Splash"
   	    6 : "Teleport Splash"
   	    7 : "Rocket Trail"
-		8 : "Spark Streak"
-		9 : "Streak Splash"
-		10 : "Large Funnel"
-		11 : "Blood Stream"
-		12 : "Blood Particles"
+		8 : "Large Funnel"
+		9 : "Blood Stream"
+		10 : "Blood Particles"
   	]
 	startcolor(integer) : "Start color index" : 0
 	endcolor(integer) : "End color index" : 255
@@ -1282,8 +1282,6 @@
   	]
 	mindelay(integer) : "Minimum repeat delay" : 0
 	maxdelay(integer) : "Maximum repeat delay" : 0
-	minvelocity(integer) : "Minimum velocity" : 0
-	maxvelocity(integer) : "Maximum velocity" : 100
 	spawnflags(flags) =
 	[
 		1: "Start On" : 0
@@ -1484,6 +1482,38 @@
     1 : "Start On" : 0
     2 : "Portal Sun" : 0
   ] 
+]
+@PointClass base(Targetname, Target, Angles) = env_tracereffect: "Tracer Effect"
+[
+	renderamt(integer) : "FX Amount (1 - 255)"
+	rendercolor(color255) : "FX Color (R G B)" : "0 0 0"
+  	type(Choices) : "Effect type" : 0 =
+  	[
+  	    0 : "Simple Tracer"
+  	    1 : "Spark Streaks"
+  	    2 : "Streak Splash"
+  	]
+	count(integer) : "Particle count" : 25
+	speed(integer) : "Velocity" : 10
+	mindelay(integer) : "Minimum repeat delay" : 0
+	maxdelay(integer) : "Maximum repeat delay" : 0
+	minvelocity(integer) : "Minimum velocity" : 0
+	maxvelocity(integer) : "Maximum velocity" : 100
+	tracerwidth(string) : "Tracer width": "0.8"
+	tracerlength(string) : "Tracer length": "1.5"
+	minlife(string) : "Minimum lifetime" : "1.5"
+	maxlife(string) : "Maximum lifetime" : "2.5"
+  	gravtype(Choices) : "Gravity" : 0 =
+  	[
+  	    0 : "None"
+  	    1 : "Normal"
+  	    2 : "Low"
+  	]
+	
+	spawnflags(flags) =
+	[
+		1: "Start On" : 0
+	]
 ]
 @PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) = env_syncanimation : "Syncs animations"
 [

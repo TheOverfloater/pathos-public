@@ -4806,7 +4806,7 @@ void CBSPRenderer::RemoveDecalFromVBO( bsp_decal_t *pdelete )
 	// See if there's anything to shift
 	if(nbshift > 0)
 	{
-		const bsp_vertex_t* pvertexdata = reinterpret_cast<const bsp_vertex_t*>(m_pDecalVBO->GetVBOData());
+		const bsp_vertex_t* pvertexdata = static_cast<const bsp_vertex_t*>(m_pDecalVBO->GetVBOData());
 		const bsp_vertex_t* psrcdata = pvertexdata + vertexend;
 
 		Uint32 offsetsize = sizeof(bsp_vertex_t)*vertexstart;
@@ -5184,7 +5184,7 @@ bool CBSPRenderer::DrawDecal( bsp_decal_t *pdecal, bool transparents, decal_rend
 
 		// Determine rendering method required
 		decal_rendermode_t requestedRendermode;
-		if(pgroup->alphatest && pgroup->ptexture && pgroup->ptexture)
+		if(pgroup->alphatest && pgroup->ptexture)
 			requestedRendermode = DECAL_RENDERMODE_ALPHATEST;
 		else
 			requestedRendermode = DECAL_RENDERMODE_NORMAL;
@@ -5272,8 +5272,7 @@ bool CBSPRenderer::DrawDecal( bsp_decal_t *pdecal, bool transparents, decal_rend
 		m_pShader->SetUniform1f(m_attribs.u_decalalpha, decalalpha);
 		m_pShader->SetUniform1f(m_attribs.u_decalscale, decalscale);
 
-		if (pgroup->alphatest && pgroup->ptexture 
-			&& pgroup->ptexture && pgroup->ptexture->infoindex != NO_INFO_INDEX)
+		if (pgroup->alphatest && pgroup->ptexture && pgroup->ptexture->infoindex != NO_INFO_INDEX)
 		{
 			bsp_texture_t* ptexturehandle = &m_texturesArray[pgroup->ptexture->infoindex];
 			en_texture_t* ptexture = ptexturehandle->pmaterial->ptextures[MT_TX_DIFFUSE];
