@@ -166,7 +166,7 @@ bool CScreenText::Draw( void )
 		m_messagesList.next();
 	}
 
-	cl_renderfuncs.pfnFinishTextRendering(m_pFontSet);
+	cl_renderfuncs.pfnFinishTextRendering();
 
 	return true;
 }

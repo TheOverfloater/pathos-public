@@ -560,7 +560,7 @@ bool CConsole::Draw( void )
 		if(yoffset < 0)
 			break;
 
-		result = gText.DrawString(m_pFontSet, dp.text.c_str(), stringBoxXPos, stringBoxYPos+yoffset);
+		result = gText.DrawString(dp.text.c_str(), stringBoxXPos, stringBoxYPos+yoffset);
 		if(!result)
 			return false;
 
@@ -569,7 +569,7 @@ bool CConsole::Draw( void )
 
 	gText.SetRectangle(0, 0, 0, 0, 0, 0);
 
-	gText.UnBind(m_pFontSet);
+	gText.UnBindCurrentSet();
 	gText.Reset();
 
 	glEnable(GL_DEPTH_TEST);

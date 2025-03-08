@@ -294,9 +294,9 @@ struct ui_engine_interface_t
 	// Sets up for text rendering
 	bool				(*pfnBeginTextRendering)( const font_set_t* pfontset );
 	// Ends text rendering
-	void				(*pfnFinishTextRendering)( const font_set_t* pfontset );
+	void				(*pfnFinishTextRendering)( void );
 	// Draws a single character
-	bool				(*pfnDrawCharacter)( const font_set_t* pfontset, Int32 x, Int32 y, Char character, Uint32 r, Uint32 g, Uint32 b, Uint32 a );
+	bool				(*pfnDrawCharacter)( Int32 x, Int32 y, Char character, Uint32 r, Uint32 g, Uint32 b, Uint32 a );
 	// Returns the size of a string in pixels
 	void				(*pfnGetStringSize)( const font_set_t *pset, const Char *pstring, Uint32 *width, Uint32 *height, Int32 *ymin );
 	// Estimates height of a string

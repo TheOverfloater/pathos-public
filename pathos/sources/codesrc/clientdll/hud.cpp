@@ -3225,7 +3225,7 @@ bool CGameHUD::DrawCountdownTimer( void )
 		if(characterSize < digitWidth)
 			nudgeSize = (digitWidth - characterSize) / 2.0f;
 
-		if(!cl_renderfuncs.pfnDrawCharacter(m_pCounterFont, drawPositionX + nudgeSize, drawPositionY, *pstr, color.x, color.y, color.z, 255 ))
+		if(!cl_renderfuncs.pfnDrawCharacter(drawPositionX + nudgeSize, drawPositionY, *pstr, color.x, color.y, color.z, 255 ))
 			return false;
 
 		drawPositionX += digitWidth;
@@ -3233,7 +3233,7 @@ bool CGameHUD::DrawCountdownTimer( void )
 	}
 	
 	// Finish rendering
-	cl_renderfuncs.pfnFinishTextRendering(m_pCounterFont);
+	cl_renderfuncs.pfnFinishTextRendering();
 
 	if(!gHUDDraw.SetupDraw())
 		return false;

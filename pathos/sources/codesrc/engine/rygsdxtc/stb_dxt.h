@@ -255,7 +255,7 @@ static unsigned int stb__MatchColorsBlock(unsigned char *block, unsigned char *c
 #ifdef NEW_OPTIMISATIONS
       const int indexMap[8] = { 0 << 30,2 << 30,0 << 30,2 << 30,3 << 30,3 << 30,1 << 30,1 << 30 };
 
-      for(int i=0;i<16;i++)
+      for(i=0;i<16;i++)
       {
         int dot = dots[i];
         mask >>= 2;

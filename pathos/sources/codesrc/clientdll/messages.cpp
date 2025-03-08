@@ -861,7 +861,7 @@ bool CScreenMessages::DrawMessage( displaymsg_t& msg )
 			color.b = pmsgdef->color2.b * (1.0-colorblend) + pmsgdef->color1.b * colorblend;
 
 			// Draw the character
-			if(!cl_renderfuncs.pfnDrawCharacter(pset, charXPos, charYPos, *pstr, color.r, color.g, color.b, 255*alpha))
+			if(!cl_renderfuncs.pfnDrawCharacter(charXPos, charYPos, *pstr, color.r, color.g, color.b, 255*alpha))
 			{
 				cl_engfuncs.pfnErrorPopup("Shader error: %s.", cl_renderfuncs.pfnGetStringDrawError());
 				return false;
@@ -880,7 +880,7 @@ bool CScreenMessages::DrawMessage( displaymsg_t& msg )
 	}
 
 	// Finish rendering
-	cl_renderfuncs.pfnFinishTextRendering(pset);
+	cl_renderfuncs.pfnFinishTextRendering();
 
 	// Draw rectangle if type was WRITEOUT
 	if(msg.pmsg->effect == EFFECT_WRITEOUT)

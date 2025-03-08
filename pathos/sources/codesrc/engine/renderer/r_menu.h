@@ -248,7 +248,7 @@ public:
 	// Performs thinkinking code
 	void Think( void );
 	// Draws the string
-	bool Draw( const font_set_t* pFont );
+	bool Draw( void );
 
 	// Determines if the cursor is over the button
 	bool IsCursorOver( Int32 cursorX, Int32 cursorY ) const;

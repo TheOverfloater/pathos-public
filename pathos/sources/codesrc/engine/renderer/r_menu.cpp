@@ -685,13 +685,13 @@ CMenu::rendercode_t CMenu::DrawMenuElements( CBasicDraw* pDraw )
 	bool result = true;
 	for(Uint32 i = 0; i < NB_MENU_BTN; i++)
 	{
-		result = m_buttonsArray[i]->Draw(m_pButtonFont);
+		result = m_buttonsArray[i]->Draw();
 		if(!result)
 			break;
 	}
 
 	// Restore basic draw
-	gText.UnBind(m_pButtonFont);
+	gText.UnBindCurrentSet();
 	gText.Reset();
 
 	if(!result)
@@ -1412,7 +1412,7 @@ CMenuButton::~CMenuButton( void )
 // Class: CMenuButton
 // Function: Draw
 //=============================================
-bool CMenuButton::Draw( const font_set_t* pFont )
+bool CMenuButton::Draw( void )
 {
 	if(m_isHidden)
 		return true;
@@ -1430,7 +1430,7 @@ bool CMenuButton::Draw( const font_set_t* pFont )
 			static_cast<Uint32>(255*m_alpha*0.25));
 
 		// Draw a pale outline
-		if(!gText.DrawSimpleString(pFont, m_text.c_str(), originX, originY))
+		if(!gText.DrawSimpleString(m_text.c_str(), originX, originY))
 			return false;
 	}
 
@@ -1446,7 +1446,7 @@ bool CMenuButton::Draw( const font_set_t* pFont )
 		originY += CLICK_OFFSET;
 	}
 
-	if(!gText.DrawSimpleString(pFont, m_text.c_str(), originX, originY))
+	if(!gText.DrawSimpleString(m_text.c_str(), originX, originY))
 		return false;
 	else
 		return true;

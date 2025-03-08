@@ -536,8 +536,8 @@ extern bool R_DrawTimeGraph( Double& time1, Double& time2 );
 extern bool R_DrawFPSGraph( void );
 
 extern bool R_BeginTextRendering( const font_set_t* pfontset );
-extern void R_FinishTextRendering( const font_set_t* pfontset );
-extern bool R_DrawCharacter( const font_set_t* pfontset, Int32 x, Int32 y, Char character, Uint32 r, Uint32 g, Uint32 b, Uint32 a );
+extern void R_FinishTextRendering( void );
+extern bool R_DrawCharacter( Int32 x, Int32 y, Char character, Uint32 r, Uint32 g, Uint32 b, Uint32 a );
 
 extern void R_PopulateExtensionsArray( void );
 extern bool R_IsExtensionSupported( const Char *pstrextension );

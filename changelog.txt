@@ -631,3 +631,10 @@
  - Moved all tempentity creation calls to use the interface functions from Util namespace.
  - Modified env_funnel to also use the Q1 particle funnel effect like in Half-Life 1.
  - Fix overindexing in entity_lightinfo_t struct when initializing lightstyle structs.
+ 
+2025 March 8th:
+ - Refactor the text renderer to conform to current Pathos coding standards.
+ - Fix issue in bounds check for height when rendering text blocks.
+ - Modify text renderer to store currently bound set instead of specifying it for all function calls.
+ - Fix text renderer so shaders are only bound/unbound in Prepare and Reset functions specifically.
+ - Fix issue in CGLSLShader class causing a crash when switching between VBOs while the shader is active.
