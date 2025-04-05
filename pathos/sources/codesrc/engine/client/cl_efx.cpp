@@ -562,9 +562,9 @@ void CL_SetGaussianBlur( bool active, Float alpha )
 //====================================
 //
 //====================================
-void CL_BreakModel( const Vector& origin, const Vector& size, const Vector& velocity, Uint32 random, Float life, Uint32 num, Uint32 modelindex, Int32 sound, Float bouyancy, Float waterfriction, Int32 flags )
+void CL_BreakModel( const Vector& origin, const Vector& size, bm_velocity_t velmode, const Vector& velvector, Uint32 randomvelmin, Uint32 randomvelmax, Float life, Uint32 num, Uint32 modelindex, Int32 sound, Float bouyancy, Float waterfriction, Int32 flags )
 {
-	gTempEntities.CreateBreakModel(origin, size, velocity, random, life, num, modelindex, sound, bouyancy, waterfriction, flags);
+	gTempEntities.CreateBreakModel(origin, size, velmode, velvector, randomvelmin, randomvelmax, life, num, modelindex, sound, bouyancy, waterfriction, flags);
 }
 
 //====================================

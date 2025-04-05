@@ -1286,7 +1286,7 @@ namespace Util
 	//=============================================
 	//
 	//=============================================
-	void CreateBreakModel( const Vector& origin, const Vector& size, const Vector& velocity, Uint32 randomvel, Float life, Uint32 num, const Char* pstrModelname, Int32 sound, Float bouyancy, Float waterfriction, Int32 flags )
+	void CreateBreakModel( const Vector& origin, const Vector& size, bm_velocity_t velocitymode, const Vector& velvector, Uint32 randomvelmin, Uint32 randomvelmax, Float life, Uint32 num, const Char* pstrModelname, Int32 sound, Float bouyancy, Float waterfriction, Int32 flags )
 	{
 		Int32 modelindex = gd_engfuncs.pfnPrecacheModel(pstrModelname);
 		if(modelindex == NO_PRECACHE)
@@ -1295,13 +1295,13 @@ namespace Util
 			return;
 		}
 
-		CreateBreakModel(origin, size, velocity, randomvel, life, num, modelindex, sound, bouyancy, waterfriction, flags);
+		CreateBreakModel(origin, size, velocitymode, velvector, randomvelmin, randomvelmax, life, num, modelindex, sound, bouyancy, waterfriction, flags);
 	}
 
 	//=============================================
 	//
 	//=============================================
-	void CreateBreakModel( const Vector& origin, const Vector& size, const Vector& velocity, Uint32 randomvel, Float life, Uint32 num, Int32 modelindex, Int32 sound, Float bouyancy, Float waterfriction, Int32 flags )
+	void CreateBreakModel( const Vector& origin, const Vector& size, bm_velocity_t velocitymode, const Vector& velvector, Uint32 randomvelmin, Uint32 randomvelmax, Float life, Uint32 num, Int32 modelindex, Int32 sound, Float bouyancy, Float waterfriction, Int32 flags )
 	{
 		if(modelindex == NO_PRECACHE)
 		{
@@ -1314,13 +1314,15 @@ namespace Util
 			// Write origin
 			for(Uint32 i = 0; i < 3; i++)
 				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
-			// Write angles
+			// Write size
 			for(Uint32 i = 0; i < 3; i++)
 				gd_engfuncs.pfnMsgWriteSmallFloat(size[i]);
-			// Write velocity
+			gd_engfuncs.pfnMsgWriteByte(velocitymode);
+			// Write velocity relevant vector
 			for(Uint32 i = 0; i < 3; i++)
-				gd_engfuncs.pfnMsgWriteSmallFloat(velocity[i]);
-			gd_engfuncs.pfnMsgWriteUint16(randomvel);
+				gd_engfuncs.pfnMsgWriteFloat(velvector[i]);
+			gd_engfuncs.pfnMsgWriteUint16(randomvelmin);
+			gd_engfuncs.pfnMsgWriteUint16(randomvelmax);
 			gd_engfuncs.pfnMsgWriteSmallFloat(life);
 			gd_engfuncs.pfnMsgWriteUint16(num);
 			gd_engfuncs.pfnMsgWriteUint16(modelindex);

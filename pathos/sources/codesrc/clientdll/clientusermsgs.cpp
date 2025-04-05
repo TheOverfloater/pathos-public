@@ -556,11 +556,14 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 			for(Uint32 i = 0; i < 3; i++)
 				size[i] = reader.ReadSmallFloat();
 
-			Vector velocity;
-			for(Uint32 i = 0; i < 3; i++)
-				velocity[i] = reader.ReadSmallFloat();
+			bm_velocity_t velmode = static_cast<bm_velocity_t>(reader.ReadByte());
 
-			Uint32 random = reader.ReadUint16();
+			Vector velvector;
+			for(Uint32 i = 0; i < 3; i++)
+				velvector[i] = reader.ReadFloat();
+
+			Uint32 randomvelmin = reader.ReadUint16();
+			Uint32 randomvelmax = reader.ReadUint16();
 			Float life = reader.ReadSmallFloat();
 			Uint32 num = reader.ReadUint16();
 			Uint32 modelindex = reader.ReadUint16();
@@ -575,7 +578,7 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 				return false;
 			}
 
-			cl_efxapi.pfnBreakModel(origin, size, velocity, random, life, num, modelindex, sound, bouyancy, waterfriction, flags);
+			cl_efxapi.pfnBreakModel(origin, size, velmode, velvector, randomvelmin, randomvelmax, life, num, modelindex, sound, bouyancy, waterfriction, flags);
 		}
 		break;
 	case TE_BUBBLES:

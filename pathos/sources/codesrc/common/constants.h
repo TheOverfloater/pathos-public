@@ -982,4 +982,11 @@ enum overlay_msg_type_t
 	OVERLAY_MSG_CLEAR
 };
 
+enum bm_velocity_t
+{
+	BM_VELOCITY_FROM_CENTER = 0,
+	BM_VELOCITY_FROM_VECTOR,
+	BM_VELOCITY_RANDOM
+};
+
 #endif //CONSTANTS_H

@@ -339,8 +339,9 @@
   ]
   explosion(choices) : "Gibs Direction" : 0 =
   [
-    0: "Random"
-    1: "Relative to Attack"
+    0: "Disperse from Attack Center"
+    2: "From Attack Direction"
+    3: "Random"
   ]
   delay(string) : "Delay before fire" : "0"
   gibmodel(studio) : "Gib Model" : ""

@@ -144,7 +144,7 @@ const Uint32 CBaseNPC::NPC_MAX_SCHEDULE_CHANGES = 4;
 // Max number of tasks executed
 const Uint32 CBaseNPC::NPC_MAX_TASK_EXECUTIONS = 8;
 // Navigability minimum distance change
-const Float CBaseNPC::NAVIGABILITY_CHECK_MIN_DISTANCE_CHANGE = 64;
+const Float CBaseNPC::NAVIGABILITY_CHECK_MIN_DISTANCE_CHANGE = 16;
 // Max walk-move traces per frame
 const Uint32 CBaseNPC::MAX_FRAME_WALKMOVE_TRACES = 128;
 
@@ -243,6 +243,7 @@ CBaseNPC::CBaseNPC( edict_t* pedict ):
 	m_flexScriptDuration(0),
 	m_flexScriptFlags(0),
 	m_scriptState(AI_SCRIPT_STATE_NONE),
+	m_lastNavigabilityCheckResult(false),
 	m_pScriptedSequence(nullptr),
 	m_updateYaw(false),
 	m_checkSoundWasSet(false),
@@ -1400,9 +1401,7 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 	if(pInflictor)
 	{
 		// Change attack dir to use centers
-		m_damageDirection = (pInflictor->GetCenter() - Vector(0, 0, 8) - GetCenter()).Normalize();
-		// Alter in multidamage also
-		gMultiDamage.SetAttackDirection(m_damageDirection); 
+		m_damageDirection = gMultiDamage.GetDamageDirection();
 	}
 	else
 	{
@@ -1630,12 +1629,7 @@ bool CBaseNPC::TakeDamageDead( CBaseEntity* pInflictor, CBaseEntity* pAttacker, 
 	// Grab the direction from the inflictor
 	Vector dmgDirection;
 	if(pInflictor)
-	{
-		// Change attack dir to use centers
-		dmgDirection = (pInflictor->GetCenter() - Vector(0, 0, 8) - GetCenter()).Normalize();
-		// Alter in multidamage also
-		gMultiDamage.SetAttackDirection(dmgDirection); 
-	}
+		dmgDirection = gMultiDamage.GetDamageDirection();
 
 	// Destroy the corpse if enough damage was dealt
 	if(damageFlags & DMG_GIB_CORPSE)
@@ -5817,13 +5811,14 @@ bool CBaseNPC::CheckEnemy( void )
 		Float distanceChange = (m_enemyLastKnownPosition - m_lastNavigabilityCheckPosition).Length();
 		if(distanceChange > NAVIGABILITY_CHECK_MIN_DISTANCE_CHANGE)
 		{
-			if(CheckRoute(m_pState->origin, m_enemyLastKnownPosition, m_enemy))
-				SetCondition(AI_COND_ENEMY_NAVIGABLE);
-			else
-				ClearCondition(AI_COND_ENEMY_NAVIGABLE);
-
+			m_lastNavigabilityCheckResult = CheckRoute(m_pState->origin, m_enemyLastKnownPosition, m_enemy);\
 			m_lastNavigabilityCheckPosition = m_enemyLastKnownPosition;
 		}
+
+		if(m_lastNavigabilityCheckResult)
+			SetCondition(AI_COND_ENEMY_NAVIGABLE);
+		else
+			ClearCondition(AI_COND_ENEMY_NAVIGABLE);
 	}
 
 	// Clear previous attack conditions
@@ -6984,9 +6979,6 @@ bool CBaseNPC::BuildRoute( const Vector& destination, Uint64 moveFlags, CBaseEnt
 //=============================================
 bool CBaseNPC::IsPositionNavigable( const Vector& position )
 {
-	if(m_pState->origin == m_lastNavigabilityCheckPosition)
-		return false;
-
 	Uint64 savedFlags = m_pState->flags;
 	entindex_t savedGroundEntity = m_pState->groundent;
 
@@ -8725,6 +8717,7 @@ void CBaseNPC::NPCThink( void )
 
 	// Manage any animation events
 	ManageAnimationEvents();
+
 	if(m_npcState != NPC_STATE_DEAD && m_pState->deadstate != DEADSTATE_DYING)
 	{
 		if(!IsMovementComplete())

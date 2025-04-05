@@ -262,7 +262,7 @@ void CBeam::BeamDamage( trace_t& tr )
 		return;
 
 	Vector attackDirection = (tr.endpos - m_pState->origin).Normalize();
-	gMultiDamage.Prepare(BULLET_NONE, attackDirection);
+	gMultiDamage.Prepare(BULLET_NONE, m_pState->origin, attackDirection);
 
 	Float damage = m_beamDamage * (g_pGameVars->time - m_dmgTime);
 	pEntity->TraceAttack(this, damage, attackDirection, tr, DMG_ELECTRICITY);

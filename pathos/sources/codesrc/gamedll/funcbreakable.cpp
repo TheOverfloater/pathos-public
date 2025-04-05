@@ -94,7 +94,8 @@ CFuncBreakable::CFuncBreakable( edict_t* pedict ):
 	m_nbDmgSounds(0),
 	m_breakSoundsPattern(NO_STRING_VALUE),
 	m_nbBreakSounds(0),
-	m_spawnChance(1)
+	m_spawnChance(1),
+	m_breakDamage(0)
 {
 }
 
@@ -137,10 +138,21 @@ bool CFuncBreakable::KeyValue( const keyvalue_t& kv )
 {
 	if(!qstrcmp(kv.keyname, "explosion"))
 	{
-		if(!qstrcmp(kv.value, "directed"))
+		Int32 value = SDL_atoi(kv.value);
+		switch(value)
+		{
+		default:
+		case 0: 
+		case 1:
+			m_breakDirection = BREAKDIR_FROM_CENTER;
+			break;
+		case 2:
 			m_breakDirection = BREAKDIR_ATTACKDIR;
-		else
+			break;
+		case 3:
 			m_breakDirection = BREAKDIR_RANDOM;
+			break;
+		}
 		return true;
 	}
 	else if(!qstrcmp(kv.keyname, "material"))
@@ -334,6 +346,10 @@ bool CFuncBreakable::Spawn( void )
 	if(m_spawnChance < 1)
 		m_spawnChance = 1;
 
+	// If we are an explosive, override break direction
+	if(m_explodeMagnitude > 0)
+		m_breakDirection = BM_VELOCITY_FROM_CENTER;
+
 	// Used by env_model_breakable
 	SetBoundingBox();
 
@@ -364,9 +380,26 @@ void CFuncBreakable::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, use
 	Vector realAngles = m_pState->angles;
 	realAngles.y = m_angle;
 
-	Vector forward;
-	Math::AngleVectors(realAngles, &forward);
-	gMultiDamage.SetAttackDirection(forward);
+	if(m_explodeMagnitude > 0)
+	{
+		// Exploding objects are handled specially
+		m_breakVector = GetCenter();
+
+		Float refdmg = m_pState->health;
+		if(refdmg < 100)
+			refdmg = 100;
+		m_breakDamage = refdmg * Common::RandomFloat(3, 5);
+	}
+	else
+	{
+		// Set vector of break based on our origin
+		Math::AngleVectors(realAngles, &m_breakVector);
+
+		// Set amount of damage taken
+		m_breakDamage = m_pState->health;
+		if(m_explodeMagnitude > 0)
+			m_breakDamage *= Common::RandomFloat(3, 5);
+	}
 
 	DieThink();
 }
@@ -400,18 +433,38 @@ bool CFuncBreakable::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker
 	if(damagedealt <= 0)
 		return true;
 
-	// Determine attack vector
-	Vector attackVector;
-	if(pInflictor)
-		attackVector = pInflictor->GetOrigin() - (m_pState->absmin + (m_pState->size*0.5));
-
-	gMultiDamage.SetAttackDirection(attackVector);
-
 	// Deal the damage
 	m_pState->health -= damagedealt;
 	if(m_pState->health <= 0)
 	{
+		if(m_explodeMagnitude > 0)
+		{
+			// Exploding objects are handled specially
+			m_breakVector = GetCenter();
+			Float refdmg = damagedealt;
+			if(refdmg < 100)
+				refdmg = 100;
+			m_breakDamage = refdmg * Common::RandomFloat(3, 5);
+		}
+		else
+		{
+			// Set relevant break vector
+			if(m_breakDirection == BREAKDIR_FROM_CENTER)
+				m_breakVector = gMultiDamage.GetAttackOrigin();
+			else if(m_breakDirection == BREAKDIR_ATTACKDIR)
+				m_breakVector = gMultiDamage.GetShotDirection();
+			else
+				m_breakVector = ZERO_VECTOR;
+
+			// Set damage amount that broke us
+			m_breakDamage = damagedealt;
+			if(damageFlags & DMG_EXPLOSION || m_explodeMagnitude > 0)
+				m_breakDamage *= Common::RandomFloat(3, 5);
+		}
+
+		// Set attacker
 		m_attacker = pAttacker;
+
 		Killed(pAttacker, GIB_NORMAL);
 		DieThink();
 		return false;
@@ -524,21 +577,6 @@ void CFuncBreakable::DieThink( void )
 			Util::PlayRandomAmbientSound(center, pstrBreakSound, m_nbBreakSounds, volume, ATTN_NORM, pitch);
 	}
 
-	// Calculate gib velocity
-	Vector velocity;
-	switch(m_breakDirection)
-	{
-	case BREAKDIR_ATTACKDIR:
-		{
-			Vector attackDir = gMultiDamage.GetAttackDirection();
-			velocity = attackDir * 200;
-		}
-		break;
-	case BREAKDIR_RANDOM:
-	default:
-		break;
-	}
-
 	Float bouyancy = 0;
 	Float waterfriction = 0;
 	switch(m_material)
@@ -579,10 +617,43 @@ void CFuncBreakable::DieThink( void )
 	// Spawn the gib models
 	if(!HasSpawnFlag(FL_NO_GIBS))
 	{
+		// Determine min/max values for velocity
+		Float velocitymin;
+		Float velocitymax;
+
+		bm_velocity_t bmvelmode;
+		switch(m_breakDirection)
+		{
+		case BREAKDIR_FROM_CENTER:
+			{
+				velocitymin = m_breakDamage * Common::RandomFloat(0.5, 0.7);
+				velocitymax = m_breakDamage * Common::RandomFloat(1.0, 1.5);
+				bmvelmode = BM_VELOCITY_FROM_CENTER;
+			}
+			break;
+		case BREAKDIR_ATTACKDIR:
+			{
+				velocitymin = m_breakDamage * Common::RandomFloat(0.7, 0.9);
+				velocitymax = m_breakDamage * Common::RandomFloat(1.2, 1.7);
+				bmvelmode = BM_VELOCITY_FROM_VECTOR;
+			}
+			break;
+		case BREAKDIR_RANDOM:
+		default:
+			{
+				velocitymin = m_breakDamage * Common::RandomFloat(0.4, 0.6);
+				velocitymax = m_breakDamage * Common::RandomFloat(1.1, 1.3);
+				bmvelmode = BM_VELOCITY_RANDOM;
+			}
+			break;
+		}
+
 		Util::CreateBreakModel(center, 
-			m_pState->size, 
-			velocity, 
-			10, 
+			m_pState->size,
+			bmvelmode,
+			m_breakVector, 
+			velocitymin,
+			velocitymax, 
 			GIB_MODEL_LIFETIME, 
 			0, 
 			m_breakModelIndex,

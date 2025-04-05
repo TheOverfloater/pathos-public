@@ -51,6 +51,10 @@ private:
 	void initWindow( const font_set_t* pTitleFont, const font_set_t* pFontSet );
 
 public:
+	// Called when the window is removed
+	virtual void onRemove( void ) override;
+
+public:
 	// Processes a text document and returns it's data
 	static bool ProcessTextFile( const Char* pstrFilePath, const CString passCode, CString& titleText, CString& titletextschema, color32_t& titletextcolor, CString& textschema, color32_t& textcolor, CString& documentText );
 

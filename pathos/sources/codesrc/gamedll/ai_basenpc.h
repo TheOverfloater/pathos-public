@@ -1358,6 +1358,8 @@ protected:
 	CEntityHandle				m_dangerousEnemy;
 	// Last navigability check position
 	Vector						m_lastNavigabilityCheckPosition;
+	// Last navigability check result
+	bool						m_lastNavigabilityCheckResult;
 
 	// List of enemy partial awareness stats
 	CLinkedList<enemyawareness_t> m_enemyPartialAwarenessList;

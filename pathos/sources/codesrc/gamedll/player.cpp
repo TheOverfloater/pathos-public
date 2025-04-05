@@ -1162,12 +1162,7 @@ bool CPlayerEntity::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker,
 	m_damageTypes |= damageFlags;
 
 	// Get attck vector
-	Vector direction;
-	if(pInflictor && !Util::IsNullEntity(pInflictor->GetEdict()))
-	{
-		direction = (pInflictor->GetCenter() - Vector(0, 0, 10) - GetCenter()).Normalize();
-		gMultiDamage.SetAttackDirection(direction);
-	}
+	Vector direction = gMultiDamage.GetDamageDirection();
 
 	// Set dmg inflictor
 	if(pInflictor)

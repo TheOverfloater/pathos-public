@@ -3583,7 +3583,6 @@ Float R_RenderFxBlend( cl_entity_t* pentity )
 	return clamp(alpha, 0, 255);
 }
 
-
 //====================================
 //
 //====================================
@@ -4073,7 +4072,7 @@ void Cmd_EFX_BreakModel( void )
 	Vector dir(Common::RandomFloat(-1, 1), Common::RandomFloat(-1, 1), Common::RandomFloat(-1, 1));
 	dir.Normalize();
 
-	CL_BreakModel(tr.endpos+tr.plane.normal*4, Vector(64, 64, 64), dir, 40, 60, 4, pcache->cacheindex, TE_BOUNCE_SHELL, 0, 0, 0);
+	CL_BreakModel(tr.endpos+tr.plane.normal*4, Vector(64, 64, 64), BM_VELOCITY_RANDOM, dir, 40, 100, 60, 4, pcache->cacheindex, TE_BOUNCE_SHELL, 0, 0, 0);
 }
 
 //====================================

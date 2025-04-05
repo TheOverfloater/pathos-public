@@ -88,8 +88,9 @@ public:
 
 	enum breakdirection_t
 	{
-		BREAKDIR_RANDOM = 0,
-		BREAKDIR_ATTACKDIR
+		BREAKDIR_FROM_CENTER = 0,
+		BREAKDIR_ATTACKDIR,
+		BREAKDIR_RANDOM,
 	};
 
 public:
@@ -146,5 +147,8 @@ protected:
 	Uint32 m_spawnChance;
 
 	CEntityHandle m_attacker;
+
+	Vector m_breakVector;
+	Float m_breakDamage;
 };
 #endif //FUNCBREAKABLE_H

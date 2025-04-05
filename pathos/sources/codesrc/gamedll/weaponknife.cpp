@@ -202,7 +202,7 @@ void CWeaponKnife::PostThink( void )
 			Vector vecBaseSrc = m_pPlayer->GetGunPosition();
 			Vector vecBaseEnd = vecBaseSrc + forward * 60 - up * 12;
 
-			gMultiDamage.Prepare(BULLET_PLAYER_KNIFE, forward);
+			gMultiDamage.Prepare(BULLET_PLAYER_KNIFE, vecBaseSrc, forward);
 
 			Vector vecSrc;
 			Vector vecEnd;

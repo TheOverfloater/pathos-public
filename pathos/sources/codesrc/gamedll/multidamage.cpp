@@ -37,16 +37,16 @@ CMultiDamage::~CMultiDamage( void )
 // @brief
 //
 //=============================================
-void CMultiDamage::Prepare( bullet_types_t bulletType )
+void CMultiDamage::Prepare( bullet_types_t bulletType, const Vector& shotOrigin )
 {
-	Prepare(bulletType, ZERO_VECTOR);
+	Prepare(bulletType, shotOrigin, ZERO_VECTOR);
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-void CMultiDamage::Prepare( bullet_types_t bulletType, const Vector& shotDirection )
+void CMultiDamage::Prepare( bullet_types_t bulletType, const Vector& shotOrigin, const Vector& shotDirection )
 {
 	if(!m_damagedEntities.empty())
 		m_damagedEntities.clear();
@@ -55,6 +55,7 @@ void CMultiDamage::Prepare( bullet_types_t bulletType, const Vector& shotDirecti
 	m_nbTotalShots = 0;
 	m_bulletType = bulletType;
 	m_shotDirection = shotDirection;
+	m_attackOrigin = shotOrigin;
 }
 
 //=============================================
@@ -72,7 +73,12 @@ void CMultiDamage::ApplyDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker 
 		entitydamage_t& dmg = m_damagedEntities.get();
 
 		if(dmg.pentity)
+		{
+			// Set damage direction based on vector from inflictor center to target's center
+			m_damageDirection = (m_attackOrigin - dmg.pentity->GetCenter()).Normalize();
+			// Apply damage to the target
 			dmg.pentity->TakeDamage(pInflictor, pAttacker, dmg.dmgamount, dmg.dmgtype);
+		}
 
 		m_damagedEntities.next();
 	}
@@ -152,18 +158,18 @@ void CMultiDamage::SetDamageFlags( Int32 dmgtype )
 // @brief
 //
 //=============================================
-void CMultiDamage::SetAttackDirection( const Vector& direction )
+const Vector& CMultiDamage::GetAttackDirection( void ) const
 {
-	m_attackDirection = direction;
+	return m_attackDirection;
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-const Vector& CMultiDamage::GetAttackDirection( void ) const
+const Vector& CMultiDamage::GetAttackOrigin( void ) const
 {
-	return m_attackDirection;
+	return m_attackOrigin;
 }
 
 //=============================================
@@ -191,6 +197,15 @@ bullet_types_t CMultiDamage::GetBulletType( void ) const
 const Vector& CMultiDamage::GetShotDirection( void ) const
 {
 	return m_shotDirection;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+const Vector& CMultiDamage::GetDamageDirection( void ) const
+{
+	return m_damageDirection;
 }
 
 //=============================================

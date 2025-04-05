@@ -533,7 +533,7 @@ void RadiusDamage( const Vector& vecPosition,
 		if(tr.fraction != 1.0)
 		{
 			Vector dmgDirection = (tr.endpos - explodePosition).Normalize();
-			gMultiDamage.Prepare(BULLET_NONE, dmgDirection);
+			gMultiDamage.Prepare(BULLET_NONE, explodePosition, dmgDirection);
 			pEntity->TraceAttack(pAttacker, adjustedDmg, dmgDirection, tr, damageFlags);
 			gMultiDamage.ApplyDamage(pInflictor, pAttacker);
 		}
@@ -641,7 +641,7 @@ bool ShootTrace( const Vector& gunPosition, const Vector& endPos, const Vector& 
 		Util::TraceModel(pTraceModel, gunPosition, endPos, true, HULL_POINT, tr);
 	else
 		Util::TraceLine(gunPosition, endPos, false, true, false, true, isRicochetShot ? nullptr : pAttacker->GetEdict(), tr);
-
+		
 	// Don't bother if we hit nothing
 	if(tr.noHit())
 		return false;
@@ -825,7 +825,7 @@ void FireBullets( Uint32 nbshots,
 	}
 
 	// Clear multidamage
-	gMultiDamage.Prepare(bulletType, aimForward);
+	gMultiDamage.Prepare(bulletType, gunPosition, aimForward);
 	
 	// Set basic flags
 	Int32 dmgFlags = DMG_BULLET;

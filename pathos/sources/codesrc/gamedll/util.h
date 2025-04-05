@@ -81,8 +81,8 @@ namespace Util
 	extern void MakeEntityDormant( edict_t* pedict );
 	extern void CreateTempModel( const Vector& origin, const Vector& angles, const Vector& velocity, Float life, Uint32 num, const Char* pstrModelname, Int32 sound, Float bouyancy, Float waterfriction, Int32 flags, Int32 body );
 	extern void CreateTempModel( const Vector& origin, const Vector& angles, const Vector& velocity, Float life, Uint32 num, Int32 modelindex, Int32 sound, Float bouyancy, Float waterfriction, Int32 flags, Int32 body );
-	extern void CreateBreakModel( const Vector& origin, const Vector& size, const Vector& velocity, Uint32 randomvel, Float life, Uint32 num, const Char* pstrModelname, Int32 sound, Float bouyancy, Float waterfriction, Int32 flags );
-	extern void CreateBreakModel( const Vector& origin, const Vector& size, const Vector& velocity, Uint32 randomvel, Float life, Uint32 num, Int32 modelindex, Int32 sound, Float bouyancy, Float waterfriction, Int32 flags );
+	extern void CreateBreakModel( const Vector& origin, const Vector& size, bm_velocity_t velocitymode, const Vector& velvector, Uint32 randomvelmin, Uint32 randomvelmax, Float life, Uint32 num, const Char* pstrModelname, Int32 sound, Float bouyancy, Float waterfriction, Int32 flags );
+	extern void CreateBreakModel( const Vector& origin, const Vector& size, bm_velocity_t velocitymode, const Vector& velvector, Uint32 randomvelmin, Uint32 randomvelmax, Float life, Uint32 num, Int32 modelindex, Int32 sound, Float bouyancy, Float waterfriction, Int32 flags );
 	extern void CreateBubbles( const Vector& mins, const Vector& maxs, const Float height, const Char* pstrSpritename, Uint32 num, Float speed );
 	extern void CreateBubbles( const Vector& mins, const Vector& maxs, const Float height, Int32 modelindex, Uint32 num, Float speed );
 	extern void CreateBubbleTrail( const Vector& start, const Vector& end, const Float height, const Char* pstrSpritename, Uint32 num, Float speed );

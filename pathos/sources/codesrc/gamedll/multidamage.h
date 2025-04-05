@@ -48,17 +48,18 @@ public:
 	~CMultiDamage( void );
 
 public:
-	void Prepare( bullet_types_t bulletType );
-	void Prepare( bullet_types_t bulletType, const Vector& shotDirection );
+	void Prepare( bullet_types_t bulletType, const Vector& shotOrigin );
+	void Prepare( bullet_types_t bulletType, const Vector& shotOrigin, const Vector& shotDirection );
 	void ApplyDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker );
 	void AddDamage( CBaseEntity* pentity, Float damage, Int32 dmgtype, hitgroups_t hitgroup = HITGROUP_GENERIC );
 
 	void SetDamageFlags( Int32 dmgtype );
-	void SetAttackDirection( const Vector& direction );
 	const Vector& GetAttackDirection( void ) const;
 	Uint32 GetShotCount( void ) const;
 	bullet_types_t GetBulletType( void ) const;
 	const Vector& GetShotDirection( void ) const;
+	const Vector& GetDamageDirection( void ) const;
+	const Vector& GetAttackOrigin( void ) const;
 
 	Uint32 GetEntityHitCount( const CBaseEntity* pEntity );
 	Uint32 GetHitGroupHitCountForEntity( const CBaseEntity* pEntity, hitgroups_t hitgroup );
@@ -77,8 +78,12 @@ private:
 	// Direction of the shot(aka gun's angle)
 	Vector m_shotDirection;
 
-	// Attack direction for current entity
+	// Attack origin
+	Vector m_attackOrigin;
+	// Attack direction for current entity(angle gun was shot at)
 	Vector m_attackDirection;
+	// Damage direction(dir from attack origin to target center)
+	Vector m_damageDirection;
 };
 extern CMultiDamage gMultiDamage;
 #endif //MULTIDAMAGE_H

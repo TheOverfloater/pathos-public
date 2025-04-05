@@ -638,3 +638,12 @@
  - Modify text renderer to store currently bound set instead of specifying it for all function calls.
  - Fix text renderer so shaders are only bound/unbound in Prepare and Reset functions specifically.
  - Fix issue in CGLSLShader class causing a crash when switching between VBOs while the shader is active.
+
+2025 April 5th:
+ - Add new gib damage direction options and code to func_breakable.
+ - Modify projects to use Custom Build Event instead of Post-Build Step for copying outputs.
+ - Fix Game UI text window softlocking the game when pressing escape while open.
+ - Refactoring of Multi-Damage class to be more efficient and centralized.
+ - Fix issue with AI enemy navigability check causing false negatives.
+ - Fix bug in position navigability check code causing false negative results when doing checks.
+ - Fix bug in FindEnemies function causing the seeking NPCs to get stuck in place.

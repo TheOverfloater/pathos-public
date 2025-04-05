@@ -123,6 +123,18 @@ void CGameUITextWindow::initWindow( const font_set_t* pTitleFont, const font_set
 //====================================
 //
 //====================================
+void CGameUITextWindow::onRemove( void )
+{
+	// Unpause the game
+	cl_engfuncs.pfnSetPaused(false, false);
+
+	// Call base class to manage rest
+	CGameUIWindow::onRemove();
+}
+
+//====================================
+//
+//====================================
 bool CGameUITextWindow::initData( const Char* pstrtextfilepath, const Char* pstrPassCode )
 {
 	// Title text

@@ -64,7 +64,7 @@ struct cl_efxapi_t
 	void					(*pfnSetGaussianBlur)( bool active, Float alpha );
 
 	// Temporary entities
-	void					(*pfnBreakModel)( const Vector& origin, const Vector& size, const Vector& velocity, Uint32 random, Float life, Uint32 num, Uint32 modelindex, Int32 sound, Float buoyancy, Float waterfriction, Int32 flags );
+	void					(*pfnBreakModel)( const Vector& origin, const Vector& size, bm_velocity_t velmode, const Vector& velvector, Uint32 randomvelmin, Uint32 randomvelmax, Float life, Uint32 num, Uint32 modelindex, Int32 sound, Float buoyancy, Float waterfriction, Int32 flags );
 	void					(*pfnBubbles)( const Vector& mins, const Vector& maxs, Float height, Uint32 modelindex, Uint32 num, Float speed );
 	void					(*pfnBubbleTrail)( const Vector& start, const Vector& end, Float height, Uint32 modelindex, Uint32 num, Float speed );
 	void					(*pfnFunnelSprite)( const Vector& origin, const Vector& color, Float alpha, Uint32 modelindex, bool reverse );
