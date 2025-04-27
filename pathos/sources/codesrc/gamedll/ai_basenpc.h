@@ -1138,6 +1138,9 @@ protected:
 	// Checks if an enemy's body target is shootable
 	virtual bool IsEnemyBodyTargetShootable( CBaseEntity& enemy, bool ignoreGlass, bool ignoreBreakables, const Vector& gunPosition, const Vector& enemyBodyTarget );
 
+	// Tells if the NPC is allowed to heavy flinch
+	virtual bool CanHeavyFlinch( void );
+
 public:
 	// Reset frame-dependent counters
 	static void ResetFrameStates( void );

@@ -3159,12 +3159,36 @@ void CAINodeGraph::CheckNode( const Vector& origin, Int32 nodeIndex, Uint64 node
 	// Factor in NPCs for path testing
 	if(pEntity && pEntity->IsNPC())
 	{
-		Float heightDiff = SDL_fabs(origin.z - pnode->origin.z);
-		if(heightDiff < 1.0f)
+		if(!(nodeTypes & AI_NODE_PRECISE_CHECK) && SDL_fabs(origin.z - pnode->origin.z) < 1.0f)
 		{
+			node_hull_types_t nodeHullType = Util::GetNodeHullForNPC(pEntity);
+
+			Vector offset;
+			hull_types_t hulltype;
+			switch(nodeHullType)
+			{
+			default:
+			case NODE_SMALL_HULL:
+				offset = Vector(0, 0, SDL_fabs(VEC_DUCK_HULL_MIN[2]));
+				hulltype = HULL_SMALL;
+				break;
+			case NODE_HUMAN_HULL:
+				offset = Vector(0, 0, SDL_fabs(VEC_HULL_MIN[2]));
+				hulltype = HULL_HUMAN;
+				break;
+			case NODE_LARGE_HULL:
+			case NODE_FLY_HULL:
+				offset = Vector(0, 0, 32.0f);
+				hulltype = HULL_LARGE;
+				break;
+			}
+
+			Vector startOrigin = origin + offset;
+			Vector endOrigin = pnode->origin + offset;
+
 			trace_t tr;
-			Util::TraceHull(origin, pnode->origin, false, false, HULL_AUTO, pEntity->GetEdict(), tr);
-			if(tr.noHit() || tr.hitentity != NO_ENTITY_INDEX && pTargetEntity && tr.hitentity == pTargetEntity->GetEntityIndex())
+			Util::TraceHull(startOrigin, endOrigin, false, false, hulltype, pEntity->GetEdict(), tr);
+			if(!tr.startSolid() && !tr.allSolid() && (tr.noHit() || tr.hitentity != NO_ENTITY_INDEX && pTargetEntity && tr.hitentity == pTargetEntity->GetEntityIndex()))
 				result = true;
 		}
 		else

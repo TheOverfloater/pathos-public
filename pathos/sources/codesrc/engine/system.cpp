@@ -277,7 +277,7 @@ void Sys_Shutdown( void )
 	if(ens.pgllogfile)
 	{
 		// Mark exit
-		ens.pgllogfile->Write("GL log file closed.");
+		ens.pgllogfile->Write("GL log file closing.");
 		if(!ens.pgllogfile->Close())
 			Con_EPrintf("Error closing OpenGL log file.\n");
 

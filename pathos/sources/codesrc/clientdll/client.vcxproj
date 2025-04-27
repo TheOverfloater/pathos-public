@@ -236,6 +236,7 @@
     <ClCompile Include="..\shared\r_glsl.cpp" />
     <ClCompile Include="..\shared\r_vbo.cpp" />
     <ClCompile Include="..\shared\stepsound.cpp" />
+    <ClCompile Include="..\shared\uischema.cpp" />
     <ClCompile Include="..\shared\vbm_shared.cpp" />
     <ClCompile Include="..\shared\weapons_shared.cpp" />
     <ClCompile Include="animevents.cpp" />
@@ -317,6 +318,7 @@
     <ClInclude Include="..\shared\r_vbo.h" />
     <ClInclude Include="..\shared\stepsound.h" />
     <ClInclude Include="..\shared\gameui_shared.h" />
+    <ClInclude Include="..\shared\uischema.h" />
     <ClInclude Include="..\shared\vbm_shared.h" />
     <ClInclude Include="..\shared\vcontroller_shared.h" />
     <ClInclude Include="animevents.h" />

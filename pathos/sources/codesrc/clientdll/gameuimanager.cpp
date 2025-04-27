@@ -40,6 +40,7 @@ CGameUIManager gGameUIManager;
 //=============================================
 CGameUIManager::CGameUIManager( void ):
 	m_pActiveWindow(nullptr),
+	m_pSchemaManager(nullptr),
 	m_blurFadeTime(0),
 	m_isBlurActive(false),
 	m_uiServerUserMsgId(0),
@@ -70,6 +71,9 @@ bool CGameUIManager::Init( void )
 	// For toggling borders
 	m_pCvarBorders = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, FL_CV_SAVE, "ui_borders", "1", "Toggle borders on game UI windows");
 
+	// Create UI schema manager
+	m_pSchemaManager = new CUISchemaManager(cl_filefuncs, cl_renderfuncs.pfnGetDummyTexture, cl_renderfuncs.pfnLoadTexture);
+
 	return true;
 }
 
@@ -79,7 +83,17 @@ bool CGameUIManager::Init( void )
 //=============================================
 void CGameUIManager::Shutdown( void )
 {
+	// Clear game objects
 	ClearGame();
+
+	// Clear schema manager
+	if(m_pSchemaManager)
+	{
+		m_pSchemaManager->Clear();
+
+		delete m_pSchemaManager;
+		m_pSchemaManager = nullptr;
+	}
 }
 
 //=============================================
@@ -579,4 +593,36 @@ bool CGameUIManager::HasActiveWindows( void ) const
 const CGameUIWindow* CGameUIManager::GetActiveWindow( void )
 {
 	return m_pActiveWindow;
+}
+
+//=============================================
+// @brief Loads in a schema file
+//
+// @param pstrFilename Name of the UI scheme file
+// @return Pointer to scheme object
+//=============================================
+ui_schemeinfo_t* CGameUIManager::LoadSchemaFile( const Char* pstrFilename )
+{
+	ui_schemeinfo_t* presult = m_pSchemaManager->LoadSchemaFile(pstrFilename);
+	if(!presult)
+	{
+		const CString& errorStr = m_pSchemaManager->GetErrorString();
+		if(!errorStr.empty())
+			cl_engfuncs.pfnCon_EPrintf(errorStr.c_str());
+
+		return nullptr;
+	}
+	else
+	{
+		Uint32 nbWarnings = m_pSchemaManager->GetNbWarnings();
+		if(nbWarnings > 0)
+		{
+			for(Uint32 i = 0; i < nbWarnings; i++)
+				cl_engfuncs.pfnCon_Printf(m_pSchemaManager->GetWarning(i).c_str());
+
+			m_pSchemaManager->ClearWarnings();
+		}
+
+		return presult;
+	}
 }

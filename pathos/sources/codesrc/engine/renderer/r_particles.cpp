@@ -274,18 +274,6 @@ void CParticleEngine::ClearGame( void )
 		while(!m_particleSystemsList.end())
 		{
 			particle_system_t *pfree = m_particleSystemsList.get();
-
-			cl_particle_t *pparticle = pfree->pparticleheader;
-			while(pparticle)
-			{
-				cl_particle_t *pfreeparticle = pparticle;
-				pparticle = pfreeparticle->next;
-
-				m_iNumFreedParticles++;
-				RemoveParticle(pfreeparticle);
-			}
-
-			m_iNumFreedSystems++;
 			delete pfree;
 
 			m_particleSystemsList.remove(m_particleSystemsList.get_link());
@@ -294,6 +282,12 @@ void CParticleEngine::ClearGame( void )
 
 		m_particleSystemsList.clear();
 	}
+
+	m_iNumFreedParticles = 0;
+	m_iNumCreatedParticles = 0;
+
+	m_iNumFreedSystems = 0;
+	m_iNumCreatedSystems = 0;
 
 	if(!m_scriptCache.empty())
 	{
@@ -403,8 +397,6 @@ particle_system_t *CParticleEngine::CreateSystem( const Char *szPath, const Vect
 	psystem->pdefinition = pdefinition;
 
 	psystem->attachflags |= (attachflags | pdefinition->attachflags);
-	psystem->particlefreq = pdefinition->particlefreq;
-	psystem->maxparticles = pdefinition->maxparticles;
 	psystem->ptexture = pdefinition->ptexture;
 
 	if(entity)
@@ -498,12 +490,12 @@ particle_system_t *CParticleEngine::CreateSystem( const Char *szPath, const Vect
 
 	if(!parent)
 	{
+		psystem->particlefreq = pdefinition->particlefreq;
+		psystem->maxparticles = pdefinition->maxparticles;
+
 		// Create a slave system to hold particles spawned
-		if(pdefinition->collision != collide_decal)
-		{
-			if(!pdefinition->create.empty())
-				psystem->createsystem = CreateSystem(pdefinition->create.c_str(), psystem->origin, psystem->dir, iId, psystem, entity, entindex);
-		}
+		if(pdefinition->collision != collide_decal && !pdefinition->create.empty())
+			psystem->createsystem = CreateSystem(pdefinition->create.c_str(), psystem->origin, psystem->dir, iId, psystem, entity, entindex);
 
 		// Create a slave system for water impact particles
 		if(!pdefinition->watercreate.empty())
@@ -1425,7 +1417,7 @@ void CParticleEngine::EnvironmentCreateFirst( particle_system_t *psystem )
 cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Float *pflorigin, Float *pflnormal ) 
 {
 	static trace_t tr;
-	Vector vbaseorigin, vtest;
+	Vector vbaseorigin, realorigin;
 	Vector vforward, vright, vup;
 
 	// Pointer to script definition
@@ -1438,37 +1430,47 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 		// particle origin
 		if(!pflorigin)
 		{
-			Vector vOffset;
 			cl_entity_t *pplayer = CL_GetLocalPlayer();
-			vOffset[0] = Common::RandomLong(-pdefinition->systemsize, pdefinition->systemsize);
-			vOffset[1] = Common::RandomLong(-pdefinition->systemsize, pdefinition->systemsize);
+			if(!pplayer)
+				return nullptr;
+
+			Vector offset;
+			for(Uint32 i = 0; i < 2; i++)
+				offset[i] = Common::RandomLong(-pdefinition->systemsize, pdefinition->systemsize);
 
 			if(pdefinition->maxheight)
 			{
-				vOffset[2] = pplayer->curstate.origin[2] + pdefinition->maxheight;
-				if(vOffset[2] > psystem->skyheight) vOffset[2] = psystem->skyheight;
+				offset[2] = pplayer->curstate.origin[2] + pdefinition->maxheight;
+				if(offset[2] > psystem->skyheight) 
+					offset[2] = psystem->skyheight;
 			}
 			else
 			{
-				vOffset[2] = psystem->skyheight;
+				offset[2] = psystem->skyheight;
 			}
 
-			vtest[0] = pplayer->curstate.origin[0]+vOffset[0];
-			vtest[1] = pplayer->curstate.origin[1]+vOffset[1];
-			vtest[2] = psystem->skyheight+16;
+			Vector skytestposition;
+			for(Uint32 i = 0; i < 2; i++)
+				skytestposition[i] = pplayer->curstate.origin[i]+offset[i];
 
-			Float flFrac = (vOffset.Length2D()/pdefinition->systemsize);
-			if(flFrac > 1) 
-				flFrac = 1;
+			skytestposition[2] = psystem->skyheight+16;
+
+			// Turn it into a parabole, where at max distance we spawn at
+			// the height of the player's origin(aka center)
+			Float fraction = (offset.Length2D()/pdefinition->systemsize);
+			fraction = clamp(fraction, 0.0, 1.0);
 			
-			vOffset[2] = (1-(flFrac))*(vOffset[2]-pplayer->curstate.origin[2]);
+			// The degree of parabolic shift depends on distance from center(player)
+			offset[2] = (1.0 - fraction) * (offset[2] - pplayer->curstate.origin[2]);
+			Vector parabolicposition = pplayer->curstate.origin + offset;
 
-			Vector testPosition = pplayer->curstate.origin + vOffset;
-			CL_PlayerTrace(testPosition, vtest, (FL_TRACE_WORLD_ONLY|FL_TRACE_PARTICLE_BLOCKERS), HULL_POINT, NO_ENTITY_INDEX, tr);
+			// Check if we impact a sky brush or not. If not, don't spawn particle
+			CL_PlayerTrace(parabolicposition, skytestposition, (FL_TRACE_WORLD_ONLY|FL_TRACE_PARTICLE_BLOCKERS), HULL_POINT, NO_ENTITY_INDEX, tr);
 			if(tr.fraction != 1.0 && PointContentsParticle(tr.endpos) != CONTENTS_SKY)
 				return nullptr;
 
-			Math::VectorCopy(testPosition, vbaseorigin);
+			// Set final origin
+			Math::VectorCopy(parabolicposition, vbaseorigin);
 		}
 		else
 		{
@@ -1488,24 +1490,28 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 		}
 		else if(pflorigin)
 		{
+			// Origin comes from supplied vector
 			Math::VectorCopy(pflorigin, vbaseorigin);
 
+			// If normal is set, then offset by it a bit
 			if(pflnormal)
 				Math::VectorMA(vbaseorigin, 0.1, pflnormal, vbaseorigin);
 		}
 		else
 		{
+			// Just use system origin
 			Math::VectorCopy(psystem->origin, vbaseorigin);
 		}
 
+		// If box shaped, then add a random offset
 		if(pdefinition->shapetype == shape_box)
 		{
-			vbaseorigin[0] += Common::RandomLong(-pdefinition->systemsize, pdefinition->systemsize);
-			vbaseorigin[1] += Common::RandomLong(-pdefinition->systemsize, pdefinition->systemsize);
-			vbaseorigin[2] += Common::RandomLong(-pdefinition->systemsize, pdefinition->systemsize);
+			for(Uint32 i = 0; i < 3; i++)
+				vbaseorigin[i] += Common::RandomLong(-pdefinition->systemsize, pdefinition->systemsize);
 		}
 
 		// Transform origin back to relative space
+		realorigin = vbaseorigin;
 		if(psystem->parententity 
 			&& (psystem->attachflags & PARTICLE_ATTACH_TO_PARENT)
 			&& (psystem->attachflags & PARTICLE_ATTACH_RELATIVE))
@@ -1525,35 +1531,35 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 		pparticle->psystem = psystem;
 		pparticle->frame = -1;
 
-		if(pdefinition->flags & SYSTEM_FL_GLOBS)
-		{
-			vbaseorigin[0] += Common::RandomLong(-pdefinition->globsize, pdefinition->globsize);
-			vbaseorigin[1] += Common::RandomLong(-pdefinition->globsize, pdefinition->globsize);
-			vbaseorigin[2] += Common::RandomLong(-pdefinition->globsize, pdefinition->globsize);
-		}
-
+		// Set particle origin
 		Math::VectorCopy(vbaseorigin, pparticle->origin);
 
+		// Offset by glob size if needed
+		if(pdefinition->flags & SYSTEM_FL_GLOBS)
+		{
+			Vector offset;
+			for(Uint32 j = 0; j < 3; j++)
+				offset[j] = Common::RandomLong(-pdefinition->globsize, pdefinition->globsize);
+
+			pparticle->origin = pparticle->origin + offset;
+			realorigin = realorigin + offset;
+		}
+
 		if(pdefinition->shapetype == shape_playerplane && !psystem->spawned)
-		{
 			pparticle->fadein = 0;
-		}
 		else
-		{
 			pparticle->fadein = pdefinition->fadeintime;
-		}
 
 		if(pdefinition->shapetype == shape_playerplane)
 		{
-			vforward[0] = 0;
-			vforward[1] = 0;
-			vforward[2] = -1;
+			// Plane above player is always falling downwards
+			vforward = Vector(Common::RandomFloat(-0.1, 0.1), Common::RandomFloat(-0.1, 0.1), -1);
 		}
 		else if(pdefinition->flags & SYSTEM_FL_RANDOM_DIR)
 		{
-			vforward[0] = Common::RandomFloat(-1, 1);
-			vforward[1] = Common::RandomFloat(-1, 1);
-			vforward[2] = Common::RandomFloat(-1, 1);
+			// Completely random direction
+			for(int j = 0; j < 3; j++)
+				vforward[j] = Common::RandomFloat(-1, 1);
 		}
 		else if((psystem->attachflags & PARTICLE_ATTACH_TO_PARENT)
 			&& (psystem->attachflags & PARTICLE_ATTACH_ATTACHMENT_VECTOR) 
@@ -1562,26 +1568,22 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 			cl_entity_t *pParent = psystem->parententity;
 			Vector attach1 = pParent->getAttachment(psystem->attachment);
 			Vector attach2 = pParent->getAttachment(psystem->attachment+1);
-
-			vforward = (attach2-attach1).Normalize();
 		}
 		else if((psystem->attachflags & PARTICLE_ATTACH_TO_PARENT) 
 			&& (psystem->attachflags & PARTICLE_ATTACH_TO_BONE)
 			&& psystem->parententity)
 		{
+			// System's direction is relative to the bone it's attached to
 			GetBoneRotatedVector(psystem->dir, psystem->parententity, psystem->boneindex, vforward, false);
 		}
 		else if(pflorigin && pflnormal)
 		{
-			vforward[0] = pflnormal[0];
-			vforward[1] = pflnormal[1];
-			vforward[2] = pflnormal[2];
+			// Use supplied direction if we have both that and supplied origin set
+			Math::VectorCopy(pflnormal, vforward);
 		}
 		else
 		{
-			vforward[0] = psystem->dir[0];
-			vforward[1] = psystem->dir[1];
-			vforward[2] = psystem->dir[2];
+			Math::VectorCopy(psystem->dir, vforward);
 		}
 
 		if(pflnormal)
@@ -1600,12 +1602,17 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 		Math::VectorClear(vup);
 		Math::VectorClear(vright);
 
-		vforward.Normalize();
+		Math::VectorNormalize(vforward);
 		Math::GetUpRight(vforward, vup, vright);
 
-		Math::VectorMA(pparticle->velocity, Common::RandomFloat(pdefinition->minvel, pdefinition->maxvel), vforward, pparticle->velocity);
-		Math::VectorMA(pparticle->velocity, Common::RandomFloat(-pdefinition->maxofs, pdefinition->maxofs), vright, pparticle->velocity);
-		Math::VectorMA(pparticle->velocity, Common::RandomFloat(-pdefinition->maxofs, pdefinition->maxofs), vup, pparticle->velocity);
+		Math::VectorScale(vforward, Common::RandomFloat(pdefinition->minvel, pdefinition->maxvel), pparticle->velocity);
+		
+		if(pdefinition->maxofs > 0)
+		{
+			// Apply any directional offsets
+			Math::VectorMA(pparticle->velocity, Common::RandomFloat(-pdefinition->maxofs, pdefinition->maxofs), vright, pparticle->velocity);
+			Math::VectorMA(pparticle->velocity, Common::RandomFloat(-pdefinition->maxofs, pdefinition->maxofs), vup, pparticle->velocity);
+		}
 
 		// Rotate velocity back to base vector
 		if(psystem->parententity 
@@ -1619,18 +1626,24 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 			pparticle->life = rns.time + pdefinition->maxlife + Common::RandomFloat(-pdefinition->maxlifevar, pdefinition->maxlifevar);
 	
 		pparticle->scale = pdefinition->scale + Common::RandomFloat(-pdefinition->scalevar, pdefinition->scalevar);
-		pparticle->rotationvel = pdefinition->rotationvel + Common::RandomFloat(-pdefinition->rotationvar, pdefinition->rotationvar);
-		pparticle->rotxvel = pdefinition->rotxvel + Common::RandomFloat(-pdefinition->rotxvar, pdefinition->rotxvar);
-		pparticle->rotyvel = pdefinition->rotyvel + Common::RandomFloat(-pdefinition->rotyvar, pdefinition->rotyvar);
 
-		if(pparticle->rotationvel)
+		if(pdefinition->rotationvel != 0)
+		{
+			pparticle->rotationvel = pdefinition->rotationvel + Common::RandomFloat(-pdefinition->rotationvar, pdefinition->rotationvar);
 			pparticle->rotation = Common::RandomFloat(0, 360);
+		}
 
-		if(pparticle->rotxvel)
+		if(pdefinition->rotxvel != 0)
+		{
+			pparticle->rotxvel = pdefinition->rotxvel + Common::RandomFloat(-pdefinition->rotxvar, pdefinition->rotxvar);
 			pparticle->rotx = Common::RandomFloat(0, 360);
+		}
 
-		if(pparticle->rotyvel)
+		if(pdefinition->rotyvel != 0)
+		{
+			pparticle->rotyvel = pdefinition->rotyvel + Common::RandomFloat(-pdefinition->rotyvar, pdefinition->rotyvar);
 			pparticle->roty = Common::RandomFloat(0, 360);
+		}
 
 		if(!pparticle->fadein)
 			pparticle->alpha = 1;
@@ -1677,8 +1690,8 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 
 			en_texture_t *pTexture = psystem->ptexture;
 
-			Int32	numframesx = pTexture->width/pdefinition->framesizex;
-			Int32	numframesy = pTexture->height/pdefinition->framesizey;
+			Int32 numframesx = pTexture->width/pdefinition->framesizex;
+			Int32 numframesy = pTexture->height/pdefinition->framesizey;
 
 			Int32 column = iframe%numframesx;
 			Int32 row = (iframe/numframesx)%numframesy;
@@ -1719,8 +1732,8 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 
 		if(pdefinition->lighting_flags != PARTICLE_LIGHTCHECK_NONE)
 		{
-			pparticle->lightcol = R_GetLightingForPosition(pparticle->origin, ZERO_VECTOR);
-			Math::VectorCopy(pparticle->origin, pparticle->last_light);
+			pparticle->lightcol = R_GetLightingForPosition(realorigin, ZERO_VECTOR);
+			Math::VectorCopy(realorigin, pparticle->last_light);
 			Math::VectorCopy(pparticle->lightcol, pparticle->lightmap);
 
 			if(pdefinition->maxlight || pdefinition->minlight)
@@ -2443,14 +2456,19 @@ bool CParticleEngine::CheckCollision( Vector& vecOrigin, Vector& vecVelocity, pa
 //====================================
 void CParticleEngine::GetBoneTransformedPosition( const Vector& baseposition, cl_entity_t* pentity, Int32 boneindex, Vector& outposition, bool reverse ) 
 {
+	Vector position = baseposition;
 	if(!pentity->pmodel || pentity->pmodel->type != MOD_VBM)
 	{
-		Math::VectorAdd(baseposition, pentity->curstate.origin, outposition);
-		return;
+		if(reverse)
+			Math::VectorSubtract(position, pentity->curstate.origin, outposition);
+		else
+			Math::VectorAdd(position, pentity->curstate.origin, outposition);
 	}
-
-	outposition = baseposition;
-	gVBMRenderer.TransformVectorByBoneMatrix(pentity, boneindex, outposition, reverse); 
+	else
+	{
+		gVBMRenderer.TransformVectorByBoneMatrix(pentity, boneindex, position, reverse);
+		outposition = position;
+	}
 }
 
 //====================================
@@ -2528,8 +2546,8 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 		{
 			if(!pdefinition->deathcreate.empty() && !psystem->parentsystem)
 			{
-				Vector direction = pparticle->velocity;
-				direction.Normalize();
+				Vector direction = vvelocity;
+				Math::VectorNormalize(vvelocity);
 
 				CreateSystem(pdefinition->deathcreate.c_str(), vbaseorigin, direction, 0);
 			}
@@ -3910,10 +3928,13 @@ void CParticleEngine::KillEntityParticleSystems( Int32 entindex )
 //====================================
 void CParticleEngine::AllocParticles( void )
 {
+	cl_particle_t* pnewblock = new cl_particle_t[PARTICLE_ALLOC_SIZE];
+	m_particleBlocksArray.push_back(pnewblock);
+
 	// Allocate particles
 	for(Uint32 i = 0; i < PARTICLE_ALLOC_SIZE; i++)
 	{
-		cl_particle_t* pnew = new cl_particle_t;
+		cl_particle_t* pnew = &pnewblock[i];
 
 		if(m_pFreeParticles)
 			m_pFreeParticles->prev = pnew;
@@ -3934,19 +3955,16 @@ void CParticleEngine::AllocParticles( void )
 //====================================
 void CParticleEngine::ReleaseParticles( void )
 {
-	if(m_pFreeParticles)
+	if(!m_particleBlocksArray.empty())
 	{
-		cl_particle_t* pnext = m_pFreeParticles;
-		while(pnext)
-		{
-			cl_particle_t* pfree = pnext;
-			pnext = pfree->next;
+		for(Uint32 i = 0; i < m_particleBlocksArray.size(); i++)
+			delete m_particleBlocksArray[i];
 
-			delete pfree;
-		}
+		m_particleBlocksArray.clear();
+	}	
 
+	if(m_pFreeParticles)
 		m_pFreeParticles = nullptr;
-	}
 
 	if(m_pVertexes)
 	{

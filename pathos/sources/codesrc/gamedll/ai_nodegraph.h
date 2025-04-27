@@ -122,10 +122,11 @@ public:
 
 	enum typesflags_t
 	{
-		AI_NODE_LAND		= (1<<0),
-		AI_NODE_AIR			= (1<<1),
-		AI_NODE_WATER		= (1<<2),
-		AI_NODE_AHEAD		= (1<<3),
+		AI_NODE_LAND			= (1<<0),
+		AI_NODE_AIR				= (1<<1),
+		AI_NODE_WATER			= (1<<2),
+		AI_NODE_AHEAD			= (1<<3),
+		AI_NODE_PRECISE_CHECK	= (1<<4),
 		AI_NODE_GROUP_REALM = (AI_NODE_AIR|AI_NODE_LAND|AI_NODE_WATER)
 	};
 

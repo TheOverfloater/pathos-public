@@ -175,7 +175,7 @@ const hull_t* SV_HullForBSP( const edict_t* pentity, const Vector& mins, const V
 	Math::VectorSubtract(maxs, mins, size);
 
 	const hull_t *phull = nullptr;
-	if(size[0] < 8.0f)
+	if(size[0] <= 8.0f)
 	{
 		phull = &pmodel->hulls[HULL_POINT];
 
@@ -184,17 +184,12 @@ const hull_t* SV_HullForBSP( const edict_t* pentity, const Vector& mins, const V
 	}
 	else
 	{
-		if(size[0] <= 36.0f)
-		{
-			if(size[2] <= 36.0f)
-				phull = &pmodel->hulls[HULL_SMALL];
-			else
-				phull = &pmodel->hulls[HULL_HUMAN];
-		}
-		else
-		{
+		if(size[0] > 36.0f)
 			phull = &pmodel->hulls[HULL_LARGE];
-		}
+		else if(size[2] > 36.0f)
+			phull = &pmodel->hulls[HULL_HUMAN];
+		else
+			phull = &pmodel->hulls[HULL_SMALL];
 
 		if(poffset)
 			Math::VectorSubtract(phull->clipmins, mins, *poffset);
@@ -1292,6 +1287,12 @@ void SV_TraceLine( const Vector& start, const Vector& end, Int32 traceflags, hul
 	if((ignore_ent < 0 || ignore_ent >= static_cast<Int32>(gEdicts.GetNbEdicts())) && ignore_ent != NO_ENTITY_INDEX)
 	{
 		Con_Printf("%s - Bogus entity index %d.\n", __FUNCTION__, ignore_ent);
+		return;
+	}
+
+	if(hulltype == HULL_AUTO)
+	{
+		Con_Printf("%s - This function cannot be used with HULL_AUTO.\n", __FUNCTION__);
 		return;
 	}
 

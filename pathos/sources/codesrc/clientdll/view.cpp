@@ -1060,7 +1060,7 @@ void CDefaultView::SetupFlashlightForType( const ref_params_t& params, Float* ps
 				cl_engfuncs.pfnUpdateAttachments(pView);
 				
 				Math::VectorSubtract(pView->getAttachment(1), pView->getAttachment(0), vdir);
-				vdir.Normalize();
+				Math::VectorNormalize(vdir);
 
 				Math::GetUpRight(vdir, up, right);
 				Math::VectorScale(right, -1, right);

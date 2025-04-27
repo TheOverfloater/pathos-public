@@ -28,14 +28,14 @@
     <Filter Include="Header Files\gameui">
       <UniqueIdentifier>{1a8f5fa3-1f79-4ced-918f-182d32b5ff5c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\gameui">
-      <UniqueIdentifier>{aeb20ae1-bc5f-4ed0-ae91-1b17987eefdc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\rendering">
       <UniqueIdentifier>{d9f2c1f0-7d2c-490c-997a-1e1c0413ca35}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\rendering">
       <UniqueIdentifier>{c4315af4-51a2-4f52-b831-4a0139319c90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\gameui">
+      <UniqueIdentifier>{aeb20ae1-bc5f-4ed0-ae91-1b17987eefdc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -173,6 +173,9 @@
     </ClCompile>
     <ClCompile Include="..\common\cstringpool.cpp">
       <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\uischema.cpp">
+      <Filter>Source Files\shared</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -415,6 +418,9 @@
     </ClInclude>
     <ClInclude Include="..\common\cstringpool_inline.hpp">
       <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\uischema.h">
+      <Filter>Header Files\shared</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

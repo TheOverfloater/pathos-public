@@ -78,7 +78,7 @@ void Cmd_LoadMap( void )
 
 	if(!FL_FileExists(filepath.c_str()))
 	{
-		Con_Printf("Could not load map '%s'.\n", pstrFilename);
+		Con_Printf("Could not load map '%s', no such file.\n", pstrFilename);
 		return;
 	}
 
@@ -442,7 +442,7 @@ void Cmd_Restart( void )
 
 	// Clear the game
 	SV_ClearGame();
-
+	// Reboot on same map
 	SV_SpawnGame(mapname.c_str());
 }
 

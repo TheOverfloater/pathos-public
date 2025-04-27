@@ -103,16 +103,15 @@ void CTempEntityManager::DeleteAllTempEntities( void )
 	// Make sure all of these are freed
 	FreeActiveTempEntities();
 
-	// Delete every single entry
-	tempentity_t* pnext = m_pFreeTempEntityHeader;
-	while(pnext)
+	if(!m_pTempEntityAllocationBlocksArray.empty())
 	{
-		tempentity_t* pfree = pnext;
-		pnext = pfree->pnext;
+		for(Uint32 i = 0; i < m_pTempEntityAllocationBlocksArray.size(); i++)
+			delete[] m_pTempEntityAllocationBlocksArray[i];
 
-		delete pfree;
+		m_pTempEntityAllocationBlocksArray.clear();
 	}
 
+	// Reset this
 	m_pFreeTempEntityHeader = nullptr;
 }
 
@@ -121,9 +120,12 @@ void CTempEntityManager::DeleteAllTempEntities( void )
 //====================================
 void CTempEntityManager::AllocateTempEntities( void )
 {
+	tempentity_t* pnewblock = new tempentity_t[TEMPENT_ALLOC_SIZE];
+	m_pTempEntityAllocationBlocksArray.push_back(pnewblock);
+
 	for(Uint32 i = 0; i < TEMPENT_ALLOC_SIZE; i++)
 	{
-		tempentity_t* pnew = new tempentity_t;
+		tempentity_t* pnew = &pnewblock[i];
 
 		if(m_pFreeTempEntityHeader)
 		{
@@ -145,14 +147,7 @@ void CTempEntityManager::FreeActiveTempEntities( void )
 	if(!m_pActiveTempEntityHeader)
 		return;
 
-	tempentity_t* pnext = m_pActiveTempEntityHeader;
-	while(pnext)
-	{
-		tempentity_t* pfree = pnext;
-		pnext = pfree->pnext;
-
-		FreeTempEntity(pfree);
-	}
+	m_pActiveTempEntityHeader = nullptr;
 }
 
 //====================================
@@ -732,7 +727,7 @@ void CTempEntityManager::CreateBreakModel( const Vector& origin, const Vector& s
 					velocity[j] = Common::RandomFloat(-1, 1);
 
 				velocity[2] = Common::RandomFloat(0, 1);
-				velocity.Normalize();
+				Math::VectorNormalize(velocity);
 
 				// In this case, minimum velocity is negative
 				Float velmin = -static_cast<Int32>(randomvelmin);
@@ -1052,7 +1047,7 @@ void CTempEntityManager::CreateSphereModel( const Vector& origin, Float speed, F
 		for(Uint32 j = 0; j < 3; j++)
 			ptemp->entity.curstate.velocity[j] = Common::RandomFloat(-1.0, 1.0);
 
-		ptemp->entity.curstate.velocity.Normalize();
+		Math::VectorNormalize(ptemp->entity.curstate.velocity);
 		Math::VectorScale(ptemp->entity.curstate.velocity, speed, ptemp->entity.curstate.velocity);
 
 		ptemp->flickertime = cls.cl_time + Common::RandomFloat(0.1, 0.8);

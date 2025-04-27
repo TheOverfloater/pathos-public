@@ -127,21 +127,18 @@ void CLegacyParticles::ReleaseAllParticles( void )
 {
 	FreeActiveParticles();
 
-	if(m_pFreeParticleHeader)
+	if(!m_pParticleBlocksArray.empty())
 	{
-		particle_t* pnext = m_pFreeParticleHeader;
-		while(pnext)
-		{
-			particle_t* pfree = pnext;
-			pnext = pfree->pnext;
+		for(Uint32 i = 0; i < m_pParticleBlocksArray.size(); i++)
+			delete[] m_pParticleBlocksArray[i];
 
-			delete pfree;
-		}
-
-		m_pFreeParticleHeader = nullptr;
+		m_pParticleBlocksArray.clear();
 	}
 
 	m_pSortedParticles.clear();
+
+	if(m_pFreeParticleHeader)
+		m_pFreeParticleHeader = nullptr;
 }
 
 //====================================
@@ -189,10 +186,13 @@ void CLegacyParticles::ClearGame( void )
 //====================================
 void CLegacyParticles::AllocateParticles( void )
 {
+	particle_t* pnewblock = new particle_t[LEGACY_PARTICLE_ALLOC_COUNT];
+	m_pParticleBlocksArray.push_back(pnewblock);
+
 	// Allocate particles
 	for(Uint32 i = 0; i < LEGACY_PARTICLE_ALLOC_COUNT; i++)
 	{
-		particle_t* pnew = new particle_t;
+		particle_t* pnew = &pnewblock[i];
 
 		if(m_pFreeParticleHeader)
 			m_pFreeParticleHeader->pprev = pnew;
@@ -215,14 +215,7 @@ void CLegacyParticles::FreeActiveParticles( void )
 	if(!m_pActiveParticleHeader)
 		return;
 
-	particle_t* pnext = m_pActiveParticleHeader;
-	while(pnext)
-	{
-		particle_t* pfree = pnext;
-		pnext = pfree->pnext;
-
-		FreeParticle(pfree);
-	}
+	m_pActiveParticleHeader = nullptr;
 }
 
 //====================================
@@ -674,7 +667,7 @@ void CLegacyParticles::CreateLargeFunnel( const Vector& origin, bool reverse )
 void CLegacyParticles::CreateBloodStream( const Vector& origin, const Vector& direction, Uint32 color, Float speed )
 {
 	Vector normDirection(direction);
-	normDirection.Normalize();
+	Math::VectorNormalize(normDirection);
 
 	Float arc = 0.05;
 	Float particleSpeed = speed;
@@ -752,7 +745,7 @@ void CLegacyParticles::CreateBloodStream( const Vector& origin, const Vector& di
 void CLegacyParticles::CreateBloodParticles( const Vector& origin, const Vector& direction, Uint32 color, Float speed )
 {
 	Vector normDirection(direction);
-	normDirection.Normalize();
+	Math::VectorNormalize(normDirection);
 
 	Float arc = 0.06;
 	Float particleSpeed = speed * 3;

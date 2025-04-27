@@ -644,7 +644,7 @@ void CMotorBike::ActiveThink( void )
 
 		// Get direction of movement
 		Vector velDir = m_savedVelocity;
-		velDir.Normalize();
+		Math::VectorNormalize(velDir);
 
 		// Determine if we can slide off a bit
 		if(Math::DotProduct(velDir, tr.plane.normal) < 0.6 && tr.fraction != 1.0)
@@ -1087,7 +1087,7 @@ void CMotorBike::GetIdealUpVector( Vector& outup, Double* pblendtime )
 		Math::VectorAdd(blendNormal, tr.plane.normal, blendNormal);
 	}
 
-	blendNormal.Normalize();
+	Math::VectorNormalize(blendNormal);
 
 #else
 	// Current implementation: Use wheel positions and vector to front from back

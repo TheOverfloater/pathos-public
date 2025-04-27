@@ -15,6 +15,7 @@ class CCVar;
 struct font_set_t;
 
 #include "gameui_shared.h"
+#include "uischema.h"
 
 /*
 =================================
@@ -73,6 +74,9 @@ public:
 	// Returns the active window
 	const CGameUIWindow* GetActiveWindow( void );
 
+	// Loads in a schema file
+	ui_schemeinfo_t* LoadSchemaFile( const Char* pstrFilename );
+
 public:
 	// Manages a mouse wheel event
 	bool MouseWheelEvent( Int32 button, bool keyDown, Int32 scroll );
@@ -86,7 +90,9 @@ public:
 	CGameUIWindow* m_pActiveWindow;
 	// Next windows to be shown
 	CLinkedList<CGameUIWindow*> m_pNextWindowList;
-
+	// Schema manager
+	CUISchemaManager* m_pSchemaManager;
+	
 	// Blur fade time
 	Double m_blurFadeTime;
 	// Blur active state

@@ -11,6 +11,7 @@ All Rights Reserved.
 #define CUISCHEME_H
 
 #include "ui_shared.h"
+#include "uischema.h"
 
 class CUIObject;
 class CUIWindow;
@@ -95,8 +96,8 @@ private:
 	void DestroyWindow( CUIWindow* pWindow );
 
 private:
-	// Array of schemas loaded
-	CArray<ui_schemeinfo_t*> m_tabSchemeArray;
+	// Schema manager
+	CUISchemaManager m_schemaManager;
 	// Array of window descriptions
 	CArray<ui_windowdescription_t*> m_windowDescriptionArray;
 	// List of UI windows in memory

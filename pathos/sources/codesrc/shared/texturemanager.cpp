@@ -50,7 +50,7 @@ const Char* CTextureManager::TEXTURE_FORMAT_EXTENSIONS[] =
 // @brief Constructor
 //
 //=============================================
-CTextureManager::CTextureManager( const file_interface_t& fileFuncs, pfnPrintf_t printFunction, pfnPrintf_t printErrorFunction, const CGLExtF& glExtF, bool onlyMaterials  ):
+CTextureManager::CTextureManager( const file_interface_t& fileFuncs, pfnPrintf_t printFunction, pfnPrintf_t printErrorFunction, const CGLExtF& glExtF, bool onlyMaterials ):
 	m_pDummyTexture(nullptr),
 	m_pDummyMaterial(nullptr),
 	m_currentAnisotropySetting(0),

@@ -64,7 +64,6 @@ void TR_VBMInitHulls( const studiohdr_t* pstudiohdr, hull_types_t hulltype, enti
 	cache.hulls[hulltype].hullsarray.resize(pstudiohdr->numhitboxes);
 
 	// Create the hulls
-	
 	for(Int32 i = 0; i < pstudiohdr->numhitboxes; i++)
 	{
 		const mstudiobbox_t* phitbox = pstudiohdr->getHitBox(i);
@@ -259,7 +258,6 @@ void TR_VBMSetHullInfo( entity_vbmhulldata_t*& pdataptr, const cache_model_t* pm
 	// Determine size
 	Vector size;
 	Math::VectorSubtract(hullmaxs, hullmins, size);
-	Math::VectorScale(size, 0.5, size);
 
 	Int32 hullindex;
 	if(hulltype == HULL_AUTO)
@@ -288,6 +286,8 @@ void TR_VBMSetHullInfo( entity_vbmhulldata_t*& pdataptr, const cache_model_t* pm
 		// Just use the specified hull
 		hullindex = hulltype;
 	}
+
+	Math::VectorScale(size, 0.5, size);
 
 	if(statematches && pdataptr->hulls[hullindex].hullset 
 		&& Math::VectorCompare(size, pdataptr->hulls[hullindex].size))

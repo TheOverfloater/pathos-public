@@ -71,6 +71,9 @@ private:
 	// Active particles header
 	tracer_t* m_pActiveTracersHeader;
 
+	// Tracer allocation blocks array
+	CArray<tracer_t*> m_pTracerAllocationBlocksArray;
+
 	// Draw tracers cvar
 	CCVar* m_pCvarDrawTracers;
 	// Gravity cvar ptr

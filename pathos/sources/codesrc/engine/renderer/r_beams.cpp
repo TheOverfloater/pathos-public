@@ -556,7 +556,7 @@ void CBeamRenderer::DrawBeamSegments( const Vector& src, const Vector& delta, Fl
 	tmp[2] = 0.0; // discard z as we're in screen space
 
 	Vector normal;
-	tmp.Normalize();
+	Math::VectorNormalize(tmp);
 	Math::VectorScale(rns.view.v_up, tmp[0], normal);
 	Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
 
@@ -580,7 +580,7 @@ void CBeamRenderer::DrawBeamSegments( const Vector& src, const Vector& delta, Fl
 		brightness1 = 1.0f;
 
 	Vector beamforward = delta;
-	beamforward.Normalize();
+	Math::VectorNormalize(beamforward);
 
 	Vector beamright, beamup;
 	Math::GetUpRight(beamforward, beamright, beamup);
@@ -628,7 +628,7 @@ void CBeamRenderer::DrawBeamSegments( const Vector& src, const Vector& delta, Fl
 
 		// We don't need Z in screen-space
 		tmp[2] = 0;
-		tmp.Normalize();
+		Math::VectorNormalize(tmp);
 
 		Math::VectorScale(rns.view.v_up, tmp[0], normal);
 		Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
@@ -718,7 +718,7 @@ void CBeamRenderer::DrawBeamTesla( const Vector& src, const Vector& delta, Float
 	tmp[2] = 0.0; // discard z as we're in screen space
 
 	Vector normal;
-	tmp.Normalize();
+	Math::VectorNormalize(tmp);
 	Math::VectorScale(rns.view.v_up, tmp[0], normal);
 	Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
 
@@ -750,7 +750,7 @@ void CBeamRenderer::DrawBeamTesla( const Vector& src, const Vector& delta, Float
 	Vector branchstart, branchend;
 
 	Vector beamforward = delta;
-	beamforward.Normalize();
+	Math::VectorNormalize(beamforward);
 
 	Vector beamright, beamup;
 	Math::GetUpRight(beamforward, beamright, beamup);
@@ -795,7 +795,7 @@ void CBeamRenderer::DrawBeamTesla( const Vector& src, const Vector& delta, Float
 
 		// We don't need Z in screen-space
 		tmp[2] = 0;
-		tmp.Normalize();
+		Math::VectorNormalize(tmp);
 
 		Math::VectorScale(rns.view.v_up, tmp[0], normal);
 		Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
@@ -926,7 +926,7 @@ void CBeamRenderer::DrawBeamTorus( const Vector& src, const Vector& delta, Float
 			Vector tmp;
 			Math::VectorSubtract(screenstart, screenlast, tmp);
 			tmp[2] = 0;
-			tmp.Normalize();
+			Math::VectorNormalize(tmp);
 
 			Vector normal;
 			Math::VectorScale(rns.view.v_up, tmp[0], normal);
@@ -1163,7 +1163,7 @@ void CBeamRenderer::DrawBeamRing( const Vector& src, const Vector& delta, Float 
 	yaxis[0] = xaxis[1];
 	yaxis[1] = -xaxis[0];
 	yaxis[2] = 0.0f;
-	yaxis.Normalize();
+	Math::VectorNormalize(yaxis);
 
 	Math::VectorScale(yaxis, radius, yaxis);
 
@@ -1194,7 +1194,7 @@ void CBeamRenderer::DrawBeamRing( const Vector& src, const Vector& delta, Float 
 		{
 			Math::VectorSubtract(screenstart, screenlast, tmp);
 			tmp[2] = 0;
-			tmp.Normalize();
+			Math::VectorNormalize(tmp);
 
 			Vector normal;
 			Math::VectorScale(rns.view.v_up, tmp[0], normal);
@@ -1524,7 +1524,7 @@ void CBeamRenderer::DrawBeamFollow( beam_t* pbeam )
 	Vector tmp;
 	Math::VectorSubtract(screenstart, screenlast, tmp);
 	tmp[2] = 0;
-	tmp.Normalize();
+	Math::VectorNormalize(tmp);
 
 	Vector normal;
 	Math::VectorScale(rns.view.v_up, tmp[0], normal);
@@ -1555,7 +1555,7 @@ void CBeamRenderer::DrawBeamFollow( beam_t* pbeam )
 		R_WorldToScreenTransform(m_modelViewProjectionMatrix, pnext->position, screenstart);
 		Math::VectorSubtract(screenstart, screenlast, tmp);
 		tmp[2] = 0.0f;
-		tmp.Normalize();
+		Math::VectorNormalize(tmp);
 
 		Math::VectorScale(rns.view.v_up, tmp[0], normal);
 		Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
@@ -1645,7 +1645,7 @@ void CBeamRenderer::DrawBeamVaporTrail( beam_t* pbeam, Float fadealpha )
 	Vector tmp;
 	Math::VectorSubtract(screenstart, screenlast, tmp);
 	tmp[2] = 0;
-	tmp.Normalize();
+	Math::VectorNormalize(tmp);
 
 	Vector normal;
 	Math::VectorScale(rns.view.v_up, tmp[0], normal);
@@ -1673,7 +1673,7 @@ void CBeamRenderer::DrawBeamVaporTrail( beam_t* pbeam, Float fadealpha )
 		R_WorldToScreenTransform(m_modelViewProjectionMatrix, pnext->position, screenstart);
 		Math::VectorSubtract(screenstart, screenlast, tmp);
 		tmp[2] = 0.0f;
-		tmp.Normalize();
+		Math::VectorNormalize(tmp);
 
 		Math::VectorScale(rns.view.v_up, tmp[0], normal);
 		Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
@@ -2200,7 +2200,7 @@ beam_t* CBeamRenderer::BeamVaporTrail( const Vector& src, const Vector& end, Int
 		p->position = src * (1.0 - f) + end * f;
 
 		p->winddirection = Vector(Common::RandomFloat(-4, 5), Common::RandomFloat(-5, 5), Common::RandomFloat(-5, 5));
-		p->winddirection.Normalize();
+		Math::VectorNormalize(p->winddirection);
 
 		p->acceleration = Common::RandomFloat(0, 0.8) * SDL_sin(fraction * divisions * 0.5);
 		if(p->acceleration < 0.2)

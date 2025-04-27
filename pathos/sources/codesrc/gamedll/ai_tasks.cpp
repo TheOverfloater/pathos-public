@@ -847,7 +847,7 @@ void CBaseNPC::StartTask( const ai_task_t* pTask )
 				// Set regular death activity
 				SetIdealActivity(GetDeathActivity());
 			}
-			else if(!(m_deathFlags & m_deathFlags))
+			else if(!(m_deathFlags & NPC_DF_LANDED))
 			{
 				m_idealActivity = GetBlowbackDeathActivity();
 				m_deathFlags |= NPC_DF_LANDED;

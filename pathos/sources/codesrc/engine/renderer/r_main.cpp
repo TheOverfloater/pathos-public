@@ -1391,10 +1391,10 @@ void R_Ent_RotLight( cl_entity_t *pentity )
 
 	Vector vforward, vleft, vback, vright;
 	Math::VectorSubtract(pentity->getAttachment(1), pentity->getAttachment(0), vforward);
-	vforward.Normalize();
+	Math::VectorNormalize(vforward);
 
 	Math::VectorSubtract(pentity->getAttachment(2), pentity->getAttachment(0), vleft);
-	vleft.Normalize();
+	Math::VectorNormalize(vleft);
 
 	Math::VectorCopy(vforward, vback);
 	Math::VectorScale(vback, -1, vback);

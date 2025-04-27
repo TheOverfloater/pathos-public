@@ -753,6 +753,9 @@ private:
 	// Array of precached particle scripts
 	CArray<script_cache_t*> m_scriptCache;
 
+	// Particle blocks array
+	CArray<cl_particle_t*> m_particleBlocksArray;
+
 private:
 	// Pointer to GLSL shader
 	class CGLSLShader *m_pShader;

@@ -142,6 +142,9 @@ private:
 	// Active particle header
 	particle_t* m_pActiveParticleHeader;
 
+	// Particle allocation block ptrs
+	CArray<particle_t*> m_pParticleBlocksArray;
+
 	// Array of rendered particles
 	CArray<particle_t*> m_pSortedParticles;
 	// Number of sorted particles

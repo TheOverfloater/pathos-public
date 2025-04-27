@@ -214,13 +214,13 @@ bool CBlackHoleRenderer::AffectObject( const Vector& origin, Vector& velocity, F
 
 		// Calculate strength of pull by black hole
 		Float pullStrength = attenuation*BLACK_HOLE_SUCK_SPEED*blackhole.strength*m_pStrengthDebugCvar->GetValue();
-		direction.Normalize();
+		Math::VectorNormalize(direction);
 
 		Vector velocityDirection = velocity;
-		velocityDirection.Normalize();
+		Math::VectorNormalize(velocityDirection);
 
 		Vector awayDirection = velocityDirection - direction;
-		awayDirection.Normalize();
+		Math::VectorNormalize(awayDirection);
 
 		// Remove from velocity slowly the direction pointing away from the hole
 		velocity = velocity - awayDirection*pullStrength*cls.frametime;

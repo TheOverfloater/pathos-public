@@ -581,7 +581,6 @@ bool CVBMRenderer::InitGame( void )
 
 	// Load the glint texture
 	m_pGlintTexture = pTextureManager->LoadTexture(EYEGLINT_TEXTURE_PATH, RS_GAME_LEVEL);
-
 	if(!m_pGlintTexture)
 	{
 		Con_Printf("%s - Failed to load '%s'.\n", __FUNCTION__, EYEGLINT_TEXTURE_PATH);
@@ -2572,40 +2571,45 @@ bool CVBMRenderer::Render( void )
 	if(!DrawWireframe())
 		return false;
 
-	if(m_pCvarDrawModels->GetValue() == 2)
+	// Check for drawing special stuff
+	switch(static_cast<Int32>(m_pCvarDrawModels->GetValue()))
 	{
-		if(!DrawBones())
-			return false;
-	}
-
-	if(m_pCvarDrawModels->GetValue() == 3)
-	{
-		if(!DrawHitBoxes())
-			return false;
-	}
-
-	if(m_pCvarDrawModels->GetValue() == 4)
-	{
-		if(!DrawBoundingBox())
-			return false;
-	}
-
-	if(m_pCvarDrawModels->GetValue() == 5)
-	{
-		if(!DrawHullBoundingBox())
-			return false;
-	}
-
-	if(m_pCvarDrawModels->GetValue() == 6)
-	{
-		if(!DrawLightVectors())
-			return false;
-	}
-
-	if(m_pCvarDrawModels->GetValue() == 7)
-	{
-		if(!DrawAttachments())
-			return false;
+	case 2:
+		{
+			if(!DrawBones())
+				return false;
+		}
+		break;
+	case 3:
+		{
+			if(!DrawHitBoxes())
+				return false;
+		}
+		break;
+	case 4:
+		{
+			if(!DrawBoundingBox())
+				return false;
+		}
+		break;
+	case 5:
+		{
+			if(!DrawHullBoundingBox())
+				return false;
+		}
+		break;
+	case 6:
+		{
+			if(!DrawLightVectors())
+				return false;
+		}
+		break;
+	case 7:
+		{
+			if(!DrawAttachments())
+				return false;
+		}
+		break;
 	}
 
 	return true;

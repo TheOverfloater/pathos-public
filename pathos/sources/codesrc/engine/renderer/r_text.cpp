@@ -191,13 +191,15 @@ const font_set_t *CText::LoadFont ( const Char *pstrFilename, Int32 fontsize, bo
 	for(Uint32 i = 0; i < m_fontSetsArray.size(); i++)
 	{
 		// Make sure it's actually usable, if not, load the font in again
-		if(!qstrcmp(pstrFilename, m_fontSetsArray[i]->name) 
-			&& m_fontSetsArray[i]->fontsize == fontsize
-			&& m_fontSetsArray[i]->outline == outline
-			&& !memcmp(&m_fontSetsArray[i]->outlinecolor, &outlinecolor, sizeof(color32_t))
-			&& m_fontSetsArray[i]->outlineradius == outlineradius)
+		font_set_t* pcheck = m_fontSetsArray[i];
+
+		if(!qstrcmp(pstrFilename, pcheck->name) 
+			&& pcheck->fontsize == fontsize
+			&& pcheck->outline == outline
+			&& !memcmp(&pcheck->outlinecolor, &outlinecolor, sizeof(color32_t))
+			&& pcheck->outlineradius == outlineradius)
 		{
-			pset = m_fontSetsArray[i];
+			pset = pcheck;
 			break;
 		}
 	}

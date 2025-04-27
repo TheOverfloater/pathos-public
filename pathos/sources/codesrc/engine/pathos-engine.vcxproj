@@ -43,7 +43,6 @@
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
-    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -98,6 +97,18 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pathos_x86</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pathos_x64</TargetName>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -127,9 +138,18 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
-      <Message>Copy $(TargetName)$(TargetExt) to working directory</Message>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Copy '$(TargetName)$(TargetExt)' to directory '$(SolutionDir)../../../$(TargetName)$(TargetExt)'</Message>
+      <Outputs>pathos_x86.exe</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -156,11 +176,20 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy $(TargetName)$(TargetExt) to working directory</Message>
+      <Message>
+      </Message>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Copy '$(TargetName)$(TargetExt)' to directory '$(SolutionDir)../../../$(TargetName)$(TargetExt)'</Message>
+      <Outputs>pathos_x64.exe</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -186,9 +215,18 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
-      <Message>Copy $(TargetName)$(TargetExt) to working directory</Message>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Copy '$(TargetName)$(TargetExt)' to directory '$(SolutionDir)../../../$(TargetName)$(TargetExt)'</Message>
+      <Outputs>pathos_x86.exe</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -215,11 +253,20 @@
       <AssemblyDebug>true</AssemblyDebug>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy $(TargetName)$(TargetExt) to working directory</Message>
+      <Message>
+      </Message>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Copy '$(TargetName)$(TargetExt)' to directory '$(SolutionDir)../../../$(TargetName)$(TargetExt)'</Message>
+      <Outputs>pathos_x64.exe</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\bmp.cpp" />
@@ -241,6 +288,7 @@
     <ClCompile Include="..\shared\sentencesfile.cpp" />
     <ClCompile Include="..\shared\stepsound.cpp" />
     <ClCompile Include="..\shared\texturemanager.cpp" />
+    <ClCompile Include="..\shared\uischema.cpp" />
     <ClCompile Include="ald.cpp" />
     <ClCompile Include="brushmodel.cpp" />
     <ClCompile Include="bspv30.cpp" />
@@ -395,6 +443,7 @@
     <ClInclude Include="..\shared\r_basicdraw.h" />
     <ClInclude Include="..\shared\sentencesfile.h" />
     <ClInclude Include="..\shared\texturemanager.h" />
+    <ClInclude Include="..\shared\uischema.h" />
     <ClInclude Include=".\ui\ui_shared.h" />
     <ClInclude Include="..\shared\animinfo.h" />
     <ClInclude Include="..\shared\flex_shared.h" />

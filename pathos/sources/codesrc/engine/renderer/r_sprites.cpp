@@ -247,43 +247,46 @@ cl_entity_t* CSpriteRenderer::AllocTempSprite( Int32 key, Float life )
 	// Find one with this key
 	for(Uint32 i = 0; i < MAX_TEMP_SPRITES; i++)
 	{
-		if(m_tempSpritesArray[i].key == key)
+		temp_sprite_t& spr = m_tempSpritesArray[i];
+		if(spr.key == key)
 		{
-			m_tempSpritesArray[i].life = cls.cl_time + life;
-			m_tempSpritesArray[i].key = key;
-			m_tempSpritesArray[i].entity.entindex = key;
-			m_tempSpritesArray[i].entity.curstate.entindex = key;
-			m_tempSpritesArray[i].entity.prevstate.entindex = key;
-			return &m_tempSpritesArray[i].entity;
+			spr.life = cls.cl_time + life;
+			spr.key = key;
+			spr.entity.entindex = key;
+			spr.entity.curstate.entindex = key;
+			spr.entity.prevstate.entindex = key;
+			return &spr.entity;
 		}
 	}
 
 	// Try to find an exhausted one
 	for(Uint32 i = 0; i < MAX_TEMP_SPRITES; i++)
 	{
-		if( m_tempSpritesArray[i].life >= rns.time )
+		temp_sprite_t& spr = m_tempSpritesArray[i];
+		if( spr.life >= rns.time )
 			continue;
 
-		m_tempSpritesArray[i].entity.pmodel = nullptr;
-		m_tempSpritesArray[i].life = cls.cl_time + life;
-		m_tempSpritesArray[i].entity.curstate.renderfx = RenderFx_None;
+		spr.entity.pmodel = nullptr;
+		spr.life = cls.cl_time + life;
+		spr.entity.curstate.renderfx = RenderFx_None;
 
-		m_tempSpritesArray[i].key = key;
-		m_tempSpritesArray[i].entity.entindex = key;
-		m_tempSpritesArray[i].entity.curstate.entindex = key;
-		m_tempSpritesArray[i].entity.prevstate.entindex = key;
-		return &m_tempSpritesArray[i].entity;
+		spr.key = key;
+		spr.entity.entindex = key;
+		spr.entity.curstate.entindex = key;
+		spr.entity.prevstate.entindex = key;
+		return &spr.entity;
 	}
 
 	// Just return the first one
-	m_tempSpritesArray[0].entity.pmodel = nullptr;
-	m_tempSpritesArray[0].life = cls.cl_time + life;
-	m_tempSpritesArray[0].entity.curstate.renderfx = RenderFx_None;
-	m_tempSpritesArray[0].key = key;
-	m_tempSpritesArray[0].entity.entindex = key;
-	m_tempSpritesArray[0].entity.curstate.entindex = key;
-	m_tempSpritesArray[0].entity.prevstate.entindex = key;
-	return &m_tempSpritesArray[0].entity;
+	temp_sprite_t& spr = m_tempSpritesArray[0];
+	spr.entity.pmodel = nullptr;
+	spr.life = cls.cl_time + life;
+	spr.entity.curstate.renderfx = RenderFx_None;
+	spr.key = key;
+	spr.entity.entindex = key;
+	spr.entity.curstate.entindex = key;
+	spr.entity.prevstate.entindex = key;
+	return &spr.entity;
 }
 
 //====================================
@@ -641,11 +644,9 @@ bool CSpriteRenderer::DrawSprites( void )
 //====================================
 bool CSpriteRenderer::BatchSprite( cl_entity_t *pEntity ) 
 {
+	// Increase draw buffer size
 	if(m_numVertexes >= m_drawBufferAllocSize)
-	{
-		// Increase draw buffer size
 		AllocDrawBuffer();
-	}
 
 	vec4_t vColor;
 	static Vector vForward, vRight, vUp;

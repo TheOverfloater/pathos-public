@@ -42,6 +42,7 @@ CUIManager gUIManager;
 //
 //=============================================
 CUIManager::CUIManager( void ):
+	m_schemaManager(FL_GetInterface(), R_GetDummyTexture, R_LoadTexture),
 	m_pFocusWindow(nullptr),
 	m_currentFocusIndex(0),
 	m_windowFilterFlags(CUIWindow::UIW_FL_NONE),
@@ -147,14 +148,6 @@ void CUIManager::Shutdown( void )
 		}
 	}
 
-	if(!m_tabSchemeArray.empty())
-	{
-		for(Uint32 i = 0; i < m_tabSchemeArray.size(); i++)
-			delete m_tabSchemeArray[i];
-
-		m_tabSchemeArray.clear();
-	}
-
 	if(!m_windowDescriptionArray.empty())
 	{
 		for(Uint32 i = 0; i < m_windowDescriptionArray.size(); i++)
@@ -162,6 +155,8 @@ void CUIManager::Shutdown( void )
 
 		m_windowDescriptionArray.clear();
 	}
+
+	m_schemaManager.Clear();
 }
 
 //=============================================
@@ -633,168 +628,28 @@ bool CUIManager::HasActiveWindows( void )
 //=============================================
 ui_schemeinfo_t* CUIManager::LoadSchemaFile( const Char* pstrFilename )
 {
-	// Try to find it in the cache first
-	for(Uint32 i = 0; i < m_tabSchemeArray.size(); i++)
+	ui_schemeinfo_t* presult = m_schemaManager.LoadSchemaFile(pstrFilename);
+	if(!presult)
 	{
-		if(!qstrcmp(m_tabSchemeArray[i]->schemeName, pstrFilename))
-			return m_tabSchemeArray[i];
-	}
+		const CString& errorStr = m_schemaManager.GetErrorString();
+		if(!errorStr.empty())
+			Con_EPrintf(errorStr.c_str());
 
-	// Load in the file
-	CString scriptPath;
-	scriptPath << "scripts/ui/schemas/" << pstrFilename;
-
-	Uint32 fileSize = 0;
-	const Char* pfile = reinterpret_cast<const Char*>(FL_LoadFile(scriptPath.c_str(), &fileSize));
-	if(!pfile)
-	{
-		Con_EPrintf("Failed to load UI schema script %s.\n", scriptPath.c_str());
 		return nullptr;
 	}
-
-	// Allocate new object
-	ui_schemeinfo_t* pNew = new ui_schemeinfo_t;
-	pNew->schemeName = pstrFilename;
-
-	// Parse the contents
-	CString token;
-	CString line;
-
-	CTextureManager* pTextureManager = CTextureManager::GetInstance();
-
-	const Char* pstr = pfile;
-	while(pstr && *pstr && (pstr - pfile) < fileSize)
+	else
 	{
-		// Read in the first token
-		CString objName;
-		pstr = Common::Parse(pstr, objName);
-		if(!pstr || objName.empty())
-			break;
-
-		// Scheme object we'll be processing
-		ui_schemeobject_t newObject;
-		newObject.typeName = objName;
-
-		// Next token should be an opening bracket
-		pstr = Common::Parse(pstr, token);
-		if(!pstr || token.empty())
+		Uint32 nbWarnings = m_schemaManager.GetNbWarnings();
+		if(nbWarnings > 0)
 		{
-			Con_EPrintf("Unexpected EOF on %s.\n", scriptPath.c_str());
-			FL_FreeFile(pfile);
+			for(Uint32 i = 0; i < nbWarnings; i++)
+				Con_Printf(m_schemaManager.GetWarning(i).c_str());
 
-			delete pNew;
-			return nullptr;
+			m_schemaManager.ClearWarnings();
 		}
 
-		// Make sure the script is valid
-		if(qstrcmp(token, "{"))
-		{
-			Con_EPrintf("{ token expected %s, got %s.\n", scriptPath.c_str(), token.c_str());
-			FL_FreeFile(pfile);
-
-			delete pNew;
-			return nullptr;
-		}
-
-		// Read in the fields, line by line
-		while(pstr && *pstr && (pstr - pfile) < fileSize)
-		{
-			// Skip whitespaces
-			while(*pstr && SDL_isspace(*pstr))
-				pstr++;
-
-			// Read in the entire line
-			pstr = Common::ReadLine(pstr, line);
-			if(line.empty())
-				continue;
-
-			// Read in the first token
-			const Char* pstrl = Common::Parse(line.c_str(), token);
-			if(token.empty())
-			{
-				Con_EPrintf("Unexpected EOF on %s.\n", scriptPath.c_str());
-				FL_FreeFile(pfile);
-
-				delete pNew;
-				return nullptr;
-			}
-
-			// Exit the loop
-			if(!qstrcmp(token, "}"))
-				break;
-			
-			if(!pstrl)
-			{
-				Con_EPrintf("Unexpected EOF on %s.\n", scriptPath.c_str());
-				FL_FreeFile(pfile);
-
-				delete pNew;
-				return nullptr;
-			}
-
-			// Read in the value
-			CString value;
-			pstrl = Common::Parse(pstrl, value);
-			if(value.empty())
-			{
-				Con_EPrintf("Unexpected EOF on %s.\n", scriptPath.c_str());
-				FL_FreeFile(pfile);
-
-				delete pNew;
-				return nullptr;
-			}
-
-			// Determine field type
-			CString textureName;
-			if(!qstrcmp(token, "$default") 
-				|| !qstrcmp(token, "$focus")
-				|| !qstrcmp(token, "$clicked")
-				|| !qstrcmp(token, "$disabled"))
-			{
-				// If it's a texture resource, load it in
-				CString texturePath;
-				texturePath << "ui/" << value;
-
-				// Load it in
-				en_texture_t* ptexture = pTextureManager->LoadTexture(texturePath.c_str(), RS_WINDOW_LEVEL, TX_FL_NOMIPMAPS);
-				if(!ptexture)
-					ptexture = pTextureManager->GetDummyTexture();
-
-				// Assign it to the right place
-				if(!qstrcmp(token, "$default"))
-					newObject.defaultTexture = ptexture;
-				else if(!qstrcmp(token, "$focus"))
-					newObject.focusTexture = ptexture;
-				else if(!qstrcmp(token, "$clicked"))
-					newObject.clickTexture = ptexture;
-				else if(!qstrcmp(token, "$disabled"))
-					newObject.disabledTexture = ptexture;
-
-				if(!newObject.width)
-					newObject.width = ptexture->width;
-				if(!newObject.height)
-					newObject.height = ptexture->height;
-			}
-			else if(!qstrcmp(token, "$width"))
-				newObject.width = SDL_atoi(value.c_str());
-			else if(!qstrcmp(token, "$height"))
-				newObject.height = SDL_atoi(value.c_str());
-			else
-			{
-				Con_Printf("Unknown field %s in %s.\n", token.c_str(), scriptPath.c_str());
-				break;
-			}
-		}
-
-		// Add it to the object
-		pNew->tabObjects.push_back(newObject);
+		return presult;
 	}
-
-	// Add this scheme object to the array
-	m_tabSchemeArray.push_back(pNew);
-	FL_FreeFile(pfile);
-
-	return pNew;
 }
 
 //=============================================

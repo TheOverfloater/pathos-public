@@ -87,6 +87,9 @@ private:
 	// Linked list of acitve tempentities
 	tempentity_t* m_pActiveTempEntityHeader;
 
+	// Tempentity allocation blocks
+	CArray<tempentity_t*> m_pTempEntityAllocationBlocksArray;
+
 	// Gravity CVar
 	CCVar* m_pCvarGravity;
 };

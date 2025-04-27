@@ -99,7 +99,7 @@ void EV_AngleForwardMuzzleFlash( Int32 attachment, const Vector origin, const cl
 	// Reverse pitch on view model
 	angles[PITCH] = -angles[PITCH];
 	Math::AngleVectors(angles, &forward, nullptr, nullptr);
-	forward.Normalize();
+	Math::VectorNormalize(forward);
 
 	// Create dynamic light
 	if (!qstrstr(pevent->options, "silencer"))

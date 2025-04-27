@@ -11,6 +11,7 @@ All Rights Reserved.
 #define UI_SHARED_H
 
 #include "r_basicdraw.h"
+#include "uischema.h"
 
 struct en_texture_t;
 struct font_set_t;
@@ -24,45 +25,6 @@ enum tab_flags_t
 	TAB_FL_MOVABLE		= (1<<2),
 	TAB_FL_CLAMP_S		= (1<<3),
 	TAB_FL_CLAMP_T		= (1<<4)
-};
-
-struct ui_schemeobject_t
-{
-	ui_schemeobject_t():
-		width(0),
-		height(0),
-		defaultTexture(nullptr),
-		focusTexture(nullptr),
-		clickTexture(nullptr),
-		disabledTexture(nullptr)
-	{}
-
-	CString typeName;
-
-	Uint32 width;
-	Uint32 height;
-
-	en_texture_t* defaultTexture;
-	en_texture_t* focusTexture;
-	en_texture_t* clickTexture;
-	en_texture_t* disabledTexture;
-};
-
-struct ui_schemeinfo_t
-{
-	inline const ui_schemeobject_t* getObject( const Char* pstrName ) const
-	{
-		for(Uint32 i = 0; i < tabObjects.size(); i++)
-		{
-			if(!qstrcmp(tabObjects[i].typeName, pstrName))
-				return &tabObjects[i];
-		}
-
-		return nullptr;
-	}
-
-	CString	schemeName;
-	CArray<ui_schemeobject_t> tabObjects;
 };
 
 enum ui_object_type_t

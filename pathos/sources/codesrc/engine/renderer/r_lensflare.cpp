@@ -302,7 +302,7 @@ bool CLensFlareRenderer::DrawLensFlare( Int32 key, const Vector& origin, const V
 	Float length = vectorToCenter.Length() * 0.8;
 
 	Vector directionFromLight = vectorToCenter;
-	directionFromLight.Normalize();
+	Math::VectorNormalize(directionFromLight);
 
 	Vector color;
 	Math::VectorScale(rendercolor, 1.0f/255.0f, color);

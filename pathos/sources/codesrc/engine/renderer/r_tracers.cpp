@@ -92,29 +92,17 @@ bool CTracerRenderer::InitGame( void )
 void CTracerRenderer::ClearGame( void )
 {
 	if(m_pFreeTracersHeader)
-	{
-		tracer_t* pnext = m_pFreeTracersHeader;
-		while(pnext)
-		{
-			tracer_t* pfree = pnext;
-			pnext = pfree->pnext;
-			delete pfree;
-		}
-
 		m_pFreeTracersHeader = nullptr;
-	}
 
 	if(m_pActiveTracersHeader)
-	{
-		tracer_t* pnext = m_pActiveTracersHeader;
-		while(pnext)
-		{
-			tracer_t* pfree = pnext;
-			pnext = pfree->pnext;
-			delete pfree;
-		}
-
 		m_pActiveTracersHeader = nullptr;
+
+	if(!m_pTracerAllocationBlocksArray.empty())
+	{
+		for(Uint32 i = 0; i < m_pTracerAllocationBlocksArray.size(); i++)
+			delete[] m_pTracerAllocationBlocksArray[i];
+
+		m_pTracerAllocationBlocksArray.clear();
 	}
 }
 
@@ -446,10 +434,13 @@ void CTracerRenderer::CreateStreakSplash( const Vector& origin, const Vector& di
 //====================================
 void CTracerRenderer::AllocTracers( void )
 {
+	tracer_t* pnewblock = new tracer_t[TRACER_ALLOC_SIZE];
+	m_pTracerAllocationBlocksArray.push_back(pnewblock);
+
 	// Allocate particles
 	for(Uint32 i = 0; i < TRACER_ALLOC_SIZE; i++)
 	{
-		tracer_t* pnew = new tracer_t;
+		tracer_t* pnew = &pnewblock[i];
 
 		if(m_pFreeTracersHeader)
 			m_pFreeTracersHeader->pprev = pnew;
