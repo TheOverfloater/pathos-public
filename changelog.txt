@@ -647,3 +647,21 @@
  - Fix issue with AI enemy navigability check causing false negatives.
  - Fix bug in position navigability check code causing false negative results when doing checks.
  - Fix bug in FindEnemies function causing the seeking NPCs to get stuck in place.
+
+2025 April 27th:
+ - Port Schema Manager to be shared between Menu UI and Game UI.
+ - Modify certain classes to use allocation blocks for objects instead of allocating and deleting per each object.
+ - Particle Engine code cleanup.
+ - Sprite renderer code tidying.
+ - Text renderer code got tidied up.
+ - VMB renderer code was tidied up.
+ - Fixes for hull detection in server physics.
+ - Fix VBM tracelines using incorrect mins/maxs for auto-detection of hulls.
+ - Fix for NPC blowback using wrong angles for blowback effect.
+ - Fix for weapons other than shotgun not decapitating enemies at longer distances.
+ - Fix for heavy flinch from hits interrupting important schedules/animations.
+ - Fix for ClearRoute causing blowback death animations to not play, making NPCs get stuck dead in an idle pose.
+ - Fix for AI not detecting nearest node reachability properly, causing NPCs to get stuck.
+ - Fix for death flags not being checked properly when setting death animation in specific AI task.
+ - Stop objective removal failure messages from popping up in non-debug modes.
+ - Modify SDL2 project to also use Custom Build Event for copying DLL.
