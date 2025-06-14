@@ -1194,8 +1194,6 @@ bool CUIWindow::init( const Char* pstrSchemaName )
 	if(!CUISurface::init(pstrSchemaName))
 		return false;
 
-
-
 	// Create the close button if available
 	const ui_schemeobject_t* pCloseBtnObj = m_pScheme->getObject("CloseIcon");
 	if(pCloseBtnObj)

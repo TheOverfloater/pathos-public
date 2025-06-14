@@ -238,6 +238,12 @@ void CItemTapeRecorder::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, 
 		m_isActive = true;
 
 		pEntity->PlaybackTapeTrack(gd_engfuncs.pfnGetString(m_soundFileName), m_duration, gd_engfuncs.pfnGetString(m_playbackTitle), m_pState->rendercolor, m_pState->renderamt);
+
+		if(m_pFields->target != NO_STRING_VALUE)
+		{
+			Util::FireTargets(gd_engfuncs.pfnGetString(m_pFields->target), pActivator, this, USE_TOGGLE, 0);
+			m_pFields->target = NO_STRING_VALUE;
+		}
 	}
 }
 

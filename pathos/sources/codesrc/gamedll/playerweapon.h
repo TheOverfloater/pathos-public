@@ -94,6 +94,9 @@ public:
 	// Sets spawn properties
 	virtual void SetSpawnProperties( void ) = 0;
 
+	// Check for friendly fire
+	bool CheckFriendlyFire( const Vector& shootOrigin, const Vector& shootDirection );
+
 	// Extracts ammo from a gun
 	bool ExtractAmmo( CPlayerWeapon* pWeapon );
 	// Extracts ammo from the clip

@@ -272,6 +272,30 @@ bool CPlayerWeapon::ExtractClipAmmo( CPlayerWeapon* pWeapon )
 // @brief
 //
 //=============================================
+bool CPlayerWeapon::CheckFriendlyFire( const Vector& shootOrigin, const Vector& shootDirection )
+{
+	Vector vecEnd = shootOrigin + shootDirection * BULLET_MAX_DISTANCE;
+
+	trace_t tr;
+	Util::TraceLine(shootOrigin, vecEnd, false, true, m_pPlayer->GetEdict(), tr);
+	if(tr.noHit())
+		return true;
+
+	CBaseEntity* pEntity = Util::GetEntityFromTrace(tr);
+	if(!pEntity || !pEntity->IsNPC() || !pEntity->IsAlive())
+		return true;
+
+	Int32 relationship = pEntity->GetRelationship(m_pPlayer);
+	if(relationship == R_ALLY || relationship == R_NONE && m_pPlayer != pEntity)
+		return false;
+	else
+		return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 void CPlayerWeapon::SetWeaponAnimation( const Char* pstrsequence, Int64 body, Int32 skin, bool blend )
 {
 	if(!m_pPlayer)

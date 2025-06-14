@@ -1520,6 +1520,10 @@ void CMenuButton::Think( void )
 	if(!m_isEnabled)
 		m_brightness = DISABLED_BRIGHTNESS;
 
+	// Clamp these values
+	m_alpha = clamp(m_alpha, 0, 1);
+	m_brightness = clamp(m_brightness, 0, 1);
+
 	// Clear this if the button was released
 	if(m_isClicked)
 	{

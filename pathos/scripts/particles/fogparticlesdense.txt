@@ -20,7 +20,7 @@ $particlescript
 	$alpha 0.200000
 	$alignment tiled
 	$texture clouds
-	$max_light_value 1.000000
+	$max_light_value 0.300000
 	$rotate_z_dampening 0.001000
 	$wind_velocity_variance 15.000000
 	$wind_type sine

@@ -136,7 +136,7 @@ const Float CBaseNPC::NPC_MAX_LOCALMOVE_HEIGHT_DIFF = 1024.0f;
 // Distance at which we can be decapitated
 const Float CBaseNPC::NPC_DECAP_MAX_DISTANCE = 256.0f;
 // Distance at which we can be gibbed by a bullet
-const Float CBaseNPC::NPC_BULLETGIB_MAX_DISTANCE = 256.0f;
+const Float CBaseNPC::NPC_BULLETGIB_MAX_DISTANCE = 350.0f;
 // Number of coverage checks
 const Uint32 CBaseNPC::NPC_NUM_COVERAGE_CHECKS = 6;
 // Max number of schedule changes per think
@@ -1545,7 +1545,7 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 
 			// Set velocity and angles
 			const Float blowbackReferenceDmg = 100;
-			m_pState->velocity += -m_damageDirection * Common::RandomFloat(105, 125) * (_dmgAmount / blowbackReferenceDmg) * GetBlowbackDmgAccelerationMultiplier();
+			m_pState->velocity += -m_damageDirection * Common::RandomFloat(155, 225) * (_dmgAmount / blowbackReferenceDmg) * GetBlowbackDmgAccelerationMultiplier();
 			m_pState->angles[YAW] = Util::VectorToYaw(m_damageDirection);
 			m_pState->idealyaw = m_pState->angles[YAW];
 			m_updateYaw = false;

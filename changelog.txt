@@ -665,3 +665,15 @@
  - Fix for death flags not being checked properly when setting death animation in specific AI task.
  - Stop objective removal failure messages from popping up in non-debug modes.
  - Modify SDL2 project to also use Custom Build Event for copying DLL.
+ 
+2025 June 14th:
+ - Minor changes to fog particle particle scripts.
+ - Add dynamic lighting to transparent brush entities.
+ - Fix for decals not rendering on transparent entities.
+ - Minor code cleanup and tyding in BSP Renderer.
+ - Fix menu buttons flickering when hovered over.
+ - Fix player plane particles not being lit properly or at all.
+ - Increase bullet gibbing distance on NPCs.
+ - Increase blowback velocity on NPCs.
+ - Add "Target" field feature on item_taperecorder.
+ - Add friendly fire check in weapon code.

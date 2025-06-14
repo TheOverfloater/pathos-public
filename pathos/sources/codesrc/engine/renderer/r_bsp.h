@@ -62,6 +62,13 @@ enum bsp_fog_settings_t
 	fog_fogcoord
 };
 
+enum bsp_blendmultipass_t
+{
+	blendmultipass_no = 0,
+	blendmultipass_texture,
+	blendmultipass_texture_dtexture
+};
+
 struct light_attribs_t
 {
 	light_attribs_t():
@@ -98,6 +105,7 @@ struct bsp_shader_attribs
 		d_luminance(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_ao(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_numlights(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_blendmultipass(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_position(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_tangent(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_binormal(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -149,6 +157,7 @@ struct bsp_shader_attribs
 	Int32 d_luminance;
 	Int32 d_ao;
 	Int32 d_numlights;
+	Int32 d_blendmultipass;
 
 	// vertex attribs
 	Int32 a_position;
@@ -416,6 +425,15 @@ CBSPRenderer
 class CBSPRenderer
 {
 public:
+	// Multipass modes
+	enum multipass_mode_t
+	{
+		MULTIPASS_NORMAL = 0,
+		MULTIPASS_TRANSPARENTS,
+		MULTIPASS_DISABLED
+	};
+
+public:
 	// Default lightmap width
 	static const Uint32 LIGHTMAP_DEFAULT_WIDTH;
 	// Default lightmap height
@@ -563,6 +581,8 @@ private:
 private:
 	// Current entity being rendered
 	struct cl_entity_t* m_pCurrentEntity;
+	// TRUE if current render entity is transparent
+	bool m_isEntityTransparent;
 
 	// Array of allocated surfaces
 	CArray<bsp_surface_t> m_surfacesArray;
@@ -578,8 +598,8 @@ private:
 	bool m_bumpMaps;
 	// TRUE if lightstyles are supported
 	bool m_useLightStyles;
-	// TRUE if multipass is disabled
-	bool m_disableMultiPass;
+	// Multipass mode
+	multipass_mode_t m_multiPassMode;
 
 private:
 	// Lightmap images

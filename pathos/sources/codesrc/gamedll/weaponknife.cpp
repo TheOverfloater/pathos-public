@@ -153,6 +153,17 @@ void CWeaponKnife::PrimaryAttack( void )
 	if(m_attackState != STATE_NONE)
 		return;
 
+	// Get gun position and angles
+	Vector gunPosition = m_pPlayer->GetGunPosition();
+	Vector aimAngles = m_pPlayer->GetGunAngles();
+
+	// Perform the shot
+	Vector forward, right, up;
+	Math::AngleVectors(aimAngles, &forward, &right, &up);
+
+	if(!CheckFriendlyFire(gunPosition, forward))
+		return;
+
 	const Char* pstrSequenceName = m_sequenceNames[KNIFE_SWING_START];
 	m_timeNext = g_pGameVars->time + GetSequenceTime(pstrSequenceName);
 	m_nextAttackTime = m_timeNext;

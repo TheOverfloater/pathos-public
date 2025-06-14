@@ -11,7 +11,9 @@ $global_determinator light0_shadowmap 0 1
 $global_determinator light1_shadowmap 0 1
 $global_determinator light2_shadowmap 0 1
 $global_determinator light3_shadowmap 0 1
-$invalid_state 2 fogtype 1 2 shadertype 5 10
+$global_determinator blendmultipass 0 2
+$invalid_state 2 fogtype 1 2 shadertype 6 6
+$invalid_state 2 fogtype 1 2 shadertype 8 10
 $invalid_state 2 fogtype 1 2 shadertype 12 16
 $invalid_state 2 fogtype 1 2 shadertype 18 19
 $invalid_state 2 alphatest 1 2 shadertype 5 9
@@ -36,7 +38,6 @@ $invalid_state 2 luminance 1 1 shadertype 17 22
 $invalid_state 2 numlights 1 4 shadertype 0 4
 $invalid_state 2 numlights 1 4 shadertype 9 22
 $invalid_state 2 numlights 1 4 alphatest 1 1
-$invalid_state 2 numlights 1 4 fogtype 1 2
 $invalid_state 2 numlights 1 4 cubemaps 1 2
 $invalid_state 2 numlights 1 4 luminance 1 1
 $invalid_state 2 light0_shadowmap 1 1 numlights 0 0
@@ -49,6 +50,10 @@ $invalid_state 2 ao 1 1 shadertype 8 9
 $invalid_state 2 ao 1 1 shadertype 11 15
 $invalid_state 2 ao 1 1 shadertype 11 15
 $invalid_state 2 ao 1 1 shadertype 19 22
+$invalid_state 2 blendmultipass 1 2 alphatest 1 2
+$invalid_state 2 blendmultipass 1 2 shadertype 2 4
+$invalid_state 2 blendmultipass 1 2 shadertype 6 6
+$invalid_state 2 blendmultipass 1 2 shadertype 8 22
 
 $shader_vertex $begin
 #version 130
@@ -480,9 +485,13 @@ vec4 AddPointLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, 
 	
 	dir = normalize(dir);
 	attn = clamp(attn, 0.0, 1.0);
-	float dp = dot(dir, v_normal);
-
-	attn = max(dp, 0)*attn;
+	
+	$branch blendmultipass == 0
+	$begin
+		float dp = dot(dir, v_normal);
+		attn = max(dp, 0)*attn;
+	$end
+	
 	vec4 outColor;
 	outColor.xyz = attn*l_color;
 	
@@ -517,7 +526,16 @@ vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, v
 	attn = clamp(attn, 0.0, 1.0);
 	
 	dir = normalize(dir);
-	float dp = max(dot(dir, v_normal), 0);
+	float dp;
+	$branch blendmultipass == 0
+	$begin
+		dp = max(dot(dir, v_normal), 0);
+	$end
+	$branch blendmultipass >= 1
+	$begin
+		dp = 1.0;
+	$end
+	
 	vec4 texclamp = max(v_coord, 0);
 
 	vec4 texColor = textureProj(l_texture, texclamp);
@@ -961,12 +979,25 @@ void main()
 			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, light_3_color.xyz);
 		$end
 		
+		$branch blendmultipass >= 1
+		$begin
+			vec4 maintexcolor = texture(maintexture, ps_texcoord);
+			finalColor = finalColor * maintexcolor * color;
+			
+			$branch blendmultipass == 2
+			$begin
+				vec4 detailtexcolor = texture2D(detailtex, ps_dtexcoord);
+				finalColor = finalColor * detailtexcolor;
+			$end
+		$end		
+		
 		$branch ao == 1
 		$begin
 			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
 			finalColor.xyz *= aocolor;
 		$end
 	$end
+	
 	// Spotlight
 	$branch shadertype == 7
 	$begin
@@ -1048,6 +1079,18 @@ void main()
 			
 			// Add to specular
 			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, light_3_color.xyz);
+		$end
+		
+		$branch blendmultipass >= 1
+		$begin
+			vec4 maintexcolor = texture(maintexture, ps_texcoord);
+			finalColor = finalColor * maintexcolor * color;
+			
+			$branch blendmultipass == 2
+			$begin
+				vec4 detailtexcolor = texture2D(detailtex, ps_dtexcoord);
+				finalColor = finalColor * detailtexcolor;
+			$end
 		$end
 		
 		$branch ao == 1

@@ -268,6 +268,17 @@ void CWeaponGlock::PrimaryAttack( void )
 	if(m_pPlayer->GetWaterLevel() >= WATERLEVEL_FULL)
 		return;
 
+	// Get gun position and angles
+	Vector gunPosition = m_pPlayer->GetGunPosition();
+	Vector aimAngles = m_pPlayer->GetGunAngles();
+
+	// Get forward vector
+	Vector forward, right, up;
+	Math::AngleVectors(aimAngles, &forward, &right, &up);
+
+	if(!CheckFriendlyFire(gunPosition, forward))
+		return;
+
 	// Subtract from clip
 	m_clip--;
 
@@ -278,14 +289,6 @@ void CWeaponGlock::PrimaryAttack( void )
 		m_pPlayer->SetWeaponFlashBrightness(GUN_FLASH_NORMAL);
 		m_pPlayer->SetWeaponVolume(GUN_VOLUME_NORMAL);
 	}
-
-	// Get gun position and angles
-	Vector gunPosition = m_pPlayer->GetGunPosition();
-	Vector aimAngles = m_pPlayer->GetGunAngles();
-
-	// Perform the shot
-	Vector forward, right, up;
-	Math::AngleVectors(aimAngles, &forward, &right, &up);
 
 	FireBullets(1, gunPosition, forward, right, up, GetCone(), BULLET_MAX_DISTANCE, BULLET_PLAYER_GLOCK, 1, 0, m_pPlayer);
 

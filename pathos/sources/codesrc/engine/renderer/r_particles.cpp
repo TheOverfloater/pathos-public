@@ -1476,6 +1476,9 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 		{
 			Math::VectorCopy(pflorigin, vbaseorigin);
 		}
+
+		// Mark real origin
+		realorigin = vbaseorigin;
 	}
 	else
 	{
