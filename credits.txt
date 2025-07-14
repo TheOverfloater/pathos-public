@@ -50,12 +50,13 @@ Other content:
  - Vluzacn for the HL tools used for compiling levels
  - Ben Golus for Alpha to Coverage fix
  - The Firearms mod team for some of the weapon sounds and textures
- - Twinkie Masta for the Glock model
+ - Twinkie Masta for the first Glock model used
  - Mete Ciragan for the original HLMV
  - Neil "Jed" Jedrzejewski for some coding help
  - Ryokeen for helping me back in the day
  - Hunk Guerrius for all the playtesting and feedback
  - Hipshot for the violentdays skybox
+ - Kleadron for various contributions to Pathos
  
 Other mentions:
 Iriy "BUzer" Sitnikov for Paranoia's source code and several
@@ -75,6 +76,8 @@ I requested permission to use Twinkie Masta's Glock model as a
 placeholder model  on Gamebanana(then FPSBanana) back in the 
 early 2010s. I doubt they still remember this, but I am going
 to stick with using it here. It shouldn't be a problem.
+Update: This was later replaced with an original model I got
+made by BrussTrigger.
 
 On other content:
 This list is not full, as I didn't record all instances
