@@ -328,6 +328,12 @@ bool CBSPRenderer::InitGL( void )
 			CString lightmatrix;
 			lightmatrix << "light_" << i << "_matrix";
 
+			CString lightconesize;
+			lightconesize << "light_" << i << "_cone_size";
+
+			CString lightspotdirection;
+			lightspotdirection << "light_" << i << "_spotdirection";
+
 			CString lightdeterminatorshadowmap;
 			lightdeterminatorshadowmap << "light" << i << "_shadowmap";
 
@@ -338,6 +344,8 @@ bool CBSPRenderer::InitGL( void )
 			m_attribs.lights[i].u_light_projtexture = m_pShader->InitUniform(lightprojtexture.c_str(), CGLSLShader::UNIFORM_INT1);
 			m_attribs.lights[i].u_light_shadowmap = m_pShader->InitUniform(lightshadowmap.c_str(), CGLSLShader::UNIFORM_INT1);
 			m_attribs.lights[i].u_light_matrix = m_pShader->InitUniform(lightmatrix.c_str(), CGLSLShader::UNIFORM_MATRIX4);
+			m_attribs.lights[i].u_light_cone_size = m_pShader->InitUniform(lightconesize.c_str(), CGLSLShader::UNIFORM_FLOAT1);
+			m_attribs.lights[i].u_light_spotdirection = m_pShader->InitUniform(lightspotdirection.c_str(), CGLSLShader::UNIFORM_FLOAT3);
 			m_attribs.lights[i].d_light_shadowmap = m_pShader->GetDeterminatorIndex(lightdeterminatorshadowmap.c_str());
 
 			if(!R_CheckShaderUniform(m_attribs.lights[i].u_light_color, lightcolor.c_str(), m_pShader, Sys_ErrorPopup)
@@ -347,6 +355,8 @@ bool CBSPRenderer::InitGL( void )
 				|| !R_CheckShaderUniform(m_attribs.lights[i].u_light_projtexture, lightprojtexture.c_str(), m_pShader, Sys_ErrorPopup)
 				|| !R_CheckShaderUniform(m_attribs.lights[i].u_light_shadowmap, lightshadowmap.c_str(), m_pShader, Sys_ErrorPopup)
 				|| !R_CheckShaderUniform(m_attribs.lights[i].u_light_matrix, lightmatrix.c_str(), m_pShader, Sys_ErrorPopup)
+				|| !R_CheckShaderUniform(m_attribs.lights[i].u_light_cone_size, lightconesize.c_str(), m_pShader, Sys_ErrorPopup)
+				|| !R_CheckShaderUniform(m_attribs.lights[i].u_light_spotdirection, lightspotdirection.c_str(), m_pShader, Sys_ErrorPopup)
 				|| !R_CheckShaderDeterminator(m_attribs.lights[i].d_light_shadowmap, lightdeterminatorshadowmap.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
 		}
@@ -866,6 +876,12 @@ void CBSPRenderer::InitVBO( void )
 {
 	if(ens.isloading)
 		VID_DrawLoadingScreen("Loading world geometry");
+
+	if(m_pShader)
+	{
+		m_pShader->ResetShader();
+		m_pShader->SetVBO(nullptr);
+	}
 
 	if(m_pVBO)
 	{
@@ -1408,15 +1424,10 @@ bool CBSPRenderer::DrawTransparent( void )
 	m_multiPassMode = MULTIPASS_NORMAL;
 	m_isEntityTransparent = false;
 
-	// Reset everything
-	m_pVBO->UnBind();
-	m_pShader->DisableShader();
-
 	// Draw decals last
 	if(result)
 	{
 		m_pShader->SetVBO(m_pDecalVBO);
-		m_pDecalVBO->Bind();
 
 		if(!m_pShader->EnableShader())
 		{
@@ -1743,6 +1754,8 @@ bool CBSPRenderer::Prepare( void )
 		m_pShader->DisableSync(m_attribs.lights[i].u_light_projtexture);
 		m_pShader->DisableSync(m_attribs.lights[i].u_light_shadowmap);
 		m_pShader->DisableSync(m_attribs.lights[i].u_light_matrix);
+		m_pShader->DisableSync(m_attribs.lights[i].u_light_cone_size);
+		m_pShader->DisableSync(m_attribs.lights[i].u_light_spotdirection);
 	}
 
 	return true;
@@ -3185,13 +3198,13 @@ bool CBSPRenderer::DrawBrushModel( cl_entity_t& entity, bool isstatic )
 bool CBSPRenderer::SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Int32& texunit, lightbatchtype_t type )
 {
 	CMatrix matrix;
-	Vector vtransorigin;
 
 	m_pShader->EnableSync(m_attribs.lights[lightindex].u_light_color);
 	m_pShader->EnableSync(m_attribs.lights[lightindex].u_light_origin);
 	m_pShader->EnableSync(m_attribs.lights[lightindex].u_light_radius);
 
 	// Transform light origin to eye space
+	Vector vtransorigin;
 	Math::MatMultPosition(rns.view.modelview.Transpose(), pdlight->origin, &vtransorigin);
 	
 	if(type == LB_TYPE_SPOTLIGHT || type == LB_TYPE_SPOTLIGHT_SHADOW)
@@ -3203,9 +3216,13 @@ bool CBSPRenderer::SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Int32& t
 		Math::AngleVectors(angles, &vforward, nullptr, nullptr);
 		Math::VectorMA(pdlight->origin, pdlight->radius, vforward, vtarget);
 
+		Int32 textureIndex = pdlight->textureindex;
+		if(textureIndex >= rns.objects.projective_textures.size())
+			textureIndex = 0;
+
 		m_pShader->EnableSync(m_attribs.lights[lightindex].u_light_projtexture);
 		m_pShader->SetUniform1i(m_attribs.lights[lightindex].u_light_projtexture, texunit);
-		R_Bind2DTexture(GL_TEXTURE0+texunit, rns.objects.projective_textures[pdlight->textureindex]->palloc->gl_index);
+		R_Bind2DTexture(GL_TEXTURE0+texunit, rns.objects.projective_textures[textureIndex]->palloc->gl_index);
 		texunit++;
 
 		if(DL_CanShadow(pdlight))
@@ -3226,6 +3243,8 @@ bool CBSPRenderer::SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Int32& t
 		}
 
 		m_pShader->EnableSync(m_attribs.lights[lightindex].u_light_matrix);
+		m_pShader->EnableSync(m_attribs.lights[lightindex].u_light_cone_size);
+		m_pShader->EnableSync(m_attribs.lights[lightindex].u_light_spotdirection);
 
 		matrix.LoadIdentity();
 		matrix.Translate(0.5, 0.5, 0.5);
@@ -3238,11 +3257,19 @@ bool CBSPRenderer::SetupLight( cl_dlight_t* pdlight, Uint32 lightindex, Int32& t
 		matrix.MultMatrix(rns.view.modelview.GetInverse());
 
 		m_pShader->SetUniformMatrix4fv(m_attribs.lights[lightindex].u_light_matrix, matrix.Transpose());
+		m_pShader->SetUniform1f(m_attribs.lights[lightindex].u_light_cone_size, pdlight->cone_size);
+
+		// Transform light direction vector to eye space
+		Vector transdirection;
+		Math::MatMult(rns.view.modelview.Transpose(), vforward, &transdirection);
+		m_pShader->SetUniform3f(m_attribs.lights[lightindex].u_light_spotdirection, transdirection[0], transdirection[1], transdirection[2]);
 	}
 	else
 	{
 		m_pShader->DisableSync(m_attribs.lights[lightindex].u_light_projtexture);
 		m_pShader->DisableSync(m_attribs.lights[lightindex].u_light_shadowmap);
+		m_pShader->DisableSync(m_attribs.lights[lightindex].u_light_cone_size);
+		m_pShader->DisableSync(m_attribs.lights[lightindex].u_light_spotdirection);
 
 		if(DL_CanShadow(pdlight))
 		{
@@ -3803,7 +3830,9 @@ bool CBSPRenderer::DrawLights( bool specular )
 			m_pShader->DisableSync(m_attribs.lights[i].u_light_projtexture);
 			m_pShader->DisableSync(m_attribs.lights[i].u_light_shadowmap);
 			m_pShader->DisableSync(m_attribs.lights[i].u_light_matrix);
-		
+			m_pShader->DisableSync(m_attribs.lights[i].u_light_cone_size);
+			m_pShader->DisableSync(m_attribs.lights[i].u_light_spotdirection);
+
 			// Reset all of these
 			if(!m_pShader->SetDeterminator(m_attribs.lights[i].d_light_shadowmap, FALSE, false))
 				return false;		
@@ -5440,8 +5469,9 @@ bool CBSPRenderer::DrawDecal( bsp_decal_t *pdecal, bool transparents, decal_rend
 
 		if(pgroup->pentity)
 		{
-			if(!transparents && m_isEntityTransparent
-				|| transparents && !m_isEntityTransparent
+			bool isTransparent = R_IsEntityTransparent((*pgroup->pentity), false);
+			if(!transparents && isTransparent
+				|| transparents && !isTransparent
 				|| pgroup->pentity->visframe != rns.framecount)
 				continue;
 

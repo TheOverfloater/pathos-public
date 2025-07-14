@@ -3188,7 +3188,7 @@ void CAINodeGraph::CheckNode( const Vector& origin, Int32 nodeIndex, Uint64 node
 
 			trace_t tr;
 			Util::TraceHull(startOrigin, endOrigin, false, false, hulltype, pEntity->GetEdict(), tr);
-			if(!tr.startSolid() && !tr.allSolid() && (tr.noHit() || tr.hitentity != NO_ENTITY_INDEX && pTargetEntity && tr.hitentity == pTargetEntity->GetEntityIndex()))
+			if(tr.noHit() || tr.hitentity != NO_ENTITY_INDEX && pTargetEntity && tr.hitentity == pTargetEntity->GetEntityIndex())
 				result = true;
 		}
 		else

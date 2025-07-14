@@ -338,49 +338,94 @@ void CL_ResetPressedInputs( void )
 		return;
 
 	if(bits & IN_LEAN)
+	{
 		CL_KeyUp(cmd_lean, true);
+		cl_engfuncs.pfnResetInputCommand("lean");
+	}
 
 	if(bits & IN_FORWARD)
+	{
 		CL_KeyUp(cmd_forward, true);
+		cl_engfuncs.pfnResetInputCommand("forward");
+	}
 
 	if(bits & IN_BACK)
+	{
 		CL_KeyUp(cmd_back, true);
+		cl_engfuncs.pfnResetInputCommand("back");
+	}
 
 	if(bits & IN_MOVELEFT)
+	{
 		CL_KeyUp(cmd_moveleft, true);
+		cl_engfuncs.pfnResetInputCommand("moveleft");
+	}
 
 	if(bits & IN_MOVERIGHT)
+	{
 		CL_KeyUp(cmd_moveright, true);
+		cl_engfuncs.pfnResetInputCommand("moveright");
+	}
 
 	if(bits & IN_USE)
+	{
 		CL_KeyUp(cmd_use, true);
+		cl_engfuncs.pfnResetInputCommand("use");
+	}
 
 	if(bits & IN_JUMP)
+	{
 		CL_KeyUp(cmd_jump, true);
+		cl_engfuncs.pfnResetInputCommand("jump");
+	}
 
 	if(bits & IN_ATTACK)
+	{
 		CL_KeyUp(cmd_attack, true);
+		cl_engfuncs.pfnResetInputCommand("attack");
+	}
 
 	if(bits & IN_ATTACK2)
+	{
 		CL_KeyUp(cmd_attack2, true);
+		cl_engfuncs.pfnResetInputCommand("attack2");
+	}
 
 	if(bits & IN_DUCK)
+	{
 		CL_KeyUp(cmd_duck, true);
+		cl_engfuncs.pfnResetInputCommand("duck");
+	}
 
 	if(bits & IN_RELOAD)
+	{
 		CL_KeyUp(cmd_reload, true);
+		cl_engfuncs.pfnResetInputCommand("reload");
+	}
 
 	if(bits & IN_SPRINT)
+	{
 		CL_KeyUp(cmd_sprint, true);
+		cl_engfuncs.pfnResetInputCommand("sprint");
+	}
 
 	if(bits & IN_WALKMODE)
+	{
 		CL_KeyUp(cmd_walkmode, true);
+		cl_engfuncs.pfnResetInputCommand("walkmode");
+	}
 
 	if(bits & IN_HEAL)
+	{
 		CL_KeyUp(cmd_heal, true);
+		cl_engfuncs.pfnResetInputCommand("heal");
+	}
 
 	if(bits & IN_SPECIAL)
+	{
 		CL_KeyUp(cmd_special, true);
+		cl_engfuncs.pfnResetInputCommand("special");
+	}
 }
 
 //=============================================

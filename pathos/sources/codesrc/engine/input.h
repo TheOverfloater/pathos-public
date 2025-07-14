@@ -118,6 +118,9 @@ public:
 	// Tells if the cursor is visible
 	inline bool IsMouseVisible( void ) const { return m_isCursorVisible; }
 
+	// Resets keys tied to a command
+	void ResetInputCommand( const Char* name );
+
 public:
 	// Command functions
 	void CmdBindKey( void );

@@ -783,6 +783,29 @@ void CInput::MouseWheelEvent( Int32 button, bool keyDown, Int32 scroll )
 }
 
 //=============================================
+// @brief Resets keys tied to a command
+//
+//=============================================
+void CInput::ResetInputCommand( const Char* name )
+{
+	for(Uint32 i = 0; i < m_keyInfoArray.size(); i++)
+	{
+		keyinfo_t& keyInfo = m_keyInfoArray[i];
+		if(keyInfo.binding.empty())
+			continue;
+
+		Int32 offset;
+		if(keyInfo.binding[0] == '-' || keyInfo.binding[0] == '+')
+			offset = 1;
+		else
+			offset = 0;
+		
+		if(!qstrcmp(name, keyInfo.binding.c_str() + offset))
+			keyInfo.nbRepeats = 0;
+	}
+}
+
+//=============================================
 // @brief Returns the distance the mouse traveled on x and y axes
 //
 //=============================================

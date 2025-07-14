@@ -122,6 +122,7 @@ struct cldll_engfuncs_t
 	void					(*pfnErrorPopup)( const Char *fmt, ... );
 
 	void					(*pfnCreateCommand)( const Char* name, cmdfunc_t pfn, const Char* description );
+	void					(*pfnResetInputCommand)( const Char* name );
 
 	Uint32					(*pfnCmd_Argc)( void );
 	const Char*				(*pfnCmd_Argv)( Uint32 index );

@@ -15,8 +15,8 @@ $particlescript
 	$particles_on_spawn 20
 	$collision stuck
 	$gravity 0.010000
-	$rendermode additive
-	$alpha 0.600000
+	$rendermode alphablend
+	$alpha 0.100000
 	$alignment tiled
 	$texture clouds
 	$rotate_z_dampening 0.001000

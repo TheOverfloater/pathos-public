@@ -7,6 +7,7 @@ $global_determinator dlight1_shadow 0 1
 $global_determinator dlight2_shadow 0 1
 $global_determinator dlight3_shadow 0 1
 $global_determinator use_ubo 0 1
+$global_determinator blendmultipass 0 2
 $shader_vertex 
 $determinator chrome 0 1
 $determinator flex 0 1
@@ -157,7 +158,7 @@ void main()
 	ps_vertexpos = position.xyz;
 	ps_normal = (normalmatrix*vec4(trans_normal, 0.0)).xyz;
 	
-	$branch shadertype == 0 || shadertype == 1 || shadertype == 2 || shadertype == 3 || shadertype == 5 || shadertype == 6 || shadertype == 4 || shadertype == 10 || shadertype == 12 || shadertype == 13 || shadertype == 14 || shadertype == 15 || shadertype == 16 || shadertype == 17
+	$branch shadertype == 0 || shadertype == 1 || shadertype == 2 || shadertype == 3 || shadertype == 5 || shadertype == 6 || shadertype == 4 || shadertype == 10 || shadertype == 12 || shadertype == 13 || shadertype == 14 || shadertype == 15 || shadertype == 16 || shadertype == 17 || blendmultipass >= 1
 	$begin
 		ps_texcoord1 = in_texcoord1 + scroll;
 	$end
@@ -189,19 +190,19 @@ void main()
 	
 	$branch shadertype == 5
 	$begin
-		$branch numdlights >= 1  && dlight0_shadow == 1
+		$branch numdlights >= 1
 		$begin
 			ps_dlight_0_vertexcoord = dlight_0_matrix*position;
 		$end
-		$branch numdlights >= 2  && dlight1_shadow == 1
+		$branch numdlights >= 2
 		$begin
 			ps_dlight_1_vertexcoord = dlight_1_matrix*position;
 		$end
-		$branch numdlights >= 3  && dlight2_shadow == 1
+		$branch numdlights >= 3
 		$begin
 			ps_dlight_2_vertexcoord = dlight_2_matrix*position;
 		$end
-		$branch numdlights >= 4  && dlight3_shadow == 1
+		$branch numdlights >= 4
 		$begin
 			ps_dlight_3_vertexcoord = dlight_3_matrix*position;
 		$end
@@ -228,10 +229,10 @@ void main()
 
 		// This is adding 0.5 only and not dividing by 2 because eye glint looks better this way
 		float n = dot(trans_normal, chromeright);
-		ps_texcoord1.x = n + 0.5;
+		ps_texcoord1.x = (n*0.5) + 0.5;
 
 		n = dot(trans_normal, chromeup);
-		ps_texcoord1.y = n + 0.5;
+		ps_texcoord1.y = (n*0.5) + 0.5;
 	$end
 
 	gl_Position = position*projection;
@@ -242,7 +243,9 @@ $determinator num_lights 0 6
 $determinator alphatest 0 2
 $determinator specular 0 1
 $determinator luminance 0 1
-$invalid_state 2 chrome 1 1 shadertype 2 11
+$invalid_state 2 chrome 1 1 shadertype 2 2
+$invalid_state 2 chrome 1 1 shadertype 4 4
+$invalid_state 2 chrome 1 1 shadertype 6 11
 $invalid_state 2 chrome 1 1 shadertype 13 17
 $invalid_state 2 num_lights 1 6 shadertype 3 14
 $invalid_state 2 num_lights 1 6 shadertype 16 17
@@ -271,6 +274,14 @@ $invalid_state 1 shadertype 6 6
 $invalid_state 2 ao 1 1 shadertype 7 12
 $invalid_state 2 ao 1 1 shadertype 14 14
 $invalid_state 2 ao 1 1 shadertype 16 17
+$invalid_state 2 blendmultipass 1 2 num_lights 1 6
+$invalid_state 2 blendmultipass 1 2 shadertype 0 2
+$invalid_state 2 blendmultipass 1 2 shadertype 4 4
+$invalid_state 2 blendmultipass 1 2 shadertype 6 6
+$invalid_state 2 blendmultipass 1 2 shadertype 8 22
+$invalid_state 2 blendmultipass 1 2 ao 1 1
+$invalid_state 2 blendmultipass 1 2 luminance 1 1
+$invalid_state 2 blendmultipass 1 2 alphatest 1 2
 $invalid_state 1 use_ubo 1 1
 
 $begin
@@ -387,6 +398,8 @@ uniform vec4 dlight_0_color;
 	$branch shadertype == 5
 	$begin
 	uniform sampler2D dlight_0_projtexture;
+	uniform float dlight_0_cone_size;
+	uniform vec3 dlight_0_spotdirection;
 	$end
 	
 	$branch dlight0_shadow == 1
@@ -410,6 +423,8 @@ uniform vec4 dlight_1_color;
 	$branch shadertype == 5
 	$begin
 	uniform sampler2D dlight_1_projtexture;
+	uniform float dlight_1_cone_size;
+	uniform vec3 dlight_1_spotdirection;
 	$end
 	
 	$branch dlight1_shadow == 1
@@ -433,6 +448,8 @@ uniform vec4 dlight_2_color;
 	$branch shadertype == 5
 	$begin
 	uniform sampler2D dlight_2_projtexture;
+	uniform float dlight_2_cone_size;
+	uniform vec3 dlight_2_spotdirection;
 	$end
 	
 	$branch dlight2_shadow == 1
@@ -456,6 +473,8 @@ uniform vec4 dlight_3_color;
 	$branch shadertype == 5
 	$begin
 	uniform sampler2D dlight_3_projtexture;
+	uniform float dlight_3_cone_size;
+	uniform vec3 dlight_3_spotdirection;
 	$end
 	
 	$branch dlight3_shadow == 1
@@ -483,6 +502,8 @@ in vec4 ps_dlight_2_vertexcoord;
 in vec4 ps_dlight_3_vertexcoord;
 
 out vec4 oColor;
+
+#define M_PI 3.14159265358979323846264338327950288
 
 float CalcShininess( vec3 v_dir, vec3 v_normal, vec3 l_dir )
 {
@@ -597,8 +618,16 @@ vec4 AddPointLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, 
 	
 	dir = normalize(dir);
 	attn = clamp(attn, 0.0, 1.0);
-	float dp = dot(dir, v_normal);
-
+	
+	$branch blendmultipass == 0
+	$begin
+		float dp = dot(dir, v_normal);
+	$end
+	$branch blendmultipass >= 1
+	$begin
+		float dp = 1.0;
+	$end
+	
 	attn = max(dp, 0)*attn;
 	vec4 outColor;
 	outColor.xyz = attn*l_color;
@@ -620,7 +649,7 @@ float GetPointLightShadowing( float l_radius, vec4 v_coord, samplerCube l_shadow
 	return ReduceLightBleeding(flresult, 0.4);
 }
 
-vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, vec4 v_coord, vec3 v_normal, sampler2D l_texture, float specularStrength )
+vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, vec4 v_coord, vec3 v_normal, sampler2D l_texture, float specularStrength, float l_cone_size, vec3 l_spotdirection )
 {
 	float rad = l_radius*l_radius;
 	vec3 dir = l_origin-v_origin;
@@ -629,20 +658,36 @@ vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, v
 	attn = clamp(attn, 0.0, 1.0);
 	
 	dir = normalize(dir);
-	float dp = max(dot(dir, v_normal), 0);
+	
+	$branch blendmultipass == 0
+	$begin
+		float dp = max(dot(dir, v_normal), 0);
+	$end
+	$branch blendmultipass >= 1
+	$begin
+		float dp = 1.0;
+	$end
+	
 	vec4 texclamp = max(v_coord, 0);
-
 	vec4 texColor = textureProj(l_texture, texclamp);
 	
+	float spotcos = cos((l_cone_size*2)*0.3*(M_PI*2/360));
+	
+	vec3 spotdirection = normalize(l_spotdirection);
+	float spotatten = -dot(spotdirection, dir);
+	
+	spotatten = max(spotatten, spotcos);
+	float spotfactor = (spotatten - spotcos)/(1.0 - spotcos);
+	
 	vec4 outColor;
-	outColor.xyz = attn*texColor.xyz*l_color*dp;
+	outColor.xyz = attn * texColor.xyz * l_color * dp * spotfactor;
 	
 	$branch specular == 1
 	$begin
 		// Add specular if any
 		float lightStrength = ((texColor.x + texColor.y + texColor.z) / 3.0f)*2;
 		float shineFactor = CalcShininess(normalize(v_origin), v_normal, dir);
-		outColor.w = CalcSpecular(v_origin, v_normal, -dir, specularStrength * shineFactor) * attn * dp * lightStrength;
+		outColor.w = CalcSpecular(v_origin, v_normal, -dir, specularStrength * shineFactor) * attn * dp * lightStrength * spotfactor;
 	$end
 	
 	return outColor;
@@ -1022,6 +1067,18 @@ void main()
 			// Add to specular
 			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_3_color.xyz);
 		$end
+		
+		$branch blendmultipass >= 1
+		$begin
+			vec4 textureColor = texture(texture0, ps_texcoord1);
+			finalColor = finalColor * textureColor * color;
+			
+			$branch blendmultipass == 2
+			$begin
+				float fogfactor = CalcFogFactor( ps_vertexpos.xyz, fogparams );
+				finalColor.xyz = mix(finalColor.xyz, fogcolor, fogfactor);
+			$end
+		$end
 	$end
 	$branch shadertype == 5
 	$begin
@@ -1030,7 +1087,7 @@ void main()
 			//
 			// Light 1
 			//
-			lightColor = AddProjLight(dlight_0_radius, dlight_0_origin, dlight_0_color.xyz, ps_vertexpos.xyz, ps_dlight_0_vertexcoord, v_normal, dlight_0_projtexture, specularFactor);
+			lightColor = AddProjLight(dlight_0_radius, dlight_0_origin, dlight_0_color.xyz, ps_vertexpos.xyz, ps_dlight_0_vertexcoord, v_normal, dlight_0_projtexture, specularFactor, dlight_0_cone_size, dlight_0_spotdirection);
 			
 			$branch dlight0_shadow == 1
 			$begin
@@ -1048,7 +1105,7 @@ void main()
 			//
 			// Light 2
 			//
-			lightColor = AddProjLight(dlight_1_radius, dlight_1_origin, dlight_1_color.xyz, ps_vertexpos.xyz, ps_dlight_1_vertexcoord, v_normal, dlight_1_projtexture, specularFactor);
+			lightColor = AddProjLight(dlight_1_radius, dlight_1_origin, dlight_1_color.xyz, ps_vertexpos.xyz, ps_dlight_1_vertexcoord, v_normal, dlight_1_projtexture, specularFactor, dlight_1_cone_size, dlight_1_spotdirection);
 			
 			$branch dlight1_shadow == 1
 			$begin
@@ -1066,7 +1123,7 @@ void main()
 			//
 			// Light 3
 			//
-			lightColor = AddProjLight(dlight_2_radius, dlight_2_origin, dlight_2_color.xyz, ps_vertexpos.xyz, ps_dlight_2_vertexcoord, v_normal, dlight_2_projtexture, specularFactor);
+			lightColor = AddProjLight(dlight_2_radius, dlight_2_origin, dlight_2_color.xyz, ps_vertexpos.xyz, ps_dlight_2_vertexcoord, v_normal, dlight_2_projtexture, specularFactor, dlight_2_cone_size, dlight_2_spotdirection);
 			
 			$branch dlight2_shadow == 1
 			$begin
@@ -1084,7 +1141,7 @@ void main()
 			//
 			// Light 4
 			//
-			lightColor = AddProjLight(dlight_3_radius, dlight_3_origin, dlight_3_color.xyz, ps_vertexpos.xyz, ps_dlight_3_vertexcoord, v_normal, dlight_3_projtexture, specularFactor);
+			lightColor = AddProjLight(dlight_3_radius, dlight_3_origin, dlight_3_color.xyz, ps_vertexpos.xyz, ps_dlight_3_vertexcoord, v_normal, dlight_3_projtexture, specularFactor, dlight_3_cone_size, dlight_3_spotdirection);
 			
 			$branch dlight3_shadow == 1
 			$begin
@@ -1096,6 +1153,18 @@ void main()
 			
 			// Add to specular
 			finalColor.xyz = AddSpecularLight(finalColor.xyz, lightColor.w, dlight_3_color.xyz);
+		$end
+		
+		$branch blendmultipass >= 1
+		$begin
+			vec4 textureColor = texture(texture0, ps_texcoord1);
+			finalColor = finalColor * textureColor * color;
+			
+			$branch blendmultipass == 2
+			$begin
+				float fogfactor = CalcFogFactor( ps_vertexpos.xyz, fogparams );
+				finalColor.xyz = mix(finalColor.xyz, fogcolor, fogfactor);
+			$end
 		$end
 	$end
 	

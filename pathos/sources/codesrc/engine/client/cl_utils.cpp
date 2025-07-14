@@ -290,6 +290,14 @@ Double CL_GetFrameTime( void )
 //=============================================
 //
 //=============================================
+void CL_ResetInputCommand( const Char* name )
+{
+	gInput.ResetInputCommand(name);
+}
+
+//=============================================
+//
+//=============================================
 void CL_GetMousePosition( Int32& x, Int32& y )
 {
 	gInput.GetMousePosition(x, y);

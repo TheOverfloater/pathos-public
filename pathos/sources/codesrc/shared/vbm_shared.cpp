@@ -456,44 +456,34 @@ bool VBM_MeshBonesCompatible( vbmmesh_t *pgrp1, vbmmesh_t *pgrp2, vbmheader_t* p
 		if(!pmaterial1 || !pmaterial2)
 			return true;
 
-		if(pmaterial2->flags & TX_FL_CHROME && !(pmaterial1->flags & TX_FL_CHROME)
-			|| !(pmaterial2->flags & TX_FL_CHROME) && pmaterial1->flags & TX_FL_CHROME)
+		if((pmaterial1->flags & TX_FL_CHROME) != (pmaterial2->flags & TX_FL_CHROME))
 			return false;
 
-		if(pmaterial2->ptextures[MT_TX_SPECULAR] && pmaterial1->ptextures[MT_TX_SPECULAR]
-			|| !pmaterial2->ptextures[MT_TX_SPECULAR] && pmaterial1->ptextures[MT_TX_SPECULAR])
+		if((pmaterial1->flags & TX_FL_ADDITIVE) != (pmaterial2->flags & TX_FL_ADDITIVE))
 			return false;
 
-		if(pmaterial2->flags & TX_FL_ADDITIVE && !(pmaterial1->flags & TX_FL_ADDITIVE)
-			|| !(pmaterial2->flags & TX_FL_ADDITIVE) && pmaterial1->flags & TX_FL_ADDITIVE)
+		if((pmaterial1->flags & TX_FL_ALPHABLEND) != (pmaterial2->flags & TX_FL_ALPHABLEND))
 			return false;
 
-		if(pmaterial2->flags & TX_FL_ALPHABLEND && !(pmaterial1->flags & TX_FL_ALPHABLEND)
-			|| !(pmaterial2->flags & TX_FL_ALPHABLEND) && pmaterial1->flags & TX_FL_ALPHABLEND)
+		if((pmaterial1->flags & TX_FL_SCOPE) != (pmaterial2->flags & TX_FL_SCOPE))
 			return false;
 
-		if(pmaterial2->flags & TX_FL_SCOPE && !(pmaterial1->flags & TX_FL_SCOPE)
-			|| !(pmaterial2->flags & TX_FL_SCOPE) && pmaterial1->flags & TX_FL_SCOPE)
+		if((pmaterial1->flags & TX_FL_FULLBRIGHT) != (pmaterial2->flags & TX_FL_FULLBRIGHT))
 			return false;
 
-		if(pmaterial2->flags & TX_FL_FULLBRIGHT && !(pmaterial1->flags & TX_FL_FULLBRIGHT)
-			|| !(pmaterial2->flags & TX_FL_FULLBRIGHT) && pmaterial1->flags & TX_FL_FULLBRIGHT)
+		if((pmaterial1->flags & TX_FL_ALPHATEST) != (pmaterial2->flags & TX_FL_ALPHATEST))
 			return false;
 
-		if(pmaterial2->flags & TX_FL_ALPHATEST && !(pmaterial1->flags & TX_FL_ALPHATEST)
-			|| !(pmaterial2->flags & TX_FL_ALPHATEST) && pmaterial1->flags & TX_FL_ALPHATEST)
+		if((pmaterial1->flags & TX_FL_EYEGLINT) != (pmaterial2->flags & TX_FL_EYEGLINT))
 			return false;
 
-		if(pmaterial2->flags & TX_FL_EYEGLINT && !(pmaterial1->flags & TX_FL_EYEGLINT)
-			|| !(pmaterial2->flags & TX_FL_EYEGLINT) && pmaterial1->flags & TX_FL_EYEGLINT)
+		if((pmaterial1->ptextures[MT_TX_SPECULAR] ? true : false) != (pmaterial2->ptextures[MT_TX_SPECULAR] ? true : false))
 			return false;
 
-		if(pmaterial2->ptextures[MT_TX_LUMINANCE] && !pmaterial1->ptextures[MT_TX_LUMINANCE]
-			|| !pmaterial2->ptextures[MT_TX_LUMINANCE] && pmaterial1->ptextures[MT_TX_LUMINANCE])
+		if((pmaterial1->ptextures[MT_TX_LUMINANCE] ? true : false) != (pmaterial2->ptextures[MT_TX_LUMINANCE] ? true : false))
 			return false;
 
-		if(pmaterial2->ptextures[MT_TX_NORMALMAP] && !pmaterial1->ptextures[MT_TX_NORMALMAP]
-			|| !pmaterial2->ptextures[MT_TX_NORMALMAP] && pmaterial1->ptextures[MT_TX_NORMALMAP])
+		if((pmaterial1->ptextures[MT_TX_NORMALMAP] ? true : false) != (pmaterial2->ptextures[MT_TX_NORMALMAP] ? true : false))
 			return false;
 	}
 

@@ -20,6 +20,10 @@ enum input_type_t
 
 struct con_input_t
 {
+	con_input_t():
+		type(INPUT_CVAR)
+	{}
+
 	CString name;
 	CString description;
 	input_type_t type;
@@ -77,6 +81,10 @@ public:
 	// Debug display prints
 	struct debug_print_t
 	{
+		debug_print_t():
+			time(0)
+			{}
+
 		CString text;
 		Double time;
 	};

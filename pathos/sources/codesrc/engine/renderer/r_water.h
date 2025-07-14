@@ -187,6 +187,7 @@ struct water_attribs
 		u_lightstrength(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_specularstrength(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_phongexponent(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_wavefresnelstrength(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_modelview(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_projection(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_flowspeed(CGLSLShader::PROPERTY_UNAVAILABLE),

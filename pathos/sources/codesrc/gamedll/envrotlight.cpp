@@ -13,6 +13,8 @@ All Rights Reserved.
 
 // Rotating light model
 const Char CEnvRotLight::ENV_ROTLIGHT_MODEL_FILENAME[] = "models/props/emergency_light.mdl";
+// Non-textured flashlight texture index
+const Int32 CEnvRotLight::NON_TEXTURED_PROJ_TEXTURE_INDEX = 3;
 
 // Link the entity to it's class
 LINK_ENTITY_TO_CLASS(env_rot_light, CEnvRotLight);
@@ -89,6 +91,10 @@ bool CEnvRotLight::Spawn( void )
 		m_pState->framerate = 0.0;
 		m_isActive = false;
 	}
+
+	// Set the texture index
+	if(m_pState->iuser1 == 0)
+		m_pState->iuser1 = (NON_TEXTURED_PROJ_TEXTURE_INDEX + 1);
 
 	return true;
 }

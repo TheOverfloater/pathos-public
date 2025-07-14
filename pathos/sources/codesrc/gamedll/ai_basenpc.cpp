@@ -2374,11 +2374,19 @@ void CBaseNPC::CleanupScriptedSequence( void )
 				bonePosition = pScript->GetOrigin();
 			}
 
-			// Sew new position if the move is big enough
+			// Set new position if the move is big enough
 			if((m_pState->origin - bonePosition).Length2D() > NPC_SCRIPT_MOVE_MIN_DIST)
 			{
+				Vector prevOrigin = m_pState->origin;
 				m_pState->origin[0] = bonePosition[0];
 				m_pState->origin[1] = bonePosition[1];
+				gd_engfuncs.pfnSetOrigin(m_pEdict, m_pState->origin);
+
+				if(!gd_engfuncs.pfnWalkMove(m_pEdict, 0, 0, WALKMOVE_NORMAL))
+				{
+					m_pState->origin = prevOrigin;
+					gd_engfuncs.pfnSetOrigin(m_pEdict, m_pState->origin);
+				}
 			}
 
 			// Set ideal yaw to current angles
@@ -3868,6 +3876,7 @@ void CBaseNPC::Look( void )
 			case R_DISLIKE:
 				sightConditions.set(AI_COND_SEE_DISLIKE);
 				break;
+			case R_NONE:
 			case R_ALLY:
 				break;
 			default:

@@ -168,7 +168,7 @@ decalgroupentry_t *CDecalList::GetByName( const Char *szdecalname )
 //====================================
 //
 //====================================
-decalgroup_t* CDecalList::GetGroup( const char *szgroupname )
+decalgroup_t* CDecalList::GetGroup( const Char *szgroupname )
 {
 	for(Uint32 i = 0; i < m_decalGroupsArray.size(); i++)
 	{

@@ -245,6 +245,7 @@ void main()
 $end
 $shader_fragment $begin
 #version 130
+#define M_PI 3.14159265358979323846264338327950288
 
 $branch cubemaps >= 1
 $begin
@@ -277,6 +278,8 @@ uniform vec4 light_0_color;
 	$branch shadertype == 7
 	$begin
 	uniform sampler2D light_0_projtexture;
+	uniform float light_0_cone_size;
+	uniform vec3 light_0_spotdirection;
 	$end
 	
 	$branch light0_shadowmap == 1
@@ -300,6 +303,8 @@ uniform vec4 light_1_color;
 	$branch shadertype == 7
 	$begin
 	uniform sampler2D light_1_projtexture;
+	uniform float light_1_cone_size;
+	uniform vec3 light_1_spotdirection;
 	$end
 	
 	$branch light1_shadowmap == 1
@@ -323,6 +328,8 @@ uniform vec4 light_2_color;
 	$branch shadertype == 7
 	$begin
 	uniform sampler2D light_2_projtexture;
+	uniform float light_2_cone_size;
+	uniform vec3 light_2_spotdirection;
 	$end
 	
 	$branch light2_shadowmap == 1
@@ -346,6 +353,8 @@ uniform vec4 light_3_color;
 	$branch shadertype == 7
 	$begin
 	uniform sampler2D light_3_projtexture;
+	uniform float light_3_cone_size;
+	uniform vec3 light_3_spotdirection;
 	$end
 	
 	$branch light3_shadowmap == 1
@@ -516,7 +525,7 @@ float GetPointLightShadowing( float l_radius, vec4 v_coord, samplerCube l_shadow
 	return ReduceLightBleeding(flresult, 0.4);
 }
 
-vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, vec4 v_coord, vec3 v_normal, sampler2D l_texture, float specularStrength )
+vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, vec4 v_coord, vec3 v_normal, sampler2D l_texture, float specularStrength, float l_cone_size, vec3 l_spotdirection )
 {
 	float rad = l_radius*l_radius;
 	vec3 dir = l_origin-v_origin;
@@ -537,18 +546,25 @@ vec4 AddProjLight( float l_radius, vec3 l_origin, vec3 l_color, vec3 v_origin, v
 	$end
 	
 	vec4 texclamp = max(v_coord, 0);
-
 	vec4 texColor = textureProj(l_texture, texclamp);
 	
+	float spotcos = cos((l_cone_size*2)*0.3*(M_PI*2/360));
+	
+	vec3 spotdirection = normalize(l_spotdirection);
+	float spotatten = -dot(spotdirection, dir);
+	
+	spotatten = max(spotatten, spotcos);
+	float spotfactor = (spotatten - spotcos)/(1.0 - spotcos);
+	
 	vec4 outColor;
-	outColor.xyz = attn*texColor.xyz*l_color*dp;
+	outColor.xyz = texColor.xyz * attn * l_color * dp * spotfactor;
 	
 	$branch specular == 1
 	$begin
 		// Add specular if any
 		float lightStrength = (texColor.x + texColor.y + texColor.z) / 3.0f;
 		float shineFactor = CalcShininess(normalize(v_origin), v_normal, dir);
-		outColor.w = CalcSpecular(v_origin, v_normal, -dir, specularStrength * shineFactor) * attn * dp * lightStrength;
+		outColor.w = CalcSpecular(v_origin, v_normal, -dir, specularStrength * shineFactor) * attn * dp * lightStrength * spotfactor;
 	$end
 	
 	return outColor;
@@ -1010,7 +1026,7 @@ void main()
 		//
 		$branch numlights >= 1
 		$begin
-			vec4 lightColor = AddProjLight(light_0_radius, light_0_origin, light_0_color.xyz, ps_vertexpos.xyz, ps_light_0_vertexcoord, v_normal, light_0_projtexture, specularFactor);
+			vec4 lightColor = AddProjLight(light_0_radius, light_0_origin, light_0_color.xyz, ps_vertexpos.xyz, ps_light_0_vertexcoord, v_normal, light_0_projtexture, specularFactor, light_0_cone_size, light_0_spotdirection);
 			
 			$branch light0_shadowmap == 1
 			$begin
@@ -1029,7 +1045,7 @@ void main()
 		//
 		$branch numlights >= 2
 		$begin
-			lightColor = AddProjLight(light_1_radius, light_1_origin, light_1_color.xyz, ps_vertexpos.xyz, ps_light_1_vertexcoord, v_normal, light_1_projtexture, specularFactor);
+			lightColor = AddProjLight(light_1_radius, light_1_origin, light_1_color.xyz, ps_vertexpos.xyz, ps_light_1_vertexcoord, v_normal, light_1_projtexture, specularFactor, light_1_cone_size, light_1_spotdirection);
 			
 			$branch light1_shadowmap == 1
 			$begin
@@ -1048,7 +1064,7 @@ void main()
 		//
 		$branch numlights >= 3
 		$begin
-			lightColor = AddProjLight(light_2_radius, light_2_origin, light_2_color.xyz, ps_vertexpos.xyz, ps_light_2_vertexcoord, v_normal, light_2_projtexture, specularFactor);
+			lightColor = AddProjLight(light_2_radius, light_2_origin, light_2_color.xyz, ps_vertexpos.xyz, ps_light_2_vertexcoord, v_normal, light_2_projtexture, specularFactor, light_2_cone_size, light_2_spotdirection);
 			
 			$branch light2_shadowmap == 1
 			$begin
@@ -1067,7 +1083,7 @@ void main()
 		//
 		$branch numlights >= 4
 		$begin
-			lightColor = AddProjLight(light_3_radius, light_3_origin, light_3_color.xyz, ps_vertexpos.xyz, ps_light_3_vertexcoord, v_normal, light_3_projtexture, specularFactor);
+			lightColor = AddProjLight(light_3_radius, light_3_origin, light_3_color.xyz, ps_vertexpos.xyz, ps_light_3_vertexcoord, v_normal, light_3_projtexture, specularFactor, light_3_cone_size, light_3_spotdirection);
 			
 			$branch light3_shadowmap == 1
 			$begin

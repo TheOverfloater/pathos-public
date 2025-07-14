@@ -191,14 +191,10 @@ void CLightStyleManager::AnimateStyles( void )
 			Int32 v1 = (style.map[i1] - 'a')*22;
 			Int32 v2 = (style.map[i2] - 'a')*22;
 
-			if(v1 > 255)
-				v1 = 255;
-			else if(v1 < 0)
+			if(v1 < 0)
 				v1 = 0;
 
-			if(v2 > 255)
-				v2 = 255;
-			else if(v2 < 0)
+			if(v2 < 0)
 				v2 = 0;
 
 			m_lightStyleValues[style.index] = ((static_cast<Float>(v1))*(1.0-interp)) + ((static_cast<Float>(v2))*interp);

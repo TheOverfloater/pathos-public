@@ -61,9 +61,18 @@ enum vbm_shtype
 	vbm_texonly_holes_fog
 };
 
+enum vbm_blendmultipass_t
+{
+	BLENDMULTIPASS_OFF = 0,
+	BLENDMULTIPASS_NORMAL,
+	BLENDMULTIPASS_BLACKFOG
+};
+
 struct vbm_decal_mesh_t
 {
 	vbm_decal_mesh_t():
+		bodypartindex(0),
+		submodelindex(0),
 		start_index(0),
 		num_indexes(0),
 		pbones(nullptr),
@@ -77,6 +86,9 @@ struct vbm_decal_mesh_t
 		if(pbones)
 			delete[] pbones;
 	}
+
+	Int32 bodypartindex; // Original bodypart index
+	Int32 submodelindex; // Original submodel index
 
 	Uint32 start_index;
 	Uint32 num_indexes;
@@ -184,6 +196,8 @@ struct vbm_dlight_attribs_t
 		u_light_projtexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_light_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_light_matrix(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_cone_size(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_spotdirection(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_light_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE)
 	{}
 
@@ -194,6 +208,8 @@ struct vbm_dlight_attribs_t
 	Int32 u_light_projtexture;
 	Int32 u_light_shadowmap;
 	Int32 u_light_matrix;
+	Int32 u_light_cone_size;
+	Int32 u_light_spotdirection;
 
 	Int32 d_light_shadowmap;
 };
@@ -251,7 +267,8 @@ struct vbm_attribs
 		d_ao(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_bumpmapping(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_numdlights(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_use_ubo(CGLSLShader::PROPERTY_UNAVAILABLE)
+		d_use_ubo(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_blendmultipass(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{
 			for(Uint32 i = 0; i < MAX_SHADER_BONES; i++)
 				boneindexes[i] = 0;
@@ -328,6 +345,7 @@ struct vbm_attribs
 	Int32 d_bumpmapping;
 	Int32 d_numdlights;
 	Int32 d_use_ubo;
+	Int32 d_blendmultipass;
 	
 	vbm_dlight_attribs_t dlights[MAX_BATCH_LIGHTS];
 };
@@ -498,9 +516,11 @@ private:
 	// Draws a mesh
 	bool DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, bool drawBlended );
 	// Draws lights
-	bool DrawLights( bool specularPass );
+	bool DrawLights( bool specularPass, bool transparentPass );
 	// Draws final renderpasses
 	bool DrawFinal( void );
+	// Draws final specular pass
+	bool DrawFinalSpecular( bool transparentPass );
 	// Draws in wireframe mode
 	bool DrawWireframe( void );
 	// Draws bones
@@ -554,7 +574,7 @@ private:
 	// Finalizes a decal mesh
 	void FinalizeDecalMesh( vbmdecal_t* pdecal, vbm_decal_mesh_t* pmesh, Uint32& curstart );
 	// Applies a decal on a triangle
-	bool DecalTriangle( vbmdecal_t* pdecal, vbm_decal_mesh_t*& pmesh, const vbmvertex_t **pverts, const byte *pboneids, const Vector& position, const Vector& normal, vbmdecal_t *decal, const Vector& up, const Vector& right, Uint32& curstart, byte flags, en_material_t* pmaterial );
+	bool DecalTriangle( Int32 pbodypartindex, Int32 submodelindex, vbmdecal_t* pdecal, vbm_decal_mesh_t*& pmesh, const vbmvertex_t **pverts, const byte *pboneids, const Vector& position, const Vector& normal, vbmdecal_t *decal, const Vector& up, const Vector& right, Uint32& curstart, byte flags, en_material_t* pmaterial );
 	// Deletes a decal
 	static void DeleteDecal( vbmdecal_t *pdecal );
 	// Retreives the offset for the decal mesh

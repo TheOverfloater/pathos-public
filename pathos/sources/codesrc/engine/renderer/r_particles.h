@@ -525,7 +525,9 @@ struct p_proj_light
 		u_color(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_radius(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_texture(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_matrix(CGLSLShader::PROPERTY_UNAVAILABLE)
+		u_matrix(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_cone_size(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_spotdirection(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{}
 
 	Int32 u_origin;
@@ -534,6 +536,8 @@ struct p_proj_light
 
 	Int32 u_texture;
 	Int32 u_matrix;
+	Int32 u_cone_size;
+	Int32 u_spotdirection;
 };
 
 struct p_point_light

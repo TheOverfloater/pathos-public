@@ -55,12 +55,12 @@ public:
 
 public:
 	// Returns a decal by it's name, irrespective of groups
-	decalgroupentry_t *GetByName( const char *szdecalname );
+	decalgroupentry_t *GetByName( const Char *szdecalname );
 	// Returns a random decal from a decal group
-	decalgroupentry_t *GetRandom( const char *szgroupname );
+	decalgroupentry_t *GetRandom( const Char *szgroupname );
 
 	// Returns the group array
-	decalgroup_t* GetGroup( const char *szgroupname );
+	decalgroup_t* GetGroup( const Char *szgroupname );
 	// Returns a group by it's index
 	decalgroup_t* GetGroup( Uint32 index );
 	// Returns the number of groups

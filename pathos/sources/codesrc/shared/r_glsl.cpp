@@ -2411,23 +2411,45 @@ void CGLSLShader::DisableAttribute( Int32 index )
 //=============================================
 void CGLSLShader::SetVBO( CVBO *pVBO )
 {
+	if(m_pVBO == pVBO)
+		return;
+
 	// If SetVBO is called, assume always we're changing
 	CVBO* pPrevVBO = m_pVBO;
 	m_pVBO = pVBO;
 
 	// Re-set the attrib pointers if we are active
-	if(m_isActive && pPrevVBO)
+	if(m_isActive)
 	{
-		for(Uint32 i = 0; i < m_vertexAttribsArray.size(); i++)
+		if(pPrevVBO && pPrevVBO->IsActive())
 		{
-			glsl_attrib_t *pattrib = &m_vertexAttribsArray[i];
-
-			if(pattrib->indexes[m_shaderIndex] != PROPERTY_UNAVAILABLE)
+			for(Uint32 i = 0; i < m_vertexAttribsArray.size(); i++)
 			{
+				glsl_attrib_t *pattrib = &m_vertexAttribsArray[i];
+
+				if(pattrib->indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
+					continue;
+
+				pPrevVBO->DisableAttribPointer(pattrib->indexes[m_shaderIndex]);
+			}
+
+			pPrevVBO->UnBind();
+		}
+
+		if(pVBO)
+		{
+			pVBO->Bind();
+
+			for(Uint32 i = 0; i < m_vertexAttribsArray.size(); i++)
+			{
+				glsl_attrib_t *pattrib = &m_vertexAttribsArray[i];
+				if(pattrib->indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
+					continue;
+
 				if(pattrib->active)
-					pPrevVBO->SetAttribPointer(pattrib->indexes[m_shaderIndex], pattrib->size, pattrib->type, pattrib->stride, pattrib->pointer);
+					pVBO->SetAttribPointer(pattrib->indexes[m_shaderIndex], pattrib->size, pattrib->type, pattrib->stride, pattrib->pointer);
 				else
-					pPrevVBO->DisableAttribPointer(pattrib->indexes[m_shaderIndex]);
+					pVBO->DisableAttribPointer(pattrib->indexes[m_shaderIndex]);
 			}
 		}
 	}

@@ -17,8 +17,15 @@ All Rights Reserved.
 // Object definition
 CSysPrintInterface gPrintInterface;
 
-// For thread safety
+// For thread safety for Printf
 static std::mutex m_conPrintfMutex;
+// For thread safety for DPrintf
+static std::mutex m_conDPrintfMutex;
+// For thread safety VPrintf
+static std::mutex m_conVPrintfMutex;
+// For thread safety EPrintf
+static std::mutex m_conEPrintfMutex;
+
 // To protect against infinite loops
 static bool g_conPrintfSemaphore = false;
 // To protect against infinite loops
@@ -368,7 +375,7 @@ void Con_DPrintf( const Char *fmt, ... )
 		return;
 
 	g_conDPrintfSemaphore = true;
-	m_conPrintfMutex.lock();
+	m_conDPrintfMutex.lock();
 
 	// compile the string result
 	va_list	vArgPtr;
@@ -382,7 +389,7 @@ void Con_DPrintf( const Char *fmt, ... )
 	gPrintInterface.DPrintf(cMsg);
 
 	g_conDPrintfSemaphore = false;
-	m_conPrintfMutex.unlock();
+	m_conDPrintfMutex.unlock();
 }
 
 //====================================
@@ -397,7 +404,7 @@ void Con_VPrintf( const Char *fmt, ... )
 		return;
 
 	g_conVPrintfSemaphore = true;
-	m_conPrintfMutex.lock();
+	m_conVPrintfMutex.lock();
 
 	// compile the string result
 	va_list	vArgPtr;
@@ -411,7 +418,7 @@ void Con_VPrintf( const Char *fmt, ... )
 	gPrintInterface.VPrintf(cMsg);
 
 	g_conVPrintfSemaphore = false;
-	m_conPrintfMutex.unlock();
+	m_conDPrintfMutex.unlock();
 }
 
 //====================================
@@ -423,7 +430,7 @@ void Con_EPrintf( const Char *fmt, ... )
 		return;
 
 	g_conEPrintfSemaphore = true;
-	m_conPrintfMutex.lock();
+	m_conEPrintfMutex.lock();
 
 	// compile the string result
 	va_list	vArgPtr;
@@ -437,5 +444,5 @@ void Con_EPrintf( const Char *fmt, ... )
 	gPrintInterface.EPrintf(cMsg);
 
 	g_conEPrintfSemaphore = false;
-	m_conPrintfMutex.unlock();
+	m_conEPrintfMutex.unlock();
 }

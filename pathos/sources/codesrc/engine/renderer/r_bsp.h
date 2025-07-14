@@ -79,6 +79,8 @@ struct light_attribs_t
 		u_light_projtexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_light_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_light_matrix(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_cone_size(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_light_spotdirection(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_light_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE)
 	{}
 
@@ -89,7 +91,8 @@ struct light_attribs_t
 	Int32 u_light_projtexture;
 	Int32 u_light_shadowmap;
 	Int32 u_light_matrix;
-
+	Int32 u_light_cone_size;
+	Int32 u_light_spotdirection;
 	Int32 d_light_shadowmap;
 };
 

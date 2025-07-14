@@ -82,6 +82,7 @@ static cldll_engfuncs_t CLIENTDLL_ENGINE_FUNCTION_TABLE =
 	Con_EPrintf,					//pfnCon_EPrintf
 	Sys_ErrorPopup,					//pfnErrorPopup
 	Engine_CreateCommand,			//pfnCreateCommand
+	CL_ResetInputCommand,			//pfnResetInputCommand
 	Engine_Cmd_Argc,				//pfnCmd_Argc
 	Engine_Cmd_Argv,				//pfnCmd_Argv
 	CL_GetMousePosition,			//pfnGetMousePosition

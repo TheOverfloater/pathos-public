@@ -398,11 +398,14 @@ bool R_LoadTextureListFile( const Char* pstrTextureListFile, CArray<en_texture_t
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 
 	// Read in the entries
-	while(true)
+	while(pstr)
 	{
-		// Read in next token
-		pstr = Common::Parse(pstr, token);
+		// Read in the line
+		CString linestr;
+		pstr = Common::ReadLine(pstr, linestr);
 
+		// Read in next token
+		const Char* plinestr = Common::Parse(linestr.c_str(), token);
 		if(!qstrcmp(token, "}"))
 			break;
 
@@ -414,8 +417,30 @@ bool R_LoadTextureListFile( const Char* pstrTextureListFile, CArray<en_texture_t
 			return false;
 		}
 
+		// Remember texture name and copy flags
+		CString textureName = token;
+		Int32 textureFlags = flags;
+		const GLint* pTextureBorder = pborder;
+
+		// Now read any flags
+		while(plinestr)
+		{
+			plinestr = Common::Parse(plinestr, token);
+			if(!qstrcmp(token, "noborder"))
+				textureFlags &= ~TX_FL_BORDER;
+			else if(!qstrcmp(token, "mipmaps"))
+				textureFlags &= ~TX_FL_NOMIPMAPS;
+			else if(!qstrcmp(token, "noclamp"))
+				textureFlags &= ~(TX_FL_CLAMP_S|TX_FL_CLAMP_T);
+			else
+				Con_Printf("%s - Unknown flag '%s' specified for texture '%s' in file '%s'.\n", __FUNCTION__, token, textureName.c_str(), pstrTextureListFile);
+		}
+
+		if(!(textureFlags & TX_FL_BORDER))
+			pTextureBorder = nullptr;
+
 		// Load the file in
-		en_texture_t* ptexture = pTextureManager->LoadTexture(token, level, flags, pborder);
+		en_texture_t* ptexture = pTextureManager->LoadTexture(textureName.c_str(), level, textureFlags, pTextureBorder);
 		if(ptexture)
 			texArray.push_back(ptexture);
 	}
@@ -1383,7 +1408,7 @@ void R_Ent_RotLight( cl_entity_t *pentity )
 	gVBMRenderer.UpdateAttachments(pentity);
 
 	Float radius = 600;
-	Float cone_size = 120;
+	Float cone_size = 90;
 
 	bool noshadow = false;
 	if(pentity->curstate.renderfx == RenderFx_RotlightNS)
@@ -1413,6 +1438,7 @@ void R_Ent_RotLight( cl_entity_t *pentity )
 	dlight1->textureindex = 0;
 	dlight1->die = -1;
 	dlight1->lastframe = rns.framecount_main;
+	dlight1->textureindex = (pentity->curstate.iuser1 - 1);
 
 	if(!pentity->curstate.rendercolor.x && !pentity->curstate.rendercolor.y && !pentity->curstate.rendercolor.z)
 	{
@@ -1437,6 +1463,7 @@ void R_Ent_RotLight( cl_entity_t *pentity )
 	dlight2->textureindex = 0;
 	dlight2->die = -1;
 	dlight2->lastframe = rns.framecount_main;
+	dlight2->textureindex = (pentity->curstate.iuser1 - 1);
 
 	if(!pentity->curstate.rendercolor.x && !pentity->curstate.rendercolor.y && !pentity->curstate.rendercolor.z)
 	{
@@ -5067,10 +5094,7 @@ void Cmd_BSPToSMD_Textures( void )
 				Math::VectorCopy(psurf->pplane->normal, pverts[k].normal);
 			}
 
-			int indexes[3];
-			indexes[0] = 0;
-			indexes[1] = 1;
-			indexes[2] = 2;
+			int indexes[3] = { 0, 1, 2 };
 
 			// Export first triangle
 			fprintf(pf, "%s.tga\n", psurf->ptexinfo->ptexture->name.c_str());
@@ -5240,10 +5264,7 @@ void Cmd_BSPToSMD_Lightmap( void )
 				Math::VectorCopy(psurf->pplane->normal, pverts[k].normal);
 			}
 
-			Uint32 indexes[3];
-			indexes[0] = 0;
-			indexes[1] = 1;
-			indexes[2] = 2;
+			Uint32 indexes[3] = { 0, 1, 2 };
 
 			// Export first triangle
 			fprintf(pf, "lightmap.tga\n");

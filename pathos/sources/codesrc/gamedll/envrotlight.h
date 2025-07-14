@@ -20,6 +20,8 @@ class CEnvRotLight : public CAnimatingEntity
 public:
 	// Rotating light model
 	static const Char ENV_ROTLIGHT_MODEL_FILENAME[];
+	// Non-textured flashlight texture index
+	static const Int32 NON_TEXTURED_PROJ_TEXTURE_INDEX;
 
 public:
 	enum

@@ -222,6 +222,12 @@ void CSpriteRenderer::ClearGame( void )
 	// Release the draw buffer
 	ReleaseDrawBuffer();
 
+	if(m_pShader)
+	{
+		m_pShader->SetVBO(nullptr);
+		m_pShader->ResetShader();
+	}
+
 	// Release the VBO
 	if(m_pVBO)
 	{
@@ -1003,6 +1009,7 @@ void CSpriteRenderer::CreateVBO( void )
 
 	if(m_pVBO)
 	{
+		m_pShader->SetVBO(nullptr);
 		isActive = m_pVBO->IsActive();
 		if(isActive)
 			m_pVBO->UnBind();

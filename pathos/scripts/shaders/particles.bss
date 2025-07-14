@@ -103,18 +103,26 @@ uniform float point_lights_3_radius;
 uniform vec3 proj_lights_0_origin;
 uniform vec3 proj_lights_0_color;
 uniform float proj_lights_0_radius;
+uniform float proj_lights_0_cone_size;
+uniform vec3 proj_lights_0_spotdirection;
 
 uniform vec3 proj_lights_1_origin;
 uniform vec3 proj_lights_1_color;
 uniform float proj_lights_1_radius;
+uniform float proj_lights_1_cone_size;
+uniform vec3 proj_lights_1_spotdirection;
 
 uniform vec3 proj_lights_2_origin;
 uniform vec3 proj_lights_2_color;
 uniform float proj_lights_2_radius;
+uniform float proj_lights_2_cone_size;
+uniform vec3 proj_lights_2_spotdirection;
 
 uniform vec3 proj_lights_3_origin;
 uniform vec3 proj_lights_3_color;
 uniform float proj_lights_3_radius;
+uniform float proj_lights_3_cone_size;
+uniform vec3 proj_lights_3_spotdirection;
 
 uniform vec2 fogparams;
 uniform vec3 fogcolor;
@@ -133,6 +141,8 @@ in vec4 ps_proj_l3vertexcoord;
 
 out vec4 oColor;
 
+#define M_PI 3.14159265358979323846264338327950288
+
 vec3 AddPointLight( vec3 light_origin, vec3 light_color, float light_radius, vec3 v_origin )
 {
 	float rad = light_radius*light_radius;
@@ -143,7 +153,7 @@ vec3 AddPointLight( vec3 light_origin, vec3 light_color, float light_radius, vec
 	return light_color*attn;
 }
 
-vec3 AddProjLight( vec3 light_origin, vec3 light_color, float light_radius, vec3 v_origin, vec4 vertexCoord, sampler2D texture )
+vec3 AddProjLight( vec3 light_origin, vec3 light_color, float light_radius, vec3 v_origin, vec4 vertexCoord, sampler2D texture, float light_cone_size, vec3 light_spotdirection )
 {
 	float rad = light_radius*light_radius;
 	vec3 dir = light_origin-v_origin;
@@ -154,7 +164,16 @@ vec3 AddProjLight( vec3 light_origin, vec3 light_color, float light_radius, vec3
 	vec4 texclamp = max(vertexCoord, 0);
 	vec4 sample = textureProj(texture, texclamp);
 
-	return light_color*attn*sample.xyz;
+	float spotcos = cos((light_cone_size*2)*0.3*(M_PI*2/360));
+	
+	dir = normalize(dir);
+	vec3 spotdirection = normalize(light_spotdirection);
+	float spotatten = -dot(spotdirection, dir);
+	
+	spotatten = max(spotatten, spotcos);
+	float spotfactor = (spotatten - spotcos)/(1.0 - spotcos);
+
+	return light_color * attn * sample.xyz * spotfactor;
 }
 
 float SplineFraction( float value, float scale )
@@ -197,22 +216,22 @@ void main()
 
 	$branch num_proj_lights >= 1
 	$begin
-		finalColor.xyz += AddProjLight(proj_lights_0_origin, proj_lights_0_color, proj_lights_0_radius, ps_vertexpos, ps_proj_l0vertexcoord, proj_lights_0_texture);
+		finalColor.xyz += AddProjLight(proj_lights_0_origin, proj_lights_0_color, proj_lights_0_radius, ps_vertexpos, ps_proj_l0vertexcoord, proj_lights_0_texture, proj_lights_0_cone_size, proj_lights_0_spotdirection);
 	$end
 
 	$branch num_proj_lights >= 2
 	$begin
-		finalColor.xyz += AddProjLight(proj_lights_1_origin, proj_lights_1_color, proj_lights_1_radius, ps_vertexpos, ps_proj_l1vertexcoord, proj_lights_1_texture);
+		finalColor.xyz += AddProjLight(proj_lights_1_origin, proj_lights_1_color, proj_lights_1_radius, ps_vertexpos, ps_proj_l1vertexcoord, proj_lights_1_texture, proj_lights_1_cone_size, proj_lights_1_spotdirection);
 	$end
 	
 	$branch num_proj_lights >= 3
 	$begin
-		finalColor.xyz += AddProjLight(proj_lights_2_origin, proj_lights_2_color, proj_lights_2_radius, ps_vertexpos, ps_proj_l2vertexcoord, proj_lights_2_texture);
+		finalColor.xyz += AddProjLight(proj_lights_2_origin, proj_lights_2_color, proj_lights_2_radius, ps_vertexpos, ps_proj_l2vertexcoord, proj_lights_2_texture, proj_lights_2_cone_size, proj_lights_2_spotdirection);
 	$end
 
 	$branch num_proj_lights == 4
 	$begin
-		finalColor.xyz += AddProjLight(proj_lights_3_origin, proj_lights_3_color, proj_lights_3_radius, ps_vertexpos, ps_proj_l3vertexcoord, proj_lights_3_texture);
+		finalColor.xyz += AddProjLight(proj_lights_3_origin, proj_lights_3_color, proj_lights_3_radius, ps_vertexpos, ps_proj_l3vertexcoord, proj_lights_3_texture, proj_lights_3_cone_size, proj_lights_3_spotdirection);
 	$end	
 	
 	$branch type == 0

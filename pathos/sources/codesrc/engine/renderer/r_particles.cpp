@@ -218,6 +218,18 @@ bool CParticleEngine::InitGL( void )
 			m_attribs.proj_lights[i].u_texture = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_INT1);
 			if(!R_CheckShaderUniform(m_attribs.proj_lights[i].u_texture, field.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
+
+			field.clear();
+			field << "proj_lights_" << static_cast<Int32>(i) << "_cone_size";
+			m_attribs.proj_lights[i].u_cone_size = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_FLOAT1);
+			if(!R_CheckShaderUniform(m_attribs.proj_lights[i].u_cone_size, field.c_str(), m_pShader, Sys_ErrorPopup))
+				return false;
+
+			field.clear();
+			field << "proj_lights_" << static_cast<Int32>(i) << "_spotdirection";
+			m_attribs.proj_lights[i].u_spotdirection = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_FLOAT3);
+			if(!R_CheckShaderUniform(m_attribs.proj_lights[i].u_spotdirection, field.c_str(), m_pShader, Sys_ErrorPopup))
+				return false;
 		}
 
 		m_attribs.d_numprojlights = m_pShader->GetDeterminatorIndex("num_proj_lights");
@@ -3493,17 +3505,21 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 
 				m_pShader->SetUniform3f(m_attribs.proj_lights[i].u_color, vcolor[0], vcolor[1], vcolor[2]);
 
-				if(lastbind == static_cast<Int32>(rns.objects.projective_textures[psystem->pspotlights[i]->textureindex]->palloc->gl_index))
+				Int32 textureIndex = psystem->pspotlights[i]->textureindex;
+				if(textureIndex >= rns.objects.projective_textures.size())
+					textureIndex = 0;
+
+				if(lastbind == static_cast<Int32>(rns.objects.projective_textures[textureIndex]->palloc->gl_index))
 				{
 					m_pShader->SetUniform1i(m_attribs.proj_lights[i].u_texture, 2+lastunit);
 				}
 				else
 				{
 					m_pShader->SetUniform1i(m_attribs.proj_lights[i].u_texture, 2+i);
-					R_Bind2DTexture(GL_TEXTURE2+i, rns.objects.projective_textures[psystem->pspotlights[i]->textureindex]->palloc->gl_index);
+					R_Bind2DTexture(GL_TEXTURE2+i, rns.objects.projective_textures[textureIndex]->palloc->gl_index);
 
 					lastunit = i;
-					lastbind = rns.objects.projective_textures[psystem->pspotlights[i]->textureindex]->palloc->gl_index;
+					lastbind = rns.objects.projective_textures[textureIndex]->palloc->gl_index;
 				}
 
 				matrix.LoadIdentity();
@@ -3524,6 +3540,12 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 				matrix.MultMatrix(rns.view.modelview.GetInverse());
 
 				m_pShader->SetUniformMatrix4fv(m_attribs.proj_lights[i].u_matrix, matrix.Transpose());
+				m_pShader->SetUniform1f(m_attribs.proj_lights[i].u_cone_size, psystem->pspotlights[i]->cone_size);
+
+				// Transform light direction vector to eye space
+				Vector transdirection;
+				Math::MatMult(fltranspose, vforward, &transdirection);
+				m_pShader->SetUniform3f(m_attribs.proj_lights[i].u_spotdirection, transdirection[0], transdirection[1], transdirection[2]);
 			}
 
 			if(pdefinition->rendermode == render_alphatest)
@@ -3989,6 +4011,12 @@ void CParticleEngine::ReleaseParticles( void )
 //====================================
 void CParticleEngine::CreateVBO( void )
 {
+	if(m_pShader)
+	{
+		m_pShader->SetVBO(nullptr);
+		m_pShader->ResetShader();
+	}
+
 	if(m_pVBO)
 		delete m_pVBO;
 

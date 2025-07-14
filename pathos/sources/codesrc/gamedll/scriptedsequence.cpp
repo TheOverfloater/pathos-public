@@ -181,7 +181,7 @@ bool CScriptedSequence::KeyValue( const keyvalue_t& kv )
 
 		return true;
 	}
-	else if(!qstrcmp(kv.keyname, "dangersounds("))
+	else if(!qstrcmp(kv.keyname, "dangersounds"))
 	{
 		Int32 value = SDL_atoi(kv.value);
 		if(value >= 1)
@@ -591,8 +591,7 @@ void CScriptedSequence::PosessEntity( void )
 			// Wait until triggered again
 			m_waitForReTrigger = true;
 
-			if(!m_targetEntity->HasSpawnFlag(CBaseNPC::FL_NPC_DONT_FALL)
-				&& !HasSpawnFlag(FL_NO_SCRIPT_MOVEMENT))
+			if(!m_targetEntity->HasSpawnFlag(CBaseNPC::FL_NPC_DONT_FALL) && !HasSpawnFlag(FL_NO_SCRIPT_MOVEMENT))
 			{
 				m_targetEntity->RemoveFlags(FL_ONGROUND);
 				m_targetEntity->GroundEntityNudge(true);

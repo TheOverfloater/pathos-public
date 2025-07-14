@@ -44,6 +44,8 @@ struct writerthread_t
 	writerthread_t():
 		threadhandle(nullptr),
 		exitevent(nullptr),
+		criticalsection(),
+		condition(),
 		exit(false),
 		available(false)
 		{}

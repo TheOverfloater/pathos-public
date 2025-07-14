@@ -50,6 +50,7 @@ extern void CL_ResetMouse( void );
 extern ui_schemeinfo_t* CL_UILoadSchemaFile( const Char* pstrFilename );
 extern const en_material_t* CL_GetMapTextureMaterial( const Char* pstrtexturename );
 extern Double CL_GetFrameTime( void );
+extern void CL_ResetInputCommand( const Char* name );
 extern void CL_SetShouldHideMouse( bool shouldhide );
 extern const byte* CL_LeafPVS( const struct mleaf_t& leaf );
 extern void	CL_PrecacheDecal( const Char* pstrDecalName );

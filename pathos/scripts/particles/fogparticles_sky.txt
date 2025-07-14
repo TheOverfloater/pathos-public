@@ -14,8 +14,8 @@ $particlescript
 	$max_particles -1
 	$particle_frequency 55.000000
 	$gravity 0.050000
-	$rendermode additive
-	$alpha 0.200000
+	$rendermode alphablend
+	$alpha 0.100000
 	$alignment tiled
 	$texture clouds
 	$render_flags skybox
