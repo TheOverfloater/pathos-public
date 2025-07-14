@@ -677,3 +677,24 @@
  - Increase blowback velocity on NPCs.
  - Add "Target" field feature on item_taperecorder.
  - Add friendly fire check in weapon code.
+ 
+2025 July 14th:
+ - Tweaks to fog particle scripts to improve visibility.
+ - Updated projective lights to properly calculate spotligh coefficient on lit surfaces.
+ - Added dynamic lighting support to transparent rendering of VBM models.
+ - Fixed certain keys becoming unresponsive on first click if the key was pressed during or right before a reload/map change.
+ - Fixed various un-unitialized member variables in classes and structs not being initialized in the constructor.
+ - Fix decals on transparents not being rendered in the BSP Renderer.
+ - Fix for decals still being rendered on VBM model submodels even if the submodel they decalled was changed.
+ - Removed overbright cap from lightstyles.
+ - Added support for specifying flags for textures in R_LoadTextureListFile.
+ - Fix in CGLSLShader class for properly switching between VBOs when SetVBO is called.
+ - Fix for specular highlights not being drawn on certain models in multipass mode.
+ - Fix for some decals not having all new bones accounted for during decal creation, leading to errors.
+ - Fix for crash caused by sharing one mutex across all Con_Printf functions, which occurred sometimes when the game encountered an error. 
+ - Added stuck check for scripted_sequence entity when it'd try to move the posessed NPC to the spot where it moved to in the animation, so the NPC doesn't get stuck in a solid upon release.
+ - Fix for relation R_NONE not being handled in CBaseNPC::Look.
+ - Fix for AI navigation errors when checking whether a node can be traversed to with a single traceline.
+ - Modified env_rot_light entity to not use the spotlight texture, but to instead rely solely on spotlight coefficient calculations for rendering spotlights.
+ - Fix for "dangersounds" field not being read properly in CScriptedSequence::KeyValue.
+ - Simplify VBM mesh bone list compatibility check to reduce the chance of human error in the future.
