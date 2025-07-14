@@ -31,7 +31,7 @@ doommusic666@hotmail.com
 Please check "credits.txt" for a more or less comprehensive list of whom I credit for the work put into Pathos, and the mod files it was shipped with. If someone finds something in Pathos's demo that belongs to them and are not credited, I apologize. A lot of the stuff used in the demo, like some textures and props, were picked up already second-hand and not documented as to where they came from or who made them. If this is the case, please write me and e-mail and I will update the documentation accordingly.
 
 For a basic list of those I credit, whose work I referenced to write my own versions of functions, etc, the non-comprehensive list of the most important sources is as follows:
- - Id Software for Quake 1, which was my main source of reference when writing some of the engine code when it comes to server physics, the basic engine layout and 
+ - Id Software for Quake 1, which was my main source of reference when writing some of the engine code when it comes to server physics, the basic engine layout and some of the networking related functionality.
  - Valve Software for the Half-Life SDK, whose functionality I referenced to reproduce entity behavior, as well as some of the studiomodel related code for rendering, collision with hitboxes, etc.
  - s1lentq AKA Dmitry Novikov for ReHLDS, which I referenced for some GoldSrc-specific feature implementations like rotating entity physics, NPC movement, miscellaneous engine functions, etc.
  - Iriy "BUzer" Sitnikov for his help in teaching me how to do graphics programming, and for the Paranoia mod and toolkit, which helped me a lot with writing the first renderer version back in 2008-2009.
