@@ -57,6 +57,7 @@ Other content:
  - Hunk Guerrius for all the playtesting and feedback
  - Hipshot for the violentdays skybox
  - Kleadron for various contributions to Pathos
+ - valina354 for numerous improvemens to Pathos's render code and some new features.
  
 Other mentions:
 Iriy "BUzer" Sitnikov for Paranoia's source code and several
