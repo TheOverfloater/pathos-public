@@ -24,6 +24,6 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerAttach>false</LocalDebuggerAttach>
     <LocalDebuggerCommand>D:\Games\Reckoning\reckon\sources\codesrc\utils\vbmcompiler\Debug\vbmcompiler.exe</LocalDebuggerCommand>
-    <LocalDebuggerWorkingDirectory>D:\Games\Reckoning\reckon\sources\codesrc\utils\vbmcompiler\Debug\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>D:\Games\Reckoning\reckon\sources\progs\vbmcompiler\</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
 </Project>

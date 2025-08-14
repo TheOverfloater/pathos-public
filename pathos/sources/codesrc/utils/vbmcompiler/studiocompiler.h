@@ -259,6 +259,8 @@ private:
 	CStringList_t m_mirroredBonesList;
 	// 'No-blend' bones list
 	CStringList_t m_noBlendBonesList;
+	// Protected bones list
+	CStringList_t m_protectedBonesList;
 
 	// Transition nodes array
 	CArray<CArray<Int32>> m_transitionNodesArray;
@@ -287,11 +289,6 @@ private:
 
 	// Texture folders array
 	CArray<CString> m_textureFoldersArray;
-
-	// No-blend list
-	CStringList_t m_noBlendBoneList;
-	// Protected bones list
-	CStringList_t m_protectedBonesList;
 
 	// Names of pivot points
 	// Note: Cannot change to set because we need positions

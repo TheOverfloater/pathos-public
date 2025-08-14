@@ -379,15 +379,16 @@ void VBM_CalculateRotations( const studiohdr_t* phdr, Float time, Float animtime
 	for(Uint32 i = 0; i < phdr->numbonecontrollers; i++)
 		controlleradj[i] = 0;
 
-	VBM_CalculateBoneAdjustments(phdr, dadt, &controlleradj[0], pcontroller1, pcontroller2, mouth);
+	Float* pcontroller = (phdr->numbonecontrollers > 0) ? &controlleradj[0] : nullptr;
+	VBM_CalculateBoneAdjustments(phdr, dadt, pcontroller, pcontroller1, pcontroller2, mouth);
 
 	// Calculate quaternions and bone positions for each bone
 	for(Int32 i = 0; i < phdr->numbones; i++)
 	{
 		const mstudiobone_t* pbone = phdr->getBone(i);
 
-		VBM_CalculateBoneQuaternion(intframe, interp, pbone, &panim[i], &controlleradj[0], pquaternions[i]);
-		VBM_CalculateBonePosition(intframe, interp, pbone, &panim[i], &controlleradj[0], ppositions[i]);
+		VBM_CalculateBoneQuaternion(intframe, interp, pbone, &panim[i], pcontroller, pquaternions[i]);
+		VBM_CalculateBonePosition(intframe, interp, pbone, &panim[i], pcontroller, ppositions[i]);
 	}
 
 	// Remove movement from specific sequence motion types
@@ -398,6 +399,7 @@ void VBM_CalculateRotations( const studiohdr_t* phdr, Float time, Float animtime
 	if(pseqdesc->motiontype & STUDIO_Z)
 		ppositions[pseqdesc->motionbone][2] = 0.0f;
 }
+
 
 //=============================================
 // @brief

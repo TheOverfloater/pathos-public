@@ -1799,16 +1799,17 @@ bool CStudioModelCompiler::CreateBoneTable( void )
 	// table has been created.
 
 	// Now mark all bones that are set not to blend
-	if(result && !m_noBlendBoneList.empty())
+	if(result && !m_noBlendBonesList.empty())
 	{
-		CStringList_t::iterator it = m_noBlendBoneList.begin();
-		while(it != m_noBlendBoneList.end())
+		CStringList_t::iterator it = m_noBlendBonesList.begin();
+		while(it != m_noBlendBonesList.end())
 		{
 			Int32 nodeIndex = GetBoneIndex((*it).c_str());
 			if(nodeIndex != NO_POSITION)
 			{
 				smdl::boneinfo_t* pBone = m_pBoneTableArray[nodeIndex];
 				pBone->flags |= STUDIO_DONT_BLEND;
+				it++;
 				continue;
 			}
 			else
@@ -3503,9 +3504,6 @@ void CStudioModelCompiler::Clear( void )
 
 	if(!m_textureFoldersArray.empty())
 		m_textureFoldersArray.clear();
-
-	if(!m_noBlendBoneList.empty())
-		m_noBlendBoneList.clear();
 
 	if(!m_protectedBonesList.empty())
 		m_protectedBonesList.clear();
