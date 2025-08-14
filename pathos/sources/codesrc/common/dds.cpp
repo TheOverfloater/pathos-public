@@ -38,12 +38,6 @@ bool DDS_Load( const Char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 	const Uint32 ddsWidth = Common::ByteToUint32(pDDSHeader->bWidth);
 	const Uint32 ddsHeight = Common::ByteToUint32(pDDSHeader->bHeight);
 
-	if(!Common::IsPowerOfTwo(ddsWidth) || !Common::IsPowerOfTwo(ddsHeight))
-	{
-		pfnPrintFn("%s is not a power of two texture.\n", pstrFilename);
-		return false;
-	}
-		
 	if(ddsMagic != DDS_MAGIC || ddsSize != 124 || !(ddsFlags & DDSD_PIXELFORMAT)
 		|| !(ddsFlags & DDSD_CAPS) || !(ddsPFFlags & DDPF_FOURCC))
 	{

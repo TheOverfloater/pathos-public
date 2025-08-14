@@ -18,7 +18,12 @@ All Rights Reserved.
 #define BMP_HEADER_SIZE 40
 
 enum bmp_compression_t {
-    BMP_COMPRESSION_NONE = 0,
+    BMP_COMPRESSION_RGB = 0,
+    BMP_COMPRESSION_RLE8,
+    BMP_COMPRESSION_RLE4,
+    BMP_COMPRESSION_BITFIELDS,
+    BMP_COMPRESSION_JPEG,
+    BMP_COMPRESSION_PNG
 };
 
 #pragma pack(push, 1)

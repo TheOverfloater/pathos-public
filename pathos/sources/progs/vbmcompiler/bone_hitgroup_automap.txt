@@ -1,0 +1,30 @@
+{
+	{ "Finger" discard }
+	{ "eye" discard }
+	{ "Eye" discard }
+	{ "brow" discard }
+	{ "coat" discard }
+	{ "Spine1" HITGROUP_CHEST }
+	{ "Neck" HITGROUP_CHEST }
+	{ "Spine" HITGROUP_STOMACH }
+	{ "Pelvis" HITGROUP_STOMACH }
+	{ "L Clavicle" HITGROUP_LEFT_ARM }
+	{ "L Forearm" HITGROUP_LEFT_ARM }
+	{ "L Arm" HITGROUP_LEFT_ARM }
+	{ "L UpperArm" HITGROUP_LEFT_ARM }
+	{ "L Hand" HITGROUP_LEFT_ARM }
+	{ "R Clavicle" HITGROUP_RIGHT_ARM }
+	{ "R Forearm" HITGROUP_RIGHT_ARM }
+	{ "R Arm" HITGROUP_RIGHT_ARM }
+	{ "R UpperArm" HITGROUP_RIGHT_ARM }
+	{ "R Hand" HITGROUP_RIGHT_ARM }
+	{ "L Thigh" HITGROUP_LEFT_LEG }
+	{ "L Calf" HITGROUP_LEFT_LEG }
+	{ "L Foot" HITGROUP_LEFT_LEG }
+	{ "L Leg" HITGROUP_LEFT_LEG }
+	{ "R Thigh" HITGROUP_LEFT_LEG }
+	{ "R Calf" HITGROUP_LEFT_LEG }
+	{ "R Foot" HITGROUP_LEFT_LEG }
+	{ "R Leg" HITGROUP_LEFT_LEG }
+	{ "Head" HITGROUP_HEAD }
+}

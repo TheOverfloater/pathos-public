@@ -375,19 +375,19 @@ void VBM_CalculateRotations( const studiohdr_t* phdr, Float time, Float animtime
 	const Float interp = _frame - intframe;
 	
 	// Estimate controller values
-	Float controlleradj[MAXSTUDIOCONTROLLERS] = { 0 };
-	for(Uint32 i = 0; i < MAXSTUDIOCONTROLLERS; i++)
+	CArray<Float> controlleradj(phdr->numbonecontrollers);
+	for(Uint32 i = 0; i < phdr->numbonecontrollers; i++)
 		controlleradj[i] = 0;
 
-	VBM_CalculateBoneAdjustments(phdr, dadt, controlleradj, pcontroller1, pcontroller2, mouth);
+	VBM_CalculateBoneAdjustments(phdr, dadt, &controlleradj[0], pcontroller1, pcontroller2, mouth);
 
 	// Calculate quaternions and bone positions for each bone
 	for(Int32 i = 0; i < phdr->numbones; i++)
 	{
 		const mstudiobone_t* pbone = phdr->getBone(i);
 
-		VBM_CalculateBoneQuaternion(intframe, interp, pbone, &panim[i], controlleradj, pquaternions[i]);
-		VBM_CalculateBonePosition(intframe, interp, pbone, &panim[i], controlleradj, ppositions[i]);
+		VBM_CalculateBoneQuaternion(intframe, interp, pbone, &panim[i], &controlleradj[0], pquaternions[i]);
+		VBM_CalculateBonePosition(intframe, interp, pbone, &panim[i], &controlleradj[0], ppositions[i]);
 	}
 
 	// Remove movement from specific sequence motion types

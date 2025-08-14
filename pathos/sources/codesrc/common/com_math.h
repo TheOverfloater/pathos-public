@@ -52,6 +52,7 @@ namespace Math
 	extern inline void MatMult4( const Float *flmatrix, const Float *vecin, Float *vecout );
 	extern inline void GetUpRight( const Vector& forward, Vector &up, Vector &right );
 	extern inline void VectorTransform( const Vector& in, Float (*pmatrix)[4], Vector& out );
+	extern inline void VectorInverseTransform( const Vector& vec, const Float (*pmatrix)[4], Vector& out );
 	extern inline void QuaternionMatrix( const vec4_t& quaternion, Float (*pmatrix)[4] );
 	extern inline void AngleQuaternion( const Vector& angles, vec4_t& quaternion );
 	extern inline void QuaternionBlend( const vec4_t& q1, const vec4_t& q2, Float interp, vec4_t& outq );

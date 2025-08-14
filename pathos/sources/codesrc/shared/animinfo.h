@@ -12,6 +12,18 @@ All Rights Reserved.
 
 #include "entity_state.h"
 
+struct bonematrix_t
+{
+	bonematrix_t()
+	{
+		memset(matrix, 0, sizeof(matrix));
+	}
+
+	Float matrix[3][4];
+};
+
+typedef CArray<bonematrix_t> BoneTransformArray_t;
+
 struct entity_animinfo_t
 {
 	entity_animinfo_t():

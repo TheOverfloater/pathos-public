@@ -109,8 +109,13 @@ namespace Common
 
 			if(*ppstr == '/' && *(ppstr+1) == '*')
 			{
-				while(*ppstr != '*' && *(ppstr+1) != '/')
+				while(true)
+				{
+					if(*ppstr == '*' && *(ppstr+1) == '/')
+						break;
+
 					ppstr++;
+				}
 
 				ppstr += 2;
 			}
@@ -693,5 +698,136 @@ namespace Common
 
 		CCRC32Hash hash(pdata, stringlength);
 		return hash.GetHashResult();
+	}
+
+	//=============================================
+	// @brief Extracts directory path from a file path
+	//
+	//=============================================
+	void GetDirectoryPath( const Char* pstrPath, CString& output )
+	{
+		if(!pstrPath)
+			return;
+
+		Uint32 i = qstrlen(pstrPath);
+		while(i >= 0)
+		{
+			if(pstrPath[i] == '\\' || pstrPath[i] == '/')
+				break;
+
+			i--;
+		}
+
+		if(i > 0)
+			output.assign(pstrPath, i);
+	}
+
+	//=============================================
+	// @brief Extracts directory path from a file path
+	//
+	//=============================================
+	CString CleanupPath( const Char* pstrPath )
+	{
+		CString output = pstrPath;
+
+		Uint32 length = output.length();
+		Uint32 i = 0;
+		while(i < length)
+		{
+			Char character = output[i];
+			if(character == '/' || character == '\\')
+			{
+				if(character == '\\')
+				{
+					// Replace with proper slashes
+					output.erase(i, 1);
+					output.insert(i, "/");
+				}
+
+				// Remove excess slashes
+				if(i + 1 < length)
+				{
+					Uint32 j = i + 1;
+					while(j < length)
+					{
+						Char nextCharacter = output[j];
+						if(nextCharacter != '/' && nextCharacter != '\\')
+							break;
+
+						j++;
+					}
+
+					if(j > i + 1)
+					{
+						Uint32 numerase = j - i - 1;
+						output.erase(i+1, numerase);
+						length -= numerase;
+
+						// Do not advance i, recheck
+						continue;
+					}
+				}
+			}
+			else if(i > 1 && (i + 1) < length && character == '.')
+			{
+				Char nextCharacter = output[i + 1];
+				if(nextCharacter == '/' || nextCharacter == '\\')
+				{
+					output.erase(i, 2);
+					length -= 2;
+
+					// Do not advance i, recheck
+					continue;
+				}
+				else if(nextCharacter == '.')
+				{
+					Uint32 slashCount = 0;
+
+					Uint32 j = i - 1;
+					while(j > 0)
+					{
+						Char checkCharacter = output[j];
+						if(checkCharacter == '/' || checkCharacter == '\\')
+						{
+							slashCount++;
+							if(slashCount > 1)
+								break;
+
+							j--;
+
+							while(output[j] == '\\' || output[j] == '/')
+								j--;
+						}
+						else
+						{
+							j--;
+						}
+					}
+
+					if(slashCount == 2)
+					{
+						Uint32 numerase = (i + 1) - j + 1;
+						output.erase(j, numerase);
+						length -= numerase;
+
+						// Do not advance i, recheck
+						continue;
+					}
+				}
+			}
+
+			i++;
+		}
+
+		return output;
+	}
+
+	//=============================================
+	// @brief Convert byte count to megabyte float value
+	//
+	//=============================================
+	extern Float BytesToMegaBytes( Uint32 bytesCount )
+	{
+		return static_cast<Float>(bytesCount) / (1024.0*1024.0);
 	}
 };

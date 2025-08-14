@@ -32,9 +32,13 @@ public:
 	inline void*& getbufferdata( void );
 	// Retreives the buffer size
 	inline Uint32 getsize( void ) const;
+	// Retreives the buffer array size
+	inline Uint32 getbuffersize( void ) const;
 
 	// Adds a pointer to the list
 	inline void addpointer( void** ptr );
+	// Removes a pointer from the list
+	inline void removepointer( void** ptr );
 	// Removes a pointer from the list
 	inline void removepointer( const void** ptr );
 

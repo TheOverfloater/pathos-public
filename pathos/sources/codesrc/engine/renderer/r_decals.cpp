@@ -28,6 +28,8 @@ All Rights Reserved.
 #include "console.h"
 #include "r_basicdraw.h"
 #include "cl_msg.h"
+#include "cache_model.h"
+#include "r_vbm.h"
 
 // Distance which decals trace against
 const Float CDecalManager::DECAL_CHECK_DIST = 1;
@@ -432,7 +434,13 @@ void CDecalManager::CreateCached( void )
 			gBSPRenderer.CreateDecal(cachedecal.origin, cachedecal.normal, cachedecal.pentry, cachedecal.flags, cachedecal.life, cachedecal.fadetime, cachedecal.growthtime);
 
 			if(cachedecal.flags & FL_DECAL_VBM)
+			{
+				// Apply decal to client-side only entities
 				cls.dllfuncs.pfnDecalExternalEntities(cachedecal.origin, cachedecal.normal, cachedecal.pentry, cachedecal.flags);
+
+				// Apply decal to any VBM entities
+				DecalPacketVBMEntities(cachedecal);
+			}
 		}
 		else if(addtobogus)
 		{
@@ -443,6 +451,47 @@ void CDecalManager::CreateCached( void )
 		// Remove it
 		m_cachedDecalsList.remove(m_cachedDecalsList.get_link());
 		m_cachedDecalsList.next();
+	}
+}
+
+//====================================
+//
+//====================================
+void CDecalManager::DecalPacketVBMEntities( cached_decal_t& decal )
+{
+	cl_entity_t* plocalplayer = CL_GetLocalPlayer();
+	if(!plocalplayer)
+		return;
+
+	float radius = decal.pentry->xsize > decal.pentry->ysize ? decal.pentry->xsize : decal.pentry->ysize;
+
+	Vector mins, maxs;
+	for(Uint32 i = 0; i < 3; i++)
+	{
+		mins[i] = decal.origin[i] - radius;
+		maxs[i] = decal.origin[i] + radius;
+	}
+
+	for(Uint32 i = 0; i < cls.numentities; i++)
+	{
+		cl_entity_t* pvisentity = &cls.entities[i];
+		if(!pvisentity->pmodel || pvisentity->pmodel->type != MOD_VBM)
+			continue;
+
+		if(pvisentity->curstate.movetype != MOVETYPE_NONE)
+			continue;
+
+		if(pvisentity->curstate.msg_num != plocalplayer->curstate.msg_num)
+			continue;
+
+		Vector entmins, entmaxs;
+		Math::VectorAdd(pvisentity->curstate.origin, pvisentity->curstate.mins, entmins);
+		Math::VectorAdd(pvisentity->curstate.origin, pvisentity->curstate.maxs, entmaxs);
+
+		if(Math::CheckMinsMaxs(mins, maxs, entmins, entmaxs))
+			continue;
+
+		gVBMRenderer.CreateDecal(decal.origin, decal.normal, decal.pentry, pvisentity, decal.flags);
 	}
 }
 

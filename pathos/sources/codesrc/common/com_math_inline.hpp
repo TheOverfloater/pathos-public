@@ -749,6 +749,24 @@ namespace Math
 	}
 
 	//=============================================
+	// @brief Inverse transforms a vector by a matrix
+	//
+	// @param vec Vector to transform
+	// @param pmatrix 3x4 matrix to rotate with
+	// @param out Reference to vector to hold the result
+	//=============================================
+	inline void Math::VectorInverseTransform( const Vector& vec, const Float (*pmatrix)[4], Vector& out )
+	{
+		Vector tmp;
+		for(Uint32 i = 0; i < 3; i++)
+			tmp[i] = vec[i] - pmatrix[i][3];
+
+		out[0] = tmp[0]*pmatrix[0][0] + tmp[1]*pmatrix[1][0] + tmp[2]*pmatrix[2][0];
+		out[1] = tmp[0]*pmatrix[0][1] + tmp[1]*pmatrix[1][1] + tmp[2]*pmatrix[2][1];
+		out[2] = tmp[0]*pmatrix[0][2] + tmp[1]*pmatrix[1][2] + tmp[2]*pmatrix[2][2];
+	}
+
+	//=============================================
 	// @brief Takes a quaternion, and turns it into a 3x4 matrix
 	//
 	// @param quaternion Input quaternion

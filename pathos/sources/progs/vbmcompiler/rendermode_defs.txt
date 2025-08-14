@@ -1,0 +1,6 @@
+{
+	{ "additive" 32 }
+	{ "flatshade" 1 }
+	{ "alphatest" 64 }
+	{ "luminance" 512 }
+}

@@ -698,3 +698,13 @@
  - Modified env_rot_light entity to not use the spotlight texture, but to instead rely solely on spotlight coefficient calculations for rendering spotlights.
  - Fix for "dangersounds" field not being read properly in CScriptedSequence::KeyValue.
  - Simplify VBM mesh bone list compatibility check to reduce the chance of human error in the future.
+ 
+2025 August 14th:
+ - First release of the VBM Compiler tool, which is meant to replace studiomdl.
+ - Updated documentation for VBM Compiler.
+ - Removal of legacy studiomdl defines, documentation, code, etc.
+ - Added 8-bit BMP loading functionality.
+ - Modified texture loading functionality to not check for power of two requirement in TGA/BMP/DDS loaders.
+ - Added support for decals to be applied to static model entities handled by the engine.
+ - Fix for incorrect max vertex counts on temp vertex array for VBMs.
+ - Removed static-sized array use from some of the VBM related functions.

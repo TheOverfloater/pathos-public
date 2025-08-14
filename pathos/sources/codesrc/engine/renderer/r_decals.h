@@ -92,6 +92,9 @@ private:
 	// Sends a decal to the server
 	void SendDecalToServer( cached_decal_t& decal );
 
+	// Applies decal to VBM entities in packet list
+	void DecalPacketVBMEntities( cached_decal_t& decal );
+
 private:
 	// List of cached decals
 	CLinkedList<cached_decal_t> m_cachedDecalsList;

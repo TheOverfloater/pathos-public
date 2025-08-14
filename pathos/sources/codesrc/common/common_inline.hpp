@@ -85,6 +85,24 @@ inline Char* qstrncpy( Char* pdest, const Char* psrc, Uint32 size )
 }
 
 //=============================================
+// @brief Copies a number of characters from a string to another container
+//
+// @param pdest Pointer to destination container
+// @param psrc Pointer to source string
+// @param m Max characters
+// @return Pointer to destination string
+//=============================================
+inline Char* qstrcpy_s( Char* pdest, const Char *psrc, Uint32 m )
+{
+	Uint32 length = qstrlen(psrc);
+	if(length > (m-1))
+		length = (m-1);
+
+	qstrncpy(pdest, psrc, length);
+	return pdest;
+}
+
+//=============================================
 // @brief Compares two strings
 //
 // @param pstr1 Pointer to first string to compare

@@ -96,6 +96,16 @@ inline Uint32 CBuffer::getsize( void ) const
 }
 
 //=============================================
+// @brief Returns the current data writing position into the buffer
+//
+// @return Current writind position
+//=============================================
+inline Uint32 CBuffer::getbuffersize( void ) const
+{
+	return m_bufferSize;
+}
+
+//=============================================
 // @brief Adds a pointer to the list of pointers this buffer will rebase when resized
 //
 // @param ptr Pointer that is to be added
@@ -127,6 +137,23 @@ inline void CBuffer::addpointer( void** ptr )
 // @param ptr Pointer to remove
 //=============================================
 inline void CBuffer::removepointer( const void** ptr )
+{
+	for(Uint32 i = 0; i < m_pointersArray.size(); i++)
+	{
+		if(m_pointersArray[i] == ptr)
+		{
+			m_pointersArray.erase(i);
+			return;
+		}
+	}
+}
+
+//=============================================
+// @brief Removes a pointer to the list of pointers to rebase
+//
+// @param ptr Pointer to remove
+//=============================================
+inline void CBuffer::removepointer( void** ptr )
 {
 	for(Uint32 i = 0; i < m_pointersArray.size(); i++)
 	{

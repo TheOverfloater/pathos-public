@@ -181,6 +181,7 @@ class CString;
 extern inline Uint32 qstrlen( const Char* pstr );
 extern inline Char* qstrcpy( Char* pdest, const Char *psrc );
 extern inline Char* qstrncpy( Char* pdest, const Char *psrc, Uint32 size );
+extern inline Char* qstrcpy_s( Char* pdest, const Char *psrc, Uint32 m );
 extern Int32 qstrcmp( const Char* pstr1, const Char* pstr2 );
 extern Int32 qstrcmp( const CString& str1, const CString& str2 );
 extern Int32 qstrcmp( const Char* pstr1, const CString& str2 );
@@ -215,6 +216,9 @@ namespace Common
 	extern void NormalizeAngles( Vector& angles );
 	extern void ConvertStringToLowerCase( Char* pstring );
 	extern Uint32 GetStringCRC32Hash( const Char* pstrString );
+	extern void GetDirectoryPath( const Char* pstrPath, CString& output );
+	extern CString CleanupPath( const Char* pstrPath );
+	extern Float BytesToMegaBytes( Uint32 bytesCount );
 
 	extern inline Int16 ByteToInt16( const byte *pdata );
 	extern inline Uint16 ByteToUint16( const byte *pdata );

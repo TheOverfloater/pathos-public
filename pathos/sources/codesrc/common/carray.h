@@ -22,6 +22,7 @@ public:
 	inline CArray( void );
 	inline explicit CArray( Uint32 size );
 	inline CArray( const CArray& src );
+	inline CArray( const CArray* pArray );
 	inline ~CArray( void );
 
 public:

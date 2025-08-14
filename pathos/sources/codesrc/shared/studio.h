@@ -35,48 +35,10 @@ static constexpr Uint32 STUDIO_VERSION	= 10;
 
 // Max vertexes supported by VHE
 static constexpr Uint32 MAXSTUDIOVERTS_REF		= 2048;
-
-// Required by studiomdl(todo: remove after studiomdl rewrite)
-static constexpr Uint32 MAXSTUDIOTRIANGLES		= 16384;
-
-// Max vertexes in a submodel supported by studiomdl at the moment(todo: remove after studiomdl rewrite)
-static constexpr Uint32 MAXSTUDIOVERTS			= 8196;
-
-// Max sequences in a model(todo: remove after studiomdl rewrite)
-static constexpr Uint32 MAXSTUDIOSEQUENCES		= 256;
-
-// Max skins a model can have(todo: remove after studiomdl rewrite)
-static constexpr Uint32 MAXSTUDIOSKINS			= 100;
-
-// Todo: remove after studiomdl rewrite
+// Max nb of bones due to byte being used to store bone indexes
 static constexpr Uint32 MAXSTUDIOSRCBONES		= 256;
-
 // Max bones in a model
 static constexpr Uint32 MAXSTUDIOBONES			= 128;
-
-// Max submodels a bodygroup can have(todo: remove after studiomdl rewrite)
-static constexpr Uint32 MAXSTUDIOMODELS			= 32;
-
-// Max bodygroups a model can have(todo: remove after studiomdl rewrite)
-static constexpr Uint32 MAXSTUDIOBODYPARTS		= 32;
-
-// Max groups a model can have(todo: remove after studiomdl rewrite)
-static constexpr Uint32 MAXSTUDIOGROUPS			= 32;
-
-// Max sequences a model can have(todo: remove after studiomdl rewrite)
-static constexpr Uint32 MAXSTUDIOANIMATIONS		= 2048;
-
-// Max meshes a submodel can have(todo: remove after studiomdl rewrite)
-static constexpr Uint32 MAXSTUDIOMESHES			= 32;
-
-// Max events a model can have(todo: remove after studiomdl rewrite)
-static constexpr Uint32 MAXSTUDIOEVENTS			= 1024;
-
-// Max pivots a model can have(todo: remove after studiomdl rewrite)
-static constexpr Uint32 MAXSTUDIOPIVOTS			= 256;
-
-// Max controllers a model can have(todo: remove after studiomdl rewrite)
-static constexpr Uint32 MAXSTUDIOCONTROLLERS	= 8;
 
 // Used by studiohdr->flags
 enum studio_flags_t
@@ -100,6 +62,7 @@ enum studio_flags_t
 // Used by animations
 enum studio_motionflags_t
 {
+	STUDIO_MT_NONE				= -1,
 	STUDIO_X					= (1<<0),
 	STUDIO_Y					= (1<<1),
 	STUDIO_Z					= (1<<2),
@@ -139,7 +102,10 @@ enum studio_boneflags_t
 // Flags for textures
 enum studio_texflags_t
 {
-	STUDIO_NF_CHROME			= (1<<1)
+	STUDIO_NF_FLATSHADE			= (1<<0),
+	STUDIO_NF_CHROME			= (1<<1),
+	STUDIO_NF_ADDITIVE			= (1<<5),
+	STUDIO_NF_ALPHATEST			= (1<<6)
 };
 
 struct studiohdr_t;
@@ -472,7 +438,7 @@ struct mstudiotexture_t
 	Int32 index;
 };
 
-// studio models
+// Wouldn't "mstudiosubmodel_t" a better name?
 struct mstudiomodel_t
 {
 	mstudiomodel_t():
@@ -531,6 +497,7 @@ struct mstudiomodel_t
 	Int32 groupindex;
 };
 
+// Same but "mstudiobodygroup_t"
 struct mstudiobodyparts_t
 {
 	mstudiobodyparts_t():

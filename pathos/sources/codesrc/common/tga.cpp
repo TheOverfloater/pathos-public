@@ -44,12 +44,6 @@ bool TGA_Load( const Char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 	Int16 tgaHeight = Common::ByteToInt16(ptrTgaHeader->height);
 	Int16 tgaBpp = ptrTgaHeader->bitsperpixel/8;
 
-	if(!Common::IsPowerOfTwo(tgaWidth) || !Common::IsPowerOfTwo(tgaHeight))
-	{
-		pfnPrintFn("%s is not a power of two texture.\n", pstrFilename);
-		return false;
-	}
-
 	// Determine sizes
 	Int32 nbPixels = tgaWidth*tgaHeight;
 	Int32 inputSize = nbPixels*tgaBpp;

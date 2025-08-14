@@ -1142,6 +1142,13 @@ en_texture_t* CTextureManager::LoadTexture( const Char* pstrFilename, rs_level_t
 	// Release the file
 	m_fileFuncs.pfnFreeFile(pfile);
 
+	// Do this here instead of in the loaders
+	if(!Common::IsPowerOfTwo(width) || !Common::IsPowerOfTwo(height))
+	{
+		m_printErrorFunction("%s is not a power of two texture.\n", pstrFilename);
+		return false;
+	}
+
 	// Allocate a new texture if it's not already present
 	HashResourceTypeKey_t key(pstrFilename, level);
 	if(!ptexture)
