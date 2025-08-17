@@ -401,7 +401,7 @@ void CEntityManager::Entity_EnvSprite( const entitydata_t& entity, entindex_t& e
 	const cache_model_t* pworld = cl_engfuncs.pfnGetModel(1);
 	const brushmodel_t* pbrushmodel = pworld->getBrushmodel();
 
-	cl_engfuncs.pfnFindTouchedLeafs(pbrushmodel, pInfo->leafnums, pInfo->absmin, pInfo->absmax, pbrushmodel->pnodes);
+	cl_engfuncs.pfnFindTouchedLeafs(pbrushmodel, pInfo->leafnums, pInfo->numleaves, pInfo->absmin, pInfo->absmax, pbrushmodel->pnodes);
 }
 
 //=============================================
@@ -457,7 +457,7 @@ void CEntityManager::Entity_EnvELight( const entitydata_t& entity, entindex_t& e
 	const cache_model_t* pworld = cl_engfuncs.pfnGetModel(1);
 	const brushmodel_t* pbrushmodel = pworld->getBrushmodel();
 
-	cl_engfuncs.pfnFindTouchedLeafs(pbrushmodel, pInfo->leafnums, pInfo->absmin, pInfo->absmax, pbrushmodel->pnodes);
+	cl_engfuncs.pfnFindTouchedLeafs(pbrushmodel, pInfo->leafnums, pInfo->numleaves, pInfo->absmin, pInfo->absmax, pbrushmodel->pnodes);
 
 	// Set renderfx
 	newEntity.curstate.rendertype = RT_ENVELIGHT;
@@ -653,7 +653,7 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 	const cache_model_t* pworld = cl_engfuncs.pfnGetModel(1);
 	const brushmodel_t* pbrushmodel = pworld->getBrushmodel();
 
-	cl_engfuncs.pfnFindTouchedLeafs(pbrushmodel, pInfo->leafnums, pInfo->absmin, pInfo->absmax, pbrushmodel->pnodes);
+	cl_engfuncs.pfnFindTouchedLeafs(pbrushmodel, pInfo->leafnums, pInfo->numleaves, pInfo->absmin, pInfo->absmax, pbrushmodel->pnodes);
 
 	// If it's on a non-looping sequence, calculate the bones only once
 	if(!(pseqdesc->flags & STUDIO_LOOPING))
@@ -799,7 +799,7 @@ void CEntityManager::Frame( void )
 			if( !pInfo )
 				continue;
 
-			if(Common::CheckVisibility(pInfo->leafnums, ppvs))
+			if(Common::CheckVisibility(pInfo->leafnums, pInfo->numleaves, ppvs))
 			{
 				cl_engfuncs.pfnAddEntity(pentity);
 				continue;
@@ -820,7 +820,7 @@ void CEntityManager::Frame( void )
 			&& pentity->curstate.renderfx != RenderFx_SkyEntNC
 			&& pentity->curstate.renderfx != RenderFx_SkyEntScaled)
 		{
-			if(!Common::CheckVisibility(pInfo->leafnums, ppvs))
+			if(!Common::CheckVisibility(pInfo->leafnums, pInfo->numleaves, ppvs))
 			{
 				Uint32 j = 0;
 				for(; j < cameraEntitiesArray.size(); j++)
@@ -829,7 +829,7 @@ void CEntityManager::Frame( void )
 					if(!pCameraInfo || !pCameraInfo->ppvsdata)
 						continue;
 
-					if(Common::CheckVisibility(pInfo->leafnums, pCameraInfo->ppvsdata))
+					if(Common::CheckVisibility(pInfo->leafnums, pInfo->numleaves, pCameraInfo->ppvsdata))
 						break;
 				}
 

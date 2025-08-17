@@ -25,7 +25,7 @@ All Rights Reserved.
 //
 //
 //=============================================
-void VBM_CalculateBoneAdjustments( const studiohdr_t* phdr, Float dadt, Float* padj, const Float* pcontroller1, const Float* pcontroller2, byte mouth )
+void VBM_CalculateBoneAdjustments( const studiohdr_t* phdr, Float dadt, const CArray<Float>& padj, const Float* pcontroller1, const Float* pcontroller2, byte mouth )
 {
 	// Get pointer to bone controller
 	for(Int32 i = 0; i < phdr->numbonecontrollers; i++)
@@ -84,7 +84,7 @@ void VBM_CalculateBoneAdjustments( const studiohdr_t* phdr, Float dadt, Float* p
 //
 //
 //=============================================
-void VBM_InterpolateBones( const studiohdr_t* phdr, const vec4_t* pquaternions1, const Vector* ppositions1, const vec4_t* pquaternions2, const Vector* ppositions2, Float interpolant, vec4_t *poutquaternions, Vector* poutpositions )
+void VBM_InterpolateBones( const studiohdr_t* phdr, const CArray<vec4_t>& quaternions1, const CArray<Vector>& positions1, CArray<vec4_t>& quaternions2, const CArray<Vector>& positions2, Float interpolant, CArray<vec4_t>& outquaternions, CArray<Vector>& outpositions )
 {
 	// Cap interpolant
 	Float interp = interpolant;
@@ -99,19 +99,19 @@ void VBM_InterpolateBones( const studiohdr_t* phdr, const vec4_t* pquaternions1,
 		if(pbone->flags & STUDIO_DONT_BLEND)
 		{
 			for(Uint32 j = 0; j < 4; j++)
-				poutquaternions[i][j] = pquaternions1[i][j];
+				outquaternions[i][j] = quaternions1[i][j];
 
 			for(Uint32 j = 0; j < 3; j++)
-				poutpositions[i][j] = ppositions1[i][j];
+				outpositions[i][j] = positions1[i][j];
 		}
 		else
 		{
 			// Blend the quaternions
-			Math::QuaternionBlend(pquaternions1[i], pquaternions2[i], interp, poutquaternions[i]);
+			Math::QuaternionBlend(quaternions1[i], quaternions2[i], interp, outquaternions[i]);
 		
 			// Blend the positions
 			for(Uint32 j = 0; j < 3; j++)
-				poutpositions[i][j] = ppositions1[i][j] * ninterp + ppositions2[i][j] * interp;
+				outpositions[i][j] = positions1[i][j] * ninterp + positions2[i][j] * interp;
 		}
 	}
 }
@@ -133,7 +133,7 @@ const mstudioanim_t* VBM_GetAnimation( const studiohdr_t* phdr, const mstudioseq
 //
 //
 //=============================================
-void VBM_CalculateBoneQuaternion( Int32 frame, Float interpolant, const mstudiobone_t* pbone, const mstudioanim_t* panimation, const Float* padj, vec4_t& quaternion )
+void VBM_CalculateBoneQuaternion( Int32 frame, Float interpolant, const mstudiobone_t* pbone, const mstudioanim_t* panimation, const CArray<Float>& padj, vec4_t& quaternion )
 {
 	Vector angle1, angle2;
 
@@ -210,7 +210,7 @@ void VBM_CalculateBoneQuaternion( Int32 frame, Float interpolant, const mstudiob
 //
 //
 //=============================================
-void VBM_CalculateBonePosition( Int32 frame, Float interpolant, const mstudiobone_t* pbone, const mstudioanim_t* panimation, const Float* padj, Vector& outpos )
+void VBM_CalculateBonePosition( Int32 frame, Float interpolant, const mstudiobone_t* pbone, const mstudioanim_t* panimation, const CArray<Float>& padj, Vector& outpos )
 {
 	for (Uint32 i = 0; i < 3; i++)
 	{
@@ -249,7 +249,7 @@ void VBM_CalculateBonePosition( Int32 frame, Float interpolant, const mstudiobon
 			}
 		}
 
-		if ( pbone->bonecontroller[i] != -1 && padj )
+		if ( pbone->bonecontroller[i] != -1 && !padj.empty() )
 			outpos[i] += padj[pbone->bonecontroller[i]];
 	}
 }
@@ -296,28 +296,7 @@ Float VBM_EstimateFrame( const mstudioseqdesc_t* pseqdesc, const entity_state_t&
 //=============================================
 bool VBM_HasTransparentParts( vbmheader_t* pvbmheader, Uint64 body, Int32 skin )
 {
-	const Int16* pskinref = pvbmheader->getSkinFamilies();
-
-	if(skin != 0 && skin < pvbmheader->numskinfamilies)
-		pskinref += (skin*pvbmheader->numskinref);
-
-	for(Int32 i = 0; i < pvbmheader->numbodyparts; i++)
-	{
-		vbmbodypart_t* pbodypart = pvbmheader->getBodyPart(i);
-		const Uint32 index = (body / pbodypart->base) % pbodypart->numsubmodels;
-
-		vbmsubmodel_t* psubmodel = pbodypart->getSubmodel(pvbmheader, index);
-
-		for(Int32 j = 0; j < psubmodel->nummeshes; j++)
-		{
-			const vbmmesh_t* pmesh = psubmodel->getMesh(pvbmheader, j);
-			const vbmtexture_t* ptexture = pvbmheader->getTexture(pskinref[pmesh->skinref]);
-			if(ptexture->flags & FL_VBM_TEXTURE_BLEND)
-				return true;
-		}
-	}
-
-	return false;
+	return (pvbmheader->flags & VBM_HAS_BLEND_TEXTURE) ? true : false;
 }
 
 //=============================================
@@ -360,7 +339,7 @@ Float VBM_EstimateInterpolant( Float time, Float animtime, Float prevanimtime )
 //
 //
 //=============================================
-void VBM_CalculateRotations( const studiohdr_t* phdr, Float time, Float animtime, Float prevanimtime, Vector* ppositions, vec4_t* pquaternions, const mstudioseqdesc_t* pseqdesc, const mstudioanim_t* panim, Float frame, const Float* pcontroller1, const Float* pcontroller2, byte mouth )
+void VBM_CalculateRotations( const studiohdr_t* phdr, Float time, Float animtime, Float prevanimtime, CArray<Vector>& positions, CArray<vec4_t>& quaternions, const mstudioseqdesc_t* pseqdesc, const mstudioanim_t* panim, Float frame, const Float* pcontroller1, const Float* pcontroller2, byte mouth )
 {
 	// Cap frame value
 	Float _frame = frame;
@@ -379,27 +358,25 @@ void VBM_CalculateRotations( const studiohdr_t* phdr, Float time, Float animtime
 	for(Uint32 i = 0; i < phdr->numbonecontrollers; i++)
 		controlleradj[i] = 0;
 
-	Float* pcontroller = (phdr->numbonecontrollers > 0) ? &controlleradj[0] : nullptr;
-	VBM_CalculateBoneAdjustments(phdr, dadt, pcontroller, pcontroller1, pcontroller2, mouth);
+	VBM_CalculateBoneAdjustments(phdr, dadt, controlleradj, pcontroller1, pcontroller2, mouth);
 
 	// Calculate quaternions and bone positions for each bone
 	for(Int32 i = 0; i < phdr->numbones; i++)
 	{
 		const mstudiobone_t* pbone = phdr->getBone(i);
 
-		VBM_CalculateBoneQuaternion(intframe, interp, pbone, &panim[i], pcontroller, pquaternions[i]);
-		VBM_CalculateBonePosition(intframe, interp, pbone, &panim[i], pcontroller, ppositions[i]);
+		VBM_CalculateBoneQuaternion(intframe, interp, pbone, &panim[i], controlleradj, quaternions[i]);
+		VBM_CalculateBonePosition(intframe, interp, pbone, &panim[i], controlleradj, positions[i]);
 	}
 
 	// Remove movement from specific sequence motion types
 	if(pseqdesc->motiontype & STUDIO_X)
-		ppositions[pseqdesc->motionbone][0] = 0.0f;
+		positions[pseqdesc->motionbone][0] = 0.0f;
 	if(pseqdesc->motiontype & STUDIO_Y)
-		ppositions[pseqdesc->motionbone][1] = 0.0f;
+		positions[pseqdesc->motionbone][1] = 0.0f;
 	if(pseqdesc->motiontype & STUDIO_Z)
-		ppositions[pseqdesc->motionbone][2] = 0.0f;
+		positions[pseqdesc->motionbone][2] = 0.0f;
 }
-
 
 //=============================================
 // @brief

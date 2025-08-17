@@ -12,17 +12,7 @@ All Rights Reserved.
 
 #include "entity_state.h"
 
-struct bonematrix_t
-{
-	bonematrix_t()
-	{
-		memset(matrix, 0, sizeof(matrix));
-	}
-
-	Float matrix[3][4];
-};
-
-typedef CArray<bonematrix_t> BoneTransformArray_t;
+typedef CArray<pmatrix3x4_t> BoneTransformArray_t;
 
 struct entity_animinfo_t
 {
@@ -36,15 +26,14 @@ struct entity_animinfo_t
 		scale(0),
 		lastsequencetime(0)
 	{
-		memset(bones, 0, sizeof(bones));
-		memset(weightbones, 0, sizeof(weightbones));
 		memset(rotation, 0, sizeof(rotation));
 		memset(lastcontroller, 0, sizeof(lastcontroller));
 		memset(lastblending, 0, sizeof(lastblending));
 	}
 
-	Float	bones[MAXSTUDIOBONES][3][4];
-	Float	weightbones[MAXSTUDIOBONES][3][4];
+	BoneTransformArray_t bones;
+	BoneTransformArray_t weightbones;
+
 	Int32	numbones;
 
 	Float	lastframe;

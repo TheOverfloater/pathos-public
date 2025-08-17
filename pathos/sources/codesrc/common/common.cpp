@@ -538,7 +538,7 @@ namespace Common
 	// @brief Checks visibility on a set of leaf numbers
 	//
 	//=============================================
-	bool CheckVisibility( const CArray<Uint32>& leafnums, const byte* pset )
+	bool CheckVisibility( const CArray<Uint32>& leafnums, Uint32 numleafs, const byte* pset )
 	{
 		if(leafnums.empty())
 			return false;
@@ -546,7 +546,7 @@ namespace Common
 		if(!pset)
 			return true;
 
-		for(Uint32 i = 0; i < leafnums.size(); i++)
+		for(Uint32 i = 0; i < numleafs; i++)
 		{
 			if(pset[leafnums[i] >> 3] & (1 << (leafnums[i] & 7)))
 				return true;

@@ -344,7 +344,6 @@ struct particle_system_t
 	particle_system_t():
 		entindex(0),
 		id(0),
-		radius(0),
 		parententity(nullptr),
 		attachment(0),
 		skyheight(0),
@@ -364,6 +363,7 @@ struct particle_system_t
 		visframe(0),
 		spawned(false),
 		pdefinition(nullptr),
+		numleaves(0),
 		numdlights(0),
 		numspotlights(0),
 		boneindex(0)
@@ -375,9 +375,10 @@ struct particle_system_t
 	entindex_t entindex;
 	Int16 id;
 
+	Vector mins;
+	Vector maxs;
 	Vector origin;
 	Vector dir;
-	Float radius;
 
 	cl_entity_t *parententity;
 	byte attachment;
@@ -412,6 +413,9 @@ struct particle_system_t
 	const script_definition_t* pdefinition;
 
 	CArray<Uint32> leafnums;
+	Uint32 numleaves;
+	Vector lastmins;
+	Vector lastmaxs;
 
 	cl_dlight_t *pdlights[MAX_PARTICLE_POINT_LIGHTS];
 	Uint32 numdlights;

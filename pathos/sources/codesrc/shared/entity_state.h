@@ -83,6 +83,8 @@ enum effects_t
 	EF_NOINTERP			= (1<<22),
 	EF_SET_SEQTIME		= (1<<23),
 	EF_SYNCSEQUENCE		= (1<<24),
+	EF_BRIGHTLIGHT		= (1<<25),
+	EF_LIGHT			= (1<<26)
 };
 
 enum waterlevel_t

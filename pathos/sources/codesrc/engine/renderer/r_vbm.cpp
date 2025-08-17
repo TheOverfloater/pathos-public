@@ -143,8 +143,6 @@ CVBMRenderer::CVBMRenderer( void ):
 	m_pFlexManager(nullptr)
 {
 	memset(m_pInternalRotationMatrix, 0, sizeof(m_pInternalRotationMatrix));
-	memset(m_pInternalBoneTransform, 0, sizeof(m_pInternalBoneTransform));
-	memset(m_pInternalWeightBoneTransform, 0, sizeof(m_pInternalWeightBoneTransform));
 	memset(m_pDynamicLights, 0, sizeof(m_pDynamicLights));
 	memset(m_pSubmodelDrawList, 0, sizeof(m_pSubmodelDrawList));
 	memset(m_flexTexels, 0, sizeof(m_flexTexels));
@@ -154,51 +152,30 @@ CVBMRenderer::CVBMRenderer( void ):
 	for(Uint32 i = 0; i < MAX_TEMP_VBM_INDEXES; i++)
 		m_tempIndexes[i] = 0;
 
-	for(Uint32 i = 0; i < MAXSTUDIOBONES; i++)
-	{
-		m_bonePositions1[i].Clear();
-
-		for(Uint32 j = 0; j < 4; j++)
-			m_boneQuaternions1[i][j] = 0;
-	}
-
-	for(Uint32 i = 0; i < MAXSTUDIOBONES; i++)
-	{
-		m_bonePositions2[i].Clear();
-
-		for(Uint32 j = 0; j < 4; j++)
-			m_boneQuaternions2[i][j] = 0;
-	}
-
-	for(Uint32 i = 0; i < MAXSTUDIOBONES; i++)
-	{
-		m_bonePositions3[i].Clear();
-
-		for(Uint32 j = 0; j < 4; j++)
-			m_boneQuaternions3[i][j] = 0;
-	}
-
-	for(Uint32 i = 0; i < MAXSTUDIOBONES; i++)
-	{
-		m_bonePositions4[i].Clear();
-
-		for(Uint32 j = 0; j < 4; j++)
-			m_boneQuaternions4[i][j] = 0;
-	}
-
-	for(Uint32 i = 0; i < MAXSTUDIOBONES; i++)
-	{
-		m_bonePositions5[i].Clear();
-
-		for(Uint32 j = 0; j < 4; j++)
-			m_boneQuaternions5[i][j] = 0;
-	}
-
 	for(Uint32 i = 0; i < 3; i++)
 	{
 		for(Uint32 j = 0; j < 4; j++)
 			m_boneMatrix[i][j] = 0;
 	}
+
+	// Resize arrays to the usual nb of bones
+	m_internalBoneTransform.resize(MAXSTUDIOBONES);
+	m_internalWeightBoneTransform.resize(MAXSTUDIOBONES);
+
+	m_bonePositions1.resize(MAXSTUDIOBONES);
+	m_boneQuaternions1.resize(MAXSTUDIOBONES);
+
+	m_bonePositions2.resize(MAXSTUDIOBONES);
+	m_boneQuaternions2.resize(MAXSTUDIOBONES);
+
+	m_bonePositions3.resize(MAXSTUDIOBONES);
+	m_boneQuaternions3.resize(MAXSTUDIOBONES);
+
+	m_bonePositions4.resize(MAXSTUDIOBONES);
+	m_boneQuaternions4.resize(MAXSTUDIOBONES);
+
+	m_bonePositions5.resize(MAXSTUDIOBONES);
+	m_boneQuaternions5.resize(MAXSTUDIOBONES);
 }
 
 //=============================================
@@ -801,6 +778,54 @@ void CVBMRenderer::ApplyRenderFX( Float (*pmatrix)[4] )
 //=============================================
 bool CVBMRenderer::SetupBones( Int32 flags )
 {
+	// Ensure bone arrays are of proper sizes
+	if(m_bonePositions1.size() < m_pStudioHeader->numbones)
+		m_bonePositions1.resize(m_pStudioHeader->numbones);
+
+	if(m_boneQuaternions1.size() < m_pStudioHeader->numbones)
+		m_boneQuaternions1.resize(m_pStudioHeader->numbones);
+
+	if(m_bonePositions2.size() < m_pStudioHeader->numbones)
+		m_bonePositions2.resize(m_pStudioHeader->numbones);
+
+	if(m_boneQuaternions2.size() < m_pStudioHeader->numbones)
+		m_boneQuaternions2.resize(m_pStudioHeader->numbones);
+
+	if(m_bonePositions3.size() < m_pStudioHeader->numbones)
+		m_bonePositions3.resize(m_pStudioHeader->numbones);
+
+	if(m_boneQuaternions3.size() < m_pStudioHeader->numbones)
+		m_boneQuaternions3.resize(m_pStudioHeader->numbones);
+	
+	if(m_bonePositions4.size() < m_pStudioHeader->numbones)
+		m_bonePositions4.resize(m_pStudioHeader->numbones);
+
+	if(m_boneQuaternions4.size() < m_pStudioHeader->numbones)
+		m_boneQuaternions4.resize(m_pStudioHeader->numbones);
+
+	if(m_bonePositions5.size() < m_pStudioHeader->numbones)
+		m_bonePositions5.resize(m_pStudioHeader->numbones);
+
+	if(m_boneQuaternions5.size() < m_pStudioHeader->numbones)
+		m_boneQuaternions5.resize(m_pStudioHeader->numbones);
+
+	// Also the bone transforms
+	if(m_pBoneTransform == &m_internalBoneTransform)
+	{
+		if(m_pBoneTransform->size() < m_pStudioHeader->numbones)
+			m_pBoneTransform->resize(m_pStudioHeader->numbones);
+	}
+	else if(m_pBoneTransform->size() != m_pStudioHeader->numbones)
+		m_pBoneTransform->resize(m_pStudioHeader->numbones);
+
+	if(m_pWeightBoneTransform == &m_internalWeightBoneTransform)
+	{
+		if(m_pWeightBoneTransform->size() < m_pStudioHeader->numbones)
+			m_pWeightBoneTransform->resize(m_pStudioHeader->numbones);
+	}
+	else if(m_pWeightBoneTransform->size() != m_pStudioHeader->numbones)
+		m_pWeightBoneTransform->resize(m_pStudioHeader->numbones);
+
 	// Determine interpolation time
 	Float interptime = VBM_SEQ_BLEND_TIME;
 	if(m_pCurrentEntity->curstate.effects & EF_FASTINTERP)
@@ -923,12 +948,12 @@ bool CVBMRenderer::SetupBones( Int32 flags )
 
 		if(pbone->parent == -1)
 		{
-			Math::ConcatTransforms((*m_pRotationMatrix), m_boneMatrix, (*m_pBoneTransform)[i]);
-			ApplyRenderFX((*m_pBoneTransform)[i]);
+			Math::ConcatTransforms((*m_pRotationMatrix), m_boneMatrix, (*m_pBoneTransform)[i].matrix);
+			ApplyRenderFX((*m_pBoneTransform)[i].matrix);
 		}
 		else
 		{
-			Math::ConcatTransforms((*m_pBoneTransform)[pbone->parent], m_boneMatrix, (*m_pBoneTransform)[i]);
+			Math::ConcatTransforms((*m_pBoneTransform)[pbone->parent].matrix, m_boneMatrix, (*m_pBoneTransform)[i].matrix);
 		}
 	}
 
@@ -938,7 +963,7 @@ bool CVBMRenderer::SetupBones( Int32 flags )
 		for(Int32 i = 0; i < m_pVBMHeader->numboneinfo; i++)
 		{
 			const vbmboneinfo_t* pvbmbone = m_pVBMHeader->getBoneInfo(i);
-			Math::ConcatTransforms((*m_pBoneTransform)[i], pvbmbone->bindtransform, (*m_pWeightBoneTransform)[i]);
+			Math::ConcatTransforms((*m_pBoneTransform)[i].matrix, pvbmbone->bindtransform, (*m_pWeightBoneTransform)[i].matrix);
 		}
 	}
 
@@ -980,16 +1005,16 @@ void CVBMRenderer::SetExtraInfo( void )
 	if(m_pCurrentEntity->entindex < 1)
 	{
 		m_pRotationMatrix = (Float (*)[3][4])m_pInternalRotationMatrix;
-		m_pBoneTransform = (Float (*)[MAXSTUDIOBONES][3][4])m_pInternalBoneTransform;
-		m_pWeightBoneTransform = (Float (*)[MAXSTUDIOBONES][3][4])m_pInternalWeightBoneTransform;
+		m_pBoneTransform = &m_internalBoneTransform;
+		m_pWeightBoneTransform = &m_internalWeightBoneTransform;
 		m_pExtraInfo = nullptr;
 	}
 	else
 	{
 		m_pExtraInfo = CL_GetEntityExtraData(m_pCurrentEntity);
 		m_pRotationMatrix = (Float (*)[3][4])m_pExtraInfo->paniminfo->rotation;
-		m_pBoneTransform = (Float (*)[MAXSTUDIOBONES][3][4])m_pExtraInfo->paniminfo->bones;
-		m_pWeightBoneTransform = (Float (*)[MAXSTUDIOBONES][3][4])m_pExtraInfo->paniminfo->weightbones;
+		m_pBoneTransform = &m_pExtraInfo->paniminfo->bones;
+		m_pWeightBoneTransform = &m_pExtraInfo->paniminfo->weightbones;
 	}
 }
 
@@ -1148,29 +1173,13 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 		if (CheckBBox())
 			return true;
 
-		// See if we're using any scope textures
-		if(!(flags & VBM_SETUPBONES) && m_pCvarDrawModels->GetValue() >= 1)
+		// See if we're using any scope textures, and if so, grab the screen texture
+		if(!(flags & VBM_SETUPBONES) && m_pCvarDrawModels->GetValue() >= 1 && (m_pVBMHeader->flags & VBM_HAS_SCOPE_TEXTURE))
 		{
-			Int32 i = 0;
-			for(; i < m_pVBMHeader->numtextures; i++)
-			{
-				const vbmtexture_t* ptexture = m_pVBMHeader->getTexture(i);
-				en_material_t* pmaterial = CTextureManager::GetInstance()->FindMaterialScriptByIndex(ptexture->index);
-				if(!pmaterial)
-					continue;
-
-				if(pmaterial->flags & TX_FL_SCOPE)
-					break;
-			}
-
-			if(i != m_pVBMHeader->numtextures)
-			{
-				// Grab the screen texture
-				m_pScreenTexture = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
-				R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenTexture->palloc->gl_index, true);
-				glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
-				R_BindRectangleTexture(GL_TEXTURE0_ARB, 0);
-			}
+			m_pScreenTexture = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
+			R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenTexture->palloc->gl_index, true);
+			glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
+			R_BindRectangleTexture(GL_TEXTURE0_ARB, 0);
 		}
 	}
 
@@ -1260,7 +1269,7 @@ void CVBMRenderer::CalculateAttachments( void )
 	for(Int32 i = 0; i < m_pStudioHeader->numattachments; i++)
 	{
 		const mstudioattachment_t* pattachment = m_pStudioHeader->getAttachment(static_cast<Uint32>(i));
-		Math::VectorTransform(pattachment->org, (*m_pBoneTransform)[pattachment->bone], m_pCurrentEntity->attachments[i]);
+		Math::VectorTransform(pattachment->org, (*m_pBoneTransform)[pattachment->bone].matrix, m_pCurrentEntity->attachments[i]);
 	}
 }
 
@@ -1352,7 +1361,10 @@ void CVBMRenderer::AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, vbm_glvertex_t*
 			pmaterial = pTextureManager->GetDummyMaterial();
 
 		if(pmaterial->flags & (TX_FL_ADDITIVE|TX_FL_ALPHABLEND))
-			ptexture->flags |= FL_VBM_TEXTURE_BLEND;
+			pvbm->flags |= VBM_HAS_BLEND_TEXTURE;
+
+		if(pmaterial->flags & TX_FL_SCOPE)
+			pvbm->flags |= VBM_HAS_SCOPE_TEXTURE;
 
 		if(!pmaterial->containername.empty())
 		{
@@ -4777,7 +4789,7 @@ bool CVBMRenderer::DecalTriangle( Int32 pbodypartindex, Int32 submodelindex, vbm
 				continue;
 
 			byte boneindex = pboneids[pverts[i]->boneindexes[j]/3];
-			Math::VectorTransform(pverts[i]->origin, (*m_pWeightBoneTransform)[boneindex], tmp);
+			Math::VectorTransform(pverts[i]->origin, (*m_pWeightBoneTransform)[boneindex].matrix, tmp);
 			Math::VectorMA(baseverts[i], boneweights[j], tmp, baseverts[i]);
 		}
 
@@ -5620,7 +5632,7 @@ bool CVBMRenderer::GetBonePosition( cl_entity_t *pEntity, const Char *szname, Ve
 		if(!strcmp(pbone->name, szname))
 		{
 			for(Uint32 j = 0; j < 3; j++)
-				origin[j] = (*m_pBoneTransform)[i][j][3];
+				origin[j] = (*m_pBoneTransform)[i].matrix[j][3];
 
 			return true;
 		}
@@ -5672,13 +5684,13 @@ void CVBMRenderer::TransformVectorByBoneMatrix( cl_entity_t *pEntity, Int32 bone
 	if(inverse)
 	{
 		for(Uint32 i = 0; i < 3; i++)
-			transvector[i] -= (*m_pBoneTransform)[boneindex][i][3];
+			transvector[i] -= (*m_pBoneTransform)[boneindex].matrix[i][3];
 
-		Math::VectorInverseRotate(transvector, (*m_pBoneTransform)[boneindex], vector);
+		Math::VectorInverseRotate(transvector, (*m_pBoneTransform)[boneindex].matrix, vector);
 	}
 	else
 	{
-		Math::VectorTransform(transvector, (*m_pBoneTransform)[boneindex], vector);
+		Math::VectorTransform(transvector, (*m_pBoneTransform)[boneindex].matrix, vector);
 	}
 }
 
@@ -5723,9 +5735,9 @@ void CVBMRenderer::RotateVectorByBoneMatrix( cl_entity_t *pEntity, Int32 boneind
 
 	Vector transvector = vector;
 	if(inverse)
-		Math::VectorInverseRotate(transvector, (*m_pBoneTransform)[boneindex], vector);
+		Math::VectorInverseRotate(transvector, (*m_pBoneTransform)[boneindex].matrix, vector);
 	else
-		Math::VectorRotate(transvector, (*m_pBoneTransform)[boneindex], vector);
+		Math::VectorRotate(transvector, (*m_pBoneTransform)[boneindex].matrix, vector);
 }
 
 //=============================================
@@ -6676,12 +6688,17 @@ bool CVBMRenderer::DrawBones( void )
 		// Begin compiling the vertex data
 		m_numTempVertexes = 0;
 
-		Vector worldOrigin((*m_pBoneTransform)[i][0][3], (*m_pBoneTransform)[i][1][3], (*m_pBoneTransform)[i][2][3]);
-		Vector parentOrigin((*m_pBoneTransform)[pbone->parent][0][3], (*m_pBoneTransform)[pbone->parent][1][3], (*m_pBoneTransform)[pbone->parent][2][3]);
+		Vector worldOrigin;
+		for(Uint32 j = 0; j < 3; j++)
+			worldOrigin[j] = (*m_pBoneTransform)[i].matrix[j][3];
+
+		Vector parentOrigin;
+		for(Uint32 j = 0; j < 3; j++)
+			worldOrigin[j] = (*m_pBoneTransform)[pbone->parent].matrix[j][3];
 
 		Vector temp;
 		Math::VectorSubtract(worldOrigin, parentOrigin, temp);
-		Math::VectorInverseRotate(temp, (*m_pBoneTransform)[pbone->parent], worldOrigin);
+		Math::VectorInverseRotate(temp, (*m_pBoneTransform)[pbone->parent].matrix, worldOrigin);
 
 		BatchVertex(Vector(0, 0, 0));
 		BatchVertex(worldOrigin);
@@ -7207,9 +7224,12 @@ bool CVBMRenderer::DrawAttachments( void )
 		// Begin compiling the vertex data
 		m_numTempVertexes = 0;
 
-		Vector worldOrigin((*m_pBoneTransform)[pattachment->bone][0][3], (*m_pBoneTransform)[pattachment->bone][1][3], (*m_pBoneTransform)[pattachment->bone][2][3]);
+		Vector worldOrigin;
+		for(Uint32 j = 0; j < 3; j++)
+			worldOrigin[j] = (*m_pBoneTransform)[pattachment->bone].matrix[j][3];
+
 		Vector attachmentOrigin;
-		Math::VectorTransform(pattachment->org, (*m_pBoneTransform)[pattachment->bone], attachmentOrigin);
+		Math::VectorTransform(pattachment->org, (*m_pBoneTransform)[pattachment->bone].matrix, attachmentOrigin);
 
 		Math::VectorCopy(worldOrigin, m_tempVertexes[m_numTempVertexes].origin);
 		m_tempVertexes[m_numTempVertexes].boneindexes[0] = 0;
@@ -7423,19 +7443,19 @@ void CVBMRenderer::BatchVertex( const Vector& origin )
 //
 //
 //=============================================
-void CVBMRenderer::SetShaderBoneTransform( Float (*pbonetransform)[MAXSTUDIOBONES][3][4], const byte* pboneindexes, Uint32 numbones )
+void CVBMRenderer::SetShaderBoneTransform( BoneTransformArray_t* pbonetransform, const byte* pboneindexes, Uint32 numbones )
 {
 	if(m_areUBOsSupported)
 	{
 		for(Uint32 i = 0; i < numbones; i++)
-			memcpy((void *)m_uboBoneMatrixData[i], (void *)(*pbonetransform)[pboneindexes[i]], sizeof(vec4_t)*3);
+			memcpy((void *)m_uboBoneMatrixData[i], (*pbonetransform)[pboneindexes[i]].matrix, sizeof(vec4_t)*3);
 
 		m_pShader->SetUniformBufferObjectData(m_attribs.ub_bonematrices, m_uboBoneMatrixData, numbones*3*sizeof(vec4_t));
 	}
 	else
 	{
 		for(Int32 i = 0; i < numbones; i++)
-			m_pShader->SetUniform4fv(m_attribs.boneindexes[i], (Float *)(*pbonetransform)[pboneindexes[i]], 3);
+			m_pShader->SetUniform4fv(m_attribs.boneindexes[i], (Float *)(*pbonetransform)[pboneindexes[i]].matrix, 3);
 	}
 }
 

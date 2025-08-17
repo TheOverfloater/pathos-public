@@ -98,8 +98,8 @@ static constexpr Float STEPTIME_SLOWMOVE = 720.0f;
 // Step time when sprinting
 static constexpr Float STEPTIME_SPRINT = 475.0f;
 
-// Maximum leafnums an entity can hold
-static constexpr Int32 MAX_EDICT_LEAFNUMS = 256;
+// Allocation size for leafnums
+static constexpr Int32 LEAFNUM_ALLOC_COUNT = 256;
 
 // Max entities on server side(client ones start after this index)
 static constexpr Uint32 MAX_SERVER_ENTITIES = 65535;

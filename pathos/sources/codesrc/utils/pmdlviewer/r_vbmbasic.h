@@ -400,9 +400,9 @@ private:
 	// Direct world light
 	Float m_shadeLight;
 	// Bone transformation matrix
-	Float m_boneTransform[MAXSTUDIOBONES][3][4];
+	BoneTransformArray_t m_boneTransform;
 	// Vertex weight bone transformation matrix
-	Float m_weightBoneTransform[MAXSTUDIOBONES][3][4];
+	BoneTransformArray_t m_weightBoneTransform;
 
 	// Attachment array
 	CArray<Vector> m_attachmentsArray;
@@ -451,20 +451,20 @@ private:
 
 private:
 	// Quaternion and vector arrays used for bone transforms
-	Vector	m_bonePositions1[MAXSTUDIOBONES];
-	vec4_t	m_boneQuaternions1[MAXSTUDIOBONES];
+	CArray<Vector>	m_bonePositions1;
+	CArray<vec4_t>	m_boneQuaternions1;
 	// Quaternion and vector arrays used for bone transforms
-	Vector	m_bonePositions2[MAXSTUDIOBONES];
-	vec4_t	m_boneQuaternions2[MAXSTUDIOBONES];
+	CArray<Vector>	m_bonePositions2;
+	CArray<vec4_t>	m_boneQuaternions2;
 	// Quaternion and vector arrays used for bone transforms
-	Vector	m_bonePositions3[MAXSTUDIOBONES];
-	vec4_t	m_boneQuaternions3[MAXSTUDIOBONES];
+	CArray<Vector>	m_bonePositions3;
+	CArray<vec4_t>	m_boneQuaternions3;
 	// Quaternion and vector arrays used for bone transforms
-	Vector	m_bonePositions4[MAXSTUDIOBONES];
-	vec4_t	m_boneQuaternions4[MAXSTUDIOBONES];
+	CArray<Vector>	m_bonePositions4;
+	CArray<vec4_t>	m_boneQuaternions4;
 	// Quaternion and vector arrays used for bone transforms
-	Vector	m_bonePositions5[MAXSTUDIOBONES];
-	vec4_t	m_boneQuaternions5[MAXSTUDIOBONES];
+	CArray<Vector>	m_bonePositions5;
+	CArray<vec4_t>	m_boneQuaternions5;
 	// Used for bone transform calculations
 	Float	m_boneMatrix[3][4];
 

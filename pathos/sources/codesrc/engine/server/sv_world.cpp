@@ -78,15 +78,14 @@ void SV_LinkEdict( edict_t* pentity, bool touchtriggers )
 	else
 	{
 		// Clear leafnums
-		if(!pentity->leafnums.empty())
-			pentity->leafnums.clear();
+		pentity->numleaves = 0;
 
 		// Define the mins/maxs for checking leaves
 		Vector checkmins = pentity->state.absmin - Vector(1, 1, 1);
 		Vector checkmaxs = pentity->state.absmax + Vector(1, 1, 1);
 
 		// Find the leaves we're touching
-		Mod_FindTouchedLeafs(ens.pworld, pentity->leafnums, checkmins, checkmaxs, ens.pworld->pnodes);
+		Mod_FindTouchedLeafs(ens.pworld, pentity->leafnums, pentity->numleaves, checkmins, checkmaxs, ens.pworld->pnodes);
 	}
 
 	// Ignore non-solid objects

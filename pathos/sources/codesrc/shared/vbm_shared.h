@@ -39,9 +39,9 @@ struct cache_model_t;
 enum vbmlod_type_t;
 
 extern Float VBM_EstimateInterpolant( Float time, Float animtime, Float prevanimtime );
-extern void VBM_CalculateRotations( const studiohdr_t* phdr, Float time, Float animtime, Float prevanimtime, Vector* ppositions, vec4_t* pquaternions, const mstudioseqdesc_t* pseqdesc, const mstudioanim_t* panim, Float frame, const Float* pcontroller1, const Float* pcontroller2, byte mouth );
+extern void VBM_CalculateRotations( const studiohdr_t* phdr, Float time, Float animtime, Float prevanimtime, CArray<Vector>& positions, CArray<vec4_t>& quaternions, const mstudioseqdesc_t* pseqdesc, const mstudioanim_t* panim, Float frame, const Float* pcontroller1, const Float* pcontroller2, byte mouth );
 extern void VBM_CalculateBoneAdjustments( const studiohdr_t* phdr, Float dadt, Float* padj, const Float* pcontroller1, const Float* pcontroller2, byte mouth );
-extern void VBM_InterpolateBones( const studiohdr_t* phdr, const vec4_t* pquaternions1, const Vector* ppositions1, const vec4_t* pquaternions2, const Vector* ppositions2, Float interpolant, vec4_t *poutquaternions, Vector* poutpositions );
+extern void VBM_InterpolateBones( const studiohdr_t* phdr, const CArray<vec4_t>& quaternions1, const CArray<Vector>& positions1, CArray<vec4_t>& quaternions2, const CArray<Vector>& positions2, Float interpolant, CArray<vec4_t>& outquaternions, CArray<Vector>& outpositions );
 extern const mstudioanim_t* VBM_GetAnimation( const studiohdr_t* phdr, const mstudioseqdesc_t* psequencedesc );
 extern void VBM_CalculateBoneQuaternion( Int32 frame, Float interpolant, const mstudiobone_t* pbone, const mstudioanim_t* panimation, const Float* padj, vec4_t& quaternion );
 extern void VBM_CalculateBonePosition( Int32 frame, Float interpolant, const mstudiobone_t* pbone, const mstudioanim_t* panimation, const Float* padj, Vector& outpos );

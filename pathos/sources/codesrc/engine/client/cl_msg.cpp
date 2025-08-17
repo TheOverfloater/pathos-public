@@ -33,6 +33,8 @@ All Rights Reserved.
 #include "texturemanager.h"
 #include "r_particles.h"
 #include "r_decals.h"
+#include "r_legacyparticles.h"
+#include "dlight.h"
 
 //=============================================
 //
@@ -505,6 +507,100 @@ void CL_ResetLatchedState( cl_entity_t* pentity )
 //=============================================
 //
 //=============================================
+void CL_AddEntityEffects( cl_entity_t* pentity )
+{
+	// Handle EF_MUZZLEFLASH for legacy support
+	if(pentity->curstate.effects & EF_MUZZLEFLASH)
+	{
+		mlight_t* pelight = CL_AllocEntityLight(pentity->curstate.entindex, 0.1f, 0);
+		pelight->origin = pentity->getAttachment(0);
+		pelight->color.x = 1.0;
+		pelight->color.y = 0.75;
+		pelight->color.z = 0.25;
+		pelight->radius = Common::RandomFloat(30, 40);
+	}
+
+	// Only allow DIMLIGHT/BRIGHTLIGHT on non-players
+	if(pentity->entindex > LADDER_ENTITY_INDEX)
+	{
+		if(pentity->curstate.effects & (EF_BRIGHTLIGHT|EF_DIMLIGHT))
+		{
+			if(pentity->curstate.effects & EF_BRIGHTLIGHT)
+			{
+				cl_dlight_t* pdl = CL_AllocDynamicPointLight(pentity->entindex, -1, false, true, pentity);
+				pdl->origin = pentity->curstate.origin + Vector(0, 0, 16);
+				pdl->color = Vector(0.98, 0.98, 0.98);
+				pdl->radius = Common::RandomFloat(400, 431);
+				pdl->die = cls.cl_time + 0.001;
+			}
+
+			if(pentity->curstate.effects & EF_BRIGHTLIGHT)
+			{
+				cl_dlight_t* pdl = CL_AllocDynamicPointLight(pentity->entindex, -2, false, true, pentity);
+				pdl->origin = pentity->curstate.origin;
+				pdl->color = Vector(0.39, 0.39, 0.39);
+				pdl->radius = Common::RandomFloat(200, 231);
+				pdl->die = cls.cl_time + 0.001;
+			}
+		}
+	}
+
+	if(pentity->curstate.effects & EF_LIGHT)
+	{
+		cl_dlight_t* pdl = CL_AllocDynamicPointLight(pentity->entindex, -3, false, true, pentity);
+		pdl->origin = pentity->curstate.origin + Vector(0, 0, 16);
+		pdl->color = Vector(0.39, 0.39, 0.39);
+		pdl->radius = 200;
+		pdl->die = cls.cl_time + 0.001;
+	}
+
+	// Apply any Q1-type effects
+	if(pentity->pmodel && pentity->pmodel->type == MOD_VBM)
+	{
+		const cache_model_t* pmodel = pentity->pmodel;
+		const Vector& origin = pentity->curstate.origin;
+		const Vector& prevorigin = pentity->prevstate.origin;
+
+		if(pmodel->flags & STUDIO_MF_GIB)
+		{
+			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_blood);
+		}
+		else if(pmodel->flags & STUDIO_MF_ZOMGIB)
+		{
+			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_slightblood);
+		}
+		else if(pmodel->flags & STUDIO_MF_TRACER)
+		{
+			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_tracer1);
+		}
+		else if(pmodel->flags & STUDIO_MF_TRACER2)
+		{
+			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_tracer2);
+		}
+		else if(pmodel->flags & STUDIO_MF_TRACER3)
+		{
+			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_voortrail);
+		}
+		else if(pmodel->flags & STUDIO_MF_GRENADE)
+		{
+			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_smoke);
+		}
+		else if(pmodel->flags & STUDIO_MF_ROCKET)
+		{
+			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_rocket);
+
+			cl_dlight_t* pdl = CL_AllocDynamicPointLight(pentity->entindex, -4, false, true, pentity);
+			pdl->origin = pentity->curstate.origin;
+			pdl->color = Vector(0.78, 0.78, 0.78);
+			pdl->radius = 200;
+			pdl->die = cls.cl_time + 0.001;
+		}
+	}
+}
+
+//=============================================
+//
+//=============================================
 bool CL_ReadPacketEntities( void )
 {
 	CMSGReader& reader = cls.netinfo.reader;
@@ -820,16 +916,8 @@ bool CL_ReadPacketEntities( void )
 			CL_UpdateLatchedState(pentity);
 		}
 
-		// Handle EF_MUZZLEFLASH for legacy support
-		if(pentity->curstate.effects & EF_MUZZLEFLASH)
-		{
-			mlight_t* pmlight = CL_AllocEntityLight(pentity->curstate.entindex, 0.1f, 0);
-			pmlight->origin = pentity->getAttachment(0);
-			pmlight->color.x = 1.0;
-			pmlight->color.y = 0.75;
-			pmlight->color.z = 0.25;
-			pmlight->radius = Common::RandomFloat(30, 40);
-		}
+		// Add any effects to this entity
+		CL_AddEntityEffects(pentity);
 
 		// Manage particle blockers in packet
 		if(pentity->curstate.flags & FL_PARTICLE_BLOCKER)

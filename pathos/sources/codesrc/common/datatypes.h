@@ -22,9 +22,73 @@ typedef __int64				Int64;
 typedef unsigned __int64	Uint64;
 typedef float				Float;
 typedef double				Double;
-typedef	Float				vec4_t[4];
 typedef Uint32				string_t;
 typedef Int32				entindex_t;
+
+struct vec4_t
+{
+	inline vec4_t()
+	{
+		for(Uint32 i = 0; i < 4; i++)
+			v[i] = 0;
+	}
+
+	inline vec4_t(const vec4_t& src)
+	{
+		for(Uint32 i = 0; i < 4; i++)
+			v[i] = src.v[i];
+	}
+
+	inline vec4_t( Float coords[4] )
+	{
+		for(Uint32 i = 0; i < 4; i++)
+			v[i] = coords[i];
+	}
+
+	inline vec4_t& operator=( const vec4_t& src )
+	{
+		for(Uint32 i = 0; i < 4; i++)
+			v[i] = src.v[i];
+
+		return *this;
+	}
+
+	inline Float& operator[]( Uint32 n )
+	{
+		assert(n <= 4);
+		return v[n];
+	}
+
+	inline Float operator[]( Uint32 n ) const
+	{
+		assert(n <= 4);
+		return v[n];
+	}
+
+	inline Float& operator[]( Int32 n )
+	{
+		assert(n <= 4);
+		return v[n];
+	}
+
+	inline Float operator[]( Int32 n ) const
+	{
+		assert(n <= 4);
+		return v[n];
+	}
+
+	inline operator Float*( void )
+	{
+		return v;
+	}
+
+	inline operator const Float*( void ) const
+	{
+		return v;
+	}
+
+	Float v[4];
+};
 
 struct color32_t
 {
@@ -89,5 +153,15 @@ struct color24_t
 	byte r;
 	byte g;
 	byte b;
+};
+
+struct pmatrix3x4_t
+{
+	pmatrix3x4_t()
+	{
+		memset(matrix, 0, sizeof(matrix));
+	}
+
+	Float matrix[3][4];
 };
 #endif

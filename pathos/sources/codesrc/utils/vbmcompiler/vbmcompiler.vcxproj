@@ -156,6 +156,11 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <OutputFile>.\Release/vbmcompiler.bsc</OutputFile>
     </Bscmake>
+    <CustomBuildStep>
+      <Command>copy /Y "$(OutDir)/vbmcompiler.exe" "$(SolutionDir)/../../../progs/vbmcompiler/vbmcompiler.exe"</Command>
+      <Message>Copy "$(OutDir)/vbmcompiler.exe" to working "$(SolutionDir)/../../../progs/vbmcompiler/vbmcompiler.exe"</Message>
+      <Outputs>vbmcompiler.exe</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>

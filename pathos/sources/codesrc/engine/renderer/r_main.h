@@ -287,7 +287,8 @@ struct renderer_state_t
 		pbgrtttexture(nullptr),
 		nextfreerenderpassidx(0),
 		renderpassidx(0),
-		pboundfbo(nullptr)
+		pboundfbo(nullptr),
+		numtmpleafs(0)
 	{}
 	~renderer_state_t()
 	{
@@ -395,6 +396,11 @@ struct renderer_state_t
 	fbobind_t* pboundfbo;
 	// FBO used by main screen
 	fbobind_t mainfbo;
+
+	// Used for culling entities
+	CArray<Uint32> tmpleafnums;
+	// Number of leaves
+	Uint32 numtmpleafs;
 };
 
 enum querytype_t

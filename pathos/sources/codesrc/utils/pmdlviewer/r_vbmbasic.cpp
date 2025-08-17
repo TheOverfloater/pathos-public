@@ -126,18 +126,6 @@ CBasicVBMRenderer::CBasicVBMRenderer( CGLExtF& glExtF, const file_interface_t& f
 	memset(m_adj, 0, sizeof(m_adj));
 	memset(m_boneController, 0, sizeof(m_boneController));
 	memset(m_blending, 0, sizeof(m_blending));
-	memset(m_boneTransform, 0, sizeof(m_boneTransform));
-	memset(m_weightBoneTransform, 0, sizeof(m_weightBoneTransform));
-	memset(m_bonePositions1, 0, sizeof(m_bonePositions1));
-	memset(m_boneQuaternions1, 0, sizeof(m_boneQuaternions1));
-	memset(m_bonePositions2, 0, sizeof(m_bonePositions2));
-	memset(m_boneQuaternions2, 0, sizeof(m_boneQuaternions2));
-	memset(m_bonePositions3, 0, sizeof(m_bonePositions3));
-	memset(m_boneQuaternions3, 0, sizeof(m_boneQuaternions3));
-	memset(m_bonePositions4, 0, sizeof(m_bonePositions4));
-	memset(m_boneQuaternions4, 0, sizeof(m_boneQuaternions4));
-	memset(m_bonePositions5, 0, sizeof(m_bonePositions5));
-	memset(m_boneQuaternions5, 0, sizeof(m_boneQuaternions5));
 	memset(m_boneMatrix, 0, sizeof(m_boneMatrix));
 }
 
@@ -907,6 +895,44 @@ Float CBasicVBMRenderer::SetFrame( Float nFrame )
 //=============================================
 void CBasicVBMRenderer::SetUpBones ( void )
 {
+	// Ensure bone arrays are of proper sizes
+	if(m_bonePositions1.size() < m_pStudioHeader->numbones)
+		m_bonePositions1.resize(m_pStudioHeader->numbones);
+
+	if(m_boneQuaternions1.size() < m_pStudioHeader->numbones)
+		m_boneQuaternions1.resize(m_pStudioHeader->numbones);
+
+	if(m_bonePositions2.size() < m_pStudioHeader->numbones)
+		m_bonePositions2.resize(m_pStudioHeader->numbones);
+
+	if(m_boneQuaternions2.size() < m_pStudioHeader->numbones)
+		m_boneQuaternions2.resize(m_pStudioHeader->numbones);
+
+	if(m_bonePositions3.size() < m_pStudioHeader->numbones)
+		m_bonePositions3.resize(m_pStudioHeader->numbones);
+
+	if(m_boneQuaternions3.size() < m_pStudioHeader->numbones)
+		m_boneQuaternions3.resize(m_pStudioHeader->numbones);
+	
+	if(m_bonePositions4.size() < m_pStudioHeader->numbones)
+		m_bonePositions4.resize(m_pStudioHeader->numbones);
+
+	if(m_boneQuaternions4.size() < m_pStudioHeader->numbones)
+		m_boneQuaternions4.resize(m_pStudioHeader->numbones);
+
+	if(m_bonePositions5.size() < m_pStudioHeader->numbones)
+		m_bonePositions5.resize(m_pStudioHeader->numbones);
+
+	if(m_boneQuaternions5.size() < m_pStudioHeader->numbones)
+		m_boneQuaternions5.resize(m_pStudioHeader->numbones);
+
+	// Also the bone transforms
+	if(m_boneTransform.size() != m_pStudioHeader->numbones)
+		m_boneTransform.resize(m_pStudioHeader->numbones);
+
+	if(m_weightBoneTransform.size() != m_pStudioHeader->numbones)
+		m_weightBoneTransform.resize(m_pStudioHeader->numbones);
+
 	if (m_sequence >= m_pStudioHeader->numseq) 
 		m_sequence = 0;
 
@@ -949,9 +975,9 @@ void CBasicVBMRenderer::SetUpBones ( void )
 		m_boneMatrix[2][3] = m_bonePositions1[i][2];
 
 		if (pbone->parent == -1)
-			memcpy(m_boneTransform[i], m_boneMatrix, sizeof(Float)*12);
+			memcpy(m_boneTransform[i].matrix, m_boneMatrix, sizeof(Float)*12);
 		else
-			Math::ConcatTransforms (m_boneTransform[pbone->parent], m_boneMatrix, m_boneTransform[i]);
+			Math::ConcatTransforms (m_boneTransform[pbone->parent].matrix, m_boneMatrix, m_boneTransform[i].matrix);
 	}
 
 	if(m_pVBMHeader)
@@ -959,7 +985,7 @@ void CBasicVBMRenderer::SetUpBones ( void )
 		// Set up weight transforms
 		vbmboneinfo_t* pboneinfos = (vbmboneinfo_t*)((byte *)m_pVBMHeader + m_pVBMHeader->boneinfooffset);
 		for (Int32 i = 0; i < m_pVBMHeader->numboneinfo; i++)
-			Math::ConcatTransforms (m_boneTransform[i], pboneinfos[i].bindtransform, m_weightBoneTransform[i]);
+			Math::ConcatTransforms (m_boneTransform[i].matrix, pboneinfos[i].bindtransform, m_weightBoneTransform[i].matrix);
 	}
 }
 
@@ -1176,7 +1202,7 @@ bool CBasicVBMRenderer::DrawBones( void )
 			continue;
 
 		// Set bone
-		m_pShader->SetUniform4fv(m_attribs.boneindexes[0], (Float *)m_boneTransform[pbone->parent], 3);
+		m_pShader->SetUniform4fv(m_attribs.boneindexes[0], (Float *)m_boneTransform[pbone->parent].matrix, 3);
 
 		// Set color
 		m_pShader->SetUniform4f(m_attribs.u_color, BONE_LINES_COLOR[0], BONE_LINES_COLOR[1], BONE_LINES_COLOR[2], 1.0);
@@ -1184,12 +1210,17 @@ bool CBasicVBMRenderer::DrawBones( void )
 		// Begin compiling the vertex data
 		m_numTempVertexes = 0;
 
-		Vector worldOrigin(m_boneTransform[i][0][3], m_boneTransform[i][1][3], m_boneTransform[i][2][3]);
-		Vector parentOrigin(m_boneTransform[pbone->parent][0][3], m_boneTransform[pbone->parent][1][3], m_boneTransform[pbone->parent][2][3]);
+		Vector worldOrigin;
+		for(Uint32 j = 0; j < 3; j++)
+			worldOrigin[j] = m_boneTransform[i].matrix[j][3];
+
+		Vector parentOrigin;
+		for(Uint32 j = 0; j < 3; j++)
+			worldOrigin[j] = m_boneTransform[pbone->parent].matrix[j][3];
 
 		Vector temp;
 		Math::VectorSubtract(worldOrigin, parentOrigin, temp);
-		Math::VectorInverseRotate(temp, m_boneTransform[pbone->parent], worldOrigin);
+		Math::VectorInverseRotate(temp, m_boneTransform[pbone->parent].matrix, worldOrigin);
 
 		Math::VectorClear(m_tempVertexes[m_numTempVertexes].origin);
 		m_tempVertexes[m_numTempVertexes].boneindexes[0] = 0;
@@ -1261,7 +1292,7 @@ bool CBasicVBMRenderer::DrawHitBoxes( void )
 		const mstudiobbox_t *pbbox = m_pStudioHeader->getHitBox(i);
 
 		// Set bone transform
-		m_pShader->SetUniform4fv(m_attribs.boneindexes[0], (Float *)m_boneTransform[pbbox->bone], 3);
+		m_pShader->SetUniform4fv(m_attribs.boneindexes[0], (Float *)m_boneTransform[pbbox->bone].matrix, 3);
 
 		// Set color
 		const Vector& pcolor = RANDOM_COLOR_ARRAY[pbbox->group%NB_RANDOM_COLORS];
@@ -1319,9 +1350,12 @@ bool CBasicVBMRenderer::DrawAttachments( void )
 		// Begin compiling the vertex data
 		m_numTempVertexes = 0;
 
-		Vector worldOrigin(m_boneTransform[pattachment->bone][0][3], m_boneTransform[pattachment->bone][1][3], m_boneTransform[pattachment->bone][2][3]);
+		Vector worldOrigin;
+		for(Uint32 j = 0; j < 3; j++)
+			worldOrigin[j] = m_boneTransform[i].matrix[j][3];
+
 		Vector attachmentOrigin;
-		Math::VectorTransform(pattachment->org, m_boneTransform[pattachment->bone], attachmentOrigin);
+		Math::VectorTransform(pattachment->org, m_boneTransform[pattachment->bone].matrix, attachmentOrigin);
 
 		Math::VectorCopy(worldOrigin, m_tempVertexes[m_numTempVertexes].origin);
 		m_tempVertexes[m_numTempVertexes].boneindexes[0] = 0;
@@ -1988,7 +2022,7 @@ bool CBasicVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pme
 	{
 		const byte *pboneindexes = pmesh->getBones(m_pVBMHeader);
 		for(Int32 i = 0; i < pmesh->numbones; i++)
-			m_pShader->SetUniform4fv(m_attribs.boneindexes[i], (Float *)m_weightBoneTransform[pboneindexes[i]], 3);
+			m_pShader->SetUniform4fv(m_attribs.boneindexes[i], (Float *)m_weightBoneTransform[pboneindexes[i]].matrix, 3);
 	}
 	
 	if(drawBlended && pmaterial->flags & TX_FL_EYEGLINT)
@@ -2065,7 +2099,7 @@ bool CBasicVBMRenderer::DrawSubmodelSolid( bool setFlexes )
 		{
 			const byte *pboneindexes = pmesh->getBones(m_pVBMHeader);
 			for(Int32 j = 0; j < pmesh->numbones; j++)
-				m_pShader->SetUniform4fv(m_attribs.boneindexes[j], (Float *)m_weightBoneTransform[pboneindexes[j]], 3);
+				m_pShader->SetUniform4fv(m_attribs.boneindexes[j], (Float *)m_weightBoneTransform[pboneindexes[j]].matrix, 3);
 		}
 
 		glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
@@ -2111,10 +2145,10 @@ void CBasicVBMRenderer::Chrome( const Vector& viewOrigin, const Vector& viewRigh
 			continue;
 
 		byte boneindex = pboneindexes[(byte)(pvertex->boneindexes[i]/3)];
-		Math::VectorTransform(pvertex->origin, m_weightBoneTransform[boneindex], tmp);
+		Math::VectorTransform(pvertex->origin, m_weightBoneTransform[boneindex].matrix, tmp);
 		Math::VectorMA(origin, ((float)pvertex->boneweights[i])/255.0f, tmp, origin);
 
-		Math::VectorRotate(pvertex->normal, m_weightBoneTransform[boneindex], tmp);
+		Math::VectorRotate(pvertex->normal, m_weightBoneTransform[boneindex].matrix, tmp);
 		Math::VectorMA(normal, ((float)pvertex->boneweights[i])/255.0f, tmp, normal);
 	}
 
@@ -2155,7 +2189,7 @@ void CBasicVBMRenderer::CalculateAttachments( void )
 	for(Int32 i = 0; i < m_pStudioHeader->numattachments; i++)
 	{
 		const mstudioattachment_t* pattachment = m_pStudioHeader->getAttachment((Uint32)i);
-		Math::VectorTransform(pattachment->org, m_boneTransform[pattachment->bone], m_attachmentsArray[i]);
+		Math::VectorTransform(pattachment->org, m_boneTransform[pattachment->bone].matrix, m_attachmentsArray[i]);
 	}
 }
 

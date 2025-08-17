@@ -1077,20 +1077,20 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 					pcurvert->normal[l] *= -1;
 			}
 
-			pcurvert->texcoords[0] = Math::DotProduct(pcurvert->origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
+			pcurvert->texcoords[0] = Math::DotProduct(&pcurvert->origin[0], ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
 			pcurvert->texcoords[0] /= static_cast<Float>(ptexinfo->ptexture->width);
 
-			pcurvert->texcoords[1] = Math::DotProduct(pcurvert->origin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
+			pcurvert->texcoords[1] = Math::DotProduct(&pcurvert->origin[0], ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
 			pcurvert->texcoords[1] /= static_cast<Float>(ptexinfo->ptexture->height);
 
 			for(Uint32 k = 0; k < MAX_SURFACE_STYLES; k++)
 			{
-				pcurvert->lightcoords[k][0] = Math::DotProduct(pcurvert->origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
+				pcurvert->lightcoords[k][0] = Math::DotProduct(&pcurvert->origin[0], ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
 				pcurvert->lightcoords[k][0] -= psurf->texturemins[0];
 				pcurvert->lightcoords[k][0] += psurf->light_s[k]*psurf->lightmapdivider + (psurf->lightmapdivider / 2.0f);
 				pcurvert->lightcoords[k][0] /= pwater->lightmaptexturewidths[k]*psurf->lightmapdivider;
 
-				pcurvert->lightcoords[k][1] = Math::DotProduct(pcurvert->origin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
+				pcurvert->lightcoords[k][1] = Math::DotProduct(&pcurvert->origin[0], ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
 				pcurvert->lightcoords[k][1] -= psurf->texturemins[1];
 				pcurvert->lightcoords[k][1] += psurf->light_t[k]*psurf->lightmapdivider + (psurf->lightmapdivider / 2.0f);
 				pcurvert->lightcoords[k][1] /= pwater->lightmaptextureheights[k]*psurf->lightmapdivider;

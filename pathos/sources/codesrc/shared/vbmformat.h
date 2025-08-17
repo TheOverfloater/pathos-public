@@ -44,13 +44,12 @@ struct vbmflexvertex_t;
 	Flags for VBM file
 
 ************************/
-#define VBM_HAS_FLEXES	1
-
-/************************
-	Flags for VBM file
-
-************************/
-#define FL_VBM_TEXTURE_BLEND 1
+enum vbm_flags_t
+{
+	VBM_HAS_FLEXES			= (1<<0),
+	VBM_HAS_SCOPE_TEXTURE	= (1<<1),
+	VBM_HAS_BLEND_TEXTURE	= (1<<2)
+};
 
 /************************
 	Enums for VBM format

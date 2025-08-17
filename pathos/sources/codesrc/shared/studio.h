@@ -746,4 +746,6 @@ struct vbmcache_t
 	// Pointer to vbm data
 	vbmheader_t *pvbmhdr;
 };
+
+typedef CArray<pmatrix3x4_t> BoneTransformArray_t;
 #endif //STUDIO_H

@@ -387,6 +387,7 @@ struct bsp_decal_t
 {
 	bsp_decal_t():
 		ptexinfo(nullptr),
+		numleafs(0),
 		life(0),
 		fadetime(0),
 		size(0),
@@ -410,6 +411,7 @@ struct bsp_decal_t
 	Vector origin;
 
 	CArray<Uint32> leafnums;
+	Uint32 numleafs;
 
 	Float life;
 	Float fadetime;

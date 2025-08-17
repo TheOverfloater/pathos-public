@@ -1189,7 +1189,7 @@ bool CheckVisibility( const edict_t& client, const edict_t& entity, const byte* 
 			return true;
 
 		// Check visibility on non-hosts
-		if(!Common::CheckVisibility(entity.leafnums, pset))
+		if(!Common::CheckVisibility(entity.leafnums, entity.numleaves, pset))
 			return false;
 
 		// Check if fog culls it out
@@ -1805,7 +1805,7 @@ bool GetTransitioningEntities( const byte* pPVS, const Vector* pTransitionMins, 
 	}
 
 	const edict_t* playeredict = pPlayer->GetEdict();
-	if(!Common::CheckVisibility(playeredict->leafnums, pPVS))
+	if(!Common::CheckVisibility(playeredict->leafnums, playeredict->numleaves, pPVS))
 	{
 		gd_engfuncs.pfnCon_Printf("%s - Player is not inside the PVS of landmark '%s'.\n", __FUNCTION__, pstrLandmarkName);
 		return false;
@@ -1834,7 +1834,7 @@ bool GetTransitioningEntities( const byte* pPVS, const Vector* pTransitionMins, 
 			continue;
 
 		// Check VIS for this object
-		if(!Common::CheckVisibility(pedict->leafnums, pPVS))
+		if(!Common::CheckVisibility(pedict->leafnums, pedict->numleaves, pPVS))
 			continue;
 
 		// If we have a trigger_transition, make sure it intersects

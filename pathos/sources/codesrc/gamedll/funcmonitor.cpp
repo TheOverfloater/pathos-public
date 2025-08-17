@@ -217,14 +217,14 @@ bool CFuncMonitor::CheckVISForEntity( const edict_t* pclient, const edict_t* ped
 				continue;
 
 			const edict_t* pMonitorEdict = pMonitorEntity->GetEdict();
-			if(Common::CheckVisibility(pMonitorEdict->leafnums, pset))
+			if(Common::CheckVisibility(pMonitorEdict->leafnums, pMonitorEdict->numleaves, pset))
 			{
 				const CBaseEntity* pCameraEntity = pMonitorEntity->GetCameraEntity();
 				if(!pCameraEntity)
 					continue;
 
 				const byte* pCameraPVS = pCameraEntity->GetPVSData();
-				if(pCameraPVS && Common::CheckVisibility(pedict->leafnums, pCameraPVS) && pCameraEntity->CheckCameraBBox(pedict))
+				if(pCameraPVS && Common::CheckVisibility(pedict->leafnums, pedict->numleaves, pCameraPVS) && pCameraEntity->CheckCameraBBox(pedict))
 					return true;
 			}
 		}
@@ -236,7 +236,7 @@ bool CFuncMonitor::CheckVISForEntity( const edict_t* pclient, const edict_t* ped
 		{
 			const edict_t* pmonitor = pEntity->GetMonitorByIndex(i);
 			if(pmonitor && !(pmonitor->state.effects & EF_NODRAW) 
-				&& Common::CheckVisibility(pmonitor->leafnums, pset) 
+				&& Common::CheckVisibility(pmonitor->leafnums, pmonitor->numleaves, pset) 
 				&& !CEnvFog::FogCull(*pclient, *pmonitor))
 				return true;
 		}

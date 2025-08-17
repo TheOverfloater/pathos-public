@@ -163,7 +163,7 @@ struct cldll_engfuncs_t
 	const cache_model_t*	(*pfnLoadModel)( const Char* pstrModelName );
 
 	entity_extrainfo_t*		(*pfnGetEntityExtraData)( cl_entity_t* pentity );
-	void					(*pfnFindTouchedLeafs)( const brushmodel_t* pworld, CArray<Uint32>& leafnumsarray, const Vector& mins, const Vector& maxs, mnode_t* pnode );
+	void					(*pfnFindTouchedLeafs)( const brushmodel_t* pworld, CArray<Uint32>& leafnumsarray, Uint32& leafcount, const Vector& mins, const Vector& maxs, mnode_t* pnode );
 	bool					(*pfnRecursiveLightPoint)( const brushmodel_t* pworld, struct mnode_t *pnode, const Vector &start, const Vector &end, Vector* poutcolors, byte* poutstyles, Float* poutstylevalues );
 	bool					(*pfnRecursiveLightPointBumpData)( const brushmodel_t* pworld, struct mnode_t *pnode, const Vector &start, const Vector &end, Vector* poutambientcolors, Vector* poutdiffusecolors, Vector* poutlightdirs, Vector* poutsurfnormal, byte* poutstyles, Float* poutstylevalues );
 

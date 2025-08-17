@@ -3290,15 +3290,15 @@ bool R_AddTempEntity( cl_entity_t *entity )
 	if(!entity->pmodel)
 		return false;
 
-	CArray<Uint32> leafnums;
 	Vector mins = entity->curstate.origin + entity->pmodel->mins;
 	Vector maxs = entity->curstate.origin + entity->pmodel->maxs;
 
 	entity->latched.origin = entity->curstate.origin;
 	entity->latched.angles = entity->curstate.angles;
 
-	Mod_FindTouchedLeafs(ens.pworld, leafnums, mins, maxs, ens.pworld->pnodes);
-	if(!Common::CheckVisibility(leafnums, rns.pvisbuffer))
+	rns.numtmpleafs = 0;
+	Mod_FindTouchedLeafs(ens.pworld, rns.tmpleafnums, rns.numtmpleafs, mins, maxs, ens.pworld->pnodes);
+	if(!Common::CheckVisibility(rns.tmpleafnums, rns.numtmpleafs, rns.pvisbuffer))
 		return false;
 
 	R_AddEntity(entity);
@@ -5085,10 +5085,10 @@ void Cmd_BSPToSMD_Textures( void )
 				}
 
 				mtexinfo_t *ptexinfo = psurf->ptexinfo;
-				pverts[k].texcoord[0] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
+				pverts[k].texcoord[0] = Math::DotProduct(&pverts[k].origin[0], ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
 				pverts[k].texcoord[0] /= static_cast<Float>(ptexinfo->ptexture->width);
 
-				pverts[k].texcoord[1] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
+				pverts[k].texcoord[1] = Math::DotProduct(&pverts[k].origin[0], ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
 				pverts[k].texcoord[1] /= static_cast<Float>(ptexinfo->ptexture->height);
 
 				Math::VectorCopy(psurf->pplane->normal, pverts[k].normal);
@@ -5251,12 +5251,12 @@ void Cmd_BSPToSMD_Lightmap( void )
 
 				// Set lightmap coords
 				mtexinfo_t *ptexinfo = psurf->ptexinfo;
-				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] = Math::DotProduct(&pverts[k].origin[0], ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
 				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] -= psurf->texturemins[0];
 				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] += psurf->light_s[styleIndex]*psurf->lightmapdivider + (psurf->lightmapdivider / 2.0f);
 				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][0] /= lightmapWidth*psurf->lightmapdivider;
 
-				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] = Math::DotProduct(pverts[k].origin, ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
+				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] = Math::DotProduct(&pverts[k].origin[0], ptexinfo->vecs[1]) + ptexinfo->vecs[1][3];
 				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] -= psurf->texturemins[1];
 				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] += psurf->light_t[styleIndex]*psurf->lightmapdivider + (psurf->lightmapdivider / 2.0f);
 				pverts[k].lmapcoord[BASE_LIGHTMAP_INDEX][1] /= lightmapHeight*psurf->lightmapdivider;

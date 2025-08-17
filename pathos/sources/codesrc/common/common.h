@@ -239,7 +239,7 @@ namespace Common
 	extern inline Float SplineFraction( Float value, Float scale );
 	extern inline void ScaleByte( DWORD *nInput );
 	extern inline CString FixSlashes( const Char* pstring );
-	extern inline bool CheckVisibility( const CArray<Uint32>& leafnums, const byte* pset );
+	extern inline bool CheckVisibility( const CArray<Uint32>& leafnums, Uint32 numleafs, const byte* pset );
 	extern bool GetWADList( const Char* pstrEntityData, CArray<CString>& outputArray );
 	extern Uint32 GetFileLineCount( const Char* pstrdata );
 

@@ -418,17 +418,6 @@ particle_system_t *CParticleEngine::CreateSystem( const Char *szPath, const Vect
 		psystem->boneindex = boneindex;
 	}
 
-	// Determine bounds
-	psystem->radius = pdefinition->systemsize;
-	if(pdefinition->maxlife != -1)
-		psystem->radius += pdefinition->maxvel+pdefinition->scale*pdefinition->scalevar;
-
-	if(pdefinition->scaledampfactor < 0)
-		psystem->radius += pdefinition->scale*(1.0-(pdefinition->maxlife+pdefinition->maxlifevar-pdefinition->scaledampdelay)*pdefinition->scaledampfactor);
-
-	if(psystem->radius < pdefinition->systemsize)
-		psystem->radius = pdefinition->systemsize;
-	
 	Vector systemorigin;
 	Vector systemdir;
 
@@ -461,25 +450,7 @@ particle_system_t *CParticleEngine::CreateSystem( const Char *szPath, const Vect
 		Math::VectorCopy(systemorigin, psystem->origin);
 		Math::VectorCopy(systemdir, psystem->dir);
 
-		if(!parent && !entity)
-		{
-			Vector vmins, vmaxs;
-			for(Uint32 i = 0; i < 3; i++)
-			{
-				vmins[i] = psystem->origin[i]-psystem->radius;
-				vmaxs[i] = psystem->origin[i]+psystem->radius;
-			}
-
-			// Reserve this many positions to speed up processing
-			psystem->leafnums.reserve(MAX_EDICT_LEAFNUMS);
-
-			// Find touched nodes
-			Mod_FindTouchedLeafs(ens.pworld, psystem->leafnums, vmins, vmaxs, ens.pworld->pnodes);
-
-			// Resize to final size
-			psystem->leafnums.resize(psystem->leafnums.size());
-		}
-		else if(parent)
+		if(parent)
 		{
 			// Just copy from parent
 			psystem->leafnums = parent->leafnums;
@@ -1027,6 +998,7 @@ bool CParticleEngine::LoadSystemScript( script_cache_t* pCache, const Char* pstr
 	pCache->pdefinition = new script_definition_t;
 
 	// Fill in default values
+	pCache->pdefinition->scriptpath = pCache->name;
 	pCache->pdefinition->mainalpha = 1.0;
 
 	// Holds the currently read line
@@ -1841,8 +1813,12 @@ void CParticleEngine::Update( void )
 	while(!m_particleSystemsList.end())
 	{
 		particle_system_t *psystem = m_particleSystemsList.get();
-		cl_particle_t *pparticle = psystem->pparticleheader;
 
+		// Reset mins/maxs
+		psystem->mins = NULL_MINS;
+		psystem->maxs = NULL_MAXS;
+
+		cl_particle_t *pparticle = psystem->pparticleheader;
 		while(pparticle)
 		{
 			if(!UpdateParticle(pparticle))
@@ -1856,6 +1832,34 @@ void CParticleEngine::Update( void )
 			}
 			cl_particle_t *pnext = pparticle->next;
 			pparticle = pnext;
+		}
+
+		if(!psystem->parententity && !psystem->parentsystem && psystem->pdefinition->shapetype != shape_playerplane)
+		{
+			Float maxdiff = 0;
+			if(psystem->numleaves > 0)
+			{
+				for(Uint32 i = 0; i < 3; i++)
+				{
+					Float diff = SDL_fabs(psystem->mins[i] - psystem->lastmins[i]);
+					if(diff > maxdiff)
+						maxdiff = diff;
+
+					diff = SDL_fabs(psystem->maxs[i] - psystem->lastmaxs[i]);
+					if(diff > maxdiff)
+						maxdiff = diff;
+				}
+			}
+
+			// Find touched nodes if our size has changed considerably
+			if(psystem->numleaves == 0 || maxdiff > 8.0f)
+			{
+				psystem->numleaves = 0;
+				Mod_FindTouchedLeafs(ens.pworld, psystem->leafnums, psystem->numleaves, psystem->mins, psystem->maxs, ens.pworld->pnodes);
+
+				psystem->lastmins = psystem->mins;
+				psystem->lastmaxs = psystem->maxs;
+			}
 		}
 
 		m_particleSystemsList.next();
@@ -1920,13 +1924,12 @@ void CParticleEngine::UpdateSystems( void )
 	while(!m_particleSystemsList.end())
 	{
 		particle_system_t *psystem = m_particleSystemsList.get();
-#if 0
-		if(!psystem->leafnums.empty())
+		if(psystem->pdefinition->shapetype != shape_playerplane && !psystem->leafnums.empty())
 		{
-			if(Common::CheckVisibility(psystem->leafnums, rns.pvisbuffer))
+			if(Common::CheckVisibility(psystem->leafnums, psystem->numleaves, rns.pvisbuffer))
 				psystem->visframe = rns.visframe;
 		}
-#endif
+
 		// Parented systems cannot spawn particles themselves
 		if(psystem->parentsystem)
 		{
@@ -2525,33 +2528,6 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 		TransformRelativeVector(vvelocity, psystem, vvelocity, false, false);
 	}
 
-	if(pdefinition->shapetype != shape_playerplane)
-	{
-		if(!(pdefinition->render_flags & RENDER_FL_SKYBOX))
-		{
-#if 0
-			if(!psystem->leafnums.empty())
-			{
-				if(psystem->visframe != rns.visframe)
-					return false;
-			}
-
-			if(!psystem->nocull && psystem->id == 0 && !psystem->parententity)
-			{
-				Vector vmins, vmaxs;
-				for(Uint32 i = 0; i < 3; i++)
-				{
-					vmins[i] = vbaseorigin[i]-pparticle->scale;
-					vmaxs[i] = vbaseorigin[i]+pparticle->scale;
-				}
-
-				if(rns.view.frustum.CullBBox(vmins, vmaxs))
-					return false;
-			}
-#endif
-		}
-	}
-
 	//
 	// Check if the particle is ready to die
 	//
@@ -2835,6 +2811,19 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 		}
 	}
 
+	// Update mins/maxs of the parent system
+	Float size = pparticle->scale * 0.5;
+	for(Uint32 i = 0; i < 3; i++)
+	{
+		Float coord = pparticle->origin[i] + size;
+		if(coord > psystem->maxs[i])
+			psystem->maxs[i] = coord;
+
+		coord = pparticle->origin[i] - size;
+		if(coord < psystem->mins[i])
+			psystem->mins[i] = coord;
+	}
+
 	// All went well, particle is still active
 	return true;
 }
@@ -2857,41 +2846,18 @@ void CParticleEngine::GetLights( particle_system_t *psystem, cl_dlight_t **pligh
 	assert(psystem->pdefinition != nullptr);
 	const script_definition_t* pdefinition = psystem->pdefinition;
 
-	Vector vsysmins, vsysmaxs, vsysorigin;
+	Vector vsysorigin;
 	if(pdefinition->shapetype == shape_playerplane)
 	{
 		cl_entity_t *pplayer = CL_GetLocalPlayer();
-		for(Uint32 i = 0; i < 3; i++)
-		{
-			vsysmins[i] = pplayer->curstate.origin[i]-psystem->radius;
-			vsysmaxs[i] = pplayer->curstate.origin[i]+psystem->radius;
-		}
 		Math::VectorCopy(pplayer->curstate.origin, vsysorigin);
 	}
 	else
 	{
 		if(!psystem->parententity)
-		{
-			for(Uint32 i = 0; i < 3; i++)
-			{
-				vsysmins[i] = psystem->origin[i]-psystem->radius;
-				vsysmaxs[i] = psystem->origin[i]+psystem->radius;
-			}
 			Math::VectorCopy(psystem->origin, vsysorigin);
-		}
 		else
-		{
-			Vector vattachorigin;
-			Math::VectorAdd(psystem->origin, psystem->parententity->getAttachment(psystem->attachment), vattachorigin);
-
-			for(Uint32 i = 0; i < 3; i++)
-			{
-				vsysmins[i] = vattachorigin[i]-psystem->radius;
-				vsysmaxs[i] = vattachorigin[i]+psystem->radius;
-			}
-			Math::VectorCopy(vattachorigin, vsysorigin);
-		}
-
+			Math::VectorAdd(psystem->origin, psystem->parententity->getAttachment(psystem->attachment), vsysorigin);
 	}
 
 	for(Uint32 i = 0; i < max; i++)
@@ -2931,7 +2897,7 @@ void CParticleEngine::GetLights( particle_system_t *psystem, cl_dlight_t **pligh
 				continue;
 			}
 
-			if(Math::CheckMinsMaxs(vsysmins, vsysmaxs, vmins, vmaxs))
+			if(Math::CheckMinsMaxs(psystem->mins, psystem->maxs, vmins, vmaxs))
 			{
 				dlList.next();
 				continue;
@@ -3262,9 +3228,18 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 		// Check if it's in VIS
 		if(!psystem->parententity)
 		{
-			if(!psystem->leafnums.empty())
+			if(!(psystem->pdefinition->flags & RENDER_FL_SKYBOX))
 			{
-				if(!Common::CheckVisibility(psystem->leafnums, rns.pvisbuffer))
+				if(psystem->pdefinition->shapetype != shape_playerplane && !psystem->leafnums.empty())
+				{
+					if(!Common::CheckVisibility(psystem->leafnums, psystem->numleaves, rns.pvisbuffer))
+					{
+						m_particleSystemsList.next();
+						continue;
+					}
+				}
+
+				if(rns.view.frustum.CullBBox(psystem->mins, psystem->maxs))
 				{
 					m_particleSystemsList.next();
 					continue;

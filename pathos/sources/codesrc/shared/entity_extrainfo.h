@@ -104,6 +104,7 @@ struct entity_extrainfo_t
 		pshadowmap(nullptr),
 		pportaldata(nullptr),
 		ppvsdata(nullptr),
+		numleaves(0),
 		pentity(nullptr)
 		{}
 	~entity_extrainfo_t()
@@ -153,6 +154,8 @@ struct entity_extrainfo_t
 
 	// Leafnums for entity
 	CArray<Uint32> leafnums;
+	// Number of leaves
+	Uint32 numleaves;
 	
 	// cl_entity_t we're tied to
 	struct cl_entity_t* pentity;

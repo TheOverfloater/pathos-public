@@ -165,7 +165,7 @@ bool CEnvPosSky::CheckSkyboxVisibility( const edict_t* pedict )
 	if(!pPVS)
 		return false;
 
-	return Common::CheckVisibility(pedict->leafnums, pPVS);
+	return Common::CheckVisibility(pedict->leafnums, pedict->numleaves, pPVS);
 }
 
 //=============================================

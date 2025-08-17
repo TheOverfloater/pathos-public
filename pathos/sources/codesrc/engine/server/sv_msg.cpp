@@ -2216,7 +2216,7 @@ void SV_UserMessageEnd( void )
 		// Check visibility
 		if(pmsgdata->originset && ppvsdata)
 		{
-			if(!Common::CheckVisibility(pedict->leafnums, ppvsdata))
+			if(!Common::CheckVisibility(pedict->leafnums, pedict->numleaves, ppvsdata))
 				continue;
 		}
 

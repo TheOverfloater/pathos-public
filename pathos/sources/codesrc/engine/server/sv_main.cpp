@@ -318,6 +318,9 @@ bool SV_Init( void )
 		memset(svs.pvischeckbuffer, 0, sizeof(byte)*ens.visbuffersize);
 	}
 
+	// Init VBM trace stuff
+	TR_VBMInit();
+
 	return true;
 }
 
@@ -2051,9 +2054,9 @@ bool SV_GetBonePositionByName( edict_t* pedict, const Char* pstrbonename, Vector
 	{
 		if(!qstrcmp(pbones[i].name, pstrbonename))
 		{
-			position[0] = pedict->pvbmhulldata->bonetransform[i][0][3];
-			position[1] = pedict->pvbmhulldata->bonetransform[i][1][3];
-			position[2] = pedict->pvbmhulldata->bonetransform[i][2][3];
+			for(Uint32 j = 0; j < 3; j++)
+				position[j] = pedict->pvbmhulldata->bonetransform[i].matrix[j][3];
+
 			return true;
 		}
 	}
@@ -2124,9 +2127,8 @@ bool SV_GetBonePositionByIndex( edict_t* pedict, Uint32 boneindex, Vector& posit
 	}
 
 	// Set the values
-	position[0] = pedict->pvbmhulldata->bonetransform[boneindex][0][3];
-	position[1] = pedict->pvbmhulldata->bonetransform[boneindex][1][3];
-	position[2] = pedict->pvbmhulldata->bonetransform[boneindex][2][3];
+	for(Uint32 i = 0; i < 3; i++)
+		position[i] = pedict->pvbmhulldata->bonetransform[boneindex].matrix[i][3];
 	
 	return true;
 }
@@ -2200,7 +2202,7 @@ bool SV_GetAttachment( edict_t* pedict, Uint32 index, Vector& position )
 	
 	// Transform the attachment
 	const mstudioattachment_t* pattachments = reinterpret_cast<const mstudioattachment_t*>(reinterpret_cast<const byte*>(pstudiohdr) + pstudiohdr->attachmentindex);
-	Math::VectorTransform(pattachments[index].org, pedict->pvbmhulldata->bonetransform[pattachments[index].bone], position);
+	Math::VectorTransform(pattachments[index].org, pedict->pvbmhulldata->bonetransform[pattachments[index].bone].matrix, position);
 
 	return true;
 }

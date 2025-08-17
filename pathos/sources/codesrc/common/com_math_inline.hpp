@@ -800,7 +800,7 @@ namespace Math
 		Float a = 0;
 		Float b = 0;
 
-		vec4_t quat1 = { 0 };
+		vec4_t quat1;
 		for(Uint32 i = 0; i < 4; i++)
 		{
 			a += (q1[i]-q2[i])*(q1[i]-q2[i]);

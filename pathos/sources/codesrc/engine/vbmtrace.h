@@ -79,7 +79,6 @@ struct entity_vbmhulldata_t
 		{
 			memset(controller, 0, sizeof(controller));
 			memset(blending, 0, sizeof(blending));
-			memset(bonetransform, 0, sizeof(bonetransform));
 		}
 		
 	// Entity index
@@ -106,9 +105,10 @@ struct entity_vbmhulldata_t
 	vbmhull_t hulls[MAX_MAP_HULLS];
 
 	// Last bone transform used
-	Float bonetransform[MAXSTUDIOBONES][3][4];
+	BoneTransformArray_t bonetransform;
 };
 
+extern void TR_VBMInit( void );
 extern void TR_VBMSetHullInfo( entity_vbmhulldata_t*& pdataptr, const cache_model_t* pmodel, const Vector& hullmins, const Vector& hullmaxs, const entity_state_t& state, Float time, hull_types_t hulltype );
 extern void TR_VBMSetupBones( entity_vbmhulldata_t* phulldata, const studiohdr_t* pstudiohdr, Float time, Float frame, const mstudioseqdesc_t* pseqdesc, const cache_model_t* pmodel, const entity_state_t& state );
 extern bool TR_VBMCheckHullInfo( entity_vbmhulldata_t* pdata, const cache_model_t* pmodel, Float frame, const entity_state_t& state );

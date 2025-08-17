@@ -135,8 +135,6 @@ struct viewerstate_t
 		stepleft(false)
 	{
 		memset(t_translate, 0, sizeof(t_translate));
-		memset(submodels, 0, sizeof(submodels));
-		memset(controllers, 0, sizeof(controllers));
 	}
 
 	// model
@@ -174,8 +172,8 @@ struct viewerstate_t
 	Float speedscale;
 
 	// bodyparts and bonecontrollers
-	Int32 submodels[MAXSTUDIOMODELS];
-	Float controllers[MAXSTUDIOCONTROLLERS];
+	CArray<Int32> submodels;
+	CArray<Float> controllers;
 
 	// frametime related
 	Double frametime;

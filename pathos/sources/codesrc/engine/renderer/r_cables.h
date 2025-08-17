@@ -77,7 +77,8 @@ struct cable_object_t
 		start_vertex(0),
 		num_vertexes(0),
 		falldepth(0),
-		width(0)
+		width(0),
+		numleafs(0)
 		{}
 
 	Vector start;
@@ -95,6 +96,7 @@ struct cable_object_t
 	Float width;
 
 	CArray<Uint32> leafnums;
+	Uint32 numleafs;
 };
 
 /*

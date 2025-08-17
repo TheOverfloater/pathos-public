@@ -216,7 +216,7 @@ bool CCableRenderer::DrawCables( void )
 	{
 		cable_object_t *pcable = &m_cablesArray[i];
 
-		if(!Common::CheckVisibility(pcable->leafnums, rns.pvisbuffer))
+		if(!Common::CheckVisibility(pcable->leafnums, pcable->numleafs, rns.pvisbuffer))
 			continue;
 
 		if(rns.view.frustum.CullBBox(pcable->vmins, pcable->vmaxs))
@@ -346,7 +346,7 @@ void CCableRenderer::AddCable( const Vector& start, const Vector& end, Uint32 de
 	Math::VectorSubtract(vmins, Vector(1, 1, 1), newcable.vmins);
 	Math::VectorAdd(vmaxs, Vector(1, 1, 1), newcable.vmaxs);
 
-	Mod_FindTouchedLeafs(ens.pworld, newcable.leafnums, newcable.vmins, newcable.vmaxs, ens.pworld->pnodes);
+	Mod_FindTouchedLeafs(ens.pworld, newcable.leafnums, newcable.numleafs, newcable.vmins, newcable.vmaxs, ens.pworld->pnodes);
 
 	// Add to the list
 	m_cablesArray.push_back(newcable);

@@ -90,7 +90,7 @@ private:
 	beam_position_t* AllocBeamPosition( beam_t* pbeam );
 
 	// Does cull-testing on a beam
-	bool CullBeam( const Vector& src, const Vector& end, bool pvsOnly );
+	bool CullBeam( beam_t* pbeam, const Vector& src, const Vector& end, bool pvsOnly );
 
 	// Returns the sprite model handle
 	cache_model_t* GetSpriteModel( Int32 modelindex );
@@ -99,23 +99,23 @@ private:
 
 private:
 	// Draws beam segments
-	void DrawBeamSegments( const Vector& src, const Vector& delta, Float width, Float scale, Float frequency, Float speed, Float noisespeed, Uint32 numsegments, Int32 flags, Int32 beamindex );
+	void DrawBeamSegments( void );
 	// Draws a beam torus
-	void DrawBeamTorus( const Vector& src, const Vector& delta, Float width, Float scale, Float frequency, Float speed, Float noisespeed, Uint32 numsegments, Int32 beamindex, Int32 flags );
+	void DrawBeamTorus( void );
 	// Draws a beam disk
-	void DrawBeamDisk( const Vector& src, const Vector& delta, Float width, Float scale, Float frequency, Float speed, Float noisespeed, Uint32 numsegments );
+	void DrawBeamDisk( void );
 	// Draws a beam cylinder
-	void DrawBeamCylinder( const Vector& src, const Vector& delta, Float width, Float scale, Float frequency, Float speed, Float noisespeed, Uint32 numsegments );
+	void DrawBeamCylinder( void );
 	// Draws a beam ring
-	void DrawBeamRing( const Vector& src, const Vector& delta, Float width, Float amplitude, Float frequency, Float speed, Float noisespeed, Uint32 numsegments, Int32 beamindex, Int32 flags );
+	void DrawBeamRing( void );
 	// Draws a tesla beam
-	void DrawBeamTesla( const Vector& src, const Vector& delta, Float width, Float scale, Float frequency, Float speed, Float noisespeed, Float endwidth, Uint32 numsegments, Int32 flags, Int32 beamindex );
+	void DrawBeamTesla( const Vector& src, const Vector& delta, Float width, Float endwidth, Int32 flags );
 	// Draws a vapor trail beam
-	void DrawBeamVaporTrail( beam_t* pbeam, Float fadealpha );
+	void DrawBeamVaporTrail( Float fadealpha );
 	// Draws a single beam
 	void DrawBeam( beam_t* pbeam );
 	// Draws a beam that follows an entity
-	void DrawBeamFollow( beam_t* pbeam );
+	void DrawBeamFollow( void );
 
 	// Calculates beam segment noise
 	void ApplySegmentNoise( Vector& start, Uint32 beamindex, Uint32 i, Float scale, Uint32 numsegments, const Vector& up, const Vector& right, Int32 flags );
@@ -157,6 +157,9 @@ public:
 	void AddBeamEntity( cl_entity_t* pentity );
 
 private:
+	// Currently rendered beam
+	beam_t* m_pCurrentBeam;
+
 	// Free particles list header
 	beam_t* m_pFreeBeamHeader;
 	// Active particle header

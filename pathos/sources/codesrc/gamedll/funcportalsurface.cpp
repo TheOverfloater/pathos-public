@@ -219,14 +219,14 @@ bool CFuncPortalSurface::CheckVISForEntity( const edict_t* pclient, const edict_
 				continue;
 
 			const edict_t* pPortalSurfaceEdict = pPortalSurfaceEntity->GetEdict();
-			if(Common::CheckVisibility(pPortalSurfaceEdict->leafnums, pset))
+			if(Common::CheckVisibility(pPortalSurfaceEdict->leafnums, pPortalSurfaceEdict->numleaves, pset))
 			{
 				const CBaseEntity* pPortalEntity = pPortalSurfaceEntity->GetEnvPosPortalEntity();
 				if(!pPortalEntity)
 					continue;
 
 				const byte* pPortalPVS = pPortalEntity->GetPVSData();
-				if(pPortalPVS && Common::CheckVisibility(pedict->leafnums, pPortalPVS) && pPortalEntity->CheckPortalBBox(pedict))
+				if(pPortalPVS && Common::CheckVisibility(pedict->leafnums, pedict->numleaves, pPortalPVS) && pPortalEntity->CheckPortalBBox(pedict))
 					return true;
 			}
 		}
@@ -238,7 +238,7 @@ bool CFuncPortalSurface::CheckVISForEntity( const edict_t* pclient, const edict_
 		{
 			const edict_t* pPortalSurface = pEntity->GetPortalSurfaceByIndex(i);
 			if(pPortalSurface && !(pPortalSurface->state.effects & EF_NODRAW) 
-				&& Common::CheckVisibility(pPortalSurface->leafnums, pset) 
+				&& Common::CheckVisibility(pPortalSurface->leafnums, pPortalSurface->numleaves, pset) 
 				&& !CEnvFog::FogCull(*pclient, *pPortalSurface))
 				return true;
 		}

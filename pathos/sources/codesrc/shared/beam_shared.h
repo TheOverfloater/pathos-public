@@ -132,6 +132,7 @@ struct beam_t
 		endentidentifier(0),
 		pserverentity(nullptr),
 		ppositions(nullptr),
+		numleafs(0),
 		pnext(nullptr),
 		pprev(nullptr)
 	{
@@ -181,6 +182,9 @@ struct beam_t
 
 	beam_position_t* ppositions;
 	CArray<beamsegment_t> drawsegments;
+
+	CArray<Uint32> leafnums;
+	Uint32 numleafs;
 
 	beam_t* pnext;
 	beam_t* pprev;

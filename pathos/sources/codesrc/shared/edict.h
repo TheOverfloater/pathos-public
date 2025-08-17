@@ -62,6 +62,7 @@ struct edict_t
 		identifier(0),
 		pareachain(nullptr),
 		parealink(nullptr),
+		numleaves(0),
 		pprivatedata(nullptr),
 		paniminfo(nullptr),
 		pvbmhulldata(nullptr)
@@ -86,6 +87,8 @@ struct edict_t
 
 	// Leafs this entity is touching
 	CArray<Uint32> leafnums;
+	// Number of leaves
+	Uint32 numleaves;
 
 	// Class data
 	void *pprivatedata;

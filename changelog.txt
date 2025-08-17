@@ -712,3 +712,17 @@
 2025 August 14th:
  - Fix for crash in VBM renderer caused by recent changes.
  - Fix for no-blend bones not being handled properly by vbmcompiler.
+
+2025 August 17th:
+ - Performance optimization for Mod_FindTouchedLeaves to reduce array resizings during runtime.
+ - Removed native limits on the max number of bones used by VBM/Studio models by replaxing fixed size arrays with CArray types, and separating leaf counting into a separate variable from the CArray object.
+ - Added support for legacy Quake 1 particle/dynamic light effects for models specified via the "$flags" QC command.
+ - Cleanup and optimization of beam code to better fit Pathos coding style.
+ - Improved bounding box calculations added to particle engine.
+ - Added proper VIS culling to particle systems for performance.
+ - Fix issue with particle script definitions not having script name variable set.
+ - Added more accurate frustum culling to particle systems.
+ - Optimized VBM rendering by improving checks for scope texture use and transparency checks on models.
+ - Reduction in memory use by having bone caching only allocate the required number of bones by an entity.
+ - Fix crash in Pathos Model Viewer when loading a WAV file in the Flex Scripting editor tab after another has already been loaded.
+ - Set VBM Compiler to auto-deploy to progs/vbmcompiler directory.

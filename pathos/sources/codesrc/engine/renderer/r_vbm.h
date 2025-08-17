@@ -564,7 +564,7 @@ private:
 	void CreateVertexTexture( void );
 
 	// Set bone UBO contents
-	void SetShaderBoneTransform( Float (*pbonetransform)[MAXSTUDIOBONES][3][4], const byte* pboneindexes, Uint32 numbones );
+	void SetShaderBoneTransform( BoneTransformArray_t* pbonetransform, const byte* pboneindexes, Uint32 numbones );
 
 private:
 	// Allocates a decal slot
@@ -638,13 +638,13 @@ private:
 	Float m_pInternalRotationMatrix[3][4];
 
 	// Pointer to bone matrix array
-	Float (*m_pBoneTransform)[MAXSTUDIOBONES][3][4];
-	// Pointer to bone weight transformation bone matrix array
-	Float (*m_pWeightBoneTransform)[MAXSTUDIOBONES][3][4];
+	BoneTransformArray_t* m_pBoneTransform;
 	// Internal bone matrix array
-	Float m_pInternalBoneTransform[MAXSTUDIOBONES][3][4];
+	BoneTransformArray_t m_internalBoneTransform;
+	// Pointer to bone weight transformation bone matrix array
+	BoneTransformArray_t* m_pWeightBoneTransform;
 	// Internal bone array matrix used for weighted transformation
-	Float m_pInternalWeightBoneTransform[MAXSTUDIOBONES][3][4];
+	BoneTransformArray_t m_internalWeightBoneTransform;
 
 	// Model's render angles
 	Vector m_renderAngles;
@@ -752,20 +752,20 @@ private:
 
 private:
 	// Quaternion and vector arrays used for bone transforms
-	Vector	m_bonePositions1[MAXSTUDIOBONES];
-	vec4_t	m_boneQuaternions1[MAXSTUDIOBONES];
+	CArray<Vector> m_bonePositions1;
+	CArray<vec4_t>	m_boneQuaternions1;
 	// Quaternion and vector arrays used for bone transforms
-	Vector	m_bonePositions2[MAXSTUDIOBONES];
-	vec4_t	m_boneQuaternions2[MAXSTUDIOBONES];
+	CArray<Vector>	m_bonePositions2;
+	CArray<vec4_t>	m_boneQuaternions2;
 	// Quaternion and vector arrays used for bone transforms
-	Vector	m_bonePositions3[MAXSTUDIOBONES];
-	vec4_t	m_boneQuaternions3[MAXSTUDIOBONES];
+	CArray<Vector>	m_bonePositions3;
+	CArray<vec4_t>	m_boneQuaternions3;
 	// Quaternion and vector arrays used for bone transforms
-	Vector	m_bonePositions4[MAXSTUDIOBONES];
-	vec4_t	m_boneQuaternions4[MAXSTUDIOBONES];
+	CArray<Vector>	m_bonePositions4;
+	CArray<vec4_t>	m_boneQuaternions4;
 	// Quaternion and vector arrays used for bone transforms
-	Vector	m_bonePositions5[MAXSTUDIOBONES];
-	vec4_t	m_boneQuaternions5[MAXSTUDIOBONES];
+	CArray<Vector>	m_bonePositions5;
+	CArray<vec4_t>	m_boneQuaternions5;
 	// Used for bone transform calculations
 	Float	m_boneMatrix[3][4];
 

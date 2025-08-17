@@ -289,7 +289,7 @@ const msurface_t* Mod_SurfaceAtPoint( const brushmodel_t* pmodel, const mnode_t*
 //=============================================
 //
 //=============================================
-void Mod_FindTouchedLeafs( const brushmodel_t* pworld, CArray<Uint32>& leafnumsarray, const Vector& mins, const Vector& maxs, mnode_t* pnode )
+void Mod_FindTouchedLeafs( const brushmodel_t* pworld, CArray<Uint32>& leafnumsarray, Uint32& leafcount, const Vector& mins, const Vector& maxs, mnode_t* pnode )
 {
 	if(pnode->contents == CONTENTS_SOLID)
 		return;
@@ -299,7 +299,11 @@ void Mod_FindTouchedLeafs( const brushmodel_t* pworld, CArray<Uint32>& leafnumsa
 		mleaf_t* pleaf = reinterpret_cast<mleaf_t*>(pnode);
 		Uint32 leafnum = pleaf - pworld->pleafs - 1;
 
-		leafnumsarray.push_back(leafnum);
+		if(leafnumsarray.size() <= leafcount)
+			leafnumsarray.resize(leafnumsarray.size() + LEAFNUM_ALLOC_COUNT);
+
+		leafnumsarray[leafcount] = leafnum;
+		leafcount++;
 		return;
 	}
 
@@ -308,10 +312,10 @@ void Mod_FindTouchedLeafs( const brushmodel_t* pworld, CArray<Uint32>& leafnumsa
 
 	// Recurse down the sides
 	if(sides & 1)
-		Mod_FindTouchedLeafs(pworld, leafnumsarray, mins, maxs, pnode->pchildren[0]);
+		Mod_FindTouchedLeafs(pworld, leafnumsarray, leafcount, mins, maxs, pnode->pchildren[0]);
 
 	if(sides & 2)
-		Mod_FindTouchedLeafs(pworld, leafnumsarray, mins, maxs, pnode->pchildren[1]);
+		Mod_FindTouchedLeafs(pworld, leafnumsarray, leafcount, mins, maxs, pnode->pchildren[1]);
 }
 
 //=============================================

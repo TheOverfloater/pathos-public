@@ -19,22 +19,40 @@ All Rights Reserved.
 #include "trace_shared.h"
 
 // Quaternion and vector arrays used for bone transforms
-Vector	g_bonePositions1[MAXSTUDIOBONES];
-vec4_t	g_boneQuaternions1[MAXSTUDIOBONES];
+CArray<Vector>	g_bonePositions1;
+CArray<vec4_t>	g_boneQuaternions1;
 // Quaternion and vector arrays used for bone transforms
-Vector	g_bonePositions2[MAXSTUDIOBONES];
-vec4_t	g_boneQuaternions2[MAXSTUDIOBONES];
+CArray<Vector>	g_bonePositions2;
+CArray<vec4_t>	g_boneQuaternions2;
 // Quaternion and vector arrays used for bone transforms
-Vector	g_bonePositions3[MAXSTUDIOBONES];
-vec4_t	g_boneQuaternions3[MAXSTUDIOBONES];
+CArray<Vector>	g_bonePositions3;
+CArray<vec4_t>	g_boneQuaternions3;
 // Quaternion and vector arrays used for bone transforms
-Vector	g_bonePositions4[MAXSTUDIOBONES];
-vec4_t	g_boneQuaternions4[MAXSTUDIOBONES];
+CArray<Vector>	g_bonePositions4;
+CArray<vec4_t>	g_boneQuaternions4;
 // Used for bone transform calculations
 Float	g_boneMatrix[3][4];
 
 // Internal rotation matrix
 Float g_rotationMatrix[3][4];
+
+//=============================================
+//
+//=============================================
+void TR_VBMInit( void )
+{
+	g_bonePositions1.resize(MAXSTUDIOBONES);
+	g_boneQuaternions1.resize(MAXSTUDIOBONES);
+
+	g_bonePositions2.resize(MAXSTUDIOBONES);
+	g_boneQuaternions2.resize(MAXSTUDIOBONES);
+
+	g_bonePositions3.resize(MAXSTUDIOBONES);
+	g_boneQuaternions3.resize(MAXSTUDIOBONES);
+
+	g_bonePositions4.resize(MAXSTUDIOBONES);
+	g_boneQuaternions4.resize(MAXSTUDIOBONES);
+}
 
 //=============================================
 //
@@ -60,8 +78,9 @@ void TR_VBMInitHulls( const studiohdr_t* pstudiohdr, hull_types_t hulltype, enti
 	// Reset this flag
 	cache.hulls[hulltype].hullset = true;
 
-	// Allocate hulls
+	// Allocate things
 	cache.hulls[hulltype].hullsarray.resize(pstudiohdr->numhitboxes);
+	cache.bonetransform.resize(pstudiohdr->numbones);
 
 	// Create the hulls
 	for(Int32 i = 0; i < pstudiohdr->numhitboxes; i++)
@@ -123,6 +142,35 @@ bool TR_VBMCheckHullInfo( entity_vbmhulldata_t* pdata, const cache_model_t* pmod
 //=============================================
 void TR_VBMSetupBones( entity_vbmhulldata_t* phulldata, const studiohdr_t* pstudiohdr, Float time, Float frame, const mstudioseqdesc_t* pseqdesc, const cache_model_t* pmodel, const entity_state_t& state )
 {
+	// Ensure bone arrays are of proper sizes
+	if(g_bonePositions1.size() < pstudiohdr->numbones)
+		g_bonePositions1.resize(pstudiohdr->numbones);
+
+	if(g_boneQuaternions1.size() < pstudiohdr->numbones)
+		g_boneQuaternions1.resize(pstudiohdr->numbones);
+
+	if(g_bonePositions2.size() < pstudiohdr->numbones)
+		g_bonePositions2.resize(pstudiohdr->numbones);
+
+	if(g_boneQuaternions2.size() < pstudiohdr->numbones)
+		g_boneQuaternions2.resize(pstudiohdr->numbones);
+
+	if(g_bonePositions3.size() < pstudiohdr->numbones)
+		g_bonePositions3.resize(pstudiohdr->numbones);
+
+	if(g_boneQuaternions3.size() < pstudiohdr->numbones)
+		g_boneQuaternions3.resize(pstudiohdr->numbones);
+	
+	if(g_bonePositions4.size() < pstudiohdr->numbones)
+		g_bonePositions4.resize(pstudiohdr->numbones);
+
+	if(g_boneQuaternions4.size() < pstudiohdr->numbones)
+		g_boneQuaternions4.resize(pstudiohdr->numbones);
+
+	// Also the bone transforms
+	if(phulldata->bonetransform.size() != pstudiohdr->numbones)
+		phulldata->bonetransform.resize(pstudiohdr->numbones);
+
 	Vector angles = state.angles;
 	angles[PITCH] = -angles[PITCH];
 
@@ -189,9 +237,9 @@ void TR_VBMSetupBones( entity_vbmhulldata_t* phulldata, const studiohdr_t* pstud
 			g_boneMatrix[j][3] = g_bonePositions1[i][j];
 
 		if(pbone->parent == -1)
-			Math::ConcatTransforms(g_rotationMatrix, g_boneMatrix, phulldata->bonetransform[i]);
+			Math::ConcatTransforms(g_rotationMatrix, g_boneMatrix, phulldata->bonetransform[i].matrix);
 		else
-			Math::ConcatTransforms(phulldata->bonetransform[pbone->parent], g_boneMatrix, phulldata->bonetransform[i]);
+			Math::ConcatTransforms(phulldata->bonetransform[pbone->parent].matrix, g_boneMatrix, phulldata->bonetransform[i].matrix);
 	}
 }
 
@@ -204,14 +252,14 @@ void TR_VBMSetHullPlane( entity_vbmhulldata_t* phulldata, plane_t& plane, Int32 
 	plane.type = PLANE_AZ;
 
 	// Set the normal
-	plane.normal[0] = phulldata->bonetransform[boneindex][0][i];
-	plane.normal[1] = phulldata->bonetransform[boneindex][1][i];
-	plane.normal[2] = phulldata->bonetransform[boneindex][2][i];
+	plane.normal[0] = phulldata->bonetransform[boneindex].matrix[0][i];
+	plane.normal[1] = phulldata->bonetransform[boneindex].matrix[1][i];
+	plane.normal[2] = phulldata->bonetransform[boneindex].matrix[2][i];
 
 	// Set distance
-	plane.dist = plane.normal[0] * phulldata->bonetransform[boneindex][0][3]
-		+ plane.normal[1] * phulldata->bonetransform[boneindex][1][3]
-		+ plane.normal[2] * phulldata->bonetransform[boneindex][2][3]
+	plane.dist = plane.normal[0] * phulldata->bonetransform[boneindex].matrix[0][3]
+		+ plane.normal[1] * phulldata->bonetransform[boneindex].matrix[1][3]
+		+ plane.normal[2] * phulldata->bonetransform[boneindex].matrix[2][3]
 		+ dist;
 }
 

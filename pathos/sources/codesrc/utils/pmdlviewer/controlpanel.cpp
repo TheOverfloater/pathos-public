@@ -1138,7 +1138,7 @@ void CControlPanel::LoadWAVFile( void )
 	if(vs.wavinfo.pdata)
 	{
 		delete [] vs.wavinfo.pdata;
-		memset(&vs.wavinfo, 0, sizeof(sound_info_t));
+		vs.wavinfo = sound_info_t();
 	}
 
 	Uint32 fileSize = 0;
@@ -1672,11 +1672,13 @@ void CControlPanel::SetupViewerForModel( const Char* pstrFilename )
 	m_pSliderSpeedScale->setValue (40);
 
 	// Set Submodels
-	for (Int32 i = 0; i < MAXSTUDIOMODELS; i++)
+	vs.submodels.resize(vs.pvbmheader->numbodyparts);
+	for (Int32 i = 0; i < vs.pvbmheader->numbodyparts; i++)
 		vs.submodels[i] = 0;
 	
 	// Set controllers
-	for (Int32 i = 0; i < MAXSTUDIOCONTROLLERS; i++)
+	vs.controllers.resize(vs.pstudioheader->numbonecontrollers);
+	for (Int32 i = 0; i < vs.pstudioheader->numbonecontrollers; i++)
 		vs.controllers[i] = 0;
 
 	// Set path for mx

@@ -5019,7 +5019,7 @@ void CBSPRenderer::CreateDecal( const Vector& origin, const Vector& normal, deca
 		maxs[i] = origin[i]+radius;
 	}
 
-	Mod_FindTouchedLeafs(ens.pworld, pdecal->leafnums, mins, maxs, ens.pworld->pnodes);
+	Mod_FindTouchedLeafs(ens.pworld, pdecal->leafnums, pdecal->numleafs, mins, maxs, ens.pworld->pnodes);
 }
 
 //=============================================
@@ -5304,10 +5304,10 @@ void CBSPRenderer::DecalSurface( const msurface_t *surf, bsp_decal_t *pdecal, co
 
 		if(transparent)
 		{
-			pconvverts[j].dtexcoord[0] = Math::DotProduct(pconvverts[j].origin, surf->ptexinfo->vecs[0])+surf->ptexinfo->vecs[0][3];
+			pconvverts[j].dtexcoord[0] = Math::DotProduct(&pconvverts[j].origin[0], surf->ptexinfo->vecs[0])+surf->ptexinfo->vecs[0][3];
 			pconvverts[j].dtexcoord[0] /= static_cast<Float>(surf->ptexinfo->ptexture->width);
 
-			pconvverts[j].dtexcoord[1] = Math::DotProduct(pconvverts[j].origin, surf->ptexinfo->vecs[1])+surf->ptexinfo->vecs[1][3];
+			pconvverts[j].dtexcoord[1] = Math::DotProduct(&pconvverts[j].origin[0], surf->ptexinfo->vecs[1])+surf->ptexinfo->vecs[1][3];
 			pconvverts[j].dtexcoord[1] /= static_cast<Float>(surf->ptexinfo->ptexture->height);
 		}
 	}
@@ -5341,10 +5341,10 @@ void CBSPRenderer::DecalSurface( const msurface_t *surf, bsp_decal_t *pdecal, co
 
 		if(transparent)
 		{
-			pconvverts[2].dtexcoord[0] = Math::DotProduct(pconvverts[2].origin, surf->ptexinfo->vecs[0])+surf->ptexinfo->vecs[0][3];
+			pconvverts[2].dtexcoord[0] = Math::DotProduct(&pconvverts[2].origin[0], surf->ptexinfo->vecs[0])+surf->ptexinfo->vecs[0][3];
 			pconvverts[2].dtexcoord[0] /= static_cast<Float>(surf->ptexinfo->ptexture->width);
 
-			pconvverts[2].dtexcoord[1] = Math::DotProduct(pconvverts[2].origin, surf->ptexinfo->vecs[1])+surf->ptexinfo->vecs[1][3];
+			pconvverts[2].dtexcoord[1] = Math::DotProduct(&pconvverts[2].origin[0], surf->ptexinfo->vecs[1])+surf->ptexinfo->vecs[1][3];
 			pconvverts[2].dtexcoord[1] /= static_cast<Float>(surf->ptexinfo->ptexture->height);
 		}
 
@@ -5607,10 +5607,11 @@ bool CBSPRenderer::DrawDecals( bool transparents )
 
 	for(Uint32 i = 0; i < m_staticDecalsArray.size(); i++)
 	{
-		if(!Common::CheckVisibility(m_staticDecalsArray[i]->leafnums, rns.pvisbuffer))
+		bsp_decal_t* pdecal = m_staticDecalsArray[i];
+		if(!Common::CheckVisibility(pdecal->leafnums, pdecal->numleafs, rns.pvisbuffer))
 			continue;
 
-		if(!DrawDecal(m_staticDecalsArray[i], transparents, renderMode))
+		if(!DrawDecal(pdecal, transparents, renderMode))
 			return false;
 	}
 
@@ -5618,7 +5619,7 @@ bool CBSPRenderer::DrawDecals( bool transparents )
 	while(!m_decalsList.end())
 	{
 		bsp_decal_t* pdecal = m_decalsList.get();
-		if(Common::CheckVisibility(pdecal->leafnums, rns.pvisbuffer))
+		if(Common::CheckVisibility(pdecal->leafnums, pdecal->numleafs, rns.pvisbuffer))
 		{
 			if(!DrawDecal(pdecal, transparents, renderMode))
 				return false;

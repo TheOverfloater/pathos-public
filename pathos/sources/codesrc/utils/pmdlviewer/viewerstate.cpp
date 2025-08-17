@@ -349,7 +349,7 @@ bool Viewer_LoadModel( const Char* pstrFilePath )
 
 		pVBMRenderer->InitVBM();
 		pVBMRenderer->SetSequence(0);
-		for(Uint32 i = 0; i < MAXSTUDIOCONTROLLERS; i++)
+		for(Uint32 i = 0; i < vs.pstudioheader->numbonecontrollers; i++)
 			pVBMRenderer->SetController(i, 0);
 		pVBMRenderer->SetMouthOpen(0);
 		for(Uint32 i = 0; i < vs.pvbmheader->numbodyparts; i++)
