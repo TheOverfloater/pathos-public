@@ -74,6 +74,7 @@ void SV_LinkEdict( edict_t* pentity, bool touchtriggers )
 		// Copy leafnums from our parent pentity
 		edict_t* paiment = gEdicts.GetEdict(pentity->state.aiment);
 		pentity->leafnums = paiment->leafnums;
+		pentity->numleaves = paiment->numleaves;
 	}
 	else
 	{
