@@ -66,6 +66,7 @@ inline Char* qstrcpy( Char* pdest, const Char* psrc )
 //
 // @param pdest Pointer to destination container
 // @param psrc Pointer to source string
+// @param size Length/size to copy
 // @return Pointer to destination string
 //=============================================
 inline Char* qstrncpy( Char* pdest, const Char* psrc, Uint32 size )
@@ -81,11 +82,16 @@ inline Char* qstrncpy( Char* pdest, const Char* psrc, Uint32 size )
 		ppdest++; ppsrc++;
 	}
 
+	// null terminate
+	*ppdest = '\0';
+
 	return pdest;
 }
 
 //=============================================
-// @brief Copies a number of characters from a string to another container
+// @brief Copies a number of characters from a string to another container,
+// but with the max size of the destination container specified, to avoid
+// buffer overwrites
 //
 // @param pdest Pointer to destination container
 // @param psrc Pointer to source string
@@ -103,7 +109,7 @@ inline Char* qstrcpy_s( Char* pdest, const Char *psrc, Uint32 m )
 }
 
 //=============================================
-// @brief Compares two strings
+// @brief Compares two strings, both of const Char pointer type
 //
 // @param pstr1 Pointer to first string to compare
 // @param pstr2 Pointer to second string to compare
@@ -132,7 +138,7 @@ inline Int32 qstrcmp( const Char* pstr1, const Char* pstr2 )
 }
 
 //=============================================
-// @brief Compares two strings
+// @brief Compares two strings, both of CString type
 //
 // @param pstr1 Reference to CString object
 // @param pstr2 Reference to CString object
@@ -150,7 +156,8 @@ inline Int32 qstrcmp( const CString& str1, const CString& str2 )
 }
 
 //=============================================
-// @brief Compares two strings
+// @brief Compares two strings, first type of const Char ptr,
+// second of CString type
 //
 // @param pstr1 Reference to CString object
 // @param pstr2 Reference to CString object
@@ -170,7 +177,8 @@ inline Int32 qstrcmp( const Char* pstr1, const CString& str2 )
 }
 
 //=============================================
-// @brief Compares two strings
+// @brief Compares two strings, first of CString type,
+// second of const Char ptr
 //
 // @param pstr1 Reference to CString object
 // @param pstr2 Reference to CString object
@@ -401,10 +409,9 @@ inline void qstrins( const Char* psrc, Char *pdest, int offset )
 //=============================================
 // @brief Seeks out a substring in a string
 //
-// @param psrc Source string pointer
-// @param pdest Destination to insert source into
-// @param offset
-// @return Position in string where substring was found
+// @param pstr String to seek substring in
+// @param psubstr Substring to seek
+// @return Pointer to where the substring was found
 //=============================================
 inline const Char* qstrstr( const Char* pstr, const Char *psubstr )
 {
@@ -440,8 +447,13 @@ inline const Char* qstrstr( const Char* pstr, const Char *psubstr )
 }
 
 //====================================
-// 
+// Takes a floating point input and returns
+// a sign value, 1.0 for positive, -1.0 for
+// negative value, and 0.0 if the value was
+// zero 
 //
+// @param a Input float value
+// @return Sign value
 //====================================
 inline Float sgn( Float a )
 {
@@ -459,6 +471,7 @@ namespace Common
 	// @brief Converts bytes to short
 	//
 	// @param pdata Pointer to data in bytes
+	// @return Signed short int value
 	//=============================================
 	inline Int16 ByteToInt16( const byte *pdata )
 	{
@@ -471,6 +484,7 @@ namespace Common
 	// @brief Converts bytes to unsigned short
 	//
 	// @param pdata Pointer to data in bytes
+	// @return Unsigned short int value
 	//=============================================
 	inline Uint16 ByteToUint16( const byte *pdata )
 	{
@@ -480,9 +494,10 @@ namespace Common
 	}
 
 	//=============================================
-	// @brief Converts bytes to int
+	// @brief Converts bytes to int32
 	//
 	// @param pdata Pointer to data in bytes
+	// @return Signed Int32 value
 	//=============================================
 	inline Int32 ByteToInt32( const byte *pdata )
 	{
@@ -492,9 +507,10 @@ namespace Common
 	}
 
 	//=============================================
-	// @brief Converts bytes to unsigned int
+	// @brief Converts bytes to unsigned int32
 	//
 	// @param pdata Pointer to data in bytes
+	// @return Unsigned Int32 value
 	//=============================================
 	inline Uint32 ByteToUint32( const byte *pdata )
 	{
@@ -504,9 +520,10 @@ namespace Common
 	}
 
 	//=============================================
-	// @brief Converts bytes to int
+	// @brief Converts bytes to int64
 	//
 	// @param pdata Pointer to data in bytes
+	// @return Signed Int64 value
 	//=============================================
 	inline Int64 ByteToInt64( const byte *pdata )
 	{
@@ -516,9 +533,10 @@ namespace Common
 	}
 
 	//=============================================
-	// @brief Converts bytes to unsigned int
+	// @brief Converts bytes to unsigned int64
 	//
 	// @param pdata Pointer to data in bytes
+	// @return Unsigned Int64 value
 	//=============================================
 	inline Uint64 ByteToUint64( const byte *pdata )
 	{
@@ -528,9 +546,10 @@ namespace Common
 	}
 
 	//=============================================
-	// @brief Converts bytes to int
+	// @brief Converts bytes to Float
 	//
 	// @param pdata Pointer to data in bytes
+	// @return Float value
 	//=============================================
 	inline Float ByteToFloat( const byte *pdata )
 	{
@@ -543,6 +562,7 @@ namespace Common
 	// @brief Converts bytes to int
 	//
 	// @param pdata Pointer to data in bytes
+	// @return Double float value
 	//=============================================
 	inline Double ByteToDouble( const byte *pdata )
 	{
@@ -558,6 +578,8 @@ namespace Common
 	//=============================================
 	inline Float qrsqrt( Float value )
 	{
+		// Thanks to Id Software and Carmack
+		// for this solution
 		Float x = value * 0.5f;
 		Float y = value;
 
@@ -586,9 +608,12 @@ namespace Common
 	//
 	// @param value Value to calculate for
 	// @param scale Maximum value
+	// @return Smooth curve value
 	//=============================================
 	inline Float SplineFraction( Float value, Float scale )
 	{
+		// This mathematical solution comes from the HLSDK,
+		// so credit goes to Valve for the code I referenced
 		Float _value = scale * value;
 		Float valueSquared = _value * _value;
 
@@ -597,8 +622,10 @@ namespace Common
 	}
 
 	//====================================
-	// 
+	// @brief Takes an input DWORD pointer and modifies it's value to
+	// ensure that it's is divisible by 2. Used for parsing WAVs
 	//
+	// @param nInput Pointer to the input value
 	//====================================
 	inline void ScaleByte( DWORD *nInput )
 	{
@@ -609,8 +636,11 @@ namespace Common
 	}
 
 	//====================================
-	// 
+	// @brief Parses RGB24 byte values and converts them to
+	// the 0-1 floating point range into the output parameter.
 	//
+	// @param pout Pointer to output float[3] array.
+	// @param plightmap Pointer to RGB24 values.
 	//====================================
 	inline void ParseColor (Float* pout, const color24_t *plightmap)
 	{
@@ -620,8 +650,12 @@ namespace Common
 	}
 
 	//====================================
-	// 
+	// @brief Parses RGB24 byte values and converts them into light
+	// vectors used by the light vectors map for BSP rendering. The
+	// values are outputted to the output float[3] array.
 	//
+	// @param pout Pointer to output float[3] array.
+	// @param plightmap Pointer to RGB24 values.
 	//====================================
 	inline void ParseVectorColor (Float* pout, const color24_t *plightmap)
 	{
@@ -639,8 +673,14 @@ namespace Common
 	}
 
 	//====================================
-	// 
+	// @brief Remaps a value into another range of min/max values.
 	//
+	// @param value Original input value.
+	// @param a Original minimum range.
+	// @param b Original maximum range.
+	// @param c New minimum range.
+	// @param d New maximum range.
+	// @return Resulting remapped value.
 	//====================================
 	inline Float RemapValue( Float value, Float a, Float b, Float c, Float d )
 	{
@@ -648,8 +688,13 @@ namespace Common
 	}
 
 	//====================================
-	// 
+	// @brief Tells if a value given fits within a minimum/maximum range of values.
 	//
+	// @param comparisonValue Input value to check.
+	// @param rangeMin Minimum of value range.
+	// @param rangeMax Maximum value of range.
+	// @param rangeShift Value to shift the range by.
+	// @return TRUE if the value fits within the range, FALSE if not.
 	//====================================
 	inline bool ValueInRange( Float comparisonValue, Float rangeMin, Float rangeMax, Float rangeShift )
 	{

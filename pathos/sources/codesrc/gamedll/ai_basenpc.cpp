@@ -1937,7 +1937,7 @@ void CBaseNPC::StartNPC( void )
 		}
 
 		// Check for flex support
-		if(GetModelFlags() & STUDIO_MF_HAS_FLEXES)
+		if(GetVBMModelFlags() & VBM_HAS_FLEXES)
 			SetCapability(AI_CAP_EXPRESSIONS);
 	}
 

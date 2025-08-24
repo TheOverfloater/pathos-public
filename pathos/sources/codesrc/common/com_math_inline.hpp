@@ -585,7 +585,7 @@ namespace Math
 	}
 
 	//=============================================
-	// @brief Inverse rotates a vector by a matrix
+	// @brief Rotates a vector by a matrix, but inverse
 	//
 	// @param vec Vector to rotate
 	// @param pmatrix 3x4 matrix to rotate with
@@ -608,6 +608,8 @@ namespace Math
 	//=============================================
 	inline Vector Math::VectorToAngles( const Vector& forward, const Vector& left )
 	{
+		// I think I referenced the Source SDK for this math solution, so credit
+		// goes to Valve for the code I referenced.
 		Vector angles;
 	
 		const Float xyDist = sqrtf( forward[0] * forward[0] + forward[1] * forward[1] );
@@ -630,7 +632,8 @@ namespace Math
 
 	//=============================================
 	// @brief Takes a forward vector, and turns it
-	// into an angle
+	// into an angle. Not as reliable or precise as
+	// using both a forward and a left vector.
 	//
 	// @param forward Forward vector defining the forward direction
 	// @result Angles calculated from forward vector
@@ -669,7 +672,7 @@ namespace Math
 	}
 
 	//=============================================
-	// @brief Multiplies a position vector by a 16 element matrix
+	// @brief Multiplies a position vector by a 4x4 matrix
 	//
 	// @param flmatrix The 16 element float matrix to multiply with
 	// @param vecin Vector to multiply with the matrix
@@ -683,7 +686,7 @@ namespace Math
 	}
 
 	//=============================================
-	// @brief Multiplies a vector by a 16 element matrix
+	// @brief Multiplies a vector by a 4x4 matrix
 	//
 	// @param flmatrix The 16 element float matrix to multiply with
 	// @param vecin Vector to multiply with the matrix
@@ -697,7 +700,7 @@ namespace Math
 	}
 
 	//=============================================
-	// @brief Multiplies a 4 element vector by a 16 element matrix
+	// @brief Multiplies a 4 element vector by a 4x4 matrix
 	//
 	// @param flmatrix The 16 element float matrix to multiply with
 	// @param vecin 4 element vector to multiply with the matrix
@@ -720,6 +723,7 @@ namespace Math
 	//=============================================
 	inline void Math::GetUpRight( const Vector& forward, Vector &up, Vector &right )
 	{
+		// Thanks to BUzer for the original code.
 		Math::VectorClear(up);
 
 		if (forward.x || forward.y)
@@ -749,7 +753,7 @@ namespace Math
 	}
 
 	//=============================================
-	// @brief Inverse transforms a vector by a matrix
+	// @brief Transforms a vector by a matrix, but inverse
 	//
 	// @param vec Vector to transform
 	// @param pmatrix 3x4 matrix to rotate with
@@ -757,6 +761,7 @@ namespace Math
 	//=============================================
 	inline void Math::VectorInverseTransform( const Vector& vec, const Float (*pmatrix)[4], Vector& out )
 	{
+		// We first have to subtract the position, THEN inverse rotate
 		Vector tmp;
 		for(Uint32 i = 0; i < 3; i++)
 			tmp[i] = vec[i] - pmatrix[i][3];

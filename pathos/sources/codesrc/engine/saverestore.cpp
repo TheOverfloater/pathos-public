@@ -24,6 +24,12 @@ All Rights Reserved.
 #include "stb_dxt.h"
 #include "filewriterthread.h"
 
+// Note:
+// When I looked at the ReHLDS code for Half-Life's save-restore system,
+// because I had no idea how to write mine, I stopped working on Pathos for
+// two months because I was so discouraged. Later on, this implementation
+// popped into my mind while showering. I really like how this came out.
+
 // Optimized string array alloc size
 const Uint32 CSaveRestore::STRING_ARRAY_ALLOC_SIZE = 512;
 // Allocation size for buffers
@@ -340,6 +346,8 @@ bool CSaveRestore::LoadSaveData( const save_header_t* pheader, const Vector* pla
 	// Restore game fields
 	if(pheader->type != SAVE_TRANSITION)
 	{
+		// TODO: Get rid of this junky code, and instead add a dynamic solution
+		// for saving cvars.
 		// Restore time
 		svs.gamevars.time = svs.time = pheader->svtime;
 

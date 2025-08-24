@@ -10,7 +10,8 @@ All Rights Reserved.
 // Notes:
 // The black and white effect, chromatic aberration, vignette 
 // and entity-customizable film grain code was done by valina354.
-
+// I want to thank Francis 'DeathWish' Woodhouse, whose Tron 2.0
+// glow I aimed to reproduce with the bloom effect.
 #include "includes.h"
 #include "r_vbo.h"
 #include "r_glsl.h"

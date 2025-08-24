@@ -443,8 +443,7 @@ inline void CGLSLShader :: SetUniformBufferObjectData( Int32 index, void* pBuffe
 	const glsl_ubo_t& ubo = m_uniformBufferObjectsArray[index];
 
 	m_glExtF.glBindBuffer(GL_UNIFORM_BUFFER, ubo.buffer_id);
-	void* pdata = m_glExtF.glMapBufferRange(GL_UNIFORM_BUFFER, 0, dataSize, GL_MAP_WRITE_BIT|GL_MAP_INVALIDATE_RANGE_BIT);
-	memcpy(pdata, pBufferData, sizeof(byte)*dataSize);
-	m_glExtF.glUnmapBuffer(GL_UNIFORM_BUFFER);
+	m_glExtF.glBufferSubData(GL_UNIFORM_BUFFER, 0, dataSize, pBufferData);
+	m_glExtF.glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 #endif //R_GLSL_INLINE_H

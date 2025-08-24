@@ -726,3 +726,19 @@
  - Reduction in memory use by having bone caching only allocate the required number of bones by an entity.
  - Fix crash in Pathos Model Viewer when loading a WAV file in the Flex Scripting editor tab after another has already been loaded.
  - Set VBM Compiler to auto-deploy to progs/vbmcompiler directory.
+
+2025 August 17th 2nd:
+ - Fix for transition issue causing player weapons to end up broken.
+ 
+2025 August 24th:
+ - Added/improved header comments on various functions.
+ - Fix for qstrncpy not terminating the destination string.
+ - Performance and memory improvements for CString and CStringPool.
+ - Move CMatrix's matrix_t struct definition inside the class.
+ - Added several developer notes in the comments.
+ - Modify AI/Flex code to track flex availability based on the VBM file flags.
+ - Added new correction function to as potential permanent fix for moving solid stop-stuck bug with player and NPCs.
+ - Increase shader compile progress prompt spacing to speed up shader loads.
+ - Fix for VBM Compiler not exiting with an error if the activity mappings cannot be loaded.
+ - Fix in VTA parser for transforming normal offsets instead of just rotating them.
+ 

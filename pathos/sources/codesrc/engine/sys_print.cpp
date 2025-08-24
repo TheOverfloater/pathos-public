@@ -18,13 +18,13 @@ All Rights Reserved.
 CSysPrintInterface gPrintInterface;
 
 // For thread safety for Printf
-static std::mutex m_conPrintfMutex;
+static std::mutex g_conPrintfMutex;
 // For thread safety for DPrintf
-static std::mutex m_conDPrintfMutex;
+static std::mutex g_conDPrintfMutex;
 // For thread safety VPrintf
-static std::mutex m_conVPrintfMutex;
+static std::mutex g_conVPrintfMutex;
 // For thread safety EPrintf
-static std::mutex m_conEPrintfMutex;
+static std::mutex g_conEPrintfMutex;
 
 // To protect against infinite loops
 static bool g_conPrintfSemaphore = false;
@@ -346,7 +346,7 @@ void Con_Printf( const Char *fmt, ... )
 		return;
 
 	g_conPrintfSemaphore = true;
-	m_conPrintfMutex.lock();
+	g_conPrintfMutex.lock();
 
 	// compile the string result
 	va_list	vArgPtr;
@@ -360,7 +360,7 @@ void Con_Printf( const Char *fmt, ... )
 	gPrintInterface.Printf(cMsg);
 
 	g_conPrintfSemaphore = false;
-	m_conPrintfMutex.unlock();
+	g_conPrintfMutex.unlock();
 }
 
 //====================================
@@ -375,7 +375,7 @@ void Con_DPrintf( const Char *fmt, ... )
 		return;
 
 	g_conDPrintfSemaphore = true;
-	m_conDPrintfMutex.lock();
+	g_conDPrintfMutex.lock();
 
 	// compile the string result
 	va_list	vArgPtr;
@@ -389,7 +389,7 @@ void Con_DPrintf( const Char *fmt, ... )
 	gPrintInterface.DPrintf(cMsg);
 
 	g_conDPrintfSemaphore = false;
-	m_conDPrintfMutex.unlock();
+	g_conDPrintfMutex.unlock();
 }
 
 //====================================
@@ -404,7 +404,7 @@ void Con_VPrintf( const Char *fmt, ... )
 		return;
 
 	g_conVPrintfSemaphore = true;
-	m_conVPrintfMutex.lock();
+	g_conVPrintfMutex.lock();
 
 	// compile the string result
 	va_list	vArgPtr;
@@ -418,7 +418,7 @@ void Con_VPrintf( const Char *fmt, ... )
 	gPrintInterface.VPrintf(cMsg);
 
 	g_conVPrintfSemaphore = false;
-	m_conDPrintfMutex.unlock();
+	g_conDPrintfMutex.unlock();
 }
 
 //====================================
@@ -430,7 +430,7 @@ void Con_EPrintf( const Char *fmt, ... )
 		return;
 
 	g_conEPrintfSemaphore = true;
-	m_conEPrintfMutex.lock();
+	g_conEPrintfMutex.lock();
 
 	// compile the string result
 	va_list	vArgPtr;
@@ -444,5 +444,5 @@ void Con_EPrintf( const Char *fmt, ... )
 	gPrintInterface.EPrintf(cMsg);
 
 	g_conEPrintfSemaphore = false;
-	m_conEPrintfMutex.unlock();
+	g_conEPrintfMutex.unlock();
 }

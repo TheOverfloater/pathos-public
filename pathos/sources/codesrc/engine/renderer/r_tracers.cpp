@@ -21,6 +21,12 @@ All Rights Reserved.
 #include "r_basicdraw.h"
 #include "r_common.h"
 
+//
+// This is a rough implementation of the original HL tracers.
+// I referenced the Source SDK for some of the math, so I want to thank Valve for their work on that.
+// Why? Nostalgia.
+//
+
 // Allocation size for tracers
 const Uint32 CTracerRenderer::TRACER_ALLOC_SIZE = 256;
 // Tracer texture file path

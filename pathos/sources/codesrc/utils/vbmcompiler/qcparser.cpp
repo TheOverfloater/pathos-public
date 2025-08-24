@@ -148,7 +148,7 @@ bool CQCParser::LoadActivityMappings( const Char* pstrFilePath )
 	if(!pFile)
 	{
 		ErrorMsg("Could not activity mapping file '%s'.\n", filePath.c_str());
-		return true; // Not a failure
+		return false; // This is a failure
 	}
 
 	Msg("Loading activity mappings from '%s'.\n", filePath.c_str());

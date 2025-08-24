@@ -25,6 +25,12 @@ All Rights Reserved.
 #include "gdll_interface.h"
 #include "console.h"
 
+//
+// The main references for this implementation were code referenced from Quake 1, coupled
+// with ReHLDS code for all the parts that Quake 1 was missing, like rotating entities
+// and other miscellaneous things. Credit goes to Id Software and dreamstalker for their
+// invaluable work.
+
 // Holds variables for server physics
 svphysics_t g_serverPhysics;
 

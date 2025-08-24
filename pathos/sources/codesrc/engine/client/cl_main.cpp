@@ -988,7 +988,7 @@ void CL_SetEntityTypeData( cl_entity_t* pentity, entity_extrainfo_t* pinfo, enti
 			pinfo->pflexstate = new flexstate_t();
 			const vbmcache_t* pcache = pentity->pmodel->getVBMCache();
 
-			if(pcache->pvbmhdr && pcache->pstudiohdr && pcache->pstudiohdr->flags & STUDIO_MF_HAS_FLEXES)
+			if(pcache->pvbmhdr && pcache->pvbmhdr && pcache->pvbmhdr->flags & VBM_HAS_FLEXES)
 			{
 				CFlexManager* pFlexManager = gVBMRenderer.GetFlexManager();
 				if(pFlexManager)

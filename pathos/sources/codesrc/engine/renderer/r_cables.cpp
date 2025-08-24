@@ -20,6 +20,10 @@ All Rights Reserved.
 #include "r_common.h"
 #include "cvar.h"
 
+//
+// Thanks to SysOp for the original cable code I relied upon
+//
+
 // Object definition
 CCableRenderer gCableRenderer;
 

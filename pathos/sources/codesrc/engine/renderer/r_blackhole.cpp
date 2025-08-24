@@ -26,6 +26,11 @@ All Rights Reserved.
 #include "console.h"
 #include "r_fbocache.h"
 
+//
+// I want to thank stevenmarky from gamedev.net for the black hole
+// shader code
+//
+
 // Class object
 CBlackHoleRenderer gBlackHoleRenderer;
 

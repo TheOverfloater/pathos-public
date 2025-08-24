@@ -54,6 +54,7 @@ CGLSLShader::CGLSLShader ( const file_interface_t& fileFuncs, const CGLExtF& glE
 	m_onDemandLoad( false ),
 	m_useBinaryShaders( false ),
 	m_areUBOsBound( false ),
+	m_shaderFlags( flags ),
 	m_isActive( false ),
 	m_bFailed( false ),
 	m_pProgressUpdateCallbackFn(*pfnCallback)
@@ -98,6 +99,7 @@ CGLSLShader::CGLSLShader ( const file_interface_t& fileFuncs, const CGLExtF& glE
 	m_onDemandLoad( false ),
 	m_useBinaryShaders( false ),
 	m_areUBOsBound( false ),
+	m_shaderFlags( flags ),
 	m_isActive( false ),
 	m_bFailed( false ),
 	m_pProgressUpdateCallbackFn(*pfnCallback)
@@ -600,6 +602,8 @@ bool CGLSLShader::CompileFromCSD( void )
 //=============================================
 bool CGLSLShader::LoadFromBSD( void )
 {
+	GLint iStatus = GL_TRUE;
+
 	// Build the path
 	CString basename;
 	Common::Basename(m_shaderFile.c_str(), basename);
@@ -683,7 +687,6 @@ bool CGLSLShader::LoadFromBSD( void )
 	CArray<GLint> binaryFormats(nbBinaryFormats);
 	glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, &binaryFormats[0]);
 
-	GLint iStatus = 0;
 	const shader_binary_t* pbinaryshaders = reinterpret_cast<const shader_binary_t*>(reinterpret_cast<const byte*>(pBSDHeader) + pBSDHeader->shaderoffset);
 	for(Uint32 i = 0; i < pBSDHeader->numshaders; i++)
 	{
@@ -719,12 +722,15 @@ bool CGLSLShader::LoadFromBSD( void )
 		}
 	}
 
-	Int32 promptSpacing = 1;
-	if(pBSDHeader->numshaders > 16)
-		promptSpacing = 16;
-	else if(pBSDHeader->numshaders > 8)
-		promptSpacing = 8;
+	// We need to limit prompts, because they make shader
+	// compiles/loads quiet slow
+	Int32 promptSpacing;
+	if(pBSDHeader->numshaders > 32)
+		promptSpacing = pBSDHeader->numshaders / 4;
+	else
+		promptSpacing = 1;
 
+	bool isFirst = true;
 	Int32 lastPrompt = 0;
 	for(Uint32 i = 0; i < pBSDHeader->numshaders; i++)
 	{
@@ -750,6 +756,7 @@ bool CGLSLShader::LoadFromBSD( void )
 		m_shadersArray[i].program_id = m_glExtF.glCreateProgram();
 		m_glExtF.glProgramBinary(m_shadersArray[i].program_id, pshaderinfo->binaryformat, pshaderdata, pshaderinfo->datasize);
 		m_glExtF.glGetProgramiv(m_shadersArray[i].program_id, GL_LINK_STATUS, &iStatus);
+
 		if(iStatus != GL_TRUE)
 		{
 			for(Uint32 j = 0; j <= i; j++)
@@ -768,16 +775,18 @@ bool CGLSLShader::LoadFromBSD( void )
 			// Update client about or progress if needed
 			if(m_pProgressUpdateCallbackFn)
 			{
-				if(i - lastPrompt > promptSpacing || i == (pBSDHeader->numshaders-1) || i == 0)
+				if(i - lastPrompt > promptSpacing || i == (pBSDHeader->numshaders-1) || isFirst)
 				{
 					m_pProgressUpdateCallbackFn(m_shaderFile.c_str(), pBSDHeader->numshaders, i+1, false);
 					lastPrompt = i;
+					isFirst = false;
 				}
 			}
 		}
 	}
 
 	m_fileInterface.pfnFreeFile(pFile);
+
 	return (iStatus == GL_TRUE) ? true : false;
 }
 
@@ -813,12 +822,15 @@ bool CGLSLShader::CompileCSDShaderData( void )
 		pbuffer->addpointer(reinterpret_cast<void**>(&pbinaryshaders));
 	}
 
-	Int32 promptSpacing = 1;
-	if(m_shadersArray.size() > 16)
-		promptSpacing = 16;
-	else if(m_shadersArray.size() > 8)
-		promptSpacing = 8;
+	// We need to limit prompts, because they make shader
+	// compiles/loads quiet slow
+	Int32 promptSpacing;
+	if(m_shadersArray.size() > 32)
+		promptSpacing = m_shadersArray.size() / 4;
+	else
+		promptSpacing = 1;
 
+	bool isFirst = true;
 	Int32 lastPrompt = 0;
 
 	// Always compile all shaders if the CSD was changed, to find any possible errors
@@ -867,10 +879,11 @@ bool CGLSLShader::CompileCSDShaderData( void )
 		// Update client about or progress if needed
 		if(m_pProgressUpdateCallbackFn)
 		{
-			if(i - lastPrompt > promptSpacing || i == (m_shadersArray.size()-1))
+			if(i - lastPrompt > promptSpacing || i == (m_shadersArray.size()-1) || isFirst)
 			{
 				m_pProgressUpdateCallbackFn(m_shaderFile.c_str(), m_shadersArray.size(), i+1, true);
 				lastPrompt = i;
+				isFirst = false;
 			}
 		}
 	}

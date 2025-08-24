@@ -82,6 +82,8 @@ public:
 	virtual Uint32 GetNumFrames( void );
 	// Returns the model flags
 	virtual Int32 GetModelFlags( void );
+	// Returns the VBM model flags
+	virtual Int32 GetVBMModelFlags( void );
 
 	// Gets attachment position
 	virtual void GetAttachment( Uint32 attachmentindex, Vector& origin );

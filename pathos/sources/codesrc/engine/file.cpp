@@ -18,6 +18,10 @@ All Rights Reserved.
 #include "enginestate.h"
 #include "file_interface.h"
 
+// TODO: Create a class which tracks files opened, etc
+// Not necessary, but it would be useful to avoid loading
+// files multiple times.
+
 //
 // Engine file functions
 //

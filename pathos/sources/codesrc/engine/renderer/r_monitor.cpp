@@ -27,6 +27,10 @@ All Rights Reserved.
 #include "file.h"
 #include "r_common.h"
 
+//
+// I should add support for rendering monitors on VBM models at some point
+//
+
 // Scanline texture width
 const Uint32 CMonitorManager::SCANLINE_TEXTURE_WIDTH = 256;
 // Scanline texture height

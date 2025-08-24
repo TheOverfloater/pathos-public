@@ -22,6 +22,12 @@ All Rights Reserved.
 #include "enginestate.h"
 #include "r_blackhole.h"
 
+//
+// This code was written while referencing the Quake 1 SDK, later expanded with some code by Enko
+// to support some HL1-specific effects.
+// I didn't need to add this, but I find Quake 1 particles so nostalgic that I couldn't resist.
+//
+
 // Ramp 1 values
 const Uint32 CLegacyParticles::PARTICLE_RAMP1[8] = {0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61};
 // Ramp 2 values

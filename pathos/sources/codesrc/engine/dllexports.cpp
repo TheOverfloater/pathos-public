@@ -11,6 +11,7 @@ All Rights Reserved.
 // Special thanks to user5588894 for this code
 // This is used for 32-bit mode, because Detours refuses
 // to compile properly with x86
+// TODO: Decomission this?
 
 #include "includes.h"
 #include "datatypes.h"

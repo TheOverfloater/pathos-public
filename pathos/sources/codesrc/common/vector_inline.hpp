@@ -214,7 +214,7 @@ inline Vector& Vector::operator=( const Vector& rhv )
 // @brief Indexing operator
 //
 // @param str Reference to CString to copy
-// @return Indexed value
+// @return Value at index
 //=============================================
 inline Float& Vector::operator[]( Uint32 n )
 {
@@ -232,7 +232,7 @@ inline Float& Vector::operator[]( Uint32 n )
 // @brief Indexing operator
 //
 // @param str Reference to CString to copy
-// @return Indexed value
+// @return Value at index
 //=============================================
 inline Float Vector::operator[]( Uint32 n ) const
 {
@@ -250,7 +250,7 @@ inline Float Vector::operator[]( Uint32 n ) const
 // @brief Indexing operator
 //
 // @param str Reference to CString to copy
-// @return Indexed value
+// @return Reference to value at index
 //=============================================
 inline Float& Vector::operator[]( Int32 n )
 {
@@ -283,10 +283,10 @@ inline Float Vector::operator[]( Int32 n ) const
 }
 
 //=============================================
-// @brief Indexing operator
+// @brief Multiplication operator
 //
-// @param str Reference to CString to copy
-// @return Indexed value
+// @param value Value to multiply the vector by
+// @return Result vector
 //=============================================
 inline Vector Vector::operator*(Float value) const
 {
@@ -294,10 +294,10 @@ inline Vector Vector::operator*(Float value) const
 }
 
 //=============================================
-// @brief Indexing operator
+// @brief Division operator
 //
-// @param str Reference to CString to copy
-// @return Indexed value
+// @param value Value to divide the vector by
+// @return Result vector
 //=============================================
 inline Vector Vector::operator/(Float value) const
 {
@@ -385,8 +385,9 @@ inline bool Vector::IsZero( void ) const
 }
 
 //=============================================
-// @brief Tells if the vector is NAN
+// @brief Tells if the element of the vector is NAN
 //
+// @param index Index of the element to check
 // @return TRUE if zero, FALSE otherwise
 //=============================================
 inline bool Vector::IsNAN( Int32 index ) const

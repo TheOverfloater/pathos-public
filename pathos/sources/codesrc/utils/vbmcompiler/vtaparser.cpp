@@ -553,7 +553,7 @@ void CVTAParser::FinalizeFlexData( CArray<smdl::flexframe_t*>& ptempflexarray )
 					// Move normal into object space
 					boneTransInfo = m_boneTransformInfoArray[smdNormal.boneindex];
 					Vector tmp = srcFrameVertex.normal;
-					Math::VectorInverseTransform(tmp, boneTransInfo.matrix, dstFrameVertex.normal);
+					Math::VectorInverseRotate(tmp, boneTransInfo.matrix, dstFrameVertex.normal);
 					dstFrameVertex.normal.Normalize();
 
 					// Turn it into an offset

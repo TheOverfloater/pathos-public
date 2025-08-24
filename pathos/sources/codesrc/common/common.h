@@ -78,7 +78,8 @@ static constexpr Uint32 MAX_LINE_LENGTH = 4096;
 // Maximum parse length
 static constexpr Uint32 MAX_PARSE_LENGTH = 256;
 
-// Resource levels
+// Resource levels, used to keep track of what needs to be
+// freed, and when.
 enum rs_level_t
 {
 	RS_LEVEL_UNDEFINED = 0,
@@ -87,7 +88,8 @@ enum rs_level_t
 	RS_APP_LEVEL				// Resources that get freed only when the application exits
 };
 
-// Resource message types
+// Resource message types, used to handle precache lists
+// sent by the server to the clients.
 enum rs_msg_type_t
 {
 	RS_FINISHED = 0,
@@ -100,7 +102,8 @@ enum rs_msg_type_t
 	RS_LIST_DECALS
 };
 
-// Resource type
+// Resource type, used to handle precache lists
+// sent by the server to the clients.
 enum rs_type_t
 {
 	RS_TYPE_UNDEFINED = -1,

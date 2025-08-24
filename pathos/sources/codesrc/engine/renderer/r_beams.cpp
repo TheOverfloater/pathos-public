@@ -32,6 +32,7 @@ All Rights Reserved.
 //
 // Beam rendering code
 // Special Thanks to Enko for providing the sources I referenced to recode this
+// Thanks to Jay Stelly, who wrote the code I referenced from the Source SDK.
 //
 
 // Number of beams allocated at once

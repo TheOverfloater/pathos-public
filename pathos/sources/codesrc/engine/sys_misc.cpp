@@ -26,6 +26,8 @@ All Rights Reserved.
 #include "config.h"
 #include "textschemas.h"
 
+// I had a hard time deciding whether to keep liblist.gam or create something else
+
 // Default font schema name
 static const Char DEFAULT_FONT_SCHEMA_NAME[] = "DefaultFont";
 

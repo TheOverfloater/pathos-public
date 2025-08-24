@@ -236,6 +236,10 @@ void CSkyRenderer::CreateVBO( void )
 	Uint32* pindexes = new Uint32[numIndexes];
 	memset(pindexes, 0, sizeof(Uint32)*numIndexes);
 
+	//
+	// Thanks to BUzer for the code from Paranoia, which this is using as reference
+	// I didn't bother making this a cubemap cause I don't care.
+
 	Vector skyboxVerts[] = 
 	{
 		Vector(-SKYBOX_SURFACE_DISTANCE, -SKYBOX_SURFACE_DISTANCE, -SKYBOX_SURFACE_DISTANCE), 

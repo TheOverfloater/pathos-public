@@ -15,6 +15,10 @@ All Rights Reserved.
 #include "edictmanager.h"
 #include "enginestate.h"
 
+//
+// Some of the code here was written while referencing Quake 1 and ReHLDS. I want to thank Id Software
+// and dreamstalker for their invaluable work.
+
 //=============================================
 //
 //=============================================

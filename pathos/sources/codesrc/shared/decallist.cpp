@@ -7,6 +7,11 @@ All Rights Reserved.
 ===============================================
 */
 
+//
+// The original decal script that Pathos relies upon
+// was created by BUzer
+//
+
 #include "includes.h"
 #include "decallist.h"
 

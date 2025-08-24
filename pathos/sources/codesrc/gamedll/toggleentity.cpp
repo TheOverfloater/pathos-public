@@ -262,9 +262,12 @@ bool CToggleEntity::IsLockedByMaster( void )
 //=============================================
 void CToggleEntity::LinearMoveDone( void )
 {
-	// Snap entity to final position
+	// Snap entity to final position, and also make sure
+	// ground entities don't get stuck
+	Vector origDiff = m_pEdict->state.origin - m_finalDest;
 	gd_engfuncs.pfnSetOrigin(m_pEdict, m_finalDest);
-	
+	AdjustGroundEntitiesLinearMove(origDiff);
+
 	// Clear velocity and thinking
 	m_pState->velocity.Clear();
 	m_pState->nextthink = 0;
@@ -308,6 +311,28 @@ const Vector& CToggleEntity::GetPosition1( void ) const
 const Vector& CToggleEntity::GetPosition2( void ) const
 {
 	return m_position2;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CToggleEntity::AdjustGroundEntitiesLinearMove( const Vector& adjustVec )
+{
+	for(Uint32 i = 1; i < g_pGameVars->numentities; i++)
+	{
+		edict_t* pedict = gd_engfuncs.pfnGetEdictByIndex(i);
+		if(!pedict || pedict->free)
+			continue;
+
+		if(pedict->state.groundent == m_pEdict->entindex)
+		{
+			Vector edictOrigin = pedict->state.origin;
+			edictOrigin -= adjustVec;
+
+			gd_engfuncs.pfnSetOrigin(pedict, edictOrigin);
+		}
+	}
 }
 
 #ifdef _DEBUG

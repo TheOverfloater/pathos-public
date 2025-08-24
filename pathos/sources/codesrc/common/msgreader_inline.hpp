@@ -11,8 +11,10 @@ All Rights Reserved.
 #define MSGREADER_INLINE_HPP
 
 //=============================================
-// @brief
+// @brief Begin reading of a raw byte buffer
 //
+// @param pdata Pointer to data buffer
+// @param msgsize Size of data buffer
 //=============================================
 inline void CMSGReader::BeginRead( const byte* pdata, Uint32 msgsize )
 {
@@ -25,8 +27,9 @@ inline void CMSGReader::BeginRead( const byte* pdata, Uint32 msgsize )
 }
 
 //=============================================
-// @brief
+// @brief Get error string if any
 //
+// @return Pointer to error string
 //=============================================
 inline const Char* CMSGReader::GetError( void ) const
 {
@@ -34,8 +37,9 @@ inline const Char* CMSGReader::GetError( void ) const
 }
 
 //=============================================
-// @brief
+// @brief Tells if we had an error in the read
 //
+// @return TRUE if an error was encountered, FALSE otherwise
 //=============================================
 inline bool CMSGReader::HasError( void )
 {
@@ -52,8 +56,9 @@ inline bool CMSGReader::HasError( void )
 }
 
 //=============================================
-// @brief
+// @brief Reads a single byte from the buffer
 //
+// @return Byte value
 //=============================================
 byte CMSGReader::ReadByte( void )
 {
@@ -74,8 +79,9 @@ byte CMSGReader::ReadByte( void )
 }
 
 //=============================================
-// @brief
+// @brief Reads a single char from the buffer
 //
+// @return Char value
 //=============================================
 Char CMSGReader::ReadChar( void )
 {
@@ -96,8 +102,9 @@ Char CMSGReader::ReadChar( void )
 }
 
 //=============================================
-// @brief
+// @brief Reads a single int16 from the buffer
 //
+// @return Int16 value
 //=============================================
 Int16 CMSGReader::ReadInt16( void )
 {
@@ -118,8 +125,9 @@ Int16 CMSGReader::ReadInt16( void )
 }
 
 //=============================================
-// @brief
+// @brief Reads a single uint16 from the buffer
 //
+// @return Uint16 value
 //=============================================
 Uint16 CMSGReader::ReadUint16( void )
 {
@@ -140,8 +148,9 @@ Uint16 CMSGReader::ReadUint16( void )
 }
 
 //=============================================
-// @brief
+// @brief Reads a single int32 from the buffer
 //
+// @return Int32 value
 //=============================================
 Int32 CMSGReader::ReadInt32( void )
 {
@@ -162,8 +171,9 @@ Int32 CMSGReader::ReadInt32( void )
 }
 
 //=============================================
-// @brief
+// @brief Reads a single uint32 from the buffer
 //
+// @return Uint32 value
 //=============================================
 Uint32 CMSGReader::ReadUint32( void )
 {
@@ -184,8 +194,9 @@ Uint32 CMSGReader::ReadUint32( void )
 }
 
 //=============================================
-// @brief
+// @brief Reads a single int64 from the buffer
 //
+// @return Byte Int64
 //=============================================
 Int64 CMSGReader::ReadInt64( void )
 {
@@ -206,8 +217,9 @@ Int64 CMSGReader::ReadInt64( void )
 }
 
 //=============================================
-// @brief
+// @brief Reads a single uint64 from the buffer
 //
+// @return Uint64 value
 //=============================================
 Uint64 CMSGReader::ReadUint64( void )
 {
@@ -228,8 +240,9 @@ Uint64 CMSGReader::ReadUint64( void )
 }
 
 //=============================================
-// @brief
+// @brief Reads a single half-float from the buffer
 //
+// @return Half-float value
 //=============================================
 Float CMSGReader::ReadSmallFloat( void )
 {
@@ -241,8 +254,9 @@ Float CMSGReader::ReadSmallFloat( void )
 }
 
 //=============================================
-// @brief
+// @brief Reads a single float from the buffer
 //
+// @return Float value
 //=============================================
 Float CMSGReader::ReadFloat( void )
 {
@@ -265,8 +279,9 @@ Float CMSGReader::ReadFloat( void )
 }
 
 //=============================================
-// @brief
+// @brief Reads a single double from the buffer
 //
+// @return Double value
 //=============================================
 Double CMSGReader::ReadDouble( void )
 {
@@ -290,8 +305,9 @@ Double CMSGReader::ReadDouble( void )
 
 
 //=============================================
-// @brief
+// @brief Reads a string from the buffer
 //
+// @return Pointer to string
 //=============================================
 const Char* CMSGReader::ReadString( void )
 {
@@ -316,8 +332,9 @@ const Char* CMSGReader::ReadString( void )
 }
 
 //=============================================
-// @brief
+// @brief Reads a byte buffer from the message buffer
 //
+// @return Pointer to data buffer
 //=============================================
 const byte* CMSGReader::ReadBuffer( Uint32 size )
 {
@@ -336,8 +353,9 @@ const byte* CMSGReader::ReadBuffer( Uint32 size )
 }
 
 //=============================================
-// @brief
+// @brief Reads a bitset from the data buffer
 //
+// @return CBitSet object
 //=============================================
 CBitSet CMSGReader::ReadBitSet( void )
 {

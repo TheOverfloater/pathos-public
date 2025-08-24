@@ -731,6 +731,37 @@ Int32 CAnimatingEntity::GetModelFlags( void )
 // @brief
 //
 //=============================================
+Int32 CAnimatingEntity::GetVBMModelFlags( void )
+{
+	const cache_model_t* pmodel = gd_engfuncs.pfnGetModel(m_pState->modelindex);
+	if(!pmodel)
+	{
+		gd_engfuncs.pfnCon_Printf("%s - Called on entity with no model.\n", __FUNCTION__);
+		return 0;
+	}
+
+	if(pmodel->type != MOD_VBM)
+	{
+		gd_engfuncs.pfnCon_Printf("%s - Model '%s' is not a VBM model.\n", __FUNCTION__, pmodel->name.c_str());
+		return 0;
+	}
+
+	// get pointer to studio data
+	const vbmcache_t* pcache = pmodel->getVBMCache();
+	const vbmheader_t* pvbmheader = pcache->pvbmhdr;
+	if(!pvbmheader)
+	{
+		gd_engfuncs.pfnCon_Printf("%s - Called on model '%s' which has no valid vbm data.\n", __FUNCTION__, pmodel->name.c_str());
+		return 0;
+	}
+
+	return pvbmheader->flags;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 void CAnimatingEntity::GetAttachment( Uint32 attachmentindex, Vector& origin )
 {
 	gd_engfuncs.pfnGetAttachment(m_pEdict, attachmentindex, origin);

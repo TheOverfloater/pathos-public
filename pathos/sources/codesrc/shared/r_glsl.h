@@ -554,6 +554,8 @@ private:
 	bool m_useBinaryShaders;
 	// TRUE if the UBOs got bound
 	bool m_areUBOsBound;
+	// Shader flags
+	Int32 m_shaderFlags;
 
 	// Currently bound shader's index
 	Int32 m_shaderIndex;

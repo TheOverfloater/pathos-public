@@ -31,6 +31,10 @@ All Rights Reserved.
 #include "cache_model.h"
 #include "r_vbm.h"
 
+//
+// Thanks to BUzer for the decal cutting logic
+//
+
 // Distance which decals trace against
 const Float CDecalManager::DECAL_CHECK_DIST = 1;
 // Decal texture folder path

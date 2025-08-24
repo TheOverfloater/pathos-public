@@ -14,6 +14,7 @@ All Rights Reserved.
 // @brief Assignment operator
 //
 // @param str Reference to CString to copy
+// @return Reference to CString object
 //=============================================
 inline CString& CString::operator=(const CString& str)
 {
@@ -46,10 +47,7 @@ inline CString& CString::operator=(const CString& str)
 		}
 		else
 		{
-			const Uint32 strlength = str.length();
-			Char* pString = new Char[strlength+1];
-			qstrcpy(pString, psrc);
-			setdata(pString, strlength);
+			setdata(psrc);
 		}
 	}
 
@@ -57,15 +55,16 @@ inline CString& CString::operator=(const CString& str)
 }
 
 //=============================================
-// @brief Comparison operator
+// @brief Equals operator
 //
-// @param pstr Pointer to CString to compare
+// @param pstr Pointer to string to compare
+// @return TRUE if strings match, FALSE otherwise
 //=============================================
 inline bool CString::operator==(const Char* pstr) const
 {
 	if(!pstr)
 	{
-		if(m_pString)
+		if(m_pString != EMPTY_STRING)
 			return false;
 		else
 			return true;
@@ -75,15 +74,16 @@ inline bool CString::operator==(const Char* pstr) const
 }
 
 //=============================================
-// @brief Comparison operator
+// @brief Equals operator
 //
-// @param pstr Pointer to CString to compare
+// @param str Reference to CString to compare
+// @return TRUE if strings match, FALSE otherwise
 //=============================================
 inline bool CString::operator==(const CString& str) const
 {
 	if(str.empty())
 	{
-		if(m_pString)
+		if(m_pString != EMPTY_STRING)
 			return false;
 		else
 			return true;
@@ -96,7 +96,8 @@ inline bool CString::operator==(const CString& str) const
 //=============================================
 // @brief Less than operator
 //
-// @param pstr Pointer to CString to compare
+// @param pstr Pointer to string to compare
+// @return TRUE if string is lower in order, FALSE otherwise
 //=============================================
 inline bool CString::operator<(const Char* pstr) const
 {
@@ -106,7 +107,8 @@ inline bool CString::operator<(const Char* pstr) const
 //=============================================
 // @brief Less than operator
 //
-// @param pstr Pointer to CString to compare
+// @param str Reference to CString to compare
+// @return TRUE if string is lower in order, FALSE otherwise
 //=============================================
 inline bool CString::operator<(const CString& str) const
 {
@@ -116,7 +118,8 @@ inline bool CString::operator<(const CString& str) const
 //=============================================
 // @brief Greater than operator
 //
-// @param pstr Pointer to CString to compare
+// @param pstr Pointer to string to compare
+// @return TRUE if string is greater in order, FALSE otherwise
 //=============================================
 inline bool CString::operator>(const Char* pstr) const
 {
@@ -126,7 +129,8 @@ inline bool CString::operator>(const Char* pstr) const
 //=============================================
 // @brief Greater than operator
 //
-// @param pstr Pointer to CString to compare
+// @param str Reference to CString to compare
+// @return TRUE if string is greater in order, FALSE otherwise
 //=============================================
 inline bool CString::operator>(const CString& str) const
 {
@@ -134,9 +138,10 @@ inline bool CString::operator>(const CString& str) const
 }
 
 //=============================================
-// @brief Byte shift operator
+// @brief Byte shift operator, appends other string to this string
 //
 // @param pstr Pointer string
+// @return Reference to this CString object
 //=============================================
 inline CString& CString::operator<<(const Char* pstr)
 {
@@ -145,9 +150,10 @@ inline CString& CString::operator<<(const Char* pstr)
 }
 
 //=============================================
-// @brief Byte shift operator
+// @brief Byte shift operator, appends other string to this string
 //
-// @param pstr Pointer string
+// @param str Reference to CString string
+// @return Reference to this CString object
 //=============================================
 inline CString& CString::operator<<(const CString& str)
 {
@@ -157,9 +163,10 @@ inline CString& CString::operator<<(const CString& str)
 }
 
 //=============================================
-// @brief Byte shift operator
+// @brief Byte shift operator, appends a single character to this string
 //
-// @param pstr Pointer string
+// @param c Character to append
+// @return Reference to this CString object
 //=============================================
 inline CString& CString::operator<<(Char c)
 {
@@ -168,9 +175,10 @@ inline CString& CString::operator<<(Char c)
 }
 
 //=============================================
-// @brief Byte shift operator
+// @brief Byte shift operator, appends an integer as a string to this string
 //
-// @param pstr Pointer string
+// @param i Integer value to append
+// @return Reference to this CString object
 //=============================================
 inline CString& CString::operator<<(Int32 i)
 {
@@ -179,9 +187,10 @@ inline CString& CString::operator<<(Int32 i)
 }
 
 //=============================================
-// @brief Byte shift operator
+// @brief Byte shift operator, appends unsigned int to this string
 //
-// @param pstr Pointer string
+// @param i Integer value to append
+// @return Reference to this CString object
 //=============================================
 inline CString& CString::operator<<(Uint32 i)
 {
@@ -190,9 +199,10 @@ inline CString& CString::operator<<(Uint32 i)
 }
 
 //=============================================
-// @brief Byte shift operator
+// @brief Byte shift operator, appends a float to this string
 //
-// @param pstr Pointer string
+// @param f Float value to append as string
+// @return Reference to this CString object
 //=============================================
 inline CString& CString::operator<<(Float f)
 {
@@ -201,9 +211,10 @@ inline CString& CString::operator<<(Float f)
 }
 
 //=============================================
-// @brief Byte shift operator
+// @brief Byte shift operator, appends a Double value to this string
 //
-// @param pstr Pointer string
+// @param d Double value to append
+// @return Reference to this CString object
 //=============================================
 inline CString& CString::operator<<(Double d)
 {
@@ -212,9 +223,10 @@ inline CString& CString::operator<<(Double d)
 }
 
 //=============================================
-// @brief Plus equal operator
+// @brief Plus equal operator, appends another string to this string
 //
-// @param pstr Pointer string
+// @param pstr Pointer to string to append
+// @return Reference to this CString object
 //=============================================
 inline CString& CString::operator+=(const Char* pstr)
 {
@@ -223,9 +235,10 @@ inline CString& CString::operator+=(const Char* pstr)
 }
 
 //=============================================
-// @brief Plus equal operator
+// @brief Plus equal operator, appends another string to this string
 //
-// @param pstr Pointer string
+// @param str Reference to other string
+// @return Reference to this CString object
 //=============================================
 inline CString& CString::operator+=(const CString& str)
 {
@@ -234,9 +247,10 @@ inline CString& CString::operator+=(const CString& str)
 }
 
 //=============================================
-// @brief Plus equal operator
+// @brief Plus equal operator, appends a single character to this string
 //
-// @param pstr Pointer string
+// @param c Character to append to the string
+// @return Reference to this CString object
 //=============================================
 inline CString& CString::operator+=(Char c)
 {
@@ -245,9 +259,10 @@ inline CString& CString::operator+=(Char c)
 }
 
 //=============================================
-// @brief Plus equal operator
+// @brief Plus equal operator, appends an integer value to this string
 //
-// @param pstr Pointer string
+// @param i Integer value to append
+// @return Reference to this CString object
 //=============================================
 inline CString& CString::operator+=(Int32 i)
 {
@@ -256,9 +271,10 @@ inline CString& CString::operator+=(Int32 i)
 }
 
 //=============================================
-// @brief Plus equal operator
+// @brief Plus equal operator, appends an unsigned int value to this string
 //
-// @param pstr Pointer string
+// @param i Integer value to append
+// @return Reference to this CString object
 //=============================================
 inline CString& CString::operator+=(Uint32 i)
 {
@@ -267,9 +283,10 @@ inline CString& CString::operator+=(Uint32 i)
 }
 
 //=============================================
-// @brief Plus operator
+// @brief Plus operator, appends a string to this string
 //
 // @param pstr Pointer string
+// @return Resulting string object
 //=============================================
 inline CString CString::operator+(const Char* pstr)
 {
@@ -279,9 +296,10 @@ inline CString CString::operator+(const Char* pstr)
 }
 
 //=============================================
-// @brief Plus operator
+// @brief Plus operator, appends a CString to this string
 //
-// @param pstr Pointer string
+// @param str Reference to CString object
+// @return Resulting string object
 //=============================================
 inline CString CString::operator+(const CString& str)
 {
@@ -293,9 +311,10 @@ inline CString CString::operator+(const CString& str)
 }
 
 //=============================================
-// @brief Plus operator
+// @brief Plus operator, appends a single character to this string
 //
-// @param pstr Pointer string
+// @param c Character to append
+// @return Resulting string object
 //=============================================
 inline CString CString::operator+(Char c)
 {
@@ -305,9 +324,10 @@ inline CString CString::operator+(Char c)
 }
 
 //=============================================
-// @brief Plus operator
+// @brief Plus operator, appends a single integer value to this string
 //
-// @param pstr Pointer string
+// @param i Integer value to append
+// @return Resulting string object
 //=============================================
 inline CString CString::operator+(Int32 i)
 {
@@ -317,9 +337,10 @@ inline CString CString::operator+(Int32 i)
 }
 
 //=============================================
-// @brief Plus operator
+// @brief Plus operator, appends a single unsigned integer value to this string
 //
-// @param pstr Pointer string
+// @param i Integer value to append
+// @return Resulting string object
 //=============================================
 inline CString CString::operator+(Uint32 i)
 {
@@ -329,9 +350,10 @@ inline CString CString::operator+(Uint32 i)
 }
 
 //=============================================
-// @brief Plus operator
+// @brief Plus operator, appends a single float value to this string
 //
-// @param pstr Pointer string
+// @param f Float value to append
+// @return Resulting string object
 //=============================================
 inline CString CString::operator+(Float f)
 {
@@ -341,143 +363,16 @@ inline CString CString::operator+(Float f)
 }
 
 //=============================================
-// @brief Plus operator
+// @brief Plus operator, appends a single double value to this string
 //
-// @param pstr Pointer string
+// @param d Double value to append
+// @return Resulting string object
 //=============================================
 inline CString CString::operator+(Double d)
 {
 	CString temp(*this);
 	temp << d;
 	return temp;
-}
-
-//=============================================
-// @brief Appends a source string to the current string
-//
-// @param pstr Pointer string
-//=============================================
-inline void CString::Append(const Char* psrc)
-{
-	if(psrc)
-	{
-		const Uint32 srclength = qstrlen(psrc);
-		const Uint32 newlength = srclength + m_stringLength;
-
-		Char* pstrNew = new Char[newlength+1];
-		if(m_pString && m_pString != EMPTY_STRING)
-			sprintf(pstrNew, "%s%s", m_pString, psrc);
-		else
-			qstrcpy(pstrNew, psrc);
-
-		setdata(pstrNew, newlength);
-	}
-}
-
-//=============================================
-// @brief Appends a char to the current string
-//
-// @param pstr Pointer string
-//=============================================
-inline void CString::Append(Char c)
-{
-	const Uint32 newlength = m_stringLength+1;
-
-	Char* pstrNew = new Char[newlength+1];
-	if(m_pString && m_pString != EMPTY_STRING)
-		sprintf(pstrNew, "%s%c", m_pString, c);
-	else
-		sprintf(pstrNew, "%c", c);
-
-	setdata(pstrNew, newlength);
-}
-
-//=============================================
-// @brief Appends an integer to the current string
-//
-// @param pstr Pointer string
-//=============================================
-inline void CString::Append(Int32 i)
-{
-	static Char convBuffer[64];
-	sprintf_s(convBuffer, "%d", i);
-	const Int32 strlength = qstrlen(convBuffer);
-
-	const Uint32 newlength = m_stringLength+strlength;
-
-	Char* pstrNew = new Char[newlength+1];
-	if(m_pString && m_pString != EMPTY_STRING)
-		sprintf(pstrNew, "%s%s", m_pString, convBuffer);
-	else
-		sprintf(pstrNew, "%s", convBuffer);
-
-	setdata(pstrNew, newlength);
-}
-
-//=============================================
-// @brief Appends an integer to the current string
-//
-// @param pstr Pointer string
-//=============================================
-inline void CString::Append(Uint32 i)
-{
-	static Char convBuffer[64];
-	sprintf_s(convBuffer, "%d", static_cast<Int32>(i));
-	const Int32 strlength = qstrlen(convBuffer);
-
-	const Uint32 newlength = m_stringLength+strlength;
-
-	Char* pstrNew = new Char[newlength+1];
-	if(m_pString && m_pString != EMPTY_STRING)
-		sprintf(pstrNew, "%s%s", m_pString, convBuffer);
-	else
-		sprintf(pstrNew, "%s", convBuffer);
-
-	setdata(pstrNew, newlength);
-}
-
-//=============================================
-// @brief Appends a float value to the current string
-//
-// @param pstr Pointer string
-//=============================================
-inline void CString::Append(Float f)
-{
-	static Char convBuffer[64];
-	sprintf_s(convBuffer, "%f", f);
-
-	const Int32 strlength = qstrlen(convBuffer);
-	const Uint32 newlength = m_stringLength+strlength;
-
-	Char* pstrNew = new Char[newlength+1];
-	if(m_pString && m_pString != EMPTY_STRING)
-		sprintf(pstrNew, "%s%s", m_pString, convBuffer);
-	else
-		sprintf(pstrNew, "%s", convBuffer);
-
-	setdata(pstrNew, newlength);
-}
-
-//=============================================
-// @brief Appends a float value to the current string
-//
-// @param pstr Pointer string
-//=============================================
-inline void CString::Append(Double d)
-{
-	static Char convBuffer[64];
-	sprintf_s(convBuffer, "%9.9lf", d);
-
-	const Int32 strlength = qstrlen(convBuffer);
-	const Uint32 newlength = m_stringLength+strlength;
-
-	Char* pstrNew = new Char[newlength+1];
-	if(m_pString && m_pString != EMPTY_STRING)
-		sprintf(pstrNew, "%s%s", m_pString, convBuffer);
-	else
-		sprintf(pstrNew, "%s", convBuffer);
-
-	setdata(pstrNew, newlength);
 }
 
 //=============================================
@@ -489,15 +384,18 @@ inline void CString::Append(Double d)
 inline Char CString::operator[] (Uint32 n) const
 {
 	assert(m_pString != nullptr);
-	assert(n < qstrlen(m_pString));
-	return m_pString[n];
+	assert(n < m_stringLength);
+
+	if(n < m_stringLength)
+		return m_pString[n];
+	else
+		return '\0';
 }
 
 //=============================================
-// @brief Returns the size of the string
+// @brief Returns the length of the string, not counting '/0' terminator char
 //
-// @param n Index in string
-// @return length of the string
+// @return Length of the string
 //=============================================
 inline Uint32 CString::length( void ) const
 {
@@ -505,10 +403,9 @@ inline Uint32 CString::length( void ) const
 }
 
 //=============================================
-// @brief Returns the size of the string
+// @brief Tells if the string is empty
 //
-// @param n Index in string
-// @return length of the string
+// @return TRUE if string is empty, FALSE otherwise
 //=============================================
 inline bool CString::empty( void ) const
 {
@@ -516,10 +413,9 @@ inline bool CString::empty( void ) const
 }
 
 //=============================================
-// @brief Returns the size of the string
+// @brief Returns a const pointer to the raw string data
 //
-// @param n Index in string
-// @return length of the string
+// @return Pointer to raw string data
 //=============================================
 inline const Char* CString::c_str( void ) const
 {
@@ -549,16 +445,20 @@ inline void CString::clear( void )
 }
 
 //=============================================
-// @brief Assigns a string to use
+// @brief Assigns the contents of this string
 //
 //=============================================
 inline void CString::assign( const Char* pstr, Uint32 num )
 {
-	Char* pString = new Char[num+1];
-	qstrncpy(pString, pstr, num);
-	pString[num] = '\0';
+	g_workBufferMutex.lock();
+	CheckBuffer(num);
+	g_pWorkBuffer[0] = '\0';
 
-	setdata(pString, num);
+	qstrncpy(g_pWorkBuffer, pstr, num);
+	g_pWorkBuffer[num] = '\0';
+
+	setdata(g_pWorkBuffer);
+	g_workBufferMutex.unlock();
 }
 
 //=============================================
@@ -581,8 +481,9 @@ inline CString operator + ( const CString& lhs, const CString& rhs )
 //=============================================
 // @brief Finds occurrence of a substring in the string
 //
-// @param begin index of starting character to erase
-// @param end index of last character to erase
+// @param offset Index of first character to start from
+// @param psubstr Substring to find in this string
+// @return Position at which the substring was located
 //=============================================
 inline Int32 CString::find( Uint32 offset, const Char* psubstr )
 {
@@ -614,21 +515,23 @@ inline Int32 CString::find( Uint32 offset, const Char* psubstr )
 //=============================================
 // @brief Erases part of a string
 //
-// @param begin index of starting character to erase
-// @param end index of last character to erase
+// @param begin Index of starting character to erase
+// @param numremove Number of characters to erase
 //=============================================
 inline void CString::erase( Uint32 begin, Uint32 numremove )
 {
 	assert(begin < m_stringLength && (begin+numremove) <= m_stringLength);
 
+	g_workBufferMutex.lock();
 	const Uint32 newsize = m_stringLength - numremove;
-	Char* pstrnew = new Char[newsize+1];
+	CheckBuffer(newsize);
+	g_pWorkBuffer[0] = '\0';
 
 	Uint32 srcindex = 0;
 	Uint32 dstindex = 0;
 	while(srcindex < begin)
 	{
-		pstrnew[dstindex] = m_pString[srcindex];
+		g_pWorkBuffer[dstindex] = m_pString[srcindex];
 		dstindex++; srcindex++;
 	}
 
@@ -639,37 +542,43 @@ inline void CString::erase( Uint32 begin, Uint32 numremove )
 		srcindex = end;
 		while(srcindex < m_stringLength)
 		{
-			pstrnew[dstindex] = m_pString[srcindex];
+			g_pWorkBuffer[dstindex] = m_pString[srcindex];
 			dstindex++; srcindex++;
 		}
 	}
 
 	// Terminate string
-	pstrnew[dstindex] = '\0';
-	setdata(pstrnew, dstindex);
+	g_pWorkBuffer[dstindex] = '\0';
+	setdata(g_pWorkBuffer);
+	g_workBufferMutex.unlock();
 }
 //=============================================
-// @brief Erases part of a string
+// @brief Inserts a string into this string
 //
-// @param begin index of starting character to erase
-// @param end index of last character to erase
+// @param begin Index of starting character to start at
+// @param pstrsubstr Substring to insert into this string
 //=============================================
 inline void CString::insert( Uint32 begin, const Char* pstrsubstr )
 {
 	assert(begin <= m_stringLength);
 
+	g_workBufferMutex.lock();
 	Uint32 substrlength = qstrlen(pstrsubstr);
-	Char* pstrnew = new Char[m_stringLength + substrlength + 1];
-	memcpy(pstrnew, m_pString, begin);
+	Uint32 newlength = m_stringLength+substrlength;
+
+	CheckBuffer(newlength);
+	g_pWorkBuffer[0] = '\0';
+
+	memcpy(g_pWorkBuffer, m_pString, begin);
 
 	// Add in substring and the rest
-	memcpy(pstrnew+begin, pstrsubstr, substrlength);
-	memcpy(pstrnew+begin+substrlength, m_pString+begin, m_stringLength-begin);
+	memcpy(g_pWorkBuffer+begin, pstrsubstr, substrlength);
+	memcpy(g_pWorkBuffer+begin+substrlength, m_pString+begin, m_stringLength-begin);
 
-	// Set new size
-	Uint32 newlength = m_stringLength+substrlength;
-	pstrnew[newlength] = '\0';
-	setdata(pstrnew, newlength);
+	// Set new contents
+	g_pWorkBuffer[newlength] = '\0';
+	setdata(g_pWorkBuffer);
+	g_workBufferMutex.unlock();
 }
 
 //=============================================
@@ -691,13 +600,16 @@ inline void CString::tolower( void )
 	if(i == m_stringLength)
 		return;
 
-	Char* pNew = new Char[m_stringLength+1];
-	Char* pInsert = pNew;
+	g_workBufferMutex.lock();
+	CheckBuffer(m_stringLength);
+
+	Char* pInsert = g_pWorkBuffer;
 	for(const Char* pTemp = m_pString; *pTemp; pTemp++, pInsert++) 
 		(*pInsert) = ::tolower(*pTemp);
 
-	pNew[m_stringLength] = '\0';
-	setdata(pNew, m_stringLength);
+	g_pWorkBuffer[m_stringLength] = '\0';
+	setdata(g_pWorkBuffer);
+	g_workBufferMutex.unlock();
 }
 
 //=============================================
@@ -719,8 +631,10 @@ inline void CString::replaceslashes( void )
 	if(i == m_stringLength)
 		return;
 
-	Char* pNew = new Char[m_stringLength+1];
-	Char* pInsert = pNew;
+	g_workBufferMutex.lock();
+	CheckBuffer(m_stringLength);
+
+	Char* pInsert = g_pWorkBuffer;
 	for(const Char* pTemp = m_pString; *pTemp; pTemp++, pInsert++)
 	{
 		if(*pTemp == '\\')
@@ -729,7 +643,8 @@ inline void CString::replaceslashes( void )
 			(*pInsert) = *pTemp;
 	}
 
-	pNew[m_stringLength] = '\0';
-	setdata(pNew, m_stringLength);
+	g_pWorkBuffer[m_stringLength] = '\0';
+	setdata(g_pWorkBuffer);
+	g_workBufferMutex.unlock();
 }
 #endif // CSTRING_INLINE_HPP

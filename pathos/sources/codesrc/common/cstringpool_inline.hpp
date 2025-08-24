@@ -11,36 +11,53 @@ All Rights Reserved.
 #define CSTRINGPOOL_INLINE_HPP
 
 //=============================================
-// @brief Add new string to the pool or increments an existing one's refcount
+// @brief Find an existing string, and if found, increase 
+// it's refcount before returning the cache entry
 //
+// @param pstrString String to find
+// @return Cache entry if present, or nullptr
 //=============================================
-inline CStringPool::cachestring_t* CStringPool::AddString( const Char* pstrString )
+inline CStringPool::cachestring_t* CStringPool::GetExistingString( const Char* pstrString )
 {
-	m_mutex.lock();
-
 	// Seek it out in the map first
 	CacheStringMapIteratorType_t it = m_stringMap.find(pstrString);
 	if(it != m_stringMap.end())
 	{
 		cachestring_t* pcache = it->second;
+		m_mutex.lock();
 		pcache->increment();
 		m_mutex.unlock();
-		delete[] pstrString;
 		return pcache;
 	}
+	else
+	{
+		return nullptr;
+	}
+}
 
+//=============================================
+// @brief Add new string to the pool or increments 
+// an existing one's refcount
+//
+// @param pstrString String to find
+// @return Cache entry if present, or nullptr
+//=============================================
+inline CStringPool::cachestring_t* CStringPool::AddString( const Char* pstrString )
+{
 	cachestring_t* pnew = new cachestring_t;
 	pnew->increment();
-	pnew->iterator = m_stringMap.insert(std::pair<std::string, cachestring_t*>(pstrString, pnew)).first;
-	delete[] pstrString;
 
+	m_mutex.lock();
+	pnew->iterator = m_stringMap.insert(std::pair<std::string, cachestring_t*>(pstrString, pnew)).first;
 	m_mutex.unlock();
+
 	return pnew;
 }
 
 //=============================================
-// @brief Add new string to the pool or increments an existing one's refcount
+// @brief Remove a string from the string cache
 //
+// @param pCacheEntry String entry to remove
 //=============================================
 inline void CStringPool::RemoveString( cachestring_t* pCacheEntry )
 {
@@ -62,6 +79,7 @@ inline void CStringPool::RemoveString( cachestring_t* pCacheEntry )
 //=============================================
 // @brief Retrieve the current instance of the pool or create it
 //
+// @retrun Current instance of the string pool
 //=============================================
 inline CStringPool* CStringPool::Instance( void )
 {

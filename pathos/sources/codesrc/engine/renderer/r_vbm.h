@@ -773,9 +773,7 @@ private:
 	// Used for uploading modellight data to the modellight UBO
 	ubo_modellight_t m_uboModelLightData[MAX_ENT_MLIGHTS];
 	// Used for uploading to the bonematrices UBO
-	vec4_t	m_uboBoneMatrixData[MAX_SHADER_BONES][3];
-	// Used for uploading matrices to the vs_matrices ubo
-	Float m_uboMatricesData[NB_VS_MATRICES][16];
+	Float	m_uboBoneMatrixData[MAX_SHADER_BONES][3][4];
 };
 extern CVBMRenderer gVBMRenderer;
 extern en_material_t* VBM_FindMaterialScriptByIndex( Int32 index );

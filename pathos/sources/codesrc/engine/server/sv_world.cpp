@@ -24,6 +24,10 @@ All Rights Reserved.
 #include "vbmtrace.h"
 #include "sv_physics.h"
 
+//
+// Some of the code here was written while referencing Quake 1 and ReHLDS. I want to thank Id Software
+// and dreamstalker for their invaluable work.
+
 // Hull mins for tracehull
 static const Vector HULL_MINS[MAX_MAP_HULLS] = {
 	Vector(0.0f, 0.0f, 0.0f),		// Point hull

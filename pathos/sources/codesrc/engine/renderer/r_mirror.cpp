@@ -24,6 +24,10 @@ All Rights Reserved.
 #include "cl_main.h"
 #include "file.h"
 
+//
+// This thing has no practical use without proper player model anims
+//
+
 // Mirror FBO resolution
 const Uint32 CMirrorManager::MIRROR_FBO_SIZE = 1024;
 // Mirror render-to-texture resolution

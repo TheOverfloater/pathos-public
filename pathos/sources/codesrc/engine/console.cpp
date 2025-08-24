@@ -34,6 +34,9 @@ All Rights Reserved.
 #include "filewriterthread.h"
 #include "textschemas.h"
 
+// Note:
+// This was really fun to write.
+
 // Log file pointer
 extern CLogFile* g_pLogFile;
 

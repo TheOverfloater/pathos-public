@@ -10,6 +10,8 @@ All Rights Reserved.
 
 // Notes:
 // AO mapping related code was done by valina354.
+// The original Paranoia world renderer was done 
+// by BUzer, which this code originates from partially.
 
 #include "includes.h"
 #include "brushmodel.h"

@@ -10,19 +10,6 @@ All Rights Reserved.
 #ifndef MATRIX_H
 #define MATRIX_H
 
-struct matrix_t
-{
-	matrix_t():
-		next(nullptr)
-	{
-		for(Uint32 i = 0; i < 16; i++)
-			matrix[i] = 0;
-	}
-
-	Float matrix[16];
-	matrix_t *next;
-};
-
 /*
 ====================
 CMatrix
@@ -31,6 +18,21 @@ CMatrix
 */
 class CMatrix
 {
+public:
+	struct matrix_t
+	{
+		// Constructor for matrix_t
+		matrix_t():
+			next(nullptr)
+		{
+			for(Uint32 i = 0; i < 16; i++)
+				matrix[i] = 0;
+		}
+
+		Float matrix[16];
+		matrix_t *next;
+	};
+
 public:
 	CMatrix ( void );
 	explicit CMatrix ( const Float *pMatrix );
@@ -62,25 +64,19 @@ public:
 private:
 	// working matrix
 	Float	m_workingMatrix[16];
-
 	// output matrix
 	Float	m_outMatrix[16];
-
 	// multiply matrix
 	Float	m_multMatrix[16];
-
 	// rotation matrix
 	Float	m_rotationMatrix[16];
-
 	// inverse transpose matrix
 	Float	m_matrixTranspose[16];
 
 private:
 	// pointer to current
 	Float *m_pCurrentMatrix;
-
 	// matrix stack
 	matrix_t *m_pMatrixHeader;
-
 };
 #endif

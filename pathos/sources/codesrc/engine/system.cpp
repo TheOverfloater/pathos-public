@@ -371,6 +371,10 @@ void Sys_ErrorPopup ( const Char *fmt, ... )
 //=============================================
 bool Sys_InitFloatTime( void )
 {
+	// Originally I used my own solution for tracking time, but that had
+	// some serious issues causing stutter. In the relied on referencing
+	// Quake's Sys_FloatTime to write something better. Credit goes to Id
+	// Software for the original code I referenced.
 	LARGE_INTEGER performanceFrequency;
 	if(!QueryPerformanceFrequency(&performanceFrequency))
 	{
@@ -983,6 +987,9 @@ void Sys_Poll( void )
 //=============================================
 void Sys_Frame( Double frametime )
 {
+	// The basic layout I recreated to match what
+	// Quake 1 had. This is one of the first things
+	// I wrote for the engine.
 	Double _frametime = frametime;
 	if(_frametime < 0 || _frametime > 1)
 		_frametime = 0;
@@ -1029,6 +1036,7 @@ void Sys_Frame( Double frametime )
 	if(cls.cl_state != CLIENT_INACTIVE
 		&& !svs.haltserver)
 	{
+		// This is a fucking joke btw
 		CL_RunPrediction();
 	}
 
@@ -1187,6 +1195,8 @@ void Sys_WindowFocusRegained( void )
 CStartup::CStartup( void ):
 	m_hSDL2(nullptr)
 {
+	// This entire thing exists just to be able to keep the SDL 32-bit and 64-bit libraries
+	// in separate folders.
 	m_hSDL2 = LoadLibrary(SDL2_LIBRARY_PATH);
 	if(!m_hSDL2)
 	{

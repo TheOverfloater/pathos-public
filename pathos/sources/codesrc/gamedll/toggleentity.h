@@ -61,6 +61,9 @@ public:
 	MOVEDONEPTR _SetMoveDone( MOVEDONEPTR pfnptr, const Char* pstrFunctionName );
 #endif
 
+private:
+	void AdjustGroundEntitiesLinearMove( const Vector& adjustVec );
+
 protected:
 	Int32 m_toggleState;
 	Double m_activateFinished;

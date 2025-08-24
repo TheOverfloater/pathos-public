@@ -18,6 +18,13 @@ All Rights Reserved.
 #include "trace.h"
 #include "trace_shared.h"
 
+//
+// Some of the code here was written while referencing Quake 1 and ReHLDS. I want to thank Id Software
+// and dreamstalker for their invaluable work.
+
+// TODO: Try and figure out a way to merge everything into a single binary tree, instead of this ugly thing
+// with multiple loops and such. Just cause I referenced this doesn't mean it's worth keeping.
+
 // Quaternion and vector arrays used for bone transforms
 CArray<Vector>	g_bonePositions1;
 CArray<vec4_t>	g_boneQuaternions1;

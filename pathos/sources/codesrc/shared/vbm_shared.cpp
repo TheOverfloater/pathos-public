@@ -305,6 +305,9 @@ bool VBM_HasTransparentParts( vbmheader_t* pvbmheader, Uint64 body, Int32 skin )
 //=============================================
 void VBM_NormalizeWeights( Float* pflweights, Uint32 maxweights )
 {
+	// The idea to normalize weights like this came from
+	// browsing Xash code ages ago, so thanks to Misha for the idea.
+	// Not sure how necessary this is, but better safe than sorry.
 	Float totalweight = 0;
 	for(Uint32 i = 0; i < maxweights; i++)
 		totalweight += pflweights[i];

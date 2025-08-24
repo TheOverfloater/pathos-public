@@ -11,8 +11,11 @@ All Rights Reserved.
 #define HASHLIST_INLINE_HPP
 
 //=============================================
-// @brief
+// @brief Take byte data buffer and store it's MD5 hash
 //
+// @param pdata Pointer to byte buffer
+// @param size Size of byte buffer
+// @return FALSE if hash was already present, FALSE otherwise
 //=============================================
 inline bool CHashList::addhash( const byte* pdata, Uint32 size ) 
 {
@@ -31,7 +34,7 @@ inline bool CHashList::addhash( const byte* pdata, Uint32 size )
 }
 
 //=============================================
-// @brief
+// @brief Clear thehash list of any entries.
 //
 //=============================================
 inline void CHashList::clear( void ) 
@@ -41,5 +44,4 @@ inline void CHashList::clear( void )
 
 	m_hashArray.clear();
 }
-
 #endif //HASHLIST_INLINE_HPP

@@ -29,20 +29,24 @@ class CStringPool
 public:
 	struct cachestring_t
 	{
+		// Constructor for cachestring_t
 		cachestring_t():
 			refcount(0)
 		{
 		}
 
+		// Destructor for cachestring_t
 		~cachestring_t()
 		{
 		}
 
+		// Increments reference counter
 		void increment( void )
 		{
 			refcount++;
 		}
 
+		// Decrements reference counter
 		bool decrement( void )
 		{
 			refcount--;
@@ -63,6 +67,8 @@ public:
 	~CStringPool( void );
 
 public:
+	// Find an existing string, and if found, increase it's refcount
+	inline cachestring_t* GetExistingString( const Char* pstrString );
 	// Add new string to the pool or increments an existing one's refcount
 	inline cachestring_t* AddString( const Char* pstrString );
 	// Removes an instance of a string used

@@ -131,21 +131,25 @@ public:
 
 public:
 	// Appends a string to the current one
-	inline void Append( const Char* psrc );
+	void Append( const Char* psrc );
 	// Appends a string to the current one
-	inline void Append( Char c );
+	void Append( Char c );
 	// Appends a string to the current one
-	inline void Append( Int32 i );
+	void Append( Int32 i );
 	// Appends a string to the current one
-	inline void Append( Uint32 i );
+	void Append( Uint32 i );
 	// Appends a string to the current one
-	inline void Append( Float f );
+	void Append( Float f );
 	// Appends a string to the current one
-	inline void Append( Double d );
+	void Append( Double d );
 
 public:
 	// Sets data for the string
-	virtual void setdata( const Char* pString, Uint32 length );
+	virtual void setdata( const Char* pString );
+
+private:
+	// Ensures work buffer is of adequate size
+	static void CheckBuffer( Uint32 length );
 
 private:
 	// Pointer to string
@@ -156,6 +160,14 @@ private:
 	CStringPool::cachestring_t* m_pPoolCacheEntry;
 	// Flags for string
 	byte m_flags;
+
+private:
+	// Work buffer
+	static Char* g_pWorkBuffer;
+	// Work buffer size
+	static Uint32 g_workBufferSize;
+	// Work buffer mutex
+	static std::mutex g_workBufferMutex;
 
 private:
 	// Pointer to string pool

@@ -26,6 +26,10 @@ All Rights Reserved.
 #include "cl_pmove.h"
 #include "r_glqueries.h"
 
+//
+// Some of the math used here comes from Ryokeen, so thanks!
+//
+
 // Object definition
 CLensFlareRenderer gLensFlareRenderer;
 

@@ -12,6 +12,7 @@ All Rights Reserved.
 
 struct keyvalue_t
 {
+	// Constructor for keyvalue_t
 	keyvalue_t()
 	{
 		memset(keyname, 0, sizeof(keyname));
@@ -24,6 +25,7 @@ struct keyvalue_t
 
 struct entitydata_t
 {
+	// Destructor for keyvalue_t
 	~entitydata_t()
 	{
 		for(Uint32 i = 0; i < values.size(); i++)
@@ -35,8 +37,11 @@ struct entitydata_t
 };
 
 //=============================================
-// @brief
+// @brief Returns a value for a keyvalue name, or nullptr if not present
 //
+// @param entity Reference to entity data struct
+// @param pstrKeyName Keyvalue name
+// @return Key value contents, or nullptr
 //=============================================
 inline const Char* ValueForKey( const entitydata_t& entity, const Char* pstrKeyName )
 {

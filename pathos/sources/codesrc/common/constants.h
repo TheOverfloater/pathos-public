@@ -147,11 +147,11 @@ static const Char SENTENCES_FILE_PATH[] = "scripts/sentences.txt";
 // Sound folder base path
 static const Char SOUND_FOLDER_BASE_PATH[] = "sound/";
 
-// Bone name for head
+// Bone name for head, shared across NPCs
 static const Char HEAD_BONE_NAME[] = "Bip01 Head";
-// Bone name for root bone
+// Bone name for root bone, shared across NPCs
 static const Char ROOT_BONE_NAME[] = "Bip01";
-// Bone name for eye center
+// Bone name for eye center, shared across NPCs
 static const Char EYE_CENTER_BONE_NAME[] = "Bip01 Eye Center";
 
 // Null sound filepath
@@ -270,12 +270,12 @@ typedef void (*pfnPrintf_t)( const Char *fmt, ... );
 // Type for error popup functions
 typedef void (*pfnErrorPopup_t)( const Char *fmt, ... );
 
-// Newline definition
+// Newline definition for Windows
 static const Char NEWLINE[] = "\r\n";
 // World textures base path
 static const Char WORLD_TEXTURES_BASE_PATH[] = "textures/world/";
 
-// The common Id for all Pathos BSP files
+// The common Id for all Pathos BSP file formats
 static const Int32 PBSP_HEADER = (('P'<<24)+('S'<<16)+('B'<<8)+'P');
 // Base lightmap style index
 static constexpr Uint32 BASE_LIGHTMAP_INDEX = 0;
@@ -299,7 +299,7 @@ enum entitysteptypes_t
 	NB_NPC_LEGACY_STEPTYPES
 };
 
-// Type names for legacy support
+// Type names of footsteps for legacy support
 static const Char* NPC_LEGACY_STEPTYPE_NAMES[NB_NPC_LEGACY_STEPTYPES] = 
 {
 	"shoes",
@@ -308,6 +308,7 @@ static const Char* NPC_LEGACY_STEPTYPE_NAMES[NB_NPC_LEGACY_STEPTYPES] =
 	"unused"
 };
 
+// TODO: This shit isn't even used, get rid of it
 enum npc_movetype_t
 {
 	MOVE_NORMAL = 0,
@@ -894,11 +895,12 @@ struct decalcache_t
 static constexpr Uint32 MAX_CONTROLLERS = 4;
 static constexpr Uint32 MAX_BLENDING	= 2;
 
-// No entity index
+// NULL entity index
 static constexpr entindex_t NO_ENTITY_INDEX = -1;
-// No attachment index
+// NULL attachment index
 static constexpr Int32 NO_ATTACHMENT_INDEX = -1;
 
+// Lightstyles matching what Half-Life 1 has
 enum lightstyles_t
 {
 	LS_NORMAL = 0,
@@ -942,6 +944,9 @@ enum usableobject_type_t
 	USABLE_OBJECT_UNUSABLE
 };
 
+// Used to define for what reason an entity is being
+// released by the engine, and at what time during
+// the game process.
 enum edict_removed_t
 {
 	EDICT_REMOVED_KILLED = 0,

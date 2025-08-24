@@ -45,7 +45,8 @@ All Rights Reserved.
 // The studiomodel format is Valve's original work, and I take no ownership of it
 // No copyright infringement intended
 // AO mapping related code was done by valina354.
-
+// Some of the code from which this originates from is the work of BUzer, so credit
+// goes to him for his work on Paranoia
 
 // Number of random colors
 static constexpr Uint32 NUM_RANDOM_COLORS = 16;
@@ -147,7 +148,6 @@ CVBMRenderer::CVBMRenderer( void ):
 	memset(m_pSubmodelDrawList, 0, sizeof(m_pSubmodelDrawList));
 	memset(m_flexTexels, 0, sizeof(m_flexTexels));
 	memset(m_uboBoneMatrixData, 0, sizeof(m_uboBoneMatrixData));
-	memset(m_uboMatricesData, 0, sizeof(m_uboMatricesData));
 
 	for(Uint32 i = 0; i < MAX_TEMP_VBM_INDEXES; i++)
 		m_tempIndexes[i] = 0;
@@ -417,23 +417,14 @@ bool CVBMRenderer::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_caustics_interp, "caust_interp", m_pShader, Sys_ErrorPopup))
 			return false;
 
-		if(!m_areUBOsSupported)
-		{
-			m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
-			m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
-			m_attribs.u_normalmatrix = m_pShader->InitUniform("normalmatrix", CGLSLShader::UNIFORM_MATRIX4);
+		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
+		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
+		m_attribs.u_normalmatrix = m_pShader->InitUniform("normalmatrix", CGLSLShader::UNIFORM_MATRIX4);
 
-			if(!R_CheckShaderUniform(m_attribs.u_modelview, "modelview", m_pShader, Sys_ErrorPopup)
-				|| !R_CheckShaderUniform(m_attribs.u_projection, "projection", m_pShader, Sys_ErrorPopup)
-				|| !R_CheckShaderUniform(m_attribs.u_normalmatrix, "normalmatrix", m_pShader, Sys_ErrorPopup))
-				return false;
-		}
-		else
-		{
-			m_attribs.ub_vsmatrices = m_pShader->InitUniformBufferObject("vs_matrices", sizeof(m_uboMatricesData));
-			if(!R_CheckShaderUniform(m_attribs.ub_vsmatrices, "vs_matrices", m_pShader, Sys_ErrorPopup))
-				return false;
-		}
+		if(!R_CheckShaderUniform(m_attribs.u_modelview, "modelview", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_projection, "projection", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_normalmatrix, "normalmatrix", m_pShader, Sys_ErrorPopup))
+			return false;
 
 		m_attribs.d_numlights = m_pShader->GetDeterminatorIndex("num_lights");
 		m_attribs.d_chrome = m_pShader->GetDeterminatorIndex("chrome");
@@ -1229,7 +1220,7 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 		GetDynamicLights();
 		SetupLighting(flags);
 
-		if(m_pStudioHeader->flags & STUDIO_MF_HAS_FLEXES)
+		if(m_pVBMHeader->flags & VBM_HAS_FLEXES)
 			m_pFlexManager->UpdateValues( rns.time, m_pCurrentEntity->curstate.health, m_pCurrentEntity->mouth.mouthopen, m_pExtraInfo->pflexstate, false );
 
 		// Draw the model
@@ -2753,12 +2744,9 @@ bool CVBMRenderer::SetupRenderer( void )
 		m_pShader->DisableSync(m_attribs.dlights[i].u_light_spotdirection);
 	}
 
-	if(!m_areUBOsSupported)
-	{
-		m_pShader->EnableSync(m_attribs.u_projection);
-		m_pShader->EnableSync(m_attribs.u_modelview);
-		m_pShader->EnableSync(m_attribs.u_normalmatrix);
-	}
+	m_pShader->EnableSync(m_attribs.u_projection);
+	m_pShader->EnableSync(m_attribs.u_modelview);
+	m_pShader->EnableSync(m_attribs.u_normalmatrix);
 
 	m_pShader->EnableSync(m_attribs.u_vorigin);
 	m_pShader->EnableSync(m_attribs.u_vright);
@@ -3279,12 +3267,9 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 	m_pShader->DisableSync(m_attribs.u_sky_dir);
 	m_pShader->DisableSync(m_attribs.u_light_radius);
 
-	if(!m_areUBOsSupported)
-	{
-		m_pShader->EnableSync(m_attribs.u_projection);
-		m_pShader->EnableSync(m_attribs.u_modelview);
-		m_pShader->EnableSync(m_attribs.u_normalmatrix);
-	}
+	m_pShader->EnableSync(m_attribs.u_projection);
+	m_pShader->EnableSync(m_attribs.u_modelview);
+	m_pShader->EnableSync(m_attribs.u_normalmatrix);
 
 	m_pShader->EnableSync(m_attribs.u_texture0);
 	m_pShader->EnableSync(m_attribs.u_color);
@@ -3693,12 +3678,9 @@ bool CVBMRenderer::DrawFinal ( void )
 		m_pShader->DisableSync(m_attribs.dlights[i].u_light_spotdirection);
 	}
 
-	if(!m_areUBOsSupported)
-	{
-		m_pShader->EnableSync(m_attribs.u_projection);
-		m_pShader->EnableSync(m_attribs.u_modelview);
-		m_pShader->DisableSync(m_attribs.u_normalmatrix);
-	}
+	m_pShader->EnableSync(m_attribs.u_projection);
+	m_pShader->EnableSync(m_attribs.u_modelview);
+	m_pShader->DisableSync(m_attribs.u_normalmatrix);
 
 	m_pShader->EnableSync(m_attribs.u_texture0);
 	m_pShader->EnableSync(m_attribs.u_color);
@@ -3987,11 +3969,8 @@ bool CVBMRenderer::DrawFinal ( void )
 		m_pShader->EnableSync(m_attribs.u_sky_diffuse);
 		m_pShader->EnableSync(m_attribs.u_sky_dir);
 
-		if(!m_areUBOsSupported)
-		{
-			m_pShader->EnableSync(m_attribs.u_normalmatrix);
-			m_pShader->SetUniformMatrix4fv(m_attribs.u_normalmatrix, rns.view.modelview.GetInverse());
-		}
+		m_pShader->EnableSync(m_attribs.u_normalmatrix);
+		m_pShader->SetUniformMatrix4fv(m_attribs.u_normalmatrix, rns.view.modelview.GetInverse());
 
 		// Render any additive parts
 		bool result = false;
@@ -4125,11 +4104,8 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 	m_pShader->EnableAttribute(m_attribs.a_texcoord1);
 	m_pShader->EnableAttribute(m_attribs.a_normal);
 
-	if (!m_areUBOsSupported)
-	{
-		m_pShader->EnableSync(m_attribs.u_normalmatrix);
-		m_pShader->SetUniformMatrix4fv(m_attribs.u_normalmatrix, rns.view.modelview.GetInverse());
-	}
+	m_pShader->EnableSync(m_attribs.u_normalmatrix);
+	m_pShader->SetUniformMatrix4fv(m_attribs.u_normalmatrix, rns.view.modelview.GetInverse());
 
 	m_pShader->SetUniform1i(m_attribs.u_spectexture, 2);
 	m_pShader->SetUniform1i(m_attribs.u_normalmap, 3);
@@ -4298,8 +4274,7 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 	m_pShader->DisableSync(m_attribs.u_sky_diffuse);
 	m_pShader->DisableSync(m_attribs.u_sky_dir);
 
-	if (!m_areUBOsSupported)
-		m_pShader->DisableSync(m_attribs.u_normalmatrix);
+	m_pShader->DisableSync(m_attribs.u_normalmatrix);
 
 	// Draw dynamic light specular lighting
 	if(m_numDynamicLights)
@@ -4366,12 +4341,9 @@ bool CVBMRenderer::DrawWireframe( void )
 		m_pShader->DisableSync(m_attribs.dlights[i].u_light_spotdirection);
 	}
 
-	if(!m_areUBOsSupported)
-	{
-		m_pShader->EnableSync(m_attribs.u_projection);
-		m_pShader->EnableSync(m_attribs.u_modelview);
-		m_pShader->DisableSync(m_attribs.u_normalmatrix);
-	}
+	m_pShader->EnableSync(m_attribs.u_projection);
+	m_pShader->EnableSync(m_attribs.u_modelview);
+	m_pShader->DisableSync(m_attribs.u_normalmatrix);
 
 	m_pShader->EnableSync(m_attribs.u_color);
 	m_pShader->EnableSync(m_attribs.u_flextexture);
@@ -5188,12 +5160,9 @@ bool CVBMRenderer::DrawDecals( void )
 		m_pShader->DisableSync(m_attribs.dlights[i].u_light_spotdirection);
 	}
 
-	if(!m_areUBOsSupported)
-	{
-		m_pShader->EnableSync(m_attribs.u_projection);
-		m_pShader->EnableSync(m_attribs.u_modelview);
-		m_pShader->DisableSync(m_attribs.u_normalmatrix);
-	}
+	m_pShader->EnableSync(m_attribs.u_projection);
+	m_pShader->EnableSync(m_attribs.u_modelview);
+	m_pShader->DisableSync(m_attribs.u_normalmatrix);
 
 	m_pShader->EnableSync(m_attribs.u_color);
 	m_pShader->EnableSync(m_attribs.u_flextexture);
@@ -5763,20 +5732,9 @@ bool CVBMRenderer::PrepareDraw( void )
 	m_pShader->EnableAttribute(m_attribs.a_boneindexes);
 	m_pShader->EnableAttribute(m_attribs.a_boneweights);
 
-	if(m_areUBOsSupported)
-	{
-		R_SetMatrixData(rns.view.projection.GetMatrix(), m_uboMatricesData[VS_MATRIX_PROJECTION]);
-		R_SetMatrixData(rns.view.modelview.GetMatrix(), m_uboMatricesData[VS_MATRIX_MODELVIEW]);
-		R_SetMatrixData(rns.view.modelview.GetInverse(), m_uboMatricesData[VS_MATRIX_NORMALMATRIX]);
-
-		m_pShader->SetUniformBufferObjectData(m_attribs.ub_vsmatrices, m_uboMatricesData, sizeof(m_uboMatricesData));
-	}
-	else
-	{
-		m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
-		m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
-		m_pShader->SetUniformMatrix4fv(m_attribs.u_normalmatrix, rns.view.modelview.GetInverse());
-	}
+	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
+	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
+	m_pShader->SetUniformMatrix4fv(m_attribs.u_normalmatrix, rns.view.modelview.GetInverse());
 
 	m_pShader->SetUniform1i(m_attribs.u_texture0, 0);
 	return true;
@@ -6053,18 +6011,8 @@ bool CVBMRenderer::PrepareVSM( cl_dlight_t *dl )
 	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
 	m_pShader->SetUniform1f(m_attribs.u_light_radius, dl->radius);
 
-	if(m_areUBOsSupported)
-	{
-		R_SetMatrixData(rns.view.projection.GetMatrix(), m_uboMatricesData[VS_MATRIX_PROJECTION]);
-		R_SetMatrixData(rns.view.modelview.GetMatrix(), m_uboMatricesData[VS_MATRIX_MODELVIEW]);
-
-		m_pShader->SetUniformBufferObjectData(m_attribs.ub_vsmatrices, m_uboMatricesData, sizeof(m_uboMatricesData));
-	}
-	else
-	{
-		m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
-		m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
-	}
+	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
+	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
 
 	m_pShader->DisableSync(m_attribs.u_causticsm1);
 	m_pShader->DisableSync(m_attribs.u_causticsm2);
@@ -6079,12 +6027,9 @@ bool CVBMRenderer::PrepareVSM( cl_dlight_t *dl )
 	m_pShader->DisableSync(m_attribs.u_fogparams);
 	m_pShader->DisableSync(m_attribs.u_color);
 
-	if(!m_areUBOsSupported)
-	{
-		m_pShader->EnableSync(m_attribs.u_projection);
-		m_pShader->EnableSync(m_attribs.u_modelview);
-		m_pShader->DisableSync(m_attribs.u_normalmatrix);
-	}
+	m_pShader->EnableSync(m_attribs.u_projection);
+	m_pShader->EnableSync(m_attribs.u_modelview);
+	m_pShader->DisableSync(m_attribs.u_normalmatrix);
 
 	m_pShader->EnableSync(m_attribs.u_texture0);
 	m_pShader->EnableSync(m_attribs.u_light_radius);
@@ -6367,18 +6312,8 @@ bool CVBMRenderer::PrepAuraPass( void )
 		return false;
 	}
 
-	if(m_areUBOsSupported)
-	{
-		R_SetMatrixData(rns.view.projection.GetMatrix(), m_uboMatricesData[VS_MATRIX_PROJECTION]);
-		R_SetMatrixData(rns.view.modelview.GetMatrix(), m_uboMatricesData[VS_MATRIX_MODELVIEW]);
-
-		m_pShader->SetUniformBufferObjectData(m_attribs.ub_vsmatrices, m_uboMatricesData, sizeof(m_uboMatricesData));
-	}
-	else
-	{
-		m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
-		m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
-	}
+	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
+	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
 
 	m_pShader->DisableSync(m_attribs.u_causticsm1);
 	m_pShader->DisableSync(m_attribs.u_causticsm2);
@@ -6406,12 +6341,9 @@ bool CVBMRenderer::PrepAuraPass( void )
 		m_pShader->DisableSync(m_attribs.dlights[i].u_light_spotdirection);
 	}
 
-	if(!m_areUBOsSupported)
-	{
-		m_pShader->EnableSync(m_attribs.u_projection);
-		m_pShader->EnableSync(m_attribs.u_modelview);
-		m_pShader->DisableSync(m_attribs.u_normalmatrix);
-	}
+	m_pShader->EnableSync(m_attribs.u_projection);
+	m_pShader->EnableSync(m_attribs.u_modelview);
+	m_pShader->DisableSync(m_attribs.u_normalmatrix);
 
 	m_pShader->EnableSync(m_attribs.u_texture0);
 	m_pShader->EnableSync(m_attribs.u_color);
@@ -7448,9 +7380,9 @@ void CVBMRenderer::SetShaderBoneTransform( BoneTransformArray_t* pbonetransform,
 	if(m_areUBOsSupported)
 	{
 		for(Uint32 i = 0; i < numbones; i++)
-			memcpy((void *)m_uboBoneMatrixData[i], (*pbonetransform)[pboneindexes[i]].matrix, sizeof(vec4_t)*3);
+			memcpy((void *)m_uboBoneMatrixData[i], (*pbonetransform)[pboneindexes[i]].matrix, sizeof(Float)*3*4);
 
-		m_pShader->SetUniformBufferObjectData(m_attribs.ub_bonematrices, m_uboBoneMatrixData, numbones*3*sizeof(vec4_t));
+		m_pShader->SetUniformBufferObjectData(m_attribs.ub_bonematrices, m_uboBoneMatrixData, numbones*3*4*sizeof(Float));
 	}
 	else
 	{

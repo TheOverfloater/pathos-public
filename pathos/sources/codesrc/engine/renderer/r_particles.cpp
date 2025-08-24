@@ -39,6 +39,12 @@ All Rights Reserved.
 #include "modelcache.h"
 #include "trace_shared.h"
 
+//
+// Note: Credits go to Valve, because some of the 
+// tracer math was referenced from the Source SDK
+// (I am really not good at more complex math)
+//
+
 // Class definition
 CParticleEngine gParticleEngine;
 
