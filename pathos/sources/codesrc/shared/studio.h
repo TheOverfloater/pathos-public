@@ -24,10 +24,6 @@ All Rights Reserved.
 
 ************************/
 
-#ifndef constexpr
-#define constexpr const
-#endif
-
 // This is used to identify a studiomdl file
 static constexpr Int32 IDSTUDIOHEADER	= (('T'<<24)+('S'<<16)+('D'<<8)+'I');
 // Version used by Half-Life 1, JACK, VHE for studiomodels

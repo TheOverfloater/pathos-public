@@ -561,39 +561,46 @@ void CL_AddEntityEffects( cl_entity_t* pentity )
 		const Vector& origin = pentity->curstate.origin;
 		const Vector& prevorigin = pentity->prevstate.origin;
 
-		if(pmodel->flags & STUDIO_MF_GIB)
+		Vector direction = (prevorigin - origin);
+		if(!direction.IsZero())
 		{
-			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_blood);
-		}
-		else if(pmodel->flags & STUDIO_MF_ZOMGIB)
-		{
-			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_slightblood);
-		}
-		else if(pmodel->flags & STUDIO_MF_TRACER)
-		{
-			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_tracer1);
-		}
-		else if(pmodel->flags & STUDIO_MF_TRACER2)
-		{
-			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_tracer2);
-		}
-		else if(pmodel->flags & STUDIO_MF_TRACER3)
-		{
-			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_voortrail);
-		}
-		else if(pmodel->flags & STUDIO_MF_GRENADE)
-		{
-			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_smoke);
-		}
-		else if(pmodel->flags & STUDIO_MF_ROCKET)
-		{
-			gLegacyParticles.CreateRocketTrail(prevorigin, origin, trail_rocket);
+			direction.Normalize();
+			Vector trailend = origin + direction * 32;
 
-			cl_dlight_t* pdl = CL_AllocDynamicPointLight(pentity->entindex, -4, false, true, pentity);
-			pdl->origin = pentity->curstate.origin;
-			pdl->color = Vector(0.78, 0.78, 0.78);
-			pdl->radius = 200;
-			pdl->die = cls.cl_time + 0.001;
+			if(pmodel->flags & STUDIO_MF_GIB)
+			{
+				gLegacyParticles.CreateRocketTrail(trailend, origin, trail_blood);
+			}
+			else if(pmodel->flags & STUDIO_MF_ZOMGIB)
+			{
+				gLegacyParticles.CreateRocketTrail(trailend, origin, trail_slightblood);
+			}
+			else if(pmodel->flags & STUDIO_MF_TRACER)
+			{
+				gLegacyParticles.CreateRocketTrail(trailend, origin, trail_tracer1);
+			}
+			else if(pmodel->flags & STUDIO_MF_TRACER2)
+			{
+				gLegacyParticles.CreateRocketTrail(trailend, origin, trail_tracer2);
+			}
+			else if(pmodel->flags & STUDIO_MF_TRACER3)
+			{
+				gLegacyParticles.CreateRocketTrail(trailend, origin, trail_voortrail);
+			}
+			else if(pmodel->flags & STUDIO_MF_GRENADE)
+			{
+				gLegacyParticles.CreateRocketTrail(trailend, origin, trail_smoke);
+			}
+			else if(pmodel->flags & STUDIO_MF_ROCKET)
+			{
+				gLegacyParticles.CreateRocketTrail(trailend, origin, trail_rocket);
+
+				cl_dlight_t* pdl = CL_AllocDynamicPointLight(pentity->entindex, -4, false, true, pentity);
+				pdl->origin = pentity->curstate.origin;
+				pdl->color = Vector(0.78, 0.78, 0.78);
+				pdl->radius = 200;
+				pdl->die = cls.cl_time + 0.001;
+			}
 		}
 	}
 }

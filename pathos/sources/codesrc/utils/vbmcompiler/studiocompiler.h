@@ -119,7 +119,7 @@ public:
 	// Get rename for an original texture name
 	bool GetTextureRename( const Char* pstrOriginalName, const Char*& pstrNewName );
 	// Return a skinref for an existing texture, or add a new one and return that
-	smdl::texture_t* GetTextureForName( const Char* pstrTexture );
+	smdl::texture_t* GetTextureForName( const Char* pstrTexture, bool noCreate = false );
 
 	// Adds a new bodygroup
 	smdl::bodypart_t* AddBodyGroup( const Char* pstrGroupName );

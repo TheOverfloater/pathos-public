@@ -62,7 +62,7 @@ public:
 #endif
 
 private:
-	void AdjustGroundEntitiesLinearMove( const Vector& adjustVec );
+	void SyncGroundEntities( const Vector& adjustVec );
 
 protected:
 	Int32 m_toggleState;

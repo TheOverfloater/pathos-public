@@ -741,4 +741,9 @@
  - Increase shader compile progress prompt spacing to speed up shader loads.
  - Fix for VBM Compiler not exiting with an error if the activity mappings cannot be loaded.
  - Fix in VTA parser for transforming normal offsets instead of just rotating them.
- 
+
+2025 September 4th:
+ - Fix Q1 particle trail effects having incorrect lifetimes.
+ - Small style/name changes for certain code.
+ - Small change for how shader compile prompts are spaced.
+ - Fix issue in VBM Compiler where case-sensitive comparisons caused issues.

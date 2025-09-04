@@ -523,7 +523,6 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 			return;
 
 		pnew->velocity.Clear();
-		pnew->die = cls.cl_time + 2;
 
 		switch(type)
 		{
@@ -532,7 +531,7 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 				pnew->ramp = Common::RandomLong(0, 3);
 				pnew->color = PARTICLE_RAMP3[static_cast<Uint32>(pnew->ramp)];
 				pnew->type = pt_fire;
-				pnew->die = cls.cl_time + 0.1;
+				pnew->die = cls.cl_time + 2;
 
 				for(Uint32 j = 0; j < 3; j++)
 					pnew->origin[j] = _start[j] + Common::RandomFloat(-3, 3);
@@ -543,7 +542,7 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 				pnew->ramp = Common::RandomLong(2, 5);
 				pnew->color = PARTICLE_RAMP3[static_cast<Uint32>(pnew->ramp)];
 				pnew->type = pt_fire;
-				pnew->die = cls.cl_time + 0.1;
+				pnew->die = cls.cl_time + 2;
 
 				for(Uint32 j = 0; j < 3; j++)
 					pnew->origin[j] = _start[j] + Common::RandomFloat(-3, 3);
@@ -554,7 +553,7 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 				pnew->ramp = Common::RandomLong(2, 5);
 				pnew->color = Common::RandomLong(67, 70);
 				pnew->type = pt_gravity;
-				pnew->die = cls.cl_time + 0.1;
+				pnew->die = cls.cl_time + 2;
 
 				for(Uint32 j = 0; j < 3; j++)
 					pnew->origin[j] = _start[j] + Common::RandomFloat(-3, 3);
@@ -588,7 +587,7 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 			{
 				pnew->type = pt_gravity;
 				pnew->color = Common::RandomLong(67, 70);
-				pnew->die = cls.cl_time + 0.1;
+				pnew->die = cls.cl_time + 2;
 
 				for(Uint32 j = 0; j < 3; j++)
 					pnew->origin[j] = _start[j] + Common::RandomFloat(-3, 3);

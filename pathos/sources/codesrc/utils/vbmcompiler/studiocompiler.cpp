@@ -1459,7 +1459,7 @@ bool CStudioModelCompiler::SetupTextures( void )
 		{
 			// First get the indexes of the originals
 			smdl::grouptexture_t& origtexture = grp.originals[j];
-			smdl::texture_t* porigtexture = GetTextureForName(origtexture.name.c_str());
+			smdl::texture_t* porigtexture = GetTextureForName(origtexture.name.c_str(), true);
 			if(!porigtexture)
 			{
 				ErrorMsg("Couldn't get base texture '%s' for texture group '%s'.\n", origtexture.name.c_str(), grp.groupname.c_str());
@@ -1509,7 +1509,10 @@ bool CStudioModelCompiler::SetupTextures( void )
 		for(Uint32 i = 0; i < textureLayersNbsArray[0]; i++)
 		{
 			for(Uint32 j = 0; j < textureReplacementNbsArray[0]; j++)
-				m_skinRefsArray[i][textureGroupSkinrefsArray[0][0][j]] = textureGroupSkinrefsArray[0][i][j];
+			{
+				Int32 insertindex = textureGroupSkinrefsArray[0][0][j];
+				m_skinRefsArray[i][insertindex] = textureGroupSkinrefsArray[0][i][j];
+			}
 		}
 	}
 
@@ -4360,25 +4363,32 @@ bool CStudioModelCompiler::GetTextureRename( const Char* pstrOriginalName, const
 // @param pstrTexture Texture name
 // @return Pointer to texture entry
 //===============================================
-smdl::texture_t* CStudioModelCompiler::GetTextureForName( const Char* pstrTexture )
+smdl::texture_t* CStudioModelCompiler::GetTextureForName( const Char* pstrTexture, bool noCreate )
 {
 	for(Uint32 i = 0; i < m_pTexturesArray.size(); i++)
 	{
 		smdl::texture_t* ptexture = m_pTexturesArray[i];
-		if(!qstrcmp(pstrTexture, ptexture->name))
+		if(!qstrcicmp(pstrTexture, ptexture->name))
 			return ptexture;
 	}
 
-	smdl::texture_t* pnewtexture = new smdl::texture_t();
-	pnewtexture->name = pstrTexture;
-	pnewtexture->skinref = m_pTexturesArray.size();
+	if(noCreate)
+	{
+		return nullptr;
+	}
+	else
+	{
+		smdl::texture_t* pnewtexture = new smdl::texture_t();
+		pnewtexture->name = pstrTexture;
+		pnewtexture->skinref = m_pTexturesArray.size();
 
-	// Stupid HL legacy stuff
-	if(pnewtexture->name.find(0, "chrome") != CString::CSTRING_NO_POSITION)
-		pnewtexture->flags |= STUDIO_NF_CHROME;
+		// Stupid HL legacy stuff
+		if(pnewtexture->name.find(0, "chrome") != CString::CSTRING_NO_POSITION)
+			pnewtexture->flags |= STUDIO_NF_CHROME;
 
-	m_pTexturesArray.push_back(pnewtexture);
-	return pnewtexture;
+		m_pTexturesArray.push_back(pnewtexture);
+		return pnewtexture;
+	}
 }
 
 //===============================================

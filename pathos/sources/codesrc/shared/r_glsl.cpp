@@ -726,12 +726,11 @@ bool CGLSLShader::LoadFromBSD( void )
 	// compiles/loads quiet slow
 	Int32 promptSpacing;
 	if(pBSDHeader->numshaders > 32)
-		promptSpacing = pBSDHeader->numshaders / 4;
+		promptSpacing = pBSDHeader->numshaders / 16;
 	else
 		promptSpacing = 1;
 
-	bool isFirst = true;
-	Int32 lastPrompt = 0;
+	Int32 lastPrompt = -1;
 	for(Uint32 i = 0; i < pBSDHeader->numshaders; i++)
 	{
 		// Do not compile disabled states
@@ -775,11 +774,10 @@ bool CGLSLShader::LoadFromBSD( void )
 			// Update client about or progress if needed
 			if(m_pProgressUpdateCallbackFn)
 			{
-				if(i - lastPrompt > promptSpacing || i == (pBSDHeader->numshaders-1) || isFirst)
+				if(i - lastPrompt > promptSpacing || i == (pBSDHeader->numshaders-1) || lastPrompt == -1)
 				{
 					m_pProgressUpdateCallbackFn(m_shaderFile.c_str(), pBSDHeader->numshaders, i+1, false);
 					lastPrompt = i;
-					isFirst = false;
 				}
 			}
 		}
@@ -826,12 +824,11 @@ bool CGLSLShader::CompileCSDShaderData( void )
 	// compiles/loads quiet slow
 	Int32 promptSpacing;
 	if(m_shadersArray.size() > 32)
-		promptSpacing = m_shadersArray.size() / 4;
+		promptSpacing = m_shadersArray.size() / 32;
 	else
 		promptSpacing = 1;
 
-	bool isFirst = true;
-	Int32 lastPrompt = 0;
+	Int32 lastPrompt = -1;
 
 	// Always compile all shaders if the CSD was changed, to find any possible errors
 	csdshaderdata_t* pinshaders = reinterpret_cast<csdshaderdata_t*>(reinterpret_cast<byte*>(m_pCSDHeader) + m_pCSDHeader->shaderdataoffset);
@@ -879,11 +876,10 @@ bool CGLSLShader::CompileCSDShaderData( void )
 		// Update client about or progress if needed
 		if(m_pProgressUpdateCallbackFn)
 		{
-			if(i - lastPrompt > promptSpacing || i == (m_shadersArray.size()-1) || isFirst)
+			if(i - lastPrompt > promptSpacing || i == (m_shadersArray.size()-1) || lastPrompt == -1)
 			{
 				m_pProgressUpdateCallbackFn(m_shaderFile.c_str(), m_shadersArray.size(), i+1, true);
 				lastPrompt = i;
-				isFirst = false;
 			}
 		}
 	}

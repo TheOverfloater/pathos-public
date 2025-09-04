@@ -266,7 +266,7 @@ void CToggleEntity::LinearMoveDone( void )
 	// ground entities don't get stuck
 	Vector origDiff = m_pEdict->state.origin - m_finalDest;
 	gd_engfuncs.pfnSetOrigin(m_pEdict, m_finalDest);
-	AdjustGroundEntitiesLinearMove(origDiff);
+	SyncGroundEntities(origDiff);
 
 	// Clear velocity and thinking
 	m_pState->velocity.Clear();
@@ -317,7 +317,7 @@ const Vector& CToggleEntity::GetPosition2( void ) const
 // @brief
 //
 //=============================================
-void CToggleEntity::AdjustGroundEntitiesLinearMove( const Vector& adjustVec )
+void CToggleEntity::SyncGroundEntities( const Vector& adjustVec )
 {
 	for(Uint32 i = 1; i < g_pGameVars->numentities; i++)
 	{

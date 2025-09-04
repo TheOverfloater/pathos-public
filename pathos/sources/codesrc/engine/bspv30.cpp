@@ -506,9 +506,9 @@ bool BSPV30_LoadFaces( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 				// Set up indexes
 				Int32 layerIndexes[NB_SURF_LIGHTMAP_LAYERS] = { 
 					0,				// SURF_LIGHTMAP_DEFAULT
-					vectorsIndex,	 // SURF_LIGHTMAP_VECTORS
-					ambientIndex,	 // SURF_LIGHTMAP_AMBIENT
-					diffuseIndex,	 // SURF_LIGHTMAP_DIFFUSE
+					vectorsIndex,	// SURF_LIGHTMAP_VECTORS
+					ambientIndex,	// SURF_LIGHTMAP_AMBIENT
+					diffuseIndex,	// SURF_LIGHTMAP_DIFFUSE
 				};
 
 				for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
