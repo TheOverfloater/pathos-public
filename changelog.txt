@@ -747,3 +747,19 @@
  - Small style/name changes for certain code.
  - Small change for how shader compile prompts are spaced.
  - Fix issue in VBM Compiler where case-sensitive comparisons caused issues.
+
+2025 October 10th:
+ - Add case-insensitive option o CString::find function.
+ - Fix env_implosion being broken after save-reload.
+ - Fix env_tracereffect being broken after save-reload.
+ - Remove use of MAX_SUBMODEL_NAME_LENGTH from code.
+ - Make sequence name checks case insensitive in VBM code.
+ - Optimization to VBM rendering by flagging if a model uses a scope or blended texture.
+ - Add code in SMD parsers for VBM compiler to not append ".vbm" format tag if already present.
+ - Optimize CompilerMath::SetupBoneTransforms parameters list.
+ - Add fix to delete previous log file contents for VBM Compiler.
+ - Modify VBM compiler to use case-insensitive checks on SMD and VTA file contents.
+ - Fix for frameRotationalMotion not being a reference when motion is extracted in ExtractSequenceMotion.
+ - Fix incorrect constants.h file entry in VBM Compiler project file.
+
+
