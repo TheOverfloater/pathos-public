@@ -60,6 +60,18 @@ inline Vector::Vector( Float coords[3] ):
 }
 
 //=============================================
+// @brief Constructor
+//
+// @param coords Array of coordinates to copy
+//=============================================
+inline Vector::Vector( Int32 coords[3] ):
+	x(coords[0]),
+	y(coords[1]),
+	z(coords[2])
+{
+}
+
+//=============================================
 // @brief Negation operator
 //
 // @param rhv Reference to right hand Vector object

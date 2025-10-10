@@ -119,7 +119,7 @@ public:
 	// Assigns a string to use
 	inline void assign( const Char* pstr, Uint32 num );
 	// Finds the first occurrence of a string in the string
-	inline Int32 find( Uint32 offset, const Char* psubstr );
+	inline Int32 find( Uint32 offset, const Char* psubstr, bool caseinsensitive = false );
 	// Erases part of the string
 	inline void erase( Uint32 begin, Uint32 numremove );
 	// Converts characters to lowercase

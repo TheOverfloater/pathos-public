@@ -27,6 +27,7 @@ public:
 	inline Vector( Float srcX, Float srcY, Float srcZ );
 	inline Vector( const Vector& src );
 	inline Vector( Float coords[3] );
+	inline Vector( Int32 coords[3] );
 
 	// Negation operator
 	inline Vector operator-( void ) const;

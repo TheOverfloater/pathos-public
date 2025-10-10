@@ -167,38 +167,40 @@ namespace CompilerMath
 	// @param desttransform Destination of transform data we're setting up
 	// @param bonetransforms Bone transforms array
 	//=============================================
-	void SetupBoneTransforms( const smdl::bone_node_t& destnode, const smdl::bone_t& destbone, smdl::bone_transforminfo_t& desttransform, CArray<smdl::bone_transforminfo_t>& bonetransforms )
+	void SetupBoneTransform( Int32 boneindex, Int32 parentindex, const Vector& position, const Vector& rotation, CArray<smdl::bone_transforminfo_t>& bonetransforms )
 	{
+		// Destination transform info object
+		smdl::bone_transforminfo_t& desttransform = bonetransforms[boneindex];
+
 		// Convert from radians to degrees
 		Vector angles;
 		for(Uint32 j = 0; j < 3; j++)
-			angles[j] = destbone.rotation[j] * (180.0 / M_PI);
+			angles[j] = rotation[j] * (180.0 / M_PI);
 
 		// Set up transform matrices based on whether we have a parent or not
-		if(destnode.parentindex == NO_POSITION)
+		if(parentindex == NO_POSITION)
 		{
 			// Note: Use custom math functions here, as AngleMatrix 
 			// and AngleInverseMatrix need to use different axes
 			CompilerMath::AngleMatrix(angles, desttransform.matrix);
 
 			for(Uint32 i = 0; i < 3; i++)
-				desttransform.matrix[i][3] = destbone.position[i];
+				desttransform.matrix[i][3] = position[i];
 		}
 		else
 		{
 			// Set up rotation matrix
-			Float matrix[3][4];
-
 			// Note: Use custom math functions here, as AngleMatrix 
 			// and AngleInverseMatrix need to use different axes
+			Float matrix[3][4];
 			CompilerMath::AngleMatrix(angles, matrix);
 
 			// Set position
 			for(Uint32 i = 0; i < 3; i++)
-				matrix[i][3] = destbone.position[i];
+				matrix[i][3] = position[i];
 
 			// Transform by parent
-			smdl::bone_transforminfo_t parentTransformInfo = bonetransforms[destnode.parentindex];
+			smdl::bone_transforminfo_t parentTransformInfo = bonetransforms[parentindex];
 			Math::ConcatTransforms(parentTransformInfo.matrix, matrix, desttransform.matrix);
 		}
 	}

@@ -30,7 +30,7 @@ All Rights Reserved.
 
 // Default normal merge treshold
 #define DEFAULT_NORMAL_MERGE_TRESHOLD SDL_cos(2.0 * (M_PI / 180.0f))
-
+// Defines a texture render mode 
 #define DEFINE_RENDERMODE(name, bitflag) smdl::rendermode_definition_t(#name, bitflag)
 
 // Default allocation size for MDL file buffer
@@ -122,7 +122,7 @@ bool CStudioModelCompiler::ProcessInputData( void )
 		smdl::submodel_t* psubmodel = m_pSubmodelsArray[i];
 
 		// Do not process any submodels marked "blank"
-		if(!qstrcmp(psubmodel->name, "blank"))
+		if(!qstrcicmp(psubmodel->name, "blank"))
 			continue;
 
 		// Set any adjustment values specific to submodel
@@ -133,7 +133,8 @@ bool CStudioModelCompiler::ProcessInputData( void )
 		if(!smdParser.ProcessFile(psubmodel->name.c_str()))
 			return false;
 
-		if(!psubmodel->vtaname.empty())
+		// Only process VTAs if we're generating a VBM file
+		if(!psubmodel->vtaname.empty() && !g_options.isFlagSet(CMP_FL_DISABLE_VBM_GENERATION))
 		{
 			// Parse VTA file
 			CVTAParser vtaParser((*this), psubmodel, smdParser.GetBoneTransformInfoArray());
@@ -151,7 +152,7 @@ bool CStudioModelCompiler::ProcessInputData( void )
 		for(; j < m_pSubmodelsArray.size(); j++)
 		{
 			smdl::submodel_t* psubmodel = m_pSubmodelsArray[j];
-			if(!qstrcmp(psubmodel->name, plod->submodelname))
+			if(!qstrcicmp(psubmodel->name, plod->submodelname))
 			{
 				plod->plodmodel = new smdl::submodel_t();
 				plod->plodmodel->name = plod->lodfilename;
@@ -232,7 +233,7 @@ bool CStudioModelCompiler::ProcessInputData( void )
 				{
 					smdl::bone_node_t& baseanimnode = pbaseanim->nodes[k];
 					smdl::bone_node_t& animnode = pnewanim->nodes[k];
-					if(qstrcmp(baseanimnode.bonename, animnode.bonename))
+					if(qstrcicmp(baseanimnode.bonename, animnode.bonename))
 					{
 						ErrorMsg("In sequence '%s', blend animation '%s' has a different bone at index %d: Base anim has '%s', blend anim has '%s'.\n", psequence->name.c_str(), psequence->smdfilenames[j].c_str(), k, baseanimnode.bonename.c_str(), animnode.bonename.c_str());
 						return false;
@@ -373,6 +374,10 @@ bool CStudioModelCompiler::WriteMDLFile( void )
 	}
 
 	// Lastly, write the texture data
+	// Note: This NEEDS to be the LAST write to the MDL file
+	// buffer, as both Pathos and Goldsrc rely on texturedataindex
+	// in the studio header to set the final size of the studio data
+	// buffer after loading a model.
 	WriteTextures();
 
 	// Set final size in the file
@@ -408,6 +413,10 @@ bool CStudioModelCompiler::WriteMDLFile( void )
 //===============================================
 // @brief Writes all texture data
 //
+// Notes: This NEEDS to be called LAST before
+// writing the output, as "texturedataindex" is
+// used to resize the buffer in the engine to
+// just before the texture data blocks.
 //===============================================
 void CStudioModelCompiler::WriteTextures( void )
 {
@@ -498,6 +507,7 @@ bool CStudioModelCompiler::WriteGeometryData( void )
 	mstudiobodyparts_t* pdestbodyparts = reinterpret_cast<mstudiobodyparts_t*>(reinterpret_cast<byte*>(m_pStudioHeader) + m_pStudioHeader->bodypartindex);
 	m_pFileOutputBuffer->addpointer(reinterpret_cast<void**>(&pdestbodyparts));
 
+	// Set up bodypart info
 	for(Uint32 i = 0, j = 0; i < m_pBodyPartsArray.size(); i++)
 	{
 		const smdl::bodypart_t* psrcbodypart = m_pBodyPartsArray[i];
@@ -526,7 +536,8 @@ bool CStudioModelCompiler::WriteGeometryData( void )
 
 		// If "blank" or the strip model data option is set, 
 		// just set the name and leave everything as zeroes
-		if(!qstrcmp(psrcsubmodel->name, "blank") || g_options.isFlagSet(CMP_FL_STRIP_STUDIO_TRI_DATA))
+		if(!qstrcicmp(psrcsubmodel->name, "blank") 
+			|| g_options.isFlagSet(CMP_FL_STRIP_STUDIO_TRI_DATA))
 			continue;
 
 		m_pFileOutputBuffer->addpointer(reinterpret_cast<void**>(&pdestsubmodel));
@@ -623,7 +634,8 @@ bool CStudioModelCompiler::WriteGeometryData( void )
 }
 
 //===============================================
-// @brief Writes all data related to bones
+// @brief Writes all data defining the basic bone setup of the model
+// and related structures like controllers, attachments, hitboxes
 //
 // @return TRUE if everything went well, FALSE on failure
 //===============================================
@@ -953,7 +965,9 @@ bool CStudioModelCompiler::WriteAnimationData( void )
 		}
 	}
 
-	// Add a dummy sequence group entry
+	// Add a dummy sequence group entry. We don't use this crap in Pathos, but
+	// Half-Life/GoldSrc still needs this structure present in the studiohdr
+	// to not shit the bed(I think so anyway, didn't double-check).
 	m_pStudioHeader->seqgroupindex = m_pFileOutputBuffer->getsize();
 	m_pStudioHeader->numseqgroups = 1;
 
@@ -963,7 +977,7 @@ bool CStudioModelCompiler::WriteAnimationData( void )
 	mstudioseqgroup_t* pdefaultgroup = reinterpret_cast<mstudioseqgroup_t*>(reinterpret_cast<byte*>(m_pStudioHeader) + m_pStudioHeader->seqgroupindex);
 	qstrcpy(pdefaultgroup->label, "default");
 
-	// Save transitions
+	// Save transitions(What are these again exactly? Should figure it out.)
 	if(!m_transitionNodesArray.empty())
 	{
 		m_pStudioHeader->transitionindex = m_pFileOutputBuffer->getsize();
@@ -987,7 +1001,7 @@ bool CStudioModelCompiler::WriteAnimationData( void )
 	Msg("Wrote %d sequences, %d events, %d pivots, %d bytes of compressed animation data.\n\t- Size written: %.2f megabytes.\n", 
 		m_pSequencesArray.size(), eventCount, pivotCount, animationDataSize, Common::BytesToMegaBytes(dataSize));
 
-	// Remove what we won't use
+	// Remove the pointers we allocated
 	m_pFileOutputBuffer->removepointer(reinterpret_cast<void**>(&panimdata));
 	m_pFileOutputBuffer->removepointer(reinterpret_cast<void**>(&panimvalue));
 	m_pFileOutputBuffer->removepointer(reinterpret_cast<void**>(&pdestsequences));
@@ -1023,7 +1037,7 @@ void CStudioModelCompiler::ExtractSequenceMotion( void )
 			for(; j < pbaseanimation->nodes.size(); j++)
 			{
 				smdl::bone_node_t& boneNode = pbaseanimation->nodes[j];
-				if(!qstrcmp(boneNode.bonename, m_movementBoneName))
+				if(!qstrcicmp(boneNode.bonename, m_movementBoneName))
 				{
 					psequence->movementboneindex = j;
 					break;
@@ -1058,6 +1072,7 @@ void CStudioModelCompiler::ExtractSequenceMotion( void )
 				if(node.parentindex != NO_POSITION)
 					continue;
 
+				// Currently, we use linear motion only
 				Vector scaledMotion;
 				Float motionScale = (j * 1.0) / (psequence->numframes - 1);
 				Math::VectorScale(motion, motionScale, scaledMotion);
@@ -1091,7 +1106,7 @@ void CStudioModelCompiler::ExtractSequenceMotion( void )
 
 				for(Uint32 l = 0; l < psequence->numframes; l++)
 				{
-					Vector frameRotationalMotion = (*panimation->rot_values[l])[j];
+					Vector& frameRotationalMotion = (*panimation->rot_values[l])[j];
 
 					if(psequence->motiontype & STUDIO_XR)
 						frameRotationalMotion.x = firstRotationalMotion.x;
@@ -1117,7 +1132,7 @@ void CStudioModelCompiler::ExtractSequenceMotion( void )
 			for(; j < pbaseanimation->nodes.size(); j++)
 			{
 				smdl::bone_node_t& boneNode = pbaseanimation->nodes[j];
-				if(!qstrcmp(boneNode.bonename, m_movementBoneName))
+				if(!qstrcicmp(boneNode.bonename, m_movementBoneName))
 				{
 					boneIndex = j;
 					break;
@@ -1291,7 +1306,7 @@ void CStudioModelCompiler::MarkSubmodelUsedBones( smdl::submodel_t* psubmodel )
 		for(Uint32 i = 0; i < psubmodel->nodes.size(); i++)
 		{
 			smdl::bone_node_t& node = psubmodel->nodes[i];
-			if(!qstrcmp(node.bonename, (*itProtectedList)))
+			if(!qstrcicmp(node.bonename, (*itProtectedList)))
 			{
 				smdl::bone_t& bone = psubmodel->bones[i];
 				bone.refcounter++;
@@ -1310,10 +1325,10 @@ void CStudioModelCompiler::MarkSubmodelUsedBones( smdl::submodel_t* psubmodel )
 		smdl::attachment_t& attachment = m_attachmentsArray[i];
 		for(Uint32 j = 0; j < psubmodel->nodes.size(); j++)
 		{
-			smdl::bone_node_t& node = psubmodel->nodes[i];
-			if(!qstrcmp(node.bonename, attachment.bonename))
+			smdl::bone_node_t& node = psubmodel->nodes[j];
+			if(!qstrcicmp(node.bonename, attachment.bonename))
 			{
-				smdl::bone_t& bone = psubmodel->bones[i];
+				smdl::bone_t& bone = psubmodel->bones[j];
 				bone.refcounter++;
 			}
 		}
@@ -1336,7 +1351,7 @@ void CStudioModelCompiler::MarkSubmodelUsedBones( smdl::submodel_t* psubmodel )
 				// Mark as used
 				pbone->refcounter++;
 
-				// Proceed to next
+				// Proceed to our parent
 				smdl::bone_node_t& node = psubmodel->nodes[parentIndex];
 				parentIndex = node.parentindex;
 			}
@@ -1953,7 +1968,7 @@ bool CStudioModelCompiler::RemapSequenceBones( void )
 				else
 					pstrGlobalBoneName = "ROOT";
 
-				if(qstrcmp(pstrAnimationBoneName, pstrGlobalBoneName))
+				if(qstrcicmp(pstrAnimationBoneName, pstrGlobalBoneName))
 				{
 					Msg("Parent bone of '%s' in animation '%s' does not match with global table.\n", node.bonename.c_str(), pbaseanim->name.c_str());
 					Msg("\tParent in '%s' is named as '%s'.\n", pbaseanim->name.c_str(), pstrAnimationBoneName);
@@ -1979,7 +1994,8 @@ bool CStudioModelCompiler::RemapSequenceBones( void )
 //===============================================
 bool CStudioModelCompiler::AddSubmodelBonesToTable( smdl::submodel_t* psubmodel )
 {
-	// Process each bone into the array
+	// Process each bone into the global array, ONLY if
+	// they have a refcount above 0
 	for(Uint32 i = 0; i < psubmodel->bones.size(); i++)
 	{
 		smdl::bone_t& bone = psubmodel->bones[i];
@@ -2105,7 +2121,10 @@ bool CStudioModelCompiler::LinkAttachments( void )
 }
 
 //===============================================
-// @brief Calculate submodel s/t integer coordinates for GoldSrc model data
+// @brief Calculate submodel s/t integer coordinates 
+// for GoldSrc model data. These are integer based
+// texture coordinates, so they're rounded to the
+// nearest integer value.
 //
 // @param psubmodel Pointer to submodel to process
 //===============================================
@@ -2136,7 +2155,8 @@ void CStudioModelCompiler::CalculateSubmodelSTCoords( smdl::submodel_t* psubmode
 }
 
 //===============================================
-// @brief Sets final bone indexes on all elements of all submodels
+// @brief Sets final(global) bone indexes on all 
+// elements of all submodels
 //
 //===============================================
 void CStudioModelCompiler::SetFinalBoneIndexes( void )
@@ -2203,7 +2223,8 @@ void CStudioModelCompiler::SetFinalSubmodelBoneIndexes( smdl::submodel_t* psubmo
 }
 
 //===============================================
-// @brief Set hitgroups
+// @brief Set hitgroup data based on what was defined
+// in the QC file
 //
 // @return TRUE if successful, FALSE if failed
 //===============================================
@@ -2219,7 +2240,7 @@ bool CStudioModelCompiler::SetupHitGroups( void )
 		for(; j < m_pBoneTableArray.size(); j++)
 		{
 			smdl::boneinfo_t* pbone = m_pBoneTableArray[j];
-			if(!qstrcmp(pbone->name, grp.name))
+			if(!qstrcicmp(pbone->name, grp.name))
 			{
 				pbone->hitgroup = grp.hitgroup;
 				pbone->hitgroupset = true;
@@ -2253,7 +2274,8 @@ bool CStudioModelCompiler::SetupHitGroups( void )
 }
 
 //===============================================
-// @brief Sets up Hitboxes
+// @brief Sets up hitbox data based on what is in the QC
+// file, or generate new data.
 //
 // @return TRUE if successful, FALSE if failed
 //===============================================
@@ -2464,7 +2486,9 @@ void CStudioModelCompiler::SetFinalSequenceBonePositions( void )
 				if(pRotationsArray->size() < m_pBoneTableArray.size())
 					pRotationsArray->resize(m_pBoneTableArray.size());
 
-				// Store original positions and rotations
+				// Store original positions and rotations, DO NOT make
+				// these references by mistake, as we need the original
+				// unaltered data here!
 				CArray<Vector> originalPositions = (*pPositionsArray);
 				CArray<Vector> originalRotations = (*pRotationsArray);
 
@@ -2491,7 +2515,8 @@ void CStudioModelCompiler::SetFinalSequenceBonePositions( void )
 }
 
 //===============================================
-// @brief Determine bone scale values for final animation data reduction
+// @brief Determine bone scale values for final
+// animation data optimization.
 //
 //===============================================
 void CStudioModelCompiler::CalculateBoneScales( void )
@@ -2810,7 +2835,7 @@ bool CStudioModelCompiler::SetTextureFlags( void )
 }
 
 //===============================================
-// @brief Determine hitbox time based on bone name
+// @brief Determine hitbox type based on bone name
 //
 // @param pstrBoneName Name of the bone to check for
 // @return Hitgroup type based on mappings
@@ -2831,7 +2856,7 @@ Int32 CStudioModelCompiler::DetermineBoneHitGroupType( const Char* pstrBoneName 
 	for(Uint32 i = 0; i < m_boneHitgroupAutoMappingsArray.size(); i++)
 	{
 		smdl::hitgroup_bone_mapping_t& mapping = m_boneHitgroupAutoMappingsArray[i];
-		if(!qstrcmp(pstrBoneName, mapping.partialname.c_str()))
+		if(!qstrcicmp(pstrBoneName, mapping.partialname.c_str()))
 			return mapping.hitgroupindex;
 	}
 
@@ -2857,7 +2882,7 @@ Int32 CStudioModelCompiler::GetBoneIndex( const Char* pstrBoneName )
 	for(Int32 i = 0; i < m_pBoneTableArray.size(); i++)
 	{
 		smdl::boneinfo_t*pbone = m_pBoneTableArray[i];
-		if(!qstrcmp(pbone->name, pstrBoneName))
+		if(!qstrcicmp(pbone->name, pstrBoneName))
 			return i;
 	}
 
@@ -3338,13 +3363,13 @@ bool CStudioModelCompiler::LoadBoneHitGroupAutoMappings( const Char* pstrFilePat
 			return false;
 		}
 
-		if(!qstrcmp(hitgroupName, "discard"))
+		if(!qstrcicmp(hitgroupName, "discard"))
 		{
 			Uint32 i = 0;
 			for(; i < m_hitgroupBoneDiscardList.size(); i++)
 			{
 				CString entry = m_hitgroupBoneDiscardList[i];
-				if(!qstrcmp(entry, boneNameToken))
+				if(!qstrcicmp(entry, boneNameToken))
 				{
 					WarningMsg("Bone name token '%s' already in discard list, ignoring.\n", boneNameToken.c_str());
 					break;
@@ -3363,7 +3388,7 @@ bool CStudioModelCompiler::LoadBoneHitGroupAutoMappings( const Char* pstrFilePat
 			for(; i < m_boneHitgroupAutoMappingsArray.size(); i++)
 			{
 				smdl::hitgroup_bone_mapping_t& def = m_boneHitgroupAutoMappingsArray[i];
-				if(!qstrcmp(def.partialname, boneNameToken))
+				if(!qstrcicmp(def.partialname, boneNameToken))
 				{
 					WarningMsg("Bone-hitgroup mapping with token '%s' and hitgroup ID %d already present, discarding.\n", def.partialname.c_str(), def.hitgroupindex);
 					break;
@@ -3724,7 +3749,7 @@ void CStudioModelCompiler::AddMirroredBone( const Char* pstrBoneName )
 	CStringList_t::iterator it = m_mirroredBonesList.begin();
 	while(it != m_mirroredBonesList.end())
 	{
-		if(!qstrcmp((*it), pstrBoneName))
+		if(!qstrcicmp((*it), pstrBoneName))
 		{
 			WarningMsg("Bone '%s' already in list of mirrored bones.\n", pstrBoneName);
 			return;
@@ -3747,7 +3772,7 @@ bool CStudioModelCompiler::IsMirroredBone( const Char* pstrBoneName )
 	CStringList_t::iterator it = m_mirroredBonesList.begin();
 	while(it != m_mirroredBonesList.end())
 	{
-		if(!qstrcmp((*it), pstrBoneName))
+		if(!qstrcicmp((*it), pstrBoneName))
 			return true;
 
 		it++;
@@ -3767,7 +3792,7 @@ void CStudioModelCompiler::AddProtectedBone( const Char* pstrBoneName )
 	CStringList_t::iterator it = m_protectedBonesList.begin();
 	while(it != m_protectedBonesList.end())
 	{
-		if(!qstrcmp((*it), str))
+		if(!qstrcicmp((*it), str))
 		{
 			WarningMsg("Bone '%s' already in list of protected bones.\n", str.c_str());
 			return;
@@ -3792,7 +3817,7 @@ void CStudioModelCompiler::AddNoBlendBone( const Char* pstrBoneName )
 	CStringList_t::iterator it = m_noBlendBonesList.begin();
 	while(it != m_noBlendBonesList.end())
 	{
-		if(!qstrcmp((*it), str))
+		if(!qstrcicmp((*it), str))
 		{
 			WarningMsg("Bone '%s' already in list of 'no-blend' bones.\n", str.c_str());
 			return;
@@ -3818,7 +3843,7 @@ bool CStudioModelCompiler::AddTextureRenderMode( const Char* pstrTextureName, co
 	for(Uint32 i = 0; i < m_renderModeDefinitionsArray.size(); i++)
 	{
 		smdl::rendermode_definition_t& rdef = m_renderModeDefinitionsArray[i];
-		if(!qstrcmp(rdef.rendermodename, pstrRenderMode))
+		if(!qstrcicmp(rdef.rendermodename, pstrRenderMode))
 		{
 			pdef = &rdef;
 			break;
@@ -3894,7 +3919,7 @@ const smdl::boneinfo_t* CStudioModelCompiler::GetBone( const Char* pstrBoneName 
 	for(Uint32 i = 0; i < m_pBoneTableArray.size(); i++)
 	{
 		const smdl::boneinfo_t* pbone = m_pBoneTableArray[i];
-		if(!qstrcmp(pbone->name, pstrBoneName))
+		if(!qstrcicmp(pbone->name, pstrBoneName))
 			return pbone;
 	}
 
@@ -4048,7 +4073,7 @@ bool CStudioModelCompiler::AddTextureGroup( const Char* pstrGroupName, CArray<CA
 	for(Uint32 i = 0; i < m_textureGroupsArray.size(); i++)
 	{
 		smdl::texturegroup_t& grp = m_textureGroupsArray[i];
-		if(!qstrcmp(grp.groupname, pstrGroupName))
+		if(!qstrcicmp(grp.groupname, pstrGroupName))
 		{
 			ErrorMsg("Texture group '%s' already declared.\n", pstrGroupName);
 			return false;
@@ -4058,7 +4083,7 @@ bool CStudioModelCompiler::AddTextureGroup( const Char* pstrGroupName, CArray<CA
 		{
 			for(Uint32 k = 0; k < textureGroupsArray[0].size(); k++)
 			{
-				if(!qstrcmp(grp.originals[j].name, textureGroupsArray[0][k]))
+				if(!qstrcicmp(grp.originals[j].name, textureGroupsArray[0][k]))
 				{
 					ErrorMsg("While parsing group '%s': Base texture '%s' already referenced in texture group '%s'.\n", pstrGroupName, grp.originals[j].name.c_str(), grp.groupname.c_str());
 					return false;

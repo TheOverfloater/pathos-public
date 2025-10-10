@@ -49,7 +49,11 @@ CReferenceFrameSMDParser::~CReferenceFrameSMDParser( void )
 bool CReferenceFrameSMDParser::ProcessFile( const Char* pstrFilename )
 {
 	CString filePath;
-	filePath << pstrFilename << ".smd";
+	filePath << pstrFilename;
+	
+	if(filePath.find(0, ".smd", true) == CString::CSTRING_NO_POSITION)
+		filePath << ".smd";
+
 	if(!OpenScriptFile(filePath.c_str()))
 	{
 		ErrorMsg("Failed to open '%s' for processing.\n", filePath.c_str());
@@ -98,11 +102,11 @@ bool CReferenceFrameSMDParser::ProcessFile( const Char* pstrFilename )
 			break;
 
 		bool result = false;
-		if(!qstrcmp(pstrString, "nodes"))
+		if(!qstrcicmp(pstrString, "nodes"))
 		{
 			result = ParseNodes(m_referenceFrameInfo.nodes);
 		}
-		else if(!qstrcmp(pstrString, "skeleton"))
+		else if(!qstrcicmp(pstrString, "skeleton"))
 		{
 			result = ParseSkeleton(m_referenceFrameInfo.nodes, m_referenceFrameInfo.bones, m_referenceFrameInfo.bonemap_inverse, m_referenceFrameInfo.bonetransforms);
 		}
@@ -150,7 +154,7 @@ bool CReferenceFrameSMDParser::ProcessFile( const Char* pstrFilename )
 		for(; j < m_referenceFrameInfo.nodes.size(); j++)
 		{
 			smdl::bone_node_t& refnode = m_referenceFrameInfo.nodes[j];
-			if(!qstrcmp(refnode.bonename, pglobalbone->name))
+			if(!qstrcicmp(refnode.bonename, pglobalbone->name))
 				break;
 		}
 

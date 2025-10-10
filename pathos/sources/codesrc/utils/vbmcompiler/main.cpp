@@ -313,7 +313,11 @@ int _tmain(Int32 argc, _TCHAR* argv[])
 	CString logFilePath;
 	logFilePath << folderPath << PATH_SLASH_CHAR << basename << ".log";
 
-	g_pLogFile = new CLogFile(logFilePath.c_str(), Msg, g_fileInterface, true);
+	// Ensure previous log is deleted
+	if(g_fileInterface.pfnFileExists(logFilePath.c_str()))
+		remove(logFilePath.c_str());
+
+	g_pLogFile = new CLogFile(logFilePath.c_str(), Msg, g_fileInterface, true, false);
 	if(!g_pLogFile->Init())
 	{
 		WarningMsg("Failed to open log file '%s'.\n", logFilePath.c_str());

@@ -92,7 +92,7 @@ bool CSMDParser::ParseNodes( CArray<smdl::bone_node_t>& destArray )
 				if(destArray[i].bonename.empty())
 					continue;
 
-				if(!qstrcmp(destArray[i].bonename, nodeName) && g_pLogFile)
+				if(!qstrcicmp(destArray[i].bonename, nodeName) && g_pLogFile)
 					g_pLogFile->Printf("Node with name '%s' already defined at position %d.\n", nodeName.c_str(), i);
 			}
 		}
@@ -176,7 +176,7 @@ bool CSMDParser::ParseSkeleton( CArray<smdl::bone_node_t>& nodesarray,
 		return false;
 	}
 
-	if(qstrcmp(pstrString, "time"))
+	if(qstrcicmp(pstrString, "time"))
 	{
 		ErrorMsg("Expected 'time' token after 'skeleton', got '%s' instead.\n", pstrString);
 		return false;
@@ -292,7 +292,6 @@ void CSMDParser::SetupSkeleton(
 		const smdl::bone_node_t& boneNode = nodesarray[i];
 		const smdl::bone_t& bone = bonesarray[i];
 
-		CompilerMath::SetupBoneTransforms(boneNode, bone, transformsarray[i], transformsarray);
-
+		CompilerMath::SetupBoneTransform(i, boneNode.parentindex, bone.position, bone.rotation, transformsarray);
 	}
 }

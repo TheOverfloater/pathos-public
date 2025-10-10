@@ -465,7 +465,7 @@ namespace smdl
 	};
 };
 
-// Type specific to vbm compiler
+// Types specific to vbm compiler
 namespace vbm
 {
 	struct ref_frameinfo_t
@@ -500,4 +500,5 @@ namespace vbm
 		Float maxvalue;
 	};
 };
+
 #endif //COMPILER_TYPES_H

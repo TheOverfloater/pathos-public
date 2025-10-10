@@ -33,9 +33,9 @@ static constexpr Uint32 MAX_ENT_DLIGHTS				= 12;
 // Max studio decals total
 static constexpr Uint32 MAX_VBM_TOTAL_DECALS		= 512;
 // Max temporary indexes for decal creation
-static constexpr Uint32 MAX_TEMP_VBM_INDEXES		= 16384;
+static constexpr Uint32 MAX_TEMP_VBM_INDEXES		= 32768;
 // Max temporary vertexes for special render stuff
-static constexpr Uint32 MAX_TEMP_VBM_VERTEXES		= MAX_TEMP_VBM_INDEXES*3;
+static constexpr Uint32 MAX_TEMP_VBM_VERTEXES		= 16354;
 // Maximum submodels rendered at once
 static constexpr Uint32 MAX_VBM_RENDERED_SUBMODELS	= 64;
 

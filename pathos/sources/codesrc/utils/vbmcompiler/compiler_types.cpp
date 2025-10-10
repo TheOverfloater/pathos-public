@@ -16,7 +16,9 @@ All Rights Reserved.
 #include "compiler_types.h"
 
 // Triangle allocation count
-static const Uint32 TRIVERTEX_ALLOCATION_COUNT = 256*3;
+static const Uint32 TRIANGLE_ALLOCATION_COUNT = 256;
+// Triangle vertex allocation count
+static const Uint32 TRIVERTEX_ALLOCATION_COUNT = TRIANGLE_ALLOCATION_COUNT*3;
 // Normal allocation count
 static const Uint32 NORMAL_ALLOCATION_COUNT = 256;
 // Weight info allocation count
@@ -701,3 +703,4 @@ namespace vbm
 			bonetransforms.clear();
 	}
 };
+

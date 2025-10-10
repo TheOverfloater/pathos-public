@@ -14,17 +14,16 @@ All Rights Reserved.
 	Definitions
 
 ************************/
-#define MAX_VBM_FLEXES				64
-#define	MAX_VBM_FLEXVERTS			8192
-#define MAX_VBM_VERTEXES			262144
-#define MAX_SHADER_BONES			32
-#define MAX_VBM_BONEWEIGHTS			4
-#define MAX_VBM_LODS				16
-#define MAX_SUBMODEL_NAME_LENGTH	32
-
-#define VBM_FLEXTEXTURE_SIZE		256
-
-#define VBM_HEADER					(('1'<<24)+('M'<<16)+('B'<<8)+'V')
+// Max total number of flexes. Hard limit due to how data is organized.
+static const Uint32 MAX_VBM_FLEXES				= 64;
+// Max bones per mesh. Abritrary, but was capped to ARB ASM max local parameters.
+static const Uint32 MAX_SHADER_BONES			= 32;
+// Max number of weights per vertex
+static const Uint32 MAX_VBM_BONEWEIGHTS			= 4;
+// Size in either dimension of the texture that holds flex vertex offset values
+static const Uint32  VBM_FLEXTEXTURE_SIZE		= 256;
+// Header ID for VBM files
+static const Int32 VBM_HEADER					= (('1'<<24)+('M'<<16)+('B'<<8)+'V');
 
 struct vbmvertex_t;
 struct vbmmesh_t;
@@ -46,9 +45,9 @@ struct vbmflexvertex_t;
 ************************/
 enum vbm_flags_t
 {
-	VBM_HAS_FLEXES			= (1<<0),
-	VBM_HAS_SCOPE_TEXTURE	= (1<<1),
-	VBM_HAS_BLEND_TEXTURE	= (1<<2)
+	VBM_HAS_FLEXES			= (1<<0),	// This VBM file uses flexes
+	VBM_HAS_SCOPE_TEXTURE	= (1<<1),	// This VBM file has a scope texture used(Set by Engine, not VBM compiler)
+	VBM_HAS_BLEND_TEXTURE	= (1<<2)	// This VBM file has blended parts(Set by Engine, not VBM compiler)
 };
 
 /************************

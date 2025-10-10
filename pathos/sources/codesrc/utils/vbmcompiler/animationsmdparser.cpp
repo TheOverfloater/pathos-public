@@ -48,7 +48,11 @@ CAnimationSMDParser::~CAnimationSMDParser( void )
 bool CAnimationSMDParser::ProcessFile( const Char* pstrFilename )
 {
 	CString filePath;
-	filePath << pstrFilename << ".smd";
+	filePath << pstrFilename;
+	
+	if(filePath.find(0, ".smd", true) == CString::CSTRING_NO_POSITION)
+		filePath << ".smd";
+
 	if(!OpenScriptFile(filePath.c_str()))
 	{
 		ErrorMsg("Failed to open '%s' for processing.\n", filePath.c_str());
@@ -99,11 +103,11 @@ bool CAnimationSMDParser::ProcessFile( const Char* pstrFilename )
 			break;
 
 		bool result = false;
-		if(!qstrcmp(pstrString, "nodes"))
+		if(!qstrcicmp(pstrString, "nodes"))
 		{
 			result = ParseNodes(m_pAnimation->nodes);
 		}
-		else if(!qstrcmp(pstrString, "skeleton"))
+		else if(!qstrcicmp(pstrString, "skeleton"))
 		{
 			result = ParseAnimation();
 		}

@@ -239,6 +239,11 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <OutputFile>.\Debug/vbmcompiler.bsc</OutputFile>
     </Bscmake>
+    <CustomBuildStep>
+      <Command>copy /Y "$(OutDir)/vbmcompiler.exe" "$(SolutionDir)/../../../progs/vbmcompiler/vbmcompiler.exe"</Command>
+      <Message>Copy "$(OutDir)/vbmcompiler.exe" to working "$(SolutionDir)/../../../progs/vbmcompiler/vbmcompiler.exe"</Message>
+      <Outputs>vbmcompiler.exe</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\common\bmp.h" />
@@ -253,7 +258,7 @@
     <ClInclude Include="..\..\common\clinkedlist_inline.hpp" />
     <ClInclude Include="..\..\common\common.h" />
     <ClInclude Include="..\..\common\common_inline.hpp" />
-    <ClInclude Include="..\..\common\const.h" />
+    <ClInclude Include="..\..\common\constants.h" />
     <ClInclude Include="..\..\common\crc32.h" />
     <ClInclude Include="..\..\common\cstring.h" />
     <ClInclude Include="..\..\common\cstringpool.h" />

@@ -197,6 +197,7 @@ extern Int32 qstrncmp( const Char* pstr1, const Char* pstr2, Uint32 n );
 extern Int32 qstrncmp( const CString& str1, const CString& str2, Uint32 n );
 extern Int32 qstrncmp( const Char* pstr1, const CString& str2, Uint32 n );
 extern Int32 qstrncmp( const CString& str1, const Char* pstr2, Uint32 n );
+extern Int32 qstrncimp( const Char* pstr1, const Char* pstr2, Uint32 n );
 extern void qstrins( const Char* psrc, Char *pdest, Uint32 offset );
 extern inline const Char* qstrstr( const Char* pstr, const Char *psubstr );
 

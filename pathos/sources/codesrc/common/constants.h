@@ -32,6 +32,10 @@ const Vector SMALL_NPC_HULL_MAX = Vector(12, 12, 24);
 static const Vector VEC_DUCK_VIEW = Vector( 0, 0, 12 );
 static const Vector VEC_VIEW = Vector( 0, 0, 32 );
 
+// Use this definition globally
+static const Float ON_EPSILON = 0.01;
+static const Float EQUAL_EPSILON = 0.001;
+
 // View punch damping related
 static constexpr Float VIEW_PUNCH_DAMPING = 9.0f;
 static constexpr Float VIEW_PUNCH_SPRING_CONSTANT = 60.0f;
@@ -994,4 +998,13 @@ enum bm_velocity_t
 	BM_VELOCITY_RANDOM
 };
 
+enum planeside_t
+{
+	SIDE_CROSS = -2,
+	SIDE_FRONT = 0,
+	SIDE_BACK,
+	SIDE_ON,
+
+	SIDE_NB
+};
 #endif //CONSTANTS_H

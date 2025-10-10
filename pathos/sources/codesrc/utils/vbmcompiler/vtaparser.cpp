@@ -50,7 +50,11 @@ CVTAParser::~CVTAParser( void )
 bool CVTAParser::ProcessFile( const Char* pstrFilename )
 {
 	CString filePath;
-	filePath << pstrFilename << ".vta";
+	filePath << pstrFilename;
+	
+	if(filePath.find(0, ".vta", true) == CString::CSTRING_NO_POSITION)
+		filePath << ".vta";
+
 	if(!OpenScriptFile(filePath.c_str()))
 	{
 		ErrorMsg("Failed to open '%s' for processing.\n", filePath.c_str());
@@ -99,15 +103,15 @@ bool CVTAParser::ProcessFile( const Char* pstrFilename )
 			break;
 
 		bool result = false;
-		if(!qstrcmp(pstrString, "nodes"))
+		if(!qstrcicmp(pstrString, "nodes"))
 		{
 			result = ParseNodes();
 		}
-		else if(!qstrcmp(pstrString, "skeleton"))
+		else if(!qstrcicmp(pstrString, "skeleton"))
 		{
 			result = ParseSkeleton();
 		}
-		else if(!qstrcmp(pstrString, "vertexanimation"))
+		else if(!qstrcicmp(pstrString, "vertexanimation"))
 		{
 			result = ParseVertexAnimation();
 		}
@@ -222,12 +226,12 @@ bool CVTAParser::ParseVertexAnimation( void )
 			return false;
 		}
 
-		if(!qstrcmp(pstrString, "end"))
+		if(!qstrcicmp(pstrString, "end"))
 		{
 			// Reached end of block
 			break;
 		}
-		else if(!qstrcmp(pstrString, "time"))
+		else if(!qstrcicmp(pstrString, "time"))
 		{
 			Int32 frameIndex;
 			if(!ReadInt32(frameIndex))

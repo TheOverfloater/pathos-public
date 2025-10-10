@@ -485,7 +485,7 @@ inline CString operator + ( const CString& lhs, const CString& rhs )
 // @param psubstr Substring to find in this string
 // @return Position at which the substring was located
 //=============================================
-inline Int32 CString::find( Uint32 offset, const Char* psubstr )
+inline Int32 CString::find( Uint32 offset, const Char* psubstr, bool caseinsensitive )
 {
 	if(empty())
 		return CSTRING_NO_POSITION;
@@ -499,7 +499,12 @@ inline Int32 CString::find( Uint32 offset, const Char* psubstr )
 	{
 		if(pstr[0] == psubstr[0])
 		{
-			if(!qstrncmp(pstr, psubstr, substrlength))
+			if(caseinsensitive)
+			{
+				if(!qstrncimp(pstr, psubstr, substrlength))
+					break;
+			}
+			else if(!qstrncmp(pstr, psubstr, substrlength))
 				break;
 		}
 

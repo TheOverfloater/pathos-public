@@ -49,7 +49,11 @@ CGeometrySMDParser::~CGeometrySMDParser( void )
 bool CGeometrySMDParser::ProcessFile( const Char* pstrFilename )
 {
 	CString filePath;
-	filePath << pstrFilename << ".smd";
+	filePath << pstrFilename;
+	
+	if(filePath.find(0, ".smd", true) == CString::CSTRING_NO_POSITION)
+		filePath << ".smd";
+
 	if(!OpenScriptFile(filePath.c_str()))
 	{
 		ErrorMsg("Failed to open '%s' for processing.\n", filePath.c_str());
@@ -98,15 +102,15 @@ bool CGeometrySMDParser::ProcessFile( const Char* pstrFilename )
 			break;
 
 		bool result = false;
-		if(!qstrcmp(pstrString, "nodes"))
+		if(!qstrcicmp(pstrString, "nodes"))
 		{
 			result = ParseNodes(m_pSubModel->nodes);
 		}
-		else if(!qstrcmp(pstrString, "skeleton"))
+		else if(!qstrcicmp(pstrString, "skeleton"))
 		{
 			result = ParseSkeleton(m_pSubModel->nodes, m_pSubModel->bones, m_pSubModel->boneimap, m_boneTransformInfoArray);
 		}
-		else if(!qstrcmp(pstrString, "triangles"))
+		else if(!qstrcicmp(pstrString, "triangles"))
 		{
 			result = ParseTriangles();
 		}
@@ -200,9 +204,9 @@ bool CGeometrySMDParser::ParseTriangles( void )
 	Float normalBlend = m_studioCompiler.GetNormalMergeTreshold();
 	Float minWeightTreshold = m_studioCompiler.GetWeightTreshold();
 
-	smdl::triangle_vertex_t trivertexes[3];
+	smdl::triangle_vertex_t triVertexes[3];
 	Vector triNormals[3];
-	Vector triVertexes[3];
+	Vector triVertexCoords[3];
 
 	Uint32 triangleCount = 0;
 	Uint32 reversedTriangleCount = 0;
@@ -217,7 +221,7 @@ bool CGeometrySMDParser::ParseTriangles( void )
 			return false;
 		}
 
-		if(!qstrcmp(pstrString, "end"))
+		if(!qstrcicmp(pstrString, "end"))
 			break;
 
 		// The token we read in should be the texture name, so
@@ -248,9 +252,9 @@ bool CGeometrySMDParser::ParseTriangles( void )
 		{
 			smdl::triangle_vertex_t* ptrivertex = nullptr;
 			if(m_pSubModel->reverseTriangles)
-				ptrivertex = &trivertexes[2 - i];
+				ptrivertex = &triVertexes[2 - i];
 			else
-				ptrivertex = &trivertexes[i];
+				ptrivertex = &triVertexes[i];
 
 			Int32 boneIndex = 0;
 			if(!ReadInt32(boneIndex, true))
@@ -304,27 +308,38 @@ bool CGeometrySMDParser::ParseTriangles( void )
 			if(ReadInt32(numWeights))
 			{
 				// Ensure it cannot be larger than the limit
+				Uint32 readWeights;
 				if(numWeights > MAX_VBM_BONEWEIGHTS)
-					numWeights = MAX_VBM_BONEWEIGHTS;
+					readWeights = MAX_VBM_BONEWEIGHTS;
+				else
+					readWeights = numWeights;
 
 				for(Uint32 j = 0; j < numWeights; j++)
 				{
-					if(!ReadInt32(bones[j]))
+					Int32 weightBoneIndex;
+					if(!ReadInt32(weightBoneIndex))
 					{
 						ErrorMsg("Couldn't read weight bone index for weight %d for triangle.\n", j);
 						return false;
 					}
 
-					if(bones[j] < 0 || bones[j] >= m_pSubModel->bones.size())
+					if(weightBoneIndex < 0 || weightBoneIndex >= m_pSubModel->bones.size())
 					{
-						ErrorMsg("Bogus weight bone index %d for weight %d for triangle.\n", bones[j], j);
+						ErrorMsg("Bogus weight bone index %d for weight %d for triangle.\n", weightBoneIndex, j);
 						return false;
 					}
 
-					if(!ReadFloat(weights[j]))
+					Float weight;
+					if(!ReadFloat(weight))
 					{
 						ErrorMsg("Couldn't read weight value for weight %d for triangle.\n", j);
 						return false;
+					}
+
+					if(j < readWeights)
+					{
+						bones[j] = weightBoneIndex;
+						weights[j] = weight;
 					}
 				}
 			}
@@ -338,7 +353,7 @@ bool CGeometrySMDParser::ParseTriangles( void )
 
 			if(g_options.isFlagSet(CMP_FL_TAG_BAD_NORMALS|CMP_FL_TAG_REVERSED_TRIANGLES))
 			{
-				triVertexes[i] = vertexCoord;
+				triVertexCoords[i] = vertexCoord;
 				triNormals[i] = normalValue;
 			}
 
@@ -373,7 +388,7 @@ bool CGeometrySMDParser::ParseTriangles( void )
 		}
 
 		// Add triangles to the mesh
-		pMesh->addTriangleVertexes(trivertexes);
+		pMesh->addTriangleVertexes(triVertexes);
 		triangleCount++;
 
 		// Check for erroneous normals if set
@@ -387,7 +402,7 @@ bool CGeometrySMDParser::ParseTriangles( void )
 				smdl::mesh_t* pMesh = m_pSubModel->getMesh(pTexture->skinref);
 
 				// Add to new mesh
-				pMesh->addTriangleVertexes(trivertexes);
+				pMesh->addTriangleVertexes(triVertexes);
 				badNormalTriangleCount++;
 			}
 		}
@@ -398,8 +413,8 @@ bool CGeometrySMDParser::ParseTriangles( void )
 			Vector a1, a2, sn;
 			Vector dotvec;
 
-			Math::VectorSubtract(triVertexes[1], triVertexes[0], a1);
-			Math::VectorSubtract(triVertexes[2], triVertexes[0], a2);
+			Math::VectorSubtract(triVertexCoords[1], triVertexCoords[0], a1);
+			Math::VectorSubtract(triVertexCoords[2], triVertexCoords[0], a2);
 			Math::CrossProduct(a1, a2, sn);
 			sn.Normalize();
 
@@ -412,7 +427,7 @@ bool CGeometrySMDParser::ParseTriangles( void )
 				smdl::mesh_t* pMesh = m_pSubModel->getMesh(pTexture->skinref);
 
 				// Add to new mesh
-				pMesh->addTriangleVertexes(trivertexes);
+				pMesh->addTriangleVertexes(triVertexes);
 				reversedTriangleCount++;
 			}
 		}

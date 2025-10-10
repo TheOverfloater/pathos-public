@@ -21,9 +21,6 @@ All Rights Reserved.
 #include "refframesmdparser.h"
 #include "filefuncs.h"
 
-// Equalness epsilon value
-static const Float EQUAL_EPSILON = 0.001;
-
 // File buffer allocation size
 const Uint32 CVBMCompiler::VBM_FILEBUFFER_ALLOC_SIZE = 1024*1024;
 // Triangle alloc size
@@ -131,7 +128,7 @@ bool CVBMCompiler::AddFlexController( const Char* pstrControllerName, Float minV
 	for(Uint32 i = 0; i < m_flexControllerArray.size(); i++)
 	{
 		vbm::flexcontroller_t controller = m_flexControllerArray[i];
-		if(!qstrcmp(controller.name, pstrControllerName))
+		if(!qstrcicmp(controller.name, pstrControllerName))
 		{
 			ErrorMsg("Flex controller with name '%s' already defined.\n", pstrControllerName);
 			return false;
@@ -956,7 +953,7 @@ void CVBMCompiler::WriteFlexData( void )
 			for(Uint32 k = 0; k < controller.vtas.size(); k++)
 			{
 				vbm::flexcontroller_vta_t& flexvta = controller.vtas[k];
-				if(!qstrcmp(psrcsubmodel->pflexmodel->name, flexvta.name))
+				if(!qstrcicmp(psrcsubmodel->pflexmodel->name, flexvta.name))
 				{
 					pflexcontrollerindexes[flexvta.flexindex+1] = j;
 					break;
@@ -1110,7 +1107,7 @@ bool CVBMCompiler::LoadReferenceFrameFile( void )
 		m_referenceFrame.bonemap_inverse[i] = i;
 
 		// Set transforms
-		CompilerMath::SetupBoneTransforms(destnode, destbone, m_referenceFrame.bonetransforms[i], m_referenceFrame.bonetransforms);
+		CompilerMath::SetupBoneTransform(i, destnode.parentindex, destbone.position, destbone.rotation, m_referenceFrame.bonetransforms);
 	}
 
 	return true;

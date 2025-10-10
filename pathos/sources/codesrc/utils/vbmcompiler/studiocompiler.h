@@ -174,6 +174,11 @@ public:
 	// Returns the number of textures
 	Uint32 GetNbTextures( void ) const { return m_pTexturesArray.size(); }
 
+	// Returns a sequence by index
+	const smdl::sequence_t* GetSequence( Int32 index ) const { return m_pSequencesArray[index]; }
+	// Returns the number of sequences
+	Uint32 GetNbSequences( void ) const { return m_pSequencesArray.size(); }
+
 private:
 	// Set up textures to use
 	bool SetupTextures( void );

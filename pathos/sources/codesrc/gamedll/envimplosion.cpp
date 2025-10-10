@@ -59,6 +59,8 @@ void CEnvImplosion::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvImplosion, m_lastSpawnTime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvImplosion, m_spawnCount, EFIELD_UINT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvImplosion, m_spawnBeginTime, EFIELD_TIME));
+	DeclareSaveField(DEFINE_DATA_FIELD(CEnvImplosion, m_tracerLength, EFIELD_FLOAT));
+	DeclareSaveField(DEFINE_DATA_FIELD(CEnvImplosion, m_tracerWidth, EFIELD_FLOAT));
 }
 
 //=============================================

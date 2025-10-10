@@ -524,11 +524,12 @@ Int32 VBM_GetSubmodelIndexByName( const cache_model_t* pmodel, Int32 bodyGroupIn
 		return 0;
 	}
 
+	Uint32 maxSubmodelNameLength = sizeof(vbmsubmodel_t::name);
 	CString submodelName(pstrSubmodelName);
-	if(submodelName.length() >= MAX_SUBMODEL_NAME_LENGTH)
+	if(submodelName.length() >= maxSubmodelNameLength)
 	{
-		Uint32 numRemove = submodelName.length() - (MAX_SUBMODEL_NAME_LENGTH-1);
-		submodelName.erase(MAX_SUBMODEL_NAME_LENGTH-1, numRemove);
+		Uint32 numRemove = submodelName.length() - (maxSubmodelNameLength-1);
+		submodelName.erase(maxSubmodelNameLength-1, numRemove);
 	}
 
 	const vbmbodypart_t* pbodypart = pvbmheader->getBodyPart(bodyGroupIndex);

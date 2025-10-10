@@ -26,6 +26,6 @@ namespace CompilerMath
 	// Returns the best nearest power of 2 size for a value
 	Int32 GetBestPowerOfTwo( Uint32 minimumSize, Int32 inputSize );
 	// Set up matrices for a bone transform info object
-	void SetupBoneTransforms( const smdl::bone_node_t& destnode, const smdl::bone_t& destbone, smdl::bone_transforminfo_t& desttransform, CArray<smdl::bone_transforminfo_t>& bonetransforms );
+	void SetupBoneTransform( Int32 boneindex, Int32 parentindex, const Vector& position, const Vector& rotation, CArray<smdl::bone_transforminfo_t>& bonetransforms );
 };
 #endif

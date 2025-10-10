@@ -122,6 +122,7 @@ void CEnvTracerEffect::DeclareSaveFields( void )
 	CPointEntity::DeclareSaveFields();
 
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvTracerEffect, m_type, EFIELD_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CEnvTracerEffect, m_tracerCount, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvTracerEffect, m_minRepeatDelay, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvTracerEffect, m_maxRepeatDelay, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvTracerEffect, m_isActive, EFIELD_BOOLEAN));

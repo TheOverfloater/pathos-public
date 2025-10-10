@@ -380,6 +380,39 @@ inline Int32 qstrncmp( const CString& str1, const Char* pstr2, Uint32 n )
 }
 
 //=============================================
+// @brief Compares two strings until n number of characters in case insensitive mode
+//
+// @param pstr1 Pointer to first string to compare
+// @param pstr2 Pointer to second string to compare
+// @param n Number of characters to compare
+// @return Difference between point of divergence
+//=============================================
+inline Int32 qstrncimp( const Char* pstr1, const Char* pstr2, Uint32 n )
+{
+	assert(pstr1 != nullptr);
+	assert(pstr2 != nullptr);
+
+	const Char* ppstr1 = pstr1;
+	const Char* ppstr2 = pstr2;
+	while(ppstr1 - pstr1 < n)
+	{
+		const Char c1 = SDL_tolower(*ppstr1);
+		const Char c2 = SDL_tolower(*ppstr2);
+
+		if(c1 != c2)
+			return (c1 - c2);
+
+		if(!c1 || !c2)
+			break;
+
+		ppstr1++; 
+		ppstr2++;
+	}
+	
+	return false;
+}
+
+//=============================================
 // @brief Inserts a string into another at an offset
 //
 // @param psrc Source string pointer

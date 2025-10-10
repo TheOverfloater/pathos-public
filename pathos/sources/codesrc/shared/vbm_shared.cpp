@@ -393,7 +393,7 @@ Int32 VBM_FindSequence( const studiohdr_t* pstudiohdr, const Char* pstrsequencen
 	for(Int32 i = 0; i < pstudiohdr->numseq; i++)
 	{
 		const mstudioseqdesc_t* pseqdesc = pstudiohdr->getSequence(i);
-		if(!qstrcmp(pseqdesc->label, pstrsequencename))
+		if(!qstrcicmp(pseqdesc->label, pstrsequencename))
 			return i;
 	}
 
