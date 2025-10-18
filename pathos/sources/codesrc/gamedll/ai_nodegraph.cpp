@@ -288,7 +288,8 @@ void CAINodeGraph::SetGraphPointers( void )
 			}
 		}
 
-		// If we didn't find anything, disable this link entity object
+		// If we didn't find anything, disable this link entity object. Most likely this entity was destroyed/deleted
+		// as part of normal game processes and at most is worthy of a debug notification
 		if(j == g_pGameVars->numentities)
 		{
 			gd_engfuncs.pfnCon_DPrintf("%s - Couldn't find entity with model '%s'.\n", __FUNCTION__, pLinkEntity->modelname);

@@ -456,7 +456,7 @@ void CPlayerMovement::Move_Toss_Bounce( void )
 		}
 
 		Float velocity = Math::DotProduct(m_pPlayerState->velocity, m_pPlayerState->velocity);
-		if(velocity < 900)
+		if(velocity < 900 || m_pPlayerState->movetype != MOVETYPE_BOUNCE)
 		{
 			m_pPlayerState->groundent = trace.hitentity;
 			m_pPlayerState->velocity.Clear();
@@ -544,7 +544,7 @@ Int32 CPlayerMovement::Move_Fly( void )
 		numplanes++;
 
 		// Reflect player velocity
-		if(numplanes == 1 && m_pPlayerState->movetype == MOVETYPE_WALK && (m_pPlayerState->groundent == NO_ENTITY_INDEX || m_pPlayerState->friction != 1))
+		if(m_pPlayerState->movetype == MOVETYPE_WALK && (m_pPlayerState->groundent == NO_ENTITY_INDEX || m_pPlayerState->friction != 1))
 		{
 			Vector newvelocity;
 			for(Int32 j = 0; j < numplanes; j++)
@@ -622,7 +622,7 @@ Int32 CPlayerMovement::ClipVelocity( const Vector& in, const Vector& normal, Vec
 	Int32 blocked = BLOCKED_NOT;
 	if(angle > 0)
 		blocked |= BLOCKED_FLOOR;
-	if(!angle)
+	else if(!angle)
 		blocked |= BLOCKED_WALL;
 
 	Float backoff = Math::DotProduct(in, normal)*overbounce;
@@ -645,14 +645,18 @@ Int32 CPlayerMovement::ClipVelocity( const Vector& in, const Vector& normal, Vec
 //=============================================
 void CPlayerMovement::PreventMegaBunnyJumping( void )
 {
-	if(m_maxSpeed <= 0)
+	// Restore HL behavior for better jumping
+	const Float bunnyJumpMaxSpeedFactor = 1.7;
+	Float maxScaledSpeed = bunnyJumpMaxSpeedFactor * m_maxSpeed;
+
+	if(maxScaledSpeed <= 0)
 		return;
 
 	Float speed = m_pPlayerState->velocity.Length();
-	if(speed <= m_maxSpeed)
+	if(speed <= bunnyJumpMaxSpeedFactor)
 		return;
 
-	Float frac = (m_maxSpeed/speed) * 0.65;
+	Float frac = (maxScaledSpeed/speed) * 0.65;
 	Math::VectorScale(m_pPlayerState->velocity, frac, m_pPlayerState->velocity);
 }
 
@@ -667,7 +671,10 @@ void CPlayerMovement::Move_Walk( void )
 
 	// Clear this
 	vforward[2] = 0;
-	vforward = vforward.Normalize();
+	vforward.Normalize();
+
+	vright[2] = 0;
+	vright.Normalize();
 
 	// Do not add in wishvel when on bike and not onground
 	Vector wishvel;
@@ -803,7 +810,6 @@ void CPlayerMovement::Move_Walk( void )
 	// (I really need to take the time to learn how this logic fucking works)
 	Move_Fly();
 
-	// I really have trouble following this logic...
 	dest = m_pPlayerState->origin;
 	dest[2] -= m_pMovevars->stepsize;
 
@@ -1072,7 +1078,9 @@ void CPlayerMovement::FixupGravityVelocity( void )
 	if(m_pPlayerState->waterjumptime)
 		return;
 
-	m_pPlayerState->velocity[2] -= (m_pMovevars->gravity * m_frameTime * 0.5);
+	Float entGravity = (m_pPlayerState->gravity) ? m_pPlayerState->gravity : 1.0;
+	m_pPlayerState->velocity[2] -= (entGravity * m_frameTime * 0.5);
+
 	CheckVelocity();
 }
 
@@ -1414,15 +1422,12 @@ void CPlayerMovement::Accelerate( const Vector& wishdir, Float wishspeed, Float 
 //=============================================
 void CPlayerMovement::Move_Air( void )
 {
-	Vector forward = m_vForward;
-	Vector right = m_vRight;
-
 	// Zero out z
-	forward[2] = right[2] = 0;
+	m_vForward[2] = m_vRight[2] = 0;
 
 	Vector wishvel;
 	for(Int32 i = 0; i < 2; i++)
-		wishvel[i] = forward[i]*m_userCmd.forwardmove + right[i]*m_userCmd.sidemove;
+		wishvel[i] = m_vForward[i]*m_userCmd.forwardmove + m_vRight[i]*m_userCmd.sidemove;
 
 	// Zero out Z
 	wishvel[2] = 0;
@@ -2072,9 +2077,9 @@ void CPlayerMovement::RunPlayerMove( void )
 			else
 			{
 				// Jump if possible
-				if(m_userCmd.buttons & IN_JUMP)
+				if(m_userCmd.buttons & IN_JUMP && !m_pLadder)
 					Jump();
-				else
+				else if(!(m_userCmd.buttons & IN_JUMP))
 					m_pPlayerState->oldbuttons &= ~IN_JUMP;
 
 				// Add friction

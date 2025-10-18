@@ -34,6 +34,8 @@ public:
 	static const Uint32 PARTICLE_RAMP2[8];
 	// Ramp 3 values
 	static const Uint32 PARTICLE_RAMP3[8];
+	// Particle fade out time
+	static const Float PARTICLE_FADEOUT_TIME;
 
 	enum particle_type_t
 	{
@@ -56,6 +58,7 @@ public:
 			color(0),
 			ramp(0),
 			die(0),
+			spawntime(0),
 			type(pt_undefined),
 			pprev(nullptr),
 			pnext(nullptr)
@@ -66,7 +69,8 @@ public:
 
 		Vector velocity;
 		Float ramp;
-		Float die;
+		Double die;
+		Double spawntime;
 		particle_type_t type;
 
 		particle_t* pprev;

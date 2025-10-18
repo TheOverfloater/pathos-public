@@ -1623,7 +1623,7 @@ const CAISchedule scheduleEstablishLineOfFire(
 );
 
 //=============================================
-// @brief Establish line of fire
+// @brief Face Enemy
 //
 //=============================================
 ai_task_t taskListScheduleFaceEnemy[] = 

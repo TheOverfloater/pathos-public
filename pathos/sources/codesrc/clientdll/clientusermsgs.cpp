@@ -1695,7 +1695,7 @@ MSGFN MsgFunc_CreateGameUIWindow( const Char* pstrName, const byte* pdata, Uint3
 				const Char* pString = reader.ReadString();
 				if(!qstrlen(pString))
 				{
-					cl_engfuncs.pfnCon_EPrintf("%s - No identifier specified for 'CGameUIObjectivesWindow' objective at index %d.\n", __FUNCTION__, i);
+					cl_engfuncs.pfnCon_EPrintf("%s - No identifier specified for 'CGameUIDocumentsWindow' objective at index %d.\n", __FUNCTION__, i);
 					return true;
 				}
 
@@ -1712,13 +1712,13 @@ MSGFN MsgFunc_CreateGameUIWindow( const Char* pstrName, const byte* pdata, Uint3
 			CGameUIDocumentsWindow* pWindow = reinterpret_cast<CGameUIDocumentsWindow*>(gGameUIManager.SpawnWindow(type));
 			if(!pWindow)
 			{
-				cl_engfuncs.pfnCon_EPrintf("%s - Failed to create 'CGameUIObjectivesWindow'.\n", __FUNCTION__);
+				cl_engfuncs.pfnCon_EPrintf("%s - Failed to create 'CGameUIDocumentsWindow'.\n", __FUNCTION__);
 				return true;
 			}
 
 			if(!pWindow->initData(documentsArray, nullptr))
 			{
-				cl_engfuncs.pfnCon_EPrintf("%s - Failed to initialize 'CGameUIObjectivesWindow'.\n", __FUNCTION__);
+				cl_engfuncs.pfnCon_EPrintf("%s - Failed to initialize 'CGameUIDocumentsWindow'.\n", __FUNCTION__);
 				return true;
 			}
 		}

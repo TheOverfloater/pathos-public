@@ -34,6 +34,8 @@ const Uint32 CLegacyParticles::PARTICLE_RAMP1[8] = {0x6f, 0x6d, 0x6b, 0x69, 0x67
 const Uint32 CLegacyParticles::PARTICLE_RAMP2[8] = {0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66};
 // Ramp 3 values
 const Uint32 CLegacyParticles::PARTICLE_RAMP3[8] = {0x6d, 0x6b, 6, 5, 4, 3};
+// Particle fade out time
+const Float CLegacyParticles::PARTICLE_FADEOUT_TIME = 1;
 
 // Path to particle texture
 const Char CLegacyParticles::PARTICLE_TEXTURE_FILEPATH[] = "general/particle.tga";
@@ -288,6 +290,7 @@ void CLegacyParticles::CreateParticleExplosion1( const Vector& origin )
 			return;
 
 		pnew->die = cls.cl_time + 5;
+		pnew->spawntime = cls.cl_time;
 		pnew->color = PARTICLE_RAMP1[0];
 		pnew->ramp = Common::RandomLong(0, 3);
 
@@ -324,6 +327,7 @@ void CLegacyParticles::CreateParticleExplosion2( const Vector& origin, Uint32 co
 			return;
 
 		pnew->die = cls.cl_time + 0.3;
+		pnew->spawntime = cls.cl_time;
 		pnew->color = colorstart + (colormod%colorlength);
 		pnew->ramp = 0;
 		pnew->type = pt_blob1;
@@ -349,6 +353,7 @@ void CLegacyParticles::CreateBlobExplosion( const Vector& origin )
 			return;
 
 		pnew->die = cls.cl_time + Common::RandomFloat(1, 1.4);
+		pnew->spawntime = cls.cl_time;
 		pnew->ramp = Common::RandomLong(0, 3);
 
 		if(i & 1)
@@ -382,6 +387,7 @@ void CLegacyParticles::CreateRocketExplosion( const Vector& origin, Uint32 color
 			return;
 
 		pnew->die = cls.cl_time + 5;
+		pnew->spawntime = cls.cl_time;
 		pnew->color = PARTICLE_RAMP1[0];
 		pnew->ramp = Common::RandomFloat(0, 3);
 
@@ -410,6 +416,7 @@ void CLegacyParticles::CreateParticleEffect( const Vector& origin, const Vector&
 			return;
 
 		pnew->die = cls.cl_time + 0.1+Common::RandomLong(0, 5);
+		pnew->spawntime = cls.cl_time;
 		pnew->color = (color&~7) + Common::RandomLong(0, 7);
 		pnew->type = pt_slowgravity;
 
@@ -437,6 +444,7 @@ void CLegacyParticles::CreateLavaSplash( const Vector& origin )
 					return;
 
 				pnew->die = cls.cl_time + Common::RandomFloat(2, 2.62);
+				pnew->spawntime = cls.cl_time;
 				pnew->color = Common::RandomLong(224, 231);
 				pnew->type = pt_slowgravity;
 
@@ -473,6 +481,7 @@ void CLegacyParticles::CreateTeleportSplash( const Vector& origin )
 					return;
 
 				pnew->die = cls.cl_time + Common::RandomFloat(0.2, 0.84);
+				pnew->spawntime = cls.cl_time;
 				pnew->color = Common::RandomLong(7, 14);
 				pnew->type = pt_slowgravity;
 
@@ -532,6 +541,7 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 				pnew->color = PARTICLE_RAMP3[static_cast<Uint32>(pnew->ramp)];
 				pnew->type = pt_fire;
 				pnew->die = cls.cl_time + 2;
+				pnew->spawntime = cls.cl_time;
 
 				for(Uint32 j = 0; j < 3; j++)
 					pnew->origin[j] = _start[j] + Common::RandomFloat(-3, 3);
@@ -543,6 +553,7 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 				pnew->color = PARTICLE_RAMP3[static_cast<Uint32>(pnew->ramp)];
 				pnew->type = pt_fire;
 				pnew->die = cls.cl_time + 2;
+				pnew->spawntime = cls.cl_time;
 
 				for(Uint32 j = 0; j < 3; j++)
 					pnew->origin[j] = _start[j] + Common::RandomFloat(-3, 3);
@@ -554,6 +565,7 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 				pnew->color = Common::RandomLong(67, 70);
 				pnew->type = pt_gravity;
 				pnew->die = cls.cl_time + 2;
+				pnew->spawntime = cls.cl_time;
 
 				for(Uint32 j = 0; j < 3; j++)
 					pnew->origin[j] = _start[j] + Common::RandomFloat(-3, 3);
@@ -563,6 +575,7 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 		case trail_tracer2:
 			{
 				pnew->die = cls.cl_time + 0.5;
+				pnew->spawntime = cls.cl_time;
 				pnew->type = pt_static;
 				if(type == 3)
 					pnew->color = 52 + ((tc&4)<<1);
@@ -588,6 +601,7 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 				pnew->type = pt_gravity;
 				pnew->color = Common::RandomLong(67, 70);
 				pnew->die = cls.cl_time + 2;
+				pnew->spawntime = cls.cl_time;
 
 				for(Uint32 j = 0; j < 3; j++)
 					pnew->origin[j] = _start[j] + Common::RandomFloat(-3, 3);
@@ -600,6 +614,7 @@ void CLegacyParticles::CreateRocketTrail( const Vector& start, const Vector& end
 				pnew->color = Common::RandomLong(153, 156);
 				pnew->type = pt_static;
 				pnew->die = cls.cl_time + 0.3;
+				pnew->spawntime = cls.cl_time;
 
 				for(Uint32 j = 0; j < 3; j++)
 					pnew->origin[j] = _start[j] + Common::RandomFloat(-8, 8);
@@ -662,6 +677,7 @@ void CLegacyParticles::CreateLargeFunnel( const Vector& origin, bool reverse )
 			pnew->velocity = velocity * dir;
 
 			pnew->die = cls.cl_time + (distance / velocity);
+			pnew->spawntime = cls.cl_time;
 		}
 	}
 }
@@ -684,6 +700,7 @@ void CLegacyParticles::CreateBloodStream( const Vector& origin, const Vector& di
 			return;
 
 		pnew->die = cls.cl_time + 2.0;
+		pnew->spawntime = cls.cl_time;
 		pnew->color = color + Common::RandomLong(0, 9);
 		pnew->type = pt_vox_gravity;
 		pnew->origin = origin;
@@ -707,6 +724,7 @@ void CLegacyParticles::CreateBloodStream( const Vector& origin, const Vector& di
 			return;
 
 		pnew->die = cls.cl_time + 3.0;
+		pnew->spawntime = cls.cl_time;
 		pnew->type = pt_vox_slowgravity;
 		pnew->color = color + Common::RandomLong(0, 9);
 		pnew->origin = origin;
@@ -729,6 +747,7 @@ void CLegacyParticles::CreateBloodStream( const Vector& origin, const Vector& di
 				return;
 
 			pnew->die = cls.cl_time + 3.0;
+			pnew->spawntime = cls.cl_time;
 			pnew->type = pt_vox_slowgravity;
 			pnew->color = color + Common::RandomLong(0, 9);
 
@@ -773,6 +792,7 @@ void CLegacyParticles::CreateBloodParticles( const Vector& origin, const Vector&
 				return;
 
 			pnew->die = cls.cl_time + 1.5;
+			pnew->spawntime = cls.cl_time;
 			pnew->color = color + Common::RandomLong(0, 9);
 			pnew->type = pt_vox_gravity;
 
@@ -853,6 +873,7 @@ void CLegacyParticles::UpdateParticles( void )
 		{
 		case pt_fire:
 			{
+				pnext->spawntime = cls.cl_time;
 				pnext->ramp += cls.frametime*5;
 				if(pnext->ramp >= 6)
 					pnext->die = -1;
@@ -865,6 +886,7 @@ void CLegacyParticles::UpdateParticles( void )
 			break;
 		case pt_explode1:
 			{
+				pnext->spawntime = cls.cl_time;
 				pnext->ramp += cls.frametime * 10;
 				if(pnext->ramp >= 8)
 					pnext->die = -1;
@@ -881,6 +903,7 @@ void CLegacyParticles::UpdateParticles( void )
 			break;
 		case pt_explode2:
 			{
+				pnext->spawntime = cls.cl_time;
 				pnext->ramp += cls.frametime * 15;
 				if(pnext->ramp >= 8)
 					pnext->die = -1;
@@ -901,6 +924,7 @@ void CLegacyParticles::UpdateParticles( void )
 					pnext->velocity[i] -= pnext->velocity[i]*cls.frametime*4;
 
 				pnext->velocity[2] -= cls.frametime * particle_gravity * gravity;
+				pnext->spawntime = cls.cl_time;
 			}
 			break;
 		case pt_gravity:
@@ -1008,28 +1032,41 @@ bool CLegacyParticles::DrawParticles( void )
 		color24_t* pcolor = &m_pColorPalette[colorindex];
 		Vector color = Vector(static_cast<Float>(pcolor->r)/255.0f, static_cast<Float>(pcolor->g)/255.0f, static_cast<Float>(pcolor->b)/255.0f);
 
+		Float fadeOutTime;
+		Float lifeTime = (pnext->die - pnext->spawntime);
+		if(lifeTime < PARTICLE_FADEOUT_TIME)
+			fadeOutTime = lifeTime * 0.5;
+		else
+			fadeOutTime = PARTICLE_FADEOUT_TIME;
+
+		Float particleAlpha;
+		if((pnext->die - fadeOutTime) < rns.time)
+			particleAlpha = 1.0 - ((rns.time - (pnext->die - fadeOutTime)) / fadeOutTime);
+		else
+			particleAlpha = 1.0;
+
 		// Draw a quad
 		Vector vpoint = pnext->origin - forward * 0.01 + up * scale * texscaley;
 		vpoint = vpoint + right * -1 * scale * texscalex;
-		pDraw->Color4f(color.x, color.y, color.z, 1.0);
+		pDraw->Color4f(color.x, color.y, color.z, particleAlpha);
 		pDraw->TexCoord2f(0.0, 0.0);
 		pDraw->Vertex3fv(vpoint);
 
 		vpoint = pnext->origin - forward * 0.01 + up * scale * texscaley;
 		vpoint = vpoint + right * scale * texscalex;
-		pDraw->Color4f(color.x, color.y, color.z, 1.0);
+		pDraw->Color4f(color.x, color.y, color.z, particleAlpha);
 		pDraw->TexCoord2f(1.0, 0.0);
 		pDraw->Vertex3fv(vpoint);
 
 		vpoint = pnext->origin - forward * 0.01 + up * -1 * scale * texscaley;
 		vpoint = vpoint + right * scale * texscalex;
-		pDraw->Color4f(color.x, color.y, color.z, 1.0);
+		pDraw->Color4f(color.x, color.y, color.z, particleAlpha);
 		pDraw->TexCoord2f(1.0, 1.0);
 		pDraw->Vertex3fv(vpoint);
 
 		vpoint = pnext->origin - forward * 0.01 + up * -1 * scale * texscaley;
 		vpoint = vpoint + right * -1 * scale * texscalex;
-		pDraw->Color4f(color.x, color.y, color.z, 1.0);
+		pDraw->Color4f(color.x, color.y, color.z, particleAlpha);
 		pDraw->TexCoord2f(0.0, 1.0);
 		pDraw->Vertex3fv(vpoint);
 		nbVertexes += 4;

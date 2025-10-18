@@ -11,8 +11,6 @@ All Rights Reserved.
 #include "r_nsmoothing.h"
 #include "system.h"
 
-// max bbox size for normal smoothing groups
-const Float CNormalSmoothing::CNM_BBOXSIZE = 1024;
 // max block size for allocating vertexes
 const Float CNormalSmoothing::CNM_ALLOCSIZE = 32;
 // Max depth of node generation

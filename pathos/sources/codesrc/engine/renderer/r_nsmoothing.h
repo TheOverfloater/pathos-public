@@ -21,7 +21,6 @@ CNormalSmoothing
 class CNormalSmoothing
 {
 public:
-	static const Float CNM_BBOXSIZE;
 	static const Float CNM_ALLOCSIZE;
 	static const Uint32 MAX_NODE_DEPTH;
 

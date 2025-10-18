@@ -3497,7 +3497,7 @@ void CStudioModelCompiler::Clear( void )
 	if(!m_pLODsArray.empty())
 	{
 		for(Uint32 i = 0; i < m_pLODsArray.size(); i++)
-			delete[] m_pLODsArray[i];
+			delete m_pLODsArray[i];
 
 		m_pLODsArray.clear();
 	}

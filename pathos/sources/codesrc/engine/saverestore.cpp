@@ -42,7 +42,7 @@ const Char CSaveRestore::SAVE_DIR_PATH[] = "save_x64/";
 const Char CSaveRestore::SAVE_DIR_PATH[] = "save_x86/";
 #endif
 // Save file version
-const Uint32 CSaveRestore::SAVE_FILE_VERSION = 1;
+const Uint32 CSaveRestore::SAVE_FILE_VERSION = 2;
 
 // Object declaration
 CSaveRestore gSaveRestore;
@@ -239,7 +239,7 @@ bool CSaveRestore::GetMostRecentSave( CString* pOutput )
 			filePath << CSaveRestore::SAVE_DIR_PATH << findData.cFileName;
 			
 			savefile_type_t type = GetSaveFileType(filePath.c_str());
-			if(type != SAVE_TRANSITION && type != SAVE_MAPSAVE)
+			if(type != SAVE_TRANSITION && type != SAVE_MAPSAVE && type != SAVE_UNDEFINED)
 			{
 				SYSTEMTIME sysTime;
 				if(!FileTimeToSystemTime(&findData.ftLastWriteTime, &sysTime))
@@ -343,31 +343,29 @@ bool CSaveRestore::LoadSaveData( const save_header_t* pheader, const Vector* pla
 	if(pheader->type != SAVE_MAPSAVE)
 		svs.gamevars.gametime = pheader->gametime;
 	
-	// Restore game fields
-	if(pheader->type != SAVE_TRANSITION)
+	// Set any cvars we saved
+	if(pheader->numcvars > 0)
 	{
-		// TODO: Get rid of this junky code, and instead add a dynamic solution
-		// for saving cvars.
-		// Restore time
-		svs.gamevars.time = svs.time = pheader->svtime;
-
-		// Set sky vector
-		gConsole.CVarSetFloatValue(g_psv_skyvec_x->GetName(), pheader->skyvec.x);
-		gConsole.CVarSetFloatValue(g_psv_skyvec_y->GetName(), pheader->skyvec.y);
-		gConsole.CVarSetFloatValue(g_psv_skyvec_z->GetName(), pheader->skyvec.z);
-
-		// Set sky color
-		gConsole.CVarSetFloatValue(g_psv_skycolor_r->GetName(), pheader->skycolor.x);
-		gConsole.CVarSetFloatValue(g_psv_skycolor_g->GetName(), pheader->skycolor.y);
-		gConsole.CVarSetFloatValue(g_psv_skycolor_b->GetName(), pheader->skycolor.z);
-
-		// Set sky name
-		gConsole.CVarSetStringValue(g_psv_skyname->GetName(), pheader->skyname);
+		const save_cvar_t* pcvars = reinterpret_cast<const save_cvar_t*>(reinterpret_cast<const byte*>(pheader) + pheader->cvarsoffset);
+		for(Uint32 i = 0; i < pheader->numcvars; i++)
+		{
+			switch(pcvars[i].type)
+			{
+			default:
+			case CVAR_FLOAT:
+				{
+					Float value = SDL_atof(pcvars[i].value);
+					gConsole.CVarSetFloatValue(pcvars[i].name, value);
+				}
+				break;
+			case CVAR_STRING:
+				{
+					gConsole.CVarSetStringValue(pcvars[i].name, pcvars[i].value);
+				}
+				break;
+			}
+		}
 	}
-
-	// Set skill level
-	if(pheader->type != SAVE_TRANSITION && pheader->type != SAVE_MAPSAVE)
-		gConsole.CVarSetFloatValue(g_psv_skill->GetName(), pheader->skill);
 
 	// Prepare the index map
 	CArray<entindex_t> saveEntityIndexMapArray;
@@ -838,6 +836,59 @@ bool CSaveRestore::CreateSaveFile( const Char* baseName, savefile_type_t type, c
 		m_timeBase = 0;
 
 		m_isTransitionSave = false;
+
+		// Add cvars to save if not transition save
+		// Add sky color cvars
+		if(!AddSavedCVar(g_psv_skycolor_r))
+		{
+			Con_EPrintf("%s - Error while trying to save cvar '%s'.\n", __FUNCTION__, g_psv_skycolor_r->GetName());
+			return false;
+		}
+
+		if(!AddSavedCVar(g_psv_skycolor_g))
+		{
+			Con_EPrintf("%s - Error while trying to save cvar '%s'.\n", __FUNCTION__, g_psv_skycolor_g->GetName());
+			return false;
+		}
+
+		if(!AddSavedCVar(g_psv_skycolor_b))
+		{
+			Con_EPrintf("%s - Error while trying to save cvar '%s'.\n", __FUNCTION__, g_psv_skycolor_b->GetName());
+			return false;
+		}
+
+		// Add skyvec cvars
+		if(!AddSavedCVar(g_psv_skyvec_x))
+		{
+			Con_EPrintf("%s - Error while trying to save cvar '%s'.\n", __FUNCTION__, g_psv_skyvec_x->GetName());
+			return false;
+		}
+
+		if(!AddSavedCVar(g_psv_skyvec_y))
+		{
+			Con_EPrintf("%s - Error while trying to save cvar '%s'.\n", __FUNCTION__, g_psv_skyvec_y->GetName());
+			return false;
+		}
+
+		if(!AddSavedCVar(g_psv_skyvec_z))
+		{
+			Con_EPrintf("%s - Error while trying to save cvar '%s'.\n", __FUNCTION__, g_psv_skyvec_z->GetName());
+			return false;
+		}
+
+		// Add skyname cvar
+		if(!AddSavedCVar(g_psv_skyname))
+		{
+			Con_EPrintf("%s - Error while trying to save cvar '%s'.\n", __FUNCTION__, g_psv_skyname->GetName());
+			return false;
+		}
+
+		// If not transition or map state save, then save skill
+		if(type != SAVE_MAPSAVE && !AddSavedCVar(g_psv_skill))
+		{
+			Con_EPrintf("%s - Error while trying to save cvar '%s'.\n", __FUNCTION__, g_psv_skill->GetName());
+			return false;
+		}
 	}
 
 	// Set this to default
@@ -900,6 +951,10 @@ bool CSaveRestore::CreateSaveFile( const Char* baseName, savefile_type_t type, c
 		m_saveBufferSize += sizeof(save_levelinfo_t)*svs.levelinfos.size();
 		m_saveBufferSize += sizeof(save_level_connection_t)*numconnections;
 	}
+
+	// Add in cvars if present
+	if(!m_savedCVarsArray.empty())
+		m_saveBufferSize += sizeof(save_cvar_t)*m_savedCVarsArray.size();
 
 	// Allocate save buffers
 	m_pEntityDataBuffer = new byte[BUFFER_ALLOC_SIZE];
@@ -1045,22 +1100,8 @@ bool CSaveRestore::CreateSaveFile( const Char* baseName, savefile_type_t type, c
 	if(pheader->type != SAVE_MAPSAVE)
 		pheader->gametime = svs.gamevars.gametime;
 
-	if(pheader->type != SAVE_TRANSITION)
-	{
-		pheader->skycolor.x = g_psv_skycolor_r->GetValue();
-		pheader->skycolor.y = g_psv_skycolor_g->GetValue();
-		pheader->skycolor.z = g_psv_skycolor_b->GetValue();
-		pheader->skyvec.x = g_psv_skyvec_x->GetValue();
-		pheader->skyvec.y = g_psv_skyvec_y->GetValue();
-		pheader->skyvec.z = g_psv_skyvec_z->GetValue();
-	}
-
-	if(pheader->type != SAVE_TRANSITION && pheader->type != SAVE_MAPSAVE)
-		pheader->skill = g_psv_skill->GetValue();
-
 	// Copy strings
 	strcpy(pheader->name, filename.c_str());
-	strcpy(pheader->skyname, g_psv_skyname->GetStrValue());
 	strcpy(pheader->mapname, svs.mapname.c_str());
 
 	// Call game dll to set header
@@ -1239,6 +1280,28 @@ bool CSaveRestore::CreateSaveFile( const Char* baseName, savefile_type_t type, c
 		}
 	}
 	
+	// Write cvars we'll need
+	if(!m_savedCVarsArray.empty())
+	{
+		pheader->cvarsoffset = currentdatapos;
+		pheader->numcvars = m_savedCVarsArray.size();
+
+		currentdatapos += sizeof(save_cvar_t)*pheader->numcvars;
+
+		save_cvar_t* pcvars = reinterpret_cast<save_cvar_t*>(reinterpret_cast<byte*>(pheader) + pheader->cvarsoffset);
+		for(Uint32 i = 0; i < m_savedCVarsArray.size(); i++)
+		{
+			saved_cvar_t& srccvar = m_savedCVarsArray[i];
+			save_cvar_t& destcvar = pcvars[i];
+
+			qstrcpy_s(destcvar.name, srccvar.name.c_str(), SAVE_FILE_STRING_MAX_LENGTH);
+			qstrcpy_s(destcvar.value, srccvar.value.c_str(), SAVE_FILE_STRING_MAX_LENGTH);
+			destcvar.type = srccvar.type;
+		}
+
+		m_savedCVarsArray.clear();
+	}
+
 	// Write global states if quick, auto or regular save
 	if(ngblobalstates > 0)
 	{
@@ -1374,6 +1437,57 @@ bool CSaveRestore::CreateSaveFile( const Char* baseName, savefile_type_t type, c
 	// Delete buffer data
 	delete[] pbuffer;
 
+	return true;
+}
+
+//=============================================
+// @brief Add a cvar to be saved
+//
+//=============================================
+bool CSaveRestore::AddSavedCVar( CCVar* pcvar )
+{
+	const Char* pstrName = pcvar->GetName();
+	for(Uint32 i = 0; i < m_savedCVarsArray.size(); i++)
+	{
+		const saved_cvar_t& check = m_savedCVarsArray[i];
+		if(!qstrcmp(check.name, pstrName))
+		{
+			Con_EPrintf("Cvar '%s' already marked to be saved.\n", pcvar->GetName());
+			return false;
+		}
+	}
+
+	Uint32 length = qstrlen(pstrName);
+	if(length >= SAVE_FILE_STRING_MAX_LENGTH)
+	{
+		Con_EPrintf("Cvar '%s' has a name longer(%d characters) than the max length(%d characters).\n", pcvar->GetName(), length, (SAVE_FILE_STRING_MAX_LENGTH-1));
+		return false;
+	}
+
+	CString strValue;
+	switch(pcvar->GetType())
+	{
+	case CVAR_STRING:
+		strValue = pcvar->GetStrValue();
+		break;
+	default:
+	case CVAR_FLOAT:
+		strValue << pcvar->GetValue();
+		break;
+	}
+
+	if(strValue.length() >= SAVE_FILE_STRING_MAX_LENGTH)
+	{
+		Con_EPrintf("Cvar '%s' has a value longer(%d characters) than the max length(%d characters).\n", pcvar->GetName(), strValue.length(), (SAVE_FILE_STRING_MAX_LENGTH-1));
+		return false;
+	}
+
+	saved_cvar_t newCVar;
+	newCVar.name = pstrName;
+	newCVar.value = strValue;
+	newCVar.type = pcvar->GetType();
+
+	m_savedCVarsArray.push_back(newCVar);
 	return true;
 }
 

@@ -12,6 +12,7 @@ All Rights Reserved.
 
 #include "constants.h"
 #include "save_shared.h"
+#include "cvar.h"
 
 // Savefile version
 static constexpr Int32 SAVE_FILE_VERSION = 1;
@@ -192,6 +193,23 @@ struct save_global_t
 	Int32 state;
 };
 
+struct save_cvar_t
+{
+	save_cvar_t():
+		type(CVAR_FLOAT)
+	{
+		memset(name, 0, sizeof(name));
+		memset(value, 0, sizeof(value));
+	}
+
+	// Name of cvar
+	Char name[SAVE_FILE_STRING_MAX_LENGTH];
+	// Value of cvar
+	Char value[SAVE_FILE_STRING_MAX_LENGTH];
+	// Type of cvar
+	Int32 type;
+};
+
 struct save_header_t
 {
 	explicit save_header_t(savefile_type_t type):
@@ -200,7 +218,6 @@ struct save_header_t
 		type(type),
 		svtime(0),
 		gametime(0),
-		skill(0),
 		entitydescoffset(0),
 		numentities(0),
 		globaldataoffset(0),
@@ -252,15 +269,14 @@ struct save_header_t
 	Double svtime;
 	// Total game time
 	Double gametime;
-	// Skill setting
-	Int32 skill;
 
-	// Sky color
-	Vector skycolor;
-	// Sky vector
-	Vector skyvec;
 	// Skybox name
 	Char skyname[SAVE_FILE_STRING_MAX_LENGTH];
+
+	// Saved cvars offset
+	Int32 cvarsoffset;
+	// Number of saved cvars
+	Int32 numcvars;
 
 	// Offset to entity data
 	Int32 entitydescoffset;

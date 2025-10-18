@@ -70,6 +70,17 @@ public:
 		Uint32 length;
 	};
 
+	struct saved_cvar_t
+	{
+		saved_cvar_t():
+			type(CVAR_FLOAT)
+		{}
+
+		CString name;
+		CString value;
+		cvar_type_t type;
+	};
+
 	typedef std::map<CString, Int32> StringPositionMap_t;
 
 public:
@@ -106,6 +117,9 @@ private:
 	save_block_t& SaveToStringBuffer( const Char* pstrstring );
 	// Saves a buffer to the entity data buffer
 	save_block_t& SaveToDataBuffer( const byte* pdata, Int32 size );
+
+	// Add a cvar to be saved
+	bool AddSavedCVar( CCVar* pcvar );
 
 	// Cleans save files
 	void CleanSaveFiles( const Char* pstrLastSave );
@@ -201,6 +215,9 @@ private:
 	StringPositionMap_t m_savedStringPositionMap;
 	// Number of elements in array
 	Uint32 m_numSavedStrings;
+
+	// Saved cvar ptrs
+	CArray<saved_cvar_t> m_savedCVarsArray;
 
 private:
 	// Save buffer size
