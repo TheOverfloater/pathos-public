@@ -762,4 +762,12 @@
  - Fix for frameRotationalMotion not being a reference when motion is extracted in ExtractSequenceMotion.
  - Fix incorrect constants.h file entry in VBM Compiler project file.
 
-
+2025 October 18th:
+ - Fix error messages for CGameUIDocumentsWindow
+ - Fix viewmodel shadows not showing for player-attached dynamic lights.
+ - Add fading out for legacy Quake 1 particles.
+ - Cleanup code and remove unused variables.
+ - Add new save file structure to allow non-static saving of cvars.
+ - Fix some comments in the server code.
+ - Numerous fixes to CPlayerMovement code to make it more like in Half-Life.
+ - Fix crash in VBM Compiler when LODs are used.
