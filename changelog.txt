@@ -771,3 +771,6 @@
  - Fix some comments in the server code.
  - Numerous fixes to CPlayerMovement code to make it more like in Half-Life.
  - Fix crash in VBM Compiler when LODs are used.
+
+2025 October 19th:
+ - Fix save-load being broken due to time not being restored.

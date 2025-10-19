@@ -343,6 +343,10 @@ bool CSaveRestore::LoadSaveData( const save_header_t* pheader, const Vector* pla
 	if(pheader->type != SAVE_MAPSAVE)
 		svs.gamevars.gametime = pheader->gametime;
 	
+	// Restore time in all cases except transition save
+	if(pheader->type != SAVE_TRANSITION)
+		svs.gamevars.time = svs.time = pheader->svtime;
+
 	// Set any cvars we saved
 	if(pheader->numcvars > 0)
 	{
