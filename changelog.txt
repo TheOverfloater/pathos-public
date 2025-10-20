@@ -774,3 +774,6 @@
 
 2025 October 19th:
  - Fix save-load being broken due to time not being restored.
+ 
+2025 October 20th:
+ - Quick-fix for broken jump mechanic until permanent fix is applied.
