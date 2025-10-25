@@ -244,9 +244,9 @@ static constexpr Uint32 MOUSE_FILTER_MIN_FRAMES = 2;
 static constexpr Uint32 MOUSE_FILTER_MAX_FRAMES = 8;
 
 // Null mins value
-static const Vector NULL_MINS(999999999, 999999999, 999999999);
+static const Vector NULL_MINS(1e30f, 1e30f, 1e30f);
 // Null maxs value
-static const Vector NULL_MAXS(-999999999, -999999999, -999999999);
+static const Vector NULL_MAXS(-1e30f, -1e30f, -1e30f);
 
 // env_elight radius multiplier
 static constexpr Float ENV_ELIGHT_RADIUS_MULTIPLIER = 9.5;
