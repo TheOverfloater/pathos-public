@@ -215,7 +215,7 @@ bool R_IsEntityTransparent( const cl_entity_t& entity, bool ignoreVBMFlags )
 		&& entity.curstate.rendermode != RENDER_TRANSALPHA)
 		return true;
 
-	if(!ignoreVBMFlags && entity.pmodel->type == MOD_VBM)
+	if(entity.pmodel->type == MOD_VBM && !ignoreVBMFlags)
 	{
 		const vbmcache_t* pcache = entity.pmodel->getVBMCache();
 		return VBM_HasTransparentParts(pcache->pvbmhdr, entity.curstate.body, entity.curstate.skin);

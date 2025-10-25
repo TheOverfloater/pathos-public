@@ -29,11 +29,11 @@ All Rights Reserved.
 //
 
 // Ramp 1 values
-const Uint32 CLegacyParticles::PARTICLE_RAMP1[8] = {0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61};
+const Uint32 CLegacyParticles::PARTICLE_RAMP1[8] = {111, 109, 107, 105, 103, 101, 99, 97};
 // Ramp 2 values
-const Uint32 CLegacyParticles::PARTICLE_RAMP2[8] = {0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66};
+const Uint32 CLegacyParticles::PARTICLE_RAMP2[8] = {111, 110, 109, 108, 107, 106, 104, 102};
 // Ramp 3 values
-const Uint32 CLegacyParticles::PARTICLE_RAMP3[8] = {0x6d, 0x6b, 6, 5, 4, 3};
+const Uint32 CLegacyParticles::PARTICLE_RAMP3[8] = {109, 107, 6, 5, 4, 3};
 // Particle fade out time
 const Float CLegacyParticles::PARTICLE_FADEOUT_TIME = 1;
 

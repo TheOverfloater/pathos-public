@@ -93,14 +93,6 @@ void CGameUISubwayWindow::init( void )
 	Uint32 screenWidth, screenHeight;
 	cl_renderfuncs.pfnGetScreenSize(screenWidth, screenHeight);
 
-	const font_set_t* pTitleFont = cl_engfuncs.pfnGetResolutionSchemaFontSet(SUBWAYWINDOW_TITLE_TEXTSCHEMA_NAME, screenHeight);
-	if(!pTitleFont)
-		pTitleFont = gGameUIManager.GetDefaultFontSet();
-
-	Uint32 textYOrigin = hBarYOrigin + tabTopInset/2.0f;
-	CGameUIText *pTitleText = new CGameUIText(CGameUIObject::FL_ALIGN_CH, GAMEUIWINDOW_DEFAULT_TEXT_COLOR, pTitleFont, 0, textYOrigin);
-	pTitleText->setParent(this);
-
 	//
 	// Create the tab objects
 	//

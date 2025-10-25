@@ -1897,7 +1897,7 @@ bool CDynamicLightManager::ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_scenei
 		}
 		
 		// No transparents
-		if(R_IsEntityTransparent((*pvisentity)))
+		if(R_IsEntityTransparent((*pvisentity), true))
 			continue;
 
 		// Check bbox

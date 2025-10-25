@@ -197,7 +197,7 @@ bool CGeometrySMDParser::ParseTriangles( void )
 {
 	if(m_boneTransformInfoArray.empty() || m_pSubModel->bones.empty())
 	{
-		ErrorMsg("Bone list was empty for ParseTriangles.\n");
+		ErrorMsg("Bone list was empty for %s.\n", __FUNCTION__);
 		return false;
 	}
 	

@@ -1123,7 +1123,7 @@ bool CVBMCompiler::CreateVBMFile( void )
 	// Must be called first
 	if(!LoadReferenceFrameFile())
 	{
-		ErrorMsg("Failed to load reference frame file.\n");
+		ErrorMsg("Failed to set up reference frame.\n");
 		return false;
 	}
 

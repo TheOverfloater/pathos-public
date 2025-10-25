@@ -777,3 +777,9 @@
  
 2025 October 20th:
  - Quick-fix for broken jump mechanic until permanent fix is applied.
+ 
+2025 October 25th:
+ - Fix heap corruption in CString class when appending float, double or negative int
+ - Fix issue with VBM entities that have transparent parts not having shadows rendered.
+ - Turn legacy particle ramp values into readable decimal values.
+ - Remove unused CGameUIText object from CGameUISubwayWindow class.

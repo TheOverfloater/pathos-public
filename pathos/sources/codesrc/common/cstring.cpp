@@ -146,6 +146,10 @@ void CString::Append(const Char* psrc)
 		else
 			qstrcpy_s(g_pWorkBuffer, psrc, g_workBufferSize);
 
+#ifdef _DEBUG
+		assert(qstrlen(g_pWorkBuffer) == newlength);
+#endif
+
 		setdata(g_pWorkBuffer);
 		g_workBufferMutex.unlock();
 	}
@@ -169,6 +173,10 @@ void CString::Append(Char c)
 	else
 		sprintf_s(g_pWorkBuffer, g_workBufferSize, "%c", c);
 
+#ifdef _DEBUG
+	assert(qstrlen(g_pWorkBuffer) == newlength);
+#endif
+
 	setdata(g_pWorkBuffer);
 	g_workBufferMutex.unlock();
 }
@@ -180,8 +188,12 @@ void CString::Append(Char c)
 //=============================================
 void CString::Append(Int32 i)
 {
-	Uint32 logVal = SDL_log10(i);
+	Uint32 absValue = SDL_abs(i);
+	Uint32 logVal = SDL_log10(absValue);
 	Uint32 digitCount = SDL_floor(logVal) + 1;
+	if(i < 0)
+		digitCount++;
+
 	Uint32 newlength = m_stringLength + digitCount;
 
 	g_workBufferMutex.lock();
@@ -191,6 +203,10 @@ void CString::Append(Int32 i)
 		sprintf_s(g_pWorkBuffer, g_workBufferSize, "%s%d", m_pString, i);
 	else
 		sprintf_s(g_pWorkBuffer, g_workBufferSize, "%d", i);
+
+#ifdef _DEBUG
+	assert(qstrlen(g_pWorkBuffer) == newlength);
+#endif
 
 	setdata(g_pWorkBuffer);
 	g_workBufferMutex.unlock();
@@ -203,7 +219,8 @@ void CString::Append(Int32 i)
 //=============================================
 void CString::Append(Uint32 i)
 {
-	Uint32 digitCount = SDL_floor(SDL_log10(i)) + 1;
+	Uint32 logValue = SDL_log10(i);
+	Uint32 digitCount = SDL_floor(logValue) + 1;
 	Uint32 newlength = m_stringLength + digitCount;
 
 	g_workBufferMutex.lock();
@@ -214,6 +231,10 @@ void CString::Append(Uint32 i)
 		sprintf_s(g_pWorkBuffer, g_workBufferSize, "%s%d", m_pString, i);
 	else
 		sprintf_s(g_pWorkBuffer, g_workBufferSize, "%d", i);
+
+#ifdef _DEBUG
+	assert(qstrlen(g_pWorkBuffer) == newlength);
+#endif
 
 	setdata(g_pWorkBuffer);
 	g_workBufferMutex.unlock();
@@ -226,18 +247,38 @@ void CString::Append(Uint32 i)
 //=============================================
 void CString::Append(Float f)
 {
-	Uint32 logVal = SDL_log10(SDL_floor(f));
-	Uint32 digitCount = (logVal + 1) + 7;
+	// Accounts for negative zero
+	Float baseValue = (f == 0) ? 0 : f; 
+	// Turn to abs so it works with log
+	Float absValue = SDL_fabs(baseValue);
+	// Turn into integer value by flooring it, removing fraction part
+	Float floorValue = SDL_floor(absValue);
+	// Get 10 logarythmic value(nb of digits past first digit)
+	Uint32 logarithmicValue = SDL_log10(floorValue);
+	// Get nb of digits past 1 in integer portion + 1
+	Uint32 integerDigits = logarithmicValue + 1; 
+	// Digit count is (int digits) + dot + (six fractional digits)
+	Uint32 digitCount = integerDigits + 1 + 6; 
+	// Account for negative signage
+	if(baseValue < 0) 
+		digitCount++; 
+
 	Uint32 newlength = m_stringLength + digitCount;
 
 	g_workBufferMutex.lock();
 	CheckBuffer(newlength);
 	g_pWorkBuffer[0] = '\0';
 
+	// WARNING: If you change the floating point digit count here,
+	// change it at the end of digitCount too!
 	if(m_pString && m_pString != EMPTY_STRING)
-		sprintf(g_pWorkBuffer, "%s%.6f", m_pString, f);
+		sprintf(g_pWorkBuffer, "%s%.6f", m_pString, baseValue);
 	else
-		sprintf(g_pWorkBuffer, "%.6f", f);
+		sprintf(g_pWorkBuffer, "%.6f", baseValue);
+
+#ifdef _DEBUG
+	assert(qstrlen(g_pWorkBuffer) == newlength);
+#endif
 
 	setdata(g_pWorkBuffer);
 	g_workBufferMutex.unlock();
@@ -250,18 +291,38 @@ void CString::Append(Float f)
 //=============================================
 void CString::Append(Double d)
 {
-	Uint32 logVal = SDL_log10(SDL_floor(d));
-	Uint32 digitCount = (logVal + 1) + 7;
+	// Accounts for negative zero
+	Double baseValue = (d == 0) ? 0 : d; 
+	// Turn to abs so it works with log
+	Double absValue = SDL_fabs(baseValue);
+	// Turn into integer value by flooring it, removing fraction part
+	Double floorValue = SDL_floor(absValue);
+	// Get 10 logarythmic value(nb of digits past first digit)
+	Uint32 logarithmicValue = SDL_log10(floorValue);
+	// Get nb of digits past 1 in integer portion + 1
+	Uint32 integerDigits = logarithmicValue + 1; 
+	// Digit count is (int digits) + dot + (six fractional digits)
+	Uint32 digitCount = integerDigits + 1 + 6; 
+	// Account for negative signage
+	if(baseValue < 0) 
+		digitCount++; 
+
 	Uint32 newlength = m_stringLength + digitCount;
 
 	g_workBufferMutex.lock();
 	CheckBuffer(newlength);
 	g_pWorkBuffer[0] = '\0';
 
+	// WARNING: If you change the floating point digit count here,
+	// change it at the end of digitCount too!
 	if(m_pString && m_pString != EMPTY_STRING)
-		sprintf(g_pWorkBuffer, "%s%.6lf", m_pString, d);
+		sprintf(g_pWorkBuffer, "%s%.6lf", m_pString, baseValue);
 	else
-		sprintf(g_pWorkBuffer, "%.6lf", d);
+		sprintf(g_pWorkBuffer, "%.6lf", baseValue);
+
+#ifdef _DEBUG
+	assert(qstrlen(g_pWorkBuffer) == newlength);
+#endif
 
 	setdata(g_pWorkBuffer);
 	g_workBufferMutex.unlock();
