@@ -25,9 +25,9 @@ All Rights Reserved.
 ************************/
 
 // This is used to identify a studiomdl file
-static constexpr Int32 IDSTUDIOHEADER	= (('T'<<24)+('S'<<16)+('D'<<8)+'I');
+static constexpr Int32 IDSTUDIOHEADER			= (('T'<<24)+('S'<<16)+('D'<<8)+'I');
 // Version used by Half-Life 1, JACK, VHE for studiomodels
-static constexpr Uint32 STUDIO_VERSION	= 10;
+static constexpr Uint32 STUDIO_VERSION			= 10;
 
 // Max vertexes supported by VHE
 static constexpr Uint32 MAXSTUDIOVERTS_REF		= 2048;

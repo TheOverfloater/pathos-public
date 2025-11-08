@@ -385,6 +385,7 @@ void CInput::OnSetRawMouse( bool isEnabled )
 			}
 		}
 		break;
+	default:
 	case false:
 		{
 			if(m_relativeMouseModeSet)

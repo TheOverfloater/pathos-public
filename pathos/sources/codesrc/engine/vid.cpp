@@ -472,6 +472,7 @@ void VID_Restart( void )
 	{
 		Sys_ErrorPopup("Failed to initialize OpenGL. Check log for details.");
 		Sys_Exit();
+		return;
 	}
 
 	// We're done loading, so finish drawing screen

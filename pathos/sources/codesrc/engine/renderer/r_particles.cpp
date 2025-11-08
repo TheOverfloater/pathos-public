@@ -681,9 +681,7 @@ bool CParticleEngine::ReadField( script_definition_t* pdefinition, const Char* p
 		{
 			pstr = Common::Parse(pstr, token);
 
-			if(!qstrcmp(token, "precise"))
-				pdefinition->collision_flags |= COLLISION_FL_PRECISE;
-			else if(!qstrcmp(token, "collide_brushmodels"))
+			if(!qstrcmp(token, "collide_brushmodels"))
 				pdefinition->collision_flags |= COLLISION_FL_BMODELS;
 			else if(!qstrcmp(token, "collide_water"))
 				pdefinition->collision_flags |= COLLISION_FL_WATER;
@@ -2316,37 +2314,13 @@ bool CParticleEngine::CheckCollision( Vector& vecOrigin, Vector& vecVelocity, pa
 	Vector testPosition;
 	Math::VectorMA(vecOrigin, rns.frametime, vecVelocity, testPosition);
 
-	// If TRUE, check collisions precisely
-	bool checkPreciseCollision = false;
-
-	// Do a non-precise collision check if script is not set to be precise
-	if(!(pdefinition->collision_flags & COLLISION_FL_PRECISE))
-	{
-		Int32 contents = PointContentsParticle(testPosition);
-		if(contents != CONTENTS_EMPTY)
-			checkPreciseCollision = true;
-	}
-	else
-	{
-		// Always check for precise if it's set
-		checkPreciseCollision = true;
-	}
-
 	// Check for water if we haven't collided with anything
 	Int32 waterEntity = NO_ENTITY_INDEX;
-	if((pdefinition->collision_flags & COLLISION_FL_WATER)
-		&& ((pdefinition->collision_flags & COLLISION_FL_PRECISE) || !checkPreciseCollision))
+	if(pdefinition->collision_flags & COLLISION_FL_WATER)
 		waterEntity = CheckWater(testPosition);
 
-	if(!checkPreciseCollision && waterEntity == NO_ENTITY_INDEX)
-	{
-		Math::VectorCopy(vecVelocity, pparticle->velocity);
-		return true;
-	}
-
-	trace_t tr;
-
 	// If we collided with water, then fill out traceline
+	trace_t tr;
 	if(waterEntity != NO_ENTITY_INDEX)
 	{
 		cl_entity_t *pEntity = rns.objects.pvisents[waterEntity];

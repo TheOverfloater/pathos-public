@@ -508,6 +508,7 @@ CPlayerEntity::CPlayerEntity( edict_t* pedict ):
 	m_pBikeEntity(nullptr),
 	m_prevFlags(0),
 	m_prevButtons(0),
+	m_changedButtons(0),
 	m_leanTime(0),
 	m_leanState(0),
 	m_pActiveWeapon(nullptr),
@@ -608,6 +609,7 @@ void CPlayerEntity::DeclareSaveFields( void )
 
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_flashlightBattery, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_prevButtons, EFIELD_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_changedButtons, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_buttonsPressed, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_buttonsReleased, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_numMedkits, EFIELD_INT32));
@@ -1885,9 +1887,18 @@ void CPlayerEntity::PlayerUse( void )
 //=============================================
 void CPlayerEntity::Jump( void )
 {
-	// No jumping on env_ladders
-	if(m_pLadderEntity || (m_pState->flags & FL_WATERJUMP) || !(m_pState->buttons & IN_FORWARD))
+	if(!(m_changedButtons & IN_JUMP))
 		return;
+
+	// No jumping on env_ladders
+	if(m_pLadderEntity || (m_pState->flags & FL_WATERJUMP) || (m_pState->flags & FL_NO_JUMPING))
+		return;
+
+	if(m_pState->stamina < PLAYER_MIN_STAMINA)
+	{
+		m_pState->flags |= (FL_NO_JUMPING|FL_DRAINED_STAMINA);
+		return;
+	}
 
 	if(m_bikeState != BIKE_SV_INACTIVE || m_pBikeEntity)
 		return;
@@ -1898,15 +1909,14 @@ void CPlayerEntity::Jump( void )
 	if(!(m_pState->flags & FL_ONGROUND) || m_pState->groundent == NO_ENTITY_INDEX)
 		return;
 
-	if(m_pState->stamina < PLAYER_MIN_STAMINA)
-		return;
+	Float staminaDrain = (gSkillData.GetSkillCVarSetting(g_skillcvars.skillStaminaJumpDrain)/100.0f);
 
-	Vector forward;
-	Math::AngleVectors(m_pState->angles, &forward, nullptr, nullptr);
-
-	m_pState->stamina -= (gSkillData.GetSkillCVarSetting(g_skillcvars.skillStaminaJumpDrain)/100.0f);
+	m_pState->stamina -= staminaDrain;
 	if(m_pState->stamina < 0)
 		m_pState->stamina = 0;
+
+	if(m_pState->stamina < PLAYER_MIN_STAMINA)
+		m_pState->flags |= FL_DRAINED_STAMINA;
 
 	if(m_pState->groundent != NO_ENTITY_INDEX)
 		m_pState->velocity = m_pState->velocity + m_pState->basevelocity;
@@ -2189,6 +2199,9 @@ void CPlayerEntity::PreCmdThink( void )
 	Int32 buttonsChanged = m_prevFrameButtons ^ m_pState->buttons;
 	m_buttonsPressed = buttonsChanged & m_pState->buttons;
 	m_buttonsReleased = buttonsChanged & (~m_pState->buttons);
+
+	m_changedButtons = ( m_prevButtons ^ m_pState->buttons );
+	m_prevButtons = m_pState->buttons;
 
 	if(m_pState->flags & FL_DUCKING || m_pState->health <= 0)
 		gd_engfuncs.pfnSetMinsMaxs(m_pEdict, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX);
@@ -2645,6 +2658,15 @@ void CPlayerEntity::SprintThink( void )
 		m_pState->stamina += g_pGameVars->frametime * (staminagain/100.0f);
 		if(m_pState->stamina > 1.0)
 			m_pState->stamina = 1.0;
+
+		if(m_pState->stamina > PLAYER_MIN_STAMINA)
+		{
+			if(m_pState->flags & FL_NO_JUMPING)
+				m_pState->flags &= ~FL_NO_JUMPING;
+
+			if(m_pState->flags & FL_DRAINED_STAMINA)
+				m_pState->flags &= ~FL_DRAINED_STAMINA;
+		}
 	}
 }
 
@@ -4222,7 +4244,7 @@ bool CPlayerEntity::CanHaveWeapon( CPlayerWeapon* pWeapon ) const
 // @brief
 //
 //=============================================
-bool CPlayerEntity::AddPlayerWeapon( CPlayerWeapon* pWeapon )
+bool CPlayerEntity::AddPlayerWeapon( CPlayerWeapon* pWeapon, bool& triggerTarget )
 {
 	if (!CanPickupWeapon(pWeapon->GetHUDSlot(), (weaponid_t)pWeapon->GetId()))
 	{
@@ -4240,6 +4262,7 @@ bool CPlayerEntity::AddPlayerWeapon( CPlayerWeapon* pWeapon )
 					if (!qstrcmp(pstrAmmoType, pstrAddAmmoType))
 					{
 						pWeapon->ExtractAmmo(pPlayerWeapon);
+						triggerTarget = true;
 						break;
 					}
 
@@ -4264,6 +4287,8 @@ bool CPlayerEntity::AddPlayerWeapon( CPlayerWeapon* pWeapon )
 
 				if(pWeapon->ShouldRemove(pPlayerWeapon))
 					pWeapon->FlagForRemoval();
+
+				triggerTarget = true;
 			}
 
 			return false;
@@ -4276,6 +4301,7 @@ bool CPlayerEntity::AddPlayerWeapon( CPlayerWeapon* pWeapon )
 	pWeapon->AddToPlayer(this);
 	pWeapon->SetNextWeapon(m_pWeaponsList);
 	m_pWeaponsList = pWeapon;
+	triggerTarget = true;
 
 	// Emit sound
 	if(!pWeapon->HasSpawnFlag(CPlayerWeapon::FL_WEAPON_NO_NOTICE))

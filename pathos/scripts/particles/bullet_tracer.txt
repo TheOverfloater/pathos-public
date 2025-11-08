@@ -8,7 +8,7 @@ $particlescript
 	$scale 10.000000
 	$particles_on_spawn 3
 	$collision die
-	$collision_flags precise collide_brushmodels
+	$collision_flags collide_brushmodels
 	$impact_velocity_dampening 0.600000
 	$rendermode additive
 	$alpha 1.000000

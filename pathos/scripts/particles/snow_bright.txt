@@ -11,7 +11,6 @@ $particlescript
 	$max_particles -1
 	$particle_frequency 800.000000
 	$collision create_system
-	$collision_flags precise
 	$gravity 0.050000
 	$create snow_ground.txt
 	$chance_to_create 1

@@ -102,9 +102,8 @@ enum system_flags_t
 enum collision_flags_t
 {
 	COLLISION_FL_NONE		= 0,
-	COLLISION_FL_PRECISE	= (1<<0),
-	COLLISION_FL_BMODELS	= (1<<1),
-	COLLISION_FL_WATER		= (1<<2)
+	COLLISION_FL_BMODELS	= (1<<0),
+	COLLISION_FL_WATER		= (1<<1)
 };
 
 enum render_flags_t

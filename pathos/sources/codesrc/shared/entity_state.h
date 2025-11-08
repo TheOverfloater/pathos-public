@@ -131,6 +131,8 @@ static constexpr Uint64 FL_GRAPH_ENTITY		= (1ULL<<30);
 static constexpr Uint64 FL_PARALYZED		= (1ULL<<31);
 static constexpr Uint64 FL_NO_HITBOX_TRACE	= (1ULL<<32);
 static constexpr Uint64 FL_PARTICLE_BLOCKER	= (1ULL<<33);
+static constexpr Uint64 FL_NO_JUMPING		= (1ULL<<34);
+static constexpr Uint64 FL_DRAINED_STAMINA	= (1ULL<<35);
 
 enum entstate_bits_t
 {

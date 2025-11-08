@@ -12,7 +12,6 @@ $particlescript
 	$particle_frequency 2000.000000
 	$lighting use_intensity
 	$collision create_system
-	$collision_flags precise
 	$gravity 0.050000
 	$create snow_ground.txt
 	$rendermode additive

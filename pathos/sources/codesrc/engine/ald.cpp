@@ -348,7 +348,7 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 					fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
 					// Set layer data
-					const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(reinterpret_cast<const byte*>(poriginal) + poldlump->layeroffsets[j]);
+					const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(poriginal + poldlump->layeroffsets[j]);
 					aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + poutlump->layeroffsets[j]);
 					poutlayer->compression = poldlayer->compression;
 					poutlayer->compressionlevel = poldlayer->compressionlevel;
@@ -356,11 +356,11 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 					poutlayer->dataoffset = fileBuffer.getsize();
 
 					// Append the raw data
-					const byte* psrcdata = reinterpret_cast<const byte*>(poriginal) + poldlayer->dataoffset;
+					const byte* psrcdata = poriginal + poldlayer->dataoffset;
 					fileBuffer.append(psrcdata, sizeof(byte)*poldlayer->datasize);
 				}
 
-				fileBuffer.removepointer((const void**)poutlump);
+				fileBuffer.removepointer(reinterpret_cast<const void**>(poutlump));
 				curlumpidx++;
 			}
 		}
@@ -598,7 +598,7 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 					fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
 					// Set layer data
-					const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(reinterpret_cast<const byte*>(poriginal) + poldlump->layeroffsets[j]);
+					const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(poriginal + poldlump->layeroffsets[j]);
 					aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + poutlump->layeroffsets[j]);
 					poutlayer->compression = poldlayer->compression;
 					poutlayer->compressionlevel = poldlayer->compressionlevel;
@@ -606,11 +606,11 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 					poutlayer->dataoffset = fileBuffer.getsize();
 
 					// Append the raw data
-					const byte* psrcdata = reinterpret_cast<const byte*>(poriginal) + poldlayer->dataoffset;
+					const byte* psrcdata = poriginal + poldlayer->dataoffset;
 					fileBuffer.append(psrcdata, sizeof(byte)*poldlayer->datasize);
 				}
 
-				fileBuffer.removepointer((const void**)poutlump);
+				fileBuffer.removepointer(reinterpret_cast<const void**>(poutlump));
 				curlumpidx++;
 			}
 		}
@@ -710,7 +710,7 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 		fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
 		// Set layer data
-		const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(reinterpret_cast<const byte*>(pcopyfile) + pcopylump->layeroffsets[j]);
+		const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(pcopyfile + pcopylump->layeroffsets[j]);
 		aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->layeroffsets[j]);
 		poutlayer->compression = poldlayer->compression;
 		poutlayer->compressionlevel = poldlayer->compressionlevel;
@@ -718,7 +718,7 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 		poutlayer->dataoffset = fileBuffer.getsize();
 
 		// Append the raw data
-		const byte* psrcdata = reinterpret_cast<const byte*>(pcopyfile) + poldlayer->dataoffset;
+		const byte* psrcdata = pcopyfile + poldlayer->dataoffset;
 		fileBuffer.append(psrcdata, sizeof(byte)*poldlayer->datasize);
 	}
 

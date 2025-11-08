@@ -418,7 +418,7 @@ void Con_VPrintf( const Char *fmt, ... )
 	gPrintInterface.VPrintf(cMsg);
 
 	g_conVPrintfSemaphore = false;
-	g_conDPrintfMutex.unlock();
+	g_conVPrintfMutex.unlock();
 }
 
 //====================================

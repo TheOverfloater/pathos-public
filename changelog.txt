@@ -783,3 +783,17 @@
  - Fix issue with VBM entities that have transparent parts not having shadows rendered.
  - Turn legacy particle ramp values into readable decimal values.
  - Remove unused CGameUIText object from CGameUISubwayWindow class.
+ 
+2025 November 8th:
+ - Fix fog being applied incorrectly on transparent parts of VBM models.
+ - Fix incorrect fogging on VBM model decals.
+ - Make menu particles get briefly stuck on the bottom of the menu screen.
+ - Fix triggering on weapon_ entities not working unless the player picks them up as a new weapon.
+ - Fix stamina not working properly in regards to jump drain.
+ - Get rid of C-style pointer casts in code.
+ - Handle unknown error type in OGG streaming code in sound system.
+ - Get rid of pointcontents-type collision check from particle engine and make "precise" the default.
+ - Make studio and vbm header pointers in VBM Renderer const.
+ - Make submodel array be dynamically sized in VBM Renderer.
+ - Add dynamic cvar saving feature to the save file format.
+ - Fix Con_DPrint mutex being released in Con_VPrint instead of it's own mutex.

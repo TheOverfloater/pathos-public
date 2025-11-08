@@ -133,6 +133,7 @@ CVBMRenderer::CVBMRenderer( void ):
 	m_numDynamicLights(0),
 	m_isMultiPass(false),
 	m_isAuraPass(false),
+	m_pSubmodelDrawList(RENDERED_SUBMODELS_ALLOC_SIZE),
 	m_numDrawSubmodels(0),
 	m_numVBMDecals(0),
 	m_numTempIndexes(0),
@@ -145,7 +146,6 @@ CVBMRenderer::CVBMRenderer( void ):
 {
 	memset(m_pInternalRotationMatrix, 0, sizeof(m_pInternalRotationMatrix));
 	memset(m_pDynamicLights, 0, sizeof(m_pDynamicLights));
-	memset(m_pSubmodelDrawList, 0, sizeof(m_pSubmodelDrawList));
 	memset(m_flexTexels, 0, sizeof(m_flexTexels));
 	memset(m_uboBoneMatrixData, 0, sizeof(m_uboBoneMatrixData));
 
@@ -806,7 +806,7 @@ bool CVBMRenderer::SetupBones( Int32 flags )
 		if(m_pBoneTransform->size() < m_pStudioHeader->numbones)
 			m_pBoneTransform->resize(m_pStudioHeader->numbones);
 	}
-	else if(m_pBoneTransform->size() != m_pStudioHeader->numbones)
+	else if(m_pBoneTransform->size() != static_cast<Uint32>(m_pStudioHeader->numbones))
 		m_pBoneTransform->resize(m_pStudioHeader->numbones);
 
 	if(m_pWeightBoneTransform == &m_internalWeightBoneTransform)
@@ -814,7 +814,7 @@ bool CVBMRenderer::SetupBones( Int32 flags )
 		if(m_pWeightBoneTransform->size() < m_pStudioHeader->numbones)
 			m_pWeightBoneTransform->resize(m_pStudioHeader->numbones);
 	}
-	else if(m_pWeightBoneTransform->size() != m_pStudioHeader->numbones)
+	else if(m_pWeightBoneTransform->size() != static_cast<Uint32>(m_pStudioHeader->numbones))
 		m_pWeightBoneTransform->resize(m_pStudioHeader->numbones);
 
 	// Determine interpolation time
@@ -2961,17 +2961,20 @@ bool CVBMRenderer::DrawFirst( void )
 
 				if(pmaterial->flags & (TX_FL_ADDITIVE|TX_FL_EYEGLINT))
 				{
+					if ( rns.fog.settings.active )
+						m_pShader->SetUniform3f(m_attribs.u_fogcolor, 0.0, 0.0, 0.0);
+
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 					m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, m_renderAlpha);
 				}
 				else if(pmaterial->flags & TX_FL_ALPHABLEND)
 				{
+					if ( rns.fog.settings.active )
+						m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
+					
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, m_renderAlpha*pmaterial->alpha);
 				}
-
-				if ( rns.fog.settings.active )
-					m_pShader->SetUniform3f(m_attribs.u_fogcolor, 0.0, 0.0, 0.0);
 
 				if(!DrawMesh(pmaterial, pmesh, true))
 				{
@@ -3985,9 +3988,6 @@ bool CVBMRenderer::DrawFinal ( void )
 		m_pShader->EnableAttribute(m_attribs.a_texcoord1);
 		m_pShader->EnableAttribute(m_attribs.a_normal);
 
-		if (rns.fog.settings.active)
-			m_pShader->SetUniform3f(m_attribs.u_fogcolor, 0.0, 0.0, 0.0);
-
 		// Set all the uniforms again
 		Vector vtransformed;
 		CMatrix pmatrix(rns.view.modelview.GetInverse());
@@ -4026,11 +4026,17 @@ bool CVBMRenderer::DrawFinal ( void )
 
 				if(pmaterial->flags & (TX_FL_ADDITIVE|TX_FL_EYEGLINT))
 				{
+					if (rns.fog.settings.active)
+						m_pShader->SetUniform3f(m_attribs.u_fogcolor, 0.0, 0.0, 0.0);
+
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 					m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
 				}
 				else if(pmaterial->flags & TX_FL_ALPHABLEND)
 				{
+					if (rns.fog.settings.active)
+						m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
+
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, pmaterial->alpha);
 				}
@@ -4628,12 +4634,12 @@ void CVBMRenderer::CreateDecal( const Vector& position, const Vector& normal, de
 	Uint32 curstart;
 	for (Int32 i = 0; i < m_pVBMHeader->numbodyparts; i++)
 	{
-		vbmbodypart_t *pbodypart = m_pVBMHeader->getBodyPart(i);
+		const vbmbodypart_t *pbodypart = m_pVBMHeader->getBodyPart(i);
 
 		Uint32 submodelindex = m_pCurrentEntity->curstate.body / pbodypart->base;
 		submodelindex = submodelindex % pbodypart->numsubmodels;
 
-		vbmsubmodel_t* psubmodel = pbodypart->getSubmodel(m_pVBMHeader, submodelindex);
+		const vbmsubmodel_t* psubmodel = pbodypart->getSubmodel(m_pVBMHeader, submodelindex);
 
 		// Allocate a new mesh for this bodygroup
 		if(!pdecalmesh)
@@ -4921,7 +4927,7 @@ bool CVBMRenderer::DecalTriangle( Int32 pbodypartindex, Int32 submodelindex, vbm
 					continue;
 
 				byte boneindex = pboneids[static_cast<byte>(pverts[i]->boneindexes[j] / 3)];
-				Int32 l = 0;
+				Uint32 l = 0;
 				for (; l < numadd; l++)
 				{
 					if (boneindex == addbones[l])
@@ -5213,6 +5219,9 @@ bool CVBMRenderer::DrawDecals( void )
 	glPolygonOffset(-1,-1);
 	glEnable(GL_POLYGON_OFFSET_FILL);
 
+	// Set neutral color as fog color
+	m_pShader->SetUniform3f(m_attribs.u_fogcolor, 0.5, 0.5, 0.5);
+
 	// Last used decal rendermode
 	decal_rendermode_t renderMode = DECAL_RENDERMODE_NONE;
 
@@ -5225,13 +5234,13 @@ bool CVBMRenderer::DrawDecals( void )
 			vbm_decal_mesh_t* pmesh = pnext->meshes[i];
 
 			// Check if the bodypart this decal mesh belongs to is actually visible
-			vbmbodypart_t *pbodypart = m_pVBMHeader->getBodyPart(pmesh->bodypartindex);
+			const vbmbodypart_t *pbodypart = m_pVBMHeader->getBodyPart(pmesh->bodypartindex);
 			Uint32 submodelindex = m_pCurrentEntity->curstate.body / pbodypart->base;
 			submodelindex = submodelindex % pbodypart->numsubmodels;
 
 			// Submodel index matches if this is the actively displayed submodel of this
 			// body part
-			if(submodelindex != pmesh->submodelindex)
+			if(submodelindex != static_cast<Uint32>(pmesh->submodelindex))
 				continue;
 
 			// Determine rendering method required
@@ -5319,6 +5328,8 @@ bool CVBMRenderer::DrawDecals( void )
 
 	if(m_pVBMHeader->flags & VBM_HAS_FLEXES && m_isVertexFetchSupported)
 		m_pShader->DisableAttribute(m_attribs.a_flexcoord);
+
+	m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
 
 	// Ensure this is disabled
 	m_pShader->DisableAttribute(m_attribs.a_texcoord2);
@@ -5425,6 +5436,9 @@ bool CVBMRenderer::DrawNormalSubmodels( void )
 
 		if(m_pVBMSubModel->flexinfoindex != -1)
 			continue;
+
+		if(m_numDrawSubmodels == RENDERED_SUBMODELS_ALLOC_SIZE)
+			m_pSubmodelDrawList.resize(m_pSubmodelDrawList.size()+RENDERED_SUBMODELS_ALLOC_SIZE);
 
 		m_pSubmodelDrawList[m_numDrawSubmodels] = m_pVBMSubModel;
 		m_numDrawSubmodels++;
@@ -5542,7 +5556,7 @@ void CVBMRenderer::UpdateAttachments( cl_entity_t *pEntity )
 		return;
 	}
 
-	vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
+	const vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
 	m_pStudioHeader = pstudiocache->pstudiohdr;
 	m_pVBMHeader = pstudiocache->pvbmhdr;
 
@@ -5578,7 +5592,7 @@ bool CVBMRenderer::GetBonePosition( cl_entity_t *pEntity, const Char *szname, Ve
 		return false;
 	}
 
-	vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
+	const vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
 	m_pStudioHeader = pstudiocache->pstudiohdr;
 	m_pVBMHeader = pstudiocache->pvbmhdr;
 
@@ -5624,7 +5638,7 @@ void CVBMRenderer::TransformVectorByBoneMatrix( cl_entity_t *pEntity, Int32 bone
 		return;
 	}
 
-	vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
+	const vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
 	if(!pstudiocache)
 		return;
 
@@ -5677,7 +5691,7 @@ void CVBMRenderer::RotateVectorByBoneMatrix( cl_entity_t *pEntity, Int32 boneind
 		return;
 	}
 
-	vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
+	const vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
 	if(!pstudiocache)
 		return;
 
@@ -6169,7 +6183,7 @@ bool CVBMRenderer::DrawModelVSM( cl_entity_t *pEntity, cl_dlight_t *dl )
 			return false;
 	}
 
-	vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
+	const vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
 	m_pStudioHeader = pstudiocache->pstudiohdr;
 	m_pVBMHeader = pstudiocache->pvbmhdr;
 
@@ -6409,7 +6423,7 @@ bool CVBMRenderer::DrawAura( cl_entity_t *pEntity, const Vector& color, Float al
 			return false;
 	}
 
-	vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
+	const vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
 	m_pStudioHeader = pstudiocache->pstudiohdr;
 	m_pVBMHeader = pstudiocache->pvbmhdr;
 
@@ -6524,7 +6538,7 @@ void CVBMRenderer::FreeEntityData( const cl_entity_t *pEntity )
 //=============================================
 void CVBMRenderer::SetupModel( Uint32 bodypart, vbmlod_type_t type )
 {
-	vbmbodypart_t *pbodypart = m_pVBMHeader->getBodyPart(bodypart);
+	const vbmbodypart_t *pbodypart = m_pVBMHeader->getBodyPart(bodypart);
 
 	Uint32 index = m_pCurrentEntity->curstate.body / pbodypart->base;
 	index = index % pbodypart->numsubmodels;

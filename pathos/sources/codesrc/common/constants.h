@@ -329,6 +329,7 @@ enum walkmove_t
 
 enum hull_types_t
 {
+	HULL_NONE = -3, // Invalid hull
 	HULL_BBOX = -2, // Request box hull only
 	HULL_AUTO = -1, // Hull will be determined by engine
 	HULL_POINT = 0, // Point sized hull

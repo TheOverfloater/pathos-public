@@ -11,7 +11,7 @@ $particlescript
 	$max_particles -1
 	$particle_frequency 600.000000
 	$collision die
-	$collision_flags collide_water precise
+	$collision_flags collide_water
 	$gravity 0.600000
 	$rendermode additive
 	$alpha 1.000000

@@ -175,7 +175,7 @@ void TR_VBMSetupBones( entity_vbmhulldata_t* phulldata, const studiohdr_t* pstud
 		g_boneQuaternions4.resize(pstudiohdr->numbones);
 
 	// Also the bone transforms
-	if(phulldata->bonetransform.size() != pstudiohdr->numbones)
+	if(phulldata->bonetransform.size() != static_cast<Uint32>(pstudiohdr->numbones))
 		phulldata->bonetransform.resize(pstudiohdr->numbones);
 
 	Vector angles = state.angles;

@@ -1849,6 +1849,9 @@ CSoundEngine::stream_result_t CSoundEngine::Stream( ALuint buffer, snd_music_t& 
 			case OV_HOLE:
 				Con_EPrintf("%s - Error streaming '%s'. Stream was interrupted.\n", __FUNCTION__, track.pfile->filepath.c_str());
 				break;
+			default:
+				Con_EPrintf("%s - Uknown error while streaming '%s'. Stream was interrupted.\n", __FUNCTION__, track.pfile->filepath.c_str());
+				break;
 			}
 
 			return STREAM_ERROR;

@@ -357,7 +357,7 @@ public:
 	// Sets ammo count for a type
 	virtual void SetAmmoCount( Int32 ammotype, Int32 ammocount ) override;
 	// Adds item to player
-	virtual bool AddPlayerWeapon( CPlayerWeapon* pWeapon ) override;
+	virtual bool AddPlayerWeapon( CPlayerWeapon* pWeapon, bool& triggerTarget ) override;
 
 	// Sets the save-game title
 	virtual void SetSaveGameTitle( const Char* pstrtitle ) override;
@@ -846,6 +846,8 @@ private:
 	Int64						m_prevFlags;
 	// Previous buttons
 	Int32						m_prevButtons;
+	// Changed buttons
+	Int32						m_changedButtons;
 
 	// Ideal lean offset
 	Vector						m_idealLeanOffset;

@@ -27,17 +27,17 @@ struct cache_model_t;
 struct entity_extrainfo_t;
 
 // Max dynamic lights affecting a model entity
-static constexpr Uint32 MAX_ENT_ACTIVE_DLIGHTS		= 4;
+static constexpr Uint32 MAX_ENT_ACTIVE_DLIGHTS			= 4;
 // Max dynamic lights affecting a model entity
-static constexpr Uint32 MAX_ENT_DLIGHTS				= 12;
+static constexpr Uint32 MAX_ENT_DLIGHTS					= 12;
 // Max studio decals total
-static constexpr Uint32 MAX_VBM_TOTAL_DECALS		= 512;
+static constexpr Uint32 MAX_VBM_TOTAL_DECALS			= 512;
 // Max temporary indexes for decal creation
-static constexpr Uint32 MAX_TEMP_VBM_INDEXES		= 32768;
+static constexpr Uint32 MAX_TEMP_VBM_INDEXES			= 32768;
 // Max temporary vertexes for special render stuff
-static constexpr Uint32 MAX_TEMP_VBM_VERTEXES		= 16354;
+static constexpr Uint32 MAX_TEMP_VBM_VERTEXES			= 16354;
 // Maximum submodels rendered at once
-static constexpr Uint32 MAX_VBM_RENDERED_SUBMODELS	= 64;
+static constexpr Uint32 RENDERED_SUBMODELS_ALLOC_SIZE	= 64;
 
 enum vbm_shtype
 {
@@ -656,14 +656,14 @@ private:
 
 private:
 	// Model cache pointer for entity
-	cache_model_t *m_pCacheModel;
+	const cache_model_t *m_pCacheModel;
 	// Current rendered entity
 	cl_entity_t *m_pCurrentEntity;
 
 	// Studio data pointer
-	studiohdr_t *m_pStudioHeader;
+	const studiohdr_t *m_pStudioHeader;
 	// VBM data pointer
-	vbmheader_t *m_pVBMHeader;
+	const vbmheader_t *m_pVBMHeader;
 	// Pointer to entity extradata
 	entity_extrainfo_t *m_pExtraInfo;
 	// Entity alpha used for rendering
@@ -714,7 +714,7 @@ private:
 
 private:
 	// List of submodels to render
-	const vbmsubmodel_t *m_pSubmodelDrawList[MAX_VBM_RENDERED_SUBMODELS];
+	CArray<const vbmsubmodel_t*> m_pSubmodelDrawList;
 	// Amount of batched submodels
 	Uint32 m_numDrawSubmodels;
 

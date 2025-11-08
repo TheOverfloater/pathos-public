@@ -9,7 +9,7 @@ $particlescript
 	$scale_variation 2.000000
 	$max_particles -1
 	$particle_frequency 200.000000
-	$collision_flags collide_water precise
+	$collision_flags collide_water
 	$gravity 1.000000
 	$create rain_splashes1.txt
 	$create_on_water_impact ripples.txt

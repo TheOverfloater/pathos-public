@@ -740,7 +740,7 @@ public:
 	// Sets ammo count for a type
 	virtual void SetAmmoCount( Int32 ammotype, Int32 ammocount ) { STUBWARNING; };
 	// Adds item to player
-	virtual bool AddPlayerWeapon( CPlayerWeapon* pWeapon ) { STUBWARNING; return false; };
+	virtual bool AddPlayerWeapon( CPlayerWeapon* pWeapon, bool& triggerTarget ) { STUBWARNING; return false; };
 	// Sets the save-game title
 	virtual void SetSaveGameTitle( const Char* pstrtitle ) { STUBWARNING; };
 	// Returns the save-game title

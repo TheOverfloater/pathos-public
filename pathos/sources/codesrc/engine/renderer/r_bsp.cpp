@@ -5556,7 +5556,7 @@ bool CBSPRenderer::DrawDecals( bool transparents )
 	if(rns.fog.settings.active)
 	{
 		m_pShader->SetUniform3f(m_attribs.u_fogcolor, 0.5, 0.5, 0.5);
-		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end*0.8f, 1.0f/(static_cast<Float>(rns.fog.settings.end)*0.8f- static_cast<Float>(rns.fog.settings.start)));
+		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/(static_cast<Float>(rns.fog.settings.end)-static_cast<Float>(rns.fog.settings.start)));
 
 		if(rns.fog.specialfog)
 		{

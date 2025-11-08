@@ -1087,7 +1087,8 @@ void CPlayerMovement::FixupGravityVelocity( void )
 void CPlayerMovement::Jump( void )
 {
 	// Don't jump if on bike, dead, or out of stamina
-	if(m_pPlayerState->flags & (FL_DEAD|FL_ON_BIKE) || m_pPlayerState->stamina < PLAYER_MIN_STAMINA
+	if((m_pPlayerState->flags & (FL_DEAD|FL_ON_BIKE))
+		|| (m_pPlayerState->flags & FL_NO_JUMPING)
 		|| (m_pPlayerState->waterlevel == WATERLEVEL_NONE && m_pPlayerState->groundent == NO_ENTITY_INDEX))
 	{
 		m_pPlayerState->oldbuttons |= IN_JUMP;
@@ -1218,6 +1219,10 @@ void CPlayerMovement::Jump( void )
 	FixupGravityVelocity();
 
 	m_pPlayerState->oldbuttons |= IN_JUMP;
+
+	// If drained stamina, then disable jumping
+	if(m_pPlayerState->flags & FL_DRAINED_STAMINA)
+		m_pPlayerState->flags |= FL_NO_JUMPING;
 }
 
 //=============================================

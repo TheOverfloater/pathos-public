@@ -76,6 +76,8 @@ void VBM_CalculateBoneAdjustments( const studiohdr_t* phdr, Float dadt, const CA
 		case STUDIO_Z:
 			padj[i] = value;
 			break;
+		default:
+			break;
 		}
 	}
 }

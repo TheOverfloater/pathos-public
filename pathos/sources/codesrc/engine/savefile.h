@@ -218,6 +218,8 @@ struct save_header_t
 		type(type),
 		svtime(0),
 		gametime(0),
+		cvarsoffset(0),
+		numcvars(0),
 		entitydescoffset(0),
 		numentities(0),
 		globaldataoffset(0),

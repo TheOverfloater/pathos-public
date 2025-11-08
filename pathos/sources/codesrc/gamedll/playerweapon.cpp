@@ -530,19 +530,14 @@ void CPlayerWeapon::DefaultTouch( CBaseEntity* pOther )
 		return;
 	}
 
+	bool triggerTarget = false;
 	if(!pOther->CanHaveWeapon(this))
 	{
 		// Handle if player can't have this item
 		if(pOther->AddFullAmmoDual(this))
 		{
 			FlagForRemoval();
-
-			if(HasSpawnFlag(FL_WEAPON_TRIGGER_ON_PICKUP_ONLY) 
-				&& m_pFields->target != NO_STRING_VALUE)
-			{
-				UseTargets(pOther, USE_TOGGLE, 0);
-				m_pFields->target = NO_STRING_VALUE;
-			}
+			triggerTarget = true;
 		}
 		else
 		{
@@ -558,25 +553,13 @@ void CPlayerWeapon::DefaultTouch( CBaseEntity* pOther )
 			if(pWeapon)
 				pWeapon->AddAccessories(this);
 		}
-
-		return;
 	}
-
-	// Try attaching to player
-	if(pOther->AddPlayerWeapon(this))
+	else if(pOther->AddPlayerWeapon(this, triggerTarget))
 	{
 		AttachToPlayer(pOther);
-
-		if(HasSpawnFlag(FL_WEAPON_TRIGGER_ON_PICKUP_ONLY) 
-			&& m_pFields->target != NO_STRING_VALUE)
-		{
-			UseTargets(pOther, USE_TOGGLE, 0);
-			m_pFields->target = NO_STRING_VALUE;
-		}
 	}
-	
-	if(!HasSpawnFlag(FL_WEAPON_TRIGGER_ON_PICKUP_ONLY) 
-		&& m_pFields->target != NO_STRING_VALUE)
+
+	if((triggerTarget || !HasSpawnFlag(FL_WEAPON_TRIGGER_ON_PICKUP_ONLY)) && m_pFields->target != NO_STRING_VALUE)
 	{
 		UseTargets(pOther, USE_TOGGLE, 0);
 		m_pFields->target = NO_STRING_VALUE;

@@ -36,8 +36,10 @@ private:
 	static const Uint32 PARTICLE_SPAWN_FREQ;
 	// Particle spawn frequency variation
 	static const Uint32 PARTICLE_SPAWN_VARIATION;
-	// Particle fade in/fade out time
-	static const Float PARTICLE_FADE_TIME;
+	// Particle fade in
+	static const Float PARTICLE_FADE_IN_TIME;
+	// Particle fade out time
+	static const Float PARTICLE_FADE_OUT_TIME;
 
 private:
 	struct mparticle_t

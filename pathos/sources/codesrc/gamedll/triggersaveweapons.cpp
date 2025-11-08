@@ -188,7 +188,8 @@ void CTriggerSaveWeapons::RestoreWeapons( void )
 
 		if(!pWeapon->GetPlayer())
 		{
-			if(m_pPlayer->AddPlayerWeapon(pWeapon))
+			bool dummy = false;
+			if(m_pPlayer->AddPlayerWeapon(pWeapon, dummy))
 				pWeapon->AttachToPlayer(m_pPlayer);
 		}
 	}
