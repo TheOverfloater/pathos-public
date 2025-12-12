@@ -157,7 +157,7 @@ bool CTriggerAuto::Restore( void )
 //=============================================
 void CTriggerAuto::InitEntity( void )
 {
-	if(m_pFields->target != NO_STRING_VALUE && (m_globalState == NO_STRING_VALUE || gGlobalStates.GetState(gd_engfuncs.pfnGetString(m_globalState)) == GLOBAL_ON))
+	if((m_globalState == NO_STRING_VALUE || gGlobalStates.GetState(gd_engfuncs.pfnGetString(m_globalState)) == GLOBAL_ON))
 	{
 		UseTargets(this, (usemode_t)m_triggerMode, 0);
 		if(HasSpawnFlag(FL_REMOVE_ON_FIRE))

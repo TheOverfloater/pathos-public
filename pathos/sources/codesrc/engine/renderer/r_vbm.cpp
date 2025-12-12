@@ -1224,7 +1224,7 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 			m_pFlexManager->UpdateValues( rns.time, m_pCurrentEntity->curstate.health, m_pCurrentEntity->mouth.mouthopen, m_pExtraInfo->pflexstate, false );
 
 		// Draw the model
-		result = Render();
+		result = Render(flags);
 	}
 
 	// For sound engine checks
@@ -1455,7 +1455,7 @@ void CVBMRenderer::BuildVBO( void )
 	// Allocate buffers we'll send to the GPU
 	vbm_glvertex_t* pvertexbuffer = new vbm_glvertex_t[finalvertexcount];
 	memset(pvertexbuffer, 0, sizeof(vbm_glvertex_t)*finalvertexcount);
-	Uint32 vertexoffset = 0;
+	Uint32 vertexoffset = MAX_TEMP_VBM_VERTEXES;
 
 	Uint32* pindexbuffer = new Uint32[finalindexcount];
 	memset(pindexbuffer, 0, sizeof(Uint32)*finalindexcount);
@@ -2446,16 +2446,24 @@ bool CVBMRenderer::CheckBBox( void )
 	const mstudioseqdesc_t *pseqdesc = m_pStudioHeader->getSequence(m_pCurrentEntity->curstate.sequence);
 
 	Vector vTemp;
-	static Vector vBounds[8];
 	for (Uint32 i = 0; i < 8; i++)
 	{
-		if ( i & 1 ) vTemp[0] = pseqdesc->bbmin[0];
-		else vTemp[0] = pseqdesc->bbmax[0];
-		if ( i & 2 ) vTemp[1] = pseqdesc->bbmin[1];
-		else vTemp[1] = pseqdesc->bbmax[1];
-		if ( i & 4 ) vTemp[2] = pseqdesc->bbmin[2];
-		else vTemp[2] = pseqdesc->bbmax[2];
-		Math::VectorCopy( vTemp, vBounds[i] );
+		if ( i & 1 ) 
+			vTemp[0] = pseqdesc->bbmin[0];
+		else 
+			vTemp[0] = pseqdesc->bbmax[0];
+
+		if ( i & 2 ) 
+			vTemp[1] = pseqdesc->bbmin[1];
+		else 
+			vTemp[1] = pseqdesc->bbmax[1];
+
+		if ( i & 4 ) 
+			vTemp[2] = pseqdesc->bbmin[2];
+		else 
+			vTemp[2] = pseqdesc->bbmax[2];
+
+		Math::VectorCopy( vTemp, m_bboxCorners[i] );
 	}
 
 	Vector angles = m_pCurrentEntity->curstate.angles;
@@ -2465,8 +2473,8 @@ bool CVBMRenderer::CheckBBox( void )
 
 	for (Uint32 i = 0; i < 8; i++ )
 	{
-		Math::VectorCopy(vBounds[i], vTemp);
-		Math::VectorRotate(vTemp, (*m_pRotationMatrix), vBounds[i]);
+		Math::VectorCopy(m_bboxCorners[i], vTemp);
+		Math::VectorRotate(vTemp, (*m_pRotationMatrix), m_bboxCorners[i]);
 	}
 
 	// Set the bounding box
@@ -2475,14 +2483,20 @@ bool CVBMRenderer::CheckBBox( void )
 	for(Uint32 i = 0; i < 8; i++)
 	{
 		// Mins
-		if(vBounds[i][0] < vMins[0]) vMins[0] = vBounds[i][0];
-		if(vBounds[i][1] < vMins[1]) vMins[1] = vBounds[i][1];
-		if(vBounds[i][2] < vMins[2]) vMins[2] = vBounds[i][2];
+		if(m_bboxCorners[i][0] < vMins[0]) 
+			vMins[0] = m_bboxCorners[i][0];
+		if(m_bboxCorners[i][1] < vMins[1]) 
+			vMins[1] = m_bboxCorners[i][1];
+		if(m_bboxCorners[i][2] < vMins[2]) 
+			vMins[2] = m_bboxCorners[i][2];
 
 		// Maxs
-		if(vBounds[i][0] > vMaxs[0]) vMaxs[0] = vBounds[i][0];
-		if(vBounds[i][1] > vMaxs[1]) vMaxs[1] = vBounds[i][1];
-		if(vBounds[i][2] > vMaxs[2]) vMaxs[2] = vBounds[i][2];
+		if(m_bboxCorners[i][0] > vMaxs[0]) 
+			vMaxs[0] = m_bboxCorners[i][0];
+		if(m_bboxCorners[i][1] > vMaxs[1]) 
+			vMaxs[1] = m_bboxCorners[i][1];
+		if(m_bboxCorners[i][2] > vMaxs[2]) 
+			vMaxs[2] = m_bboxCorners[i][2];
 	}
 
 	// Make sure stuff like barnacles work fine
@@ -2543,60 +2557,63 @@ bool CVBMRenderer::CheckBBox( void )
 //
 //
 //=============================================
-bool CVBMRenderer::Render( void )
+bool CVBMRenderer::Render( Int32 flags )
 {
 	m_isMultiPass = false;
 
-	// Set transparency
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
-	glDepthFunc(GL_LEQUAL);
-
-	Int32 trueRenderMode = (m_pCurrentEntity->curstate.rendermode & RENDERMODE_BITMASK);
-	switch(trueRenderMode)
+	if(!(flags & VBM_DEBUG_ONLY))
 	{
-	case RENDER_TRANSADDITIVE:
+		// Set transparency
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+		glDepthFunc(GL_LEQUAL);
+
+		Int32 trueRenderMode = (m_pCurrentEntity->curstate.rendermode & RENDERMODE_BITMASK);
+		switch(trueRenderMode)
 		{
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-			m_renderAlpha = R_RenderFxBlend(m_pCurrentEntity) / 255.0;
-			m_useBlending = true;
+		case RENDER_TRANSADDITIVE:
+			{
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+				m_renderAlpha = R_RenderFxBlend(m_pCurrentEntity) / 255.0;
+				m_useBlending = true;
+			}
+			break;
+		case RENDER_TRANSALPHA: 
+		case RENDER_TRANSTEXTURE:
+			{
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				m_renderAlpha = R_RenderFxBlend(m_pCurrentEntity) / 255.0;
+				m_useBlending = true;
+			}
+			break;
+		default:
+			{
+				m_renderAlpha = 1.0;
+				m_useBlending = false;
+			}
+			break;
 		}
-		break;
-	case RENDER_TRANSALPHA: 
-	case RENDER_TRANSTEXTURE:
+
+		if(!DrawNormalSubmodels())
+			return false;
+
+		if(!DrawFlexedSubmodels())
+			return false;
+
+		if (m_useBlending)
 		{
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			m_renderAlpha = R_RenderFxBlend(m_pCurrentEntity) / 255.0;
-			m_useBlending = true;
+			glDepthMask(GL_TRUE);
+			glDisable(GL_BLEND);
 		}
-		break;
-	default:
-		{
-			m_renderAlpha = 1.0;
-			m_useBlending = false;
-		}
-		break;
+
+		if(!DrawDecals())
+			return false;
+
+		if(!DrawWireframe())
+			return false;
 	}
-
-	if(!DrawNormalSubmodels())
-		return false;
-
-	if(!DrawFlexedSubmodels())
-		return false;
-
-	if (m_useBlending)
-	{
-		glDepthMask(GL_TRUE);
-		glDisable(GL_BLEND);
-	}
-
-	if(!DrawDecals())
-		return false;
-
-	if(!DrawWireframe())
-		return false;
 
 	// Check for drawing special stuff
 	switch(static_cast<Int32>(m_pCvarDrawModels->GetValue()))
@@ -5841,6 +5858,18 @@ bool CVBMRenderer::DrawNormal( void )
 		}
 	}
 
+	if(m_pCvarDrawModels->GetValue() > 1)
+	{
+		cl_entity_t* plocalplayer = CL_GetLocalPlayer();
+
+		if(!DrawModel((VBM_RENDER|VBM_DEBUG_ONLY), plocalplayer))
+		{
+			Sys_ErrorPopup("Rendering error: %s.", m_pShader->GetError());
+			EndDraw();
+			return false;
+		}
+	}
+
 	EndDraw();
 
 	// Clear any binds
@@ -6640,7 +6669,7 @@ bool CVBMRenderer::DrawBones( void )
 
 		Vector parentOrigin;
 		for(Uint32 j = 0; j < 3; j++)
-			worldOrigin[j] = (*m_pBoneTransform)[pbone->parent].matrix[j][3];
+			parentOrigin[j] = (*m_pBoneTransform)[pbone->parent].matrix[j][3];
 
 		Vector temp;
 		Math::VectorSubtract(worldOrigin, parentOrigin, temp);
@@ -6683,6 +6712,7 @@ bool CVBMRenderer::DrawHitBoxes( void )
 		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, true))
 		return false;
 
+	glDepthMask(GL_FALSE);
 	glDisable (GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -6700,13 +6730,14 @@ bool CVBMRenderer::DrawHitBoxes( void )
 
 		// Set color
 		const Float* pcolor = RANDOM_COLOR_ARRAY[pbbox->group%NUM_RANDOM_COLORS];
-		m_pShader->SetUniform4f(m_attribs.u_color, pcolor[0], pcolor[1], pcolor[2], 0.5);
+		m_pShader->SetUniform4f(m_attribs.u_color, pcolor[0], pcolor[1], pcolor[2], 0.25);
 
 		DrawBox(pbbox->bbmin, pbbox->bbmax);
 	}
 
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
 
 	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
 	return true;
@@ -6729,6 +6760,7 @@ bool CVBMRenderer::DrawBoundingBox( void )
 		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, true))
 		return false;
 
+	glDepthMask(GL_FALSE);
 	glDisable (GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -6744,14 +6776,54 @@ bool CVBMRenderer::DrawBoundingBox( void )
 
 	// Set color
 	const Float* pcolor = RANDOM_COLOR_ARRAY[m_pCurrentEntity->entindex%NUM_RANDOM_COLORS];
-	m_pShader->SetUniform4f(m_attribs.u_color, pcolor[0], pcolor[1], pcolor[2], 0.5);
+	m_pShader->SetUniform4f(m_attribs.u_color, pcolor[0], pcolor[1], pcolor[2], 0.25);
 
 	DrawBox(m_mins, m_maxs);
 
-	glEnable(GL_CULL_FACE);
+	// Draw wireframe outline(do it like Q2 does, cause I like how it looks)
 	glDisable(GL_BLEND);
-
 	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
+	Vector triverts[3];
+
+	glLineWidth(1.0);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	m_numTempVertexes = 0;
+
+	for(Uint32 i = 0; i < 3; i++)
+		matrix[i][3] = m_renderOrigin[i];
+
+	// Set bone transform to move by origin
+	if(m_areUBOsSupported)
+		m_pShader->SetUniformBufferObjectData(m_attribs.ub_bonematrices, matrix, 3*sizeof(vec4_t));
+	else
+		m_pShader->SetUniform4fv(m_attribs.boneindexes[0], reinterpret_cast<Float *>(matrix), 3);
+
+	Uint32 i = 0;
+	for(; i < 3; i++)
+	{
+		triverts[i] = m_bboxCorners[i];
+		BatchVertex(triverts[i]);
+	}
+
+	for(; i < 8; i++)
+	{
+		triverts[0] = triverts[1];
+		triverts[1] = triverts[2];
+		triverts[2] = m_bboxCorners[i];
+
+		for(Uint32 j = 0; j < 3; j++)
+			BatchVertex(triverts[j]);
+	}
+
+	// Draw the planes
+	m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
+	glDrawArrays(GL_TRIANGLES, m_drawBufferIndex, m_numTempVertexes);
+
+	glEnable(GL_CULL_FACE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glDepthMask(GL_TRUE);
+
 	return true;
 }
 
@@ -7224,6 +7296,9 @@ bool CVBMRenderer::DrawAttachments( void )
 //=============================================
 bool CVBMRenderer::DrawHullBoundingBox( void )
 {
+	if( m_pCurrentEntity->curstate.effects & EF_CLIENTENT )
+		return true;
+
 	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) ||
 		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
 		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
@@ -7235,6 +7310,7 @@ bool CVBMRenderer::DrawHullBoundingBox( void )
 		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, true))
 		return false;
 
+	glDepthMask(GL_FALSE);
 	glDisable (GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -7250,7 +7326,7 @@ bool CVBMRenderer::DrawHullBoundingBox( void )
 
 	// Set color
 	const Float* pcolor = RANDOM_COLOR_ARRAY[m_pCurrentEntity->entindex%NUM_RANDOM_COLORS];
-	m_pShader->SetUniform4f(m_attribs.u_color, pcolor[0], pcolor[1], pcolor[2], 0.5);
+	m_pShader->SetUniform4f(m_attribs.u_color, pcolor[0], pcolor[1], pcolor[2], 0.25);
 
 	Vector mins, maxs;
 	Math::VectorAdd(m_pCurrentEntity->curstate.mins, m_pCurrentEntity->curstate.origin, mins);
@@ -7258,8 +7334,63 @@ bool CVBMRenderer::DrawHullBoundingBox( void )
 
 	DrawBox(mins, maxs);
 
-	glEnable(GL_CULL_FACE);
+	// Draw wireframe outline(do it like Q2 does, cause I like how it looks)
 	glDisable(GL_BLEND);
+
+	Vector vTemp;
+	for (Uint32 i = 0; i < 8; i++)
+	{
+		if ( i & 1 ) 
+			vTemp[0] = mins[0];
+		else 
+			vTemp[0] = maxs[0];
+
+		if ( i & 2 ) 
+			vTemp[1] = mins[1];
+		else 
+			vTemp[1] = maxs[1];
+
+		if ( i & 4 ) 
+			vTemp[2] = mins[2];
+		else 
+			vTemp[2] = maxs[2];
+
+		Math::VectorCopy( vTemp, m_bboxCorners[i] );
+	}
+
+	glLineWidth(1.0);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
+
+	m_numTempVertexes = 0;
+
+	Vector triverts[3];
+
+	Uint32 i = 0;
+	for(; i < 3; i++)
+	{
+		triverts[i] = m_bboxCorners[i];
+		BatchVertex(triverts[i]);
+	}
+
+	for(; i < 8; i++)
+	{
+		triverts[0] = triverts[1];
+		triverts[1] = triverts[2];
+		triverts[2] = m_bboxCorners[i];
+
+		for(Uint32 j = 0; j < 3; j++)
+			BatchVertex(triverts[j]);
+	}
+
+	// Draw the planes
+	m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
+	glDrawArrays(GL_TRIANGLES, m_drawBufferIndex, m_numTempVertexes);
+
+	glEnable(GL_CULL_FACE);
+	glDepthMask(GL_TRUE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
 

@@ -11,7 +11,7 @@ $particlescript
 	$particle_frequency 500.000000
 	$particle_frequency_variation 300
 	$collision create_system
-	$collision_flags collide_water
+	$collision_flags collide_water precise
 	$gravity 0.400000
 	$create rain_splashes1.txt
 	$rendermode additive

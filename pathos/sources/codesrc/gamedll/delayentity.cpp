@@ -100,7 +100,9 @@ void CDelayEntity::UseTargets( CBaseEntity* pActivator, usemode_t useMode, Float
 		pdelayentity->m_useMode = m_useMode;
 		pdelayentity->m_killTarget = m_killTarget;
 		pdelayentity->m_delay = 0;
-		pentity->fields.target = targetentityname;
+
+		if(targetentityname != NO_STRING_VALUE)
+			pentity->fields.target = targetentityname;
 
 		if(pActivator && pActivator->IsPlayer())
 			pentity->state.owner = pActivator->GetEntityIndex();
@@ -127,7 +129,8 @@ void CDelayEntity::UseTargets( CBaseEntity* pActivator, usemode_t useMode, Float
 		}
 
 		// Call base class to manage the firing
-		CBaseEntity::UseTargets(pActivator, useMode, value, targetentityname);
+		if(targetentityname != NO_STRING_VALUE)
+			CBaseEntity::UseTargets(pActivator, useMode, value, targetentityname);
 	}
 }
 

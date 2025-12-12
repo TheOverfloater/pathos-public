@@ -23,6 +23,7 @@ enum vbm_renderflags_t
 	VBM_RENDER		= (1<<0), // Render the model
 	VBM_ANIMEVENTS	= (1<<1), // Trigger animevents
 	VBM_SETUPBONES	= (1<<2), // Only set up bones
+	VBM_DEBUG_ONLY	= (1<<3), // Draw debug only
 };
 
 struct studiohdr_t;

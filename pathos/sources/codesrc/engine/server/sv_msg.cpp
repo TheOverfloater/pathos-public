@@ -307,6 +307,7 @@ bool SV_WriteEntitiesToClient( sv_client_t* pclient )
 			updateMask |= U_BASICS3;
 
 		if(curstate.sequence != clstate.sequence
+			|| curstate.gaitsequence != clstate.gaitsequence
 			|| curstate.frame != clstate.frame
 			|| curstate.animtime != clstate.animtime
 			|| curstate.framerate != clstate.framerate)
@@ -488,6 +489,7 @@ bool SV_WriteEntitiesToClient( sv_client_t* pclient )
 		if(updateMask & U_ANIMINFO)
 		{
 			svs.netinfo.pnet->WriteInt32(curstate.sequence);
+			svs.netinfo.pnet->WriteInt32(curstate.gaitsequence);
 			svs.netinfo.pnet->WriteFloat(curstate.frame);
 			svs.netinfo.pnet->WriteFloat(curstate.animtime);
 			svs.netinfo.pnet->WriteFloat(curstate.framerate);

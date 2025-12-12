@@ -1364,7 +1364,6 @@ const CAISchedule scheduleTakeCoverFromBestSoundWithCower(
 //=============================================
 ai_task_t taskListScheduleTakeCoverFromEnemy[] = 
 {
-	AITASK(AI_TASK_SET_FAIL_SCHEDULE,			AI_SCHED_SMALL_FLINCH),
 	AITASK(AI_TASK_STOP_MOVING,					0),
 	AITASK(AI_TASK_FIND_COVER_FROM_ENEMY,		0),
 	AITASK(AI_TASK_RUN_PATH,					0),

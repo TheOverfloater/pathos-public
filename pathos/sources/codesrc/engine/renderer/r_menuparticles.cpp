@@ -35,9 +35,9 @@ const Uint32 CMenuParticles::PARTICLE_SPAWN_FREQ = 10;
 // Particle spawn frequency variation
 const Uint32 CMenuParticles::PARTICLE_SPAWN_VARIATION = 20;
 // Particle fade in time
-const Float CMenuParticles::PARTICLE_FADE_IN_TIME = 0.2;
+const Float CMenuParticles::PARTICLE_FADE_IN_TIME = 0.5;
 // Particle fade out time
-const Float CMenuParticles::PARTICLE_FADE_OUT_TIME = 0.1;
+const Float CMenuParticles::PARTICLE_FADE_OUT_TIME = 0.5;
 
 // Class object
 CMenuParticles gMenuParticles;
@@ -324,6 +324,12 @@ void CMenuParticles::Think( void )
 		else
 			pParticle->alpha = 1.0;
 
+		if(pParticle->stuck)
+		{
+			m_particlesList.next();
+			continue;
+		}
+
 		// Add in gravity and wind
 		if(pParticle->wind)
 		{
@@ -357,6 +363,7 @@ void CMenuParticles::Think( void )
 			pParticle->wind = 0;
 			pParticle->die = ens.time + PARTICLE_FADE_OUT_TIME;
 			pParticle->velocity.Clear();
+			pParticle->stuck = true;
 		}
 
 		m_particlesList.next();

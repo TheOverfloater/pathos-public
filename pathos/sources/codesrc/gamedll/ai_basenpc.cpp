@@ -3292,10 +3292,10 @@ void CBaseNPC::CorpseFallThink( void )
 void CBaseNPC::SetNPCState( npcstate_t state )
 {
 	// Drop any enemies when going to idle
-	if(state == NPC_STATE_IDLE && m_enemy)
+	if((state == NPC_STATE_IDLE || state == NPC_STATE_ALERT) && m_enemy)
 	{
+		Util::EntityConDPrintf(m_pEdict, "Enemy was stripped when changing to idle AI state.\n");
 		m_enemy.reset();
-		Util::EntityConPrintf(m_pEdict, "Enemy was stripped when changing to idle AI state.\n");
 	}
 
 	m_npcState = state;
@@ -6009,7 +6009,7 @@ bool CBaseNPC::GetNextEnemy( void )
 		// Get the most optimal best enemy
 		pNewEnemy = GetBestVisibleEnemy();
 
-		if(pNewEnemy != m_enemy && pNewEnemy && m_pSchedule)
+		if((m_npcState == NPC_STATE_IDLE || pNewEnemy != m_enemy) && pNewEnemy && m_pSchedule)
 		{
 			if(m_pSchedule->GetInterruptMask().test(AI_COND_NEW_ENEMY))
 			{
@@ -9135,7 +9135,10 @@ void CBaseNPC::SetLastActivityTime( Double time )
 //=============================================
 void CBaseNPC::SetCurrentActivity( activity_t activity )
 {
+	// Force whatever value we want to use
 	m_currentActivity = (activity_t)activity;
+	// Ensure this is set
+	SetYawSpeed();
 }
 
 //=============================================

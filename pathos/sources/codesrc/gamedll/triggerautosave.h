@@ -20,8 +20,11 @@ class CTriggerAutoSave : public CTriggerEntity
 public:
 	enum
 	{
-		FL_ALL_DAY_STAGES	= (1<<0)
+		FL_ALL_DAY_STAGES	= (1<<0),
+		FL_PERSISTENT_SAVE	= (1<<1),
+		FL_USE_ONLY			= (1<<2)
 	};
+
 	enum
 	{
 		AS_STATE_DEFAULT = 0,
@@ -37,6 +40,7 @@ public:
 public:
 	virtual bool Spawn( void ) override;
 	virtual void DeclareSaveFields( void ) override;
+	virtual void CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value ) override;
 
 public:
 	void PerformSave( CBaseEntity* pPlayer );

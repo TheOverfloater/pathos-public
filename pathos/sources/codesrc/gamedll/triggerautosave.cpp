@@ -43,7 +43,9 @@ bool CTriggerAutoSave::Spawn( void )
 		return false;
 
 	// Set touch fn
-	SetTouch(&CTriggerAutoSave::SaveTouch);
+	if(!HasSpawnFlag(FL_USE_ONLY))
+		SetTouch(&CTriggerAutoSave::SaveTouch);
+
 	return true;
 }
 
@@ -65,6 +67,10 @@ void CTriggerAutoSave::DeclareSaveFields( void )
 //=============================================
 void CTriggerAutoSave::SaveTouch( CBaseEntity* pOther )
 {
+	// Not in USE ONLY
+	if(HasSpawnFlag(FL_USE_ONLY))
+		return;
+
 	// Check for master
 	if(!IsMasterTriggered())
 		return;
@@ -75,7 +81,35 @@ void CTriggerAutoSave::SaveTouch( CBaseEntity* pOther )
 
 	// Get player ptr
 	CPlayerEntity* pPlayer = reinterpret_cast<CPlayerEntity*>(pOther);
+	PerformSave(pPlayer);
+}
 
+//=============================================
+// @brief
+//
+//=============================================
+void CTriggerAutoSave::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value )
+{
+	// This only works if we are use only
+	if(!HasSpawnFlag(FL_USE_ONLY))
+		return;
+
+	// Do the level change
+	CBaseEntity* pPlayer;
+	if(pActivator->IsPlayer())
+		pPlayer = pActivator;
+	else
+		pPlayer = Util::GetHostPlayer();
+
+	PerformSave(pPlayer);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CTriggerAutoSave::PerformSave( CBaseEntity* pPlayer )
+{
 	// Handle night stage specially
 	if(HasSpawnFlag(FL_ALL_DAY_STAGES))
 	{
@@ -114,17 +148,16 @@ void CTriggerAutoSave::SaveTouch( CBaseEntity* pOther )
 		SetTouch(nullptr);
 	}
 
-	PerformSave(pPlayer);
-}
+	CString cmd;
+	cmd << "autosave";
 
-//=============================================
-// @brief
-//
-//=============================================
-void CTriggerAutoSave::PerformSave( CBaseEntity* pPlayer )
-{
+	if(HasSpawnFlag(FL_PERSISTENT_SAVE))
+		cmd << " persistent";
+
+	cmd << "\n";
+
 	// Perform save
-	gd_engfuncs.pfnServerCommand("autosave\n");
+	gd_engfuncs.pfnServerCommand(cmd.c_str());
 
 	// Remove if possible
 	if(!HasSpawnFlag(FL_ALL_DAY_STAGES) || m_triggerState == AS_STAGE_EXHAUSTED)

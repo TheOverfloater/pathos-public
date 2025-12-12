@@ -193,6 +193,7 @@ struct entity_state_t
 		gravity(0),
 		friction(0),
 		sequence(0),
+		gaitsequence(0),
 		frame(0),
 		animtime(0),
 		framerate(0),
@@ -308,7 +309,8 @@ struct entity_state_t
 	Float friction;
 
 	Int32 sequence;
-	
+	Int32 gaitsequence;
+
 	Float frame;
 	Double animtime;
 	Float framerate;

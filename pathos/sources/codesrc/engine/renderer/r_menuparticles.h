@@ -54,7 +54,8 @@ private:
 			die(0),
 			spawntime(0),
 			mainalpha(0),
-			noinfade(false)
+			noinfade(false),
+			stuck(false)
 			{
 				memset(texcoords, 0, sizeof(texcoords));
 			}
@@ -78,6 +79,7 @@ private:
 		Double spawntime;
 		Float mainalpha;
 		bool noinfade;
+		bool stuck;
 	};
 
 	struct mparticle_vertex_t

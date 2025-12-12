@@ -236,17 +236,13 @@ void CScriptedSequence::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, 
 		m_pState->nextthink = g_pGameVars->time + 0.1;
 		RemoveSpawnFlag(FL_TRIGGER_IDLE_FIRST);
 		m_waitForReTrigger = true;
-		return;
 	}
-
-	if(!m_targetEntity)
+	else if(!m_targetEntity)
 	{
 		SetThink(&CScriptedSequence::ScriptedThink);
 		m_pState->nextthink = g_pGameVars->time;
-		return;
 	}
-
-	if(m_targetEntity->GetScriptState() == AI_SCRIPT_PLAYING)
+	else if(m_targetEntity->GetScriptState() == AI_SCRIPT_PLAYING)
 	{
 		// We need to handle if play and loop sequences match
 		bool playAndLoopMatch = PlayAndLoopMatch();

@@ -95,7 +95,7 @@ inline void RotatePointAroundVector( const Vector& dir, const Vector& point, Flo
 // @brief
 //
 //=============================================
-Float GetXFOVFromY( Float fovY, Float ratio )
+inline Float GetXFOVFromY( Float fovY, Float ratio )
 {
 	Float halfradians = fovY * (0.5f * M_PI / 180.0f);
 	Float t = SDL_tan(halfradians) * ratio;

@@ -12,7 +12,7 @@ $particlescript
 	$particle_frequency 100.000000
 	$particle_frequency_variation 100
 	$collision create_system
-	$collision_flags collide_water
+	$collision_flags collide_water precise
 	$gravity 0.500000
 	$create rain_splashes1.txt
 	$create_on_water_impact ripples.txt

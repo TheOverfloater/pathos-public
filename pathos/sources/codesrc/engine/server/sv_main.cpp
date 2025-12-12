@@ -1369,6 +1369,7 @@ void SV_RunCmd( usercmd_t& cmd, sv_client_t& cl )
 		cl.pedict->state.viewangles = savedviewangles;
 
 	cl.pedict->state.angles = cl.pedict->state.viewangles;
+	cl.pedict->state.angles[PITCH] = -cl.pedict->state.angles[PITCH];
 	cl.pedict->state.oldbuttons = cmd.buttons;
 
 	// Run impact function for any entities we touched

@@ -502,7 +502,7 @@ private:
 
 private:
 	// Calls main render routines
-	bool Render( void );
+	bool Render( Int32 flags );
 	// Sets up rendering routines
 	bool SetupRenderer( void );
 	// Restores rendering states
@@ -680,6 +680,8 @@ private:
 	Vector m_mins;
 	// Entity absolute maxs
 	Vector m_maxs;
+	// Bounding box corners
+	Vector m_bboxCorners[8];
 
 	// Tells if UBOs are supported
 	bool m_areUBOsSupported;

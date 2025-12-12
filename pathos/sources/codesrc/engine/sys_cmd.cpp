@@ -265,8 +265,33 @@ void Cmd_AutoSave( void )
 		return;
 	}
 
+	// Check for arguments
+	bool persistentSave = false;
+	Uint32 argCount = gCommands.Cmd_Argc();
+	if(argCount >= 2)
+	{
+		Uint32 i = 1;
+		while(i < argCount)
+		{
+			const Char* pstrArg = gCommands.Cmd_Argv(i);
+			if(!qstrcmp(pstrArg, "persistent"))
+				persistentSave = true;
+			else
+				Con_Printf("%s - Unknown argument '%s'.\n", __FUNCTION__, pstrArg);
+
+			i++;
+		}
+	}
+
+	// Choose appropriate fn
+	bool saveResult;
+	if(persistentSave)
+		saveResult = gSaveRestore.CreateSaveFile(svs.mapname.c_str(), SAVE_REGULAR, nullptr, nullptr);
+	else
+		saveResult = gSaveRestore.CreateSaveFile(AUTOSAVE_FILE_NAME, SAVE_AUTO, nullptr, nullptr, (g_pCvarKeepOldSaves->GetValue() >= 1) ? true : false);
+
 	// Create a game save
-	if(gSaveRestore.CreateSaveFile(AUTOSAVE_FILE_NAME, SAVE_AUTO, nullptr, nullptr, (g_pCvarKeepOldSaves->GetValue() >= 1) ? true : false))
+	if(saveResult)
 	{
 		// Show the message
 		svs.dllfuncs.pfnShowAutoSaveGameMessage();
