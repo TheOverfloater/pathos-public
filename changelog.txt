@@ -1,3 +1,4 @@
+
 2024 March 6th:
  - Updated README.md to add link to YT playlist for Pathos videos.
  
@@ -797,3 +798,17 @@
  - Make submodel array be dynamically sized in VBM Renderer.
  - Add dynamic cvar saving feature to the save file format.
  - Fix Con_DPrint mutex being released in Con_VPrint instead of it's own mutex.
+ 
+2025 December 12th:
+ - Add gaitsequence to entity_state_t and client-server messaging.
+ - Fix view model shadows.
+ - Modify menu particles to briefly get stuck at the bottom of the screen before fading out.
+ - Fix rendering of bounding boxes, bones, hitboxes in VBM renderer.
+ - Add feature to render a wireframe representation of the bounding box similar to Quake 2's.
+ - Add feature to render bounding boxes, hitboxes, bones for local player for debug purposes.
+ - Expand trigger_autosave to support making persistent autosaves, and to save by being triggered only.
+ - Fix NPCs not recognizing enemies after exiting from combat state to idle/alert state.
+ - Fix scripted_sequences not working sometimes due to yaw speed not being set.
+ - Fix bug with NPCs playing flinch animations when "Take cover from enemy" schedule fails.
+ - Fix trigger_auto not killing it's Kill Target when it has no Target set.
+ - Cleanup of scripted_sequence code.
