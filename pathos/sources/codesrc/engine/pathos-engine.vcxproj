@@ -114,8 +114,6 @@
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;4018;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -134,12 +132,6 @@
       <Profile>true</Profile>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-      <Message>
-      </Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
     </CustomBuildStep>
@@ -155,8 +147,6 @@
       <PreprocessorDefinitions>WIN32;_64BUILD;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;NETWORKING;DONT_USE_VAO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;%(DisableSpecificWarnings)</DisableSpecificWarnings>
@@ -172,14 +162,6 @@
       <IgnoreSpecificDefaultLibraries>msvcrtd</IgnoreSpecificDefaultLibraries>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>
-      </Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
     </CustomBuildStep>
@@ -192,8 +174,6 @@
     <ClCompile>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>.\;..\shared\renderer;..\libs\sdl2.0\include\;.\renderer\;..\common\;..\libs\;..\libs\freetype\include\;.\ui\;.\server\;.\client\;..\shared\;..\libs\enet\include;..\libs\openal\include;..\libs\libogg\include;..\libs\detours\include;..\libs\libvorbis\include;.\windows;.\rygsdxtc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -211,12 +191,6 @@
       <AdditionalOptions>/NODEFAULTLIB:msvcrtd %(AdditionalOptions)</AdditionalOptions>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-      <Message>
-      </Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
     </CustomBuildStep>
@@ -229,8 +203,6 @@
     <ClCompile>
       <PreprocessorDefinitions>WIN32;_64BUILD;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>.\;..\libs\sdl2.0\include\;.\renderer\;..\common\;..\libs\;..\libs\freetype\include\;.\ui\;.\server\;.\client\;..\shared\;..\libs\enet\include;..\libs\openal\include;..\libs\detours\include;..\libs\libogg\include;..\libs\libvorbis\include;..\shared\renderer;.\windows;.\rygsdxtc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -249,14 +221,6 @@
       <IgnoreSpecificDefaultLibraries>libcmt.lib</IgnoreSpecificDefaultLibraries>
       <AssemblyDebug>true</AssemblyDebug>
     </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>
-      </Message>
-    </PostBuildEvent>
     <CustomBuildStep>
       <Command>copy /Y "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)../../../$(TargetName)$(TargetExt)"</Command>
     </CustomBuildStep>
