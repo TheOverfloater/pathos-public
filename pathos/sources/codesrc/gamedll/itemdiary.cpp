@@ -137,7 +137,7 @@ void CItemDiary::Precache( void )
 void CItemDiary::SendInitMessage( const CBaseEntity* pPlayer )
 {
 	if(m_state == DIARY_PLAYBACK && m_pPlayer && pPlayer == m_pPlayer)
-		Util::EmitEntitySound(m_pPlayer, m_soundFile, SND_CHAN_VOICE, VOL_NORM, ATTN_NORM, PITCH_NORM, SND_FL_DIALOUGE, pPlayer);
+		Util::EmitEntitySound(m_pPlayer, m_soundFile, SND_CHAN_VOICE, VOL_NORM, ATTN_NORM, PITCH_NORM, SND_FL_DIALOGUE, pPlayer);
 	
 	if(!m_isDisabled)
 		Util::EmitEntitySound(this, "items/diary_noise.wav", SND_CHAN_STATIC, (m_state == DIARY_PLAYBACK) ? 0.4 : VOL_NORM, ATTN_NORM, PITCH_NORM, SND_FL_NONE, pPlayer);
@@ -265,7 +265,7 @@ void CItemDiary::AdvanceState( void )
 		// So player can cancel
 		m_pPlayer->BeginDiaryPlayback(gd_engfuncs.pfnGetString(m_soundFile), m_duration, this);
 		// Playback the sound for the player
-		Util::EmitEntitySound(m_pPlayer, m_soundFile, SND_CHAN_VOICE, VOL_NORM, ATTN_NORM, PITCH_NORM, SND_FL_DIALOUGE);
+		Util::EmitEntitySound(m_pPlayer, m_soundFile, SND_CHAN_VOICE, VOL_NORM, ATTN_NORM, PITCH_NORM, SND_FL_DIALOGUE);
 
 		SetThink(&CItemDiary::Exit);
 		m_pState->nextthink = g_pGameVars->time + m_duration+0.5;

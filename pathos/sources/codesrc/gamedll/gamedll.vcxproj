@@ -352,7 +352,7 @@
     <ClCompile Include="game.cpp" />
     <ClCompile Include="gamestaminamodifier.cpp" />
     <ClCompile Include="gametimer.cpp" />
-    <ClCompile Include="gamedialouge.cpp" />
+    <ClCompile Include="gamedialogue.cpp" />
     <ClCompile Include="gameobjective.cpp" />
     <ClCompile Include="gamesetdaystage.cpp" />
     <ClCompile Include="gametext.cpp" />
@@ -664,7 +664,7 @@
     <ClInclude Include="funcwater.h" />
     <ClInclude Include="funcfriction.h" />
     <ClInclude Include="game.h" />
-    <ClInclude Include="gamedialouge.h" />
+    <ClInclude Include="gamedialogue.h" />
     <ClInclude Include="gamesetdaystage.h" />
     <ClInclude Include="gametext.h" />
     <ClInclude Include="gametitle.h" />

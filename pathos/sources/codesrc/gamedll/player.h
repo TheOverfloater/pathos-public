@@ -308,8 +308,8 @@ public:
 	// Sets nightstage state
 	virtual void SetDayStage( daystage_t daystage ) override;
 
-	// Sets dialouge duration for player
-	virtual void SetDialougeDuration( Float duration ) override;
+	// Sets dialogue duration for player
+	virtual void SetDialogueDuration( Float duration ) override;
 
 	// Adds a medkit to the player
 	virtual bool AddMedkit( const Char* pstrClassname, bool noNotice ) override;
@@ -958,8 +958,8 @@ private:
 	// Last time we were hurt by time based dmg
 	Double						m_lastTimeBasedDmgTime[NUM_TIMEBASED_DMG];
 
-	// Dialouge playback timer
-	Double						m_dialougePlaybackTime;
+	// Dialogue playback timer
+	Double						m_dialoguePlaybackTime;
 
 private:
 	// Music playback info

@@ -2120,7 +2120,7 @@
 // Game entities
 //
 
-@PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) color(230 230 255) = game_dialouge : "Player's sentences" 
+@PointClass base(Targetname, Target) size(-8 -8 -8, 8 8 8) color(230 230 255) = game_dialogue : "Player's sentences" 
 [
   message(sound) : "WAV Name (e.g. vox/c.wav)"
   radius(integer) : "Radius" : 0
@@ -2266,7 +2266,7 @@
   entrytarget(string) : "Trigger on Entry"
   duration(integer) : "Duration" : 0
   soundfile(sound) : "Sound to Play"
-  playersound(sound) : "Player Dialouge"
+  playersound(sound) : "Player Dialogue"
   type(Choices) : "Type" : 0 =
   [
     0 : "Benefactor"

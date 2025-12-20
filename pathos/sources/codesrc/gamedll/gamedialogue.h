@@ -7,15 +7,15 @@ All Rights Reserved.
 ===============================================
 */
 
-#ifndef GAMEDIALOUGE_H
-#define GAMEDIALOUGE_H
+#ifndef GAMEDIALOGUE_H
+#define GAMEDIALOGUE_H
 
 #include "pointentity.h"
 
 //=============================================
 //
 //=============================================
-class CGameDialouge : public CPointEntity
+class CGameDialogue : public CPointEntity
 {
 public:
 	enum
@@ -26,8 +26,8 @@ public:
 	};
 
 public:
-	explicit CGameDialouge( edict_t* pedict );
-	virtual ~CGameDialouge( void );
+	explicit CGameDialogue( edict_t* pedict );
+	virtual ~CGameDialogue( void );
 
 public:
 	virtual bool Spawn( void ) override;
@@ -38,10 +38,10 @@ public:
 	virtual void SendInitMessage( const CBaseEntity* pPlayer ) override;
 
 public:
-	void EXPORTFN DialougeThink( void );
+	void EXPORTFN DialogueThink( void );
 
 public:
-	static CGameDialouge* CreateDialouge( const Char* pstrPath, const Vector& origin, Float radius, bool visibleOnly );
+	static CGameDialogue* CreateDialogue( const Char* pstrPath, const Vector& origin, Float radius, bool visibleOnly );
 
 private:
 	Float m_radius;
@@ -50,4 +50,4 @@ private:
 	Float m_duration;
 };
 
-#endif //GAMEDIALOUGE_H
+#endif //GAMEDIALOGUE_H

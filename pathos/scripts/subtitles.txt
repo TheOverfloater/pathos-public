@@ -3,9 +3,9 @@ testradio1
 Robotnik: Hello, you are listening to a radio message.
 }
 
-testdialouge1
+testdialogue1
 {
-Boss Nass: This is a piece of test dialouge.
+Boss Nass: This is a piece of test dialogue.
 }
 
 ai_flagtoggler
@@ -278,14 +278,14 @@ env_particleeffect
 I recreated Quake 1's particle effects mainly as a nostalgia thing and not as anything serious. You can test these in this room.
 }
 
-game_dialouge_lookat
+game_dialogue_lookat
 {
-game_dialouge entities can also function as "look at" entities, much like trigger_lookat. If the player is looking at them for a given amount of time without anything obstructing the view, then dialouge will play automatically. This dialouge can also trigger another entity.
+game_dialogue entities can also function as "look at" entities, much like trigger_lookat. If the player is looking at them for a given amount of time without anything obstructing the view, then dialouge will play automatically. This dialouge can also trigger another entity.
 }
 
-game_dialouge
+game_dialogue
 {
-game_dialouge is an entity that basically plays a sound as if the player was speaking themselves. This is useful if you want first-person dialouge from the player themselves playing.
+game_dialogue is an entity that basically plays a sound as if the player was speaking themselves. This is useful if you want first-person dialouge from the player themselves playing.
 }
 
 fog_blending

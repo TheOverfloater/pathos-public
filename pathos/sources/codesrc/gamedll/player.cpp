@@ -545,7 +545,7 @@ CPlayerEntity::CPlayerEntity( edict_t* pedict ):
 	m_lastWaterDamage(0),
 	m_nextSwimSoundTime(0),
 	m_prevWaterLevel(WATERLEVEL_NONE),
-	m_dialougePlaybackTime(0),
+	m_dialoguePlaybackTime(0),
 	m_tapeTrackFile(NO_STRING_VALUE),
 	m_tapeTrackPlayBeginTime(0),
 	m_tapeTrackDuration(0),
@@ -691,7 +691,7 @@ void CPlayerEntity::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_countdownTimerTitle, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_delayedGlobalTriggerTime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_delayedGlobalTriggerTarget, EFIELD_STRING));
-	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_dialougePlaybackTime, EFIELD_TIME));
+	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_dialoguePlaybackTime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_sprintStaminaDrainMultiplier, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CPlayerEntity, m_normalMovementStaminaDrainFactor, EFIELD_FLOAT));
 
@@ -6579,12 +6579,12 @@ void CPlayerEntity::TapePlaybackThink( void )
 }
 
 //=============================================
-// @brief Sets dialouge duration for player
+// @brief Sets dialogue duration for player
 //
 //=============================================
-void CPlayerEntity::SetDialougeDuration( Float duration )
+void CPlayerEntity::SetDialogueDuration( Float duration )
 {
-	m_dialougePlaybackTime = g_pGameVars->time + duration;
+	m_dialoguePlaybackTime = g_pGameVars->time + duration;
 }
 
 //=============================================

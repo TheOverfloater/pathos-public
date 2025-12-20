@@ -2386,22 +2386,22 @@ document:
    - "Passable": The door will be non-solid.
    - "Use Only": Only triggering, or using with the use key will open this door.
    
-# game_dialouge
->This entity is useful for dialouge spoken by the player character. Sounds played by this entity will then
+# game_dialogue
+>This entity is useful for dialogue spoken by the player character. Sounds played by this entity will then
 >lower the volume of other sounds, and the sound will also be save-restored on reload. This entity can also
->function as a "look at" entity, playing it's dialouge and triggering it's target when played if the player 
+>function as a "look at" entity, playing it's dialogue and triggering it's target when played if the player 
 >looks at it. If set to start off, the Look At behavior will only begin working after this entity has first
 >been triggered on by another entity.
 
  - Keyvalues:
    - "Name": Name of this entity.
    - "Target": Target entity to trigger when triggered.
-   - "WAV Name (e.g. vox/c.wav)": The wav file to use for the dialouge.
+   - "WAV Name (e.g. vox/c.wav)": The wav file to use for the dialogue.
    - "Radius": If "Look At" is set, then the entity will only play if the player is within this radius.
 
  - Spawn flags:
-   - "Look At": The entity will trigger it's dialouge automatically if looked at by the player, and if the
-   "Radius" is set, the player will need to be within the radius *and* looking at the dialouge for it to be
+   - "Look At": The entity will trigger it's dialogue automatically if looked at by the player, and if the
+   "Radius" is set, the player will need to be within the radius *and* looking at the dialogue for it to be
    triggered.
    - "Start Off": The entity's "Look at" behavior will be disabled until triggered on by another entity.
    - "Repeatable": The entity will not remove itself after being triggered, and can be re-triggered to play
@@ -2644,7 +2644,7 @@ Body of text explaining the objective<br /><br />
    - "Trigger on Entry": Target to trigger when the player enters the animation.
    - "Duration": The duration for which the player will be holding the diary in front of their face.
    - "Sound to Play": The audio file to play back while the player is holding the diary.
-   - "Player Dialouge": Player dialouge file to play at the very end. This will be cleared after the first
+   - "Player Dialogue": Player dialogue file to play at the very end. This will be cleared after the first
    use and will not play after the item_diary is used again.
    - "Type": Defines the diary model used.
      - "Benefactor": Will use the model located at "models/props/diary_benefactor.mdl".
