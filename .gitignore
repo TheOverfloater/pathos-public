@@ -1,7 +1,19 @@
+# Game
 *.bsd
+*.log
 *.psf
-*.bsd
-*.bsd
-pathos/sources/codesrc/engine/Release/pathos_x86.Build.CppClean.log
-/pathos/sources/codesrc/engine/Release
-/pathos/sources/codesrc/engine/Debug
+
+pathos/config.cfg
+pathos/userconfig.cfg
+system.cfg
+
+# Source code
+.vs/
+[Dd]ebug/
+[Rr]elease/
+[Ww]in32/
+[Ww]in64/
+x64/
+
+*.suo
+*.user
