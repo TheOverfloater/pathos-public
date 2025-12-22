@@ -1,3 +1,0 @@
-﻿cl : command line  warning D9002: ignoring unknown option '/arch:SSE'
-  SDL_windows_main.c
-  SDLmain.vcxproj -> D:\Games\Pathos Engine\pathos\sources\codesrc\x64\Release\SDL2main.lib
