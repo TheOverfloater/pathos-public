@@ -678,7 +678,7 @@ CSoundEngine::snd_active_t* CSoundEngine::AllocSound( const Char *sample, entind
 			if(!sound.active)
 				continue;
 
-			if(sound.flags & (SND_FL_KILLME|SND_FL_RADIO|SND_FL_DIALOUGE))
+			if(sound.flags & (SND_FL_KILLME|SND_FL_RADIO|SND_FL_DIALOGUE))
 				continue;
 
 			if(sound.flags & SND_FL_MOTORBIKE && !( flags & SND_FL_MOTORBIKE ))
@@ -708,7 +708,7 @@ CSoundEngine::snd_active_t* CSoundEngine::AllocSound( const Char *sample, entind
 	for(Uint32 i = 0; i < m_activeSoundsArray.size(); i++)
 	{
 		snd_active_t& sound = m_activeSoundsArray[i];
-		if(sound.flags & (SND_FL_RADIO|SND_FL_DIALOUGE|SND_FL_MOTORBIKE|SND_FL_AMBIENT))
+		if(sound.flags & (SND_FL_RADIO|SND_FL_DIALOGUE|SND_FL_MOTORBIKE|SND_FL_AMBIENT))
 			continue;
 
 		if(sound.channel == SND_CHAN_VOICE)
@@ -1764,7 +1764,7 @@ Float CSoundEngine::CalcGain( const Vector& vieworg, snd_active_t *psound, Float
 	if(!(psound->flags & SND_FL_MENU))
 		volume *= gameVolume;
 
-	if(psound->flags & (SND_FL_DIALOUGE|SND_FL_RADIO|SND_FL_DIM_OTHERS|SND_FL_DIM_OTHERS_LIGHT))
+	if(psound->flags & (SND_FL_DIALOGUE|SND_FL_RADIO|SND_FL_DIM_OTHERS|SND_FL_DIM_OTHERS_LIGHT))
 		return volume;
 
 	if(!(psound->flags & SND_FL_2D))
@@ -1971,7 +1971,7 @@ void CSoundEngine::Update( ref_params_t *pparams )
 				flmultval = 0.1;
 				break;
 			}
-			else if(m_activeSoundsArray[i].flags & (SND_FL_DIALOUGE|SND_FL_DIM_OTHERS_LIGHT))
+			else if(m_activeSoundsArray[i].flags & (SND_FL_DIALOGUE|SND_FL_DIM_OTHERS_LIGHT))
 			{
 				flmultval = 0.5;
 				break;
@@ -1991,8 +1991,8 @@ void CSoundEngine::Update( ref_params_t *pparams )
 		if(m_isMuted && !(psound->flags & (SND_FL_MUTEIGNORE|SND_FL_MENU)))
 			psound->flags |= SND_FL_KILLME;
 
-		// Kill dialouge if we fully entered water
-		if((psound->flags & SND_FL_DIALOUGE) && pparams->waterlevel >= WATERLEVEL_FULL)
+		// Kill dialogue if we fully entered water
+		if((psound->flags & SND_FL_DIALOGUE) && pparams->waterlevel >= WATERLEVEL_FULL)
 			psound->flags |= SND_FL_KILLME;
 
 		// Do not play game sounds if we're not ingame

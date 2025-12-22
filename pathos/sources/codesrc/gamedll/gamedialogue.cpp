@@ -9,16 +9,16 @@ All Rights Reserved.
 
 #include "includes.h"
 #include "gd_includes.h"
-#include "gamedialouge.h"
+#include "gamedialogue.h"
 
 // Link the entity to it's class
-LINK_ENTITY_TO_CLASS(game_dialouge, CGameDialouge);
+LINK_ENTITY_TO_CLASS(game_dialogue, CGameDialogue);
 
 //=============================================
 // @brief
 //
 //=============================================
-CGameDialouge::CGameDialouge( edict_t* pedict ):
+CGameDialogue::CGameDialogue( edict_t* pedict ):
 	CPointEntity(pedict),
 	m_radius(0),
 	m_isActive(false),
@@ -31,7 +31,7 @@ CGameDialouge::CGameDialouge( edict_t* pedict ):
 // @brief
 //
 //=============================================
-CGameDialouge::~CGameDialouge( void )
+CGameDialogue::~CGameDialogue( void )
 {
 }
 
@@ -39,22 +39,22 @@ CGameDialouge::~CGameDialouge( void )
 // @brief
 //
 //=============================================
-void CGameDialouge::DeclareSaveFields( void )
+void CGameDialogue::DeclareSaveFields( void )
 {
 	// Call base class to do it first
 	CPointEntity::DeclareSaveFields();
 	
-	DeclareSaveField(DEFINE_DATA_FIELD(CGameDialouge, m_radius, EFIELD_FLOAT));
-	DeclareSaveField(DEFINE_DATA_FIELD(CGameDialouge, m_isActive, EFIELD_BOOLEAN));
-	DeclareSaveField(DEFINE_DATA_FIELD(CGameDialouge, m_beginTime, EFIELD_TIME));
-	DeclareSaveField(DEFINE_DATA_FIELD(CGameDialouge, m_duration, EFIELD_FLOAT));
+	DeclareSaveField(DEFINE_DATA_FIELD(CGameDialogue, m_radius, EFIELD_FLOAT));
+	DeclareSaveField(DEFINE_DATA_FIELD(CGameDialogue, m_isActive, EFIELD_BOOLEAN));
+	DeclareSaveField(DEFINE_DATA_FIELD(CGameDialogue, m_beginTime, EFIELD_TIME));
+	DeclareSaveField(DEFINE_DATA_FIELD(CGameDialogue, m_duration, EFIELD_FLOAT));
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-bool CGameDialouge::KeyValue( const keyvalue_t& kv )
+bool CGameDialogue::KeyValue( const keyvalue_t& kv )
 {
 	if(!qstrcmp(kv.keyname, "radius"))
 	{
@@ -69,7 +69,7 @@ bool CGameDialouge::KeyValue( const keyvalue_t& kv )
 // @brief
 //
 //=============================================
-bool CGameDialouge::Spawn( void )
+bool CGameDialogue::Spawn( void )
 {
 	if(m_pFields->message == NO_STRING_VALUE)
 	{
@@ -88,7 +88,7 @@ bool CGameDialouge::Spawn( void )
 
 	if(m_isActive && (m_radius || HasSpawnFlag(FL_LOOK_AT)))
 	{
-		SetThink(&CGameDialouge::DialougeThink);
+		SetThink(&CGameDialogue::DialogueThink);
 		m_pState->nextthink = g_pGameVars->time + 0.1;
 	}
 
@@ -99,7 +99,7 @@ bool CGameDialouge::Spawn( void )
 // @brief
 //
 //=============================================
-void CGameDialouge::Precache( void )
+void CGameDialogue::Precache( void )
 {
 	if(m_pFields->message == NO_STRING_VALUE)
 		return;
@@ -111,14 +111,14 @@ void CGameDialouge::Precache( void )
 // @brief
 //
 //=============================================
-void CGameDialouge::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value )
+void CGameDialogue::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value )
 {
 	if(!m_isActive)
 	{
 		// Begin thinking if needed
 		if( m_radius || HasSpawnFlag(FL_LOOK_AT) )
 		{
-			SetThink( &CGameDialouge::DialougeThink );
+			SetThink( &CGameDialogue::DialogueThink );
 			m_pState->nextthink = g_pGameVars->time + 0.1;
 		}
 
@@ -135,8 +135,8 @@ void CGameDialouge::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usem
 		else
 			pPlayer = Util::GetHostPlayer();
 
-		Util::EmitEntitySound(pPlayer, m_pFields->message, SND_CHAN_STATIC, VOL_NORM, ATTN_NORM, PITCH_NORM, SND_FL_DIALOUGE);
-		pPlayer->SetDialougeDuration(m_duration);
+		Util::EmitEntitySound(pPlayer, m_pFields->message, SND_CHAN_STATIC, VOL_NORM, ATTN_NORM, PITCH_NORM, SND_FL_DIALOGUE);
+		pPlayer->SetDialogueDuration(m_duration);
 
 		if(!HasSpawnFlag(FL_REPEATABLE))
 		{
@@ -150,7 +150,7 @@ void CGameDialouge::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usem
 // @brief
 //
 //=============================================
-void CGameDialouge::DialougeThink( void )
+void CGameDialogue::DialogueThink( void )
 {
 	if(!m_radius && !HasSpawnFlag(FL_LOOK_AT))
 		return;
@@ -162,7 +162,7 @@ void CGameDialouge::DialougeThink( void )
 		float flDist = (m_pState->origin - pPlayer->GetOrigin()).Length();
 		if(flDist > m_radius)
 		{
-			SetThink( &CGameDialouge::DialougeThink );
+			SetThink( &CGameDialogue::DialogueThink );
 			m_pState->nextthink = g_pGameVars->time + 0.1;
 			return;
 		}
@@ -172,7 +172,7 @@ void CGameDialouge::DialougeThink( void )
 	{
 		if(!(pPlayer->GetFlags() & FL_ONGROUND))
 		{
-			SetThink( &CGameDialouge::DialougeThink );
+			SetThink( &CGameDialogue::DialogueThink );
 			m_pState->nextthink = g_pGameVars->time + 0.1;
 			return;
 		}
@@ -188,7 +188,7 @@ void CGameDialouge::DialougeThink( void )
 		Float dotProduct = Math::DotProduct( vecPlayerForward, vecDirToPlayer );
 		if ( dotProduct < 0.8 )
 		{
-			SetThink( &CGameDialouge::DialougeThink );
+			SetThink( &CGameDialogue::DialogueThink );
 			m_pState->nextthink = g_pGameVars->time + 0.1;
 			return;
 		}
@@ -197,15 +197,15 @@ void CGameDialouge::DialougeThink( void )
 		Util::TraceLine(playerEyes, m_pState->origin, true, false, true, pPlayer->GetEdict(), tr);
 		if(tr.fraction != 1.0)
 		{
-			SetThink( &CGameDialouge::DialougeThink );
+			SetThink( &CGameDialogue::DialogueThink );
 			m_pState->nextthink = g_pGameVars->time + 0.1;
 			return;
 		}
 	}
 
 	m_beginTime = g_pGameVars->time;
-	Util::EmitEntitySound(pPlayer, m_pFields->message, SND_CHAN_STATIC, VOL_NORM, ATTN_NORM, PITCH_NORM, SND_FL_DIALOUGE);
-	pPlayer->SetDialougeDuration(m_duration);
+	Util::EmitEntitySound(pPlayer, m_pFields->message, SND_CHAN_STATIC, VOL_NORM, ATTN_NORM, PITCH_NORM, SND_FL_DIALOGUE);
+	pPlayer->SetDialogueDuration(m_duration);
 
 	if(m_pFields->target != NO_STRING_VALUE)
 		Util::FireTargets(gd_engfuncs.pfnGetString(m_pFields->target), this, this, USE_TOGGLE, 0);
@@ -218,7 +218,7 @@ void CGameDialouge::DialougeThink( void )
 // @brief
 //
 //=============================================
-void CGameDialouge::SendInitMessage( const CBaseEntity* pPlayer )
+void CGameDialogue::SendInitMessage( const CBaseEntity* pPlayer )
 {
 	if(!m_beginTime)
 		return;
@@ -230,28 +230,28 @@ void CGameDialouge::SendInitMessage( const CBaseEntity* pPlayer )
 	}
 
 	const Char* pstrFilepath = gd_engfuncs.pfnGetString(m_pFields->message);
-	gd_engfuncs.pfnPlayEntitySound(pPlayer->GetEntityIndex(), pstrFilepath, SND_FL_DIALOUGE, SND_CHAN_VOICE, VOL_NORM, ATTN_NONE, PITCH_NORM, (g_pGameVars->time - m_beginTime), pPlayer->GetClientIndex());
+	gd_engfuncs.pfnPlayEntitySound(pPlayer->GetEntityIndex(), pstrFilepath, SND_FL_DIALOGUE, SND_CHAN_VOICE, VOL_NORM, ATTN_NONE, PITCH_NORM, (g_pGameVars->time - m_beginTime), pPlayer->GetClientIndex());
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-CGameDialouge* CGameDialouge::CreateDialouge( const Char* pstrPath, const Vector& origin, Float radius, bool visibleOnly )
+CGameDialogue* CGameDialogue::CreateDialogue( const Char* pstrPath, const Vector& origin, Float radius, bool visibleOnly )
 {
-	edict_t *pEntity = gd_engfuncs.pfnCreateEntity("game_dialouge");
+	edict_t *pEntity = gd_engfuncs.pfnCreateEntity("game_dialogue");
 	if(!pEntity)
 		return nullptr;
 
-	CGameDialouge *pDialouge = reinterpret_cast<CGameDialouge *>(CBaseEntity::GetClass( pEntity ));
+	CGameDialogue *pDialogue = reinterpret_cast<CGameDialogue *>(CBaseEntity::GetClass( pEntity ));
 
 	gd_engfuncs.pfnSetOrigin(pEntity, origin);
 	pEntity->fields.message = gd_engfuncs.pfnAllocString(pstrPath);
-	pDialouge->m_radius = radius;
+	pDialogue->m_radius = radius;
 
 	if(visibleOnly)
 		pEntity->state.spawnflags |= FL_LOOK_AT;
 
 	DispatchSpawn( pEntity );
-	return pDialouge;
+	return pDialogue;
 }

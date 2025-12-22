@@ -196,7 +196,7 @@ bool Sys_Init( CArray<CString>* argsArray )
 		return false;
 
 	// Whether to keep old save files - This needs to be registered just before the config file gets executed
-	g_pCvarKeepOldSaves = gConsole.CreateCVar(CVAR_FLOAT, FL_CV_SV_ONLY|FL_CV_SAVE, "sv_keepoldaves", "0", "Controls whether old quick/auto saves are kept.\n");
+	g_pCvarKeepOldSaves = gConsole.CreateCVar(CVAR_FLOAT, FL_CV_SV_ONLY|FL_CV_SAVE, "sv_keepoldsaves", "0", "Controls whether old quick/auto saves are kept.\n");
 
 	// Load the config before VID_Init
 	CString strExecCmd;

@@ -56,7 +56,7 @@ enum snd_flags_t
 	SND_FL_REVERBLESS		= (1<<10),
 	SND_FL_MOTORBIKE		= (1<<11),
 	SND_FL_MUTEIGNORE		= (1<<12),
-	SND_FL_DIALOUGE			= (1<<13),
+	SND_FL_DIALOGUE			= (1<<13),
 	SND_FL_RADIUS			= (1<<14),
 	SND_FL_DIM_OTHERS		= (1<<15),
 	SND_FL_SUB_ONLY_RADIUS	= (1<<16),

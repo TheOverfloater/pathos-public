@@ -688,8 +688,8 @@ public:
 	virtual daystage_t GetDayStage( void ) const { STUBWARNING; return DAYSTAGE_NORMAL; };
 	// Sets day state
 	virtual void SetDayStage( daystage_t daystage ) { STUBWARNING; };
-	// Sets dialouge duration for player
-	virtual void SetDialougeDuration( Float duration ) { STUBWARNING; }
+	// Sets dialogue duration for player
+	virtual void SetDialogueDuration( Float duration ) { STUBWARNING; }
 
 	// Set NPC awareness
 	virtual void SetNPCAwareness( Float awareness, CBaseEntity* pNPC, Float timeoutDelay, bool isLeanAwareness ) { STUBWARNING; };

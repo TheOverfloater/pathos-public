@@ -11,7 +11,7 @@ All Rights Reserved.
 #include "gd_includes.h"
 #include "itemmotorbike.h"
 #include "envdlight.h"
-#include "gamedialouge.h"
+#include "gamedialogue.h"
 #include "player.h"
 
 // Trashed bike animation name

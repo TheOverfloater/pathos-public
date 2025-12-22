@@ -267,7 +267,7 @@
     <ClCompile Include="funcwall.cpp">
       <Filter>Source Files\entities\func</Filter>
     </ClCompile>
-    <ClCompile Include="gamedialouge.cpp">
+    <ClCompile Include="gamedialogue.cpp">
       <Filter>Source Files\entities\game</Filter>
     </ClCompile>
     <ClCompile Include="gameradio.cpp">
@@ -1133,7 +1133,7 @@
     <ClInclude Include="funcwall.h">
       <Filter>Header Files\entities\func</Filter>
     </ClInclude>
-    <ClInclude Include="gamedialouge.h">
+    <ClInclude Include="gamedialogue.h">
       <Filter>Header Files\entities\game</Filter>
     </ClInclude>
     <ClInclude Include="gameradio.h">
