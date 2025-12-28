@@ -26,16 +26,16 @@ struct sectionheader_t
 			memset(Name, 0, sizeof(Name));
 		}
 
-    byte Name[8];
-    Uint32 VirtualSize;
-    Uint32 VirtualAddress;
-    Uint32 SizeOfRawData;
-    Uint32 PointerToRawData;
-    Uint32 PointerToRelocations;
-    Uint32 PointerToLineNumbers;
-    Uint16 NumberOfRelocations;
-    Uint16 NumberOfLineNumbers;
-    Uint32 Characteristics;
+	byte Name[8];
+	Uint32 VirtualSize;
+	Uint32 VirtualAddress;
+	Uint32 SizeOfRawData;
+	Uint32 PointerToRawData;
+	Uint32 PointerToRelocations;
+	Uint32 PointerToLineNumbers;
+	Uint16 NumberOfRelocations;
+	Uint16 NumberOfLineNumbers;
+	Uint32 Characteristics;
 };
 
 bool EnumExportedFunctions ( const Char *szFilename, void (*pfnCallBack)(Char*) );
