@@ -332,6 +332,7 @@
     <ClCompile Include="system.cpp" />
     <ClCompile Include="uimanager.cpp" />
     <ClCompile Include="vid.cpp" />
+    <ClCompile Include="win32_delay_load.cpp" />
     <ClCompile Include="window.cpp" />
     <ClCompile Include=".\ui\uielements.cpp" />
     <ClCompile Include="..\shared\cvar.cpp" />
