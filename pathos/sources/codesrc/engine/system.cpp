@@ -61,17 +61,6 @@ state variables and functionality.
 
 extern file_interface_t ENGINE_FILE_FUNCTIONS;
 
-// Ugly hack to manage SDL2 load before main is called
-CStartup gStartup;
-
-#ifdef _64BUILD
-// OpenAL library path
-static const Char SDL2_LIBRARY_PATH[] = "x64/SDL2.dll";
-#else
-// OpenAL library path
-static const Char SDL2_LIBRARY_PATH[] = "x86/SDL2.dll";
-#endif
-
 // Definition of engine state structure
 engine_state_t ens;
 
@@ -1186,33 +1175,4 @@ void Sys_WindowFocusLost( void )
 void Sys_WindowFocusRegained( void )
 {
 	gWindow.SetActive(true);
-}
-
-//=============================================
-// Class: CStartup
-// Function: CStartup
-//=============================================
-CStartup::CStartup( void ):
-	m_hSDL2(nullptr)
-{
-	// This entire thing exists just to be able to keep the SDL 32-bit and 64-bit libraries
-	// in separate folders.
-	m_hSDL2 = LoadLibrary(SDL2_LIBRARY_PATH);
-	if(!m_hSDL2)
-	{
-		CString str;
-		str << "Failed to load " << SDL2_LIBRARY_PATH;
-		MessageBox(nullptr, str.c_str(), "Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
-		exit(-1);
-	}
-}
-
-//=============================================
-// Class: CStartup
-// Function: CStartup
-//=============================================
-CStartup::~CStartup( void )
-{
-	if(m_hSDL2)
-		FreeLibrary(m_hSDL2);
 }

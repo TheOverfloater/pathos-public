@@ -22,23 +22,6 @@ extern CCVar* g_pCvarTimeScale;
 // Developer cvar
 extern CCVar* g_pCvarDeveloper;
 
-/*
-=================================
--Class: CConfig
--Description:
-
-=================================
-*/
-class CStartup
-{
-public:
-	CStartup();
-	~CStartup();
-
-private:
-	HMODULE m_hSDL2;
-};
-
 struct dll_export_t
 {
 	dll_export_t():
