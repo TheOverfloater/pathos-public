@@ -38,20 +38,38 @@ CEnvModel::~CEnvModel( void )
 //=============================================
 bool CEnvModel::Spawn( void )
 {
-	// Remove immediately if it has no targetname
-	// Means it's completely static
-	if(m_pFields->targetname == NO_STRING_VALUE)
-	{
-		Util::RemoveEntity(this);
-		return true;
-	}
-
 	// Takes care of setting the model
 	if(!CAnimatingEntity::Spawn())
 		return false;
 
-	m_pState->movetype = MOVETYPE_NONE;
-	m_pState->solid = SOLID_NOT;
+	const cache_model_t* pModel = gd_engfuncs.pfnGetModel(m_pState->modelindex);
+	if(!pModel)
+		return false;
+
+	// Remove immediately if it has no targetname
+	// Means it's completely static
+	if(m_pFields->targetname == NO_STRING_VALUE)
+	{
+		// Remove only if we do not have an MCD file attached,
+		// as any prop with an .mcd needs to be engine-handled
+		if(!(pModel->cacheflags & CACHE_FL_HAS_MCD))
+		{
+			Util::RemoveEntity(this);
+			return true;
+		}
+	}
+	
+	if(pModel->cacheflags & CACHE_FL_HAS_MCD)
+	{
+		m_pState->movetype = MOVETYPE_PUSH;
+		m_pState->solid = SOLID_BBOX;
+	}
+	else
+	{
+		m_pState->movetype = MOVETYPE_NONE;
+		m_pState->solid = SOLID_NOT;
+	}
+
 	m_pState->flags |= FL_INITIALIZE;
 
 	ResetSequenceInfo();

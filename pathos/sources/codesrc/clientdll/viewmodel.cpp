@@ -161,15 +161,15 @@ void  CViewModel::Think ( void )
 	{
 		if(m_bBlendSequence && !m_bForceDontBlend)
 		{
-			m_viewModelEntity.latched.prevseqblending[0] = m_viewModelEntity.curstate.blending[0];
-			m_viewModelEntity.latched.prevseqblending[1] = m_viewModelEntity.curstate.blending[1];
+			for(Uint32 i = 0; i < MAX_BLENDING; i++)
+				m_viewModelEntity.latched.prevseqblending[i] = m_viewModelEntity.curstate.blending[i];
 
 			m_viewModelEntity.latched.sequence = m_viewModelEntity.curstate.sequence;
 			m_viewModelEntity.latched.animtime = m_viewModelEntity.curstate.animtime;
 
 			const mstudioseqdesc_t* pseq = GetSequenceInfo(m_viewModelEntity.curstate.sequence);
 			if(pseq)
-				m_viewModelEntity.latched.frame = VBM_EstimateFrame(pseq, m_viewModelEntity.curstate, time);
+				m_viewModelEntity.latched.frame = VBM_EstimateFrame(pseq, time, m_viewModelEntity.curstate.frame, m_viewModelEntity.curstate.animtime, m_viewModelEntity.curstate.framerate, m_viewModelEntity.curstate.effects);
 
 			m_viewModelEntity.latched.sequencetime = time;
 		}

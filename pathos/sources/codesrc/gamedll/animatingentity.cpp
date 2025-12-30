@@ -598,7 +598,7 @@ void CAnimatingEntity::ManageAnimationEvents( void )
 	if(!pseqdesc->numevents)
 		return;
 
-	Float frame = VBM_EstimateFrame(pseqdesc, (*m_pState), g_pGameVars->time);
+	Float frame = VBM_EstimateFrame(pseqdesc, g_pGameVars->time, m_pState->frame, m_pState->animtime, m_pState->framerate, m_pState->effects);
 
 	// Fixes first-frame event bug
 	if(!frame)

@@ -303,7 +303,7 @@ void TR_VBMSetHullInfo( entity_vbmhulldata_t*& pdataptr, const cache_model_t* pm
 
 	// Get sequence data
 	const mstudioseqdesc_t* pseqdesc = pstudiohdr->getSequence(sequence);
-	Float frame = VBM_EstimateFrame(pseqdesc, state, time);
+	Float frame = VBM_EstimateFrame(pseqdesc, time, state.frame, state.animtime, state.framerate, state.effects);
 
 	// Check if the last data matches our current state
 	bool statematches = false;

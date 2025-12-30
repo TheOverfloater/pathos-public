@@ -107,13 +107,13 @@ void CWorldSpawn::Precache( void )
 	gSVLightStyles.SetLightStyle("mmmmmaaaaammmmmaaaaaabcdefgabcdefg", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_CANDLE_A);
 	
 	// 4 FAST STROBE
-	gSVLightStyles.SetLightStyle("mamamamamama", false, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_FAST_STROBE);
+	gSVLightStyles.SetLightStyle("ma;ma;ma;ma;ma;ma", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_FAST_STROBE);
 	
 	// 5 GENTLE PULSE 1
 	gSVLightStyles.SetLightStyle("jklmnopqrstuvwxyzyxwvutsrqponmlkj", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_GENTLE_PULSE);
 	
 	// 6 FLICKER (second variety)
-	gSVLightStyles.SetLightStyle("nmonqnmomnmomomno", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_FLICKER_B);
+	gSVLightStyles.SetLightStyle("n;monqn;mo;mn;mo;mo;mno", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_FLICKER_B);
 	
 	// 7 CANDLE (second variety)
 	gSVLightStyles.SetLightStyle("mmmaaaabcdefgmmmmaaaammmaamm", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_CANDLE_B);
@@ -122,10 +122,10 @@ void CWorldSpawn::Precache( void )
 	gSVLightStyles.SetLightStyle("mmmaaammmaaammmabcdefaaaammmmabcdefmmmaaaa", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_CANDLE_C);
 	
 	// 9 SLOW STROBE (fourth variety)
-	gSVLightStyles.SetLightStyle("aaaaaaaazzzzzzzz", false, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_SLOW_STROBE);
+	gSVLightStyles.SetLightStyle("aaaaaaaazzzzzzzz", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_SLOW_STROBE);
 	
 	// 10 FLUORESCENT FLICKER
-	gSVLightStyles.SetLightStyle("mmamammmmammamamaaamammma", false, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_FLUORESCENT_FLICKER);
+	gSVLightStyles.SetLightStyle("mm;am;ammmm;amm;am;am;aaam;ammm;a", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_FLUORESCENT_FLICKER);
 
 	// 11 SLOW PULSE NOT FADE TO BLACK
 	gSVLightStyles.SetLightStyle("abcdefghijklmnopqrrqponmlkjihgfedcba", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_SLOW_PULSE_NOBLACK);

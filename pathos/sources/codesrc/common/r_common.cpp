@@ -31,6 +31,15 @@ const Char* SCREEN_RATIO_STRINGS[NB_SCREENRATIO_STRINGS] = {
 //=============================================
 void R_AllocBlock ( Uint32 w, Uint32 h, Uint32 &x, Uint32 &y, Uint32& width, Uint32 &height, Uint32*& pallocations )
 { 
+	if(w > width || h > height)
+	{
+		while(width < w)
+			width *= 2;
+
+		while(height < h)
+			height *= 2;
+	}
+
 	Uint32 ibest1 = height;
 	for(Uint32 i = 0; i < width-w; i++)
 	{

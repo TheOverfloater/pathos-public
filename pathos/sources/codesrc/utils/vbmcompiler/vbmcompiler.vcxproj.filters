@@ -27,9 +27,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\shared\studio.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\carray.h">
       <Filter>Header Files\common</Filter>
     </ClInclude>
@@ -153,8 +150,23 @@
     <ClInclude Include="filefuncs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\common\winding.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\common\constants.h">
       <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="collisionsmdparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\mcdformat.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="mcdcompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\shared\studio.h">
+      <Filter>Header Files\shared</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -237,6 +249,12 @@
       <Filter>Source Files\common</Filter>
     </ClCompile>
     <ClCompile Include="filefuncs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mcdcompiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="collisionsmdparser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

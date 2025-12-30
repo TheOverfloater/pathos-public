@@ -282,6 +282,26 @@ const en_material_t* CL_GetMapTextureMaterial( const Char* pstrtexturename )
 //=============================================
 //
 //=============================================
+const en_material_t* CL_GetModelTextureMaterial( Int32 modelindex, const Char* pstrtexturename )
+{
+	Int32 realindex = (modelindex - 1);
+	if(realindex < 0 || cls.modelmaterialfilesnamemaparray.size() <= realindex)
+		return nullptr;
+
+	const CacheNameIndexMap_t& modelTextureMap = cls.modelmaterialfilesnamemaparray[realindex];
+	unordered_map<CString, Uint32>::const_iterator it = modelTextureMap.find(pstrtexturename);
+	if(it != modelTextureMap.end())
+	{
+		CTextureManager* pTextureManager = CTextureManager::GetInstance();
+		return pTextureManager->FindMaterialScript(cls.modelmaterialfilesarray[realindex][it->second].materialfilepath.c_str(), RS_GAME_LEVEL);
+	}
+	else
+		return nullptr;
+}
+
+//=============================================
+//
+//=============================================
 Double CL_GetFrameTime( void )
 {
 	return cls.frametime;

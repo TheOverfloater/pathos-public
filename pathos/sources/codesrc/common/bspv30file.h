@@ -41,6 +41,8 @@ static constexpr Uint32 V30_MAX_LIGHTMAPS			= 4;
 static constexpr Uint32 V30_LM_BASE_SAMPLE_SIZE		= 16;
 
 static constexpr Uint32 V30_NUM_AMBIENTS			= 4;
+static constexpr Uint32 V30_MAX_SURFACE_EXTENTS		= 512;
+
 
 //
 // The lightstyles reserved for bump map data

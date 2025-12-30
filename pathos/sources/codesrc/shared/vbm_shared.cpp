@@ -260,17 +260,17 @@ void VBM_CalculateBonePosition( Int32 frame, Float interpolant, const mstudiobon
 //
 //
 //=============================================
-Float VBM_EstimateFrame( const mstudioseqdesc_t* pseqdesc, const entity_state_t& entitystate, Double time )
+Float VBM_EstimateFrame( const mstudioseqdesc_t* pseqdesc, Double time, Float entframe, Double animtime, Float framerate, Int64 effects )
 {
-	if(entitystate.effects & EF_STATICENTITY)
+	if(effects & EF_STATICENTITY)
 		return 0;
 
 	Double frame = 0;
 	if(pseqdesc->numframes > 1)
-		frame = (entitystate.frame * (pseqdesc->numframes-1))/256.0;
+		frame = (entframe * (pseqdesc->numframes-1))/256.0;
 
-	if(time >= entitystate.animtime)
-		frame += (time - entitystate.animtime)*entitystate.framerate*pseqdesc->fps;
+	if(time >= animtime)
+		frame += (time - animtime)*framerate*pseqdesc->fps;
 
 	if(pseqdesc->flags & STUDIO_LOOPING)
 	{

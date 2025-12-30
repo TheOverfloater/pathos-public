@@ -480,6 +480,13 @@ private:
 	// Tells if the model should re-calculate bones
 	bool ShouldAnimate( void );
 
+	// Process gait animation
+	void ProcessGait( void );
+	// Estimate gait animation related info
+	void EstimateGait( Double dt );
+	// Calculate player blending
+	void CalcPlayerBlend( const mstudioseqdesc_t* pseqdesc, Float& blend, Float& pitch );
+
 	// Calculates attachment positions
 	void CalculateAttachments( void );
 	// Updates currently fetched light values
@@ -584,7 +591,7 @@ private:
 	// Builds the VBO
 	void BuildVBO( void );
 	// Adds a VBM file to the VBO object
-	void AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, vbm_glvertex_t* pvertexbuffer, Uint32* pindexbuffer, Uint32& vertexoffset, Uint32& indexoffset );
+	void AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, mcdheader_t* pmcd, vbm_glvertex_t* pvertexbuffer, Uint32* pindexbuffer, Uint32& vertexoffset, Uint32& indexoffset );
 
 private:
 	// Toggles rendering of models
@@ -770,6 +777,11 @@ private:
 	CArray<vec4_t>	m_boneQuaternions5;
 	// Used for bone transform calculations
 	Float	m_boneMatrix[3][4];
+
+	// Gait estimate
+	Float	m_gaitEstimate;
+	// Gait movement
+	Float	m_gaitMovement;
 
 private:
 	// Used for uploading modellight data to the modellight UBO

@@ -566,15 +566,15 @@ void CLadder::SetSequence( const Char* psequence )
 		return;
 	}
 
-	m_viewEntity.latched.prevseqblending[0] = m_viewEntity.curstate.blending[0];
-	m_viewEntity.latched.prevseqblending[1] = m_viewEntity.curstate.blending[1];
+	for(Uint32 i = 0; i < MAX_BLENDING; i++)
+		m_viewEntity.latched.prevseqblending[i] = m_viewEntity.curstate.blending[i];
 
 	m_viewEntity.latched.sequence = m_viewEntity.curstate.sequence;
 	m_viewEntity.latched.animtime = m_viewEntity.curstate.animtime;
 
 	const mstudioseqdesc_t* pseqdesc = pstudiohdr->getSequence(sequenceIndex);
 	if(pseqdesc)
-		m_viewEntity.latched.frame = VBM_EstimateFrame(pseqdesc, m_viewEntity.curstate, m_time);
+		m_viewEntity.latched.frame = VBM_EstimateFrame(pseqdesc, m_time, m_viewEntity.curstate.frame, m_viewEntity.curstate.animtime, m_viewEntity.curstate.framerate, m_viewEntity.curstate.effects);
 
 	m_viewEntity.latched.sequencetime = m_time;
 

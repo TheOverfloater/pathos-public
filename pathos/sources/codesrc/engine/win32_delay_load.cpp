@@ -8,6 +8,8 @@ All Rights Reserved.
 ===============================================
 */
 
+#include "includes.h"
+
 /*
 ===============================================
 Description:
@@ -30,13 +32,18 @@ Other libraries (like OpenAL) are handled by SDL itself so it's unnecessary to a
 #define ARCH_LIBRARY_PATH "x86"
 #endif
 
-// Utility function to show error message boxes.
-// Pass "nullptr" to "szProcedure" if SDL2 is being loaded and said loading fails.
-// Or if it's already been loaded and we're trying to access a corrupted/unknown function or whatever,
-// pass its name in "szProcedure".
-static void ShowLibraryError(const char *szProcedure)
+//=============================================
+// @brief Utility function to show error message boxes.
+// Pass "nullptr" to "szProcedure" if SDL2 is being loaded 
+// and said loading fails. Or if it's already been loaded 
+// and we're trying to access a corrupted/unknown function 
+// or whatever, pass its name in "szProcedure".
+//
+// @param szProcedure Name of the procedure
+//=============================================
+static void ShowLibraryError( const Char *szProcedure )
 {
-	char szBuffer[512];
+	Char szBuffer[512];
 	if (szProcedure)
 		wsprintfA(szBuffer, "The procedure \"%s\" is missing from the \"SDL2.dll\" library.\n\nThe library itself could be obsolete, corrupted or too new.", szProcedure);
 	else
@@ -45,9 +52,15 @@ static void ShowLibraryError(const char *szProcedure)
 	MessageBoxA(nullptr, szBuffer, "Fatal Error", MB_OK | MB_ICONHAND);
 }
 
-// The actual delay load mechanism.
-// Since there is no need to deal with Unicode, we can use the ANSI version of WinAPI directly.
-static FARPROC WINAPI DelayLoadNotifyHook(unsigned dliNotify, PDelayLoadInfo pdli)
+//=============================================
+// @brief The actual delay load mechanism.
+// Since there is no need to deal with Unicode, 
+// we can use the ANSI version of WinAPI directly.
+//
+// @param dliNotify 
+// @param pdli
+//=============================================
+static FARPROC WINAPI DelayLoadNotifyHook( Uint32 dliNotify, PDelayLoadInfo pdli )
 {
 	if (dliNotify != dliNotePreLoadLibrary || _stricmp(pdli->szDll, "SDL2.dll") != 0)
 		return nullptr;
@@ -59,8 +72,13 @@ static FARPROC WINAPI DelayLoadNotifyHook(unsigned dliNotify, PDelayLoadInfo pdl
 	return reinterpret_cast<FARPROC>(hSDL2);
 }
 
-// The failure mechanism.
-static FARPROC WINAPI DelayLoadFailureHook(unsigned dliNotify, PDelayLoadInfo pdli)
+//=============================================
+// @brief The failure mechanism.
+//
+// @param dliNotify 
+// @param pdli
+//=============================================
+static FARPROC WINAPI DelayLoadFailureHook( Uint32 dliNotify, PDelayLoadInfo pdli )
 {
 	if (_stricmp(pdli->szDll, "SDL2.dll") != 0)
 		return nullptr;

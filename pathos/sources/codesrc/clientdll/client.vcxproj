@@ -283,6 +283,7 @@
     <ClInclude Include="..\shared\uischema.h" />
     <ClInclude Include="..\shared\vbm_shared.h" />
     <ClInclude Include="..\shared\vcontroller_shared.h" />
+    <ClInclude Include="..\shared\weapons_shared.h" />
     <ClInclude Include="animevents.h" />
     <ClInclude Include="clientdll.h" />
     <ClInclude Include="clshared.h" />

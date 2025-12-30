@@ -37,7 +37,7 @@ void BSP_SetNodeParent( mnode_t* pnode, mnode_t* pparent )
 // @brief
 //
 //=============================================
-bool BSP_CalcSurfaceExtents( msurface_t* psurf, brushmodel_t& model )
+bool BSP_CalcSurfaceExtents( msurface_t* psurf, brushmodel_t& model, Uint32 maxextents )
 {
 	Vector vmins = NULL_MINS;
 	Vector vmaxs = NULL_MAXS;
@@ -95,7 +95,7 @@ bool BSP_CalcSurfaceExtents( msurface_t* psurf, brushmodel_t& model )
 		psurf->texturemins[i] = boundsmin*psurf->lightmapdivider;
 		psurf->extents[i] = (boundsmax - boundsmin) * psurf->lightmapdivider;
 
-		if(!(ptexinfo->flags & TEXFLAG_SPECIAL) && psurf->extents[i] > MAX_SURFACE_EXTENTS)
+		if(!(ptexinfo->flags & TEXFLAG_SPECIAL) && psurf->extents[i] > (maxextents*psurf->lightmapdivider))
 		{
 			Con_EPrintf("%s: Bad surface extents.\n", __FUNCTION__);
 			return false;
@@ -108,7 +108,7 @@ bool BSP_CalcSurfaceExtents( msurface_t* psurf, brushmodel_t& model )
 		psurf->base_texturemins[i] = boundsmin*psurf->base_samplesize;
 		psurf->base_extents[i] = (boundsmax - boundsmin) * psurf->base_samplesize;
 
-		if(!(ptexinfo->flags & TEXFLAG_SPECIAL) && psurf->extents[i] > MAX_SURFACE_EXTENTS)
+		if(!(ptexinfo->flags & TEXFLAG_SPECIAL) && psurf->extents[i] > maxextents)
 		{
 			Con_EPrintf("%s: Bad surface extents.\n", __FUNCTION__);
 			return false;

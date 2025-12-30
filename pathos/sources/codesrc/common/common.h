@@ -253,7 +253,5 @@ namespace Common
 
 	extern inline bool ValueInRange( Float comparisonValue, Float referenceValue, Float rangeMax );
 };
-
 #include "common_inline.hpp"
-
 #endif

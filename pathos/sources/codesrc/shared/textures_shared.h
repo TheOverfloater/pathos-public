@@ -177,10 +177,16 @@ struct en_material_t
 };
 
 // Path to world textures
-static const Char WORLD_TEXTURES_PATH_BASE[] = "world/";
-// Path to world textures
 static const Char PMF_FORMAT_EXTENSION[] = ".pmf";
 // Base texture path
 static const Char TEXTURE_BASE_DIRECTORY_PATH[] = "textures/";
+// Materials scripts base path
+static const Char MODEL_MATERIALS_BASE_PATH[] = "models/";
+// Path to world textures
+static const Char WORLD_TEXTURES_PATH_BASE[] = "world/";
 
+extern inline CString GetMapTexturePath( const Char* pstrFolderName, const Char* pstrTextureName );
+extern inline CString GetModelTexturePath( const Char* pstrModelName, const Char* pstrTextureName );
+
+#include "textures_shared_inline.hpp"
 #endif // TEXTURES_SHARED_H

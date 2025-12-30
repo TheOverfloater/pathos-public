@@ -1881,6 +1881,9 @@ bool CDynamicLightManager::ShouldRedrawShadowMap( cl_dlight_t *dl, dlight_scenei
 			&& pvisentity->pmodel->type != MOD_BRUSH)
 			continue;
 
+		if(pvisentity->curstate.renderfx == RenderFx_NoShadow)
+			continue;
+
 		// Only static objects
 		if(isstatic)
 		{

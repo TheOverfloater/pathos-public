@@ -483,7 +483,7 @@ bool PBSPV1_LoadFaces( const byte* pfile, brushmodel_t& model, const dpbspv1lump
 		Int32 texinfoindex = pinfaces[i].texinfo;
 		pout->ptexinfo = &model.ptexinfos[texinfoindex];
 		
-		if(!BSP_CalcSurfaceExtents(pout, model))
+		if(!BSP_CalcSurfaceExtents(pout, model, PBSPV1_MAX_SURFACE_EXTENTS))
 			return false;
 
 		for(Uint32 j = 0; j < MAX_SURFACE_STYLES; j++)

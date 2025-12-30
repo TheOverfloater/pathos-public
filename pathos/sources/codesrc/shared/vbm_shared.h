@@ -10,9 +10,6 @@ All Rights Reserved.
 #ifndef VBM_SHARED_H
 #define VBM_SHARED_H
 
-// Materials scripts base path
-static const Char MODEL_MATERIALS_BASE_PATH[] = "models/";
-
 // Notes:
 // Part of this implementation is referenced from the implementation in the Half-Life SDK
 // The studiomodel format is Valve's original work, and I take no ownership of it
@@ -46,7 +43,7 @@ extern void VBM_InterpolateBones( const studiohdr_t* phdr, const CArray<vec4_t>&
 extern const mstudioanim_t* VBM_GetAnimation( const studiohdr_t* phdr, const mstudioseqdesc_t* psequencedesc );
 extern void VBM_CalculateBoneQuaternion( Int32 frame, Float interpolant, const mstudiobone_t* pbone, const mstudioanim_t* panimation, const Float* padj, vec4_t& quaternion );
 extern void VBM_CalculateBonePosition( Int32 frame, Float interpolant, const mstudiobone_t* pbone, const mstudioanim_t* panimation, const Float* padj, Vector& outpos );
-extern Float VBM_EstimateFrame( const mstudioseqdesc_t* pseqdesc, const entity_state_t& entitystate, Double time );
+extern Float VBM_EstimateFrame( const mstudioseqdesc_t* pseqdesc, Double time, Float entframe, Double animtime, Float framerate, Int64 effects );
 extern bool VBM_HasTransparentParts( vbmheader_t* pvbmheader, Uint64 body, Int32 skin );
 extern void VBM_NormalizeWeights( Float* pflweights, Uint32 maxweights );
 extern Int32 VBM_FindSequence( const studiohdr_t* pstudiohdr, const Char* pstrsequencename );

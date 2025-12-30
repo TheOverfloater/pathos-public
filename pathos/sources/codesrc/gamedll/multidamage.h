@@ -54,7 +54,6 @@ public:
 	void AddDamage( CBaseEntity* pentity, Float damage, Int32 dmgtype, hitgroups_t hitgroup = HITGROUP_GENERIC );
 
 	void SetDamageFlags( Int32 dmgtype );
-	const Vector& GetAttackDirection( void ) const;
 	Uint32 GetShotCount( void ) const;
 	bullet_types_t GetBulletType( void ) const;
 	const Vector& GetShotDirection( void ) const;
@@ -80,8 +79,6 @@ private:
 
 	// Attack origin
 	Vector m_attackOrigin;
-	// Attack direction for current entity(angle gun was shot at)
-	Vector m_attackDirection;
 	// Damage direction(dir from attack origin to target center)
 	Vector m_damageDirection;
 };

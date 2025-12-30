@@ -41,6 +41,7 @@ static constexpr Uint32 PBSPV2_MAX_LIGHTMAPS			= 4;
 static constexpr Uint32 PBSPV2_LM_SAMPLE_SIZE			= 16;
 static constexpr Uint32 PBSPV2_NUM_AMBIENTS				= 4;
 static constexpr Uint32 PBSPV2_VERSION					= 2;
+static constexpr Uint32 PBSPV2_MAX_SURFACE_EXTENTS		= 1024;
 
 //
 // BSP lumps

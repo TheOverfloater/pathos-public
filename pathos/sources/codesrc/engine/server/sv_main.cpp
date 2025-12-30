@@ -131,6 +131,7 @@ static gdll_engfuncs_t GAMEDLL_ENGINE_FUNCTIONS =
 	SV_FunctionFromName,				//pfnFunctionFromName
 	Engine_GetMaterialScript,			//pfnGetMaterialScript
 	SV_GetMapTextureMaterial,			//pfnGetMapTextureMaterialScript
+	SV_GetModelTextureMaterial,			//pfnGetModelTextureMaterialScript
 	SV_AllocString,						//pfnAllocString
 	SV_GetString,						//pfnGetString
 	Save_WriteBool,						//pfnSaveWriteBool
@@ -459,6 +460,98 @@ void SV_LinkMapTextureMaterials( CArray<CString>& wadList )
 		}
 		else
 			Con_Printf("%s - Failed to find material file for world texture '%s'.\n", __FUNCTION__, ens.pworld->ptextures[i].name.c_str());
+	}
+}
+
+//=============================================
+//
+//=============================================
+void SV_LinkModelTextureMaterials( void )
+{
+	if(!svs.modelmaterialfilesarray.empty())
+		svs.modelmaterialfilesarray.clear();
+
+	if(!svs.modelmaterialfilesnamemaparray.empty())
+		svs.modelmaterialfilesnamemaparray.clear();
+
+	Uint32 nbCachedModels = gModelCache.GetNbCachedModels();
+	svs.modelmaterialfilesarray.resize(nbCachedModels);
+	svs.modelmaterialfilesnamemaparray.resize(nbCachedModels);
+
+	for(Uint32 i = 0; i < nbCachedModels; i++)
+	{
+		const cache_model_t* pmodel = gModelCache.GetModelByIndex(i+1);
+		if(pmodel->type != MOD_VBM)
+			continue;
+
+		const vbmcache_t* pvbmcache = pmodel->getVBMCache();
+		if(!pvbmcache)
+			continue; // Shouldn't possibly happen
+		
+		// Get textures from VBM
+		const vbmheader_t* pvbmheader = pvbmcache->pvbmhdr;
+		for(Uint32 j = 0; j < pvbmheader->numtextures; j++)
+		{
+			const vbmtexture_t* ptexture = pvbmheader->getTexture(j);
+
+			CString texbasename;
+			Common::Basename(ptexture->name, texbasename);
+
+			CString materialscriptpath = GetModelTexturePath(pmodel->name.c_str(), texbasename.c_str());
+			CString fullpath;
+			fullpath << TEXTURE_BASE_DIRECTORY_PATH << materialscriptpath;
+
+			if(FL_FileExists(fullpath.c_str()))
+			{
+				maptexturematerial_t newmat;
+				newmat.maptexturename = texbasename;
+				newmat.materialfilepath = materialscriptpath;
+
+				Uint32 insertindex = svs.modelmaterialfilesarray[i].size();
+				svs.modelmaterialfilesarray[i].push_back(newmat);
+				svs.modelmaterialfilesnamemaparray[i].insert(std::pair<CString, Uint32>(texbasename.c_str(), insertindex));
+			}
+			else
+			{
+				Con_Printf("%s - Failed to find material file for texture '%s' for model '%s'.\n", __FUNCTION__, texbasename.c_str(), pmodel->name.c_str());
+			}
+		}
+
+		// Get textures from VBM
+		if(pvbmcache->pmcdheader)
+		{
+			const mcdheader_t* pmcdheader = pvbmcache->pmcdheader;
+			for(Uint32 j = 0; j < pmcdheader->numtextures; j++)
+			{
+				const mcdtexture_t* ptexture = pmcdheader->getTexture(j);
+
+				CString texbasename;
+				Common::Basename(ptexture->name, texbasename);
+
+				const CacheNameIndexMap_t& nameMap = svs.modelmaterialfilesnamemaparray[i];
+				if(nameMap.find(texbasename.c_str()) != nameMap.end())
+					continue;
+
+				CString materialscriptpath = GetModelTexturePath(pmodel->name.c_str(), texbasename.c_str());
+				CString fullpath;
+				fullpath << TEXTURE_BASE_DIRECTORY_PATH << materialscriptpath;
+
+				if(FL_FileExists(fullpath.c_str()))
+				{
+					maptexturematerial_t newmat;
+					newmat.maptexturename = texbasename;
+					newmat.materialfilepath = materialscriptpath;
+
+					Uint32 insertindex = svs.modelmaterialfilesarray[i].size();
+					svs.modelmaterialfilesarray[i].push_back(newmat);
+					svs.modelmaterialfilesnamemaparray[i].insert(std::pair<CString, Uint32>(texbasename.c_str(), insertindex));
+				}
+				else
+				{
+					Con_Printf("%s - Failed to find material file for texture '%s' for model '%s'.\n", __FUNCTION__, texbasename.c_str(), pmodel->name.c_str());
+				}
+			}
+		}
 	}
 }
 
@@ -916,6 +1009,9 @@ bool SV_SpawnGame( const Char* pstrLevelName, const Char* pstrSaveFile, const Ch
 		Con_EPrintf("%s - Failed to initialize WAD resources.\n", __FUNCTION__);
 	}
 
+	// Link model textures also
+	SV_LinkModelTextureMaterials();
+
 	// Set paused state
 	Sys_SetPaused(false, false);
 
@@ -1111,6 +1207,12 @@ void SV_ClearGame(  bool clearloadingscreen, bool clearconnections )
 
 	if(!svs.mapmaterialfilesnamemap.empty())
 		svs.mapmaterialfilesnamemap.clear();
+
+	if(!svs.modelmaterialfilesarray.empty())
+		svs.modelmaterialfilesarray.clear();
+
+	if(!svs.modelmaterialfilesnamemaparray.empty())
+		svs.modelmaterialfilesnamemaparray.clear();
 
 	if(!svs.decalcache.empty())
 		svs.decalcache.clear();
@@ -1353,9 +1455,12 @@ void SV_RunCmd( usercmd_t& cmd, sv_client_t& cl )
 	cl.pminfo.oldangles = cl.pedict->state.viewangles;
 	cl.pminfo.playerstate = cl.pedict->state;
 
+
 	// Set client's view angles
 	if(!cl.pedict->state.fixangles)
+	{
 		cl.pminfo.playerstate.viewangles = cmd.viewangles;
+	}
 
 	Vector savedviewangles = cl.pminfo.playerstate.viewangles;
 
@@ -1364,12 +1469,17 @@ void SV_RunCmd( usercmd_t& cmd, sv_client_t& cl )
 
 	cl.pedict->state = cl.pminfo.playerstate;
 
-	// Restore saved view angles
+	// If fixangles is set, restore previous view angles
 	if(cl.pedict->state.fixangles)
 		cl.pedict->state.viewangles = savedviewangles;
 
+	// Set angles based on view angles
 	cl.pedict->state.angles = cl.pedict->state.viewangles;
-	cl.pedict->state.angles[PITCH] = -cl.pedict->state.angles[PITCH];
+	
+	// If fixangles is not set, show only a third of the actual angles
+	if(!cl.pedict->state.fixangles)
+		cl.pedict->state.angles[PITCH] = (cl.pedict->state.angles[PITCH] / 3.0f) * -1.0f;
+
 	cl.pedict->state.oldbuttons = cmd.buttons;
 
 	// Run impact function for any entities we touched
@@ -1737,10 +1847,25 @@ bool SV_SpawnClient( sv_client_t& cl )
 	}
 
 	// Set view angles and make them be reset
-	cl.pedict->state.viewangles = cl.pedict->state.angles;
+	if(!svs.saverestore)
+	{
+		// We are spawning anew, so set the view angles to the entity
+		// angles, this way we'll spawn facing where our spawn point
+		// was facing.
+		cl.pedict->state.viewangles = cl.pedict->state.angles;
+	}
+	else
+	{
+		// If save-restoring, set entity angles to view angles, so that
+		// the view angle is not modified when fixangles is set. This will
+		// be corrected after pmove is executed, to the one-third reverse
+		// angle
+		cl.pedict->state.angles = cl.pedict->state.viewangles;
+	}
+
+	cl.pedict->state.fixangles = true;
 	cl.pedict->state.flags &= ~FL_DORMANT;
 	cl.pedict->state.flags |= FL_CLIENT;
-	cl.pedict->state.fixangles = true;
 	cl.pedict->clientindex = cl.index;
 
 	// Spawn the client
@@ -2031,7 +2156,7 @@ bool SV_GetBonePositionByName( edict_t* pedict, const Char* pstrbonename, Vector
 	if(!pseqdesc)
 		return false;
 
-	Float frame = VBM_EstimateFrame(pseqdesc, pedict->state, svs.time);
+	Float frame = VBM_EstimateFrame(pseqdesc, svs.time, pedict->state.frame, pedict->state.animtime, pedict->state.framerate, pedict->state.effects);
 
 	if(!pedict->pvbmhulldata)
 		pedict->pvbmhulldata = new entity_vbmhulldata_t;
@@ -2102,7 +2227,7 @@ bool SV_GetBonePositionByIndex( edict_t* pedict, Uint32 boneindex, Vector& posit
 	if(!pseqdesc)
 		return false;
 
-	Float frame = VBM_EstimateFrame(pseqdesc, pedict->state, svs.time);
+	Float frame = VBM_EstimateFrame(pseqdesc, svs.time, pedict->state.frame, pedict->state.animtime, pedict->state.framerate, pedict->state.effects);
 
 	if(!pedict->pvbmhulldata)
 		pedict->pvbmhulldata = new entity_vbmhulldata_t;
@@ -2183,7 +2308,7 @@ bool SV_GetAttachment( edict_t* pedict, Uint32 index, Vector& position )
 	if(!pseqdesc)
 		return false;
 
-	Float frame = VBM_EstimateFrame(pseqdesc, pedict->state, svs.time);
+	Float frame = VBM_EstimateFrame(pseqdesc, svs.time, pedict->state.frame, pedict->state.animtime, pedict->state.framerate, pedict->state.effects);
 
 	if(!pedict->pvbmhulldata)
 		pedict->pvbmhulldata = new entity_vbmhulldata_t;
@@ -2213,11 +2338,31 @@ bool SV_GetAttachment( edict_t* pedict, Uint32 index, Vector& position )
 //=============================================
 const en_material_t* SV_GetMapTextureMaterial( const Char* pstrtexturename )
 {
-	unordered_map<CString, Uint32>::iterator it = svs.mapmaterialfilesnamemap.find(pstrtexturename);
+	unordered_map<CString, Uint32>::const_iterator it = svs.mapmaterialfilesnamemap.find(pstrtexturename);
 	if(it != svs.mapmaterialfilesnamemap.end())
 	{
 		CTextureManager* pTextureManager = CTextureManager::GetInstance();
 		return pTextureManager->FindMaterialScript(svs.mapmaterialfiles[it->second].materialfilepath.c_str(), RS_GAME_LEVEL);
+	}
+	else
+		return nullptr;
+}
+
+//=============================================
+//
+//=============================================
+const en_material_t* SV_GetModelTextureMaterial( Int32 modelindex, const Char* pstrtexturename )
+{
+	Int32 realindex = (modelindex - 1);
+	if(realindex < 0 || svs.modelmaterialfilesnamemaparray.size() <= realindex)
+		return nullptr;
+
+	const CacheNameIndexMap_t& modelTextureMap = svs.modelmaterialfilesnamemaparray[realindex];
+	unordered_map<CString, Uint32>::const_iterator it = modelTextureMap.find(pstrtexturename);
+	if(it != modelTextureMap.end())
+	{
+		CTextureManager* pTextureManager = CTextureManager::GetInstance();
+		return pTextureManager->FindMaterialScript(svs.modelmaterialfilesarray[realindex][it->second].materialfilepath.c_str(), RS_GAME_LEVEL);
 	}
 	else
 		return nullptr;

@@ -180,7 +180,7 @@ bool CWADTextureResource::Init( const Char* pstrBSPName, const CArray<CString>& 
 			if(plump->type != 0 && !(plump->type & 0x43))
 				continue;
 
-			const dmiptex_t *pmiptex = reinterpret_cast<const dmiptex_t*>(m_pWADFilesArray[i].pwadfile + plump->filepos);
+			const dmiptex_t *pmiptex = reinterpret_cast<const dmiptex_t*>(wad.pwadfile + plump->filepos);
 			if(!pmiptex->offsets[0])
 				continue;
 

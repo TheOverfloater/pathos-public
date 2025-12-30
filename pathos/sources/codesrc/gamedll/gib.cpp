@@ -255,7 +255,7 @@ void CGib::SpawnRandomGibs( CBaseEntity* pVictim, Uint32 nbGibs, const Vector* p
 		}
 		else
 		{
-			Math::VectorScale(gMultiDamage.GetAttackDirection(), -1, velocity);
+			Math::VectorScale(gMultiDamage.GetDamageDirection(), -1, velocity);
 		}
 
 		for(Uint32 j = 0; j < 3; j++)
@@ -367,7 +367,7 @@ void CGib::SpawnChestGib( CBaseEntity* pVictim, const Vector* pflCenter, Float m
 	}
 	else
 	{
-		Math::VectorScale(gMultiDamage.GetAttackDirection(), -1, velocity);
+		Math::VectorScale(gMultiDamage.GetDamageDirection(), -1, velocity);
 	}
 
 	Vector avelocity(Common::RandomFloat(50, 100),

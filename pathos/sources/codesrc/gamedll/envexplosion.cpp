@@ -22,7 +22,8 @@ CEnvExplosion::CEnvExplosion( edict_t* pedict ):
 	CPointEntity(pedict),
 	m_magnitude(0),
 	m_dmgRadius(0),
-	m_dmgAmount(0)
+	m_dmgAmount(0),
+	m_pWeapon(nullptr)
 {
 }
 
@@ -163,7 +164,7 @@ void CEnvExplosion::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usem
 	if(!HasSpawnFlag(FL_NO_DAMAGE))
 	{
 		CBaseEntity* pInflictor = m_inflictor ? m_inflictor : this;
-		RadiusDamage(explosionPosition, pInflictor, m_attacker, m_dmgAmount, m_dmgRadius, CLASS_UNDEFINED, (DMG_EXPLOSION|DMG_BLOWBACK));
+		RadiusDamage(explosionPosition, pInflictor, m_attacker, m_dmgAmount, m_dmgRadius, CLASS_UNDEFINED, (DMG_EXPLOSION|DMG_BLOWBACK), m_gibEntity, m_pWeapon);
 	}
 
 	// Spawn smoke if set
@@ -269,7 +270,25 @@ void CEnvExplosion::SetInflictor( CBaseEntity* pInflictor )
 // @brief
 //
 //=============================================
-void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angles, Int32 magnitude, bool dodamage, CBaseEntity* pAttacker, CBaseEntity* pInflictor )
+void CEnvExplosion::SetGibEntity( CBaseEntity* pEntity )
+{
+	m_gibEntity = pEntity;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CEnvExplosion::SetWeapon( CPlayerWeapon* pWeapon )
+{
+	m_pWeapon = pWeapon;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angles, Int32 magnitude, bool dodamage, CBaseEntity* pAttacker, CBaseEntity* pInflictor, CBaseEntity* pHitEntity, CPlayerWeapon* pWeapon )
 {
 	CEnvExplosion* pExplosion = reinterpret_cast<CEnvExplosion*>(CBaseEntity::CreateEntity("env_explosion", origin, angles, nullptr));
 	if(!pExplosion)
@@ -281,6 +300,8 @@ void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angl
 	pExplosion->SetMagnitude(magnitude);
 	pExplosion->SetAttacker(pAttacker);
 	pExplosion->SetInflictor(pInflictor);
+	pExplosion->SetGibEntity(pHitEntity);
+	pExplosion->SetWeapon(pWeapon);
 
 	if(!pExplosion->Spawn())
 	{
@@ -296,7 +317,7 @@ void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angl
 // @brief
 //
 //=============================================
-void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angles, Float radius, Float dmgamount, bool dodamage, CBaseEntity* pAttacker, CBaseEntity* pInflictor )
+void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angles, Float radius, Float dmgamount, bool dodamage, CBaseEntity* pAttacker, CBaseEntity* pInflictor, CBaseEntity* pHitEntity, CPlayerWeapon* pWeapon )
 {
 	CEnvExplosion* pExplosion = reinterpret_cast<CEnvExplosion*>(CBaseEntity::CreateEntity("env_explosion", origin, angles, nullptr));
 	if(!pExplosion)
@@ -309,6 +330,8 @@ void CEnvExplosion::CreateEnvExplosion( const Vector& origin, const Vector& angl
 	pExplosion->SetDamageAmount(dmgamount);
 	pExplosion->SetAttacker(pAttacker);
 	pExplosion->SetInflictor(pInflictor);
+	pExplosion->SetGibEntity(pHitEntity);
+	pExplosion->SetWeapon(pWeapon);
 
 	if(!pExplosion->Spawn())
 	{

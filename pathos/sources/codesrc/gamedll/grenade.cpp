@@ -31,7 +31,8 @@ CGrenade::CGrenade( edict_t* pedict ):
 	m_explodeDelay(0),
 	m_emittedNPCSound(false),
 	m_damageAmount(0),
-	m_damageRadius(0)
+	m_damageRadius(0),
+	m_pWeapon(nullptr)
 {
 }
 
@@ -186,6 +187,10 @@ void CGrenade::ExplodeTouch( CBaseEntity* pOther )
 		return;
 	}
 
+	// Remember who we hit
+	m_hitEntity = pOther;
+
+	// Make us explode
 	Explode();
 }
 
@@ -197,7 +202,7 @@ void CGrenade::Explode( void )
 {
 	// Create the explosion
 	CEnvExplosion::CreateEnvExplosion(m_pState->origin, m_pState->angles, 
-		m_damageRadius, m_damageAmount, true, m_attacker, this);
+		m_damageRadius, m_damageAmount, true, m_attacker, this, m_hitEntity, m_pWeapon);
 
 	// Disable visibility and collisions
 	m_pState->effects |= EF_NODRAW;
@@ -303,7 +308,16 @@ void CGrenade::SetAttacker( CBaseEntity* pAttacker )
 // @brief
 //
 //=============================================
-CGrenade* CGrenade::CreateTimed( CBaseEntity* pOwner, const Vector& origin, const Vector& velocity, Float time, Float radius, Float damage, bool contactDelayCountdown )
+void CGrenade::SetWeapon( CPlayerWeapon* pWeapon )
+{
+	m_pWeapon = pWeapon;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+CGrenade* CGrenade::CreateTimed( CBaseEntity* pOwner, const Vector& origin, const Vector& velocity, Float time, Float radius, Float damage, bool contactDelayCountdown, CPlayerWeapon* pWeapon )
 {
 	CGrenade* pGrenade = reinterpret_cast<CGrenade*>(CBaseEntity::CreateEntity("grenade", pOwner));
 	if(!pGrenade->Spawn())
@@ -320,6 +334,7 @@ CGrenade* CGrenade::CreateTimed( CBaseEntity* pOwner, const Vector& origin, cons
 
 	pGrenade->SetOwner(pOwner);
 	pGrenade->SetAttacker(pOwner);
+	pGrenade->SetWeapon(pWeapon);
 	pGrenade->SetTouch(&CGrenade::BounceTouch);
 
 	if(!contactDelayCountdown)
@@ -361,7 +376,7 @@ CGrenade* CGrenade::CreateTimed( CBaseEntity* pOwner, const Vector& origin, cons
 // @brief
 //
 //=============================================
-CGrenade* CGrenade::CreateContact( CBaseEntity* pOwner, const Vector& origin, const Vector& velocity, Float radius, Float damage )
+CGrenade* CGrenade::CreateContact( CBaseEntity* pOwner, const Vector& origin, const Vector& velocity, Float radius, Float damage, CPlayerWeapon* pWeapon )
 {
 	CGrenade* pGrenade = reinterpret_cast<CGrenade*>(CBaseEntity::CreateEntity("grenade", pOwner));
 	if(!pGrenade->Spawn())
@@ -374,6 +389,7 @@ CGrenade* CGrenade::CreateContact( CBaseEntity* pOwner, const Vector& origin, co
 	pGrenade->SetOrigin(origin);
 	pGrenade->SetVelocity(velocity);
 	pGrenade->SetAttacker(pOwner);
+	pGrenade->SetWeapon(pWeapon);
 
 	Vector angles = Math::VectorToAngles(velocity);
 	pGrenade->SetAngles(angles);

@@ -66,6 +66,7 @@ CPlayerWeapon::CPlayerWeapon( edict_t* pedict ):
 	m_isDuplicate(false),
 	m_hasDual(false),
 	m_firstDraw(false),
+	m_playedFidgetAnimation(false),
 	m_nextThinkTime(0),
 	m_nextAttackTime(0),
 	m_nextIdleTime(0),
@@ -243,7 +244,9 @@ bool CPlayerWeapon::ExtractAmmo( CPlayerWeapon* pWeapon )
 	if(pstrAmmoTypeName)
 	{
 		result = pWeapon->AddAmmo(m_defaultAmmo, pstrAmmoTypeName, GetMaxClip(), GetMaxAmmo(), this);
-		m_defaultAmmo = 0;
+
+		if(result)
+			m_defaultAmmo = 0;
 	}
 
 	return result;
@@ -453,7 +456,8 @@ bool CPlayerWeapon::AddAmmo( Int32 count, const Char* pstrname, Int32 maxclip, I
 
 		// Play sound and add hud msg if needed
 		if (!pWeapon->HasSpawnFlag(CPlayerWeapon::FL_WEAPON_NO_NOTICE)
-			&& numgive == 0 && clipgive != 0 && pWeapon != this)
+			&& numgive == 0 && clipgive != 0 && pWeapon != this
+			&& !qstrcmp(pWeapon->GetClassName(), GetClassName()))
 		{
 			Util::EmitEntitySound(m_pPlayer, AMMO_PICKUP_SOUND, SND_CHAN_ITEM);
 

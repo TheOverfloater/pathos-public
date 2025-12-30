@@ -20,8 +20,10 @@ class CEnvELight : public CPointEntity
 public:
 	enum
 	{
-		FL_START_ON = (1<<0)
+		FL_START_ON = (1<<0),
+		FL_NO_VIS	= (1<<1)
 	};
+
 public:
 	explicit CEnvELight( edict_t* pedict );
 	virtual ~CEnvELight( void );

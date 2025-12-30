@@ -154,7 +154,7 @@ Float CViewController::EstimateFrame( cl_entity_t *pentity, Int32 sequence, Floa
 	}
 
 	const mstudioseqdesc_t *pseqdesc = pstudiohdr->getSequence(sequence);
-	return VBM_EstimateFrame(pseqdesc, pentity->curstate, flTime);
+	return VBM_EstimateFrame(pseqdesc, flTime, pentity->curstate.frame, pentity->curstate.animtime, pentity->curstate.framerate, pentity->curstate.effects);
 }
 
 //=============================================

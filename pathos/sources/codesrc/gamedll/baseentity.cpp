@@ -2296,6 +2296,22 @@ bool CBaseEntity::IsBrushModel( void ) const
 }
 
 //=============================================
+// @brief Tells if the model we use has an MCD file attached
+//
+//=============================================
+bool CBaseEntity::HasMCDCollisions( void ) const
+{
+	if(m_pState->modelindex == 0)
+		return false;
+
+	const cache_model_t* pmodel = gd_engfuncs.pfnGetModel(m_pState->modelindex);
+	if(!pmodel)
+		return false;
+
+	return (pmodel->type == MOD_VBM && (pmodel->cacheflags & CACHE_FL_HAS_MCD)) ? true : false;
+}
+
+//=============================================
 // @brief
 //
 //=============================================

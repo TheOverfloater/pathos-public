@@ -195,8 +195,12 @@ struct entity_state_t
 		sequence(0),
 		gaitsequence(0),
 		frame(0),
+		gaitframe(0),
 		animtime(0),
+		gaitanimtime(0),
 		framerate(0),
+		gaityaw(0),
+		renderframe(0),
 		scale(0),
 		rendertype(RT_NORMAL),
 		rendermode(RENDER_NORMAL),
@@ -312,8 +316,13 @@ struct entity_state_t
 	Int32 gaitsequence;
 
 	Float frame;
+	Float gaitframe;
 	Double animtime;
+	Double gaitanimtime;
 	Float framerate;
+
+	Float gaityaw;
+	Int32 renderframe;
 
 	Float controllers[MAX_CONTROLLERS];
 	Float blending[MAX_BLENDING];

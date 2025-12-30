@@ -23,11 +23,18 @@ enum cmodel_type_t
 	MOD_VBM
 };
 
+enum cmodel_cacheflags_t
+{
+	CACHE_FL_NONE		= 0,
+	CACHE_FL_HAS_MCD	= (1<<0)
+};
+
 // Model cache structure
 struct cache_model_t
 {
 	cache_model_t():
 		flags(0),
+		cacheflags(0),
 		type(MOD_NONE),
 		cacheindex(0),
 		isloaded(false),
@@ -103,7 +110,8 @@ struct cache_model_t
 
 	// Model flags
 	Int32 flags;
-
+	// Cache flags
+	Int32 cacheflags;
 	// File path of the model
 	CString name;
 	// Model type

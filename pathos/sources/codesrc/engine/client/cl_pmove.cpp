@@ -238,7 +238,7 @@ void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 
 	// trace against world first
 	cl_entity_t* pworld = CL_GetEntityByIndex(WORLDSPAWN_ENTITY_INDEX);
-	TR_PlayerTraceSingleEntity(pworld->curstate, nullptr, start, end, hulltype, traceflags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
+	TR_PlayerTraceSingleEntity(pworld->curstate, nullptr, nullptr, start, end, hulltype, traceflags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
 
 	// Trace against entities if applicable
 	if(!(traceflags & FL_TRACE_WORLD_ONLY))
@@ -322,11 +322,19 @@ void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 			if(Math::CheckMinsMaxs(tracemins, tracemaxs, mins, maxs))
 				continue;
 
+			// Set VBM data if needed
+			const mcdheader_t* pmcdheader = nullptr;
+			if(pentity->pmodel->cacheflags & CACHE_FL_HAS_MCD)
+			{
+				const vbmcache_t* pvbmcache = pentity->pmodel->getVBMCache();
+				pmcdheader = pvbmcache->pmcdheader;
+			}
+
 			// Update VBM hull data if needed
-			if(pentity->pmodel->type == MOD_VBM && (pentity->pmodel->flags & STUDIO_MF_TRACE_HITBOX || traceflags & FL_TRACE_HITBOXES))
+			if(pentity->pmodel->type == MOD_VBM && (pentity->pmodel->flags & STUDIO_MF_TRACE_HITBOX || traceflags & FL_TRACE_HITBOXES) && !pmcdheader)
 				TR_VBMSetHullInfo(pentity->pvbmhulldata, pentity->pmodel, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], pentity->curstate, cls.cl_time, hulltype);
 
-			TR_PlayerTraceSingleEntity(pentity->curstate, pentity->pvbmhulldata, start, end, hulltype, traceflags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
+			TR_PlayerTraceSingleEntity(pentity->curstate, pentity->pvbmhulldata, pmcdheader, start, end, hulltype, traceflags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
 		}
 	}
 
@@ -377,7 +385,7 @@ void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 			if(Math::CheckMinsMaxs(tracemins, tracemaxs, mins, maxs))
 				continue;
 
-			TR_PlayerTraceSingleEntity(pentity->curstate, pentity->pvbmhulldata, start, end, hulltype, traceflags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
+			TR_PlayerTraceSingleEntity(pentity->curstate, pentity->pvbmhulldata, nullptr, start, end, hulltype, traceflags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
 		}
 	}
 }
@@ -439,7 +447,15 @@ Float CL_TraceModel( Int32 entity, const Vector& start, const Vector& end, hull_
 	if(!pentity)
 		return 0;
 
-	TR_PlayerTraceSingleEntity(pentity->curstate, pentity->pvbmhulldata, start, end, hulltype, flags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
+	// Set VBM data if needed
+	const mcdheader_t* pmcdheader = nullptr;
+	if(pentity->pmodel->cacheflags & CACHE_FL_HAS_MCD)
+	{
+		const vbmcache_t* pvbmcache = pentity->pmodel->getVBMCache();
+		pmcdheader = pvbmcache->pmcdheader;
+	}
+
+	TR_PlayerTraceSingleEntity(pentity->curstate, pentity->pvbmhulldata, pmcdheader, start, end, hulltype, flags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
 
 	return trace.fraction;
 }

@@ -135,7 +135,8 @@ bool CPlayerDualWeapon::AddAmmo( Int32 count, const Char* pstrname, Int32 maxcli
 
 		// Play sound and add hud msg if needed
 		if (!pWeapon->HasSpawnFlag(CPlayerWeapon::FL_WEAPON_NO_NOTICE)
-			&& numgive == 0 && clipgive != 0 && pWeapon != this)
+			&& numgive == 0 && clipgive != 0 && pWeapon != this
+			&& !qstrcmp(pWeapon->GetClassName(), GetClassName()))
 		{
 			Util::EmitEntitySound(m_pPlayer, AMMO_PICKUP_SOUND, SND_CHAN_ITEM);
 

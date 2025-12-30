@@ -4260,7 +4260,7 @@ smdl::bodypart_t* CStudioModelCompiler::AddBodyGroup( const Char* pstrGroupName 
 // @param scale Scale value for the LOD
 // @return TRUE if successful, FALSE otherwise
 //===============================================
-bool CStudioModelCompiler::AddSubmodel( smdl::bodypart_t* pBodyGroup, const Char* pstrSubmodelName, const Char* pstrVTAName, bool reverseTriangles, Float scale )
+bool CStudioModelCompiler::AddSubmodel( smdl::bodypart_t* pBodyGroup, const Char* pstrSubmodelName, const Char* pstrVTAName, const Char* pstrCollisonSMDName, bool reverseTriangles, Float scale )
 {
 	if(!qstrcicmp(pstrSubmodelName, "blank"))
 	{
@@ -4281,6 +4281,7 @@ bool CStudioModelCompiler::AddSubmodel( smdl::bodypart_t* pBodyGroup, const Char
 		smdl::submodel_t* pNew = new smdl::submodel_t();
 		pNew->name = pstrSubmodelName;
 		pNew->vtaname = pstrVTAName;
+		pNew->collisionsmdname = pstrCollisonSMDName;
 		pNew->reverseTriangles = reverseTriangles;
 		if(scale == -1)
 			pNew->scale = m_defaultScale;
@@ -4455,4 +4456,26 @@ Vector CStudioModelCompiler::ClipRotations( const Vector& input )
 		result[i] = CompilerMath::AngleModRadians(input[i]);
 
 	return result;
+}
+
+//===============================================
+// @brief Returns TRUE if we have collision data
+//
+// @return TRUE if we have a collision mesh, FALSE otherwise
+//===============================================
+bool CStudioModelCompiler::HasCollisionMeshes( void ) const
+{
+	for(Uint32 i = 0; i < m_pBodyPartsArray.size(); i++)
+	{
+		smdl::bodypart_t* pbodypart = m_pBodyPartsArray[i];
+		
+		for(Uint32 j = 0; j < pbodypart->psubmodels.size(); j++)
+		{
+			smdl::submodel_t* psubmodel = pbodypart->psubmodels[j];
+			if(!psubmodel->collisionsmdname.empty())
+				return true;
+		}
+	}
+
+	return false;
 }

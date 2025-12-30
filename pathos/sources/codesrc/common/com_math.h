@@ -59,6 +59,9 @@ namespace Math
 	extern inline void ConcatTransforms( const Float (*pin1)[4], const Float (*pin2)[4], Float (*pout)[4] );
 	extern inline void CopyMatrix( const Float (*pin)[4], Float (*pout)[4] );
 	extern inline Vector AdjustAnglesToNormal( const Vector& normal, const Vector& angles );
+	extern inline Float FindMinValueOf3( Float v1, Float v2, Float v3 );
+	extern inline Float FindMaxValueOf3( Float v1, Float v2, Float v3 );
+	extern inline void FindMinMaxValuesOf3( Float v1, Float v2, Float v3, Float& min, Float& max );
 };
 #include "com_math_inline.hpp"
 #endif //Common::MATH_H

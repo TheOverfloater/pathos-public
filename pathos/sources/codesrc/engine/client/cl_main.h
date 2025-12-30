@@ -211,6 +211,7 @@ struct clientstate_t
 		hasplayerentitydata(false),
 		cl_pingtime(0),
 		cl_time(0),
+		cl_oldtime(0),
 		cl_clsvtime(0),
 		frametime(0),
 		parsecount(0),
@@ -246,6 +247,8 @@ struct clientstate_t
 	Double cl_pingtime;
 	// Current time
 	Double cl_time;
+	// Previous frame's time
+	Double cl_oldtime;
 	// Server client time
 	Double cl_clsvtime;
 	// frametime
@@ -307,6 +310,11 @@ struct clientstate_t
 	// material name->index mappings
 	std::unordered_map<CString, Uint32> mapmaterialfilesnamemap;
 
+	// association of map textures/material scripts
+	CArray<CArray<maptexturematerial_t>> modelmaterialfilesarray;
+	// material name->index mappings
+	CArray<std::unordered_map<CString, Uint32>> modelmaterialfilesnamemaparray;
+
 	// Entity lights
 	entitylight_t entitylights[MAX_ENTITY_LIGHTS];
 
@@ -350,6 +358,7 @@ extern void CL_ClientCommand( const Char* pstrCommand );
 extern void CL_PrecacheFlexScript( enum flextypes_t npctype, const Char* pstrscript );
 extern void CL_SetFlexScript( entindex_t entindex, const Char* pstrscript );
 extern void CL_LinkMapTextureMaterials( CArray<CString>& wadList );
+extern void CL_LinkModelTextureMaterials( void );
 extern void CL_UpdateAttachments( cl_entity_t* pentity );
 
 extern Uint32 CL_GetMaxClients( void );

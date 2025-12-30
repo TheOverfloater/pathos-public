@@ -487,6 +487,12 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 		return;
 	}
 
+	if(pmodel->cacheflags & CACHE_FL_HAS_MCD)
+	{
+		// Entities with a collision mesh are handled by the engine
+		return;
+	}
+
 	if(m_entitiesArray.size() == MAX_SERVER_ENTITIES)
 	{
 		cl_engfuncs.pfnCon_Printf("%s - Exceeded MAX_SERVER_ENTITIES.\n", __FUNCTION__);

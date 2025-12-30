@@ -158,15 +158,6 @@ void CMultiDamage::SetDamageFlags( Int32 dmgtype )
 // @brief
 //
 //=============================================
-const Vector& CMultiDamage::GetAttackDirection( void ) const
-{
-	return m_attackDirection;
-}
-
-//=============================================
-// @brief
-//
-//=============================================
 const Vector& CMultiDamage::GetAttackOrigin( void ) const
 {
 	return m_attackOrigin;

@@ -34,7 +34,9 @@ struct latchedstates_t
 {
 	latchedstates_t():
 		animtime(0),
+		gaitanimtime(0),
 		sequencetime(0),
+		gaitsequencetime(0),
 		sequence(0),
 		frame(0)
 		{
@@ -44,7 +46,9 @@ struct latchedstates_t
 		}
 
 	Double animtime;
+	Double gaitanimtime;
 	Double sequencetime;
+	Double gaitsequencetime;
 
 	Vector origin;
 	Vector angles;
@@ -55,6 +59,8 @@ struct latchedstates_t
 	Float controllers[MAX_CONTROLLERS];
 	Float blending[MAX_BLENDING];
 	Float prevseqblending[MAX_BLENDING];
+
+	Vector prevgaitorigin;
 };
 
 struct glowstate_t

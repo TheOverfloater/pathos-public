@@ -359,6 +359,7 @@ namespace smdl
 		CString vtaname;
 		flexmodel_t *pflexmodel;
 
+		CString collisionsmdname;
 		Float scale;
 		bool reverseTriangles;
 	};
@@ -450,6 +451,7 @@ namespace smdl
 
 		CString submodelname;
 		CString flexname;
+		CString collisionsmdname;
 
 		bool reverseTriangles;
 		Float scale;
@@ -501,4 +503,99 @@ namespace vbm
 	};
 };
 
+// Datatypes used by MCD compiler
+namespace mcd
+{
+	struct bone_t
+	{
+		bone_t():
+			parentindex(NO_POSITION)
+		{}
+
+		CString name;
+		Vector position;
+		Vector rotation;
+		Int32 parentindex;
+	};
+
+	struct vertex_t
+	{
+		vertex_t():
+			boneindex(NO_POSITION)
+		{}
+
+		Vector origin;
+		Int32 boneindex;
+	};
+
+	struct triangle_t
+	{
+		triangle_t():
+			skinref(NO_POSITION)
+		{
+			for(Uint32 i = 0; i < 3; i++)
+				vertexes[i] = NO_POSITION;
+		}
+
+		Vector centroid;
+		Vector normal;
+		Uint32 vertexes[3];
+		Int32 skinref;
+	};
+
+	struct bvhnode_t
+	{
+		bvhnode_t():
+			index(NO_POSITION),
+			isleaf(false)
+		{
+			for(Uint32 i = 0; i < 2; i++)
+				childindexes[i] = NO_POSITION;
+		}
+
+		Int32 index;
+		Vector mins;
+		Vector maxs;
+
+		Int32 childindexes[2];
+		bool isleaf;
+
+		CArray<Int32> triindexesarray;
+	};
+
+	struct submodel_t
+	{
+		submodel_t();
+		~submodel_t();
+		void addTriangle( const triangle_t& triangle );
+		Int32 addVertex( const mcd::vertex_t& vertex );
+
+		CString name;
+
+		Vector mins;
+		Vector maxs;
+
+		CArray<triangle_t> triangles;
+		Uint32 nbtriangles;
+
+		CArray<vertex_t> vertexes;
+		Uint32 nbvertexes;
+
+		CArray<smdl::bone_node_t> nodes;
+		CArray<smdl::bone_t> bones;
+		CArray<Int32> boneimap;
+
+		CArray<bvhnode_t*> pbvhnodes;
+
+		bool reversetriangles;
+	};
+
+	struct bodypart_t
+	{
+		CString name;
+		Int32 base;
+
+		CArray<submodel_t*> psubmodels;
+	};
+};
 #endif //COMPILER_TYPES_H

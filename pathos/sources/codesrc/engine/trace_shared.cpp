@@ -18,6 +18,24 @@ All Rights Reserved.
 #include "edict.h"
 #include "enginestate.h"
 #include "vbmtrace.h"
+#include "mcdtrace.h"
+#include "sv_world.h"
+
+// Hull mins for tracehull
+Vector HULL_MINS[MAX_MAP_HULLS] = {
+	Vector(0.0f, 0.0f, 0.0f),		// Point hull
+	Vector(-16.0f, -16.0f, -36.0f),	// Human hull
+	Vector(-32.0f, -32.0f, -32.0f),	// Large hull
+	Vector(-16.0f, -16.0f, -18.0f)	// Small hull
+};
+
+// Hull maxs for tracehull
+Vector HULL_MAXS[MAX_MAP_HULLS] = {
+	Vector(0.0f, 0.0f, 0.0f),		// Point hull
+	Vector(16.0f, 16.0f, 36.0f),	// Human hull
+	Vector(32.0f, 32.0f, 32.0f),	// Large hull
+	Vector(16.0f, 16.0f, 18.0f)		// Small hull
+};
 
 // Box hull used by collision detection
 static mclipnode_t g_boxClipnodes[6];
@@ -142,39 +160,64 @@ const Char* TR_TraceTexture( const entity_state_t& entity, const Vector& start, 
 	const hull_t* phull = nullptr;
 
 	const cache_model_t* pmodel = Cache_GetModel(entity.modelindex);
-	if(pmodel->type != MOD_BRUSH)
+	if(pmodel->type == MOD_BRUSH)
 	{
-		Con_Printf("%s - Called on entity %d with model that is not a brush model.\n", __FUNCTION__, entity.entindex);
-		return nullptr;
+		Int32 firstnode = 0;
+		const brushmodel_t* pbrushmodel = pmodel->getBrushmodel();
+		if(entity.entindex > 0)
+		{
+			phull = TR_HullForBSP(entity, HULL_POINT, offset, ZERO_VECTOR);
+			Math::VectorSubtract(start, offset, start_l);
+			Math::VectorSubtract(end, offset, end_l);
+
+			firstnode = phull->firstclipnode;
+
+			if(!entity.angles.IsZero())
+			{
+				Math::RotateToEntitySpace(entity.angles, start_l);
+				Math::RotateToEntitySpace(entity.angles, end_l);
+			}
+		}
+		else
+		{
+			Math::VectorCopy(start, start_l);
+			Math::VectorCopy(end, end_l);
+		}
+
+		const msurface_t* psurface = Mod_SurfaceAtPoint(pbrushmodel, &pbrushmodel->pnodes[firstnode], start_l, end_l);
+		if(psurface)
+			return psurface->ptexinfo->ptexture->name.c_str();
+		else
+			return nullptr;
 	}
-
-	Int32 firstnode = 0;
-	const brushmodel_t* pbrushmodel = pmodel->getBrushmodel();
-	if(entity.entindex > 0)
+	else if(pmodel->type == MOD_VBM && (pmodel->cacheflags & CACHE_FL_HAS_MCD))
 	{
-		phull = TR_HullForBSP(entity, HULL_POINT, offset, ZERO_VECTOR);
-		Math::VectorSubtract(start, offset, start_l);
-		Math::VectorSubtract(end, offset, end_l);
-
-		firstnode = phull->firstclipnode;
+		Math::VectorSubtract(start, entity.origin, start_l);
+		Math::VectorSubtract(end, entity.origin, end_l);
 
 		if(!entity.angles.IsZero())
 		{
 			Math::RotateToEntitySpace(entity.angles, start_l);
 			Math::RotateToEntitySpace(entity.angles, end_l);
 		}
+
+		const vbmcache_t* pvbmcache = pmodel->getVBMCache();
+		assert(pvbmcache != nullptr);
+
+		const mcdheader_t* pmcdheader = pvbmcache->pmcdheader;
+		assert(pmcdheader != nullptr);
+
+		trace_t tr;
+		if(g_mcdTrace.TraceLinePoint(start_l, end_l, pmcdheader, entity.body, tr))
+			return g_mcdTrace.GetHitTextureName();
+		else
+			return nullptr;
 	}
 	else
 	{
-		Math::VectorCopy(start, start_l);
-		Math::VectorCopy(end, end_l);
+		Con_Printf("%s - Called on entity %d with model that is not a brush model or a VBM with an MCD file.\n", __FUNCTION__, entity.entindex);
+		return nullptr;
 	}
-
-	const msurface_t* psurface = Mod_SurfaceAtPoint(pbrushmodel, &pbrushmodel->pnodes[firstnode], start_l, end_l);
-	if(psurface)
-		return psurface->ptexinfo->ptexture->name.c_str();
-
-	return nullptr;
 }
 
 //=============================================
@@ -331,7 +374,48 @@ bool TR_RecursiveHullCheck( const hull_t* phull, Int32 clipnodeidx, Double p1f, 
 //=============================================
 //
 //=============================================
-void TR_PlayerTraceSingleEntity( const entity_state_t& entity, entity_vbmhulldata_t* pvbmhulldata, const Vector& start, const Vector& end, hull_types_t hulltype, Int32 traceflags, const Vector& player_mins, const Vector& player_maxs, trace_t& outtrace )
+hull_types_t TR_GetHullType( const Vector& mins, const Vector& maxs, hull_types_t hulltype )
+{
+	// If hulltype is specified, just give out hull
+	if(hulltype != HULL_AUTO)
+	{
+		if(hulltype >= MAX_MAP_HULLS || hulltype < 0 && hulltype != HULL_AUTO)
+		{
+			Con_Printf("%s - Bogus hull index %d.", __FUNCTION__, hulltype);
+			return HULL_NONE;
+		}
+		else
+		{
+			// Use the override, if it's valid
+			return hulltype;
+		}
+	}
+	else
+	{
+		// Auto-determine the override
+		Vector size;
+		Math::VectorSubtract(maxs, mins, size);
+
+		if(size[0] <= 8.0f)
+		{
+			return HULL_POINT;
+		}
+		else
+		{
+			if(size[0] > 36.0f)
+				return HULL_LARGE;
+			else if(size[2] > 36.0f)
+				return HULL_HUMAN;
+			else
+				return HULL_SMALL;
+		}
+	}
+}
+
+//=============================================
+//
+//=============================================
+void TR_PlayerTraceSingleEntity( const entity_state_t& entity, entity_vbmhulldata_t* pvbmhulldata, const mcdheader_t* pmcdheader, const Vector& start, const Vector& end, hull_types_t hulltype, Int32 traceflags, const Vector& player_mins, const Vector& player_maxs, trace_t& outtrace )
 {
 	Vector offset;
 	Vector mins;
@@ -362,9 +446,13 @@ void TR_PlayerTraceSingleEntity( const entity_state_t& entity, entity_vbmhulldat
 	}
 	else
 	{
-		if(pvbmhulldata && (traceflags & FL_TRACE_HITBOXES || pcache->flags & STUDIO_MF_TRACE_HITBOX))
+		if(pvbmhulldata && (traceflags & FL_TRACE_HITBOXES || pcache->flags & STUDIO_MF_TRACE_HITBOX) && !pmcdheader)
 		{
 			pvbmhulls = TR_VBMGetHulls(pvbmhulldata, player_mins, player_maxs, hulltype, traceflags, &offset);
+		}
+		else if(pmcdheader)
+		{
+			Math::VectorCopy(entity.origin, offset);
 		}
 		else
 		{
@@ -380,7 +468,7 @@ void TR_PlayerTraceSingleEntity( const entity_state_t& entity, entity_vbmhulldat
 	Math::VectorSubtract(start, offset, start_l);
 	Math::VectorSubtract(end, offset, end_l);
 
-	if(entity.solid == SOLID_BSP && !entity.angles.IsZero())
+	if((pmcdheader || entity.solid == SOLID_BSP) && !entity.angles.IsZero())
 	{
 		Math::RotateToEntitySpace(entity.angles, start_l);
 		Math::RotateToEntitySpace(entity.angles, end_l);
@@ -390,12 +478,12 @@ void TR_PlayerTraceSingleEntity( const entity_state_t& entity, entity_vbmhulldat
 	trace.flags = FL_TR_ALLSOLID;
 	trace.fraction = 1.0f;
 
-	if(!pvbmhulls)
+	if(pmcdheader)
 	{
-		// Only a single hull to trace against
-		TR_RecursiveHullCheck(phull, phull->firstclipnode, 0.0, 1.0, start_l, end_l, trace);
+		hull_types_t hullType = TR_GetHullType(mins, maxs, hulltype);
+		g_mcdTrace.TraceLineAABB(start_l, end_l, HULL_MINS[hullType], HULL_MAXS[hullType], pmcdheader, entity.body, trace);
 	}
-	else
+	else if(pvbmhulls)
 	{
 		if(pvbmhulls->empty())
 		{
@@ -405,6 +493,11 @@ void TR_PlayerTraceSingleEntity( const entity_state_t& entity, entity_vbmhulldat
 
 		// Trace against VBM
 		TR_VBMHullCheck(pvbmhulls, start_l, end_l, trace);
+	}
+	else
+	{
+		// Only a single hull to trace against
+		TR_RecursiveHullCheck(phull, phull->firstclipnode, 0.0, 1.0, start_l, end_l, trace);
 	}
 
 	if(trace.flags & FL_TR_ALLSOLID)

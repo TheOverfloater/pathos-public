@@ -210,6 +210,8 @@ public:
 
 	// Tells if this is a brush model
 	virtual bool IsBrushModel( void ) const;
+	// Tells if the model we use has an MCD file attached
+	virtual bool HasMCDCollisions( void ) const;
 	// Tells if the entity is moving
 	virtual bool IsMoving( void ) const { return m_pState->velocity.IsZero() ? false : true; }
 

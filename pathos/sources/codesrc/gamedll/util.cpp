@@ -1111,7 +1111,7 @@ namespace Util
 			return;
 
 		CBaseEntity* pHitEntity = CBaseEntity::GetClass(phitedict);
-		if(!pHitEntity || !pHitEntity->IsBrushModel())
+		if(!pHitEntity || !pHitEntity->IsBrushModel() && !pHitEntity->HasMCDCollisions())
 			return;
 		
 		Vector traceStart = tr.endpos + tr.plane.normal*4;
@@ -1121,7 +1121,12 @@ namespace Util
 		if(!pstrTextureName || !qstrlen(pstrTextureName))
 			return;
 
-		const en_material_t* pmaterial = gd_engfuncs.pfnGetMapTextureMaterialScript(pstrTextureName);
+		const en_material_t* pmaterial = nullptr;
+		if(pHitEntity->IsBrushModel())
+			pmaterial = gd_engfuncs.pfnGetMapTextureMaterialScript(pstrTextureName);
+		else
+			pmaterial = gd_engfuncs.pfnGetModelTextureMaterialScript(pHitEntity->GetModelIndex(), pstrTextureName);
+
 		if(!pmaterial)
 			return;
 

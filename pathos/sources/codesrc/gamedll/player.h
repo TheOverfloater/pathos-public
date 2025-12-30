@@ -10,7 +10,7 @@ All Rights Reserved.
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "baseentity.h"
+#include "animatingentity.h"
 #include "stepsound.h"
 #include "weapons_shared.h"
 #include "ehandle.h"
@@ -45,7 +45,7 @@ CPlayerEntity
 
 =======================
 */
-class CPlayerEntity : public CBaseEntity
+class CPlayerEntity : public CAnimatingEntity
 {
 public:
 	enum timebaseddmgtypes_t
@@ -57,6 +57,14 @@ public:
 		TBD_FREEZE,
 
 		NUM_TIMEBASED_DMG
+	};
+	enum player_animation_t
+	{
+		PLAYER_ANM_IDLE = 0,
+		PLAYER_ANM_WALK,
+		PLAYER_ANM_JUMP,
+		PLAYER_ANM_DIE,
+		PLAYER_ANM_ATTACK1
 	};
 	struct cheatinfo_t
 	{
@@ -443,6 +451,12 @@ public:
 
 	// Updates client data
 	void UpdateClientData( void );
+
+public:
+	// Set animation for player model
+	void SetAnimation( player_animation_t animation );
+	// Set ideal activity to use
+	void SetIdealActivity( activity_t activity );
 
 public:
 	// Returns the passcode for an id
@@ -952,6 +966,15 @@ private:
 	Double						m_nextSwimSoundTime;
 	// Last water level
 	Int32						m_prevWaterLevel;
+	// Death motion blur delay
+	Double						m_deathMotionBlurTime;
+
+	// Ideal activity to set
+	Int32						m_idealActivity;
+	// Current activity used
+	Int32						m_currentActivity;
+	// Animation extension string
+	CString						m_animExtension;
 
 	// Damage values for time based damages
 	Double						m_timeBasedDmgTime[NUM_TIMEBASED_DMG];

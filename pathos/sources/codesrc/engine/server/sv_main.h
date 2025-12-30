@@ -515,6 +515,11 @@ struct serverstate_t
 	// Mapping of material names to positions
 	CacheNameIndexMap_t mapmaterialfilesnamemap;
 
+	// association of model textures/material scripts
+	CArray<CArray<maptexturematerial_t>> modelmaterialfilesarray;
+	// Mapping of material names to positions
+	CArray<CacheNameIndexMap_t> modelmaterialfilesnamemaparray;
+
 	// All level connections known
 	CLinkedList<sv_levelinfo_t> levelinfos;
 
@@ -615,6 +620,7 @@ extern bool SV_IsWorldSpawn( entindex_t entindex );
 
 extern const Char* SV_TraceTexture( Int32 groundentity, const Vector& start, const Vector& end );
 extern const en_material_t* SV_GetMapTextureMaterial( const Char* pstrtexturename );
+extern const en_material_t* SV_GetModelTextureMaterial( Int32 modelindex, const Char* pstrtexturename );
 
 extern const Char* SV_GetString( string_t stringindex );
 extern Uint32 SV_AllocString( const Char* pString );

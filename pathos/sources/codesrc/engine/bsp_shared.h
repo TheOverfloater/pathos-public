@@ -17,7 +17,7 @@ All Rights Reserved.
 extern void BSP_SetNodeParent( mnode_t* pnode, mnode_t* pparent );
 extern void BSP_MakeHullZero( brushmodel_t& model );
 extern void BSP_SetupPAS( brushmodel_t& model );
-extern bool BSP_CalcSurfaceExtents( msurface_t* psurf, brushmodel_t& model );
+extern bool BSP_CalcSurfaceExtents( msurface_t* psurf, brushmodel_t& model, Uint32 maxextents );
 extern void BSP_SetSamplingLightData( brushmodel_t& model );
 extern void BSP_ReleaseLightmapData( brushmodel_t& model );
 extern void BSP_ReserveWaterLighting( void );

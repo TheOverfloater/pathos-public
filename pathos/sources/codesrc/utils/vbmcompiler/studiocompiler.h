@@ -124,7 +124,7 @@ public:
 	// Adds a new bodygroup
 	smdl::bodypart_t* AddBodyGroup( const Char* pstrGroupName );
 	// Adds a new submodel
-	bool AddSubmodel( smdl::bodypart_t* pBodyGroup, const Char* pstrSubmodelName, const Char* pstrVTAName, bool reverseTriangles, Float scale );
+	bool AddSubmodel( smdl::bodypart_t* pBodyGroup, const Char* pstrSubmodelName, const Char* pstrVTAName, const Char* pstrCollisonSMDName, bool reverseTriangles, Float scale );
 
 	// Adds a new sequence and returns it's pointer
 	smdl::sequence_t* AddSequence( const Char* pstrSequenceName );
@@ -178,6 +178,9 @@ public:
 	const smdl::sequence_t* GetSequence( Int32 index ) const { return m_pSequencesArray[index]; }
 	// Returns the number of sequences
 	Uint32 GetNbSequences( void ) const { return m_pSequencesArray.size(); }
+
+	// Returns TRUE if we have collision data
+	bool HasCollisionMeshes( void ) const;
 
 private:
 	// Set up textures to use

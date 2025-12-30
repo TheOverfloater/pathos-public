@@ -474,7 +474,9 @@ void RadiusDamage( const Vector& vecPosition,
 	Float damageDealt,
 	Float damageRadius,
 	Int32 classToIgnore,
-	Int32 damageFlags )
+	Int32 damageFlags,
+	CBaseEntity* pGibEntity,
+	CPlayerWeapon* pWeapon )
 {
 	Float falloff;
 	if(damageRadius)
@@ -530,16 +532,23 @@ void RadiusDamage( const Vector& vecPosition,
 		if(adjustedDmg < 0)
 			adjustedDmg = 0;
 
+		if(pWeapon)
+			adjustedDmg *= pWeapon->GetWeaponDmgMultiplier(pEntity);
+
+		Int32 _damageFlags = damageFlags;
+		if(pGibEntity == pEntity)
+			_damageFlags |= DMG_ALWAYSGIB;
+
 		if(tr.fraction != 1.0)
 		{
 			Vector dmgDirection = (tr.endpos - explodePosition).Normalize();
 			gMultiDamage.Prepare(BULLET_NONE, explodePosition, dmgDirection);
-			pEntity->TraceAttack(pAttacker, adjustedDmg, dmgDirection, tr, damageFlags);
+			pEntity->TraceAttack(pAttacker, adjustedDmg, dmgDirection, tr, _damageFlags);
 			gMultiDamage.ApplyDamage(pInflictor, pAttacker);
 		}
 		else
 		{
-			pEntity->TakeDamage(pInflictor, pAttacker, adjustedDmg, damageFlags);
+			pEntity->TakeDamage(pInflictor, pAttacker, adjustedDmg, _damageFlags);
 		}
 	}
 }

@@ -12,6 +12,8 @@ All Rights Reserved.
 
 #include "pointentity.h"
 
+class CPlayerWeapon;
+
 //=============================================
 //
 //=============================================
@@ -45,13 +47,15 @@ public:
 	void SetDamageRadius( Float radius );
 	void SetAttacker( CBaseEntity* pAttacker );
 	void SetInflictor( CBaseEntity* pInflictor );
+	void SetGibEntity( CBaseEntity* pEntity );
+	void SetWeapon( CPlayerWeapon* pEntity );
 
 public:
 	void EXPORTFN SmokeThink( void );
 
 public:
-	static void CreateEnvExplosion( const Vector& origin, const Vector& angles, Int32 magnitude, bool dodamage, CBaseEntity* pAttacker = nullptr, CBaseEntity* pInflictor = nullptr );
-	static void CreateEnvExplosion( const Vector& origin, const Vector& angles, Float radius, Float dmgamount, bool dodamage, CBaseEntity* pAttacker = nullptr, CBaseEntity* pInflictor = nullptr );
+	static void CreateEnvExplosion( const Vector& origin, const Vector& angles, Int32 magnitude, bool dodamage, CBaseEntity* pAttacker = nullptr, CBaseEntity* pInflictor = nullptr, CBaseEntity* pHitEntity = nullptr, CPlayerWeapon* pWeapon = nullptr );
+	static void CreateEnvExplosion( const Vector& origin, const Vector& angles, Float radius, Float dmgamount, bool dodamage, CBaseEntity* pAttacker = nullptr, CBaseEntity* pInflictor = nullptr, CBaseEntity* pHitEntity = nullptr, CPlayerWeapon* pWeapon = nullptr );
 
 private:
 	Int32 m_magnitude;
@@ -60,5 +64,7 @@ private:
 
 	CEntityHandle m_attacker;
 	CEntityHandle m_inflictor;
+	CEntityHandle m_gibEntity;
+	CPlayerWeapon* m_pWeapon;
 };
 #endif //ENVEXPLOSION_H

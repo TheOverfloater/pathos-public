@@ -337,7 +337,8 @@ void CWeaponGlock::PrimaryAttack( void )
 		AddRecoil(1.2);
 
 	m_nextAttackTime = g_pGameVars->time + 0.3;
-	m_nextIdleTime = g_pGameVars->time + Common::RandomFloat(5, 10);
+	m_nextIdleTime = g_pGameVars->time + GetSequenceTime(m_sequenceNames[animationIndex]);
+	m_playedFidgetAnimation = true;
 }
 
 //=============================================
@@ -440,14 +441,24 @@ void CWeaponGlock::Idle( void )
 	if (m_nextIdleTime > g_pGameVars->time)
 		return;
 
-	Uint32 sequenceIndex = 0;
-	if(Common::RandomFloat(0.0, 1.0) <= 0.4)
-		sequenceIndex = (m_clip == 0) ? GLOCK_IDLE1_EMPTY : GLOCK_IDLE1;
-	else
+	Float timeMultiplier;
+	Uint32 sequenceIndex;
+
+	if(!m_playedFidgetAnimation && Common::RandomFloat(0.0, 1.0) >= 0.8)
+	{
 		sequenceIndex = (m_clip == 0) ? GLOCK_IDLE2_EMPTY : GLOCK_IDLE2;
+		timeMultiplier = 1.0;
+		m_playedFidgetAnimation = true;
+	}
+	else
+	{
+		sequenceIndex = (m_clip == 0) ? GLOCK_IDLE1_EMPTY : GLOCK_IDLE1;
+		timeMultiplier = Common::RandomLong(1, 3);
+		m_playedFidgetAnimation = false;
+	}
 
 	Float sequenceTime = GetSequenceTime(m_sequenceNames[sequenceIndex]);
-	m_nextIdleTime = g_pGameVars->time + sequenceTime*Common::RandomLong(1, 3);
+	m_nextIdleTime = g_pGameVars->time + sequenceTime * timeMultiplier;
 
 	SetWeaponAnimation( m_sequenceNames[sequenceIndex] );
 }

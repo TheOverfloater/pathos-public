@@ -32,6 +32,7 @@ All Rights Reserved.
 #include "qcparser.h"
 #include "logfile.h"
 #include "filefuncs.h"
+#include "mcdcompiler.h"
 
 // Size of buffer for message prints
 static const Uint32 PRINT_MSG_BUFFER_SIZE = 16384;
@@ -72,6 +73,7 @@ void ApplicationUsage( void )
 	Msg("\t'-t' - Set texture to rename(original name, new name).\n");
 	Msg("\t'-e' - Set maximum texture resolution.\n");
 	Msg("\t'-p' - Set texture padding size.\n");
+	Msg("\t'-m' - Don't enforce collision meshes having to be closed.\n");
 }
 
 //===============================================
@@ -496,6 +498,11 @@ int _tmain(Int32 argc, _TCHAR* argv[])
 
 			g_options.addRenamedTexture(original.c_str(), replacement.c_str());
 		}
+		else if(!qstrcmp(argument, "-m"))
+		{
+			g_options.setFlag(CMP_FL_MCD_NO_NEIGHBOR_CHECK);
+			Msg(" - Closed collision mesh enforcement disabled.\n");
+		}
 		else
 		{
 			WarningMsg("Unknown parameter '%s' specified.\n", argument.c_str());
@@ -557,6 +564,19 @@ int _tmain(Int32 argc, _TCHAR* argv[])
 		ErrorMsg("Error encountered while compiling VBM file.'\n");
 		OnExitApplication();
 		return -1;
+	}
+
+	// See if we have any collision data to compile
+	if(g_pStudioModelCompiler->HasCollisionMeshes())
+	{
+		// Pointer to MCD compiler instance
+		CMCDCompiler mcdCompiler((*g_pStudioModelCompiler));
+		if(!mcdCompiler.CreateMCDFile())
+		{
+			ErrorMsg("Error encountered while compiling VBM file.'\n");
+			OnExitApplication();
+			return -1;
+		}
 	}
 
 	// Clear this AFTER creating the VBM file

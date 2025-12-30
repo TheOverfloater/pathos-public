@@ -40,6 +40,7 @@ enum compiler_flags_t
 	CMP_FL_NO_STUDIOMDL_BONE_LIMIT	= (1<<9),	// Allow going over the max bones limit
 	CMP_FL_TAG_BAD_NORMALS			= (1<<10),	// Tag corrupted normals
 	CMP_FL_TAG_REVERSED_TRIANGLES	= (1<<11),	// Tag reversed triangles
+	CMP_FL_MCD_NO_NEIGHBOR_CHECK	= (1<<12),	// Don't enforce collision meshes having to be closed
 };
 
 struct vbmcompiler_options_t

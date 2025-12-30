@@ -106,6 +106,7 @@ static cldll_engfuncs_t CLIENTDLL_ENGINE_FUNCTION_TABLE =
 	CL_StopMusic,					//pfnStopMusic
 	Engine_GetMaterialScript,		//pfnGetMaterialScript
 	CL_GetMapTextureMaterial,		//pfnGetMapTextureMaterialScript
+	CL_GetModelTextureMaterial,		//pfnGetModelTextureMaterialScript
 	R_AddEntity,					//pfnAddEntity
 	CL_LeafPVS,						//pfnLeafPVS
 	Engine_PointInLeaf,				//pfnPointInLeaf
@@ -329,6 +330,12 @@ void CL_ResetGame( void )
 	if(!cls.mapmaterialfilesnamemap.empty())
 		cls.mapmaterialfilesnamemap.clear();
 
+	if(!cls.modelmaterialfilesarray.empty())
+		cls.modelmaterialfilesarray.clear();
+
+	if(!cls.modelmaterialfilesnamemaparray.empty())
+		cls.modelmaterialfilesnamemaparray.clear();
+
 	// Make sure this is deleted
 	if(ens.pwadresource)
 	{
@@ -493,6 +500,9 @@ void CL_Frame( void )
 	if(cls.cl_state == CLIENT_INACTIVE)
 		return;
 	
+	// Mark old time
+	cls.cl_oldtime = cls.cl_time;
+
 	if(CL_IsHostClient())
 	{
 		// Sync server and client time for host client
@@ -655,6 +665,17 @@ bool CL_InitGame( void )
 		// Copy mappings from server for localhost
 		cls.mapmaterialfiles = svs.mapmaterialfiles;
 		cls.mapmaterialfilesnamemap = svs.mapmaterialfilesnamemap;
+	}
+
+	if(CL_IsHostClient())
+	{
+		cls.modelmaterialfilesarray = svs.modelmaterialfilesarray;
+		cls.modelmaterialfilesnamemaparray = svs.modelmaterialfilesnamemaparray;
+	}
+	else
+	{
+		// Link models up also
+		CL_LinkModelTextureMaterials();
 	}
 
 	// Call renderer to initialize
@@ -1247,10 +1268,7 @@ void CL_LinkMapTextureMaterials( CArray<CString>& wadList )
 	{
 		// First look in the BSP folder
 		CString filepath;
-		CString basename;
-		Common::Basename(ens.pworld->name.c_str(), basename);
-
-		filepath << WORLD_TEXTURES_PATH_BASE << basename << PATH_SLASH_CHAR << ens.pworld->ptextures[i].name << PMF_FORMAT_EXTENSION;
+		filepath = GetMapTexturePath(ens.pworld->name.c_str(), ens.pworld->ptextures[i].name.c_str());
 		
 		CString fullpath;
 		fullpath << TEXTURE_BASE_DIRECTORY_PATH << filepath;
@@ -1263,9 +1281,7 @@ void CL_LinkMapTextureMaterials( CArray<CString>& wadList )
 
 			for(Uint32 j = 0; j < wadList.size(); j++)
 			{
-				Common::Basename(wadList[j].c_str(), basename);
-
-				filepath << WORLD_TEXTURES_PATH_BASE << basename << PATH_SLASH_CHAR << ens.pworld->ptextures[i].name << PMF_FORMAT_EXTENSION;
+				filepath = GetMapTexturePath(wadList[j].c_str(), ens.pworld->ptextures[i].name.c_str());
 				fullpath.clear();
 				fullpath << TEXTURE_BASE_DIRECTORY_PATH << filepath;
 
@@ -1291,6 +1307,60 @@ void CL_LinkMapTextureMaterials( CArray<CString>& wadList )
 		}
 		else
 			Con_Printf("%s - Failed to find material file for world texture '%s'.\n", __FUNCTION__, ens.pworld->ptextures[i].name.c_str());
+	}
+}
+
+//=============================================
+//
+//=============================================
+void CL_LinkModelTextureMaterials( void )
+{
+	if(!cls.modelmaterialfilesarray.empty())
+		cls.modelmaterialfilesarray.clear();
+
+	if(!cls.modelmaterialfilesnamemaparray.empty())
+		cls.modelmaterialfilesnamemaparray.clear();
+
+	Uint32 nbCachedModels = gModelCache.GetNbCachedModels();
+	cls.modelmaterialfilesarray.resize(nbCachedModels);
+	cls.modelmaterialfilesnamemaparray.resize(nbCachedModels);
+
+	for(Uint32 i = 0; i < nbCachedModels; i++)
+	{
+		const cache_model_t* pmodel = gModelCache.GetModelByIndex(i+1);
+		if(pmodel->type != MOD_VBM)
+			continue;
+
+		const vbmcache_t* pvbmcache = pmodel->getVBMCache();
+		if(!pvbmcache)
+			continue; // Shouldn't possibly happen
+		
+		// Get textures from VBM
+		const vbmheader_t* pvbmheader = pvbmcache->pvbmhdr;
+		for(Uint32 j = 0; j < pvbmheader->numtextures; j++)
+		{
+			const vbmtexture_t* ptexture = pvbmheader->getTexture(j);
+
+			CString texbasename;
+			Common::Basename(ptexture->name, texbasename);
+
+			CString materialscriptpath = GetModelTexturePath(pmodel->name.c_str(), texbasename.c_str());
+			if(FL_FileExists(materialscriptpath.c_str()))
+			{
+				maptexturematerial_t newmat;
+				newmat.maptexturename = texbasename;
+				newmat.materialfilepath = materialscriptpath;
+
+				Uint32 insertindex = cls.modelmaterialfilesarray[i].size();
+				cls.modelmaterialfilesarray[i].push_back(newmat);
+
+				cls.modelmaterialfilesnamemaparray[i].insert(std::pair<CString, Uint32>(texbasename.c_str(), insertindex));
+			}
+			else
+			{
+				Con_Printf("%s - Failed to find material file for texture '%s' for model '%s'.\n", __FUNCTION__, texbasename.c_str(), pmodel->name.c_str());
+			}
+		}
 	}
 }
 

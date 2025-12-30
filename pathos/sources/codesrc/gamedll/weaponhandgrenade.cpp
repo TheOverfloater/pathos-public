@@ -312,6 +312,7 @@ void CWeaponHandGrenade::PostThink( void )
 			Double nextTime = g_pGameVars->time + GetSequenceTime(m_sequenceNames[animationIndex]);
 			// IMPORTANT - Set next think time
 			m_nextIdleTime = m_nextThinkTime = nextTime;
+			m_playedFidgetAnimation = true;
 
 			if(m_pPlayer->GetAmmoCount(m_ammoType) > 0)
 				m_throwReleaseTime = nextTime;
@@ -350,16 +351,25 @@ void CWeaponHandGrenade::Idle( void )
 	if(!m_pPlayer->GetAmmoCount(m_ammoType))
 		return;
 
-	Uint32 sequenceIndex = 0;
+	Uint32 sequenceIndex;
+	Float timeMultiplier;
 	Float flRand = Common::RandomFloat(0.0, 1.0);
 
-	if(flRand <= 0.75)
-		sequenceIndex = HANDGRENADE_IDLE;
-	else
+	if(!m_playedFidgetAnimation && flRand >= 0.75)
+	{
 		sequenceIndex = HANDGRENADE_FIDGET;
+		timeMultiplier = 1.0;
+		m_playedFidgetAnimation = true;
+	}
+	else
+	{
+		sequenceIndex = HANDGRENADE_IDLE;
+		timeMultiplier = Common::RandomFloat(1, 3);
+		m_playedFidgetAnimation = false;
+	}
 
 	Float sequenceTime = GetSequenceTime(m_sequenceNames[sequenceIndex]);
-	m_nextIdleTime = g_pGameVars->time + sequenceTime*Common::RandomLong(1, 3);
+	m_nextIdleTime = g_pGameVars->time + sequenceTime * timeMultiplier;
 
 	SetWeaponAnimation( m_sequenceNames[sequenceIndex] );
 }

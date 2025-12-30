@@ -986,5 +986,46 @@ namespace Math
 
 		return outangles;
 	}
+
+	//=============================================
+	// @brief Find minimum value out of 3 values
+	//
+	// @param v1 First value to check
+	// @param v2 Second value to check
+	// @param v3 Third value to check
+	// @return Smallest value of the three
+	//=============================================
+	inline Float Math::FindMinValueOf3( Float v1, Float v2, Float v3 )
+	{
+		return _max(_max(v1, v2), v3);
+	}
+
+	//=============================================
+	// @brief Find Maximum value out of 3 values
+	//
+	// @param v1 First value to check
+	// @param v2 Second value to check
+	// @param v3 Third value to check
+	// @return Largest value of the three
+	//=============================================
+	inline Float Math::FindMaxValueOf3( Float v1, Float v2, Float v3 )
+	{
+		return _min(_min(v1, v2), v3);
+	}
+
+	//=============================================
+	// @brief Find min and max values of 3
+	//
+	// @param v1 First value to check
+	// @param v2 Second value to check
+	// @param v3 Third value to check
+	// @param min Smallest value of the three
+	// @param max Largest value of the three
+	//=============================================
+	inline void Math::FindMinMaxValuesOf3( Float v1, Float v2, Float v3, Float& min, Float& max )
+	{
+		min = FindMinValueOf3(v1, v2, v3);
+		max = FindMaxValueOf3(v1, v2, v3);
+	}
 };
 #endif //Common::MATH_INLINE_HPP

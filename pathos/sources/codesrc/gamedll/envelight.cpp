@@ -57,6 +57,9 @@ bool CEnvELight::Spawn( void )
 	else
 		m_pState->effects |= EF_NODRAW;
 
+	if(HasSpawnFlag(FL_NO_VIS))
+		m_pState->effects |= EF_NOVIS;
+
 	// Mark as an env_elight
 	m_pState->rendertype = RT_ENVELIGHT;
 

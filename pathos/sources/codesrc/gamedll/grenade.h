@@ -48,10 +48,11 @@ public:
 	void SetDamageRadius( Float dmgRadius );
 	void SetDamageTime( Float dmgtime );
 	void SetAttacker( CBaseEntity* pAttacker );
+	void SetWeapon( CPlayerWeapon* pWeapon );
 
 public:
-	static CGrenade* CreateTimed( CBaseEntity* pOwner, const Vector& origin, const Vector& velocity, Float time, Float radius, Float damage, bool contactDelayCountdown = false );
-	static CGrenade* CreateContact( CBaseEntity* pOwner, const Vector& origin, const Vector& velocity, Float radius, Float damage );
+	static CGrenade* CreateTimed( CBaseEntity* pOwner, const Vector& origin, const Vector& velocity, Float time, Float radius, Float damage, bool contactDelayCountdown = false, CPlayerWeapon* pWeapon = nullptr );
+	static CGrenade* CreateContact( CBaseEntity* pOwner, const Vector& origin, const Vector& velocity, Float radius, Float damage, CPlayerWeapon* pWeapon = nullptr );
 
 private:
 	Double m_nextDmgTime;
@@ -62,5 +63,7 @@ private:
 	Float m_damageAmount;
 	Float m_damageRadius;
 	CEntityHandle m_attacker;
+	CEntityHandle m_hitEntity;
+	CPlayerWeapon* m_pWeapon;
 };
 #endif //GRENADE_H

@@ -255,9 +255,6 @@ static constexpr Uint32 MAX_CLIENTSIDE_ENTITIES = 65535;
 // Entity index offset for client-side entities
 static constexpr Uint32 CL_ENTITY_INDEX_BASE = MAX_SERVER_ENTITIES;
 
-// Max surface extents size
-static constexpr Uint32 MAX_SURFACE_EXTENTS = 1024;
-
 // Default field of view value
 static constexpr Uint32 DEFAULT_FOV_VALUE = 70;
 // Reference field of view value
@@ -735,7 +732,8 @@ enum renderfx_t
 	RenderFx_GlowShell,
 	RenderFx_ClampMinScale,
 	RenderFx_NoShadow,
-	RenderFx_TraceGlow
+	RenderFx_TraceGlow,
+	RenderFx_NoDynamicLighting
 };
 
 enum rendertype_t
@@ -898,7 +896,7 @@ struct decalcache_t
 
 // This needs to match with studio.h
 static constexpr Uint32 MAX_CONTROLLERS = 4;
-static constexpr Uint32 MAX_BLENDING	= 2;
+static constexpr Uint32 MAX_BLENDING	= 9;
 
 // NULL entity index
 static constexpr entindex_t NO_ENTITY_INDEX = -1;

@@ -422,5 +422,8 @@
     <ClInclude Include="..\shared\uischema.h">
       <Filter>Header Files\shared</Filter>
     </ClInclude>
+    <ClInclude Include="..\shared\weapons_shared.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

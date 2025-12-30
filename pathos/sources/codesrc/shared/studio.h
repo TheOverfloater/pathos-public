@@ -12,6 +12,7 @@ All Rights Reserved.
 
 #include "datatypes.h"
 #include "vbmformat.h"
+#include "mcdformat.h"
 
 // Notes:
 // Part of this implementation is based on the implementation in the Half-Life SDK,
@@ -726,21 +727,36 @@ struct vbmcache_t
 {
 	vbmcache_t():
 		pstudiohdr(nullptr),
-		pvbmhdr(nullptr)
+		pvbmhdr(nullptr),
+		pmcdheader(nullptr)
 		{}
 	~vbmcache_t()
 	{
 		if(pstudiohdr)
-			delete pstudiohdr;
+		{
+			const byte* _pstudiohdr = reinterpret_cast<const byte*>(pstudiohdr);
+			delete[] _pstudiohdr;
+		}
 
 		if(pvbmhdr)
-			delete pvbmhdr;
+		{
+			const byte* _pvbmhdr = reinterpret_cast<const byte*>(pvbmhdr);
+			delete[] _pvbmhdr;
+		}
+
+		if(pmcdheader)
+		{
+			const byte* _pmcdheader = reinterpret_cast<const byte*>(pmcdheader);
+			delete[] _pmcdheader;
+		}
 	}
 
 	// Pointer to studiomdl data
 	studiohdr_t *pstudiohdr;
 	// Pointer to vbm data
 	vbmheader_t *pvbmhdr;
+	// Pointer to mcd data
+	mcdheader_t *pmcdheader;
 };
 
 typedef CArray<pmatrix3x4_t> BoneTransformArray_t;

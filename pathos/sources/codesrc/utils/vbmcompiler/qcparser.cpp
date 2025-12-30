@@ -725,6 +725,8 @@ bool CQCParser::Cmd_Body( void )
 	Float movementScale = -1;
 	// Name for VTA if any
 	CString vtaName;
+	// Name for collision file if any
+	CString collisionSmdName;
 
 	// Now parse the params
 	const Char* pstrString = nullptr;
@@ -750,6 +752,14 @@ bool CQCParser::Cmd_Body( void )
 				return false;
 			}
 		}
+		else if(!qstrcicmp(pstrString, "collision"))
+		{
+			if(!ReadString(collisionSmdName))
+			{
+				ErrorMsg("No collision SMD file specified for '$body' command for submodel '%s'.\n", submodelName.c_str());
+				return false;
+			}
+		}
 		else
 		{
 			ErrorMsg("Unrecognized '%s' argument for '$body' command.\n", pstrString);
@@ -766,7 +776,7 @@ bool CQCParser::Cmd_Body( void )
 	}
 
 	// Now add the submodel
-	return m_studioCompiler.AddSubmodel(pBodyPart, submodelName.c_str(), vtaName.c_str(), flipTriangles, scale);
+	return m_studioCompiler.AddSubmodel(pBodyPart, submodelName.c_str(), vtaName.c_str(), collisionSmdName.c_str(), flipTriangles, scale);
 }
 
 //===============================================
@@ -960,6 +970,8 @@ bool CQCParser::Cmd_BodyGroup( void )
 		Float movementScale = -1;
 		// Name for VTA if any
 		CString vtaName;
+		// Name for collision file if any
+		CString collisionSmdName;
 
 		// Now parse the params
 		if(ReadString(pstrString))
@@ -984,6 +996,14 @@ bool CQCParser::Cmd_BodyGroup( void )
 					return false;
 				}
 			}
+			else if(!qstrcicmp(pstrString, "collision"))
+			{
+				if(!ReadString(collisionSmdName))
+				{
+					ErrorMsg("No collision SMD file specified for '$body' command for submodel '%s'.\n", submodelName.c_str());
+					return false;
+				}
+			}
 			else
 			{
 				ErrorMsg("Unrecognized '%s' argument for '$body' command.\n", pstrString);
@@ -994,6 +1014,7 @@ bool CQCParser::Cmd_BodyGroup( void )
 		smdl::submodelentry_t newEntry;
 		newEntry.submodelname = submodelName;
 		newEntry.flexname = vtaName;
+		newEntry.collisionsmdname = collisionSmdName;
 		newEntry.reverseTriangles = flipTriangles;
 		newEntry.scale = scale;
 		newEntry.movementScale = movementScale;
@@ -1019,7 +1040,7 @@ bool CQCParser::Cmd_BodyGroup( void )
 	for(Uint32 i = 0; i < submodelEntryArray.size(); i++)
 	{
 		smdl::submodelentry_t& entry = submodelEntryArray[i];
-		if(!m_studioCompiler.AddSubmodel(pBodyPart, entry.submodelname.c_str(), entry.flexname.c_str(), entry.reverseTriangles, entry.scale))
+		if(!m_studioCompiler.AddSubmodel(pBodyPart, entry.submodelname.c_str(), entry.flexname.c_str(), entry.collisionsmdname.c_str(), entry.reverseTriangles, entry.scale))
 			return false;
 	}
 

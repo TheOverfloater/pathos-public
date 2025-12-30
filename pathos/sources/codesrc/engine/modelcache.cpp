@@ -233,17 +233,17 @@ cache_model_t* CModelCache::LoadVBMModel( const Char* pstrFilename, const byte* 
 	}
 
 	// Now load the VBM file
-	CString filepath = pstrFilename;
-	Uint32 begin = filepath.find(0, ".mdl");
+	CString vbmfilepath = pstrFilename;
+	Uint32 begin = vbmfilepath.find(0, ".mdl");
 	if(begin != CString::CSTRING_NO_POSITION)
-		filepath.erase(begin, 4);
-	filepath << ".vbm";
+		vbmfilepath.erase(begin, 4);
+	vbmfilepath << ".vbm";
 
 	Uint32 vbmfilesize = 0;
-	const byte* pvbmfile = FL_LoadFile(filepath.c_str(), &vbmfilesize);
+	const byte* pvbmfile = FL_LoadFile(vbmfilepath.c_str(), &vbmfilesize);
 	if(!pvbmfile)
 	{
-		Con_EPrintf("%s - Failed to load file '%s'.\n", __FUNCTION__, filepath.c_str());
+		Con_EPrintf("%s - Failed to load file '%s'.\n", __FUNCTION__, vbmfilepath.c_str());
 		return nullptr;
 	}
 
@@ -251,7 +251,7 @@ cache_model_t* CModelCache::LoadVBMModel( const Char* pstrFilename, const byte* 
 	const vbmheader_t* pvbmheader = reinterpret_cast<const vbmheader_t*>(pvbmfile);
 	if(pvbmheader->id != VBM_HEADER)
 	{
-		Con_EPrintf("%s - '%s' is not a valid vbm file.\n", __FUNCTION__, filepath.c_str());
+		Con_EPrintf("%s - '%s' is not a valid VBM file.\n", __FUNCTION__, vbmfilepath.c_str());
 		FL_FreeFile(pvbmfile);
 		return nullptr;
 	}
@@ -271,10 +271,72 @@ cache_model_t* CModelCache::LoadVBMModel( const Char* pstrFilename, const byte* 
 	memcpy(pvbmdata, pvbmfile, sizeof(byte)*vbmfilesize);
 	FL_FreeFile(pvbmfile);
 
+	// Now load the MCD file if present
+	CString mcdfilepath = pstrFilename;
+	begin = mcdfilepath.find(0, ".mdl");
+	if(begin != CString::CSTRING_NO_POSITION)
+		mcdfilepath.erase(begin, 4);
+	mcdfilepath << ".mcd";
+
+	Uint32 mcdfilesize = 0;
+	byte* pmcddata = nullptr;
+	const byte* pmcdfile = FL_LoadFile(mcdfilepath.c_str(), &mcdfilesize);
+	if(pmcdfile)
+	{
+		// Check header
+		const mcdheader_t* pmcdheader = reinterpret_cast<const mcdheader_t*>(pmcdfile);
+		if(pmcdheader->id != MCD_FORMAT_HEADER)
+		{
+			Con_EPrintf("%s - '%s' is not a valid MCD file.\n", __FUNCTION__, mcdfilepath.c_str());
+			FL_FreeFile(pmcdfile);
+			delete[] pvbmdata;
+			return nullptr;
+		}
+
+		if(pmcdheader->version != MCD_FORMAT_VERSION)
+		{
+			Con_EPrintf("%s - '%s' is not the correct MCD version(%d instead of %d).\n", __FUNCTION__, mcdfilepath.c_str(), pmcdheader->version, MCD_FORMAT_VERSION);
+			FL_FreeFile(pmcdfile);
+			delete[] pvbmdata;
+			return nullptr;
+		}
+
+		pvbmheader = reinterpret_cast<const vbmheader_t*>(pvbmdata);
+		if(pmcdheader->numbodyparts != pvbmheader->numbodyparts)
+		{
+			Con_EPrintf("%s - Mismatch in bodyparts between MCD file and VBM. MCD file '%s' has %d bodyparts, while VBM file '%s' has %d.\n", __FUNCTION__, mcdfilepath.c_str(), pmcdheader->numbodyparts, vbmfilepath.c_str(), pvbmheader->numbodyparts);
+			FL_FreeFile(pmcdfile);
+			delete[] pvbmdata;
+			return nullptr;
+		}
+
+		for(Uint32 i = 0; i < pmcdheader->numbodyparts; i++)
+		{
+			const vbmbodypart_t* pvbmbodypart = pvbmheader->getBodyPart(i);
+			const mcdbodypart_t* pmcdbodypart = pmcdheader->getBodyPart(i);
+
+			if(pvbmbodypart->numsubmodels != pmcdbodypart->numsubmodels)
+			{
+				Con_EPrintf("%s - Mismatch in submodel counts in MCD file and VBM. MCD file '%s' body part at index %d has %d submodels, VBM body part has '%d'.\n", __FUNCTION__, mcdfilepath.c_str(), i, pmcdbodypart->numsubmodels, pvbmbodypart->numsubmodels);
+				FL_FreeFile(pmcdfile);
+				delete[] pvbmdata;
+				return nullptr;
+			}
+		}
+
+		pmcddata = new byte[mcdfilesize];
+		memcpy(pmcddata, pmcdfile, sizeof(byte)*mcdfilesize);
+		FL_FreeFile(pmcdfile);
+	}
+
 	// Create studio cache object
 	vbmcache_t* pcache = new vbmcache_t();
 	pcache->pstudiohdr = reinterpret_cast<studiohdr_t *>(pstudiodata);
 	pcache->pvbmhdr = reinterpret_cast<vbmheader_t *>(pvbmdata);
+
+	// Add mcd file if present
+	if(pmcddata)
+		pcache->pmcdheader = reinterpret_cast<mcdheader_t*>(pmcddata);
 
 	// Create a new model entry
 	Uint32 modelindex = m_modelCacheArray.size();
@@ -305,6 +367,10 @@ cache_model_t* CModelCache::LoadVBMModel( const Char* pstrFilename, const byte* 
 	pnew->type = MOD_VBM;
 	pnew->name = pstrFilename;
 	pnew->flags = pstudiohdr->flags;
+
+	// Mark if we have an MCD file
+	if(pmcddata)
+		pnew->cacheflags |= CACHE_FL_HAS_MCD;
 
 	// needs to be loaded to gpu
 	pnew->isloaded = false;
@@ -607,18 +673,11 @@ void CModelCache::GatherModelResources( const Char* pstrFilename, CArray<maptext
 		if(!pstudiocache->pvbmhdr)
 			return;
 
-		CString modelname;
-		Common::Basename(pstrFilename, modelname);
-
 		for(Int32 i = 0; i < pstudiocache->pvbmhdr->numtextures; i++)
 		{
 			const vbmtexture_t* pvbmtexture = pstudiocache->pvbmhdr->getTexture(i);
 
-			CString textureName;
-			Common::Basename(pvbmtexture->name, textureName);
-
-			CString materialscriptpath;
-			materialscriptpath << MODEL_MATERIALS_BASE_PATH << modelname << PATH_SLASH_CHAR << textureName.c_str() << PMF_FORMAT_EXTENSION;
+			CString materialscriptpath = GetModelTexturePath(pstrFilename, pvbmtexture->name);
 			en_material_t* pmaterialscript = pTextureManager->LoadMaterialScript(materialscriptpath.c_str(), RS_GAME_LEVEL);
 			if(!pmaterialscript)
 				continue;

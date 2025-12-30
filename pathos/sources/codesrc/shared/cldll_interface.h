@@ -154,6 +154,7 @@ struct cldll_engfuncs_t
 
 	const en_material_t*	(*pfnGetMaterialScript)( const Char* pstrTextureName );
 	const en_material_t*	(*pfnGetMapTextureMaterialScript)( const Char* pstrTextureName );
+	const en_material_t*	(*pfnGetModelTextureMaterialScript)( Int32 modelindex, const Char* pstrtexturename );
 
 	void					(*pfnAddEntity)( cl_entity_t* pentity );
 

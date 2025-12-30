@@ -180,20 +180,25 @@ void CLightStyleManager::AnimateStyles( void )
 			continue;
 		}
 
-		if(style.interp)
+		Float frame = (rns.time*style.framerate);
+		Int32 i1 = static_cast<Int32>(frame) % style.length;
+		while(style.map[i1] == ';')
 		{
-			const Float frame = (rns.time*style.framerate);
-			const Float interp = frame - floor(frame);
+			i1 = (i1 + 1) % style.length;
+			frame += 1.0f;
+		}
 
-			Int32 i1 = static_cast<Int32>(frame) % style.length;
-			Int32 i2 = (static_cast<Int32>(frame) + 1) % style.length;
+		Int32 i2 = (static_cast<Int32>(frame) + 1) % style.length;
+
+		if(style.interp && style.map[i2] != ';')
+		{
+			const Float interp = frame - SDL_floor(frame);
 
 			Int32 v1 = (style.map[i1] - 'a')*22;
-			Int32 v2 = (style.map[i2] - 'a')*22;
-
 			if(v1 < 0)
 				v1 = 0;
 
+			Int32 v2 = (style.map[i2] - 'a')*22;
 			if(v2 < 0)
 				v2 = 0;
 
@@ -202,13 +207,11 @@ void CLightStyleManager::AnimateStyles( void )
 		}
 		else
 		{
-			const Float frame = (rns.time*style.framerate);
-			Int32 i1 = static_cast<Int32>(frame) % style.length;
-			Int32 v = (style.map[i1] - 'a')*22;
+			while(style.map[i1] == ';')
+				i1 = (i1+1) % style.length;
 
-			if(v > 255)
-				v = 255;
-			else if(v < 0)
+			Int32 v = (style.map[i1] - 'a')*22;
+			if(v < 0)
 				v = 0;
 
 			m_lightStyleValues[style.index] = static_cast<Float>(v)/256.0f;

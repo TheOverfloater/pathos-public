@@ -330,14 +330,14 @@ void CMotorBike::SetSequence( Int32 sequence )
 		return;
 	}
 
-	m_clientBikeEntity.latched.prevseqblending[0] = m_clientBikeEntity.curstate.blending[0];
-	m_clientBikeEntity.latched.prevseqblending[1] = m_clientBikeEntity.curstate.blending[1];
+	for(Uint32 i = 0; i < MAX_BLENDING; i++)
+		m_clientBikeEntity.latched.prevseqblending[i] = m_clientBikeEntity.curstate.blending[i];
 
 	m_clientBikeEntity.latched.sequence = m_clientBikeEntity.curstate.sequence;
 	m_clientBikeEntity.latched.animtime = m_clientBikeEntity.curstate.animtime;
 
 	const mstudioseqdesc_t* pseqdesc = pstudiohdr->getSequence(m_clientBikeEntity.curstate.sequence);
-	m_clientBikeEntity.latched.frame = VBM_EstimateFrame(pseqdesc, m_clientBikeEntity.curstate, m_time);
+	m_clientBikeEntity.latched.frame = VBM_EstimateFrame(pseqdesc, m_time, m_clientBikeEntity.curstate.frame, m_clientBikeEntity.curstate.animtime, m_clientBikeEntity.curstate.framerate, m_clientBikeEntity.curstate.effects);
 	m_clientBikeEntity.latched.sequencetime = m_time;
 
 	m_clientBikeEntity.curstate.sequence = sequenceindex;

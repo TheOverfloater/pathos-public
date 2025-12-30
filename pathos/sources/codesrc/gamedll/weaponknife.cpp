@@ -181,11 +181,21 @@ void CWeaponKnife::Idle( void )
 	if (m_nextIdleTime > g_pGameVars->time)
 		return;
 
-	Uint32 sequenceIndex = 0;
-	if(Common::RandomFloat(0.0, 1.0) <= 0.8)
-		sequenceIndex = KNIFE_IDLE1;
-	else
+	Float timeMultiplier;
+	Uint32 sequenceIndex;
+
+	if(!m_playedFidgetAnimation && Common::RandomFloat(0.0, 1.0) >= 0.8)
+	{
 		sequenceIndex = KNIFE_IDLE2;
+		timeMultiplier = 1.0;
+		m_playedFidgetAnimation = true;
+	}
+	else
+	{
+		sequenceIndex = KNIFE_IDLE1;
+		timeMultiplier = Common::RandomFloat(1, 3);
+		m_playedFidgetAnimation = false;
+	}
 
 	Float sequenceTime = GetSequenceTime(m_sequenceNames[sequenceIndex]);
 	m_nextIdleTime = g_pGameVars->time + sequenceTime;
@@ -240,7 +250,7 @@ void CWeaponKnife::PostThink( void )
 					if(pEntity && pEntity->GetClassification() != CLASS_HUMAN_FRIENDLY)
 					{
 						Float knifeDamage = gSkillData.GetSkillCVarSetting(g_skillcvars.skillPlayerDmgKnife);
-						pEntity->TraceAttack(m_pPlayer, knifeDamage, forward, tr, DMG_MELEE );
+						pEntity->TraceAttack(m_pPlayer, knifeDamage, forward, tr, DMG_MELEE);
 
 						CString soundfile;
 						if (pEntity->IsNPC() && pEntity->GetClassification() != CLASS_MACHINE)
@@ -436,5 +446,6 @@ void CWeaponKnife::Swing( void )
 		case 1: soundfile = "weapons/knife_swipe2.wav"; break;
 	}
 
-	Util::EmitEntitySound(m_pPlayer, soundfile.c_str(), SND_CHAN_WEAPON, VOL_NORM, ATTN_NORM, PITCH_NORM + Common::RandomLong(-5, +10)); 
+	Util::EmitEntitySound(m_pPlayer, soundfile.c_str(), SND_CHAN_WEAPON, VOL_NORM, ATTN_NORM, PITCH_NORM + Common::RandomLong(-5, +10));
+	m_playedFidgetAnimation = true;
 }

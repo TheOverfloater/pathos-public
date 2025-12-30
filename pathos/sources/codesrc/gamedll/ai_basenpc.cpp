@@ -1572,7 +1572,7 @@ bool CBaseNPC::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker, Floa
 			else
 			{
 				// Just set an arbitrary position
-				m_enemyLastKnownPosition = m_pState->origin + gMultiDamage.GetAttackDirection() * 64;
+				m_enemyLastKnownPosition = m_pState->origin + gMultiDamage.GetDamageDirection() * 64;
 			}
 
 			// Push this enemy instantly
@@ -1792,7 +1792,7 @@ void CBaseNPC::TraceAttack( CBaseEntity* pAttacker, Float damage, const Vector& 
 		if(_dmgAmount >= NPC_LIGHT_DAMAGE_TRESHOLD)
 			SpawnBloodDecals(damage, direction, tr, damageFlags);
 
-		if(tr.hitgroup == HITGROUP_HEAD)
+		if(tr.hitgroup == HITGROUP_HEAD && !(damageFlags & DMG_MELEE))
 		{
 			Vector traceEndPosition = tr.endpos + direction * 256;
 
@@ -8871,7 +8871,7 @@ activity_t CBaseNPC::GetDeathActivity( void )
 
 	Vector forward;
 	Math::AngleVectors(m_pState->angles, &forward);
-	Float dp = Math::DotProduct(forward, gMultiDamage.GetAttackDirection() * -1);
+	Float dp = Math::DotProduct(forward, gMultiDamage.GetDamageDirection() * -1);
 
 	if(m_damageBits & DMG_EXPLOSION || m_lastHitGroup == HITGROUP_GENERIC)
 	{

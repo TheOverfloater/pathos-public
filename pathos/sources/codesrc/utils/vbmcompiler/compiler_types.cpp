@@ -704,3 +704,72 @@ namespace vbm
 	}
 };
 
+namespace mcd
+{
+	//===============================================
+	// @brief Constructor for submodel_t
+	//
+	//===============================================
+	submodel_t::submodel_t():
+		nbtriangles(0),
+		nbvertexes(0),
+		reversetriangles(false)
+	{
+	}
+
+	//===============================================
+	// @brief Destructor for submodel_t
+	//
+	//===============================================
+	submodel_t::~submodel_t()
+	{
+		if(!pbvhnodes.empty())
+		{
+			for(Uint32 i = 0; i < pbvhnodes.size(); i++)
+				delete pbvhnodes[i];
+
+			pbvhnodes.clear();
+		}
+	}
+
+	//===============================================
+	// @brief Adds a triangle's vertex indexes to the 
+	// triangle vertex index array
+	//
+	// @param ptrianglesverts Pointer to triangle vertexes array
+	//===============================================
+	void submodel_t::addTriangle( const triangle_t& triangle )
+	{
+		if(nbtriangles >= triangles.size())
+			triangles.resize(triangles.size() + TRIANGLE_ALLOCATION_COUNT);
+
+		triangles[nbtriangles] = triangle;
+		nbtriangles++;
+	}
+
+	//===============================================
+	// @brief Adds a vertex indexes to the vertexes array
+	//
+	// @param vertex Adds a new vertex to the array
+	//===============================================
+	Int32 submodel_t::addVertex( const mcd::vertex_t& vertex )
+	{
+		// Try and merge with an existing weight
+		for(Uint32 i = 0; i < nbvertexes; i++)
+		{
+			const vertex_t& curVertex = vertexes[i];
+			if(curVertex.boneindex == vertex.boneindex && Math::VectorCompare(curVertex.origin, vertex.origin))
+				return i;
+		}
+
+		// Resize if needed
+		if(nbvertexes >= vertexes.size())
+			vertexes.resize(vertexes.size() + VERTEX_ALLOCATION_COUNT);
+
+		Int32 vertexIndex = nbvertexes;
+		vertexes[vertexIndex] = vertex;
+		nbvertexes++;
+
+		return vertexIndex;
+	}
+};

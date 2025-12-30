@@ -178,6 +178,7 @@ struct gdll_engfuncs_t
 
 	const en_material_t*	(*pfnGetMaterialScript)( const Char* pstrTextureName );
 	const en_material_t*	(*pfnGetMapTextureMaterialScript)( const Char* pstrtexturename );
+	const en_material_t*	(*pfnGetModelTextureMaterialScript)( Int32 modelindex, const Char* pstrtexturename );
 
 	Uint32					(*pfnAllocString)( const Char* pString );
 	const Char*				(*pfnGetString)( string_t stringindex );

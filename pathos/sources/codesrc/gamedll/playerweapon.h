@@ -321,6 +321,8 @@ protected:
 	bool	m_hasDual;
 	// True if this is the first time we draw the weapon
 	bool	m_firstDraw;
+	// TRUE if the last animation was played was a fidget one
+	bool	m_playedFidgetAnimation;
 
 protected:
 	// Next time until weapon can think

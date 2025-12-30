@@ -483,7 +483,7 @@ bool BSPV30_LoadFaces( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 		Int16 texinfoindex = Common::ByteToInt16(reinterpret_cast<const byte*>(&pinfaces[i].texinfo));
 		pout->ptexinfo = &model.ptexinfos[texinfoindex];
 
-		if(!BSP_CalcSurfaceExtents(pout, model))
+		if(!BSP_CalcSurfaceExtents(pout, model, V30_MAX_SURFACE_EXTENTS))
 			return false;
 
 		for(Uint32 j = 0; j < MAX_SURFACE_STYLES; j++)

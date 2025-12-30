@@ -142,6 +142,8 @@ CVBMRenderer::CVBMRenderer( void ):
 	m_vCache_Base(0),
 	m_iCache_Index(0),
 	m_iCache_Base(0),
+	m_gaitEstimate(0),
+	m_gaitMovement(0),
 	m_pFlexManager(nullptr)
 {
 	memset(m_pInternalRotationMatrix, 0, sizeof(m_pInternalRotationMatrix));
@@ -839,7 +841,7 @@ bool CVBMRenderer::SetupBones( Int32 flags )
 
 	// Get sequence data
 	const mstudioseqdesc_t* pseqdesc = m_pStudioHeader->getSequence(m_pCurrentEntity->curstate.sequence);
-	Float frame = VBM_EstimateFrame(pseqdesc, m_pCurrentEntity->curstate, rns.time);
+	Float frame = VBM_EstimateFrame(pseqdesc, rns.time, m_pCurrentEntity->curstate.frame, m_pCurrentEntity->curstate.animtime, m_pCurrentEntity->curstate.framerate, m_pCurrentEntity->curstate.effects);
 
 	// Get animation and calc rotations
 	const mstudioanim_t* panim = VBM_GetAnimation(m_pStudioHeader, pseqdesc);
@@ -925,6 +927,30 @@ bool CVBMRenderer::SetupBones( Int32 flags )
 	{
 		// Make sure this gets set
 		m_pCurrentEntity->latched.frame = frame;
+	}
+
+	// Calculate gait sequence if present
+	if(m_pCurrentEntity->curstate.gaitsequence < 0 || m_pCurrentEntity->curstate.gaitsequence >= m_pStudioHeader->numseq)
+		m_pCurrentEntity->curstate.gaitsequence = 0;
+
+	if(m_pCurrentEntity->curstate.gaitsequence > 0)
+	{
+		pseqdesc = m_pStudioHeader->getSequence(m_pCurrentEntity->curstate.gaitsequence);
+		panim = VBM_GetAnimation(m_pStudioHeader, pseqdesc);
+		frame = VBM_EstimateFrame(pseqdesc, rns.time, m_pCurrentEntity->curstate.gaitframe, m_pCurrentEntity->curstate.gaitanimtime, m_pCurrentEntity->curstate.framerate, m_pCurrentEntity->curstate.effects);
+
+		VBM_CalculateRotations(m_pStudioHeader, rns.time, m_pCurrentEntity->curstate.gaitanimtime, m_pCurrentEntity->latched.gaitanimtime, m_bonePositions2, m_boneQuaternions2, pseqdesc, panim, frame, m_pCurrentEntity->curstate.controllers, m_pCurrentEntity->latched.controllers, m_pCurrentEntity->mouth.mouthopen);
+
+		// TODO: Find a solution to mark special bones
+		for(Uint32 i = 0; i < m_pStudioHeader->numbones; i++)
+		{
+			const mstudiobone_t* pbone = m_pStudioHeader->getBone(static_cast<Uint32>(i));
+			if(!qstrcmp(pbone->name, "Bip01 Spine"))
+				break;
+
+			m_bonePositions1[i] = m_bonePositions2[i];
+			m_boneQuaternions1[i] = m_boneQuaternions2[i];
+		}
 	}
 
 	// Calculate bone matrices
@@ -1018,7 +1044,7 @@ bool CVBMRenderer::ShouldAnimate( void )
 	if(!m_pExtraInfo)
 		return true;
 
-	if (m_pCurrentEntity->curstate.sequence >=  m_pStudioHeader->numseq) 
+	if(m_pCurrentEntity->curstate.sequence < 0 || m_pCurrentEntity->curstate.sequence >= m_pStudioHeader->numseq)
 		m_pCurrentEntity->curstate.sequence = 0;
 
 	if(m_pCurrentEntity->curstate.renderfx == RenderFx_Distort || m_pCurrentEntity->curstate.renderfx == RenderFx_Diary)
@@ -1061,7 +1087,7 @@ bool CVBMRenderer::ShouldAnimate( void )
 
 	// Leave this for last, as it's the most expensive
 	const mstudioseqdesc_t *pseqdesc = m_pStudioHeader->getSequence(m_pCurrentEntity->curstate.sequence);
-	if(m_pExtraInfo->paniminfo->lastframe != VBM_EstimateFrame( pseqdesc, m_pCurrentEntity->curstate, rns.time ))
+	if(m_pExtraInfo->paniminfo->lastframe != VBM_EstimateFrame( pseqdesc, rns.time, m_pCurrentEntity->curstate.frame, m_pCurrentEntity->curstate.animtime, m_pCurrentEntity->curstate.framerate, m_pCurrentEntity->curstate.effects ))
 		return true;
 
 	Float interptime = VBM_SEQ_BLEND_TIME;
@@ -1074,6 +1100,172 @@ bool CVBMRenderer::ShouldAnimate( void )
 		return true;
 
 	return false;
+}
+
+//=============================================
+//
+//
+//=============================================
+void CVBMRenderer::CalcPlayerBlend( const mstudioseqdesc_t* pseqdesc, Float& blend, Float& pitch )
+{
+	blend = pitch * 3;
+	if(blend < pseqdesc->blendstart[0])
+	{
+		pitch -= (pseqdesc->blendstart[0] / 3.0f);
+		blend = 0;
+	}
+	else if(blend > pseqdesc->blendend[0])
+	{
+		pitch -= (pseqdesc->blendend[0] / 3.0f);
+		blend = 255;
+	}
+	else
+	{
+		if((pseqdesc->blendend[0] - pseqdesc->blendstart[0]) < 0.1f)
+			blend = 127;
+		else
+			blend = 255 * (blend - pseqdesc->blendstart[0]) / (pseqdesc->blendend[0] - pseqdesc->blendstart[0]);
+
+		pitch = 0;
+	}
+}
+
+//=============================================
+//
+//
+//=============================================
+void CVBMRenderer::ProcessGait( void )
+{
+	if(m_pCurrentEntity->curstate.sequence < 0 || m_pCurrentEntity->curstate.sequence >= m_pStudioHeader->numseq)
+		m_pCurrentEntity->curstate.sequence = 0;
+
+	// Calculate blending
+	Float playerBlend = 0;
+	const mstudioseqdesc_t *pseqdesc = m_pStudioHeader->getSequence(m_pCurrentEntity->curstate.sequence);
+	CalcPlayerBlend(pseqdesc, playerBlend, m_pCurrentEntity->curstate.angles[PITCH]);
+
+	m_pCurrentEntity->latched.angles[PITCH] = m_pCurrentEntity->curstate.angles[PITCH];
+	m_pCurrentEntity->curstate.blending[0] = playerBlend;
+
+	m_pCurrentEntity->latched.blending[0] = m_pCurrentEntity->curstate.blending[0];
+	m_pCurrentEntity->latched.prevseqblending[0] = m_pCurrentEntity->curstate.blending[0];
+
+	// Estimate gait
+	Double dt = cls.cl_time - cls.cl_oldtime;
+	dt = clamp(dt, 0, 1);
+	EstimateGait(dt);
+
+	// Calculate the yaw value
+	Float yaw = m_pCurrentEntity->curstate.angles[YAW] - m_pCurrentEntity->curstate.gaityaw;
+	yaw = yaw - SDL_floor(yaw / 360.0f) * 360.0f;
+
+	if(yaw < -180.0f)
+		yaw += 360.0f;
+	else if(yaw > 180.0f)
+		yaw -= 360.0f;
+
+	if(yaw > 120.0f)
+	{
+		m_pCurrentEntity->curstate.gaityaw = m_pCurrentEntity->curstate.gaityaw - 180.0f;
+		m_gaitMovement = -m_gaitMovement;
+		yaw -= 180.0f;
+	}
+	else if(yaw < -120.0f)
+	{
+		m_pCurrentEntity->curstate.gaityaw = m_pCurrentEntity->curstate.gaityaw + 180.0f;
+		m_gaitMovement = -m_gaitMovement;
+		yaw += 180.0f;
+	}
+
+	// Adjust the torso controllers
+	Float controllerValue = ((yaw / static_cast<Float>(MAX_CONTROLLERS)) + 30) / (60.0f / 255.0f);
+
+	for(Uint32 i = 0; i < MAX_CONTROLLERS; i++)
+	{
+		m_pCurrentEntity->curstate.controllers[i] = controllerValue;
+		m_pCurrentEntity->latched.controllers[i] = m_pCurrentEntity->curstate.controllers[i];
+	}
+
+	m_pCurrentEntity->curstate.angles[YAW] = m_pCurrentEntity->curstate.gaityaw;
+	if(m_pCurrentEntity->curstate.angles[YAW] < -0)
+		m_pCurrentEntity->curstate.angles[YAW] += 360.0f;
+
+	m_pCurrentEntity->latched.angles[YAW] = m_pCurrentEntity->curstate.angles[YAW];
+
+	if(m_pCurrentEntity->curstate.gaitsequence < 0 || m_pCurrentEntity->curstate.gaitsequence >= m_pStudioHeader->numseq)
+		m_pCurrentEntity->curstate.gaitsequence = 0;
+
+	pseqdesc = m_pStudioHeader->getSequence(m_pCurrentEntity->curstate.gaitsequence);
+
+	if(pseqdesc->linearmovement[0] > 0)
+		m_pCurrentEntity->curstate.gaitframe += (m_gaitMovement / pseqdesc->linearmovement[0]) * pseqdesc->numframes;
+	else
+		m_pCurrentEntity->curstate.gaitframe += pseqdesc->fps * dt;
+
+	m_pCurrentEntity->curstate.gaitframe = m_pCurrentEntity->curstate.gaitframe - SDL_floor(m_pCurrentEntity->curstate.gaitframe / pseqdesc->numframes) * pseqdesc->numframes;
+	if(m_pCurrentEntity->curstate.gaitframe < 0)
+		m_pCurrentEntity->curstate.gaitframe += pseqdesc->numframes; 
+}
+
+//=============================================
+//
+//
+//=============================================
+void CVBMRenderer::EstimateGait( Double dt )
+{
+	if(!dt || m_pCurrentEntity->curstate.renderframe == rns.framecount_main)
+	{
+		// No gait movement
+		m_gaitMovement = 0;
+	}
+	else
+	{
+		Vector estimatedVelocity;
+		if(m_gaitEstimate)
+		{
+			estimatedVelocity = m_pCurrentEntity->curstate.origin - m_pCurrentEntity->latched.prevgaitorigin;
+			m_pCurrentEntity->latched.prevgaitorigin = m_pCurrentEntity->curstate.origin;
+			m_gaitMovement = estimatedVelocity.Length();
+			if(dt <= 0 || (m_gaitMovement / dt) < 5.0f)
+			{
+				m_gaitMovement = 0;
+
+				for(Uint32 i = 0; i < 1; i++)
+					estimatedVelocity[i] = 0;
+			}
+		}
+		else
+		{
+			estimatedVelocity = m_pCurrentEntity->curstate.velocity;
+			m_gaitMovement = estimatedVelocity.Length() * dt;
+		}
+
+		if(!estimatedVelocity[1] && !estimatedVelocity[0])
+		{
+			Float yawDiff = m_pCurrentEntity->curstate.angles[YAW] - m_pCurrentEntity->curstate.gaityaw;
+			yawDiff = yawDiff - SDL_floor(yawDiff / 360.0f) * 360.0f;
+			if(yawDiff > 180.0f)
+				yawDiff -= 360.0f;
+			else if(yawDiff < -180.0f)
+				yawDiff += 360.0f;
+
+			if(dt < 0.25)
+				yawDiff *= dt * 4;
+			else
+				yawDiff *= dt;
+
+			m_pCurrentEntity->curstate.gaityaw += yawDiff;
+			m_pCurrentEntity->curstate.gaityaw -= SDL_floor(m_pCurrentEntity->curstate.gaityaw / 360.0f) * 360.0f;
+			m_gaitMovement = 0;
+		}
+		else
+		{
+			m_pCurrentEntity->curstate.gaityaw = (SDL_atan2(estimatedVelocity[1], estimatedVelocity[0]) * (180.0f / M_PI));
+			m_pCurrentEntity->curstate.gaityaw = clamp(m_pCurrentEntity->curstate.gaityaw, -180, 180);
+		}
+
+		m_pCurrentEntity->curstate.renderframe = rns.framecount_main;
+	}
 }
 
 //=============================================
@@ -1174,6 +1366,26 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 		}
 	}
 
+	// Set up player-relevant stuff
+	Vector savedAngles;
+	if(m_pCurrentEntity->player)
+	{
+		if(m_pCurrentEntity->curstate.gaitsequence)
+		{
+			// Save angles and process gait animation
+			savedAngles = m_pCurrentEntity->curstate.angles;
+			ProcessGait();
+		}
+		else
+		{
+			for(Uint32 i = 0; i < MAX_CONTROLLERS; i++)
+			{
+				m_pCurrentEntity->curstate.controllers[i] = 127.0f;
+				m_pCurrentEntity->latched.controllers[i] = m_pCurrentEntity->curstate.controllers[i];
+			}
+		}
+	}
+
 	// Set basic infos
 	SetOrientation();
 
@@ -1182,6 +1394,9 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 	{
 		SetupTransformationMatrix();
 		SetupBones(flags);
+
+		if(m_pCurrentEntity->player && m_pCurrentEntity->curstate.gaitsequence)
+			m_pCurrentEntity->curstate.angles = savedAngles;
 	}
 
 	// Leave after calculating bones
@@ -1268,7 +1483,7 @@ void CVBMRenderer::CalculateAttachments( void )
 //
 //
 //=============================================
-void CVBMRenderer::AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, vbm_glvertex_t* pvertexbuffer, Uint32* pindexbuffer, Uint32& vertexoffset, Uint32& indexoffset )
+void CVBMRenderer::AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, mcdheader_t* pmcd, vbm_glvertex_t* pvertexbuffer, Uint32* pindexbuffer, Uint32& vertexoffset, Uint32& indexoffset )
 {
 	//
 	// Compile in vertexes
@@ -1328,25 +1543,14 @@ void CVBMRenderer::AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, vbm_glvertex_t*
 	//
 	// Set up textures
 	//
-	CString modelname;
-	Common::Basename(pvbm->name, modelname);
-	modelname.tolower();
-
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 
 	for(Int32 i = 0; i < pvbm->numtextures; i++)
 	{
 		vbmtexture_t *ptexture = pvbm->getTexture(static_cast<Uint32>(i));
-
-		CString textureName;
-		Common::Basename(ptexture->name, textureName); 
-		textureName.tolower();
-
-		// Create and assign the group
-		CString materialscriptpath;
-		materialscriptpath << MODEL_MATERIALS_BASE_PATH << modelname << PATH_SLASH_CHAR << textureName.c_str() << PMF_FORMAT_EXTENSION;
-
+		
 		// Retreive material name
+		CString materialscriptpath = GetModelTexturePath(pvbm->name, ptexture->name);
 		en_material_t* pmaterial = pTextureManager->LoadMaterialScript(materialscriptpath.c_str(), RS_GAME_LEVEL);
 		if(!pmaterial)
 			pmaterial = pTextureManager->GetDummyMaterial();
@@ -1364,6 +1568,28 @@ void CVBMRenderer::AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, vbm_glvertex_t*
 		}
 
 		ptexture->index = pmaterial->index;
+	}
+
+	if(pmcd)
+	{
+		for(Int32 i = 0; i < pmcd->numtextures; i++)
+		{
+			mcdtexture_t *ptexture = pmcd->getTexture(static_cast<Uint32>(i));
+		
+			// Retreive material name
+			CString materialscriptpath = GetModelTexturePath(pvbm->name, ptexture->name);
+			en_material_t* pmaterial = pTextureManager->LoadMaterialScript(materialscriptpath.c_str(), RS_GAME_LEVEL);
+			if(!pmaterial)
+				pmaterial = pTextureManager->GetDummyMaterial();
+
+			if(!pmaterial->containername.empty())
+			{
+				Con_EPrintf("%s - Container name specified for non-world material script '%s'. Texture will be null.\n", __FUNCTION__, materialscriptpath.c_str());
+				pmaterial->ptextures[MT_TX_DIFFUSE] = pTextureManager->GetDummyTexture();
+			}
+
+			ptexture->index = pmaterial->index;
+		}
 	}
 
 	// 
@@ -1465,7 +1691,7 @@ void CVBMRenderer::BuildVBO( void )
 	for(Uint32 i = 0; i < finalvbmcount; i++)
 	{
 		const vbmcache_t* pcache = pvbmarray[i];
-		AddVBM(pcache->pstudiohdr, pcache->pvbmhdr, pvertexbuffer, pindexbuffer, vertexoffset, indexoffset);
+		AddVBM(pcache->pstudiohdr, pcache->pvbmhdr, pcache->pmcdheader, pvertexbuffer, pindexbuffer, vertexoffset, indexoffset);
 	}
 
 	m_pVBO = new CVBO(gGLExtF, pvertexbuffer, sizeof(vbm_glvertex_t)*finalvertexcount, pindexbuffer, sizeof(Uint32)*finalindexcount);
@@ -2439,7 +2665,7 @@ void CVBMRenderer::GetDynamicLights( void )
 //=============================================
 bool CVBMRenderer::CheckBBox( void )
 {
-	if (m_pCurrentEntity->curstate.sequence >=  m_pStudioHeader->numseq) 
+	if(m_pCurrentEntity->curstate.sequence < 0 || m_pCurrentEntity->curstate.sequence >= m_pStudioHeader->numseq)
 		m_pCurrentEntity->curstate.sequence = 0;
 
 	// Build full bounding box
@@ -2668,7 +2894,8 @@ bool CVBMRenderer::Render( Int32 flags )
 bool CVBMRenderer::SetupRenderer( void )
 {
 	// If in water with caustics, add to multipass
-	if(rns.inwater && g_pCvarCaustics->GetValue() >= 1 
+
+	if(rns.inwater && g_pCvarCaustics->GetValue() >= 1 && m_pCurrentEntity->curstate.renderfx != RenderFx_NoDynamicLighting
 		&& gWaterShader.GetWaterQualitySetting() > CWaterShader::WATER_QUALITY_NO_REFLECT_REFRACT)
 	{
 		const water_settings_t* pwatersettings = gWaterShader.GetActiveSettings();
@@ -3841,6 +4068,19 @@ bool CVBMRenderer::DrawFinal ( void )
 				if(pmaterial->ptextures[MT_TX_SPECULAR])
 					hasSpecular = true;
 
+				if(pmaterial->scrollu || pmaterial->scrollv)
+				{
+					Float scrollu = pmaterial->scrollu ? (rns.time * pmaterial->scrollu) : 0;
+					Float scrollv = pmaterial->scrollv ? (rns.time * pmaterial->scrollv) : 0;
+
+					m_pShader->SetUniform2f(m_attribs.u_scroll, scrollu, scrollv);
+				}
+				else
+				{
+					// No scrolling
+					m_pShader->SetUniform2f(m_attribs.u_scroll, 0, 0);
+				}
+
 				if(pmesh->numbones)
 					SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
 
@@ -4280,6 +4520,19 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 
 			if(!m_pShader->VerifyDeterminators())
 				return false;
+
+			if(pmaterial->scrollu || pmaterial->scrollv)
+			{
+				Float scrollu = pmaterial->scrollu ? (rns.time * pmaterial->scrollu) : 0;
+				Float scrollv = pmaterial->scrollv ? (rns.time * pmaterial->scrollv) : 0;
+
+				m_pShader->SetUniform2f(m_attribs.u_scroll, scrollu, scrollv);
+			}
+			else
+			{
+				// No scrolling
+				m_pShader->SetUniform2f(m_attribs.u_scroll, 0, 0);
+			}
 
 			if(pmesh->numbones)
 				SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
@@ -6129,6 +6382,9 @@ bool CVBMRenderer::DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 nume
 		if(pvisents[i]->curstate.renderfx == RenderFx_SkyEnt)
 			continue;
 
+		if(pvisents[i]->curstate.renderfx == RenderFx_NoShadow)
+			continue;
+
 		if (pvisents[i]->curstate.renderfx == RenderFx_SkyEntScaled)
 			continue;
 
@@ -6508,7 +6764,7 @@ void CVBMRenderer::DispatchClientEvents( void )
 	if(!pseqdesc->numevents)
 		return;
 
-	Float flframe = VBM_EstimateFrame(pseqdesc, m_pCurrentEntity->curstate, rns.time);
+	Float flframe = VBM_EstimateFrame(pseqdesc, rns.time, m_pCurrentEntity->curstate.frame, m_pCurrentEntity->curstate.animtime, m_pCurrentEntity->curstate.framerate, m_pCurrentEntity->curstate.effects);
 
 	// Fixes first-frame event bug
 	if(!flframe) 

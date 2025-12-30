@@ -13,6 +13,8 @@ All Rights Reserved.
 #include "trace.h"
 #include "constants.h"
 
+struct areanode_t;
+
 struct moveclip_t
 {
 	moveclip_t():
