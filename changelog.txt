@@ -812,3 +812,25 @@
  - Fix bug with NPCs playing flinch animations when "Take cover from enemy" schedule fails.
  - Fix trigger_auto not killing it's Kill Target when it has no Target set.
  - Cleanup of scripted_sequence code.
+ 
+2025 December 30th:
+ - Added support for Model Collision Data(MCD) format for VBM models.
+ - Reworked VBM_EstimateFrame to support use for gait animation estimation also.
+ - Add safeguard for wrong surface extents based on BSP format type.
+ - Add further progress on proper player animation code, including gait animations.
+ - Add math functions used by AABB-triangle collision code.
+ - Added "No Dynamic Lighting" Render Fx for brush and VBM models.
+ - Added proper implementation for "No shadows" Render Fx for brush and VBM models.
+ - Increased max animation blends from 2 to 9 in network/entity code.
+ - Fix crash with R_AllocBlock when lightmap size for a surface is greater than the initial atlas texture width/height.
+ - Added a ';' token to lightstyle strings, to help define no-blend transitions in animations.
+ - Fix U/V texture scroll support in VBM models.
+ - Fix crash in CWADTextureResource when loading maps with missing WADs.
+ - Fix bug with player angles causing inverted view pitch when loading saves/going through level changes.
+ - Apply Pathos-like code formatting in win32_delay_load.cpp for the new code by Joel Troch.
+ - Fix issues with "Attack Direction" in CMultiDamage class.
+ - Add "No VIS Checks" spawnflag to env_elight.
+ - Add support for tracking impacted entity by explode-on-contact grenades.
+ - Modify env_model to be set as a solid object if it's model has an MCD file attached.
+ - Fix issue with weapons taking ammo from on-ground weapons even if full with ammo.
+ - Modify weapon code to track fidget animation playback to reduce repeats.
