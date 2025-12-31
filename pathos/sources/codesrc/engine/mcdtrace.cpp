@@ -30,7 +30,7 @@ const Float CMCDTrace::DISTANCE_EPSILON = 0.03125;
 // On-plane epsilon value
 const Float CMCDTrace::ONPLANE_EPSILON = 0.03125;
 // Invalid fraction value
-const Float CMCDTrace::INVALID_FRACTION = -1e30f;
+const Float CMCDTrace::INVALID_FRACTION = -MAX_FLOAT_VALUE;
 // SA epsilon value
 const Float CMCDTrace::SA_EPSILON = 0.0f;
 // Triangle index alloc size
@@ -339,7 +339,7 @@ bool CMCDTrace::IntersectBVHNodePoint( const Vector& start, const Vector& end, c
     tmin = max( tmin, min( tz1, tz2 ) );
 	tmax = min( tmax, max( tz1, tz2 ) );
 
-    return tmax >= tmin && tmin < 1e30f && tmax > 0;
+    return tmax >= tmin && tmin < MAX_FLOAT_VALUE && tmax > 0;
 }
 
 //=============================================
@@ -361,8 +361,8 @@ bool CMCDTrace::IntersectBBoxAABB( const Vector& center, const Vector& boxmins, 
 //=============================================
 bool CMCDTrace::IntersectBBoxSweptAABB( const Vector& start, const Vector& end, const Vector& boxmins, const Vector& boxmaxs, const Vector& extents )
 {
-	Float tmin = -1e30f;
-	Float tmax = 1e30f;
+	Float tmin = -MAX_FLOAT_VALUE;
+	Float tmax = MAX_FLOAT_VALUE;
 
 	Vector expandmins, expandmaxs;
 	Math::VectorSubtract(boxmins, extents, expandmins);

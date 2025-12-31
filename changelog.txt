@@ -834,3 +834,8 @@
  - Modify env_model to be set as a solid object if it's model has an MCD file attached.
  - Fix issue with weapons taking ammo from on-ground weapons even if full with ammo.
  - Modify weapon code to track fidget animation playback to reduce repeats.
+ 
+2015 December 31st:
+ - Turn 1e30f into a constant named MAX_FLOAT_VALUE.
+ - Fix point-sized line-traces not working at all after MCD changes were merged.
+ - Fix bone controllers on studio/vbm models not working.

@@ -43,7 +43,7 @@ void VBM_CalculateBoneAdjustments( const studiohdr_t* phdr, Float dadt, const CA
 					Int32 a = (static_cast<Int32>(pcontroller1[i])+128)%256;
 					Int32 b = (static_cast<Int32>(pcontroller2[i])+128)%256;
 
-					value = (a*dadt + b*(1.0f-dadt)) * (360.0f/256.0f) + pbonecontroller->start;
+					value = ((a*dadt + b*(1.0f-dadt)) - 128) * (360.0f/256.0f) + pbonecontroller->start;
 				}
 				else
 				{
@@ -64,7 +64,7 @@ void VBM_CalculateBoneAdjustments( const studiohdr_t* phdr, Float dadt, const CA
 			value = (1.0-value) * pbonecontroller->start + value*pbonecontroller->end;
 		}
 
-		switch(pbonecontroller->type)
+		switch(pbonecontroller->type & STUDIO_TYPES)
 		{
 		case STUDIO_XR:
 		case STUDIO_YR:

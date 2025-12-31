@@ -528,7 +528,7 @@ void SV_SingleClipMoveToEntity( edict_t* pentity, const Vector& start, const Vec
 	Math::VectorSubtract(end, offset, end_l);
 
 	// Rotate the pentity if needed
-	if((pmcdheader || pmodel->type != MOD_VBM && pentity->state.solid == SOLID_BSP) && !pentity->state.angles.IsZero())
+	if((pmcdheader || pmodel->type == MOD_BRUSH && pentity->state.solid == SOLID_BSP) && !pentity->state.angles.IsZero())
 	{
 		Math::RotateToEntitySpace(pentity->state.angles, start_l);
 		Math::RotateToEntitySpace(pentity->state.angles, end_l);
@@ -632,14 +632,22 @@ void SV_SingleClipMoveToEntityPoint( edict_t* pentity, const Vector& start, cons
 		phull = SV_HullForEntity(pentity, ZERO_VECTOR, ZERO_VECTOR, nullptr, HULL_POINT); 
 	}
 
-	Math::VectorSubtract(start, pentity->state.origin, start_l);
-	Math::VectorSubtract(end, pentity->state.origin, end_l);
-
 	// Rotate the pentity if needed
-	if((pmcdheader || pmodel->type == MOD_BRUSH && pentity->state.solid == SOLID_BSP) && !pentity->state.angles.IsZero())
+	if((pmcdheader || pmodel->type == MOD_BRUSH && pentity->state.solid == SOLID_BSP))
 	{
-		Math::RotateToEntitySpace(pentity->state.angles, start_l);
-		Math::RotateToEntitySpace(pentity->state.angles, end_l);
+		Math::VectorSubtract(start, pentity->state.origin, start_l);
+		Math::VectorSubtract(end, pentity->state.origin, end_l);
+
+		if(!pentity->state.angles.IsZero())
+		{
+			Math::RotateToEntitySpace(pentity->state.angles, start_l);
+			Math::RotateToEntitySpace(pentity->state.angles, end_l);
+		}
+	}
+	else
+	{
+		Math::VectorCopy(start, start_l);
+		Math::VectorCopy(end, end_l);
 	}
 
 	if(pmcdheader)
