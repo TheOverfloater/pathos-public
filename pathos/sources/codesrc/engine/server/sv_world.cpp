@@ -410,8 +410,8 @@ const hull_t* SV_HullForEntity( const edict_t* pentity, const Vector& mins, cons
 	else
 	{
 		Vector hullmins, hullmaxs;
-		Math::VectorSubtract(pentity->state.absmin, maxs, hullmins);
-		Math::VectorSubtract(pentity->state.absmax, mins, hullmaxs);
+		Math::VectorSubtract(pentity->state.mins, maxs, hullmins);
+		Math::VectorSubtract(pentity->state.maxs, mins, hullmaxs);
 
 		if(poffset)
 			Math::VectorCopy(pentity->state.origin, *poffset);
@@ -570,6 +570,7 @@ void SV_SingleClipMoveToEntityPoint( edict_t* pentity, const Vector& start, cons
 
 	Vector start_l;
 	Vector end_l;
+	Vector offset;
 
 	// Get the appropriate hull
 	if(pmodel->type == MOD_VBM && ((flags & FL_TRACE_HITBOXES) || (pmodel->flags & STUDIO_MF_TRACE_HITBOX)) && !pmcdheader && !(pentity->state.flags & FL_NO_HITBOX_TRACE))
@@ -578,32 +579,27 @@ void SV_SingleClipMoveToEntityPoint( edict_t* pentity, const Vector& start, cons
 		TR_VBMSetHullInfo(pentity->pvbmhulldata, pmodel, ZERO_VECTOR, ZERO_VECTOR, pentity->state, svs.time, HULL_POINT);
 		// Retrieve pointer to array
 		pvbmhulls = TR_VBMGetHulls(pentity->pvbmhulldata, ZERO_VECTOR, ZERO_VECTOR, HULL_POINT, flags, nullptr);
-
-		Math::VectorCopy(start, start_l);
-		Math::VectorCopy(end, end_l);
-	}
-	else if(!pmcdheader)
-	{
-		// Retrieve regular hull
-		phull = SV_HullForEntity(pentity, ZERO_VECTOR, ZERO_VECTOR, nullptr, HULL_POINT); 
-	}
-
-	// Rotate the pentity if needed
-	if((pmcdheader || pmodel->type == MOD_BRUSH && pentity->state.solid == SOLID_BSP))
-	{
-		Math::VectorSubtract(start, pentity->state.origin, start_l);
-		Math::VectorSubtract(end, pentity->state.origin, end_l);
-
-		if(!pentity->state.angles.IsZero())
-		{
-			Math::RotateToEntitySpace(pentity->state.angles, start_l);
-			Math::RotateToEntitySpace(pentity->state.angles, end_l);
-		}
+		// Zero offset in this case
+		offset = ZERO_VECTOR;
 	}
 	else
 	{
-		Math::VectorCopy(start, start_l);
-		Math::VectorCopy(end, end_l);
+		// Retrieve regular hull if not using MCD
+		if(!pmcdheader)
+			phull = SV_HullForEntity(pentity, ZERO_VECTOR, ZERO_VECTOR, nullptr, HULL_POINT); 
+
+		// Offset is entity origin
+		offset = pentity->state.origin;
+	}
+
+	Math::VectorSubtract(start, offset, start_l);
+	Math::VectorSubtract(end, offset, end_l);
+
+	// Rotate the entity if needed
+	if((pmcdheader || pmodel->type == MOD_BRUSH && pentity->state.solid == SOLID_BSP) && !pentity->state.angles.IsZero())
+	{
+		Math::RotateToEntitySpace(pentity->state.angles, start_l);
+		Math::RotateToEntitySpace(pentity->state.angles, end_l);
 	}
 
 	if(pmcdheader)

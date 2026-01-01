@@ -356,6 +356,7 @@ void CTurretNPC::ActiveThink( void )
 	if(!m_isOn || !m_enemy)
 	{
 		m_enemy.reset();
+		m_pState->framerate = 0;
 		m_lastSightTime = g_pGameVars->time + m_maxWaitTime;
 		SetThink(&CTurretNPC::SearchThink);
 		return;
@@ -369,8 +370,9 @@ void CTurretNPC::ActiveThink( void )
 	{
 		if(m_lastSightTime && m_lastSightTime <= g_pGameVars->time)
 		{
-			m_goalAngles.x = 0;
 			m_enemy.reset();
+			m_goalAngles.x = 0;
+			m_pState->framerate = 0;
 			m_lastSightTime = g_pGameVars->time + m_maxWaitTime;
 			SetThink(&CTurretNPC::SearchThink);
 			return;
@@ -395,6 +397,7 @@ void CTurretNPC::ActiveThink( void )
 		{
 			m_goalAngles.x = 0;
 			m_enemy.reset();
+			m_pState->framerate = 0;
 			m_lastSightTime = g_pGameVars->time + m_maxWaitTime;
 			SetThink(&CTurretNPC::SearchThink);
 			return;
