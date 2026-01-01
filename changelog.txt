@@ -839,3 +839,15 @@
  - Turn 1e30f into a constant named MAX_FLOAT_VALUE.
  - Fix point-sized line-traces not working at all after MCD changes were merged.
  - Fix bone controllers on studio/vbm models not working.
+ 
+2026 January 1st:
+ - Modify traceline/move code to use new bbox-line trace checks to optimize on tracelines done against clip hulls.
+ - Move shared bbox-line and bbox-swept bbox checks outside of CMCDTrace class.
+ - Add comments clarifying some extents calculations in CMCDTrace.
+ - Fix bug with ladders and other usable entities not working after merge of MCD format changes.
+ - Fix bug that caused NPCs to get stuck in a combat state after their enemies were already dead.
+ - Add finally working turret related code from main branch into the public branch.
+ - Add npc_sentry code for Half-Life 1-like animated sentries.
+ - Fix issue with no-notification weapon_ entities not clearing their flags after being picked up.
+ - Remove no-blend markers from 6th lightstyle(Flicker B).
+ 
