@@ -226,6 +226,7 @@
     <ClCompile Include="ai_squadnpc.cpp" />
     <ClCompile Include="ai_talknpc.cpp" />
     <ClCompile Include="ai_tasks.cpp" />
+    <ClCompile Include="ai_turretnpc.cpp" />
     <ClCompile Include="ai_wandernpc.cpp" />
     <ClCompile Include="ambientgeneric.cpp" />
     <ClCompile Include="ambientoggstream.cpp" />
@@ -389,6 +390,7 @@
     <ClCompile Include="npcmaker.cpp" />
     <ClCompile Include="npcsecurity.cpp" />
     <ClCompile Include="npcsecuritydead.cpp" />
+    <ClCompile Include="npcsentry.cpp" />
     <ClCompile Include="npctesthull.cpp" />
     <ClCompile Include="nullentity.cpp" />
     <ClCompile Include="pathcorner.cpp" />
@@ -515,6 +517,7 @@
     <ClInclude Include="ai_schedule_inline.hpp" />
     <ClInclude Include="ai_squadnpc.h" />
     <ClInclude Include="ai_talknpc.h" />
+    <ClInclude Include="ai_turretnpc.h" />
     <ClInclude Include="ai_wandernpc.h" />
     <ClInclude Include="beam.h" />
     <ClInclude Include="beam_inline.hpp" />
@@ -565,6 +568,7 @@
     <ClInclude Include="npcmaker.h" />
     <ClInclude Include="npcsecurity.h" />
     <ClInclude Include="npcsecuritydead.h" />
+    <ClInclude Include="npcsentry.h" />
     <ClInclude Include="npctesthull.h" />
     <ClInclude Include="prioritynodequeue.h" />
     <ClInclude Include="nodequeue.h" />

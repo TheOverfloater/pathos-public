@@ -1242,7 +1242,7 @@ CBaseEntity* CTalkNPC::FindPlayer( void )
 Float CTalkNPC::GetTargetDistance( void )
 {
 	if(!m_targetEntity || !m_targetEntity->IsAlive())
-		return 1E6;
+		return MAX_FLOAT_VALUE;
 	else
 		return (m_targetEntity->GetOrigin()-m_pState->origin).Length();
 }

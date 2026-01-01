@@ -245,6 +245,7 @@
     <ClCompile Include="..\common\ogg_common.cpp" />
     <ClCompile Include="..\common\r_common.cpp" />
     <ClCompile Include="..\common\tga.cpp" />
+    <ClCompile Include="..\shared\collision_shared.cpp" />
     <ClCompile Include="..\shared\r_basicdraw.cpp" />
     <ClCompile Include="..\shared\sentencesfile.cpp" />
     <ClCompile Include="..\shared\stepsound.cpp" />
@@ -403,6 +404,7 @@
     <ClInclude Include="..\common\vector_inline.hpp" />
     <ClInclude Include="..\common\wad3file.h" />
     <ClInclude Include="..\shared\beam_shared.h" />
+    <ClInclude Include="..\shared\collision_shared.h" />
     <ClInclude Include="..\shared\mcdformat.h" />
     <ClInclude Include="..\shared\r_basicdraw.h" />
     <ClInclude Include="..\shared\sentencesfile.h" />

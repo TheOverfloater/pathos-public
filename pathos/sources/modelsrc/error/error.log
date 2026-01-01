@@ -1,0 +1,63 @@
+Log started: 2025-12-11 11:46:30
+Log file: D:\Games\Bleed No More\bleed\sources\modelsrc\error/error.log
+VBMCompiler version 0.9.
+Build date: Dec 11 2025.
+QC file path: D:\Games\Bleed No More\bleed\sources\modelsrc\error\error.qc.
+Reading launch arguments:
+ - Half-Life 1 MDL texture data will be stripped.
+ - Application will only exit on key input.
+ - Half-Life 1 MDL vertex/normal limit overridden.
+ - Hitbox data dumping enabled.
+Loading custom render modes from file 'D:/Games/Bleed No More/bleed/sources/progs/vbmcompiler/rendermode_defs.txt'.
+Render mode 'additive' already present, discarding.
+Render mode 'flatshade' already present, discarding.
+Render mode 'alphatest' already present, discarding.
+Added 1 new render mode definition(s).
+Loading custom hitgroups from file 'D:/Games/Bleed No More/bleed/sources/progs/vbmcompiler/hitgroup_defs.txt'.
+Added 8 new hitgroup definition(s).
+Loading bone-hitgroup mappings from file 'D:/Games/Bleed No More/bleed/sources/progs/vbmcompiler/bone_hitgroup_automap.txt'.
+Bone name token 'Eye' already in discard list, ignoring.
+Added 23 bone-hitgroup mapping definition(s), 4 bone names to discard.
+Loading activity mappings from 'D:/Games/Bleed No More/bleed/sources/progs/vbmcompiler/activitymap.txt'.
+Added 107 activity mappings.
+Loading file 'D:\Games\Bleed No More\bleed\sources\modelsrc\error/error.qc'.
+Deprecated command '$cliptotextures' used, ignored.
+Added submodel 'ref' to bodygroup 'body'.
+Added sequence definition 'idle' with 30.00 fps, 0 blends and 0 events.
+Loading file 'D:/Games/Bleed No More/bleed/sources/modelsrc/error/ref.smd'.
+Processing 'ref.smd'.
+Loaded 'ref':
+	1182 triangles.
+	600 unique vertexes.
+	96 unique normal.
+	1 unique vertex weights.
+Loaded texture 'error_tex.bmp'(32 x 32) with skinref '0', 0.00 mbytes.
+Loading file 'D:/Games/Bleed No More/bleed/sources/modelsrc/error/idle.smd'.
+Processing 'idle.smd'.
+Couldn't find hitgroup with ID 0 used by hitbox for bone 'V_Base'.
+Generated hitbox with hitgroup named 'UNKNOWN' for bone 'V_Base':
+	Mins: -37.32 0.07 -5.80.
+	Maxs: 39.47 30.45 0.00.
+Wrote 1 bones, 0 controllers, 0 attachments, 1 hit boxes.
+	- Size written: 0.00 megabytes.
+Wrote 1 sequences, 0 events, 0 pivots, 16 bytes of compressed animation data.
+	- Size written: 0.00 megabytes.
+Wrote 1 bodyparts, 1 submodels, 1 meshes, 1182 triangles, 600 vertexes and 96 normals.
+	- Size written: 0.04 megabytes.
+Wrote 1 textures, 1 skin families
+	- Size written: 0.00 megabytes.
+Wrote MDL file 'D:/Games/Bleed No More/bleed/sources/modelsrc/error/error.mdl', 0.04 mbytes.
+Loading file 'D:/Games/Bleed No More/bleed/sources/modelsrc/error/reference_frame.smd'.
+Failed to load file 'reference_frame.smd'.
+Failed to open 'reference_frame.smd' for processing.
+Reference frame file 'reference_frame.smd' not found or invalid, defaulting to global table.
+VBM compile done: 2971 vertexes, 3546 indexes, 1 bodyparts, 1 submodels.
+	Output size: 0 mbytes.
+Wrote VBM file 'D:/Games/Bleed No More/bleed/sources/modelsrc/error/error.vbm', 0.18 mbytes.
+Loading file 'D:/Games/Bleed No More/bleed/sources/modelsrc/error/ref_collisions.smd'.
+Processing 'ref_collisions.smd'.
+Loaded 'ref_collisions':
+	36 triangles.
+	24 unique vertexes.
+Wrote MCD file 'D:/Games/Bleed No More/bleed/sources/modelsrc/error/error.mcd', 0.01 mbytes.
+Closing log

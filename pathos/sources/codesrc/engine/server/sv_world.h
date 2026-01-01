@@ -63,7 +63,6 @@ extern const hull_t* SV_HullForBSP( const edict_t* pentity, const Vector& mins, 
 extern const hull_t* SV_HullForBSP( Int32 entity, hull_types_t hulltype, Vector* poffset );
 extern const hull_t* SV_HullForEntity( const edict_t* pentity, const Vector& mins, const Vector& maxs, Vector* poffset, hull_types_t hulltype = HULL_AUTO );
 extern void SV_SingleClipMoveToEntity( edict_t* pentity, const Vector& start, const Vector& mins, const Vector& maxs, const Vector& end, trace_t& trace, Int32 flags, hull_types_t hulltype = HULL_AUTO );
-extern bool	SV_TracelineBBoxCheck( edict_t* pentity, const cache_model_t* pcachemodel, const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs );
 
 extern Float SV_TraceModel( Int32 entindex, const Vector& start, const Vector& end, hull_types_t hulltype, Int32 flags, trace_t& trace );
 extern void SV_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags,hull_types_t hulltype, Int32 ignore_ent, trace_t& trace );

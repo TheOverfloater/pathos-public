@@ -768,6 +768,9 @@
     <ClCompile Include="npcclonesoldier.cpp">
       <Filter>Source Files\entities\npc</Filter>
     </ClCompile>
+    <ClCompile Include="npcsentry.cpp">
+      <Filter>Source Files\entities\npc</Filter>
+    </ClCompile>
     <ClCompile Include="npcmaker.cpp">
       <Filter>Source Files\entities\other</Filter>
     </ClCompile>
@@ -904,7 +907,10 @@
       <Filter>Source Files\entities\info</Filter>
     </ClCompile>
     <ClCompile Include="..\common\cbitset.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\cstringpool.cpp">
+      <Filter>Source Files\common</Filter>
     </ClCompile>
     <ClCompile Include="funcparticleblocker.cpp">
       <Filter>Source Files\entities\func</Filter>
@@ -933,9 +939,6 @@
     <ClCompile Include="mathcounter.cpp">
       <Filter>Source Files\entities\other</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\cstringpool.cpp">
-      <Filter>Source Files\common</Filter>
-    </ClCompile>
     <ClCompile Include="envoverlay.cpp">
       <Filter>Source Files\entities\env</Filter>
     </ClCompile>
@@ -947,6 +950,9 @@
     </ClCompile>
     <ClCompile Include="envtracereffect.cpp">
       <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
+    <ClCompile Include="ai_turretnpc.cpp">
+      <Filter>Source Files\ai</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1601,6 +1607,12 @@
     <ClInclude Include="npcclonesoldier.h">
       <Filter>Header Files\entities\npc</Filter>
     </ClInclude>
+    <ClInclude Include="ai_turretnpc.h">
+      <Filter>Header Files\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="npcsentry.h">
+      <Filter>Header Files\entities\npc</Filter>
+    </ClInclude>
     <ClInclude Include="npcmaker.h">
       <Filter>Header Files\entities\other</Filter>
     </ClInclude>
@@ -1737,10 +1749,16 @@
       <Filter>Header Files\entities\trigger</Filter>
     </ClInclude>
     <ClInclude Include="..\common\cbitset.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="..\common\cbitset_inline.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\cstringpool.h">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\cstringpool_inline.hpp">
+      <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="funcparticleblocker.h">
       <Filter>Header Files\entities\func</Filter>
@@ -1768,12 +1786,6 @@
     </ClInclude>
     <ClInclude Include="mathcounter.h">
       <Filter>Header Files\entities\other</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\cstringpool.h">
-      <Filter>Header Files\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\cstringpool_inline.hpp">
-      <Filter>Header Files\common</Filter>
     </ClInclude>
     <ClInclude Include="envoverlay.h">
       <Filter>Header Files\entities\env</Filter>

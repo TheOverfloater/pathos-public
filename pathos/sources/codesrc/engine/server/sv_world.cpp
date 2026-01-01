@@ -24,6 +24,7 @@ All Rights Reserved.
 #include "vbmtrace.h"
 #include "sv_physics.h"
 #include "mcdtrace.h"
+#include "collision_shared.h"
 
 //
 // Some of the code here was written while referencing Quake 1 and ReHLDS. I want to thank Id Software
@@ -409,59 +410,14 @@ const hull_t* SV_HullForEntity( const edict_t* pentity, const Vector& mins, cons
 	else
 	{
 		Vector hullmins, hullmaxs;
-		Math::VectorSubtract(pentity->state.mins, maxs, hullmins);
-		Math::VectorSubtract(pentity->state.maxs, mins, hullmaxs);
+		Math::VectorSubtract(pentity->state.absmin, maxs, hullmins);
+		Math::VectorSubtract(pentity->state.absmax, mins, hullmaxs);
 
 		if(poffset)
 			Math::VectorCopy(pentity->state.origin, *poffset);
 
 		return TR_HullForBox(hullmins, hullmaxs);
 	}
-}
-
-//=============================================
-//
-//=============================================
-bool SV_TracelineBBoxCheck( edict_t* pentity, const cache_model_t* pcachemodel, const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs )
-{
-	trace_t tr;
-	tr.endpos = end;
-	tr.fraction = 1.0;
-	tr.flags |= FL_TR_ALLSOLID;
-
-	// Calculate hull mins/maxs
-	Vector hullmins, hullmaxs;
-	if(pcachemodel->type == MOD_BRUSH && !pentity->state.angles.IsZero())
-	{
-		for(Uint32 i = 0; i < 3; i++)
-		{
-			hullmins[i] = -pcachemodel->radius - maxs[i];
-			hullmaxs[i] = pcachemodel->radius - mins[i];
-		}
-	}
-	else
-	{
-		Math::VectorSubtract(pentity->state.mins, maxs, hullmins);
-		Math::VectorSubtract(pentity->state.maxs, mins, hullmaxs);
-	}
-
-	// Some very small mins/maxs need to be extended, otherwise the trace fails
-	for(Uint32 i = 0; i < 3; i++)
-	{
-		hullmins[i] -= 1;
-		hullmaxs[i] += 1;
-	}
-
-	const hull_t* phull = TR_HullForBox(hullmins, hullmaxs);
-
-	Vector start_l;
-	Vector end_l;
-	Math::VectorSubtract(start, pentity->state.origin, start_l);
-	Math::VectorSubtract(end, pentity->state.origin, end_l);
-
-	// Regular trace
-	TR_RecursiveHullCheck(phull, phull->firstclipnode, 0.0f, 1.0f, start_l, end_l, tr);
-	return (tr.fraction != 1.0f || tr.startSolid() || tr.allSolid()) ? true : false;
 }
 
 //=============================================
@@ -490,7 +446,7 @@ void SV_SingleClipMoveToEntity( edict_t* pentity, const Vector& start, const Vec
 	// Do an inexpensive check first, but only if either the entity is mod_brush, or mod_vbm AND has hitboxes specified to be used
 	if(pmodel->cacheindex != WORLD_MODEL_INDEX && (pmodel->type == MOD_BRUSH || pmodel->type == MOD_VBM && (flags & FL_TRACE_HITBOXES || pmodel->flags & STUDIO_MF_TRACE_HITBOX)))
 	{
-		if(!SV_TracelineBBoxCheck(pentity, pmodel, start, end, mins, maxs))
+		if(!TR_TracelineBBoxCheck(pentity->state, pmodel, start, end, mins, maxs))
 			return;
 	}
 
@@ -595,7 +551,7 @@ void SV_SingleClipMoveToEntityPoint( edict_t* pentity, const Vector& start, cons
 	// Do an inexpensive check first, but only if either the entity is mod_brush, or mod_vbm AND has hitboxes specified to be used
 	if(pmodel->cacheindex != WORLD_MODEL_INDEX && (pmodel->type == MOD_BRUSH || pmodel->type == MOD_VBM && (flags & FL_TRACE_HITBOXES || pmodel->flags & STUDIO_MF_TRACE_HITBOX)))
 	{
-		if(!SV_TracelineBBoxCheck(pentity, pmodel, start, end, ZERO_VECTOR, ZERO_VECTOR))
+		if(!TR_TracelineBBoxCheck(pentity->state, pmodel, start, end, ZERO_VECTOR, ZERO_VECTOR))
 			return;
 	}
 

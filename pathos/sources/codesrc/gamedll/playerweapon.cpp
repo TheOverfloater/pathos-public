@@ -236,6 +236,17 @@ bool CPlayerWeapon::AddDuplicate( CPlayerWeapon* poriginal )
 // @brief
 //
 //=============================================
+void CPlayerWeapon::PostWeaponPickup( void )
+{
+	// Un-hide any "hidden" weapons
+	m_pState->rendermode = RENDER_NORMAL;
+	m_pState->spawnflags &= ~CPlayerWeapon::FL_WEAPON_NO_NOTICE;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 bool CPlayerWeapon::ExtractAmmo( CPlayerWeapon* pWeapon )
 {
 	bool result = true;

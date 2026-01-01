@@ -189,32 +189,6 @@ Int32 CL_TruePointContents( const Vector& position )
 //=============================================
 //
 //=============================================
-bool CL_TracelineBBoxCheck( cl_entity_t* pentity, const cache_model_t* pcachemodel, const Vector& start, const Vector& end )
-{
-	trace_t tr;
-	tr.endpos = end;
-	tr.fraction = 1.0;
-	tr.flags |= FL_TR_ALLSOLID;
-
-	// Request the bbox-based hull only
-	const hull_t* phull = TR_HullForBox(pentity->curstate.absmin, pentity->curstate.absmax);
-	if(!phull)
-		return false;
-
-	Vector start_l;
-	Vector end_l;
-	Math::VectorSubtract(start, pentity->curstate.origin, start_l);
-	Math::VectorSubtract(end, pentity->curstate.origin, end_l);
-
-	// Regular trace
-	TR_RecursiveHullCheck(phull, phull->firstclipnode, 0.0f, 1.0f, start_l, end_l, tr);
-
-	return (tr.fraction != 1.0f || tr.startSolid() || tr.allSolid()) ? true : false;
-}
-
-//=============================================
-//
-//=============================================
 void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, hull_types_t hulltype, Int32 ignore_ent, trace_t& trace )
 {
 	if(hulltype < 0 || hulltype >= MAX_MAP_HULLS)
@@ -320,6 +294,10 @@ void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 
 			// Optimize on traceline
 			if(Math::CheckMinsMaxs(tracemins, tracemaxs, mins, maxs))
+				continue;
+
+			// Do cheap bbox check
+			if(!TR_TracelineBBoxCheck(pentity->curstate, pentity->pmodel, start, end, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype]))
 				continue;
 
 			// Set VBM data if needed

@@ -93,6 +93,8 @@ public:
 	virtual bool ShouldRemove( CPlayerWeapon* pWeapon ) { return true; };
 	// Sets spawn properties
 	virtual void SetSpawnProperties( void ) = 0;
+	// Called at end of picking up a weapon
+	virtual void PostWeaponPickup( void );
 
 	// Check for friendly fire
 	bool CheckFriendlyFire( const Vector& shootOrigin, const Vector& shootDirection );

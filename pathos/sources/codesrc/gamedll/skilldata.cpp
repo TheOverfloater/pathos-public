@@ -77,6 +77,9 @@ bool CSkillData::Init( void )
 	g_skillcvars.skillReplicaM249ConeSize = RegisterSkillCVar("sk_replica_m249_cone_size");
 	g_skillcvars.skillReplicaReactionTime = RegisterSkillCVar("sk_replica_reaction_time");
 
+	// Sentry
+	g_skillcvars.skillSentryHealth = RegisterSkillCVar("sk_sentry_health");
+
 	// Security guard
 	g_skillcvars.skillSecurityHealth = RegisterSkillCVar("sk_security_health");
 	g_skillcvars.skillSecurityGlockConeSize = RegisterSkillCVar("sk_security_glock_cone_size");

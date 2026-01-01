@@ -40,6 +40,7 @@ struct skillcvars_t
 		skillReplicaTRG42ConeSize(SKILLCVAR_UNDEFINED),
 		skillReplicaM249ConeSize(SKILLCVAR_UNDEFINED),
 		skillReplicaReactionTime(SKILLCVAR_UNDEFINED),
+		skillSentryHealth(SKILLCVAR_UNDEFINED),
 		skillSecurityHealth(SKILLCVAR_UNDEFINED),
 		skillSecurityGlockConeSize(SKILLCVAR_UNDEFINED),
 		skillSecurityDeagleConeSize(SKILLCVAR_UNDEFINED),
@@ -92,6 +93,8 @@ struct skillcvars_t
 	Int32 skillReplicaM249ConeSize;
 	Int32 skillReplicaReactionTime;
 
+	Int32 skillSentryHealth;
+	
 	Int32 skillSecurityHealth;
 	Int32 skillSecurityGlockConeSize;
 	Int32 skillSecurityDeagleConeSize;

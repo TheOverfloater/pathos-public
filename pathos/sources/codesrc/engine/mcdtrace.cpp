@@ -12,6 +12,7 @@ All Rights Reserved.
 #include "mcdtrace.h"
 #include "enginestate.h"
 #include "frustum_inline.hpp"
+#include "collision_shared.h"
 
 // Credits go to:
 // j_bikker For his article on Bounding Volume Hierarchies, which this implementation is based off of,
@@ -110,7 +111,7 @@ bool CMCDTrace::TraceLinePoint( const Vector& start, const Vector& end, const mc
 		if(!m_pSubModel->numcollisiontypes)
 			continue;
 
-		if(!IntersectBVHNodePoint(start, end, m_pSubModel->mins, m_pSubModel->maxs))
+		if(!CollisionShared::IntersectBVHNodePoint(start, end, m_pSubModel->mins, m_pSubModel->maxs, m_normDirection))
 			continue;
 
 		// Get triangle mesh data
@@ -197,8 +198,10 @@ bool CMCDTrace::TraceLineAABB( const Vector& start, const Vector& end, const Vec
 	m_baseDistance = m_distance = m_normDirection.Length();
 	m_normDirection.Normalize();
 
+	// Determine if we need an intersection test, or a swept test
 	bool intersectTest = !m_distance ? true : false;
-	Vector extents = (clipHullMins - clipHullMins) * 0.5 - clipHullMins;
+	// This actually needs to be the half-extents, not full extents
+	Vector extents = (clipHullMaxs - clipHullMins) * 0.5;
 
 	// Now go through each submodel and perform the trace
 	for (Int32 i = 0; i < m_pMCDHeader->numbodyparts; i++)
@@ -210,12 +213,12 @@ bool CMCDTrace::TraceLineAABB( const Vector& start, const Vector& end, const Vec
 
 		if(!intersectTest)
 		{
-			if(!IntersectBBoxSweptAABB(start, end, m_pSubModel->mins, m_pSubModel->maxs, extents))
+			if(!CollisionShared::IntersectBBoxSweptAABB(start, end, m_pSubModel->mins, m_pSubModel->maxs, extents))
 				continue;
 		}
 		else
 		{
-			if(!IntersectBBoxAABB(start, m_pSubModel->mins, m_pSubModel->maxs, extents))
+			if(!CollisionShared::IntersectBBoxAABB(start, m_pSubModel->mins, m_pSubModel->maxs, extents))
 				continue;
 		}
 
@@ -316,94 +319,6 @@ void CMCDTrace::SetupModel( Uint32 bodypart, Uint64 bodyvalue )
 	index = index % pbodypart->numsubmodels;
 
 	m_pSubModel = pbodypart->getSubmodel(m_pMCDHeader, index);
-}
-
-//=============================================
-// @brief Test if a point-size traceline intersects a bounding box
-//
-//=============================================
-bool CMCDTrace::IntersectBVHNodePoint( const Vector& start, const Vector& end, const Vector& bbmins, const Vector& bbmaxs )
-{
-    Float tx1 = (bbmins.x - start.x) / m_normDirection.x;
-	Float tx2 = (bbmaxs.x - start.x) / m_normDirection.x;
-    Float tmin = min( tx1, tx2 );
-	Float tmax = max( tx1, tx2 );
-
-    Float ty1 = (bbmins.y - start.y) / m_normDirection.y;
-	Float ty2 = (bbmaxs.y - start.y) / m_normDirection.y;
-    tmin = max( tmin, min( ty1, ty2 ) );
-	tmax = min( tmax, max( ty1, ty2 ) );
-
-    Float tz1 = (bbmins.z - start.z) / m_normDirection.z;
-	Float tz2 = (bbmaxs.z - start.z) / m_normDirection.z;
-    tmin = max( tmin, min( tz1, tz2 ) );
-	tmax = min( tmax, max( tz1, tz2 ) );
-
-    return tmax >= tmin && tmin < MAX_FLOAT_VALUE && tmax > 0;
-}
-
-//=============================================
-// @brief Perform a swept AABB test against a triangle
-//
-//=============================================
-bool CMCDTrace::IntersectBBoxAABB( const Vector& center, const Vector& boxmins, const Vector& boxmaxs, const Vector& extents )
-{
-	Vector expandmins, expandmaxs;
-	Math::VectorSubtract(boxmins, extents, expandmins);
-	Math::VectorAdd(boxmaxs, extents, expandmaxs);
-
-	return Math::PointInMinsMaxs(center, expandmins, expandmaxs);
-}
-
-//=============================================
-// @brief Perform a swept AABB test against a triangle
-//
-//=============================================
-bool CMCDTrace::IntersectBBoxSweptAABB( const Vector& start, const Vector& end, const Vector& boxmins, const Vector& boxmaxs, const Vector& extents )
-{
-	Float tmin = -MAX_FLOAT_VALUE;
-	Float tmax = MAX_FLOAT_VALUE;
-
-	Vector expandmins, expandmaxs;
-	Math::VectorSubtract(boxmins, extents, expandmins);
-	Math::VectorAdd(boxmaxs, extents, expandmaxs);
-
-	Vector tracevector = end - start;
-	for(Uint32 i = 0; i < 3; i++)
-	{
-		if(SDL_fabs(tracevector[i]) < 1e-8)
-		{
-			if(start[i] < (expandmins[i] - DIST_EPSILON) || start[i] > (expandmaxs[i] - DIST_EPSILON))
-				return false;
-		}
-		else
-		{
-			Float inversedelta = 1.0f / tracevector[i];
-			Float t1 = (expandmins[i] - DIST_EPSILON - start[i]) * inversedelta;
-			Float t2 = (expandmaxs[i] + DIST_EPSILON - start[i]) * inversedelta;
-
-			if(t1 > t2)
-			{
-				Float tmp = t1;
-				t1 = t2;
-				t2 = tmp;
-			}
-
-			if(t1 > t2)
-				tmin = t1;
-			if(t2 < tmax)
-				tmax = 2;
-
-			if(tmin > tmax)
-				return false;
-			else if(tmax < 0)
-				return false;
-			else if(tmin > 1)
-				return false;
-		}
-	}
-
-	return true;
 }
 
 //=============================================
@@ -902,7 +817,7 @@ bool CMCDTrace::TestLineTriangleIntersect( const Vector& start, const Vector& en
 //=============================================
 void CMCDTrace::RecurseTreePointTrace( const Vector& start, const Vector& end, const mcdbvhnode_t* pbvhnode )
 {
-	if(!IntersectBVHNodePoint(start, end, pbvhnode->mins, pbvhnode->maxs))
+	if(!CollisionShared::IntersectBVHNodePoint(start, end, pbvhnode->mins, pbvhnode->maxs, m_normDirection))
 		return;
 
 	if(pbvhnode->isleaf)
@@ -928,12 +843,12 @@ void CMCDTrace::RecurseTreeAABBTrace( const Vector& start, const Vector& end, co
 {
 	if(!intersectTest)
 	{
-		if(!IntersectBBoxSweptAABB(start, end, pbvhnode->mins, pbvhnode->maxs, extents))
+		if(!CollisionShared::IntersectBBoxSweptAABB(start, end, pbvhnode->mins, pbvhnode->maxs, extents))
 			return;
 	}
 	else
 	{
-		if(!IntersectBBoxAABB(start, pbvhnode->mins, pbvhnode->maxs, extents))
+		if(!CollisionShared::IntersectBBoxAABB(start, pbvhnode->mins, pbvhnode->maxs, extents))
 			return;
 	}
 

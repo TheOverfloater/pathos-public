@@ -20,6 +20,7 @@ All Rights Reserved.
 #include "vbmtrace.h"
 #include "mcdtrace.h"
 #include "sv_world.h"
+#include "collision_shared.h"
 
 // Hull mins for tracehull
 Vector HULL_MINS[MAX_MAP_HULLS] = {
@@ -525,5 +526,58 @@ void TR_PlayerTraceSingleEntity( const entity_state_t& entity, entity_vbmhulldat
 	{
 		memcpy(&outtrace, &trace, sizeof(trace_t));
 		trace.hitentity = entity.entindex;
+	}
+}
+
+//=============================================
+//
+//=============================================
+bool TR_TracelineBBoxCheck( const entity_state_t& entity, const cache_model_t* pcachemodel, const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs )
+{
+	// Calculate hull mins/maxs
+	Vector hullmins, hullmaxs;
+	if(pcachemodel->type == MOD_BRUSH && !entity.angles.IsZero())
+	{
+		for(Uint32 i = 0; i < 3; i++)
+		{
+			hullmins[i] = entity.origin[i] - pcachemodel->radius;
+			hullmaxs[i] = entity.origin[i] + pcachemodel->radius;
+		}
+	}
+	else
+	{
+		Math::VectorAdd(entity.mins, entity.origin, hullmins);
+		Math::VectorAdd(entity.maxs, entity.origin, hullmaxs);
+	}
+
+	// Some very small mins/maxs need to be extended, otherwise the trace fails
+	for(Uint32 i = 0; i < 3; i++)
+	{
+		hullmins[i] -= 1;
+		hullmaxs[i] += 1;
+	}
+
+	if(mins.IsZero() && maxs.IsZero())
+	{
+		// Point traces are simple
+		Vector direction;
+		Math::VectorSubtract(end, start, direction);
+		direction.Normalize();
+
+		return CollisionShared::IntersectBVHNodePoint(start, end, hullmins, hullmaxs, direction);
+	}
+	else
+	{
+		Vector extents = (maxs - mins) * 0.5;
+		if((start - end).Length() < DIST_EPSILON)
+		{
+			// This is an intersection check, which is much simpler than the swept AABB check
+			return CollisionShared::IntersectBBoxAABB(start, hullmins, hullmaxs, extents);
+		}
+		else
+		{
+			// This is a swept-AABB test, a litle bit more complex
+			return CollisionShared::IntersectBBoxSweptAABB(start, end, hullmins, hullmaxs, extents);
+		}
 	}
 }

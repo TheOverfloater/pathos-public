@@ -4513,6 +4513,7 @@ bool CPlayerEntity::AddPlayerWeapon( CPlayerWeapon* pWeapon, bool& triggerTarget
 	if(!m_pActiveWeapon || (pWeapon->GetWeaponFlags() & FL_WEAPON_AUTO_DRAW) && m_pActiveWeapon->CanHolster())
 		SwitchToWeapon(pWeapon);
 
+	pWeapon->PostWeaponPickup();
 	return true;
 }
 

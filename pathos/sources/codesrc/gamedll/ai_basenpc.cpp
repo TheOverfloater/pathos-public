@@ -3362,8 +3362,11 @@ npcstate_t CBaseNPC::GetIdealNPCState( void )
 				ClearCondition(AI_COND_BLOCKING_PATH);
 
 			// This shouldn't happen
-			if(!m_enemy)
+			if(!m_enemy || !m_enemy->IsAlive())
 			{
+				if(m_enemy)
+					m_enemy.reset();
+
 				m_idealNPCState = NPC_STATE_ALERT;
 				Util::EntityConPrintf(m_pEdict, "Combat state with no enemy.\n");
 			}

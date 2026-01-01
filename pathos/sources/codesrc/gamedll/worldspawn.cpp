@@ -113,7 +113,7 @@ void CWorldSpawn::Precache( void )
 	gSVLightStyles.SetLightStyle("jklmnopqrstuvwxyzyxwvutsrqponmlkj", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_GENTLE_PULSE);
 	
 	// 6 FLICKER (second variety)
-	gSVLightStyles.SetLightStyle("n;monqn;mo;mn;mo;mo;mno", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_FLICKER_B);
+	gSVLightStyles.SetLightStyle("nmonqnmomnmomomno", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_FLICKER_B);
 	
 	// 7 CANDLE (second variety)
 	gSVLightStyles.SetLightStyle("mmmaaaabcdefgmmmmaaaammmaamm", true, CLightStyles::DEFAULT_LIGHTSTYLE_FRAMERATE, LS_CANDLE_B);

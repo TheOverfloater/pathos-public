@@ -62,12 +62,6 @@ private:
 	void SetupModel( Uint32 bodypart, Uint64 bodyvalue );
 	// Add triangle to thelist
 	void AddBVHNodeTriangles( const mcdbvhnode_t* pbvhnode );
-	// Test if a point-size traceline intersects a BVH node
-	bool IntersectBVHNodePoint( const Vector& start, const Vector& end, const Vector& bbmins, const Vector& bbmaxs );
-	// Test if an AABB intersects a bounding box
-	bool IntersectBBoxAABB( const Vector& center, const Vector& boxmins, const Vector& boxmaxs, const Vector& extents );
-	// Test if an AABB traceline intersects a bounding box
-	bool IntersectBBoxSweptAABB( const Vector& start, const Vector& end, const Vector& boxmins, const Vector& boxmaxs, const Vector& extents );
 	// Perform a swept AABB test against a triangle
 	bool SweptAABBTriangleTest( const Vector& start, const Vector& end, const Vector& extents, const mcdvertex_t* pvertexes, const mcdtrimeshtriangle_t* ptriangle, Vector& impactPosition, Vector& impactNormal, Float& planeDistance, Float& fraction );
 	// Perform a line test against a triangle

@@ -27,5 +27,6 @@ extern void TR_PlayerTraceSingleEntity( const entity_state_t& entity, entity_vbm
 extern bool TR_RecursiveHullCheck( const hull_t* phull, Int32 clipnodeidx, Double p1f, Double p2f, const Vector& p1, const Vector& p2, trace_t& trace );
 extern Int32 TR_HullPointContents( const hull_t* phull, Int32 clipnodeidx, const Vector& position );
 extern const Char* TR_TraceTexture( const entity_state_t& entity, const Vector& start, const Vector& end );
+extern bool TR_TracelineBBoxCheck( const entity_state_t& entity, const cache_model_t* pcachemodel, const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs );
 
 #endif //TRACE_SHARED_H
