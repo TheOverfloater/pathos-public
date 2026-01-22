@@ -851,3 +851,17 @@
  - Fix issue with no-notification weapon_ entities not clearing their flags after being picked up.
  - Remove no-blend markers from 6th lightstyle(Flicker B).
  - Fix traceline/move issue with NPCs walking through other entities.
+ 
+2026 January 22nd:
+ - Add support for customizing shell ejection using parameters in the anim event options.
+ - Fix client-only env_model entities also being spawned on the server side.
+ - Small performance optimization on client-side-only env_model VIS checks for camera entities.
+ - Add support for rendering the player model for debugging purposes.
+ - Add support for view offsets in the default view class.
+ - Add CFileCache class to keep track of currently opened files.
+ - Add credits for contributions by Joel "Shephard" Troch.
+ - Add extra debug code for bugfixing purposes to CUISaveLoadWindow.
+ - Minor fix for CMilitiaNPC base class.
+ - Fix bug with exhaustible weapons not being destroyed, causing a crash if weaponstrip was used on player.
+ - Increase max recoil value.
+ - Fix frame dial in model viewer.
