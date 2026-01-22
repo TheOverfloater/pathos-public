@@ -189,21 +189,21 @@ void CUISaveLoadWindow::AddSaveFileInfo( const CString& filePath, FILETIME& file
 	SYSTEMTIME sysTime;
 	if(!FileTimeToSystemTime(&fileTime, &sysTime))
 	{
-		Con_EPrintf("Failed to get file creation time for '%s'.\n", filePath.c_str());
+		Con_EPrintf("Failed to get file creation time for '%s'. Error code returned is %d.\n", filePath.c_str(), GetLastError());
 		return;
 	}
-
+	
 	TIME_ZONE_INFORMATION tzInfo;
 	if(!GetTimeZoneInformation(&tzInfo))
 	{
-		Con_EPrintf("Failed to get time zone info for '%s'.\n", filePath.c_str());
+		Con_EPrintf("Failed to get time zone info for '%s'. Error code returned is %d.\n", filePath.c_str(), GetLastError());
 		return;
 	}
 
 	SYSTEMTIME tzTime;
 	if(!SystemTimeToTzSpecificLocalTime(&tzInfo, &sysTime, &tzTime))
 	{
-		Con_EPrintf("Failed to get time zone specific time information for '%s'.\n", filePath.c_str());
+		Con_EPrintf("Failed to get time zone specific time information for '%s'. Error code returned is %d.\n", filePath.c_str(), GetLastError());
 		return;
 	}
 

@@ -906,6 +906,9 @@ static constexpr entindex_t NO_ENTITY_INDEX = -1;
 // NULL attachment index
 static constexpr Int32 NO_ATTACHMENT_INDEX = -1;
 
+// Spawnflag for env_model not being solid
+static const Uint32 ENVMODEL_SF_NOT_SOLID = (1<<4);
+
 // Lightstyles matching what Half-Life 1 has
 enum lightstyles_t
 {

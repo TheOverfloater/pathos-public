@@ -154,19 +154,88 @@ void EV_EjectBullet( const Vector& attachment, const mstudioevent_t *pevent, con
 	Vector forward, right, up;
 	Math::AngleVectors(angles, &forward, &right, &up);
 
-	Vector origin(attachment);
-	if(pentity->entindex != VIEWMODEL_ENTITY_INDEX)
-		origin -= forward * 8;
-
 	Float upvel = Common::RandomFloat(50, 70);
 	Float rightvel = Common::RandomFloat(70, 90);
+
+	Vector origin(attachment);
+	CString submodelName;
+
+	CString options = pevent->options;
+	Int32 lastpos = 0;
+	while(true)
+	{
+		Int32 nextpos = options.find(lastpos, ";");
+
+		Uint32 length;
+		if(nextpos == CString::CSTRING_NO_POSITION)
+			length = options.length() - lastpos;
+		else
+			length = nextpos - lastpos;
+
+		const Char* pstr = options.c_str() + lastpos;
+		CString option(pstr, length);
+
+		// Read parameter name
+		CString token;
+		const Char* pscanstr = Common::Parse(option.c_str(), token);
+
+		if(!qstrcmp(token, "reverse_dir"))
+		{
+			// Reverse the velocity direction
+			rightvel *= -1;
+		}
+		else if(!qstrcmp(token, "attachment"))
+		{
+			if(!pscanstr)
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Incomplete 'attachment' token on model '%s'.\n", __FUNCTION__, token.c_str(), pentity->pmodel->name.c_str());
+				return;
+			}
+
+			// Read parameter value
+			Common::Parse(pscanstr, token);
+			if(!Common::IsNumber(token))
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Token 'attachment' value '%s' on model '%s' is not a number.\n", __FUNCTION__, token.c_str(), pentity->pmodel->name.c_str());
+				continue;
+			}
+
+			Int32 attachmentIndex = SDL_atoi(token.c_str());
+			if(attachmentIndex < 0 || attachmentIndex >= MAX_ATTACHMENTS)
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Token 'attachment' value '%s' on model '%s' is an invalid attachment index, maximum is %d.\n", __FUNCTION__, token.c_str(), pentity->pmodel->name.c_str(), MAX_ATTACHMENTS);
+				continue;
+			}
+
+			// Set attachment to use
+			origin = pentity->attachments[attachmentIndex];
+		}
+		else if(submodelName.empty())
+		{
+			// Always assume first non-option token is submodel name
+			submodelName = token;
+		}
+		else
+		{
+			cl_engfuncs.pfnCon_Printf("%s - Token '%s' on model '%s' not recognized.\n", __FUNCTION__, token.c_str(), pentity->pmodel->name.c_str());
+		}
+
+		// If reached end, then stop
+		if(nextpos == CString::CSTRING_NO_POSITION)
+			break;
+
+		lastpos = nextpos + 1;
+	}
 
 	for(Uint32 i = 0; i < 3; i++)
 		velocity[i] = velocity[i] + right[i] * rightvel + up[i] * upvel + forward[i] * 20;
 
-	const vbmheader_t* pvbmheader = pmodel->getVBMCache()->pvbmhdr;
+	// Offset a bit for NPCs
+	if(pentity->entindex != VIEWMODEL_ENTITY_INDEX)
+		origin -= forward * 8;
 
 	Int64 bodyvalue = -1;
+	const vbmheader_t* pvbmheader = pmodel->getVBMCache()->pvbmhdr;
 	for(Uint32 i = 0; i < pvbmheader->numbodyparts; i++)
 	{
 		const vbmbodypart_t* pbodypart = pvbmheader->getBodyPart(i);
@@ -174,7 +243,7 @@ void EV_EjectBullet( const Vector& attachment, const mstudioevent_t *pevent, con
 		for(; j < pbodypart->numsubmodels; j++)
 		{
 			const vbmsubmodel_t* psubmodel = pbodypart->getSubmodel(pvbmheader, j);
-			if(!qstrcmp(psubmodel->name, pevent->options))
+			if(!qstrcmp(psubmodel->name, submodelName))
 			{
 				bodyvalue = j*pbodypart->base;
 				break;
@@ -187,7 +256,7 @@ void EV_EjectBullet( const Vector& attachment, const mstudioevent_t *pevent, con
 
 	if(bodyvalue == -1)
 	{
-		cl_engfuncs.pfnCon_Printf("%s - Submodel '%s' not found in '%s'.\n", __FUNCTION__, pevent->options, BULLETS_MODEL_FILENAME);
+		cl_engfuncs.pfnCon_Printf("%s - Submodel '%s' not found in '%s'.\n", __FUNCTION__, submodelName, BULLETS_MODEL_FILENAME);
 		return;
 	}
 

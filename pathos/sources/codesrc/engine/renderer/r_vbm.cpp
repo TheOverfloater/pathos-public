@@ -105,6 +105,7 @@ CVBMRenderer::CVBMRenderer( void ):
 	m_pCvarSampleOffset(nullptr),
 	m_pCvarUseBumpData(nullptr),
 	m_pCvarLightRatio(nullptr),
+	m_pCvarDrawPlayer(nullptr),
 	m_pShader(nullptr),
 	m_pVBO(nullptr),
 	m_drawBufferIndex(0),
@@ -200,6 +201,7 @@ bool CVBMRenderer::Init( void )
 	m_pCvarSkyLighting = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_model_skylight", "1", "Controls whether models take sky lighting.");
 	m_pCvarUseBumpData = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_model_bumpdata", "0", "Controls whether models should use BSP bump data for lighting.");
 	m_pCvarLightRatio = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_model_light_ratio", "0.5", "Controls division ratio between ambient and direct lighting for non-bump mapped lighting fetches.");
+	m_pCvarDrawPlayer = gConsole.CreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "r_drawlocalplayer", "0", "Controls the rendering of the local player model. For debug purposes.");
 
 	CString minvalue;
 	minvalue << DEFAULT_LIGHTMAP_SAMPLE_OFFSET;
@@ -6111,11 +6113,11 @@ bool CVBMRenderer::DrawNormal( void )
 		}
 	}
 
-	if(m_pCvarDrawModels->GetValue() > 1)
+	if(m_pCvarDrawPlayer->GetValue() >= 1)
 	{
 		cl_entity_t* plocalplayer = CL_GetLocalPlayer();
 
-		if(!DrawModel((VBM_RENDER|VBM_DEBUG_ONLY), plocalplayer))
+		if(!DrawModel(VBM_RENDER, plocalplayer))
 		{
 			Sys_ErrorPopup("Rendering error: %s.", m_pShader->GetError());
 			EndDraw();

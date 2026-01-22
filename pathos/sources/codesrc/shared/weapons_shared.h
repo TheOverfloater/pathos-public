@@ -19,7 +19,7 @@ typedef void (*pfnCon_Printf_t)( const Char* fmt, ... );
 // Default recoil degradation
 static const Float DEFAULT_RECOIL_DEGRADE	= 0.5f;
 // Default recoil limit
-static const Float DEFAULT_RECOIL_LIMIT		= 3.5f;
+static const Float DEFAULT_RECOIL_LIMIT		= 10.5f;
 // Value marking the weapon having no clip
 static const Int32 WEAPON_NO_CLIP = -1;
 

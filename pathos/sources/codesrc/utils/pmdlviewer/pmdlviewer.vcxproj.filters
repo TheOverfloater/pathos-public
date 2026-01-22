@@ -94,6 +94,9 @@
     <ClCompile Include="..\..\common\cstringpool.cpp">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\bmp.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include=".\viewerstate.h">
@@ -232,6 +235,12 @@
       <Filter>include\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\cstringpool_inline.hpp">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\bmp.h">
+      <Filter>include\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\bmpformat.h">
       <Filter>include\common</Filter>
     </ClInclude>
   </ItemGroup>

@@ -34,7 +34,7 @@ typedef CLinkedList<con_input_t> ConList_t;
 
 /*
 =================================
-CUIConsoleExecuteCallback
+CConsole
 
 =================================
 */

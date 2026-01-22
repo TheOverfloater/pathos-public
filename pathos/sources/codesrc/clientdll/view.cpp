@@ -95,7 +95,10 @@ CDefaultView::CDefaultView( void ):
 	m_pCvarRollAngle(nullptr),
 	m_pCvarRollSpeed(nullptr),
 	m_pCvarReferenceFOV(nullptr),
-	m_pCvarViewBob(nullptr)
+	m_pCvarViewBob(nullptr),
+	m_pCvarViewXOffset(nullptr),
+	m_pCvarViewYOffset(nullptr),
+	m_pCvarViewZOffset(nullptr)
 {
 	for(Uint32 i = 0; i < MAX_PLAYERS; i++)
 	{
@@ -119,6 +122,10 @@ bool CDefaultView::Init( void )
 	m_pCvarRollAngle = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), VIEW_ROLL_CVAR_NAME, "0.5", "Controls view roll angle.");
 	m_pCvarRollSpeed = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "v_rollspeed", "150", "Controls view roll speed.");
 	m_pCvarViewBob = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), VIEW_BOB_CVAR_NAME, "1", "Controls view roll speed.");
+	m_pCvarViewXOffset = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "v_offset_x", "0", "Controls view x axis offset.");
+	m_pCvarViewYOffset = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "v_offset_y", "0", "Controls view y axis offset.");
+	m_pCvarViewZOffset = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "v_offset_z", "0", "Controls view z axis offset.");
+
 
 	m_pCvarReferenceFOV = cl_engfuncs.pfnGetCVarPointer(REFERENCE_FOV_CVAR_NAME);
 	if(!m_pCvarReferenceFOV)
@@ -801,8 +808,8 @@ void CDefaultView::CalcRefDef( ref_params_t& params )
 	// Add in basics
 	CalcBob(pplayer, params);
 
-	Vector v_right, v_up;
-	Math::AngleVectors(params.v_angles, nullptr, &v_right, &v_up);
+	Vector v_forward, v_right, v_up;
+	Math::AngleVectors(params.v_angles, &v_forward, &v_right, &v_up);
 
 	// Refresh position
 	params.v_origin = params.pl_origin + params.pl_viewoffset;
@@ -900,6 +907,21 @@ void CDefaultView::CalcRefDef( ref_params_t& params )
 
 	// Calculate FOV
 	CalculateFOV(params);
+	params.v_origin;
+
+	// Add any view offsets
+	Vector viewOffsets(
+		m_pCvarViewXOffset->GetValue(),
+		m_pCvarViewYOffset->GetValue(),
+		m_pCvarViewZOffset->GetValue());
+
+	// Used for debugging
+	if(!viewOffsets.IsZero())
+	{
+		Math::VectorMA(params.v_origin, viewOffsets.x, v_forward, params.v_origin);
+		Math::VectorMA(params.v_origin, viewOffsets.y, v_right, params.v_origin);
+		Math::VectorMA(params.v_origin, viewOffsets.z, v_up, params.v_origin);
+	}
 }
 
 //=============================================

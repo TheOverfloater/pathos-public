@@ -46,20 +46,20 @@ bool CEnvModel::Spawn( void )
 	if(!pModel)
 		return false;
 
-	// Remove immediately if it has no targetname
+	// Remove immediately if it has no targetname and the solid spawnflag is not set
 	// Means it's completely static
 	if(m_pFields->targetname == NO_STRING_VALUE)
 	{
 		// Remove only if we do not have an MCD file attached,
 		// as any prop with an .mcd needs to be engine-handled
-		if(!(pModel->cacheflags & CACHE_FL_HAS_MCD))
+		if(!(pModel->cacheflags & CACHE_FL_HAS_MCD) || HasSpawnFlag(FL_NOT_SOLID))
 		{
 			Util::RemoveEntity(this);
 			return true;
 		}
 	}
 	
-	if(pModel->cacheflags & CACHE_FL_HAS_MCD)
+	if((pModel->cacheflags & CACHE_FL_HAS_MCD) && !HasSpawnFlag(FL_NOT_SOLID))
 	{
 		m_pState->movetype = MOVETYPE_PUSH;
 		m_pState->solid = SOLID_BBOX;

@@ -487,11 +487,14 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 		return;
 	}
 
-	if(pmodel->cacheflags & CACHE_FL_HAS_MCD)
-	{
-		// Entities with a collision mesh are handled by the engine
+	Uint32 spawnFlags = 0;
+	pvalue = ValueForKey(entity, "spawnflags");
+	if (pvalue)
+		spawnFlags = SDL_atoi(pvalue);
+
+	// Entities with a collision mesh not set to not solid are handled by the engine
+	if((pmodel->cacheflags & CACHE_FL_HAS_MCD) && !(spawnFlags & ENVMODEL_SF_NOT_SOLID))
 		return;
-	}
 
 	if(m_entitiesArray.size() == MAX_SERVER_ENTITIES)
 	{
@@ -614,12 +617,19 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 	const mstudioseqdesc_t *pseqdesc = pstudiohdr->getSequence(newEntity.curstate.sequence);
 	for (int i = 0; i < 8; i++)
 	{
-		if ( i & 1 ) vtemp[0] = pseqdesc->bbmin[0];
-		else vtemp[0] = pseqdesc->bbmax[0];
-		if ( i & 2 ) vtemp[1] = pseqdesc->bbmin[1];
-		else vtemp[1] = pseqdesc->bbmax[1];
-		if ( i & 4 ) vtemp[2] = pseqdesc->bbmin[2];
-		else vtemp[2] = pseqdesc->bbmax[2];
+		if ( i & 1 ) 
+			vtemp[0] = pseqdesc->bbmin[0];
+		else 
+			vtemp[0] = pseqdesc->bbmax[0];
+		if ( i & 2 ) 
+			vtemp[1] = pseqdesc->bbmin[1];
+		else 
+			vtemp[1] = pseqdesc->bbmax[1];
+		if ( i & 4 ) 
+			vtemp[2] = pseqdesc->bbmin[2];
+		else 
+			vtemp[2] = pseqdesc->bbmax[2];
+
 		Math::VectorCopy( vtemp, vbounds[i] );
 	}
 		
@@ -638,14 +648,20 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 	for(Uint32 i = 0; i < 8; i++)
 	{
 		// Mins
-		if(vbounds[i][0] < vmins[0]) vmins[0] = vbounds[i][0];
-		if(vbounds[i][1] < vmins[1]) vmins[1] = vbounds[i][1];
-		if(vbounds[i][2] < vmins[2]) vmins[2] = vbounds[i][2];
+		if(vbounds[i][0] < vmins[0]) 
+			vmins[0] = vbounds[i][0];
+		if(vbounds[i][1] < vmins[1]) 
+			vmins[1] = vbounds[i][1];
+		if(vbounds[i][2] < vmins[2]) 
+			vmins[2] = vbounds[i][2];
 
 		// Maxs
-		if(vbounds[i][0] > vmaxs[0]) vmaxs[0] = vbounds[i][0];
-		if(vbounds[i][1] > vmaxs[1]) vmaxs[1] = vbounds[i][1];
-		if(vbounds[i][2] > vmaxs[2]) vmaxs[2] = vbounds[i][2];
+		if(vbounds[i][0] > vmaxs[0]) 
+			vmaxs[0] = vbounds[i][0];
+		if(vbounds[i][1] > vmaxs[1]) 
+			vmaxs[1] = vbounds[i][1];
+		if(vbounds[i][2] > vmaxs[2]) 
+			vmaxs[2] = vbounds[i][2];
 	}
 
 	entity_extrainfo_t *pInfo = cl_engfuncs.pfnGetEntityExtraData(&newEntity);
@@ -779,7 +795,8 @@ void CEntityManager::Frame( void )
 	const byte* ppvs = cl_engfuncs.pfnLeafPVS(*pleaf);
 
 	// Collect all camera entities
-	CArray<cl_entity_t*> cameraEntitiesArray;
+	Uint32 numEntities = 0;
+	static CArray<cl_entity_t*> cameraEntitiesArray;
 	for(Uint32 i = 0; i < MAX_RENDER_ENTITIES; i++)
 	{
 		cl_entity_t* pentity = cl_engfuncs.pfnGetEntityByIndex(i);
@@ -790,7 +807,13 @@ void CEntityManager::Frame( void )
 
 			cl_entity_t* pcamera = cl_engfuncs.pfnGetEntityByIndex(pentity->curstate.aiment);
 			if(pcamera && pcamera->curstate.msg_num == pplayer->curstate.msg_num)
-				cameraEntitiesArray.push_back(pcamera);
+			{
+				if(numEntities >= cameraEntitiesArray.size())
+					cameraEntitiesArray.resize(cameraEntitiesArray.size() + 8);
+
+				cameraEntitiesArray[numEntities] = pcamera;
+				numEntities++;
+			}
 		}
 	}
 
@@ -829,7 +852,7 @@ void CEntityManager::Frame( void )
 			if(!Common::CheckVisibility(pInfo->leafnums, pInfo->numleaves, ppvs))
 			{
 				Uint32 j = 0;
-				for(; j < cameraEntitiesArray.size(); j++)
+				for(; j < numEntities; j++)
 				{
 					entity_extrainfo_t* pCameraInfo = cl_engfuncs.pfnGetEntityExtraData(cameraEntitiesArray[j]);
 					if(!pCameraInfo || !pCameraInfo->ppvsdata)
@@ -839,7 +862,7 @@ void CEntityManager::Frame( void )
 						break;
 				}
 
-				if(j == cameraEntitiesArray.size())
+				if(j == numEntities)
 					continue;
 			}
 		}

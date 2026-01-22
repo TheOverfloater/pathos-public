@@ -850,4 +850,4 @@
  - Add npc_sentry code for Half-Life 1-like animated sentries.
  - Fix issue with no-notification weapon_ entities not clearing their flags after being picked up.
  - Remove no-blend markers from 6th lightstyle(Flicker B).
- 
+ - Fix traceline/move issue with NPCs walking through other entities.

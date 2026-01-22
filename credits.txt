@@ -58,6 +58,7 @@ Other content:
  - Hipshot for the violentdays skybox
  - Kleadron for various contributions to Pathos
  - valina354 for numerous improvemens to Pathos's render code and some new features.
+ - Joel "Torch" Shephard for numerous contributions to the codebase.
  
 Other mentions:
 Iriy "BUzer" Sitnikov for Paranoia's source code and several

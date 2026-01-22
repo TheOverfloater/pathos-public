@@ -610,6 +610,8 @@ private:
 	CCVar* m_pCvarUseBumpData;
 	// Lighting ratio used for non-bump lightdata fetches
 	CCVar* m_pCvarLightRatio;
+	// Toggles rendering of local player model
+	CCVar* m_pCvarDrawPlayer;
 
 private:
 	// GLSL shader object

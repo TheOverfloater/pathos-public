@@ -85,6 +85,12 @@
     <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</EmbedManifest>
     <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</EmbedManifest>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -184,9 +190,18 @@
       <OutputFile>$(OutDir)$(TargetName).bsc</OutputFile>
     </Bscmake>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)/pmdlviewer.exe" "$(SolutionDir)/../../../progs/pmdlviewer/pmdlviewer.exe"</Command>
-      <Message>Copy exe to working directory</Message>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>copy /Y "$(OutDir)/pmdlviewer.exe" "$(SolutionDir)/../../../progs/pmdlviewer/pmdlviewer.exe"</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Copy "$(OutDir)/pmdlviewer.exe" to working "$(SolutionDir)/../../../progs/pmdlviewer/pmdlviewer.exe"</Message>
+      <Outputs>pmdlviewer.exe</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
@@ -292,12 +307,21 @@
       <OutputFile>$(OutDir)$(TargetName).bsc</OutputFile>
     </Bscmake>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)/pmdlviewer.exe" "$(SolutionDir)/../../../progs/pmdlviewer/pmdlviewer.exe"</Command>
-      <Message>Copy exe to working directory</Message>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>copy /Y "$(OutDir)/pmdlviewer.exe" "$(SolutionDir)/../../../progs/pmdlviewer/pmdlviewer.exe"</Command>
+      <Message>Copy "$(OutDir)/pmdlviewer.exe" to working "$(SolutionDir)/../../../progs/pmdlviewer/pmdlviewer.exe"</Message>
+      <Outputs>pmdlviewer.exe</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\common\animevent.h" />
+    <ClInclude Include="..\..\common\bmp.h" />
+    <ClInclude Include="..\..\common\bmpformat.h" />
     <ClInclude Include="..\..\common\carray.h" />
     <ClInclude Include="..\..\common\carray_inline.hpp" />
     <ClInclude Include="..\..\common\cbuffer.h" />
@@ -345,6 +369,7 @@
     <ClInclude Include="folderviewer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\bmp.cpp" />
     <ClCompile Include="..\..\common\cbuffer.cpp" />
     <ClCompile Include="..\..\common\common.cpp" />
     <ClCompile Include="..\..\common\crc32.cpp" />

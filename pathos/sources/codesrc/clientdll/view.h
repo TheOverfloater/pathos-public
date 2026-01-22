@@ -227,6 +227,12 @@ private:
 	CCVar* m_pCvarReferenceFOV;
 	// View bob cvar
 	CCVar* m_pCvarViewBob;
+	// View X offset
+	CCVar* m_pCvarViewXOffset;
+	// View Y offset
+	CCVar* m_pCvarViewYOffset;
+	// View Z offset
+	CCVar* m_pCvarViewZOffset;
 };
 extern CDefaultView gDefaultView;
 

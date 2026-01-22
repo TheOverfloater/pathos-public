@@ -275,7 +275,7 @@ void CControlPanel::InitSequenceTab( void )
 	m_pLabelSequenceIndex = new mxLabel(pWindowSequence, labelsOffset, 10, 100, 18, "Sequence index:");
 	m_pLabelFrameCount = new mxLabel(pWindowSequence, labelsOffset, 28, 100, 18, "Frames:");
 	m_pLabelFramerate = new mxLabel(pWindowSequence, labelsOffset, 44, 100, 18, "FPS:");
-	m_pLabelFrame = new mxLabel(pWindowSequence, labelsOffset, 62, 100, 18, "Frame:");
+	m_pLabelFrame = new mxLabel(pWindowSequence, labelsOffset, 62, 100, 18, "Frame value:");
 }
 
 //=============================================
@@ -869,7 +869,7 @@ int CControlPanel::handleEvent( mxEvent *pEvent )
 				vs.curframe = pVBMRenderer->SetFrame(-1);
 
 				CString str;
-				str << (Int32)vs.curframe;
+				str << static_cast<Int32>(SDL_floor(vs.curframe + 1));
 				m_pLineEditFrame->setLabel(str.c_str());
 
 				m_pButtonPrevFrame->setEnabled (true);
@@ -892,7 +892,7 @@ int CControlPanel::handleEvent( mxEvent *pEvent )
 			vs.curframe = pVBMRenderer->SetFrame(vs.curframe - 1);
 
 			CString str;
-			str << (Int32)vs.curframe;
+			str << static_cast<Int32>(SDL_floor(vs.curframe + 1));
 			m_pLineEditFrame->setLabel(str.c_str());
 		}
 		break;
@@ -909,7 +909,7 @@ int CControlPanel::handleEvent( mxEvent *pEvent )
 			vs.curframe = pVBMRenderer->SetFrame (vs.curframe + 1);
 
 			CString str;
-			str << (Int32)vs.curframe;
+			str << static_cast<Int32>(SDL_floor(vs.curframe + 1));
 			m_pLineEditFrame->setLabel(str.c_str());
 		}
 		break;
@@ -1806,7 +1806,7 @@ void CControlPanel::SetSequence( Int32 index )
 	m_pLabelSequenceIndex->setLabel( "Sequence index: %d", index );
 	m_pLabelFrameCount->setLabel( "Frames: %d", numFrames );
 	m_pLabelFramerate->setLabel( "FPS: %.3f", framerate );
-	m_pLabelFrame->setLabel( "Frame: 0.00" );
+	m_pLabelFrame->setLabel( "Frame value: 0.00" );
 }
 
 //=============================================
@@ -2140,7 +2140,7 @@ void CControlPanel::Update( void )
 	if(!pVBMRenderer)
 		return;
 
-	m_pLabelFrame->setLabel("Frame: %.2f", pVBMRenderer->GetFrame());
+	m_pLabelFrame->setLabel("Frame value: %.2f", pVBMRenderer->GetFrame());
 }
 
 //=============================================

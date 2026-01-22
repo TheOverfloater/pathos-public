@@ -2551,6 +2551,10 @@ void CPlayerEntity::WeaponPostFrameThink( void )
 		m_pActiveWeapon = nullptr;
 		m_pNextWeapon = GetNextBestWeapon(pFree);
 		RemoveWeapon(pFree);
+
+		// Remove and destroy weapon
+		pFree->DropWeapon(true);
+		pFree->SetNextWeapon(nullptr);
 		return;
 	}
 
@@ -5012,6 +5016,7 @@ void CPlayerEntity::RemoveAllWeapons( void )
 			CPlayerWeapon* pFree = pWeapon;
 			pWeapon = pFree->GetNextWeapon();
 
+			pFree->SetNextWeapon(nullptr);
 			pFree->DropWeapon(true);
 		}
 		m_pWeaponsList = nullptr;

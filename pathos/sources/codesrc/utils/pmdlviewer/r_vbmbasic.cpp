@@ -877,14 +877,24 @@ Float CBasicVBMRenderer::SetFrame( Float nFrame )
 		return 0;
 
 	const mstudioseqdesc_t *pseqdesc = m_pStudioHeader->getSequence(m_sequence);
-
-	m_currentFrame = nFrame;
-	m_prevFrameFrame = nFrame;
-
 	if (pseqdesc->numframes <= 1)
+	{
+		m_prevFrameFrame = 0;
 		m_currentFrame = 0;
+	}
 	else
-		m_currentFrame -= (Int32)(m_currentFrame / (pseqdesc->numframes - 1)) * (pseqdesc->numframes - 1);
+	{
+		// Convert this to an integer
+		Int32 frameValue = SDL_floor(nFrame);
+		m_currentFrame = frameValue;
+		m_prevFrameFrame = frameValue;
+
+		m_currentFrame = frameValue;
+		if(m_currentFrame < 0)
+			m_currentFrame = 0;
+		else if(m_currentFrame >= pseqdesc->numframes)
+			m_currentFrame = pseqdesc->numframes - 1;
+	}
 
 	return m_currentFrame;
 }

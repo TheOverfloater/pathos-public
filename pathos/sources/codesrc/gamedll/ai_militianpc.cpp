@@ -274,6 +274,9 @@ void CMilitiaNPC::SpeakSentence( void )
 //=============================================
 bool CMilitiaNPC::CanSpeak( void ) const
 {
+	if(g_pAskerNPC)
+		return false;
+
 	if(g_talkWaitTime > g_pGameVars->time)
 		return false;
 

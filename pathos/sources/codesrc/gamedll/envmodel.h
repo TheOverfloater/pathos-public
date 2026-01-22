@@ -23,8 +23,10 @@ public:
 		FL_CHANGE_SKIN		= (1<<0),
 		FL_NO_LIGHTTRACES	= (1<<1),
 		FL_NO_VISCHECKS		= (1<<2),
-		FL_START_INVISIBLE	= (1<<3)
+		FL_START_INVISIBLE	= (1<<3),
+		FL_NOT_SOLID		= ENVMODEL_SF_NOT_SOLID,
 	};
+
 public:
 	explicit CEnvModel( edict_t* pedict );
 	virtual ~CEnvModel( void );

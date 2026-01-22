@@ -18,9 +18,149 @@ All Rights Reserved.
 #include "enginestate.h"
 #include "file_interface.h"
 
-// TODO: Create a class which tracks files opened, etc
-// Not necessary, but it would be useful to avoid loading
-// files multiple times.
+// Declaration of object
+CFileCache gFileCache;
+
+//=============================================
+// @brief Constructor
+//
+//=============================================
+CFileCache::CFileCache( void )
+{
+}
+
+//=============================================
+// @brief Destructor
+//
+//=============================================
+CFileCache::~CFileCache( void )
+{
+	if(m_fileCacheMap.empty())
+		return;
+
+	FileCacheMap_t::iterator it = m_fileCacheMap.begin();
+	while(it != m_fileCacheMap.end())
+	{
+		delete it->second;
+		it++;
+	}
+}
+
+//=============================================
+// @brief Loads a file into memory
+//
+//=============================================
+const byte* CFileCache::LoadFile( const Char* pstrpath, Uint32* psize )
+{
+	FileCacheMap_t::iterator it = m_fileCacheMap.find(pstrpath);
+	if(it != m_fileCacheMap.end())
+	{
+		it->second->refcount++;
+		return it->second->pfile;
+	}
+	else
+	{
+		SDL_RWops* pf = SDL_RWFromFile(pstrpath, "rb");
+		if(!pf)
+		{
+			SDL_ClearError();
+			return nullptr;
+		}
+
+		SDL_RWseek(pf, 0, RW_SEEK_END);
+		Int32 size = static_cast<Int32>(SDL_RWtell(pf));
+		SDL_RWseek(pf, 0, RW_SEEK_SET);
+
+		byte* pbuffer = new byte[size+1];
+		size_t numbytes = SDL_RWread(pf, pbuffer, 1, size);
+		SDL_RWclose(pf);
+
+		if(numbytes != size)
+		{
+			delete[] pbuffer;
+			pbuffer =  nullptr;
+			return nullptr;
+		}
+
+		// null terminate all files
+		pbuffer[size] = '\0';
+
+		file_t* pnew = new file_t;
+		pnew->pfile = pbuffer;
+		pnew->filesize = size;
+		pnew->refcount = 1;
+
+		if(psize)
+			*psize = size;
+
+		it = m_fileCacheMap.insert(std::pair<CString, file_t*>(pstrpath, pnew)).first;
+		std::pair<FilePtrCacheIteratorMap_t::iterator, bool> result = m_filePtrCacheIteratorMap.insert(std::pair<const byte*, FileCacheMap_t::iterator>(pnew->pfile, it));
+		if(!result.second)
+			Con_EPrintf("%s - Iterator for '%s' already inside file pointer->cache iterator map.\n", __FUNCTION__, pstrpath);
+
+		return pnew->pfile;
+	}
+}
+
+//=============================================
+// @brief Reduces refcount on a file, and removes 
+// it is refcount is zero
+//
+//=============================================
+bool CFileCache::FreeFile( const void* pfile )
+{
+	const byte* pfileptr = reinterpret_cast<const byte*>(pfile);
+	FilePtrCacheIteratorMap_t::iterator it = m_filePtrCacheIteratorMap.find(pfileptr);
+	if(it == m_filePtrCacheIteratorMap.end())
+	{
+		Con_Printf("%s - A file pointer was not found inside the cache.\n", __FUNCTION__);
+		return false;
+	}
+
+	// Safeguard against error
+	FileCacheMap_t::iterator itCache = it->second;
+	if(itCache->second->refcount > 0)
+		itCache->second->refcount--;
+
+	if(itCache->second->refcount <= 0)
+	{
+		delete itCache->second;
+		m_fileCacheMap.erase(itCache);
+		m_filePtrCacheIteratorMap.erase(it);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+//=============================================
+// @brief Dumps open files list
+//
+//=============================================
+void CFileCache::Dump( void )
+{
+	if(m_fileCacheMap.empty())
+	{
+		Con_Printf("File cache is empty.\n");
+		return;
+	}
+
+	Con_Printf("Number of files loaded: %d.\n", m_fileCacheMap.size());
+
+	Uint32 index = 0;
+	FileCacheMap_t::iterator it = m_fileCacheMap.begin();
+	while(it != m_fileCacheMap.end())
+	{
+		file_t* pfile = it->second;
+		Float sizemb = static_cast<Float>(pfile->filesize) / 1024.0f * 1024.0f;
+
+		Con_Printf("\t%d - File '%s', size: %.2f mb, reference count: %d.\n", index, it->first.c_str(), sizemb, pfile->refcount);
+		index++;
+		it++;
+	}
+}
 
 //
 // Engine file functions
@@ -195,42 +335,22 @@ const byte* FL_LoadFile( const Char* pstrpath, Uint32* psize )
 		ens.pfileiologfile->Write(str.c_str());
 	}
 
-	SDL_RWops* pf = SDL_RWFromFile(filepath.c_str(), "rb");
-	if(!pf && qstrcmp(ens.gamedir, COMMON_GAMEDIR))
+	Uint32 filesize = 0;
+	const byte* pfile = gFileCache.LoadFile(filepath.c_str(), &filesize);
+	if(!pfile && qstrcmp(ens.gamedir, COMMON_GAMEDIR))
 	{
 		// Try loading from the base dir if it's a mod
 		filepath.clear();
 		filepath << COMMON_GAMEDIR << PATH_SLASH_CHAR << pstrpath;
 
-		pf = SDL_RWFromFile(filepath.c_str(), "rb");
+		pfile = gFileCache.LoadFile(filepath.c_str(), &filesize);
 	}
 
-	if(!pf)
+	if(!pfile)
 	{
 		SDL_ClearError();
 		return nullptr;
 	}
-
-	SDL_RWseek(pf, 0, RW_SEEK_END);
-	Int32 size = static_cast<Int32>(SDL_RWtell(pf));
-	SDL_RWseek(pf, 0, RW_SEEK_SET);
-
-	byte* pbuffer = new byte[size+1];
-	size_t numbytes = SDL_RWread(pf, pbuffer, 1, size);
-	SDL_RWclose(pf);
-
-	if(numbytes != size)
-	{
-		delete[] pbuffer;
-		pbuffer =  nullptr;
-		return nullptr;
-	}
-
-	// null terminate all files
-	pbuffer[size] = '\0';
-
-	if(psize)
-		*psize = size;
 
 	if(ens.pfileiologfile)
 	{
@@ -238,11 +358,14 @@ const byte* FL_LoadFile( const Char* pstrpath, Uint32* psize )
 		Double duration = timeEnd - timeBegin;
 
 		CString str;
-		str << "Read file in " << static_cast<Float>(duration) << " seconds, " << size << " bytes." << NEWLINE;
+		str << "Read file in " << static_cast<Float>(duration) << " seconds, " << filesize << " bytes." << NEWLINE;
 		ens.pfileiologfile->Write(str.c_str());
 	}
 
-	return pbuffer;
+	if(psize)
+		(*psize) = filesize;
+
+	return pfile;
 }
 
 //=============================================
@@ -273,34 +396,14 @@ const byte* FL_LoadFileFromRoot( const Char* pstrpath, Uint32* psize )
 
 		ens.pfileiologfile->Write(str.c_str());
 	}
-
-	SDL_RWops* pf = SDL_RWFromFile(pstrpath, "rb");
-	if(!pf && qstrcmp(ens.gamedir, COMMON_GAMEDIR))
+	
+	Uint32 filesize = 0;
+	const byte* pfile = gFileCache.LoadFile(pstrpath, &filesize);
+	if(!pfile)
 	{
 		SDL_ClearError();
 		return nullptr;
 	}
-
-	SDL_RWseek(pf, 0, RW_SEEK_END);
-	Int32 size = static_cast<Int32>(SDL_RWtell(pf));
-	SDL_RWseek(pf, 0, RW_SEEK_SET);
-
-	byte* pbuffer = new byte[size+1];
-	size_t numbytes = SDL_RWread(pf, pbuffer, 1, size);
-	SDL_RWclose(pf);
-
-	if(numbytes != size)
-	{
-		delete[] pbuffer;
-		pbuffer =  nullptr;
-		return nullptr;
-	}
-
-	// null terminate all files
-	pbuffer[size] = '\0';
-
-	if(psize)
-		*psize = size;
 
 	if(ens.pfileiologfile)
 	{
@@ -308,11 +411,14 @@ const byte* FL_LoadFileFromRoot( const Char* pstrpath, Uint32* psize )
 		Double duration = timeEnd - timeBegin;
 
 		CString str;
-		str << "Read file in " << static_cast<Float>(duration) << " seconds, " << size << " bytes." << NEWLINE;
+		str << "Read file in " << static_cast<Float>(duration) << " seconds, " << filesize << " bytes." << NEWLINE;
 		ens.pfileiologfile->Write(str.c_str());
 	}
 
-	return pbuffer;
+	if(psize)
+		(*psize) = filesize;
+
+	return pfile;
 }
 
 //=============================================
@@ -322,7 +428,7 @@ const byte* FL_LoadFileFromRoot( const Char* pstrpath, Uint32* psize )
 //=============================================
 void FL_FreeFile( const void* pfile )
 {
-	delete[] pfile;
+	gFileCache.FreeFile(pfile);
 }
 
 //=============================================

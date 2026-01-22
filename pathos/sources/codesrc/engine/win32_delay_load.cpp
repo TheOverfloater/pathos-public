@@ -10,6 +10,9 @@ All Rights Reserved.
 
 #include "includes.h"
 
+// Thanks to Joel "Shephard" Troch for the code here. This replaces
+// the original hacky class I used to delay-load the SDL2.dll.
+
 /*
 ===============================================
 Description:

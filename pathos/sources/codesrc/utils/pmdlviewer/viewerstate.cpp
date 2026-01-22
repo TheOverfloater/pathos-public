@@ -283,8 +283,8 @@ void Viewer_LoadTextures( void )
 		if(!pmaterial)
 			pmaterial = pTextureManager->GetDummyMaterial();
 
-		if(pmaterial->flags & (TX_FL_ADDITIVE|TX_FL_ALPHABLEND))
-			ptexture->flags |= FL_VBM_TEXTURE_BLEND;
+		//if(pmaterial->flags & (TX_FL_ADDITIVE|TX_FL_ALPHABLEND))
+		//	ptexture->flags |= FL_VBM_TEXTURE_BLEND;
 
 		if(!pmaterial->containername.empty())
 		{
