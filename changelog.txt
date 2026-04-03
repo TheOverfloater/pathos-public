@@ -865,3 +865,26 @@
  - Fix bug with exhaustible weapons not being destroyed, causing a crash if weaponstrip was used on player.
  - Increase max recoil value.
  - Fix frame dial in model viewer.
+ 
+2026 April 3rd:
+ - Expand functionality of EV_EjectBullet options.
+ - Apply fix for autoaim weapon adjustment calculations.
+ - Remove unneeded line of code from view.cpp.
+ - Move texture resizing and flipping related code from r_common to common.
+ - Rename CBuffer::getsize to CBuffer::getdatasize for better clarity.
+ - Add GetDateFilename to common.
+ - Add RLE compression algorythm to TGA writing code for reducing size of TGA files generated.
+ - Fix image descriptor in TGA files being assigned wrong value, causing errors in GIMP when loading.
+ - Improve bouyancy in client-side temporary entities, and the flat alignment in water.
+ - Add more detailed TGA writing prompts to functions that use it.
+ - Add sequence group warning option to make it be printed only once per game instance.
+ - Split display data retrieval and windown spawning into separate stages in CWindow class.
+ - Improve "Move Out of Way" schedule in NPCs to perform better, hemi-spherical checks.
+ - Add delay to view punches when player is shot with lower health.
+ - Fix for CPlayerMovement::PreventMegaBunnyJumping.
+ - Organize utility tools' shared functions into common files.
+ - Rewrite and clean up mdlexport tool to fit modern Pathos standards and support logging, etc.
+ - Miscellaneous fixes for Pathos Model Viewer.
+ - Rewrite pscriptconv to fit Pathos standards, code cleanup, etc.
+ - Fix for logging issue in vbmcompiler.
+ - Add safety check to vbmcompiler to check if event string option is too long.
