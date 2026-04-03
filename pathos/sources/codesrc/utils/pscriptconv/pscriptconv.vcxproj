@@ -89,7 +89,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\..\common;..\..\libs\sdl2.0\include;..\..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\common;..\..\libs\sdl2.0\include;..\..\shared;..\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;PSCRIPTCONV;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -118,6 +118,15 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <OutputFile>.\Release/pscriptconv.bsc</OutputFile>
     </Bscmake>
+    <CustomBuildStep>
+      <Command>copy /Y "$(OutDir)/pscriptconv.exe" "$(SolutionDir)/../../../progs/pscriptconv.exe"</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Copy "$(OutDir)/pscriptconv.exe" to working "$(SolutionDir)/../../../progs/pscriptconv.exe"</Message>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>pscriptconv.exe</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
@@ -128,7 +137,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\..\common;..\..\libs\sdl2.0\include;..\..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\common;..\..\libs\sdl2.0\include;..\..\shared;..\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;PSCRIPTCONV;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -140,6 +149,7 @@
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DisableSpecificWarnings>4244;4305</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -156,6 +166,11 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <OutputFile>.\Release/pscriptconv.bsc</OutputFile>
     </Bscmake>
+    <CustomBuildStep>
+      <Command>copy /Y "$(OutDir)/pscriptconv.exe" "$(SolutionDir)/../../../progs/pscriptconv.exe"</Command>
+      <Message>Copy "$(OutDir)/pscriptconv.exe" to working "$(SolutionDir)/../../../progs/pscriptconv.exe"</Message>
+      <Outputs>pscriptconv.exe</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -165,7 +180,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\common;..\..\shared;..\..\libs\sdl2.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\common;..\..\shared;..\..\libs\sdl2.0\include;..\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;VBM_FLEXES;PSCRIPTCONV;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -205,7 +220,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\common;..\..\shared;..\..\libs\sdl2.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\common;..\..\shared;..\..\libs\sdl2.0\include;..\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;VBM_FLEXES;PSCRIPTCONV;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>.\Debug/pscriptconv.pch</PrecompiledHeaderOutputFile>
@@ -254,9 +269,13 @@
     <ClInclude Include="..\..\common\cstringpool.h" />
     <ClInclude Include="..\..\common\cstringpool_inline.hpp" />
     <ClInclude Include="..\..\common\cstring_inline.hpp" />
+    <ClInclude Include="..\..\common\logfile.h" />
     <ClInclude Include="..\..\common\vector.h" />
     <ClInclude Include="..\..\common\vector_inline.hpp" />
+    <ClInclude Include="..\common\utils_common.h" />
+    <ClInclude Include="..\common\utils_filefuncs.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="pscriptconverter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\cbitset.cpp" />
@@ -265,7 +284,11 @@
     <ClCompile Include="..\..\common\crc32.cpp" />
     <ClCompile Include="..\..\common\cstring.cpp" />
     <ClCompile Include="..\..\common\cstringpool.cpp" />
+    <ClCompile Include="..\..\common\logfile.cpp" />
+    <ClCompile Include="..\common\utils_common.cpp" />
+    <ClCompile Include="..\common\utils_filefuncs.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="pscriptconverter.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

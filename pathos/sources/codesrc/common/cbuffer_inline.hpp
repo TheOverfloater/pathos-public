@@ -90,7 +90,7 @@ inline void*& CBuffer::getbufferdata( void )
 //
 // @return Current writind position
 //=============================================
-inline Uint32 CBuffer::getsize( void ) const
+inline Uint32 CBuffer::getdatasize( void ) const
 {
 	return m_bufferDataPosition;
 }

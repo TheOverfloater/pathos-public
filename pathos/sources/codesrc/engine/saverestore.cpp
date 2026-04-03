@@ -1014,8 +1014,8 @@ bool CSaveRestore::CreateSaveFile( const Char* baseName, savefile_type_t type, c
 		VID_DrawSceneOnly();
 		VID_GetScreenContents(width, height, bpp, &pscreentexture);
 
-		R_ResizeTextureToPOT(width, height, pscreentexture);
-		R_FlipTexture(width, height, bpp, false, true, pscreentexture);
+		Common::ResizeTextureToPOT(width, height, pscreentexture);
+		Common::FlipTexture(width, height, bpp, false, true, pscreentexture);
 
 		Uint32 texsize = (sizeof(byte)*width*height*bpp)/8;
 		m_saveBufferSize += texsize;

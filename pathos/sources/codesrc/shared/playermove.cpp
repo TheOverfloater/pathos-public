@@ -645,14 +645,18 @@ Int32 CPlayerMovement::ClipVelocity( const Vector& in, const Vector& normal, Vec
 //=============================================
 void CPlayerMovement::PreventMegaBunnyJumping( void )
 {
-	if(m_maxSpeed <= 0)
+	// Restore HL behavior
+	const Float bunnyJumpMaxSpeedFactor = 1.7;
+	Float maxScaledSpeed = bunnyJumpMaxSpeedFactor * m_maxSpeed;
+
+	if(maxScaledSpeed <= 0)
 		return;
 
 	Float speed = m_pPlayerState->velocity.Length();
-	if(speed <= m_maxSpeed)
+	if(speed <= maxScaledSpeed)
 		return;
 
-	Float frac = (m_maxSpeed/speed) * 0.65;
+	Float frac = (maxScaledSpeed/speed) * 0.65;
 	Math::VectorScale(m_pPlayerState->velocity, frac, m_pPlayerState->velocity);
 }
 

@@ -26,7 +26,7 @@ All Rights Reserved.
 #include "bmp.h"
 #include "tga.h"
 #include "trimeshbuilder.h"
-#include "filefuncs.h"
+#include "utils_filefuncs.h"
 
 // Default normal merge treshold
 #define DEFAULT_NORMAL_MERGE_TRESHOLD SDL_cos(2.0 * (M_PI / 180.0f))
@@ -375,13 +375,13 @@ bool CStudioModelCompiler::WriteMDLFile( void )
 
 	// Lastly, write the texture data
 	// Note: This NEEDS to be the LAST write to the MDL file
-	// buffer, as both Pathos and Goldsrc rely on texturedataindex
+	// buffer, as both Pathos and Goldsrc rely on "texturedataindex"
 	// in the studio header to set the final size of the studio data
 	// buffer after loading a model.
 	WriteTextures();
 
 	// Set final size in the file
-	m_pStudioHeader->length = m_pFileOutputBuffer->getsize();
+	m_pStudioHeader->length = m_pFileOutputBuffer->getdatasize();
 
 	// Build output filepath
 	CString outputPath;
@@ -420,11 +420,11 @@ bool CStudioModelCompiler::WriteMDLFile( void )
 //===============================================
 void CStudioModelCompiler::WriteTextures( void )
 {
-	Uint32 prevLoad = m_pFileOutputBuffer->getsize();
+	Uint32 prevLoad = m_pFileOutputBuffer->getdatasize();
 
 	// Save skinrefs array
 	Uint32 dataSize = m_numSkinFamilies * m_numSkinRefs * sizeof(Int16);
-	m_pStudioHeader->skinindex = m_pFileOutputBuffer->getsize();
+	m_pStudioHeader->skinindex = m_pFileOutputBuffer->getdatasize();
 	m_pStudioHeader->numskinref = m_numSkinRefs;
 	m_pStudioHeader->numskinfamilies = m_numSkinFamilies;
 	m_pFileOutputBuffer->append(nullptr, dataSize);
@@ -442,11 +442,11 @@ void CStudioModelCompiler::WriteTextures( void )
 	// Save the textures themselves
 	dataSize = m_pTexturesArray.size() * sizeof(mstudiotexture_t);
 	m_pStudioHeader->numtextures = m_pTexturesArray.size();
-	m_pStudioHeader->textureindex = m_pFileOutputBuffer->getsize();
+	m_pStudioHeader->textureindex = m_pFileOutputBuffer->getdatasize();
 	m_pFileOutputBuffer->append(nullptr, dataSize);
 
 	// Mark texture data index, needs to be last
-	m_pStudioHeader->texturedataindex = m_pFileOutputBuffer->getsize();
+	m_pStudioHeader->texturedataindex = m_pFileOutputBuffer->getdatasize();
 
 	mstudiotexture_t* pdesttextures = reinterpret_cast<mstudiotexture_t*>(reinterpret_cast<byte*>(m_pStudioHeader) + m_pStudioHeader->textureindex);
 	m_pFileOutputBuffer->addpointer(reinterpret_cast<void**>(&pdesttextures));
@@ -463,7 +463,7 @@ void CStudioModelCompiler::WriteTextures( void )
 		pdesttexture->height = psrctexture->height;
 		pdesttexture->width = psrctexture->width;
 
-		pdesttexture->index = m_pFileOutputBuffer->getsize();
+		pdesttexture->index = m_pFileOutputBuffer->getdatasize();
 
 		// Save palette and texture data
 		dataSize = sizeof(byte) * psrctexture->width * psrctexture->height;
@@ -475,7 +475,7 @@ void CStudioModelCompiler::WriteTextures( void )
 
 	m_pFileOutputBuffer->removepointer(reinterpret_cast<void**>(&pdesttextures));
 
-	dataSize = m_pFileOutputBuffer->getsize() - prevLoad;
+	dataSize = m_pFileOutputBuffer->getdatasize() - prevLoad;
 	Msg("Wrote %d textures, %d skin families\n\t- Size written: %.2f megabytes.\n", 
 		m_pTexturesArray.size(), m_pStudioHeader->numskinfamilies, Common::BytesToMegaBytes(dataSize));
 }
@@ -487,15 +487,15 @@ void CStudioModelCompiler::WriteTextures( void )
 //===============================================
 bool CStudioModelCompiler::WriteGeometryData( void )
 {
-	Uint32 prevLoad = m_pFileOutputBuffer->getsize();
+	Uint32 prevLoad = m_pFileOutputBuffer->getdatasize();
 
 	// Allocate bodyparts
 	Uint32 dataSize = m_pBodyPartsArray.size() * sizeof(mstudiobodyparts_t);
-	m_pStudioHeader->bodypartindex = m_pFileOutputBuffer->getsize();
+	m_pStudioHeader->bodypartindex = m_pFileOutputBuffer->getdatasize();
 	m_pStudioHeader->numbodyparts = m_pBodyPartsArray.size();
 	m_pFileOutputBuffer->append(nullptr, dataSize);
 
-	Uint32 submodelsIndex = m_pFileOutputBuffer->getsize();
+	Uint32 submodelsIndex = m_pFileOutputBuffer->getdatasize();
 	dataSize = m_pSubmodelsArray.size() * sizeof(mstudiomodel_t);
 	m_pFileOutputBuffer->append(nullptr, dataSize);
 
@@ -543,11 +543,11 @@ bool CStudioModelCompiler::WriteGeometryData( void )
 		m_pFileOutputBuffer->addpointer(reinterpret_cast<void**>(&pdestsubmodel));
 
 		// Save vertex data
-		pdestsubmodel->vertinfoindex = m_pFileOutputBuffer->getsize();
+		pdestsubmodel->vertinfoindex = m_pFileOutputBuffer->getdatasize();
 		dataSize = psrcsubmodel->numvertexes * sizeof(byte);
 		m_pFileOutputBuffer->append(nullptr, dataSize);
 
-		pdestsubmodel->vertindex = m_pFileOutputBuffer->getsize();
+		pdestsubmodel->vertindex = m_pFileOutputBuffer->getdatasize();
 		dataSize = psrcsubmodel->numvertexes * sizeof(Vector);
 		m_pFileOutputBuffer->append(nullptr, dataSize);
 
@@ -565,11 +565,11 @@ bool CStudioModelCompiler::WriteGeometryData( void )
 		totalVertexes += psrcsubmodel->numvertexes;
 
 		// Save normal data
-		pdestsubmodel->norminfoindex = m_pFileOutputBuffer->getsize();
+		pdestsubmodel->norminfoindex = m_pFileOutputBuffer->getdatasize();
 		dataSize = psrcsubmodel->numnormals * sizeof(byte);
 		m_pFileOutputBuffer->append(nullptr, dataSize);
 
-		pdestsubmodel->normindex = m_pFileOutputBuffer->getsize();
+		pdestsubmodel->normindex = m_pFileOutputBuffer->getdatasize();
 		dataSize = psrcsubmodel->numnormals * sizeof(Vector);
 		m_pFileOutputBuffer->append(nullptr, dataSize);
 
@@ -587,7 +587,7 @@ bool CStudioModelCompiler::WriteGeometryData( void )
 		totalNormals += psrcsubmodel->numnormals;
 
 		// Set mesh data
-		pdestsubmodel->meshindex = m_pFileOutputBuffer->getsize();
+		pdestsubmodel->meshindex = m_pFileOutputBuffer->getdatasize();
 		pdestsubmodel->nummesh = psrcsubmodel->pmeshes.size();
 		dataSize = psrcsubmodel->pmeshes.size() * sizeof(mstudiomesh_t);
 		m_pFileOutputBuffer->append(nullptr, dataSize);
@@ -613,7 +613,7 @@ bool CStudioModelCompiler::WriteGeometryData( void )
 			CTriangleMeshBuilder builder(psrcmesh);
 			dataSize = builder.BuildTriangleMesh(ptricmds);
 
-			pdestmesh->triindex = m_pFileOutputBuffer->getsize();
+			pdestmesh->triindex = m_pFileOutputBuffer->getdatasize();
 			m_pFileOutputBuffer->append(ptricmds, dataSize);
 		}
 
@@ -626,7 +626,7 @@ bool CStudioModelCompiler::WriteGeometryData( void )
 	m_pFileOutputBuffer->removepointer(reinterpret_cast<void**>(&pdestsubmodels));
 	m_pFileOutputBuffer->removepointer(reinterpret_cast<void**>(&pdestbodyparts));
 
-	dataSize = m_pFileOutputBuffer->getsize() - prevLoad;
+	dataSize = m_pFileOutputBuffer->getdatasize() - prevLoad;
 	Msg("Wrote %d bodyparts, %d submodels, %d meshes, %d triangles, %d vertexes and %d normals.\n\t- Size written: %.2f megabytes.\n", 
 		m_pStudioHeader->numbodyparts, m_pSubmodelsArray.size(), totalMeshes, totalTriangles, totalVertexes, totalNormals, Common::BytesToMegaBytes(dataSize));
 
@@ -641,10 +641,10 @@ bool CStudioModelCompiler::WriteGeometryData( void )
 //===============================================
 bool CStudioModelCompiler::WriteBoneData( void )
 {
-	Uint32 prevLoad = m_pFileOutputBuffer->getsize();
+	Uint32 prevLoad = m_pFileOutputBuffer->getdatasize();
 
 	// Mark bone data beginning in studio header
-	m_pStudioHeader->boneindex = m_pFileOutputBuffer->getsize();
+	m_pStudioHeader->boneindex = m_pFileOutputBuffer->getdatasize();
 	m_pStudioHeader->numbones = m_pBoneTableArray.size();
 
 	Uint32 dataSize = sizeof(mstudiobone_t)*m_pBoneTableArray.size();
@@ -682,7 +682,7 @@ bool CStudioModelCompiler::WriteBoneData( void )
 	}
 
 	// Add bone controllers
-	m_pStudioHeader->bonecontrollerindex = m_pFileOutputBuffer->getsize();
+	m_pStudioHeader->bonecontrollerindex = m_pFileOutputBuffer->getdatasize();
 	m_pStudioHeader->numbonecontrollers = m_boneControllersArray.size();
 
 	dataSize = sizeof(mstudiobonecontroller_t)*m_boneControllersArray.size();
@@ -742,7 +742,7 @@ bool CStudioModelCompiler::WriteBoneData( void )
 	}
 
 	// Save attachments
-	m_pStudioHeader->attachmentindex = m_pFileOutputBuffer->getsize();
+	m_pStudioHeader->attachmentindex = m_pFileOutputBuffer->getdatasize();
 	m_pStudioHeader->numattachments = m_attachmentsArray.size();
 
 	dataSize = sizeof(mstudioattachment_t)*m_attachmentsArray.size();
@@ -761,7 +761,7 @@ bool CStudioModelCompiler::WriteBoneData( void )
 	}
 
 	// Save hitbox data
-	m_pStudioHeader->hitboxindex = m_pFileOutputBuffer->getsize();
+	m_pStudioHeader->hitboxindex = m_pFileOutputBuffer->getdatasize();
 	m_pStudioHeader->numhitboxes = m_hitBoxesArray.size();
 
 	dataSize = sizeof(mstudiobbox_t)*m_hitBoxesArray.size();
@@ -781,7 +781,7 @@ bool CStudioModelCompiler::WriteBoneData( void )
 		pdesthitbox->bbmax = hitbox.maxs;
 	}
 
-	dataSize = m_pFileOutputBuffer->getsize() - prevLoad;
+	dataSize = m_pFileOutputBuffer->getdatasize() - prevLoad;
 	Msg("Wrote %d bones, %d controllers, %d attachments, %d hit boxes.\n\t- Size written: %.2f megabytes.\n", 
 		m_pStudioHeader->numbones, m_pStudioHeader->numbonecontrollers, m_pStudioHeader->numattachments, 
 		m_pStudioHeader->numhitboxes, Common::BytesToMegaBytes(dataSize));
@@ -803,7 +803,7 @@ bool CStudioModelCompiler::WriteBoneData( void )
 bool CStudioModelCompiler::WriteAnimationData( void )
 {
 	// attachments, controllers, hitboxes, etc
-	Uint32 startBufferLoad = m_pFileOutputBuffer->getsize();
+	Uint32 startBufferLoad = m_pFileOutputBuffer->getdatasize();
 
 	mstudioanim_t* panimdata = nullptr;
 	m_pFileOutputBuffer->addpointer(reinterpret_cast<void**>(&panimdata));
@@ -821,7 +821,7 @@ bool CStudioModelCompiler::WriteAnimationData( void )
 		Uint32 dataSize = psequence->panims.size() * m_pBoneTableArray.size() * sizeof(mstudioanim_t);
 
 		// Set animation data pointer
-		psequence->animindex = m_pFileOutputBuffer->getsize();
+		psequence->animindex = m_pFileOutputBuffer->getdatasize();
 		panimdata = reinterpret_cast<mstudioanim_t*>(reinterpret_cast<byte*>(m_pStudioHeader) + psequence->animindex);
 		m_pFileOutputBuffer->append(nullptr, dataSize);
 
@@ -868,12 +868,12 @@ bool CStudioModelCompiler::WriteAnimationData( void )
 		}
 	}
 
-	Uint32 animationDataSize = m_pFileOutputBuffer->getsize() - startBufferLoad;
+	Uint32 animationDataSize = m_pFileOutputBuffer->getdatasize() - startBufferLoad;
 	Uint32 eventCount = 0;
 	Uint32 pivotCount = 0;
 
 	// Mark sequence entry data beginning in studio header
-	m_pStudioHeader->seqindex = m_pFileOutputBuffer->getsize();
+	m_pStudioHeader->seqindex = m_pFileOutputBuffer->getdatasize();
 	m_pStudioHeader->numseq = m_pSequencesArray.size();
 
 	Uint32 dataSize = sizeof(mstudioseqdesc_t)*m_pSequencesArray.size();
@@ -921,7 +921,7 @@ bool CStudioModelCompiler::WriteAnimationData( void )
 		// Add events
 		if(!psrcsequence->events.empty())
 		{
-			pdestsequence->eventindex = m_pFileOutputBuffer->getsize();
+			pdestsequence->eventindex = m_pFileOutputBuffer->getdatasize();
 			pdestsequence->numevents = psrcsequence->events.size();
 			dataSize = sizeof(mstudioevent_t)*psrcsequence->events.size();
 			m_pFileOutputBuffer->append(nullptr, dataSize);
@@ -945,7 +945,7 @@ bool CStudioModelCompiler::WriteAnimationData( void )
 		// Add pivots
 		if(!psrcsequence->pivots.empty())
 		{
-			pdestsequence->pivotindex = m_pFileOutputBuffer->getsize();
+			pdestsequence->pivotindex = m_pFileOutputBuffer->getdatasize();
 			pdestsequence->numpivots = psrcsequence->pivots.size();
 			dataSize = sizeof(mstudiopivot_t)*psrcsequence->pivots.size();
 			m_pFileOutputBuffer->append(nullptr, dataSize);
@@ -968,7 +968,7 @@ bool CStudioModelCompiler::WriteAnimationData( void )
 	// Add a dummy sequence group entry. We don't use this crap in Pathos, but
 	// Half-Life/GoldSrc still needs this structure present in the studiohdr
 	// to not shit the bed(I think so anyway, didn't double-check).
-	m_pStudioHeader->seqgroupindex = m_pFileOutputBuffer->getsize();
+	m_pStudioHeader->seqgroupindex = m_pFileOutputBuffer->getdatasize();
 	m_pStudioHeader->numseqgroups = 1;
 
 	dataSize = sizeof(mstudioseqgroup_t)*m_pStudioHeader->numseqgroups;
@@ -980,7 +980,7 @@ bool CStudioModelCompiler::WriteAnimationData( void )
 	// Save transitions(What are these again exactly? Should figure it out.)
 	if(!m_transitionNodesArray.empty())
 	{
-		m_pStudioHeader->transitionindex = m_pFileOutputBuffer->getsize();
+		m_pStudioHeader->transitionindex = m_pFileOutputBuffer->getdatasize();
 		m_pStudioHeader->numtransitions = m_transitionNodesArray.size();
 
 		dataSize = sizeof(byte) * m_pStudioHeader->numtransitions * m_pStudioHeader->numtransitions;
@@ -997,7 +997,7 @@ bool CStudioModelCompiler::WriteAnimationData( void )
 		}
 	}
 
-	dataSize = m_pFileOutputBuffer->getsize() - startBufferLoad;
+	dataSize = m_pFileOutputBuffer->getdatasize() - startBufferLoad;
 	Msg("Wrote %d sequences, %d events, %d pivots, %d bytes of compressed animation data.\n\t- Size written: %.2f megabytes.\n", 
 		m_pSequencesArray.size(), eventCount, pivotCount, animationDataSize, Common::BytesToMegaBytes(dataSize));
 
@@ -2580,7 +2580,7 @@ void CStudioModelCompiler::CalculateBoneScales( void )
 				if((-minValue) > maxValue)
 					scale = minValue / -32768.0;
 				else
-					scale = maxValue / 32767;
+					scale = maxValue / 32767.0;
 			}
 			else
 			{

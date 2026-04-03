@@ -19,8 +19,6 @@ class CWADTextureResource;
 static constexpr Uint32 DEFAULT_VISBUFFER_SIZE = 16384;
 // Default game directory
 static const Char DEFAULT_GAMEDIR[] = "pathos";
-// Common game directory
-static const Char COMMON_GAMEDIR[] = "common";
 
 enum dev_mode_t
 {

@@ -127,7 +127,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\..\common;..\..\shared;..\..\libs\sdl2.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\common;..\..\shared;..\..\libs\sdl2.0\include;..\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;vbmcompiler;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -210,7 +210,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\common;..\..\shared;..\..\libs\sdl2.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\common;..\..\shared;..\..\libs\sdl2.0\include;..\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;VBM_FLEXES;vbmcompiler;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>.\Debug/vbmcompiler.pch</PrecompiledHeaderOutputFile>
@@ -276,10 +276,11 @@
     <ClInclude Include="..\..\shared\studio.h" />
     <ClInclude Include="..\..\shared\vbmformat.h" />
     <ClInclude Include="..\..\shared\vbm_shared.h" />
+    <ClInclude Include="..\common\utils_common.h" />
+    <ClInclude Include="..\common\utils_filefuncs.h" />
     <ClInclude Include="collisionsmdparser.h" />
     <ClInclude Include="compiler_math.h" />
     <ClInclude Include="compiler_types.h" />
-    <ClInclude Include="filefuncs.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="mcdcompiler.h" />
     <ClInclude Include="options.h" />
@@ -307,10 +308,11 @@
     <ClCompile Include="..\..\common\r_common.cpp" />
     <ClCompile Include="..\..\common\tga.cpp" />
     <ClCompile Include="..\..\shared\vbm_shared.cpp" />
+    <ClCompile Include="..\common\utils_common.cpp" />
+    <ClCompile Include="..\common\utils_filefuncs.cpp" />
     <ClCompile Include="collisionsmdparser.cpp" />
     <ClCompile Include="compiler_math.cpp" />
     <ClCompile Include="compiler_types.cpp" />
-    <ClCompile Include="filefuncs.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mcdcompiler.cpp" />
     <ClCompile Include="options.cpp" />

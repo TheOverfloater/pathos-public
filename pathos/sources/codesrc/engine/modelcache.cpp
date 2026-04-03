@@ -27,6 +27,7 @@ All Rights Reserved.
 #include "commands.h"
 #include "bsp_shared.h"
 #include "crc32.h"
+#include "mcdformat.h"
 
 // Object declaration
 CModelCache gModelCache;

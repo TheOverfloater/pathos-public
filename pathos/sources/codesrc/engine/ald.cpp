@@ -325,7 +325,7 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 		if(oldlumpaddcount)
 		{
 			// Set pump offset
-			pheader->lumpoffset = fileBuffer.getsize();
+			pheader->lumpoffset = fileBuffer.getdatasize();
 			fileBuffer.append(nullptr, sizeof(aldlump_t)*(oldlumpaddcount+1));
 
 			for(Uint32 i = 0; i < poldhdr->numlumps; i++)
@@ -344,7 +344,7 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 						break;
 
 					// Set layer offset and allocate
-					poutlump->layeroffsets[j] = fileBuffer.getsize();
+					poutlump->layeroffsets[j] = fileBuffer.getdatasize();
 					fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
 					// Set layer data
@@ -353,7 +353,7 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 					poutlayer->compression = poldlayer->compression;
 					poutlayer->compressionlevel = poldlayer->compressionlevel;
 					poutlayer->datasize = poldlayer->datasize;
-					poutlayer->dataoffset = fileBuffer.getsize();
+					poutlayer->dataoffset = fileBuffer.getdatasize();
 
 					// Append the raw data
 					const byte* psrcdata = poriginal + poldlayer->dataoffset;
@@ -371,7 +371,7 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 	// Append the the lump if we did not add any new ones
 	if(curlumpidx == 0)
 	{
-		pheader->lumpoffset = fileBuffer.getsize();
+		pheader->lumpoffset = fileBuffer.getdatasize();
 		fileBuffer.append(nullptr, sizeof(aldlump_t));
 	}
 
@@ -390,11 +390,11 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 		if(daystage == DAYSTAGE_NORMAL_RESTORE && pworldmodel->plightdata_original[i])
 		{
 			// Set the offset and increment
-			pnewlump->layeroffsets[i] = fileBuffer.getsize();
+			pnewlump->layeroffsets[i] = fileBuffer.getdatasize();
 			fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
 			aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->layeroffsets[i]);
-			player->dataoffset = fileBuffer.getsize();
+			player->dataoffset = fileBuffer.getdatasize();
 			player->datasize = pworldmodel->original_lightdatasizes[i];
 			player->compression = pworldmodel->original_compressiontype[i];
 			player->compressionlevel = pworldmodel->original_compressionlevel[i];
@@ -419,14 +419,14 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 				break;
 
 			// Set the offset and increment
-			pnewlump->layeroffsets[i] = fileBuffer.getsize();
+			pnewlump->layeroffsets[i] = fileBuffer.getdatasize();
 			fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
 			aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->layeroffsets[i]);
 			fileBuffer.addpointer(reinterpret_cast<void**>(&player));
 
 			player->compression = compressionType;
-			player->dataoffset = fileBuffer.getsize();
+			player->dataoffset = fileBuffer.getdatasize();
 		
 			switch(compressionType)
 			{
@@ -469,7 +469,7 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 
 	// Re-set data ptr
 	const byte* pdata = reinterpret_cast<const byte*>(fileBuffer.getbufferdata());
-	if(!FL_WriteFile(pdata, fileBuffer.getsize(), filename.c_str()))
+	if(!FL_WriteFile(pdata, fileBuffer.getdatasize(), filename.c_str()))
 	{
 		Con_Printf("%s - Failed to write '%s'.\n", __FUNCTION__, filename.c_str());
 		return false;
@@ -575,7 +575,7 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 		if(oldlumpaddcount)
 		{
 			// Set pump offset
-			pheader->lumpoffset = fileBuffer.getsize();
+			pheader->lumpoffset = fileBuffer.getdatasize();
 			fileBuffer.append(nullptr, sizeof(aldlump_t)*(oldlumpaddcount+1));
 
 			for(Uint32 i = 0; i < poldhdr->numlumps; i++)
@@ -594,7 +594,7 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 						break;
 
 					// Set layer offset and allocate
-					poutlump->layeroffsets[j] = fileBuffer.getsize();
+					poutlump->layeroffsets[j] = fileBuffer.getdatasize();
 					fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
 					// Set layer data
@@ -603,7 +603,7 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 					poutlayer->compression = poldlayer->compression;
 					poutlayer->compressionlevel = poldlayer->compressionlevel;
 					poutlayer->datasize = poldlayer->datasize;
-					poutlayer->dataoffset = fileBuffer.getsize();
+					poutlayer->dataoffset = fileBuffer.getdatasize();
 
 					// Append the raw data
 					const byte* psrcdata = poriginal + poldlayer->dataoffset;
@@ -621,7 +621,7 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 	// Append the the lump if we did not add any new ones
 	if(curlumpidx == 0)
 	{
-		pheader->lumpoffset = fileBuffer.getsize();
+		pheader->lumpoffset = fileBuffer.getdatasize();
 		fileBuffer.append(nullptr, sizeof(aldlump_t));
 	}
 
@@ -706,7 +706,7 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 			break;
 
 		// Set layer offset and allocate
-		pnewlump->layeroffsets[j] = fileBuffer.getsize();
+		pnewlump->layeroffsets[j] = fileBuffer.getdatasize();
 		fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
 		// Set layer data
@@ -715,7 +715,7 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 		poutlayer->compression = poldlayer->compression;
 		poutlayer->compressionlevel = poldlayer->compressionlevel;
 		poutlayer->datasize = poldlayer->datasize;
-		poutlayer->dataoffset = fileBuffer.getsize();
+		poutlayer->dataoffset = fileBuffer.getdatasize();
 
 		// Append the raw data
 		const byte* psrcdata = pcopyfile + poldlayer->dataoffset;
@@ -728,7 +728,7 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 
 	// Re-set data ptr
 	const byte* pdata = reinterpret_cast<const byte*>(fileBuffer.getbufferdata());
-	if(!FL_WriteFile(pdata, fileBuffer.getsize(), filename.c_str()))
+	if(!FL_WriteFile(pdata, fileBuffer.getdatasize(), filename.c_str()))
 		Con_Printf("%s - Failed to write '%s'.\n", __FUNCTION__, filename.c_str());
 }
 

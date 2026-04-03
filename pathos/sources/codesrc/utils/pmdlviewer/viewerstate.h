@@ -238,6 +238,8 @@ struct viewerstate_t
 
 	// Mod directory used
 	CString moddir_path;
+	// Common directory used
+	CString commondir_path;
 
 	// Modelview matrix
 	CMatrix modelview;

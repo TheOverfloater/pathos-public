@@ -67,8 +67,10 @@ public:
 	~CWindow();
 
 public:
+	bool PreInit( void );
 	bool Init( void );
 	void DestroyWindow( void );
+	bool SetDisplayProperties( void );
 
 	void SwapWindow( void );
 
@@ -103,7 +105,6 @@ private:
 	bool BuildDeviceList( void );
 	static bool FetchResolutions( ddevice_t* pdevice );
 
-	bool SetDisplayProperties( void );
 	struct conf_group_t* GetConfigGroup( void );
 
 	resolution_t* FindResolution( ddevice_t* pdevice, Uint32 width, Uint32 height );

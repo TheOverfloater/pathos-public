@@ -676,7 +676,7 @@ void CCubemapManager::SaveCubemapFile( void )
 	if(!pheader->numcubemaps || !pheader->cubemapinfooffset)
 	{
 		pheader->numcubemaps = m_cubemapsArray.size();
-		pheader->cubemapinfooffset = fileBuffer.getsize();
+		pheader->cubemapinfooffset = fileBuffer.getdatasize();
 		fileBuffer.append(nullptr, sizeof(ecdcubemap_t)*pheader->numcubemaps);
 	}
 
@@ -692,7 +692,7 @@ void CCubemapManager::SaveCubemapFile( void )
 		pcubemap->height = m_cubemapsArray[i].height;
 		Math::VectorCopy(m_cubemapsArray[i].origin, pcubemap->origin);
 		
-		pcubemap->cubemapoffset = fileBuffer.getsize();
+		pcubemap->cubemapoffset = fileBuffer.getdatasize();
 
 		// We always add one
 		Uint32 cubemapcount = 1;
@@ -731,7 +731,7 @@ void CCubemapManager::SaveCubemapFile( void )
 
 				pnewscubemap->daystage = porigscubemap->daystage;
 				pnewscubemap->dxtcompression = porigscubemap->dxtcompression;
-				pnewscubemap->facesoffset = fileBuffer.getsize();
+				pnewscubemap->facesoffset = fileBuffer.getdatasize();
 
 				// Append face data for each of the six faces
 				fileBuffer.append(nullptr, sizeof(ecdcubemapface_t)*6);
@@ -746,7 +746,7 @@ void CCubemapManager::SaveCubemapFile( void )
 					const ecdcubemapface_t* poldface = reinterpret_cast<const ecdcubemapface_t*>(reinterpret_cast<const byte*>(ploadheader) + porigscubemap->facesoffset)+k;
 					const byte* poldfacedata = reinterpret_cast<const byte*>(ploadheader) + poldface->dataoffset;
 
-					pnewface->dataoffset = fileBuffer.getsize();
+					pnewface->dataoffset = fileBuffer.getdatasize();
 					pnewface->datasize = poldface->datasize;
 					fileBuffer.append(poldfacedata, pnewface->datasize);
 				}
@@ -767,7 +767,7 @@ void CCubemapManager::SaveCubemapFile( void )
 
 		pnewscubemap->daystage = rns.daystage;
 		pnewscubemap->dxtcompression = COMPRESSION_DXT1;
-		pnewscubemap->facesoffset = fileBuffer.getsize();
+		pnewscubemap->facesoffset = fileBuffer.getdatasize();
 
 		fileBuffer.append(nullptr, sizeof(ecdcubemapface_t)*6);
 
@@ -782,7 +782,7 @@ void CCubemapManager::SaveCubemapFile( void )
 
 			// Get ptr to raw RGB image data and compress using DXT
 			byte* pdxtdata = m_cubemapsArray[i].pimagedata + dxtdatasize * j;
-			pnewface->dataoffset = fileBuffer.getsize();
+			pnewface->dataoffset = fileBuffer.getdatasize();
 			pnewface->datasize = dxtdatasize;
 
 			fileBuffer.append(pdxtdata, dxtdatasize);
@@ -798,14 +798,14 @@ void CCubemapManager::SaveCubemapFile( void )
 	}
 
 	// Set length
-	pheader->length = fileBuffer.getsize();
+	pheader->length = fileBuffer.getdatasize();
 
 	// Release original if it was present
 	if(ploadheader)
 		FL_FreeFile(pf);
 
 	const byte *pwritedata = reinterpret_cast<const byte*>(fileBuffer.getbufferdata());
-	if(!FL_WriteFile(pwritedata, fileBuffer.getsize(), filename.c_str()))
+	if(!FL_WriteFile(pwritedata, fileBuffer.getdatasize(), filename.c_str()))
 	{
 		Con_Printf("Error: Failed to open %s for writing.\n", filename.c_str());
 		return;
@@ -931,7 +931,10 @@ bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRe
 				{
 					CString filepath;
 					filepath << directory.c_str() << "cubemap_" << basename << "_" << (Int32)i << "_" << (Int32)j << ".tga";
-					TGA_Write(ptempdata, 4, m_cubemapsArray[i].width, m_cubemapsArray[i].height, filepath.c_str(), FL_GetInterface(), Con_EPrintf);
+
+					Uint32 compressionPercentage = 0;
+					if(TGA_Write(ptempdata, 4, m_cubemapsArray[i].width, m_cubemapsArray[i].height, filepath.c_str(), FL_GetInterface(), Con_EPrintf, &compressionPercentage))
+						Con_Printf("Wrote '%s'(%d percent compression).\n", filepath.c_str(), compressionPercentage);
 				}
 				else
 				{

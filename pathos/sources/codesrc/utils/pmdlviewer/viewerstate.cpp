@@ -180,6 +180,29 @@ bool Viewer_InitStates( void )
 		}
 	}
 
+	// Set the common directory path
+	vs.moddir_path.replaceslashes();
+
+	Int32 lastslashpos = 0;
+	while(true)
+	{
+		Int32 offsetposition = vs.moddir_path.find(lastslashpos+1, "/");
+		if(offsetposition == CString::CSTRING_NO_POSITION)
+			break;
+
+		lastslashpos = offsetposition;
+	}
+
+	if(lastslashpos != CString::CSTRING_NO_POSITION)
+	{
+		CString commondir;
+		commondir.assign(vs.moddir_path.c_str(), lastslashpos);
+		commondir << PATH_SLASH_CHAR << COMMON_GAMEDIR;
+
+		if(qstrcmp(vs.moddir_path, commondir))
+			vs.commondir_path = commondir;
+	}
+
 	// Set script pointer
 	vs.flexstate.pscript = &vs.flexscript;
 

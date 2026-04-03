@@ -467,22 +467,27 @@ bool CTempEntityManager::UpdateTempEntity( tempentity_t* ptemp ) const
 					}
 				}
 
-				for(Uint32 i = 0; i < 3; i++)
+				// For specific entities, orient them to be flat when in water
+				if(ptemp->soundtype != TE_BOUNCE_SHELL && ptemp->soundtype != TE_BOUNCE_METAL
+					&& ptemp->soundtype != TE_BOUNCE_GLASS && ptemp->soundtype != TE_BOUNCE_CONCRETE)
 				{
-					if(i == YAW)
-						continue;
+					for(Uint32 i = 0; i < 3; i++)
+					{
+						if(i == YAW)
+							continue;
 
-					if(entity.curstate.angles[i] > 0)
-					{
-						entity.curstate.angles[i] -= cls.frametime * ptemp->buoyancy * 0.5;
-						if(entity.curstate.angles[i] < 0)
-							entity.curstate.angles[i] = 0;
-					}
-					else if(entity.curstate.angles[i] < 0)
-					{
-						entity.curstate.angles[i] += cls.frametime * ptemp->buoyancy * 0.5;
 						if(entity.curstate.angles[i] > 0)
-							entity.curstate.angles[i] = 0;
+						{
+							entity.curstate.angles[i] -= cls.frametime * ptemp->buoyancy * 0.5;
+							if(entity.curstate.angles[i] < 0)
+								entity.curstate.angles[i] = 0;
+						}
+						else if(entity.curstate.angles[i] < 0)
+						{
+							entity.curstate.angles[i] += cls.frametime * ptemp->buoyancy * 0.5;
+							if(entity.curstate.angles[i] > 0)
+								entity.curstate.angles[i] = 0;
+						}
 					}
 				}
 			}
@@ -513,6 +518,9 @@ bool CTempEntityManager::UpdateTempEntity( tempentity_t* ptemp ) const
 //=============================================
 void CTempEntityManager::PlayTempEntitySound( tempentity_t *ptempentity, Float volume )
 {
+	if(ptempentity->soundtype == TE_BOUNCE_NONE)
+		return;
+
 	CString filepath;
 	switch(ptempentity->soundtype)
 	{

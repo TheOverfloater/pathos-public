@@ -244,6 +244,23 @@ namespace Common
 	}
 
 	//=============================================
+	// @brief Gets the current date as a string for a filename
+	//
+	// @return Current date in YYYYMMDD HHmmss format
+	//=============================================
+	CString GetDateFilename( void )
+	{
+		const time_t curtime = time(0);
+		struct tm tstruct;
+		Char buffer[80];
+		tstruct = *localtime(&curtime);
+
+		// Get the date and time format
+		strftime(buffer, sizeof(buffer), "%Y_%m_%d_%H_%M", &tstruct);
+		return buffer;
+	}
+
+	//=============================================
 	// @brief Takes a C type array and adds iCountNew element to it
 	//
 	// @param parray Pointer to original array
@@ -829,5 +846,198 @@ namespace Common
 	extern Float BytesToMegaBytes( Uint32 bytesCount )
 	{
 		return static_cast<Float>(bytesCount) / (1024.0*1024.0);
+	}
+
+	//=============================================
+	//
+	// Function:
+	//=============================================
+	void ResizeTextureToPOT( Uint32& outwidth, Uint32& outheight, byte*& pdata )
+	{
+		color32_t pix1, pix2, pix3, pix4;
+
+		// convert texture to power of 2
+		Uint32 width = outwidth;
+		Uint32 height = outheight;
+		for (outwidth = 1; outwidth < width && SDL_abs(outwidth-width) > 128; outwidth <<= 1);
+		for (outheight = 1; outheight < height && SDL_abs(outheight-height) > 128; outheight <<= 1);
+
+		// Allocate arrays
+		Int32* prow1 = new Int32[outheight];
+		Int32* prow2 = new Int32[outheight];
+		Int32* pcol1 = new Int32[outwidth];
+		Int32* pcol2 = new Int32[outwidth];
+
+		color32_t* psrcdata = reinterpret_cast<color32_t*>(pdata);
+		byte* poutdata = new byte[(outwidth*outheight*4*sizeof(byte))];
+		byte* pout = poutdata;
+
+		for (Uint32 i = 0; i < outwidth; i++)
+		{
+			pcol1[i] = static_cast<Int32>((i + 0.25) * (width / (Float)outwidth));
+			pcol2[i] = static_cast<Int32>((i + 0.75) * (width / (Float)outwidth));
+		}
+
+		for (Uint32 i = 0; i < outheight; i++)
+		{
+			prow1[i] = static_cast<Int32>((i + 0.25) * (height / (Float)outheight)) * width;
+			prow2[i] = static_cast<Int32>((i + 0.75) * (height / (Float)outheight)) * width;
+		}
+
+		for (Uint32 i = 0; i < outheight; i++)
+		{
+			for (Uint32 j = 0; j < outwidth; j++, pout += 4)
+			{
+				pix1 = psrcdata[prow1[i] + pcol1[j]];
+				pix2 = psrcdata[prow1[i] + pcol2[j]];
+				pix3 = psrcdata[prow2[i] + pcol1[j]];
+				pix4 = psrcdata[prow2[i] + pcol2[j]];
+
+				pout[0] = (pix1.r + pix2.r + pix3.r + pix4.r)>>2;
+				pout[1] = (pix1.g + pix2.g + pix3.g + pix4.g)>>2;
+				pout[2] = (pix1.b + pix2.b + pix3.b + pix4.b)>>2;
+				pout[3] = (pix1.a + pix2.a + pix3.a + pix4.a)>>2;
+			}
+		}
+
+		delete[] prow1;
+		delete[] prow2;
+		delete[] pcol1;
+		delete[] pcol2;
+
+		delete[] pdata;
+		pdata = poutdata;
+	}
+
+	//=============================================
+	//
+	// Function:
+	//=============================================
+	void ResizeTexture32( Uint32 width, Uint32 height, Uint32 targetwidth, Uint32 targetheight, const color32_t* pindata, color32_t*& poutdata )
+	{
+		color32_t pix1, pix2, pix3, pix4;
+
+		// Allocate arrays
+		Int32* prow1 = new Int32[targetheight];
+		Int32* prow2 = new Int32[targetheight];
+		Int32* pcol1 = new Int32[targetwidth];
+		Int32* pcol2 = new Int32[targetwidth];
+
+		poutdata = new color32_t[targetwidth*targetheight];
+		byte* pout = reinterpret_cast<byte*>(poutdata);
+
+		for (Uint32 i = 0; i < targetwidth; i++)
+		{
+			pcol1[i] = static_cast<Int32>((i + 0.25) * (width / static_cast<Float>(targetwidth)));
+			pcol2[i] = static_cast<Int32>((i + 0.75) * (width / static_cast<Float>(targetwidth)));
+		}
+
+		for (Uint32 i = 0; i < targetheight; i++)
+		{
+			prow1[i] = static_cast<Int32>((i + 0.25) * (height / static_cast<Float>(targetheight))) * width;
+			prow2[i] = static_cast<Int32>((i + 0.75) * (height / static_cast<Float>(targetheight))) * width;
+		}
+
+		for (Uint32 i = 0; i < targetheight; i++)
+		{
+			for (Uint32 j = 0; j < targetwidth; j++, pout += 4)
+			{
+				pix1 = pindata[prow1[i] + pcol1[j]];
+				pix2 = pindata[prow1[i] + pcol2[j]];
+				pix3 = pindata[prow2[i] + pcol1[j]];
+				pix4 = pindata[prow2[i] + pcol2[j]];
+
+				pout[0] = (pix1.r + pix2.r + pix3.r + pix4.r)>>2;
+				pout[1] = (pix1.g + pix2.g + pix3.g + pix4.g)>>2;
+				pout[2] = (pix1.b + pix2.b + pix3.b + pix4.b)>>2;
+				pout[3] = (pix1.a + pix2.a + pix3.a + pix4.a)>>2;
+			}
+		}
+
+		delete[] prow1;
+		delete[] prow2;
+		delete[] pcol1;
+		delete[] pcol2;
+	}
+
+	//=============================================
+	//
+	// Function:
+	//=============================================
+	void ResizeTexture24( Uint32 width, Uint32 height, Uint32 targetwidth, Uint32 targetheight, const color24_t* pindata, color24_t*& poutdata )
+	{
+		color24_t pix1, pix2, pix3, pix4;
+
+		// Allocate arrays
+		Int32* prow1 = new Int32[targetheight];
+		Int32* prow2 = new Int32[targetheight];
+		Int32* pcol1 = new Int32[targetwidth];
+		Int32* pcol2 = new Int32[targetwidth];
+
+		byte* pout = reinterpret_cast<byte*>(poutdata);
+
+		for (Uint32 i = 0; i < targetwidth; i++)
+		{
+			pcol1[i] = static_cast<Int32>((i + 0.25) * (width / static_cast<Float>(targetwidth)));
+			pcol2[i] = static_cast<Int32>((i + 0.75) * (width / static_cast<Float>(targetwidth)));
+		}
+
+		for (Uint32 i = 0; i < targetheight; i++)
+		{
+			prow1[i] = static_cast<Int32>((i + 0.25) * (height / static_cast<Float>(targetheight))) * width;
+			prow2[i] = static_cast<Int32>((i + 0.75) * (height / static_cast<Float>(targetheight))) * width;
+		}
+
+		for (Uint32 i = 0; i < targetheight; i++)
+		{
+			for (Uint32 j = 0; j < targetwidth; j++, pout += 3)
+			{
+				pix1 = pindata[prow1[i] + pcol1[j]];
+				pix2 = pindata[prow1[i] + pcol2[j]];
+				pix3 = pindata[prow2[i] + pcol1[j]];
+				pix4 = pindata[prow2[i] + pcol2[j]];
+
+				pout[0] = (pix1.r + pix2.r + pix3.r + pix4.r)>>2;
+				pout[1] = (pix1.g + pix2.g + pix3.g + pix4.g)>>2;
+				pout[2] = (pix1.b + pix2.b + pix3.b + pix4.b)>>2;
+			}
+		}
+
+		delete[] prow1;
+		delete[] prow2;
+		delete[] pcol1;
+		delete[] pcol2;
+	}
+
+	//=============================================
+	//
+	// Function:
+	//=============================================
+	void FlipTexture( Uint32 width, Uint32 height, Uint32 bpp, bool fliph, bool flipv, byte*& pdata )
+	{
+		// Flip vertically and/or horizontally if needed
+		Uint32 outputSize = width*height*bpp;
+		byte *pflipped = new byte[outputSize];
+		for(Uint32 i = 0; i < height; i++)
+		{
+			byte *dst = pflipped + i*width*bpp;
+
+			const byte *src;
+			if(flipv)
+				src = pdata + (height-i-1)*width*bpp;
+			else
+				src = pdata + i*width*bpp;
+
+			if(fliph)
+			{
+				for(Uint32 j = 0; j < width; j++)
+					memcpy(&dst[j*bpp], &src[((width-j-1)*bpp)], sizeof(byte)*bpp);
+			}
+			else
+				memcpy(dst, src, sizeof(byte)*width*bpp);
+		}
+
+		delete[] pdata;
+		pdata = pflipped;
 	}
 };

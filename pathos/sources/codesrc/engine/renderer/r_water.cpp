@@ -489,8 +489,10 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 				CString filepath;
 				filepath << basedirpath << "water_" << pwater->index << "_lightmap_default_style_" << i << ".tga";
 
+				Uint32 compressionPercentage = 0;
 				const byte* pwritedata = reinterpret_cast<const byte*>(plightmapdata);
-				TGA_Write(pwritedata, 4, pwater->lightmaptexturewidths[i], pwater->lightmaptextureheights[i], filepath.c_str(), FL_GetInterface(), Con_Printf);
+				if(TGA_Write(pwritedata, 4, pwater->lightmaptexturewidths[i], pwater->lightmaptextureheights[i], filepath.c_str(), FL_GetInterface(), Con_Printf, &compressionPercentage))
+					Con_Printf("Exported %s(%d percent compression).\n", filepath.c_str(), compressionPercentage);
 			}
 		}
 
@@ -533,15 +535,18 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 					CString filepath;
 					filepath << basedirpath << "water_" << pwater->index << "_lightmap_diffuse_style_" << i << ".tga";
 
+					Uint32 compressionPercentage = 0;
 					const byte* pwritedata = reinterpret_cast<const byte*>(pdiffusemaptexture);
-					TGA_Write(pwritedata, 4, pwater->lightmaptexturewidths[i], pwater->lightmaptextureheights[i], filepath.c_str(), FL_GetInterface(), Con_Printf);
+					if(TGA_Write(pwritedata, 4, pwater->lightmaptexturewidths[i], pwater->lightmaptextureheights[i], filepath.c_str(), FL_GetInterface(), Con_Printf, &compressionPercentage))
+						Con_Printf("Exported %s(%d percent compression).\n", filepath.c_str(), compressionPercentage);
 
 					// Light vectors
 					filepath.clear();
 					filepath << basedirpath << "water_" << pwater->index << "_lightmap_vectors_style_" << i << ".tga";
 
 					pwritedata = reinterpret_cast<const byte*>(plightvecstexture);
-					TGA_Write(pwritedata, 4, pwater->lightmaptexturewidths[i], pwater->lightmaptextureheights[i], filepath.c_str(), FL_GetInterface(), Con_Printf);
+					if(TGA_Write(pwritedata, 4, pwater->lightmaptexturewidths[i], pwater->lightmaptextureheights[i], filepath.c_str(), FL_GetInterface(), Con_Printf, &compressionPercentage))
+						Con_Printf("Exported %s(%d percent compression).\n", filepath.c_str(), compressionPercentage);
 				}
 			}
 		}

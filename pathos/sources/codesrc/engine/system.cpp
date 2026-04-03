@@ -126,6 +126,10 @@ bool Sys_Init( CArray<CString>* argsArray )
 	if(!Sys_InitFloatTime())
 		return false;
 
+	// Perform window pre-initialization
+	if(!gWindow.PreInit())
+		return false;
+
 	// Set ens.time to a nonzero value so some time-based functions work immediately
 	// after starting the engine(Sys_InitFloatTime takes care of this)
 	ens.time = ens.curtime;

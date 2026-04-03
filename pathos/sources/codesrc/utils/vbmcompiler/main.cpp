@@ -31,11 +31,8 @@ All Rights Reserved.
 #include "options.h"
 #include "qcparser.h"
 #include "logfile.h"
-#include "filefuncs.h"
+#include "utils_filefuncs.h"
 #include "mcdcompiler.h"
-
-// Size of buffer for message prints
-static const Uint32 PRINT_MSG_BUFFER_SIZE = 16384;
 
 // Major version number
 static const Uint32 MAJOR_VERSION = 0;
@@ -48,8 +45,6 @@ CVBMCompiler* g_pVBMCompiler = nullptr;
 CStudioModelCompiler* g_pStudioModelCompiler = nullptr;
 // Pointer to QC parser instance
 CQCParser* g_pQCParser = nullptr;
-// Log file ptr
-CLogFile* g_pLogFile = nullptr;
 
 //===============================================
 // @brief Prints out the usage information for the application
@@ -74,72 +69,6 @@ void ApplicationUsage( void )
 	Msg("\t'-e' - Set maximum texture resolution.\n");
 	Msg("\t'-p' - Set texture padding size.\n");
 	Msg("\t'-m' - Don't enforce collision meshes having to be closed.\n");
-}
-
-//===============================================
-// @brief Prints a generic message to the console and the log
-//
-// @param fmt Formatted string
-// @param ... Parameters for string formatting
-//===============================================
-void Msg( const Char *fmt, ... )
-{
-	// compile the string result
-	va_list	vArgPtr;
-	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
-	
-	va_start(vArgPtr,fmt);
-	vsprintf_s(cMsg, fmt, vArgPtr);
-	va_end(vArgPtr);
-
-	printf(cMsg);
-
-	if(g_pLogFile)
-		g_pLogFile->Printf(cMsg);
-}
-
-//===============================================
-// @brief Prints a generic message to the console and the log
-//
-// @param fmt Formatted string
-// @param ... Parameters for string formatting
-//===============================================
-void WarningMsg( const Char *fmt, ... )
-{
-	// compile the string result
-	va_list	vArgPtr;
-	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
-	
-	va_start(vArgPtr,fmt);
-	vsprintf_s(cMsg, fmt, vArgPtr);
-	va_end(vArgPtr);
-
-	printf("Warning: %s", cMsg);
-
-	if(g_pLogFile)
-		g_pLogFile->Printf(cMsg);
-}
-
-//===============================================
-// @brief Prints a generic message to the console and the log
-//
-// @param fmt Formatted string
-// @param ... Parameters for string formatting
-//===============================================
-void ErrorMsg( const Char *fmt, ... )
-{
-	// compile the string result
-	va_list	vArgPtr;
-	static Char cMsg[PRINT_MSG_BUFFER_SIZE];
-	
-	va_start(vArgPtr,fmt);
-	vsprintf_s(cMsg, fmt, vArgPtr);
-	va_end(vArgPtr);
-
-	printf("Error: %s", cMsg);
-
-	if(g_pLogFile)
-		g_pLogFile->Printf(cMsg);
 }
 
 //===============================================

@@ -7,8 +7,8 @@ All Rights Reserved.
 ===============================================
 */
 
-#ifndef GL_IMPORTS_H
-#define GL_IMPORTS_H
+#ifndef R_GLEXTF_H
+#define R_GLEXTF_H
 
 #include <SDL_opengl_glext.h>
 
@@ -129,11 +129,11 @@ public:
 	PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
 	PFNGLSAMPLECOVERAGEPROC glSampleCoverage;
 	PFNGLCLAMPCOLORPROC glClampColor;
-
+	
 private:
 	// Determines if all functions were loaded fine
 	bool m_bSuccessful;
 	// Error string if any
 	CString m_errorString;
 };
-#endif
+#endif //R_GLEXTF_H

@@ -130,41 +130,52 @@ void CBaseNPC::StartTask( const ai_task_t* pTask )
 			vecBlockedMonsterDir = vecBlockedMonsterDir.Normalize();
 			Vector vecAngles = Math::VectorToAngles( vecBlockedMonsterDir );
 
-			// Try to set up angles
-			Vector forward, right;
-			Math::AngleVectors( vecAngles, &forward, &right );
-			Vector testDirections[] = { right, -right, forward };
-
 			Float bestDist = 0;
 			Vector bestLocation;
 
-			for(Uint32 i = 0; i < 3; i++)
+			for(Uint32 i = 0; i < 2; i++)
 			{
-				// Try to find an optimal distance
-				Float travelDist;
-				if( !m_blockedNPC->IsPlayer() && i == 2 )
+				for(Float j = 0; j <= 90; j += 10)
 				{
-					travelDist = (m_blockedNPCDestination - m_blockedNPC->GetOrigin()).Length() + 40;
-					if(travelDist < 64)
-						travelDist = 64;
+					Vector testangles = vecAngles;
+					testangles[YAW] += (i == 0) ? (j) : (-j);
+
+					// Try to set up angles
+					Vector forward;
+					Math::AngleVectors( testangles, &forward );
+
+					// Try to find an optimal distance
+					Float travelDist;
+					if( !m_blockedNPC->IsPlayer() )
+					{
+						travelDist = (m_blockedNPCDestination - m_blockedNPC->GetOrigin()).Length() + 40;
+						if(travelDist < 64)
+							travelDist = 64;
+					}
+					else
+						travelDist = 512;
+
+					// Try to trace to it
+					Vector vecFinalDist;
+					Float movedDistance = 0;
+					WalkMoveTrace( m_pState->origin, forward, vecFinalDist, travelDist, movedDistance );
+
+					// Make sure the distance is big enough
+					if( movedDistance < 8 )
+						continue;
+
+					if( movedDistance > bestDist )
+					{
+						bestLocation = vecFinalDist;
+						bestDist = movedDistance;
+
+						if(bestDist >= 500)
+							break;
+					}
 				}
-				else
-					travelDist = 512;
 
-				// Try to trace to it
-				Vector vecFinalDist;
-				Float movedDistance = 0;
-				WalkMoveTrace( m_pState->origin, testDirections[i], vecFinalDist, travelDist, movedDistance );
-
-				// Make sure the distance is big enough
-				if( movedDistance < 8 )
-					continue;
-
-				if( movedDistance > bestDist )
-				{
-					bestLocation = vecFinalDist;
-					bestDist = travelDist;
-				}
+				if(bestDist >= 500)
+					break;
 			}
 
 			// Check if we can actually move there

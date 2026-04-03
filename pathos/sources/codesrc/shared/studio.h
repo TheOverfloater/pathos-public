@@ -12,7 +12,6 @@ All Rights Reserved.
 
 #include "datatypes.h"
 #include "vbmformat.h"
-#include "mcdformat.h"
 
 // Notes:
 // Part of this implementation is based on the implementation in the Half-Life SDK,
@@ -36,6 +35,8 @@ static constexpr Uint32 MAXSTUDIOVERTS_REF		= 2048;
 static constexpr Uint32 MAXSTUDIOSRCBONES		= 256;
 // Max bones in a model
 static constexpr Uint32 MAXSTUDIOBONES			= 128;
+// Max event option string length
+static constexpr Uint32 MAXEVENTSTRLENGTH		= 64;
 
 // Used by studiohdr->flags
 enum studio_flags_t
@@ -238,7 +239,7 @@ struct mstudioevent_t
 	// Event type
 	Int32 type;
 	// String for optional options
-	Char options[64];
+	Char options[MAXEVENTSTRLENGTH];
 };
 
 struct mstudioseqdesc_t
@@ -435,6 +436,28 @@ struct mstudiotexture_t
 	Int32 index;
 };
 
+struct mstudiomesh_t
+{
+	mstudiomesh_t():
+		numtris(0),
+		triindex(0),
+		skinref(0),
+		numnorms(0),
+		normindex(0)
+		{}
+
+	// Number of triangles in mesh
+	Int32 numtris;
+	// Offset for triangle data
+	Int32 triindex;
+	// Skin reference index
+	Int32 skinref;
+	// Number of normals in mesh
+	Int32 numnorms;
+	// Normal index offset
+	Int32 normindex;
+};
+
 // Wouldn't "mstudiosubmodel_t" a better name?
 struct mstudiomodel_t
 {
@@ -455,10 +478,30 @@ struct mstudiomodel_t
 		memset(name, 0, sizeof(name));
 	}
 
-	const mstudiomodel_t* getMesh( studiohdr_t* phdr, Int32 index ) const
+	const mstudiomesh_t* getMesh( const studiohdr_t* phdr, Int32 index ) const
 	{
 		assert(index >= 0 && index < nummesh);
-		return reinterpret_cast<const mstudiomodel_t*>(reinterpret_cast<const byte*>(phdr) + meshindex) + index;
+		return reinterpret_cast<const mstudiomesh_t*>(reinterpret_cast<const byte*>(phdr) + meshindex) + index;
+	}
+
+	const Vector* getVertexes( const studiohdr_t* phdr ) const
+	{
+		return reinterpret_cast<const Vector*>(reinterpret_cast<const byte*>(phdr) + vertindex);
+	}
+
+	const byte* getVertexBoneIndexes( const studiohdr_t* phdr ) const
+	{
+		return (reinterpret_cast<const byte*>(phdr) + vertinfoindex);
+	}
+
+	const Vector* getNormals( const studiohdr_t* phdr ) const
+	{
+		return reinterpret_cast<const Vector*>(reinterpret_cast<const byte*>(phdr) + normindex);
+	}
+
+	const byte* getNormalBoneIndexes( const studiohdr_t* phdr ) const
+	{
+		return (reinterpret_cast<const byte*>(phdr) + norminfoindex);
 	}
 
 	// Name of the submodel
@@ -505,7 +548,7 @@ struct mstudiobodyparts_t
 		memset(name, 0, sizeof(name));
 	}
 
-	const mstudiomodel_t* getSubmodel( studiohdr_t* phdr, Int32 index ) const
+	const mstudiomodel_t* getSubmodel( const studiohdr_t* phdr, Int32 index ) const
 	{
 		assert(index >= 0 && index < nummodels);
 		return reinterpret_cast<const mstudiomodel_t*>(reinterpret_cast<const byte*>(phdr) + modelindex) + index;
@@ -519,28 +562,6 @@ struct mstudiobodyparts_t
 	Int32 base;
 	// Submodel data offset
 	Int32 modelindex;
-};
-
-struct mstudiomesh_t
-{
-	mstudiomesh_t():
-		numtris(0),
-		triindex(0),
-		skinref(0),
-		numnorms(0),
-		normindex(0)
-		{}
-
-	// Number of triangles in mesh
-	Int32 numtris;
-	// Offset for triangle data
-	Int32 triindex;
-	// Skin reference index
-	Int32 skinref;
-	// Number of normals in mesh
-	Int32 numnorms;
-	// Normal index offset
-	Int32 normindex;
 };
 
 struct studiohdr_t
@@ -756,7 +777,7 @@ struct vbmcache_t
 	// Pointer to vbm data
 	vbmheader_t *pvbmhdr;
 	// Pointer to mcd data
-	mcdheader_t *pmcdheader;
+	struct mcdheader_t *pmcdheader;
 };
 
 typedef CArray<pmatrix3x4_t> BoneTransformArray_t;

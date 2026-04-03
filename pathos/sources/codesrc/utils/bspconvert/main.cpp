@@ -8,11 +8,6 @@ All Rights Reserved.
 ===============================================
 */
 
-//
-// mdlexport.c: exports the textures of a .mdl file and creates .pmf entries
-// models/<scriptname>.mdl.
-//
-
 #pragma warning( disable : 4244 )
 #pragma warning( disable : 4237 )
 #pragma warning( disable : 4305 )
@@ -361,7 +356,7 @@ void ALD3_Convert_Finish( const Char* pstrOriginalName, const Char* pstrOutputPa
 	fullOutputPath << pstrOutputPath << PATH_SLASH_CHAR << filebasename << ".ald";
 
 	const byte* pdata = reinterpret_cast<const byte*>(fileBuffer.getbufferdata());
-	if(!WriteFile(pdata, fileBuffer.getsize(), fullOutputPath.c_str(), false))
+	if(!WriteFile(pdata, fileBuffer.getdatasize(), fullOutputPath.c_str(), false))
 		printf("%s - Failed to write '%s'.\n", __FUNCTION__, fullOutputPath.c_str());
 
 	// Clear these
@@ -473,7 +468,7 @@ bool BSP_CalcSurfaceExtents( msurface_t* psurf, Uint32 sampleSize )
 		psurf->texturemins[i] = boundsmin*sampleSize;
 		psurf->extents[i] = (boundsmax - boundsmin) * sampleSize;
 
-		if(!(ptexinfo->flags & TEXFLAG_SPECIAL) && psurf->extents[i] > MAX_SURFACE_EXTENTS)
+		if(!(ptexinfo->flags & TEXFLAG_SPECIAL) && psurf->extents[i] > PBSPV1_MAX_SURFACE_EXTENTS)
 		{
 			printf("%s: Bad surface extents.\n", __FUNCTION__);
 			return false;
@@ -1131,7 +1126,7 @@ bool BSP_ConvertBSPFile( const Char* pstrFilePath, const Char* pstrOutputPath )
 
 	bool result;
 	const byte* poutdata = reinterpret_cast<const byte*>(bspFileBuffer.getbufferdata());
-	if(!WriteFile(poutdata, bspFileBuffer.getsize(), outputPath.c_str(), false))
+	if(!WriteFile(poutdata, bspFileBuffer.getdatasize(), outputPath.c_str(), false))
 	{
 		printf("%s - Failed to write to path '%s'.\n", __FUNCTION__, outputPath.c_str());
 		result = false;

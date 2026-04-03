@@ -235,6 +235,7 @@ namespace Common
 
 	extern bool IsPowerOfTwo( Uint32 size );
 	extern inline CString GetDate( void );
+	extern inline CString GetDateFilename( void );
 	extern inline Int32 IsPitchReversed( Float pitch );
 	extern void FixVector( Float* pflVector );
 	extern inline Float RandomFloat( Float low, Float high );
@@ -252,6 +253,10 @@ namespace Common
 	extern inline Float RemapValue( Float value, Float a, Float b, Float c, Float d );
 
 	extern inline bool ValueInRange( Float comparisonValue, Float referenceValue, Float rangeMax );
+	extern void ResizeTextureToPOT( Uint32& outwidth, Uint32& outheight, byte*& pdata );
+	extern void ResizeTexture32( Uint32 width, Uint32 height, Uint32 targetwidth, Uint32 targetheight, const color32_t* pindata, color32_t*& poutdata );
+	extern void ResizeTexture24( Uint32 width, Uint32 height, Uint32 targetwidth, Uint32 targetheight, const color24_t* pindata, color24_t*& poutdata );
+	extern void FlipTexture( Uint32 width, Uint32 height, Uint32 bpp, bool fliph, bool flipv, byte*& pdata );
 };
 #include "common_inline.hpp"
 #endif

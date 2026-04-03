@@ -11,7 +11,7 @@ All Rights Reserved.
 #include "vector.h"
 
 // Autoaim adjust speed
-const Float AUTOAIM_ADJ_SPEED = 12;
+const Float AUTOAIM_ADJ_SPEED = 6;
 
 //=============================================
 //
@@ -35,11 +35,11 @@ void CL_UpdateAutoAim( Double frametime, const Vector& idealAutoAim, Vector& cur
 	else if(diffX > diffY)
 	{
 		mod[0] = 1.0;
-		mod[1] = diffX / diffY;
+		mod[1] = diffY / diffX;
 	}
 	else
 	{
-		mod[0] = diffY / diffX;
+		mod[0] = diffX / diffY;
 		mod[1] = 1.0;
 	}
 

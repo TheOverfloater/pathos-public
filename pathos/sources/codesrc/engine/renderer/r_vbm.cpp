@@ -39,6 +39,7 @@ All Rights Reserved.
 #include "flexmanager.h"
 #include "vbmtrace.h"
 #include "r_lightstyles.h"
+#include "mcdformat.h"
 
 // Notes:
 // Part of this implementation is based on the implementation in the Half-Life SDK

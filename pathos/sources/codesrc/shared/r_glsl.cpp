@@ -810,7 +810,7 @@ bool CGLSLShader::CompileCSDShaderData( void )
 		pbsdheader->id = BSD_HEADER_ENCODED;
 		pbsdheader->version = BSD_FILE_VERSION;
 		pbsdheader->numshaders = m_pCSDHeader->numshaders;
-		pbsdheader->shaderoffset = pbuffer->getsize();
+		pbsdheader->shaderoffset = pbuffer->getdatasize();
 		qstrcpy(pbsdheader->hash, m_pCSDHeader->hash);
 
 		// Get ptr to binary shaders
@@ -863,7 +863,7 @@ bool CGLSLShader::CompileCSDShaderData( void )
 			GLint programSize = 0;
 			m_glExtF.glGetProgramiv(m_shadersArray[i].program_id, GL_PROGRAM_BINARY_LENGTH, &programSize);
 
-			pbinaryshader->dataoffset = pbuffer->getsize();
+			pbinaryshader->dataoffset = pbuffer->getdatasize();
 			pbinaryshader->datasize = programSize;
 
 			pbuffer->append(nullptr, pbinaryshader->datasize);
@@ -887,7 +887,7 @@ bool CGLSLShader::CompileCSDShaderData( void )
 	if(m_useBinaryShaders)
 	{
 		// Set final stuff
-		pbsdheader->size = pbuffer->getsize();
+		pbsdheader->size = pbuffer->getdatasize();
 
 		CString basename;
 		Common::Basename(m_shaderFile.c_str(), basename);
@@ -1830,7 +1830,7 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 	m_shadersArray.resize(nbShaders);
 
 	// Allocate in the output file too
-	pheader->shaderdataoffset = csdBuffer.getsize();
+	pheader->shaderdataoffset = csdBuffer.getdatasize();
 	pheader->numshaders = nbShaders;
 	csdBuffer.append(nullptr, sizeof(csdshaderdata_t)*nbShaders);
 
@@ -1846,7 +1846,7 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 
 		// Allocate in the output
 		Uint32 vslength = qstrlen(vsscript);
-		poutshaders[i].vertexdataoffs = csdBuffer.getsize();
+		poutshaders[i].vertexdataoffs = csdBuffer.getdatasize();
 		poutshaders[i].vertexdatasize = vslength;
 
 		// Copy the vertex shader data
@@ -1854,7 +1854,7 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 
 		// Allocate in the output
 		Uint32 fslength = qstrlen(fsscript);
-		poutshaders[i].fragmentdataoffs = csdBuffer.getsize();
+		poutshaders[i].fragmentdataoffs = csdBuffer.getdatasize();
 		poutshaders[i].fragmentdatasize = fslength;
 
 		// Copy the vertex shader data
@@ -1867,7 +1867,7 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 	// Save the determinator data
 	if(!m_determinatorArray.empty())
 	{
-		pheader->determinatoroffset = csdBuffer.getsize();
+		pheader->determinatoroffset = csdBuffer.getdatasize();
 		pheader->numdeterminators = m_determinatorArray.size();
 		csdBuffer.append(nullptr, sizeof(csddeterminator_t)*pheader->numdeterminators);
 
@@ -1882,13 +1882,13 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 			pdeterminators[i].maxval = m_determinatorArray[i].maxval;
 
 			// Save values
-			pdeterminators[i].valuesoffset = csdBuffer.getsize();
+			pdeterminators[i].valuesoffset = csdBuffer.getdatasize();
 			csdBuffer.append(&m_determinatorArray[i].values[0], sizeof(Int16)*nbShaders);
 		}
 	}
 
 	// Set the final filesize
-	pheader->size = csdBuffer.getsize();
+	pheader->size = csdBuffer.getdatasize();
 
 	// Save the file to the output
 	CString basename;
@@ -1897,7 +1897,7 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 	CString filePath;
 	filePath << "scripts/shaders/" << basename << ".csd";
 
-	if(!m_fileInterface.pfnWriteFile(reinterpret_cast<byte*>(pheader), csdBuffer.getsize(), filePath.c_str(), false))
+	if(!m_fileInterface.pfnWriteFile(reinterpret_cast<byte*>(pheader), csdBuffer.getdatasize(), filePath.c_str(), false))
 	{
 		m_errorString << "Failed to open " << filePath << " for writing";
 		return false;

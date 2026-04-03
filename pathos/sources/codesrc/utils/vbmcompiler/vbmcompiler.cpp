@@ -19,7 +19,7 @@ All Rights Reserved.
 #include "main.h"
 #include "compiler_math.h"
 #include "refframesmdparser.h"
-#include "filefuncs.h"
+#include "utils_filefuncs.h"
 
 // File buffer allocation size
 const Uint32 CVBMCompiler::VBM_FILEBUFFER_ALLOC_SIZE = 1024*1024;
@@ -340,7 +340,7 @@ bool CVBMCompiler::FinalizeCurrentSubmodel( void )
 	qstrcpy_s(m_pDestinationSubmodel->name, m_pSourceSubmodel->name.c_str(), maxSize);
 
 	Uint32 dataSize = m_pConversionGroupsArray.size() * sizeof(vbmmesh_t);
-	m_pDestinationSubmodel->meshoffset = m_pFileBuffer->getsize();
+	m_pDestinationSubmodel->meshoffset = m_pFileBuffer->getdatasize();
 	m_pDestinationSubmodel->nummeshes = m_pConversionGroupsArray.size();
 	m_pFileBuffer->append(nullptr, dataSize);
 
@@ -366,7 +366,7 @@ bool CVBMCompiler::FinalizeCurrentSubmodel( void )
 
 		if(m_pCurrentConversionGroup->numbones)
 		{
-			pdestmesh->boneoffset = m_pFileBuffer->getsize();
+			pdestmesh->boneoffset = m_pFileBuffer->getdatasize();
 			pdestmesh->numbones = m_pCurrentConversionGroup->numbones;
 
 			dataSize = m_pCurrentConversionGroup->numbones * sizeof(byte);
@@ -822,7 +822,7 @@ void CVBMCompiler::WriteBoneData( void )
 	float matrix[3][4];
 
 	Uint32 boneCount = m_studioCompiler.GetNbBones();
-	m_pVBMHeader->boneinfooffset = m_pFileBuffer->getsize();
+	m_pVBMHeader->boneinfooffset = m_pFileBuffer->getdatasize();
 	m_pVBMHeader->numboneinfo = boneCount;
 
 	Uint32 dataSize = boneCount * sizeof(vbmboneinfo_t);
@@ -868,7 +868,7 @@ void CVBMCompiler::WriteBoneData( void )
 void CVBMCompiler::WriteFlexControllers( void )
 {
 	Uint32 dataSize = m_flexControllerArray.size() * sizeof(vbmflexcontroller_t);
-	m_pVBMHeader->flexcontrolleroffset = m_pFileBuffer->getsize();
+	m_pVBMHeader->flexcontrolleroffset = m_pFileBuffer->getdatasize();
 	m_pVBMHeader->numflexcontrollers = m_flexControllerArray.size();
 	m_pFileBuffer->append(nullptr, dataSize);
 
@@ -913,7 +913,7 @@ void CVBMCompiler::WriteFlexData( void )
 	m_pVBMHeader->flags |= VBM_HAS_FLEXES;
 
 	// Set the data in the vbm file
-	m_pVBMHeader->flexinfooffset = m_pFileBuffer->getsize();
+	m_pVBMHeader->flexinfooffset = m_pFileBuffer->getdatasize();
 	m_pVBMHeader->numflexinfo = numflexmeshes;
 	Uint32 dataSize = sizeof(vbmflexinfo_t)*numflexmeshes;
 	m_pFileBuffer->append(nullptr, dataSize);
@@ -934,7 +934,7 @@ void CVBMCompiler::WriteFlexData( void )
 		m_pFileBuffer->addpointer(reinterpret_cast<void**>(&pflexinfo));
 
 		// Set the indexes into the flex controller array
-		pflexinfo->flexcontrolleridxoffset = m_pFileBuffer->getsize();
+		pflexinfo->flexcontrolleridxoffset = m_pFileBuffer->getdatasize();
 		pflexinfo->numflexes = psrcsubmodel->pflexmodel->pflexes.size();
 		dataSize = psrcsubmodel->pflexmodel->pflexes.size() * sizeof(byte);
 		m_pFileBuffer->append(nullptr, dataSize);
@@ -977,14 +977,14 @@ void CVBMCompiler::WriteFlexData( void )
 		}
 
 		// Allocate buffer for all flex verts
-		pflexinfo->flexvertoffset = m_pFileBuffer->getsize();
+		pflexinfo->flexvertoffset = m_pFileBuffer->getdatasize();
 		pflexinfo->numflexvert = numflexverts;
 		dataSize = sizeof(vbmflexvertex_t)*numflexverts;
 		m_pFileBuffer->append(nullptr, dataSize);
 
 		// Allocate flex vertex infos
 		Uint32 vertexCount = psrcsubmodel->pflexmodel->pflexes[0]->vertexes.size();
-		pflexinfo->flexvertinfooffset = m_pFileBuffer->getsize();
+		pflexinfo->flexvertinfooffset = m_pFileBuffer->getdatasize();
 		pflexinfo->numflexvertinfo = vertexCount;
 
 		dataSize = sizeof(vbmflexvertinfo_t) * vertexCount;
@@ -1144,7 +1144,7 @@ bool CVBMCompiler::CreateVBMFile( void )
 	Uint32 nbTextures = m_studioCompiler.GetNbTextures();
 	Uint32 dataSize = nbTextures * sizeof(vbmtexture_t);
 
-	m_pVBMHeader->textureoffset = m_pFileBuffer->getsize();
+	m_pVBMHeader->textureoffset = m_pFileBuffer->getdatasize();
 	m_pVBMHeader->numtextures = nbTextures;
 	m_pFileBuffer->append(nullptr, dataSize);
 	
@@ -1166,7 +1166,7 @@ bool CVBMCompiler::CreateVBMFile( void )
 
 	// Allocate all submodels
 	Uint32 nbSubmodels = m_studioCompiler.GetNbSubmodels();
-	Int32 submodelOffset = m_pFileBuffer->getsize();
+	Int32 submodelOffset = m_pFileBuffer->getdatasize();
 	dataSize = nbSubmodels * sizeof(vbmsubmodel_t);
 	m_pFileBuffer->append(nullptr, dataSize);
 
@@ -1178,7 +1178,7 @@ bool CVBMCompiler::CreateVBMFile( void )
 
 	// Allocate body parts
 	m_pVBMHeader->numbodyparts = m_studioCompiler.GetNbBodyParts();
-	m_pVBMHeader->bodypartoffset = m_pFileBuffer->getsize();
+	m_pVBMHeader->bodypartoffset = m_pFileBuffer->getdatasize();
 	dataSize = m_pVBMHeader->numbodyparts * sizeof(vbmbodypart_t);
 	m_pFileBuffer->append(nullptr, dataSize);
 
@@ -1228,7 +1228,7 @@ bool CVBMCompiler::CreateVBMFile( void )
 		if(m_pDestinationSubmodel->numlods)
 		{
 			dataSize = m_pSourceSubmodel->plods.size() * sizeof(vbmlod_t);
-			m_pDestinationSubmodel->lodoffset = m_pFileBuffer->getsize();
+			m_pDestinationSubmodel->lodoffset = m_pFileBuffer->getdatasize();
 			m_pDestinationSubmodel->numlods = m_pSourceSubmodel->plods.size();
 			m_pFileBuffer->append(nullptr, dataSize);
 
@@ -1242,7 +1242,7 @@ bool CVBMCompiler::CreateVBMFile( void )
 				m_pFileBuffer->addpointer(reinterpret_cast<void**>(&pdestlod));
 
 				dataSize = sizeof(vbmsubmodel_t);
-				pdestlod->submodeloffset = m_pFileBuffer->getsize();
+				pdestlod->submodeloffset = m_pFileBuffer->getdatasize();
 				m_pFileBuffer->append(nullptr, dataSize);
 
 				pdestlod->type = static_cast<vbmlod_type_t>(psrclod->lodtype);
@@ -1268,7 +1268,7 @@ bool CVBMCompiler::CreateVBMFile( void )
 	m_pFileBuffer->removepointer(reinterpret_cast<void**>(&m_pDestinationSubmodel));
 
 	// Convert VBO data to the optimized format
-	m_pVBMHeader->vertexoffset = m_pFileBuffer->getsize();
+	m_pVBMHeader->vertexoffset = m_pFileBuffer->getdatasize();
 	m_pVBMHeader->numverts = m_numVertexes;
 	dataSize = m_numVertexes * sizeof(vbmvertex_t);
 	m_pFileBuffer->append(nullptr, dataSize);
@@ -1303,13 +1303,13 @@ bool CVBMCompiler::CreateVBMFile( void )
 	CalculateTangents( pwritevertexes );
 
 	// Copy over index array
-	m_pVBMHeader->indexoffset = m_pFileBuffer->getsize();
+	m_pVBMHeader->indexoffset = m_pFileBuffer->getdatasize();
 	m_pVBMHeader->numindexes = m_numIndexes;
 	dataSize = m_numIndexes * sizeof(Uint32);
 	m_pFileBuffer->append(&m_indexesArray[0], dataSize);
 
 	// Set skinfamilies and skinrefs
-	m_pVBMHeader->skinoffset = m_pFileBuffer->getsize();
+	m_pVBMHeader->skinoffset = m_pFileBuffer->getdatasize();
 	m_pVBMHeader->numskinfamilies = m_studioCompiler.GetNbSkinFamilies();
 	m_pVBMHeader->numskinref = m_studioCompiler.GetNbSkinRefs();
 	dataSize = sizeof(Int16)*m_pVBMHeader->numskinfamilies*m_pVBMHeader->numskinref;
@@ -1323,7 +1323,7 @@ bool CVBMCompiler::CreateVBMFile( void )
 	}
 
 	// Set final size
-	m_pVBMHeader->size = m_pFileBuffer->getsize();
+	m_pVBMHeader->size = m_pFileBuffer->getdatasize();
 
 	Msg("VBM compile done: %d vertexes, %d indexes, %d bodyparts, %d submodels.\n\tOutput size: %.f mbytes.\n",
 		m_numVertexes, m_numIndexes, m_pVBMHeader->numbodyparts, m_pSrcSubmodelsArray.size(), Common::BytesToMegaBytes(m_pVBMHeader->size));

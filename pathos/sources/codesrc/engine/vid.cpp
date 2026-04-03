@@ -467,6 +467,14 @@ void VID_Restart( void )
 	// Free objects, destroy window
 	VID_Shutdown();
 
+	// Set display properties
+	if(!gWindow.SetDisplayProperties())
+	{
+		Sys_ErrorPopup("Failed to set display properties.\n");
+		Sys_Exit();
+		return;
+	}
+
 	// Respawn the window
 	if(!VID_Init())
 	{

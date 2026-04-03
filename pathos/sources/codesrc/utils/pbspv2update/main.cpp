@@ -30,6 +30,7 @@ All Rights Reserved.
 #include "cbuffer.h"
 #include "com_math.h"
 #include "miniz.h"
+#include "constants.h"
 
 const Char* LAYER_NAMES[NB_SURF_LIGHTMAP_LAYERS] = {
 	"SURF_LIGHTMAP_DEFAULT",
@@ -215,13 +216,13 @@ void ALD_Convert( const Char* pstrOriginalName, const Char* pstrOutputPath )
 			if(pinlumps[i].layeroffsets[j] == 0)
 				break;
 
-			poutlumps[i].layeroffsets[j] = aldFileBuffer.getsize();
+			poutlumps[i].layeroffsets[j] = aldFileBuffer.getdatasize();
 			aldFileBuffer.append(nullptr, sizeof(aldlayer_t));
 			
 			aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(poutheader) + poutlumps[i].layeroffsets[j]);
 			player->compression = ALD_COMPRESSION_MINIZ;
 			player->compressionlevel = MZ_UBER_COMPRESSION;
-			player->dataoffset = aldFileBuffer.getsize();
+			player->dataoffset = aldFileBuffer.getdatasize();
 
 			const byte* pindata = reinterpret_cast<const byte*>(pinheader) + pinlumps[i].layeroffsets[j];
 			mz_ulong resultsize = destsize;
@@ -252,7 +253,7 @@ void ALD_Convert( const Char* pstrOriginalName, const Char* pstrOutputPath )
 
 	{
 		Float prevsizemb = static_cast<Float>(aldfilesize) / (1024.0 * 1024.0);
-		Float finalsizemb = static_cast<Float>(aldFileBuffer.getsize()) / (1024.0 * 1024.0);
+		Float finalsizemb = static_cast<Float>(aldFileBuffer.getdatasize()) / (1024.0 * 1024.0);
 		Int32 percentage = (finalsizemb / prevsizemb) * 100;
 		printf("BSP: File size was reduced from %.2f mbytes to %.2f mbytes(%d%%).\n", prevsizemb, finalsizemb, percentage);
 	}
@@ -265,7 +266,7 @@ void ALD_Convert( const Char* pstrOriginalName, const Char* pstrOutputPath )
 	fullOutputPath << pstrOutputPath << PATH_SLASH_CHAR << filebasename << ".ald";
 
 	const byte* poutdata = reinterpret_cast<const byte*>(aldFileBuffer.getbufferdata());
-	if(!WriteFile(poutdata, aldFileBuffer.getsize(), fullOutputPath.c_str(), false))
+	if(!WriteFile(poutdata, aldFileBuffer.getdatasize(), fullOutputPath.c_str(), false))
 		printf("%s - Failed to write '%s'.\n", __FUNCTION__, fullOutputPath.c_str());
 	else
 		printf("Completed processing file '%s'.\n", fullOutputPath.c_str());
@@ -458,14 +459,14 @@ bool BSP_ConvertBSPFile( const Char* pstrFilePath, const Char* pstrOutputPath )
 		bspFileBuffer.addpointer(reinterpret_cast<void**>(&pdestlump));
 
 		// Add space for the compressed data header
-		pdestlump->offset = bspFileBuffer.getsize();
+		pdestlump->offset = bspFileBuffer.getdatasize();
 		pdestlump->size = sizeof(dpbspv2lmapdata_t);
 		bspFileBuffer.append(nullptr, sizeof(dpbspv2lmapdata_t));
 
 		dpbspv2lmapdata_t* plmapdata = reinterpret_cast<dpbspv2lmapdata_t*>(reinterpret_cast<byte*>(pdstheader) + pdestlump->offset);
-		plmapdata->compression = PBSPV2_LMAP_COMPRESSION_MINIZ;
+		plmapdata->compression = BSP_LMAP_COMPRESSION_MINIZ;
 		plmapdata->compressionlevel = MZ_UBER_COMPRESSION;
-		plmapdata->dataoffset = bspFileBuffer.getsize();
+		plmapdata->dataoffset = bspFileBuffer.getdatasize();
 		plmapdata->datasize = resultsize;
 		plmapdata->noncompressedsize = datasize;
 
@@ -486,7 +487,7 @@ bool BSP_ConvertBSPFile( const Char* pstrFilePath, const Char* pstrOutputPath )
 
 	bool result;
 	const byte* poutdata = reinterpret_cast<const byte*>(bspFileBuffer.getbufferdata());
-	if(!WriteFile(poutdata, bspFileBuffer.getsize(), outputPath.c_str(), false))
+	if(!WriteFile(poutdata, bspFileBuffer.getdatasize(), outputPath.c_str(), false))
 	{
 		printf("%s - Failed to write to path '%s'.\n", __FUNCTION__, outputPath.c_str());
 		result = false;
@@ -496,7 +497,7 @@ bool BSP_ConvertBSPFile( const Char* pstrFilePath, const Char* pstrOutputPath )
 
 	{
 		Float prevsizemb = static_cast<Float>(bspsize) / (1024.0 * 1024.0);
-		Float finalsizemb = static_cast<Float>(bspFileBuffer.getsize()) / (1024.0 * 1024.0);
+		Float finalsizemb = static_cast<Float>(bspFileBuffer.getdatasize()) / (1024.0 * 1024.0);
 		Int32 percentage = (finalsizemb / prevsizemb) * 100;
 		printf("BSP: File size was reduced from %.2f mbytes to %.2f mbytes(%d%%).\n", prevsizemb, finalsizemb, percentage);
 	}

@@ -153,23 +153,35 @@ bool CWindow::GetOpenGLInfo(Int32& maxMSAA, bool& fboSupported)
 // Class: CWindow
 // Function: Init
 //=============================================
+bool CWindow::PreInit( void )
+{
+	// Build the list of display devices
+	if(!BuildDeviceList())
+	{
+		Con_EPrintf("Failed to build device list.\n");
+		return false;
+	}
+
+	// Get active resolution
+	if(!SetDisplayProperties())
+	{
+		Con_EPrintf("Failed to set display properties.\n");
+		return false;
+	}
+
+	return true;
+}
+
+//=============================================
+// Class: CWindow
+// Function: Init
+//=============================================
 bool CWindow::Init( void )
 {
 	// Get active devices
 	if(SDL_VideoInit(nullptr))
 	{
 		Con_EPrintf("%s failed: %s\n", __FUNCTION__, SDL_GetError());
-		return false;
-	}
-	       
-	// Build the list of display devices
-	if(!BuildDeviceList())
-		return false;
-
-	// Get active resolution
-	if(!SetDisplayProperties())
-	{
-		Con_EPrintf("Failed to set display properties.\n");
 		return false;
 	}
 

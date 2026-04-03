@@ -128,7 +128,7 @@ bool TGA_Load( const Char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 
 	// Flip vertically and/or horizontally if needed
 	if(!(ptrTgaHeader->imagedescriptor & 5) || (ptrTgaHeader->imagedescriptor & 4))
-		R_FlipTexture(tgaWidth, tgaHeight, 4, (ptrTgaHeader->imagedescriptor & 4) ? true : false, (ptrTgaHeader->imagedescriptor & 5) ? false : true, pout);
+		Common::FlipTexture(tgaWidth, tgaHeight, 4, (ptrTgaHeader->imagedescriptor & 4) ? true : false, (ptrTgaHeader->imagedescriptor & 5) ? false : true, pout);
 
 	// Set the output data
 	pdata = pout;
@@ -141,21 +141,185 @@ bool TGA_Load( const Char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 }
 
 //=============================================
-// @brief Loads a TGA file and returns it's data
+// @brief Stores a repeating pixel and it's repeat
+// count into the data buffer
+//
+// @param rleBuffer Destination buffer object
+// @param repeatingPixel The pixel that we're storing
+// @param nbPixels Number of repeats
+// @param bpp Bytes per pixel
+//=============================================
+inline void TGA_RLE_StoreRepeatingPixels( CBuffer& rleBuffer, color32_t repeatingPixel, Uint32 nbPixels, Uint32 bpp )
+{
+	// Mark as repeating(0x80/128), and store the repeat number
+	byte dataMark = 0x80 + (nbPixels - 1);
+	rleBuffer.append(&dataMark, sizeof(byte));
+
+	// Store the pixel that repeats
+	color32_t storeColor;
+	storeColor.r = repeatingPixel.r;
+	storeColor.g = repeatingPixel.g;
+	storeColor.b = repeatingPixel.b;
+
+	if(bpp == 4)
+		storeColor.a = repeatingPixel.a;
+
+	// Store into the buffer
+	rleBuffer.append(&storeColor, sizeof(byte)*bpp);
+}
+
+//=============================================
+// @brief Stores a block of unique, non-repeating
+// pixels into the destination buffer
+//
+// @param rleBuffer Destination buffer object
+// @param pixelsArray Array of unique pixels
+// @param nbPixels Number of non-repeating pixels
+// @param bpp Bytes per pixel
+//=============================================
+inline void TGA_RLE_StoreUniquePixels( CBuffer& rleBuffer, CArray<color32_t>& pixelsArray, Uint32 nbPixels, Uint32 bpp )
+{
+	// Mark number of unique pixels
+	byte dataMark = (nbPixels - 1);
+	rleBuffer.append(&dataMark, sizeof(byte));
+
+	// Store each unique pixel in the buffer
+	color32_t storeColor;
+	for(Uint32 j = 0; j < nbPixels; j++)
+	{
+		storeColor.r = pixelsArray[j].r;
+		storeColor.g = pixelsArray[j].g;
+		storeColor.b = pixelsArray[j].b;
+
+		if(bpp == 4)
+			storeColor.a = pixelsArray[j].a;
+
+		// Store into the buffer
+		rleBuffer.append(&storeColor, sizeof(byte)*bpp);
+	}
+}
+
+//=============================================
+// @brief Compress RGB(A) data as RLE information
 //
 // @param pdata Image data to write
 // @param bpp Bits per pixel
 // @param width Width of the image
 // @param height Height of the image
-// @param pbuffer Destination buffer
+// @param rleBuffer Destination buffer
 //=============================================
-void TGA_WriteData( const byte* pdata, Uint32 bpp, Uint32 width, Uint32 height, byte* pbuffer )
+void TGA_RLE_CompressData( const byte* pdata, Uint32 width, Uint32 height, Uint32 bpp, CBuffer& rleBuffer )
 {
+	CArray<color32_t> pixelsArray(128);
+	Uint32 nbPixels = 0;
+
+	color32_t lastPixel;
+	Int32 nbPixelMatches = -1; // Mark as first pixel
+
+	// Size of data in pixel count
+	Uint32 dataSizePixels = width*height;
+	const byte* pColorData = reinterpret_cast<const byte*>(pdata);
+	for(Uint32 i = 0; i < dataSizePixels; i++, pColorData += bpp)
+	{
+		// Get the current pixel
+		color32_t currentPixel;
+		currentPixel.r = pColorData[0];
+		currentPixel.g = pColorData[1];
+		currentPixel.b = pColorData[2];
+		if(bpp == 4)
+			currentPixel.a = pColorData[3];
+
+		if(i > 0)
+		{
+			if(!memcmp(&currentPixel, &lastPixel, sizeof(byte)*bpp) && nbPixelMatches != -1)
+			{
+				// Store unique pixels if we have any
+				if(nbPixels > 0)
+				{
+					// Ingore last element, as it's our repeating pixel
+					if(nbPixels > 1)
+					{
+						Uint32 nbStorePixels = nbPixels-1;
+						TGA_RLE_StoreUniquePixels(rleBuffer, pixelsArray, nbStorePixels, bpp);
+						
+					}
+
+					nbPixels = 0;
+					nbPixelMatches = 1;
+				}
+
+				nbPixelMatches++;
+
+				// Check if we reached the 128 limit
+				if(nbPixelMatches == 128)
+				{
+					TGA_RLE_StoreRepeatingPixels(rleBuffer, lastPixel, nbPixelMatches, bpp);
+					nbPixelMatches = 0;
+				}
+			}
+			else
+			{
+				// Store matching pixels if we have any
+				if(nbPixelMatches == -1)
+				{
+					nbPixelMatches = 0;
+
+					pixelsArray[nbPixels] = lastPixel;
+					nbPixels++;
+				}
+				else if(nbPixelMatches > 0)
+				{
+					TGA_RLE_StoreRepeatingPixels(rleBuffer, lastPixel, nbPixelMatches, bpp);
+					nbPixelMatches = 0;
+				}
+
+				// Add current pixel
+				pixelsArray[nbPixels] = currentPixel;
+				nbPixels++;
+
+				// Check for limit
+				if(nbPixels == 128)
+				{
+					TGA_RLE_StoreUniquePixels(rleBuffer, pixelsArray, nbPixels, bpp);
+					nbPixels = 0;
+				}
+			}
+		}
+
+		// Mark last pixel we stored
+		lastPixel = currentPixel;
+	}
+
+	// Store trailing part
+	if(nbPixels > 0)
+		TGA_RLE_StoreUniquePixels(rleBuffer, pixelsArray, nbPixels, bpp);
+	else if(nbPixelMatches > 0)
+		TGA_RLE_StoreRepeatingPixels(rleBuffer, lastPixel, nbPixelMatches, bpp);
+}
+
+//=============================================
+// @brief Builds pixel data for exporting as TGA
+//
+// @param pdata Image data to write
+// @param bpp Bits per pixel
+// @param width Width of the image
+// @param height Height of the image
+// @param fileBuffer Destination buffer
+//=============================================
+void TGA_BuildImageData( const byte* pdata, Uint32 bpp, Uint32 width, Uint32 height, CBuffer& fileBuffer, tga_header_t*& pheader, Uint32& compressionPercentage, bool flipVertical )
+{
+	// Get ptr to destination
+	byte* pfinalbuffer = new byte[width*height*bpp];
 	for(Uint32 i = 0; i < height; i++)
 	{
-		byte* pdst = pbuffer + sizeof(tga_header_t) + i*width*bpp;
+		byte* pdst;
+		if(flipVertical)
+			pdst = pfinalbuffer + (height-i-1)*width*bpp;
+		else
+			pdst = pfinalbuffer + sizeof(tga_header_t) + i*width*bpp;
+
 		const byte* psrc = pdata + i*width*bpp;
-	
+
 		if(bpp == 4)
 		{
 			for(Uint32 j = 0; j < width*bpp; j += bpp)
@@ -176,6 +340,37 @@ void TGA_WriteData( const byte* pdata, Uint32 bpp, Uint32 width, Uint32 height, 
 			}
 		}
 	}
+
+	// Try compressing with RLE
+	CBuffer rleBuffer(width*height*bpp);
+	TGA_RLE_CompressData(pfinalbuffer, width, height, bpp, rleBuffer);
+
+	// If uncompressed size is smaller than RLE compressed size, then
+	// store the uncompressed image. Otherwise, store the RLE compressed
+	// data to save on disk space
+	Uint32 uncompressedSize = width*height*bpp;
+	Uint32 compressedSize = rleBuffer.getdatasize();
+	if(uncompressedSize > compressedSize)
+	{
+		// Mark as compressed RGB(A)
+		pheader->datatypecode = TGA_DATATYPE_RLE_RGB;
+		// Directly copy the buffer contents
+		fileBuffer.append(rleBuffer.getbufferdata(), compressedSize);
+
+		// Calculate compression percentage
+		compressionPercentage = (static_cast<Float>(compressedSize) / static_cast<Float>(uncompressedSize)) * 100;
+	}
+	else
+	{
+		// Mark as uncompressed TGA file
+		pheader->datatypecode = TGA_DATATYPE_RGB;
+		compressionPercentage = 100; // No compression
+
+		// Just append to the buffer
+		fileBuffer.append(pfinalbuffer, uncompressedSize*sizeof(byte));
+	}
+
+	delete[] pfinalbuffer;
 }
 
 //=============================================
@@ -185,26 +380,27 @@ void TGA_WriteData( const byte* pdata, Uint32 bpp, Uint32 width, Uint32 height, 
 // @param bpp Bits per pixel
 // @param width Width of the image
 // @param height Height of the image
-// @param poutbuffer Destination buffer pointer
-// @param outsize Destination size variable
+// @param fileBuffer Destination buffer
 //=============================================
-void TGA_BuildFile( const byte* pdata, Uint32 bpp, Uint32 width, Uint32 height, byte*& poutbuffer, Uint32& outsize )
+void TGA_BuildFile( const byte* pdata, Uint32 bpp, Uint32 width, Uint32 height, CBuffer& fileBuffer, Uint32* ptrCompressionRatio, bool flipVertical )
 {
-	outsize = width*height*bpp + sizeof(tga_header_t);
-	poutbuffer = new byte[outsize];
-	memset(poutbuffer, 0, sizeof(byte)*outsize);
+	tga_header_t* pheader = reinterpret_cast<tga_header_t*>(fileBuffer.getbufferdata());
+	fileBuffer.append(nullptr, sizeof(tga_header_t));
+	fileBuffer.addpointer(reinterpret_cast<void**>(&pheader));
 
-	tga_header_t* pheader = reinterpret_cast<tga_header_t*>(poutbuffer);
-	pheader->datatypecode = TGA_DATATYPE_RGB;
 	pheader->bitsperpixel = bpp*8;
 	pheader->width[0] = (width & 0xFF);
 	pheader->width[1] = ((width >> 8) & 0xFF);
 	pheader->height[0] = (height & 0xFF);
 	pheader->height[1] = ((height >> 8) & 0xFF);
-	pheader->imagedescriptor |= 8;
 
 	// Store data to the buffer
-	TGA_WriteData(pdata, bpp, width, height, poutbuffer);
+	Uint32 compressionRatio = 0;
+	TGA_BuildImageData(pdata, bpp, width, height, fileBuffer, pheader, compressionRatio, flipVertical);
+	if(ptrCompressionRatio)
+		(*ptrCompressionRatio) = compressionRatio;
+
+	fileBuffer.removepointer(reinterpret_cast<void**>(&pheader));
 }
 
 //=============================================
@@ -216,24 +412,23 @@ void TGA_BuildFile( const byte* pdata, Uint32 bpp, Uint32 width, Uint32 height, 
 // @param height Height of the image
 // @param pstrFilename destination file path
 //=============================================
-bool TGA_Write( const byte* pdata, Uint32 bpp, Uint32 width, Uint32 height, const Char* pstrFilename, const file_interface_t& fileFuncs, pfnPrintf_t pfnPrintFn )
+bool TGA_Write( const byte* pdata, Uint32 bpp, Uint32 width, Uint32 height, const Char* pstrFilename, const file_interface_t& fileFuncs, pfnPrintf_t pfnPrintFn, Uint32* ptrCompressionRatio, Uint32* ptrBytesWritten, bool flipVertical )
 {
 	// Buffer containing TGA file data
-	byte* pbuffer = nullptr;
-	// Size of data to be written
-	Uint32 datasize = 0;
+	Uint32 bufferAllocSize = width*height*bpp + sizeof(tga_header_t);
+	CBuffer tgaDataBuffer(bufferAllocSize);
 
 	// Build the file data
-	TGA_BuildFile(pdata, bpp, width, height, pbuffer, datasize);
+	TGA_BuildFile(pdata, bpp, width, height, tgaDataBuffer, ptrCompressionRatio, flipVertical);
 
 	// Write it to output
-	bool result = fileFuncs.pfnWriteFile(pbuffer, sizeof(byte)*datasize, pstrFilename, false);
-
-	// Delete the buffer
-	delete[] pbuffer;
-
+	Uint32 finalBufferSize = tgaDataBuffer.getdatasize();
+	const byte* pbufferdata = reinterpret_cast<const byte*>(tgaDataBuffer.getbufferdata());
+	bool result = fileFuncs.pfnWriteFile(pbufferdata, finalBufferSize, pstrFilename, false);
 	if(!result)
 		pfnPrintFn("%s - Failed to write %s.\n", __FUNCTION__, pstrFilename);
+	else if(ptrBytesWritten)
+		(*ptrBytesWritten) = finalBufferSize;
 
 	return result;
 }

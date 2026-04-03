@@ -714,9 +714,10 @@ void CBSPRenderer::InitLightmaps( void )
 				CString filepath;
 				filepath << directoryPath << PATH_SLASH_CHAR << "dump_lightmap_default_layer_" << i << ".tga";
 
+				Uint32 compressionPercentage = 0;
 				const byte* pwritedata = reinterpret_cast<const byte*>(plightmap);
-				if(TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf))
-					Con_Printf("Exported %s.\n", filepath.c_str());
+				if(TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf, &compressionPercentage))
+					Con_Printf("Exported %s(%d percent compression).\n", filepath.c_str(), compressionPercentage);
 			}
 			else
 			{
@@ -826,9 +827,10 @@ void CBSPRenderer::InitLightmaps( void )
 						CString filepath;
 						filepath << directoryPath << "dump_" << basename << "_lightmap_" << lmapname << "_layer_" << i << ".tga";
 
+						Uint32 compressionPercentage = 0;
 						const byte* pwritedata = reinterpret_cast<const byte*>(plightmapdata);
-						if(TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf))
-							Con_Printf("Exported %s.\n", filepath.c_str());
+						if(TGA_Write(pwritedata, 4, m_lightmapWidths[i], m_lightmapHeights[i], filepath.c_str(), FL_GetInterface(), Con_Printf, &compressionPercentage))
+							Con_Printf("Exported %s(%d percent compression).\n", filepath.c_str(), compressionPercentage);
 					}
 					else
 					{

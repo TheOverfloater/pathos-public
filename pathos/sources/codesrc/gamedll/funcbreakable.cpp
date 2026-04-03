@@ -588,7 +588,7 @@ void CFuncBreakable::DieThink( void )
 	case MAT_GLASS:
 	case MAT_UNBREAKABLE_GLASS:
 	case MAT_COMPUTER: 
-		bouyancy = 400; 
+		bouyancy = 300; 
 		waterfriction = 0.5;
 		break;
 	case MAT_METAL:

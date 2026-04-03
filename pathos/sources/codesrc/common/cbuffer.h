@@ -30,8 +30,8 @@ public:
 	inline bool append( const void* pdata, Uint32 datasize );
 	// Returns the buffer pointer
 	inline void*& getbufferdata( void );
-	// Retreives the buffer size
-	inline Uint32 getsize( void ) const;
+	// Retreives the offset into the buffer data
+	inline Uint32 getdatasize( void ) const;
 	// Retreives the buffer array size
 	inline Uint32 getbuffersize( void ) const;
 

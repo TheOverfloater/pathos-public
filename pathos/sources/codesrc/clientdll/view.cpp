@@ -126,7 +126,6 @@ bool CDefaultView::Init( void )
 	m_pCvarViewYOffset = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "v_offset_y", "0", "Controls view y axis offset.");
 	m_pCvarViewZOffset = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "v_offset_z", "0", "Controls view z axis offset.");
 
-
 	m_pCvarReferenceFOV = cl_engfuncs.pfnGetCVarPointer(REFERENCE_FOV_CVAR_NAME);
 	if(!m_pCvarReferenceFOV)
 	{
@@ -907,7 +906,6 @@ void CDefaultView::CalcRefDef( ref_params_t& params )
 
 	// Calculate FOV
 	CalculateFOV(params);
-	params.v_origin;
 
 	// Add any view offsets
 	Vector viewOffsets(

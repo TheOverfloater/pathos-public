@@ -56,7 +56,7 @@ CTriangleMeshBuilder::~CTriangleMeshBuilder( void )
 // @brief Finds neighbor triangle
 //
 // @param startTriangle Starting triangle's index
-// @param startVertex First vertex if the edge to check for
+// @param startVertex First vertex of the edge to check for
 //===============================================
 void CTriangleMeshBuilder::FindNeighbor( Int32 startTriangle, Int32 startVertex )
 {

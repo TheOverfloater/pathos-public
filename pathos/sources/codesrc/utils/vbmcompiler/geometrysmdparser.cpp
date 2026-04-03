@@ -454,7 +454,7 @@ bool CGeometrySMDParser::ParseTriangles( void )
 	Msg("Loaded '%s':\n", m_pSubModel->name.c_str());
 	Msg("\t%d triangles.\n", triangleCount);
 	Msg("\t%d unique vertexes.\n", m_pSubModel->numvertexes);
-	Msg("\t%d unique normal.\n", m_pSubModel->numnormals);
+	Msg("\t%d unique normals.\n", m_pSubModel->numnormals);
 	Msg("\t%d unique vertex weights.\n", m_pSubModel->numweightinfos);
 	
 	if(reversedTriangleCount > 0)

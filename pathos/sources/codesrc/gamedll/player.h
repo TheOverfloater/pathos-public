@@ -954,6 +954,8 @@ private:
 	Float						m_drownDamageAmount;
 	// Drown damage healed
 	Float						m_drownDamageHealed;
+	// Next damage view punch time
+	Double						m_lastDmgViewPunchTime;
 	// TRUE if underwater sound is playing
 	bool						m_isUnderwaterSoundPlaying;
 	// Time we went underwater

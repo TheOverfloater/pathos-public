@@ -79,7 +79,7 @@ bool BMP_Load( const char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
     }
 
     // Texture needs to be flipped vertically
-    R_FlipTexture(width, height, 4, false, true, pdata);
+    Common::FlipTexture(width, height, 4, false, true, pdata);
 
     return true;
 }

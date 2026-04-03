@@ -46,6 +46,7 @@ All Rights Reserved.
 #include "ogg_common.h"
 #include "sv_msg.h"
 #include "sys_print.h"
+#include "mcdformat.h"
 
 #ifdef WIN32
 #include <detours.h>

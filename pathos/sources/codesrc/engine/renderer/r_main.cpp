@@ -5379,8 +5379,10 @@ void Cmd_BSPToSMD_Lightmap( void )
 	filepath.clear();
 	filepath << lightmapfilebasename << "_default.tga";
 
+	Uint32 compressionPercentage = 0;
 	const byte* pwritedata = reinterpret_cast<const byte*>(plightmap);
-	TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf);
+	if(TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf, &compressionPercentage))
+		Con_Printf("Wrote '%s'(%d percent compression).\n", filepath.c_str(), compressionPercentage);
 
 	if(amblightdatasize > 0)
 	{
@@ -5388,8 +5390,8 @@ void Cmd_BSPToSMD_Lightmap( void )
 		filepath << lightmapfilebasename << "_ambient.tga";
 
 		pwritedata = reinterpret_cast<const byte*>(pambientlightmap);
-		if(TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf))
-			Con_Printf("Exported %s.\n", filepath.c_str());
+		if(TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf, &compressionPercentage))
+			Con_Printf("Exported %s(%d percent compression).\n", filepath.c_str(), compressionPercentage);
 	}
 
 	if(diffuselightdatasize > 0)
@@ -5398,8 +5400,8 @@ void Cmd_BSPToSMD_Lightmap( void )
 		filepath << lightmapfilebasename << "_diffuse.tga";
 
 		pwritedata = reinterpret_cast<const byte*>(pdiffuselightmap);
-		if(TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf))
-			Con_Printf("Exported %s.\n", filepath.c_str());
+		if(TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf, &compressionPercentage))
+			Con_Printf("Exported %s(%d percent compression).\n", filepath.c_str(), compressionPercentage);
 	}
 
 	if(lightvecsdatasize > 0)
@@ -5408,8 +5410,8 @@ void Cmd_BSPToSMD_Lightmap( void )
 		filepath << lightmapfilebasename << "_lightvecs.tga";
 
 		pwritedata = reinterpret_cast<const byte*>(plightvecslightmap);
-		if(TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf))
-			Con_Printf("Exported %s.\n", filepath.c_str());
+		if(TGA_Write(pwritedata, 4, lightmapWidth, lightmapHeight, filepath.c_str(), FL_GetInterface(), Con_Printf, &compressionPercentage))
+			Con_Printf("Exported %s(%d percent compression).\n", filepath.c_str(), compressionPercentage);
 	}
 
 	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)

@@ -311,7 +311,7 @@ void BSP_SetSamplingLightData( brushmodel_t& model )
 					color24_t* psrc = psrclightdata[j] + k * srcsize;
 					color24_t* pdest = psurf->psamples[j] + k * outsize;
 
-					R_ResizeTexture24(xsize, ysize, xsize_samp, ysize_samp, psrc, pdest);
+					Common::ResizeTexture24(xsize, ysize, xsize_samp, ysize_samp, psrc, pdest);
 				}
 			}
 		}

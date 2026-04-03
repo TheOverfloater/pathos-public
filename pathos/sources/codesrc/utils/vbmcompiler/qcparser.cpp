@@ -16,7 +16,7 @@ All Rights Reserved.
 #include "qcparser.h"
 #include "options.h"
 #include "main.h"
-#include "filefuncs.h"
+#include "utils_filefuncs.h"
 
 #define DEFINE_PROCESSOR_FN(name, function)		CQCParser::ProcessorFnMapping_t(#name, function)
 #define DEFINE_CONTROLLER_TYPE(id, typeFlag)	CQCParser::ControllerTypeMapping_t(#id, typeFlag)
@@ -1915,6 +1915,12 @@ bool CQCParser::SeqOption_Event( void )
 	else
 	{
 		eventOption = pstrString;
+	}
+
+	if(eventOption.length() >= MAXEVENTSTRLENGTH)
+	{
+		ErrorMsg("Event option string too long(%d chars, max is %d) for event with id %d on '$sequence' command for sequence named '%s'.\n", eventOption.length(), (MAXEVENTSTRLENGTH-1), eventId, m_pCurrentSequence->name.c_str());
+		return false;
 	}
 
 	smdl::animevent_t newEvent;

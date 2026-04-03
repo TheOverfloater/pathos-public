@@ -539,6 +539,7 @@ CPlayerEntity::CPlayerEntity( edict_t* pedict ):
 	m_nextPainSoundTime(0),
 	m_drownDamageAmount(0),
 	m_drownDamageHealed(0),
+	m_lastDmgViewPunchTime(0),
 	m_isUnderwaterSoundPlaying(false),
 	m_underwaterTime(0),
 	m_lastWaterDamageTime(0),
@@ -1229,10 +1230,15 @@ bool CPlayerEntity::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker,
 		if(m_pState->health < 30)
 		{
 			// Critical damage
-			ApplyAxisPunch(0, -35);
-			ApplyAxisPunch(1, -25);
-			ApplyDirectAxisPunch(0, 1.0);
-			ApplyDirectAxisPunch(1, 0.7);
+			if(g_pGameVars->time - m_lastDmgViewPunchTime > 1.3)
+			{
+				ApplyAxisPunch(0, -35);
+				ApplyAxisPunch(1, -25);
+				ApplyDirectAxisPunch(0, 1.0);
+				ApplyDirectAxisPunch(1, 0.7);
+
+				m_lastDmgViewPunchTime = g_pGameVars->time;
+			}
 
 			// Apply screen fade
 			Util::ScreenFadePlayer(m_pEdict, PAIN_SCREENFADE_COLOR, 2, 0, 140, FL_FADE_IN|FL_FADE_MODULATE, 1);
@@ -1240,10 +1246,15 @@ bool CPlayerEntity::TakeDamage( CBaseEntity* pInflictor, CBaseEntity* pAttacker,
 		else if(m_lastDmgAmount > 25)
 		{
 			// Major damage
-			ApplyAxisPunch(0, -25);
-			ApplyAxisPunch(1, -15);
-			ApplyDirectAxisPunch(0, 0.8);
-			ApplyDirectAxisPunch(1, 0.4);
+			if(g_pGameVars->time - m_lastDmgViewPunchTime > 0.8)
+			{
+				ApplyAxisPunch(0, -25);
+				ApplyAxisPunch(1, -15);
+				ApplyDirectAxisPunch(0, 0.8);
+				ApplyDirectAxisPunch(1, 0.4);
+
+				m_lastDmgViewPunchTime = g_pGameVars->time;
+			}
 
 			// Apply screen fade
 			Util::ScreenFadePlayer(m_pEdict, PAIN_SCREENFADE_COLOR, 1, 0, 120, FL_FADE_IN|FL_FADE_MODULATE, 1);
@@ -5902,8 +5913,8 @@ void CPlayerEntity::AutoAimThink( void )
 
 			// Clear on client
 			gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.setautoaimvector, nullptr, m_pEdict);
-				gd_engfuncs.pfnMsgWriteSmallFloat(0);
-				gd_engfuncs.pfnMsgWriteSmallFloat(0);
+				gd_engfuncs.pfnMsgWriteFloat(0);
+				gd_engfuncs.pfnMsgWriteFloat(0);
 				gd_engfuncs.pfnMsgWriteByte(FALSE);
 			gd_engfuncs.pfnUserMessageEnd();
 		}

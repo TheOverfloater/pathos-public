@@ -549,18 +549,23 @@ void Cmd_Snapshot( void )
 	}
 
 	// Buffer containing TGA file data
-	byte* pbuffer = nullptr;
-	// Size of data to be written
-	Uint32 datasize = 0;
+	Uint32 bufferAllocSize = width*height*3 + sizeof(tga_header_t);
+	CBuffer tgaDataBuffer(bufferAllocSize);
 
 	// Build file path
 	CString outputname;
 	outputname << "screenshots" << PATH_SLASH_CHAR << filenamebase << "-" << "%number%" << ".tga";
 
-	TGA_BuildFile(ppixeldata, 3, width, height, pbuffer, datasize);
+	Uint32 compressionPercentage = 0;
+	TGA_BuildFile(ppixeldata, 3, width, height, tgaDataBuffer, &compressionPercentage, false);
+	Con_DPrintf("Created snapshot with %d percent compression.\n", compressionPercentage);
 	delete[] ppixeldata;
 
-	if(!FWT_AddFile(outputname.c_str(), pbuffer, datasize, true, true))
+	Uint32 finalSize = tgaDataBuffer.getdatasize();
+	byte* pfinaldata = new byte[finalSize];
+	memcpy(pfinaldata, tgaDataBuffer.getbufferdata(), finalSize);
+
+	if(!FWT_AddFile(outputname.c_str(), pfinaldata, finalSize, true, true))
 	{
 		Int32 i = 0;
 		CString finaloutputname;
@@ -571,7 +576,7 @@ void Cmd_Snapshot( void )
 			Int32 pos = finaloutputname.find(0, "%number%");
 			if(pos == CString::CSTRING_NO_POSITION)
 			{
-				delete[] pbuffer;
+				delete[] pfinaldata;
 				return;
 			}
 
@@ -586,14 +591,14 @@ void Cmd_Snapshot( void )
 			i++;
 		}
 
-		bool result = FL_WriteFile(pbuffer, datasize, finaloutputname.c_str());
+		bool result = FL_WriteFile(pfinaldata, finalSize, finaloutputname.c_str());
 		if(result)
 			Con_Printf("Wrote '%s'.\n", finaloutputname.c_str());
 		else
 			Con_Printf("Failed to write '%s'.\n", finaloutputname.c_str());		
 	}
 
-	delete[] pbuffer;
+	delete[] pfinaldata;
 }
 
 //=============================================
