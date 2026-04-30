@@ -643,7 +643,7 @@ bool CWindow::SetDisplayProperties( void )
 			m_bVerticalSync = isEnabled;
 		}
 
-		ens.requestedVSyncSetting = -1;
+		ens.requestedVSyncSetting = -1; 
 	}
 
 	return true;

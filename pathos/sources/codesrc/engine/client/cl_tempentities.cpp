@@ -665,6 +665,12 @@ void CTempEntityManager::CreateBreakModel( const Vector& origin, const Vector& s
 		return;
 	}
 
+	if(CL_PointContents(&cls.entities[0], origin) == CONTENTS_SOLID)
+	{
+		Con_Printf("%s - Spawned inside solid at %.2f %.2f %.2f.\n", __FUNCTION__, origin[0], origin[1], origin[2]);
+		return;
+	}
+
 	Uint32 _num = num;
 	if(_num == 0)
 		_num = (size[0]*size[1]+size[1]*size[2]+size[2]*size[0])/(3*SHARD_VOLUME*SHARD_VOLUME);
@@ -679,15 +685,19 @@ void CTempEntityManager::CreateBreakModel( const Vector& origin, const Vector& s
 	for(Uint32 i = 0; i < _num; i++)
 	{
 		Vector pieceorigin;
+
 		for(Uint32 j = 0; j < 3; j++)
 			pieceorigin[j] = origin[j] + Common::RandomFloat(-0.5, 0.5)*size[j];
 
-		tempentity_t* ptemp = AllocTempEntity(pieceorigin, pmodel);
+		trace_t tr;
+		CL_PlayerTrace(origin, pieceorigin, FL_TRACE_WORLD_ONLY, HULL_POINT, NO_ENTITY_INDEX, tr);
+
+		tempentity_t* ptemp = AllocTempEntity(tr.endpos, pmodel);
 		if(!ptemp)
 			return;
 
 		ptemp->entity.pmodel = pmodel;
-		ptemp->entity.curstate.origin = pieceorigin;
+		ptemp->entity.curstate.origin = tr.endpos;
 
 		if(pmodel->type == MOD_SPRITE)
 			ptemp->entity.curstate.frame = Common::RandomLong(0, framecount-1);
@@ -717,7 +727,7 @@ void CTempEntityManager::CreateBreakModel( const Vector& origin, const Vector& s
 		case BM_VELOCITY_FROM_CENTER:
 			{
 				// Velocity comes from dir out of center
-				Vector velocity = (pieceorigin - velvector).Normalize();
+				Vector velocity = (tr.endpos - velvector).Normalize();
 				ptemp->entity.curstate.velocity = velocity * Common::RandomFloat(randomvelmin, randomvelmax);
 			}
 			break;

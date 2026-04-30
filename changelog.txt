@@ -888,3 +888,8 @@
  - Rewrite pscriptconv to fit Pathos standards, code cleanup, etc.
  - Fix for logging issue in vbmcompiler.
  - Add safety check to vbmcompiler to check if event string option is too long.
+ 
+2026 April 30th:
+ - Add safeguards to prevent a crash of specific BSP lumps are absent.
+ - Add checks to CTempEntityManager::CreateBreakModel to prevent spawning inside a solid.
+ - Fix saved display settings not being considered when starting a game instance.

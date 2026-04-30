@@ -63,6 +63,13 @@ brushmodel_t* BSPV30_Load( const byte* pfile, const dv30header_t* pheader, const
 //=============================================
 bool BSPV30_LoadVertexes( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dv30vertex_t))
 	{
@@ -90,6 +97,13 @@ bool BSPV30_LoadVertexes( const byte* pfile, brushmodel_t& model, const dv30lump
 //=============================================
 bool BSPV30_LoadEdges( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dv30edge_t))
 	{
@@ -120,6 +134,13 @@ bool BSPV30_LoadEdges( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 //=============================================
 bool BSPV30_LoadSurfedges( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(Int32))
 	{
@@ -145,10 +166,11 @@ bool BSPV30_LoadSurfedges( const byte* pfile, brushmodel_t& model, const dv30lum
 //=============================================
 bool BSPV30_LoadTextures( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
 	if(!lump.size)
 	{
-		Con_EPrintf("%s - No textures present in '%s'.\n", __FUNCTION__, model.name.c_str());
-		return true;
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
 	}
 
 	// Get texture counts
@@ -332,6 +354,13 @@ bool BSPV30_LoadLighting( const byte* pfile, brushmodel_t& model, const dv30lump
 //=============================================
 bool BSPV30_LoadPlanes( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dv30plane_t))
 	{
@@ -371,6 +400,13 @@ bool BSPV30_LoadPlanes( const byte* pfile, brushmodel_t& model, const dv30lump_t
 //=============================================
 bool BSPV30_LoadTexinfo( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dv30texinfo_t))
 	{
@@ -412,6 +448,13 @@ bool BSPV30_LoadTexinfo( const byte* pfile, brushmodel_t& model, const dv30lump_
 //=============================================
 bool BSPV30_LoadFaces( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dv30face_t))
 	{
@@ -588,6 +631,13 @@ bool BSPV30_LoadFaces( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 //=============================================
 bool BSPV30_LoadMarksurfaces( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(Int16))
 	{
@@ -642,6 +692,13 @@ bool BSPV30_LoadVisibility( const byte* pfile, brushmodel_t& model, const dv30lu
 //=============================================
 bool BSPV30_LoadLeafs( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dv30leaf_t))
 	{
@@ -686,6 +743,13 @@ bool BSPV30_LoadLeafs( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 //=============================================
 bool BSPV30_LoadNodes( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dv30node_t))
 	{
@@ -738,6 +802,13 @@ bool BSPV30_LoadNodes( const byte* pfile, brushmodel_t& model, const dv30lump_t&
 //=============================================
 bool BSPV30_LoadClipnodes( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dv30clipnode_t))
 	{
@@ -811,8 +882,12 @@ bool BSPV30_LoadClipnodes( const byte* pfile, brushmodel_t& model, const dv30lum
 //=============================================
 bool BSPV30_LoadEntities( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
 	if(!lump.size)
-		return true;
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
 
 	model.pentdata = new Char[lump.size];
 
@@ -828,6 +903,13 @@ bool BSPV30_LoadEntities( const byte* pfile, brushmodel_t& model, const dv30lump
 //=============================================
 bool BSPV30_LoadSubmodels( const byte* pfile, brushmodel_t& model, const dv30lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dv30model_t))
 	{

@@ -67,6 +67,13 @@ brushmodel_t* PBSPV2_Load( const byte* pfile, const dpbspv2header_t* pheader, co
 //=============================================
 bool PBSPV2_LoadVertexes( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv2vertex_t))
 	{
@@ -94,6 +101,13 @@ bool PBSPV2_LoadVertexes( const byte* pfile, brushmodel_t& model, const dpbspv2l
 //=============================================
 bool PBSPV2_LoadEdges( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv2edge_t))
 	{
@@ -124,6 +138,13 @@ bool PBSPV2_LoadEdges( const byte* pfile, brushmodel_t& model, const dpbspv2lump
 //=============================================
 bool PBSPV2_LoadSurfedges( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(Int32))
 	{
@@ -149,10 +170,11 @@ bool PBSPV2_LoadSurfedges( const byte* pfile, brushmodel_t& model, const dpbspv2
 //=============================================
 bool PBSPV2_LoadTextures( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
 	if(!lump.size)
 	{
-		Con_EPrintf("%s - No textures present in '%s'.\n", __FUNCTION__, model.name.c_str());
-		return true;
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
 	}
 
 	// Get texture counts
@@ -417,6 +439,13 @@ bool PBSPV2_LoadLightingDataLayer( const byte* pfile, brushmodel_t& model, const
 //=============================================
 bool PBSPV2_LoadPlanes( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv2plane_t))
 	{
@@ -456,6 +485,13 @@ bool PBSPV2_LoadPlanes( const byte* pfile, brushmodel_t& model, const dpbspv2lum
 //=============================================
 bool PBSPV2_LoadTexinfo( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv2texinfo_t))
 	{
@@ -497,6 +533,13 @@ bool PBSPV2_LoadTexinfo( const byte* pfile, brushmodel_t& model, const dpbspv2lu
 //=============================================
 bool PBSPV2_LoadFaces( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv2face_t))
 	{
@@ -571,6 +614,13 @@ bool PBSPV2_LoadFaces( const byte* pfile, brushmodel_t& model, const dpbspv2lump
 //=============================================
 bool PBSPV2_LoadMarksurfaces( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(Int32))
 	{
@@ -625,6 +675,13 @@ bool PBSPV2_LoadVisibility( const byte* pfile, brushmodel_t& model, const dpbspv
 //=============================================
 bool PBSPV2_LoadLeafs( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv2leaf_t))
 	{
@@ -669,6 +726,13 @@ bool PBSPV2_LoadLeafs( const byte* pfile, brushmodel_t& model, const dpbspv2lump
 //=============================================
 bool PBSPV2_LoadNodes( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv2node_t))
 	{
@@ -721,6 +785,13 @@ bool PBSPV2_LoadNodes( const byte* pfile, brushmodel_t& model, const dpbspv2lump
 //=============================================
 bool PBSPV2_LoadClipnodes( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv2clipnode_t))
 	{
@@ -794,8 +865,12 @@ bool PBSPV2_LoadClipnodes( const byte* pfile, brushmodel_t& model, const dpbspv2
 //=============================================
 bool PBSPV2_LoadEntities( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
 	if(!lump.size)
-		return true;
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
 
 	model.pentdata = new Char[lump.size];
 
@@ -811,6 +886,13 @@ bool PBSPV2_LoadEntities( const byte* pfile, brushmodel_t& model, const dpbspv2l
 //=============================================
 bool PBSPV2_LoadSubmodels( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
 {
+	// Safeguard against incorrectly compiled BSP
+	if(!lump.size)
+	{
+		Con_EPrintf("%s - Empty lump in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	// Check if sizes are correct
 	if(lump.size % sizeof(dpbspv2model_t))
 	{

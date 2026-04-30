@@ -126,6 +126,10 @@ bool Sys_Init( CArray<CString>* argsArray )
 	if(!Sys_InitFloatTime())
 		return false;
 
+	// MUST BE FIRST
+	// Initialize configuration
+	gConfig.Init();
+
 	// Perform window pre-initialization
 	if(!gWindow.PreInit())
 		return false;
@@ -140,10 +144,6 @@ bool Sys_Init( CArray<CString>* argsArray )
 	g_pCvarTimeScale = gConsole.CreateCVar(CVAR_FLOAT, FL_CV_SV_ONLY, "host_timescale", "1.0", "Can be used to manipulate the time scale.\n");
 	// Max FPS cvar
 	g_pCvarFPSMax = gConsole.CreateCVar(CVAR_FLOAT, FL_CV_SV_ONLY, "fps_max", "100", "Max framerate.\n");
-
-	// MUST BE FIRST
-	// Initialize configuration
-	gConfig.Init();
 
 	// See if the default font exists
 	if(!Sys_LoadDefaultFont(nullptr))
