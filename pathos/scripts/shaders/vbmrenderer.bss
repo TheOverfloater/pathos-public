@@ -1,5 +1,4 @@
 $global_determinator shadertype 0 17
-$global_determinator ao 0 1
 $global_determinator bumpmapping 0 1
 $global_determinator numdlights 0 4
 $global_determinator dlight0_shadow 0 1
@@ -8,6 +7,7 @@ $global_determinator dlight2_shadow 0 1
 $global_determinator dlight3_shadow 0 1
 $global_determinator use_ubo 0 1
 $global_determinator blendmultipass 0 2
+$global_determinator vertexlight 0 1
 $shader_vertex 
 $determinator chrome 0 1
 $determinator flex 0 1
@@ -78,6 +78,11 @@ in vec4 in_boneindexes;
 in vec4 in_boneweights;
 in vec2 in_flexcoord;
 
+in vec3 in_vlight_default;
+in vec3 in_vlight_ambient;
+in vec3 in_vlight_diffuse;
+in vec3 in_vlight_vectors;
+
 out vec3 ps_vertexpos;
 out vec3 ps_tangent;
 out vec3 ps_binormal;
@@ -88,6 +93,14 @@ out vec4 ps_dlight_0_vertexcoord;
 out vec4 ps_dlight_1_vertexcoord;
 out vec4 ps_dlight_2_vertexcoord;
 out vec4 ps_dlight_3_vertexcoord;
+
+$branch vertexlight == 1
+$begin
+out vec3 ps_vlight_default;
+out vec3 ps_vlight_ambient;
+out vec3 ps_vlight_diffuse;
+out vec3 ps_vlight_vectors;
+$end
 
 vec3 TransformVectorByBone( vec3 vin, int boneindex, float weight )
 {
@@ -157,6 +170,17 @@ void main()
 
 	ps_vertexpos = position.xyz;
 	ps_normal = (normalmatrix*vec4(trans_normal, 0.0)).xyz;
+
+	$branch vertexlight == 1
+	$begin
+		ps_vlight_default = in_vlight_default;
+		ps_vlight_ambient = in_vlight_ambient;
+		ps_vlight_diffuse = in_vlight_diffuse;
+
+		vec3 worldLightDir = normalize(in_vlight_vectors / 127.5 - 1.0);
+
+		ps_vlight_vectors = (normalmatrix * vec4(worldLightDir, 0.0)).xyz;
+	$end
 	
 	$branch shadertype == 0 || shadertype == 1 || shadertype == 2 || shadertype == 3 || shadertype == 5 || shadertype == 6 || shadertype == 4 || shadertype == 10 || shadertype == 12 || shadertype == 13 || shadertype == 14 || shadertype == 15 || shadertype == 16 || shadertype == 17 || blendmultipass >= 1
 	$begin
@@ -271,15 +295,11 @@ $invalid_state 2 numdlights 1 4 num_lights 1 6
 $invalid_state 2 numdlights 1 4 alphatest 1 1
 $invalid_state 1 shadertype 4 4
 $invalid_state 1 shadertype 6 6
-$invalid_state 2 ao 1 1 shadertype 7 12
-$invalid_state 2 ao 1 1 shadertype 14 14
-$invalid_state 2 ao 1 1 shadertype 16 17
 $invalid_state 2 blendmultipass 1 2 num_lights 1 6
 $invalid_state 2 blendmultipass 1 2 shadertype 0 2
 $invalid_state 2 blendmultipass 1 2 shadertype 4 4
 $invalid_state 2 blendmultipass 1 2 shadertype 6 6
 $invalid_state 2 blendmultipass 1 2 shadertype 8 22
-$invalid_state 2 blendmultipass 1 2 ao 1 1
 $invalid_state 2 blendmultipass 1 2 luminance 1 1
 $invalid_state 2 blendmultipass 1 2 alphatest 1 2
 $invalid_state 1 use_ubo 1 1
@@ -319,11 +339,6 @@ uniform sampler2D lumtexture;
 $end
 
 uniform sampler2D normalmap;
-
-$branch ao == 1
-$begin
-uniform sampler2D aomaptex;
-$end
 
 uniform vec4 color;
 
@@ -500,6 +515,14 @@ in vec4 ps_dlight_0_vertexcoord;
 in vec4 ps_dlight_1_vertexcoord;
 in vec4 ps_dlight_2_vertexcoord;
 in vec4 ps_dlight_3_vertexcoord;
+
+$branch vertexlight == 1
+$begin
+in vec3 ps_vlight_default;
+in vec3 ps_vlight_ambient;
+in vec3 ps_vlight_diffuse;
+in vec3 ps_vlight_vectors;
+$end
 
 out vec4 oColor;
 
@@ -840,16 +863,45 @@ void main()
 	vec4 lightColor;
 	$branch shadertype == 0 || shadertype == 1 || shadertype == 2 || shadertype == 15
 	$begin
-		lightColor = AddBaseLight(skylight_dir, skylight_ambient, skylight_diffuse, v_normal, ps_vertexpos, specularFactor);
-		
-		$branch shadertype != 15
+		$branch vertexlight == 1
 		$begin
-			// Add in the diffuse light
-			finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
+			vec3 bakedLightDir = normalize(ps_vlight_vectors);
+
+			vec3 bakedAmbient = ps_vlight_ambient / 255.0;
+			vec3 bakedDiffuse = ps_vlight_diffuse / 255.0;
+
+			float dp = max(dot(-bakedLightDir, v_normal), 0.0);
+
+			float ambientDP = dot(v_normal, -bakedLightDir) * 0.5 + 0.5;
+
+			lightColor.xyz =
+				bakedAmbient * ambientDP +
+				(bakedDiffuse * dp);
+
+			$branch shadertype != 15
+			$begin
+				finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
+			$end
+
+			$branch specular == 1
+			$begin
+				float bakedShine = CalcShininess(ps_vertexpos, v_normal, bakedLightDir);
+				float bakedSpec = CalcSpecular(ps_vertexpos, v_normal, -bakedLightDir, specularFactor);
+
+				vec3 bakedCombined = bakedAmbient * ambientDP + bakedDiffuse;
+
+				specularColor.xyz = AddSpecularLight(specularColor.xyz, bakedSpec, bakedCombined * bakedShine);
+			$end
 		$end
-		
-		// Add to specular
-		specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, skylight_diffuse);
+		$branch vertexlight == 0
+		$begin
+			lightColor = AddBaseLight(skylight_dir, skylight_ambient, skylight_diffuse, v_normal, ps_vertexpos, specularFactor);
+			$branch shadertype != 15
+			$begin
+				finalColor.xyz = AddDiffuseLight(finalColor.xyz, lightColor.xyz);
+			$end
+			specularColor.xyz = AddSpecularLight(specularColor.xyz, lightColor.w, skylight_diffuse);
+		$end
 	$end
 	
 	// Elights
@@ -1168,13 +1220,6 @@ void main()
 		$end
 	$end
 	
-	$branch ao == 1 && shadertype != 3 && shadertype != 5
-	$begin
-		vec3 aocolor = texture(aomaptex, ps_texcoord1).xyz;
-		finalColor.xyz *= aocolor;
-		specularColor.xyz *= aocolor;
-	$end	
-	
 	// Normal single pass rendering
 	$branch shadertype == 0 || shadertype == 1
 	$begin
@@ -1288,7 +1333,7 @@ void main()
 	$begin
 		finalColor.a = (finalColor.a - 0.5) / max(fwidth(finalColor.a), 0.0001) + 0.5;
 	$end	
-	
+
 	oColor = finalColor;
 }
 $end

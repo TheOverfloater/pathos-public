@@ -407,7 +407,10 @@ inline bool Vector::IsNAN( Int32 index ) const
 	assert(index >= 0 && index < 3);
 	
 	Float fvar = this->operator[](index);
-	return (*reinterpret_cast<Int32*>(&(fvar)) & NANMASK) == NANMASK ? true : false;
+	//return (*reinterpret_cast<Int32*>(&(fvar)) & NANMASK) == NANMASK ? true : false;
+
+	// HACK pls fix
+	return (*reinterpret_cast<Int32*>(&(fvar)) & 0x7F800000) == 0x7F800000 ? true : false;
 }
 
 //=============================================

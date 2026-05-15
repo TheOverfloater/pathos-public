@@ -20,6 +20,7 @@ All Rights Reserved.
 #include "miptex.h"
 #include "pbspv1file.h"
 #include "pbspv2file.h"
+#include "pbspv3file.h"
 #include "bspv30.h"
 #include "bsp_shared.h"
 #include "enginestate.h"
@@ -340,6 +341,12 @@ const dmiptexlump_t* CWADTextureResource::GetBSPTextureData( void )
 			{
 				const dpbspv2header_t* pbspheader = reinterpret_cast<const dpbspv2header_t*>(m_pBSPFile);
 				ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pbspheader->lumps[PBSPV2_LUMP_TEXTURES].offset);
+			}
+			break;
+		case PBSPV3_VERSION:
+			{
+				const dpbspv3header_t* pbspheader = reinterpret_cast<const dpbspv3header_t*>(m_pBSPFile);
+				ptexturelump = reinterpret_cast<const dmiptexlump_t*>(m_pBSPFile + pbspheader->lumps[PBSPV3_LUMP_TEXTURES].offset);
 			}
 			break;
 		default:

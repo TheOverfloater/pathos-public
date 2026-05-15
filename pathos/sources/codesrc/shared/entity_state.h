@@ -331,6 +331,9 @@ struct entity_state_t
 
 	Int32 rendertype;
 
+	// Offset to find vertex light data
+	Int32 vlight_offset;
+
 	Int32 rendermode;
 	Float renderamt;
 	Vector rendercolor;
