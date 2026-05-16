@@ -145,6 +145,10 @@ struct vbm_glvertex_t
 		memset(boneindexes, 0, sizeof(boneindexes));
 		memset(boneweights, 0, sizeof(boneweights));
 		memset(flexcoord, 0, sizeof(flexcoord));
+		memset(vlight_default, 0, sizeof(vlight_default));
+		memset(vlight_vectors, 0, sizeof(vlight_vectors));
+		memset(vlight_ambient, 0, sizeof(vlight_ambient));
+		memset(vlight_diffuse, 0, sizeof(vlight_diffuse));
 		memset(pad, 0, sizeof(pad));
 	}
 		
@@ -156,7 +160,11 @@ struct vbm_glvertex_t
 	Float boneindexes[MAX_VBM_BONEWEIGHTS];
 	Float boneweights[MAX_VBM_BONEWEIGHTS];
 	Float flexcoord[2];
-	byte pad[4];
+	byte vlight_default[4];
+	byte vlight_vectors[4];
+	byte vlight_ambient[4];
+	byte vlight_diffuse[4];
+	byte pad[20];
 };
 
 struct ubo_modellight_t
@@ -225,6 +233,10 @@ struct vbm_attribs
 		a_boneindexes(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_boneweights(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_flexcoord(CGLSLShader::PROPERTY_UNAVAILABLE),
+		a_vlight_default(CGLSLShader::PROPERTY_UNAVAILABLE),
+		a_vlight_ambient(CGLSLShader::PROPERTY_UNAVAILABLE),
+		a_vlight_diffuse(CGLSLShader::PROPERTY_UNAVAILABLE),
+		a_vlight_vectors(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_projection(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_modelview(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_normalmatrix(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -244,7 +256,6 @@ struct vbm_attribs
 		u_rectangle(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_spectexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_lumtexture(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_aotexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_normalmap(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_sky_ambient(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_sky_diffuse(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -264,7 +275,6 @@ struct vbm_attribs
 		d_flexes(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_luminance(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_ao(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_bumpmapping(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_numdlights(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_use_ubo(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -282,6 +292,12 @@ struct vbm_attribs
 	Int32 a_boneindexes;
 	Int32 a_boneweights;
 	Int32 a_flexcoord;
+
+	// Baked vertex lighting data
+	Int32 a_vlight_default;
+	Int32 a_vlight_ambient;
+	Int32 a_vlight_diffuse;
+	Int32 a_vlight_vectors;
 
 	Int32 u_projection;
 	Int32 u_modelview;
@@ -312,7 +328,6 @@ struct vbm_attribs
 	Int32 u_rectangle;
 	Int32 u_spectexture;
 	Int32 u_lumtexture;
-	Int32 u_aotexture;
 	Int32 u_normalmap;
 
 	Int32 u_sky_ambient;
@@ -341,11 +356,11 @@ struct vbm_attribs
 	Int32 d_flexes;
 	Int32 d_specular;
 	Int32 d_luminance;
-	Int32 d_ao;
 	Int32 d_bumpmapping;
 	Int32 d_numdlights;
 	Int32 d_use_ubo;
 	Int32 d_blendmultipass;
+	Int32 d_vertexlight;
 	
 	vbm_dlight_attribs_t dlights[MAX_BATCH_LIGHTS];
 };
@@ -591,7 +606,7 @@ private:
 	// Builds the VBO
 	void BuildVBO( void );
 	// Adds a VBM file to the VBO object
-	void AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, mcdheader_t* pmcd, vbm_glvertex_t* pvertexbuffer, Uint32* pindexbuffer, Uint32& vertexoffset, Uint32& indexoffset );
+	void AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, mcdheader_t* pmcd, vbm_glvertex_t* pvertexbuffer, Uint32* pindexbuffer, Uint32& vertexoffset, Uint32& indexoffset, Int32 vlight_offset);
 
 private:
 	// Toggles rendering of models

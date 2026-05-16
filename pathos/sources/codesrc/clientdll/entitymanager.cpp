@@ -571,6 +571,18 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 	if (pvalue)
 		newEntity.curstate.scale = SDL_atof(pvalue);
 
+	pvalue = ValueForKey(entity, "vlight_offset");
+	if (pvalue)
+	{
+		newEntity.curstate.vlight_offset = SDL_atoi(pvalue);
+		if (pmodel)
+			const_cast<cache_model_t*>(pmodel)->vlight_offset = newEntity.curstate.vlight_offset;
+	}
+	else
+	{
+		newEntity.curstate.vlight_offset = -1;
+	}
+
 	pvalue = ValueForKey(entity, "lightorigin");
 	if(pvalue && qstrlen(pvalue))
 	{

@@ -376,6 +376,7 @@ struct brushmodel_t
 		ppasdata(nullptr),
 		pasdatasize(0),
 		lightdatasize(0),
+		vertexlightdatasize(0),
 		lightmaplayercount(0),
 		pentdata(nullptr),
 		entdatasize(0)
@@ -383,6 +384,7 @@ struct brushmodel_t
 		for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
 		{
 			plightdata[i] = nullptr;
+			pvertexlightdata[i] = nullptr;
 			plightdata_original[i] = nullptr;
 			original_lightdatasizes[i] = 0;
 			original_compressiontype[i] = 0;
@@ -533,6 +535,10 @@ struct brushmodel_t
 	// light data
 	color24_t* plightdata[NB_SURF_LIGHTMAP_LAYERS];
 	Uint32 lightdatasize;
+
+	// Vertex light data
+	color24_t* pvertexlightdata[NB_SURF_LIGHTMAP_LAYERS];
+	Uint32 vertexlightdatasize;
 
 	// Original light data without decompression
 	byte* plightdata_original[NB_SURF_LIGHTMAP_LAYERS];

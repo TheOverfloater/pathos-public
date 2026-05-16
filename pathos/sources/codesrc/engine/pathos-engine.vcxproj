@@ -278,6 +278,7 @@
     <ClCompile Include="net_sp.cpp" />
     <ClCompile Include="pbspv1.cpp" />
     <ClCompile Include="pbspv2.cpp" />
+    <ClCompile Include="pbspv3.cpp" />
     <ClCompile Include="renderer\r_beams.cpp" />
     <ClCompile Include="renderer\r_blackhole.cpp" />
     <ClCompile Include="renderer\r_cables.cpp" />
@@ -390,6 +391,7 @@
     <ClInclude Include="..\common\ogg_common.h" />
     <ClInclude Include="..\common\pbspv1file.h" />
     <ClInclude Include="..\common\pbspv2file.h" />
+    <ClInclude Include="..\common\pbspv3file.h" />
     <ClInclude Include="..\common\plane.h" />
     <ClInclude Include="..\common\plane_inline.hpp" />
     <ClInclude Include="..\common\r_common.h" />
@@ -445,6 +447,7 @@
     <ClInclude Include="net_sp.h" />
     <ClInclude Include="pbspv1.h" />
     <ClInclude Include="pbspv2.h" />
+    <ClInclude Include="pbspv3.h" />
     <ClInclude Include="renderer\r_beams.h" />
     <ClInclude Include="renderer\r_blackhole.h" />
     <ClInclude Include="renderer\r_cables.h" />
