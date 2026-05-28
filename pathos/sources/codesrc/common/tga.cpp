@@ -33,8 +33,13 @@ bool TGA_Load( const Char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 	const tga_header_t *ptrTgaHeader = reinterpret_cast<const tga_header_t *>(pfile);
 	if(ptrTgaHeader->datatypecode != TGA_DATATYPE_RGB
 		&& ptrTgaHeader->datatypecode != TGA_DATATYPE_RLE_RGB 
+		&& ptrTgaHeader->datatypecode != TGA_DATATYPE_COLORMAPPED 
+		&& ptrTgaHeader->datatypecode != TGA_DATATYPE_RLE_COLORMAPPED
+		&& ptrTgaHeader->datatypecode != TGA_DATATYPE_GRAYSCALE
+		&& ptrTgaHeader->datatypecode != TGA_DATATYPE_RLE_GRAYSCALE
 		|| ptrTgaHeader->bitsperpixel != 24 
-		&& ptrTgaHeader->bitsperpixel != 32)
+		&& ptrTgaHeader->bitsperpixel != 32
+		&& ptrTgaHeader->bitsperpixel != 8)
 	{
 		pfnPrintFn("%s is using a non-supported format. Only 24 bit and 32 bit true color formats are supported.\n", pstrFilename);
 		return false;
@@ -42,7 +47,7 @@ bool TGA_Load( const Char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 
 	Int16 tgaWidth = Common::ByteToInt16(ptrTgaHeader->width);
 	Int16 tgaHeight = Common::ByteToInt16(ptrTgaHeader->height);
-	Int16 tgaBpp = ptrTgaHeader->bitsperpixel/8;
+	Int16 tgaBpp = ptrTgaHeader->bitsperpixel/8; 
 
 	// Determine sizes
 	Int32 nbPixels = tgaWidth*tgaHeight;
@@ -53,7 +58,7 @@ bool TGA_Load( const Char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 	byte* pout = new byte[outputSize];
 
 	// Load based on type
-	const byte *pcur = pfile + sizeof(tga_header_t);
+	const byte *pcur = pfile + sizeof(tga_header_t) + ptrTgaHeader->idlength;
 	if(ptrTgaHeader->datatypecode == TGA_DATATYPE_RGB)
 	{
 		// Set compression
@@ -83,7 +88,7 @@ bool TGA_Load( const Char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 		{
 			if((*pcur) & 0x80)
 			{
-				byte length = *pcur-127;
+				byte length = (*pcur)-127;
 				pcur++;
 
 				for(Int32 j = 0; j < length; j++, i += 4)
@@ -102,7 +107,7 @@ bool TGA_Load( const Char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 			}
 			else
 			{
-				byte length = *pcur+1;
+				byte length = (*pcur)+1;
 				pcur++;
 
 				for(Int32 j = 0; j < length; j++, i += 4, pcur += tgaBpp)
@@ -115,6 +120,178 @@ bool TGA_Load( const Char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 						pout[i+3] = 255;
 					else
 						pout[i+3] = pcur[3];
+				}
+			}
+		}
+	}
+	else if(ptrTgaHeader->datatypecode == TGA_DATATYPE_COLORMAPPED)
+	{
+		Uint32 colormapDepth = ptrTgaHeader->colourmapdepth;
+		if(colormapDepth != 24 && colormapDepth != 32)
+		{
+			pfnPrintFn("TGA %s uses an unsupported color map depth of %d.\n", pstrFilename, colormapDepth);
+			delete[] pout;
+			return false;
+		}
+
+		Uint32 colormapBpp = colormapDepth / 8;
+		Uint32 colormapLength = Common::ByteToInt16(ptrTgaHeader->colourmaplength);
+		Uint32 colormapOrigin = Common::ByteToInt16(ptrTgaHeader->colourmaporigin);
+		Uint32 colorMapSize = colormapLength * colormapBpp;
+
+		const byte* pcolormap = pcur;
+		const byte* ppixeldata = pcur + colorMapSize;
+
+		// Set compression
+		compression = TX_COMPRESSION_COLORMAP;
+
+		// Uncompressed TGA
+		for(Int32 i = 0, j = 0; i < inputSize; i++, j += 4)
+		{
+			const byte* pcolor = pcolormap + (colormapOrigin + ppixeldata[i]) * colormapBpp;
+
+			pout[j] = pcolor[2];
+			pout[j+1] = pcolor[1];
+			pout[j+2] = pcolor[0];
+
+			if(colormapBpp == 3)
+				pout[j+3] = 255;
+			else
+				pout[j+3] = pcolor[3];
+		}
+	}
+	else if(ptrTgaHeader->datatypecode == TGA_DATATYPE_RLE_COLORMAPPED)
+	{
+		Uint32 colormapDepth = ptrTgaHeader->colourmapdepth;
+		if(colormapDepth != 24 && colormapDepth != 32)
+		{
+			pfnPrintFn("TGA %s uses an unsupported color map depth of %d.\n", pstrFilename, colormapDepth);
+			delete[] pout;
+			return false;
+		}
+
+		Uint32 colormapBpp = colormapDepth / 8;
+		Uint32 colormapLength = Common::ByteToInt16(ptrTgaHeader->colourmaplength);
+		Uint32 colormapOrigin = Common::ByteToInt16(ptrTgaHeader->colourmaporigin);
+		Uint32 colorMapSize = colormapLength * colormapBpp;
+
+		const byte* pcolormap = pcur;
+		const byte* ppixeldata = pcur + colorMapSize;
+
+		// Set compression
+		compression = TX_COMPRESSION_RLE;
+
+		// RLE Compression
+		Int32 i = 0;
+		while(i < outputSize)
+		{
+			if((*ppixeldata) & 0x80)
+			{
+				byte length = (*ppixeldata)-127;
+				ppixeldata++;
+
+				const byte* pcolor = pcolormap + (colormapOrigin + (*ppixeldata)) * colormapBpp;
+				for(Int32 j = 0; j < length; j++, i += 4)
+				{
+					pout[i] = pcolor[2];
+					pout[i+1] = pcolor[1];
+					pout[i+2] = pcolor[0];
+
+					if(colormapBpp == 3)
+						pout[i+3] = 255;
+					else
+						pout[i+3] = pcolor[3];
+				}
+					
+				ppixeldata++;
+			}
+			else
+			{
+				byte length = (*ppixeldata)+1;
+				ppixeldata++;
+
+				for(Int32 j = 0; j < length; j++, i += 4, ppixeldata++)
+				{
+					const byte* pcolor = pcolormap + (colormapOrigin + (*ppixeldata)) * colormapBpp;
+
+					pout[i] = pcolor[2];
+					pout[i+1] = pcolor[1];
+					pout[i+2] = pcolor[0];
+
+					if(colormapBpp == 3)
+						pout[i+3] = 255;
+					else
+						pout[i+3] = pcolor[3];
+				}
+			}
+		}
+	}
+	else if(ptrTgaHeader->datatypecode == TGA_DATATYPE_GRAYSCALE)
+	{
+		if(ptrTgaHeader->bitsperpixel != 8)
+		{
+			pfnPrintFn("TGA %s is a greyscale image with an unsupported pixel depth of %d.\n", pstrFilename, (ptrTgaHeader->bitsperpixel*8));
+			delete[] pout;
+			return false;
+		}
+
+		// Set compression
+		compression = TX_COMPRESSION_GREYSCALE;
+
+		// Uncompressed TGA
+		for(Int32 i = 0, j = 0; i < inputSize; i++, j += 4)
+		{
+			byte greyColorValue = pcur[i];
+			for(Uint32 k = 0; k < 3; k++)
+				pout[j+k] = greyColorValue;
+			
+			pout[j+3] = 255;
+		}
+	}
+	else if(ptrTgaHeader->datatypecode == TGA_DATATYPE_RLE_GRAYSCALE)
+	{
+		if(ptrTgaHeader->bitsperpixel != 8)
+		{
+			pfnPrintFn("TGA %s is a greyscale image with an unsupported pixel depth of %d.\n", pstrFilename, (ptrTgaHeader->bitsperpixel*8));
+			delete[] pout;
+			return false;
+		}
+
+		// Set compression
+		compression = TX_COMPRESSION_GREYSCALE_RLE;
+
+		// RLE Compression
+		Int32 i = 0;
+		while(i < outputSize)
+		{
+			if((*pcur) & 0x80)
+			{
+				byte length = (*pcur)-127;
+				pcur++;
+
+				byte greyColorValue = (*pcur);
+				for(Int32 j = 0; j < length; j++, i += 4)
+				{
+					for(Uint32 k = 0; k < 3; k++)
+						pout[i+k] = greyColorValue;
+
+					pout[i+3] = 255;
+				}
+					
+				pcur++;
+			}
+			else
+			{
+				byte length = (*pcur)+1;
+				pcur++;
+
+				for(Int32 j = 0; j < length; j++, i += 4, pcur++)
+				{
+					byte greyColorValue = (*pcur);
+					for(Uint32 k = 0; k < 3; k++)
+						pout[i+k] = greyColorValue;
+
+					pout[i+3] = 255;;
 				}
 			}
 		}
@@ -316,7 +493,7 @@ void TGA_BuildImageData( const byte* pdata, Uint32 bpp, Uint32 width, Uint32 hei
 		if(flipVertical)
 			pdst = pfinalbuffer + (height-i-1)*width*bpp;
 		else
-			pdst = pfinalbuffer + sizeof(tga_header_t) + i*width*bpp;
+			pdst = pfinalbuffer + i*width*bpp;
 
 		const byte* psrc = pdata + i*width*bpp;
 

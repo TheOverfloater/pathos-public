@@ -2700,6 +2700,34 @@ bool CUISettingsWindow::mouseButtonEvent( Int32 mouseX, Int32 mouseY, Int32 butt
 }
 
 //=============================================
+// @brief Think function for elements
+//
+//=============================================
+bool CUISettingsWindow::mouseWheelEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool keyDown, Int32 scroll )
+{
+	if(m_currentTabIndex == m_bindsTabIndex)
+	{
+		if(m_isInBindMode)
+		{
+			if(keyDown)
+			{
+				// Get the key name
+				const Char* pstrKeyname = gInput.GetMouseWheelEventName(button);
+				if(pstrKeyname)
+					SetBind(pstrKeyname, m_bindsCommandArray[m_bindRowIndex].c_str());
+
+				LeaveBindMode();
+			}
+
+			return true;
+		}
+	}
+
+	// Call base class to handle this normally
+	return CUIWindow::mouseWheelEvent(mouseX, mouseY, button, keyDown, scroll);
+}
+
+//=============================================
 // @brief Handles a keyboard button event
 //
 //=============================================

@@ -113,7 +113,6 @@ public:
 		IDC_FILE_RECENTSKYBOXES3,
 		IDC_FILE_RECENTSKYBOXES4,
 		IDC_FILE_EXIT,
-		IDC_FILE_COMPILEMODEL,
 		IDC_FILE_DECOMPILEMODEL,
 		IDC_FILE_CLOSEFOLDER2,
 
@@ -172,6 +171,10 @@ public:
 public:
 	// Returns the menu bar
 	mxMenuBar *GetMenuBar( void ) const { return m_pMenuBar; }
+
+public:
+	// Loads a model
+	bool LoadModel( const Char* pstrFilepath );
 
 public:
 	// Creates an instance of this class

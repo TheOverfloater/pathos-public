@@ -111,7 +111,7 @@ namespace Common
 			{
 				while(true)
 				{
-					if(*ppstr == '*' && *(ppstr+1) == '/')
+					if(*ppstr == '\0' || *ppstr == '*' && *(ppstr+1) == '/')
 						break;
 
 					ppstr++;
@@ -180,6 +180,10 @@ namespace Common
 	{
 		Char* ppdest = pdest;
 		const Char* ppstr = pstr;
+
+		// skip whitespaces
+		while(*ppstr && SDL_isspace(*ppstr) && *ppstr != '\n' && *ppstr != '\r')
+			ppstr++;
 
 		while(*ppstr && *ppstr != '\n' && *ppstr != '\r')
 		{

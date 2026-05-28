@@ -105,7 +105,20 @@ public:
 		IDC_FLEX_RESET_SCRIPT,
 		IDC_FLEX_LENGTH,
 		IDC_FLEX_LOOP,
-		IDC_FLEX_STAY
+		IDC_FLEX_STAY,
+
+		IDC_COMPILER_COMPILE_BUTTON = 8001,
+		IDC_COMPILER_COMPILE_AND_COPY,
+		IDC_COMPILER_VIEW_LOG_BUTTON,
+		IDC_COMPILER_FILE_PATH,
+		IDC_COMPILER_FILE_BUTTON,
+		IDC_COMPILER_COPY_PATH,
+		IDC_COMPILER_COPY_PATH_BUTTON,
+		IDC_COMPILER_COPY_BUTTON,
+		IDC_COMPILER_EDIT_BUTTON,
+		IDC_COMPILER_LOAD_DEST_FILE_BTN,
+		// Must be last of this group
+		IDC_COMPILER_FLAG_BASE_ID
 	};
 
 	enum textureflags_t
@@ -139,6 +152,14 @@ public:
 	static const Char CP_MIRROR_ENABLED[];
 	// Whether skybox was enabled
 	static const Char CP_SKYBOX_ENABLED[];
+	// Last QC Path setting name
+	static const Char LAST_QC_PATH_HEADER[];
+	// Last Copy Path setting name
+	static const Char LAST_COPY_PATH_HEADER[];
+	// Compiler window title
+	static const Char WINDOW_TITLE[];
+	// Default program for editing
+	static const Char DEFAULT_EDITOR[];
 
 public:
 	// Tab indexes
@@ -153,8 +174,31 @@ public:
 	};
 
 public:
+	// Compiler argument
+	struct compiler_flag_t
+	{
+		compiler_flag_t( const Char* pstrDescription, const Char* pstrArgument, const Char* pstrSaveName ):
+			desc(pstrDescription),
+			argument(pstrArgument),
+			savename(pstrSaveName)
+		{}
+
+		CString desc;
+		CString argument;
+		CString savename;
+	};
+
+
+public:
 	// Deletion sensitivity
 	static const float FLEX_DELETION_SENSITIVITY;
+	// Max history of qc files
+	static const Uint32 MAX_COMPILER_HISTORY;
+
+	// Number of compiler args
+	static const Uint32 NB_COMPILER_FLAGS = 9;
+	// Compiler arguments
+	static compiler_flag_t COMPILER_FLAGS[NB_COMPILER_FLAGS];
 
 private:
 	CControlPanel( mxWindow *parent );
@@ -248,6 +292,31 @@ public:
 	// Returns the currently selected material name
 	const Char* GetCurrentMaterialName( void );
 
+	// Initializes QC history info
+	void InitQcHistory( void );
+	// Initializes copy path history info
+	void InitCopyPathHistory( void );
+
+	// Copies output files to the destination directory
+	void CopyFiles( void );
+	// Copies a single file to the destination directory
+	bool CopyFile( const Char* pstrBaseName, const Char* pstrExtension );
+	// Compiles the selected QC file
+	void CompileQC( void );
+	// Opens the editor for the selected QC file
+	void EditQC( void );
+	// Opens the editor for the selected QC's log file
+	void ViewLog( void );
+	// Loads destination file
+	void LoadDestinationFile( void );
+	// Returns the destination file name
+	CString GetDestinationFilename( void );
+
+	// Gets history info
+	void GetCompilerHistory( void );
+	// Saves history info
+	void SaveCompilerHistory( void );
+
 public:
 	// Handles an mx event
 	virtual int handleEvent( mxEvent *pEvent ) override;
@@ -269,6 +338,8 @@ private:
 	void InitBodyTab( void );
 	// Initializes texture tab
 	void InitTextureTab( void );
+	// Initializes compiler tab
+	void InitCompilerTab( void );
 	// Initializes flexes tab
 	void InitFlexesTab( void );
 	// Initialzies flex scripting tab
@@ -344,6 +415,15 @@ private:
 	mxWindow*		m_pWindowFlexes;
 	mxWindow*		m_pWindowFlexScripting;
 	TextureWindow*	m_pTextureWindow;
+
+private:
+	mxChoice*		m_pChoiceQcPaths;
+	mxChoice*		m_pChoiceCopyPaths;
+	mxCheckBox**	m_pCompilerFlagCheckBoxes;
+
+private:
+	CArray<CString> m_qcFileHistoryArray;
+	CArray<CString> m_copyPathHistoryArray;
 
 	// Currently selected material index
 	Uint32			m_currentMaterialIndex;

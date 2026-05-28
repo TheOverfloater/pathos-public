@@ -401,19 +401,29 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
  	if(!pcachemodel)
 		return;
 
+	Uint32 paddingAmount = clamp(g_pCvarLightmapPadding->GetValue(), 0, MAX_LIGHTMAP_PADDING);
+
 	brushmodel_t* pbrushmodel = pcachemodel->getBrushmodel();
 	msurface_t *psurfaces = pbrushmodel->psurfaces + pbrushmodel->firstmodelsurface;
 
 	// Holds texture data
 	for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
 	{
-		color32_t* plightmapdata = new color32_t[pwater->lightmaptextureheights[i] * pwater->lightmaptexturewidths[i]];
+		Uint32 lightmappixelsize = pwater->lightmaptextureheights[i] * pwater->lightmaptexturewidths[i];
+		color32_t* plightmapdata = new color32_t[lightmappixelsize];
+		for(Uint32 j = 0; j < lightmappixelsize; j++)
+			plightmapdata[j] = color32_t(0, 0, 0, 255);
+
+		color32_t* pdiffusemaptexture = new color32_t[lightmappixelsize];
+		for(Uint32 j = 0; j < lightmappixelsize; j++)
+			plightmapdata[j] = color32_t(0, 0, 0, 255);
+
+		color32_t* plightvecstexture = new color32_t[lightmappixelsize];
+		for(Uint32 j = 0; j < lightmappixelsize; j++)
+			plightmapdata[j] = color32_t(0, 0, 0, 255);
+
 		Uint32 lightmapdatasize = 0;
-
-		color32_t* pdiffusemaptexture = new color32_t[pwater->lightmaptextureheights[i] * pwater->lightmaptexturewidths[i]];
 		Uint32 diffuselightdatasize = 0;
-
-		color32_t* plightvecstexture = new color32_t[pwater->lightmaptextureheights[i] * pwater->lightmaptexturewidths[i]];
 		Uint32 lightvecsdatasize = 0;
 
 		// Get overdarken treshold
@@ -451,7 +461,7 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 			else
 				psrc = nullptr;
 
-			R_BuildLightmap(psurf->light_s[i], psurf->light_t[i], psrc, psurf, plightmapdata, i, pwater->lightmaptexturewidths[i], overdarken, 0);
+			R_BuildLightmap(psurf->light_s[i], psurf->light_t[i], psrc, psurf, plightmapdata, i, pwater->lightmaptexturewidths[i], overdarken, paddingAmount);
 			lightmapdatasize += size * sizeof(color32_t);
 
 			// See if we have anything to bind
@@ -459,12 +469,12 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 			{
 				// Grab diffuse lightmap data
 				psrc = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(pbrushmodel->plightdata_water[SURF_LIGHTMAP_DIFFUSE]) + psurf->lightoffset_water);
-				R_BuildLightmap(psurf->light_s[i], psurf->light_t[i], psrc, psurf, pdiffusemaptexture, i, pwater->lightmaptexturewidths[i], 0);
+				R_BuildLightmap(psurf->light_s[i], psurf->light_t[i], psrc, psurf, pdiffusemaptexture, i, pwater->lightmaptexturewidths[i], 0, paddingAmount);
 				diffuselightdatasize += size * sizeof(color32_t);
 
 				// Grab vectors lightmap data
 				psrc = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(pbrushmodel->plightdata_water[SURF_LIGHTMAP_VECTORS]) + psurf->lightoffset_water);
-				R_BuildLightmap(psurf->light_s[i], psurf->light_t[i], psrc, psurf, plightvecstexture, i, pwater->lightmaptexturewidths[i], 0, true);
+				R_BuildLightmap(psurf->light_s[i], psurf->light_t[i], psrc, psurf, plightvecstexture, i, pwater->lightmaptexturewidths[i], 0, paddingAmount, true);
 				lightvecsdatasize += size * sizeof(color32_t);
 			}
 		}
@@ -1009,6 +1019,8 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 	Uint32 *pindexes = new Uint32[indexcount];
 	Uint32 indexoffset = 0;
 
+	Uint32 paddingAmount = clamp(g_pCvarLightmapPadding->GetValue(), 0, MAX_LIGHTMAP_PADDING);
+
 	pwater->mins = NULL_MINS;
 	pwater->maxs = NULL_MAXS;
 
@@ -1018,12 +1030,12 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 	pwater->start_index = index_base;
 	pwater->num_indexes = indexcount;
 
-	// For tracking lightmap allocations
 	for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
 	{
 		pwater->lightmaptexturewidths[i] = WATER_LIGHTMAP_DEFAULT_WIDTH;
 		pwater->lightmaptextureheights[i] = WATER_LIGHTMAP_DEFAULT_HEIGHT;
 
+		// For tracking lightmap allocations
 		Uint32* pallocations = new Uint32[pwater->lightmaptexturewidths[i]];
 		for(Uint32 j = 0; j < pwater->lightmaptexturewidths[i]; j++)
 			pallocations[j] = 0;
@@ -1041,7 +1053,7 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 			Uint32 xsize = (psurf->extents[0] / psurf->lightmapdivider)+1;
 			Uint32 ysize = (psurf->extents[1] / psurf->lightmapdivider)+1;
 
-			R_AllocBlock(xsize, ysize, psurf->light_s[i], psurf->light_t[i], pwater->lightmaptexturewidths[i], pwater->lightmaptextureheights[i], pallocations);
+			R_AllocBlock(xsize, ysize, psurf->light_s[i], psurf->light_t[i], pwater->lightmaptexturewidths[i], pwater->lightmaptextureheights[i], pallocations, paddingAmount);
 		}
 
 		delete[] pallocations;

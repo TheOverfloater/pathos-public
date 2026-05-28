@@ -590,6 +590,8 @@ void CBSPRenderer::ClearGame( void )
 //=============================================
 void CBSPRenderer::SetLightmapCoords( void ) 
 {
+	Uint32 paddingAmount = clamp(g_pCvarLightmapPadding->GetValue(), 0, MAX_LIGHTMAP_PADDING);
+
 	// Set default height
 	for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
 	{
@@ -608,8 +610,8 @@ void CBSPRenderer::SetLightmapCoords( void )
 				continue;
 
 			// Determine sizes
-			Uint32 xsize = (psurface->extents[0] / psurface->lightmapdivider)+1;
-			Uint32 ysize = (psurface->extents[1] / psurface->lightmapdivider)+1;
+			Uint32 xsize = (psurface->extents[0] / psurface->lightmapdivider) + 1;
+			Uint32 ysize = (psurface->extents[1] / psurface->lightmapdivider) + 1;
 
 			// Skip empty styles
 			if(i > BASE_LIGHTMAP_INDEX && psurface->styles[i] == NULL_LIGHTSTYLE_INDEX)
@@ -617,7 +619,7 @@ void CBSPRenderer::SetLightmapCoords( void )
 
 			// Allocate lightmap slot
 			Uint32 light_s, light_t;
-			R_AllocBlock(xsize, ysize, light_s, light_t, m_lightmapWidths[i], m_lightmapHeights[i], pallocations);
+			R_AllocBlock(xsize, ysize, light_s, light_t, m_lightmapWidths[i], m_lightmapHeights[i], pallocations, paddingAmount);
 
 			bsp_surface_t* pbspsurface = &m_surfacesArray[j];
 			psurface->light_s[i] = pbspsurface->light_s[i] = light_s;
@@ -641,6 +643,8 @@ void CBSPRenderer::InitLightmaps( void )
 	if(overdarken < 0)
 		overdarken = 0;
 
+	Uint32 paddingAmount = clamp(g_pCvarLightmapPadding->GetValue(), 0, MAX_LIGHTMAP_PADDING);
+
 	// Reset this
 	m_bumpMaps = false;
 	m_useLightStyles = false;
@@ -654,8 +658,11 @@ void CBSPRenderer::InitLightmaps( void )
 	{
 		// alloc default lightmap's data
 		Uint32 lightmapdatasize = 0;
-		color32_t* plightmap = new color32_t[m_lightmapWidths[i]*m_lightmapHeights[i]];
-		memset(plightmap, 0, sizeof(color32_t)*m_lightmapWidths[i]*m_lightmapHeights[i]);
+
+		Uint32 texturepixelsize = m_lightmapWidths[i]*m_lightmapHeights[i];
+		color32_t* plightmap = new color32_t[texturepixelsize];
+		for(Uint32 j = 0; j < m_lightmapWidths[i]*m_lightmapHeights[i]; j++)
+			plightmap[j] = color32_t(0, 0, 0, 255);
 
 		// Process the surfaces
 		for(Uint32 j = 0; j < ens.pworld->numsurfaces; j++)
@@ -692,7 +699,7 @@ void CBSPRenderer::InitLightmaps( void )
 			else
 				psrclightdata = nullptr;
 
-			R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrclightdata, psurface, plightmap, i, m_lightmapWidths[i], overdarkValue, false, isfullbright);
+			R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrclightdata, psurface, plightmap, i, m_lightmapWidths[i], overdarkValue, paddingAmount, false, isfullbright);
 			lightmapdatasize += size*sizeof(color32_t);
 		}
 
@@ -773,8 +780,10 @@ void CBSPRenderer::InitLightmaps( void )
 			{
 				// alloc ambient lightmap's data
 				Uint32 lightdatasize = 0;
-				color32_t* plightmapdata = new color32_t[m_lightmapWidths[i]*m_lightmapHeights[i]];
-				memset(plightmapdata, 0, sizeof(color32_t)*m_lightmapWidths[i]*m_lightmapHeights[i]);
+				Uint32 texturepixelsize = m_lightmapWidths[i]*m_lightmapHeights[i];
+				color32_t* plightmapdata = new color32_t[texturepixelsize];
+				for(Uint32 j = 0; j < m_lightmapWidths[i]*m_lightmapHeights[i]; j++)
+					plightmapdata[j] = color32_t(0, 0, 0, 255);
 
 				// Process the surfaces
 				for(Uint32 j = 0; j < ens.pworld->numsurfaces; j++)
@@ -803,7 +812,7 @@ void CBSPRenderer::InitLightmaps( void )
 					Uint32 size = xsize*ysize;
 
 					color24_t* psrc = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(ens.pworld->plightdata[k]) + psurface->lightoffset);
-					R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrc, psurface, plightmapdata, i, m_lightmapWidths[i], _overdarken, isvectormap);
+					R_BuildLightmap(pbspsurface->light_s[i], pbspsurface->light_t[i], psrc, psurface, plightmapdata, i, m_lightmapWidths[i], _overdarken, paddingAmount, isvectormap);
 					lightdatasize += size*sizeof(color32_t);
 				}
 

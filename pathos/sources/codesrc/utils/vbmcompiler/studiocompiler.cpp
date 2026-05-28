@@ -1602,7 +1602,7 @@ bool CStudioModelCompiler::LoadTexture( smdl::texture_t* ptexture )
 
 		// Figure out sizes
 		texture_compression_t compression = TX_COMPRESSION_NONE;
-		if(!BMP_Load8Bit(filePath.c_str(), pfile, ppalette, ptexturedata, srcWidth, srcHeight, dataSize, compression, ErrorMsg))
+		if(!BMP_Load8Bit_Original(filePath.c_str(), pfile, ppalette, ptexturedata, srcWidth, srcHeight, dataSize, compression, ErrorMsg))
 		{
 			ErrorMsg("Texture '%s' is not a valid 8-bit BMP file.\n", ptexture->name.c_str());
 			FreeFile(pfile);

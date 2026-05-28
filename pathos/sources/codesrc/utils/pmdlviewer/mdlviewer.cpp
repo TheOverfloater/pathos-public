@@ -29,7 +29,6 @@
 #include "fileassociation.h"
 #include "optionswindow.h"
 #include "config.h"
-#include "compilerwindow.h"
 #include "viewerstate.h"
 #include "folderviewer.h"
 
@@ -113,7 +112,6 @@ CMDLViewer::CMDLViewer( void ):
 
 	menuFile->add("Load Model...", IDC_FILE_LOADMODEL);
 	menuFile->addSeparator ();
-	menuFile->add("Compile QC...", IDC_FILE_COMPILEMODEL);
 	menuFile->add("Decompile Model...", IDC_FILE_DECOMPILEMODEL);
 	menuFile->addSeparator();
 	menuFile->add("Load Skybox Texture...", IDC_FILE_LOADBACKGROUNDTEX);
@@ -415,45 +413,8 @@ Int32 CMDLViewer::handleEvent( mxEvent *pEvent )
 				{
 					const Char *pstrLastLoadPath = gConfig.GetOptionValue(VIEWER_MDL_LOAD_PATH);
 					const Char *pstrFilePath = mxGetOpenFileName (this, pstrLastLoadPath, "*.mdl");
-					if (pstrFilePath)
-					{
-						CString dirpath;
-						Viewer_GetDirectoryPath(pstrFilePath, dirpath);
-						gConfig.SetOption(VIEWER_MDL_LOAD_PATH, dirpath.c_str());
 
-						CControlPanel* pControlPanel = CControlPanel::GetInstance();
-						pControlPanel->LoadModel(pstrFilePath);
-
-						Uint32 i = 0;
-						for(; i < MAX_RECENT_FILES; i++)
-						{
-							if(!qstrcicmp(m_recentMDLFilesArray[i], pstrFilePath))
-								break;
-						}
-
-						if(i != MAX_RECENT_FILES)
-						{
-							CString tmp = m_recentMDLFilesArray[0];
-							m_recentMDLFilesArray[0] = m_recentMDLFilesArray[i];
-							m_recentMDLFilesArray[i] = tmp;
-						}
-						else
-						{
-							for(i = MAX_RECENT_FILES-1; i > 0; i--)
-								m_recentMDLFilesArray[i] = m_recentMDLFilesArray[i - 1];
-
-							m_recentMDLFilesArray[0] = pstrFilePath;
-						}
-
-						InitRecentFiles();
-					}
-				}
-				break;
-			case IDC_FILE_COMPILEMODEL:
-				{
-					CCompilerWindow* pCompilerWindow = CCompilerWindow::GetInstance();
-					pCompilerWindow->GetHistory();
-					pCompilerWindow->setVisible(true);
+					LoadModel(pstrFilePath);
 				}
 				break;
 			case IDC_FILE_DECOMPILEMODEL:
@@ -818,7 +779,7 @@ Int32 CMDLViewer::handleEvent( mxEvent *pEvent )
 // @brief Redraws the object
 //
 //=============================================
-void CMDLViewer::redraw ()
+void CMDLViewer::redraw( void )
 {
 	mxEvent event;
 	event.event = mxEvent::Size;
@@ -826,6 +787,44 @@ void CMDLViewer::redraw ()
 	event.height = h2();
 
 	handleEvent (&event);
+}
+
+//=============================================
+// @brief Loads a model
+//
+//=============================================
+bool CMDLViewer::LoadModel( const Char* pstrFilepath )
+{
+	CString dirpath;
+	Viewer_GetDirectoryPath(pstrFilepath, dirpath);
+	gConfig.SetOption(VIEWER_MDL_LOAD_PATH, dirpath.c_str());
+
+	CControlPanel* pControlPanel = CControlPanel::GetInstance();
+	pControlPanel->LoadModel(pstrFilepath);
+
+	Uint32 i = 0;
+	for(; i < MAX_RECENT_FILES; i++)
+	{
+		if(!qstrcicmp(m_recentMDLFilesArray[i], pstrFilepath))
+			break;
+	}
+
+	if(i != MAX_RECENT_FILES)
+	{
+		CString tmp = m_recentMDLFilesArray[0];
+		m_recentMDLFilesArray[0] = m_recentMDLFilesArray[i];
+		m_recentMDLFilesArray[i] = tmp;
+	}
+	else
+	{
+		for(i = MAX_RECENT_FILES-1; i > 0; i--)
+			m_recentMDLFilesArray[i] = m_recentMDLFilesArray[i - 1];
+
+		m_recentMDLFilesArray[0] = pstrFilepath;
+	}
+
+	InitRecentFiles();
+	return true;
 }
 
 //=============================================

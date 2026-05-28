@@ -33,6 +33,8 @@
 #include "mdlviewer.h"
 #include "config.h"
 #include "stepsound.h"
+#include "fileassociation.h"
+#include "optionswindow.h"
 
 // Last loaded WAV file option header
 const char CControlPanel::CP_LAST_WAV_PATH[] = "LAST_WAV_PATH";
@@ -48,9 +50,32 @@ const Char CControlPanel::CP_GROUND_ENABLED[] = "GROUND_RENDER_ENABLED";
 const Char CControlPanel::CP_MIRROR_ENABLED[] = "GROUND_MIRROR_ENABLED";
 // Whether skybox was enabled
 const Char CControlPanel::CP_SKYBOX_ENABLED[] = "SKYBOX_ENABLED";
+// Option header for last qc path
+const Char CControlPanel::LAST_QC_PATH_HEADER[] = "LAST_QC_PATH";
+// Option header for last copy path
+const Char CControlPanel::LAST_COPY_PATH_HEADER[] = "LAST_COPY_PATH";
+// Compiler window title
+const Char CControlPanel::WINDOW_TITLE[] = "QC Compile";
+// Default program for editing
+const Char CControlPanel::DEFAULT_EDITOR[] = "notepad";
 
+// Max history of qc files
+const Uint32 CControlPanel::MAX_COMPILER_HISTORY = 8;
 // Deletion sensitivity
 const float CControlPanel::FLEX_DELETION_SENSITIVITY	= 0.05;
+
+// Compiler arguments
+CControlPanel::compiler_flag_t CControlPanel::COMPILER_FLAGS[NB_COMPILER_FLAGS] = {
+	CControlPanel::compiler_flag_t("Tag reversed triangles", "r", "CMP_FL_MARK_REV_TRIS"),
+	CControlPanel::compiler_flag_t("Tag corrupted normals", "n", "CMP_FL_MARK_CORRUPTED_NORMALS"),
+	CControlPanel::compiler_flag_t("Flip normals of all triangles", "f", "CMP_FL_FLIP_ALL_TRIS"),
+	CControlPanel::compiler_flag_t("Dump hitbox information", "h", "CMP_FL_DUMP_HITBOXES"),
+	CControlPanel::compiler_flag_t("Strip GoldSrc MDL geometry data", "s", "CMP_FL_STRIP_MDL_GEOMETRY"),
+	CControlPanel::compiler_flag_t("Strip GoldSrc MDL texture data", "q", "CMP_FL_STRIP_MDL_TEXTURES"),
+	CControlPanel::compiler_flag_t("Remove 2048 vertex/normal limit", "l", "CMP_FL_OVERRIDE_VERT_NORM_LIMIT"),
+	CControlPanel::compiler_flag_t("Do not create VBM for model", "d", "CMP_FL_DONT_CREATE_VBM"),
+	CControlPanel::compiler_flag_t("Wait for key key input before closing", "w", "CMP_FL_WAIT_KEY")
+};
 
 // Current instance of this class
 CControlPanel* CControlPanel::g_pInstance = nullptr;
@@ -117,7 +142,10 @@ CControlPanel::CControlPanel( mxWindow *parent ):
 	m_numFlexes(0),
 	m_pWindowFlexes(nullptr),
 	m_pWindowFlexScripting(nullptr),
-	m_pTextureWindow(nullptr)
+	m_pTextureWindow(nullptr),
+	m_pChoiceQcPaths(nullptr),
+	m_pChoiceCopyPaths(nullptr),
+	m_pCompilerFlagCheckBoxes(nullptr)
 {
 	// create tabcontrol with subdialog windows
 	m_pTab = new mxTab (this, 0, 0, 0, 0, IDC_TAB);
@@ -134,6 +162,9 @@ CControlPanel::CControlPanel( mxWindow *parent ):
 
 	// Texture tab
 	InitTextureTab();
+
+	// Initialize compiler tab
+	InitCompilerTab();
 
 	// Flexes tab
 	InitFlexesTab();
@@ -158,6 +189,12 @@ CControlPanel::~CControlPanel( void )
 	{
 		delete[] m_pSliderFlexScalers;
 		m_pSliderFlexScalers = nullptr;
+	}
+
+	if(m_pCompilerFlagCheckBoxes)
+	{
+		delete[] m_pCompilerFlagCheckBoxes;
+		m_pCompilerFlagCheckBoxes = nullptr;
 	}
 
 	// mx deletes these windows before we 
@@ -347,6 +384,65 @@ void CControlPanel::InitTextureTab( void )
 	m_pSliderTransSlider->setValue(0);
 	m_pSliderTransSlider->setEnabled(false);
 	m_pLabelTransSlider->setEnabled(false);
+}
+
+//=============================================
+// @brief Initializes compiler tab
+//
+//=============================================
+void CControlPanel::InitCompilerTab( void )
+{
+	mxWindow *pWindowCompile = new mxWindow(this, 0, 0, 0, 0);
+	m_pTab->add(pWindowCompile, "Compile");
+
+	mxGroupBox* compileGroup = new mxGroupBox (pWindowCompile, 5, 5, 440, 80, "Compile");
+	new mxLabel (pWindowCompile, 15, 28, 150, 18, "QC path:");
+	m_pChoiceQcPaths = new mxChoice (pWindowCompile, 15, 20, 400, 22, IDC_COMPILER_FILE_PATH);
+	new mxButton (pWindowCompile, 415, 20, 22, 22, "...", IDC_COMPILER_FILE_BUTTON);
+	new mxButton (pWindowCompile, 15, 50, 60, 22, "Compile", IDC_COMPILER_COMPILE_BUTTON);
+	new mxButton (pWindowCompile, 85, 50, 100, 22, "Compile and Copy", IDC_COMPILER_COMPILE_AND_COPY);
+	new mxButton (pWindowCompile, 200, 50, 60, 22, "View Log", IDC_COMPILER_VIEW_LOG_BUTTON);
+	new mxButton (pWindowCompile, 275, 50, 60, 22, "Edit", IDC_COMPILER_EDIT_BUTTON);
+
+	mxGroupBox* copyGroup = new mxGroupBox (pWindowCompile, 460, 5, 440, 80, "Copy");
+	m_pChoiceCopyPaths = new mxChoice (pWindowCompile, 465, 20, 400, 22, IDC_COMPILER_COPY_PATH);
+	new mxButton (pWindowCompile, 870, 20, 22, 22, "...", IDC_COMPILER_COPY_PATH_BUTTON);
+	new mxButton (pWindowCompile, 465, 50, 60, 22, "Copy", IDC_COMPILER_COPY_BUTTON);
+	new mxButton (pWindowCompile, 535, 50, 120, 22, "Load destination file", IDC_COMPILER_LOAD_DEST_FILE_BTN);
+
+	mxGroupBox* flagsGroup = new mxGroupBox (pWindowCompile, 915, 5, 620, 80, "Flags");
+
+	Uint32 xIndex = 0;
+	Uint32 yIndex = 0;
+	m_pCompilerFlagCheckBoxes = new mxCheckBox*[NB_COMPILER_FLAGS];
+	for(Uint32 i = 0; i < NB_COMPILER_FLAGS; i++)
+	{
+		compiler_flag_t& flag = COMPILER_FLAGS[i];
+
+		Uint32 xOrigin = 920 + xIndex * 200;
+		Uint32 yOrigin = 20 + yIndex * 20;
+
+		m_pCompilerFlagCheckBoxes[i] = new mxCheckBox(pWindowCompile, xOrigin, yOrigin, 200, 22, flag.desc.c_str(), IDC_COMPILER_FLAG_BASE_ID + i);
+
+		xIndex++;
+		if(xIndex == 3)
+		{
+			xIndex = 0;
+			yIndex++;
+		}
+
+		const Char* pstrValue = gConfig.GetOptionValue(flag.savename.c_str());
+		if(pstrValue && !qstrcmp(pstrValue, "1"))
+		{
+			m_pCompilerFlagCheckBoxes[i]->setChecked(true);
+		}
+		else
+		{
+			m_pCompilerFlagCheckBoxes[i]->setChecked(false);
+		}
+	}
+
+	GetCompilerHistory();
 }
 
 //=============================================
@@ -686,6 +782,16 @@ int CControlPanel::handleEvent( mxEvent *pEvent )
 		}
 
 		return 1;
+	}
+	else if(pEvent->action >= IDC_COMPILER_FLAG_BASE_ID && pEvent->action < (IDC_COMPILER_FLAG_BASE_ID + NB_COMPILER_FLAGS))
+	{
+		Uint32 index = (pEvent->action - IDC_COMPILER_FLAG_BASE_ID);
+		const compiler_flag_t& flag = COMPILER_FLAGS[index];
+
+		if(m_pCompilerFlagCheckBoxes[index]->isChecked())
+			gConfig.SetOption(flag.savename.c_str(), "1");
+		else
+			gConfig.SetOption(flag.savename.c_str(), "0");
 	}
 
 	switch (pEvent->action)
@@ -1107,6 +1213,161 @@ int CControlPanel::handleEvent( mxEvent *pEvent )
 	case IDC_FLEX_SAVE_SCRIPT:
 		{
 			SaveFlexScript();
+		}
+		break;
+	case IDC_COMPILER_COMPILE_BUTTON:
+		{
+			CompileQC();
+		}
+		break;
+	case IDC_COMPILER_COMPILE_AND_COPY:
+		{
+			CompileQC();
+			CopyFiles();
+		}
+		break;
+	case IDC_COMPILER_VIEW_LOG_BUTTON:
+		{
+			ViewLog();
+		}
+		break;
+	case IDC_COMPILER_FILE_BUTTON:
+		{
+			CString ssOption0;
+			ssOption0 << LAST_QC_PATH_HEADER << "_0";
+
+			const Char *pstrLastQcPath = gConfig.GetOptionValue(ssOption0.c_str());
+			const Char *pstrFilePath = mxGetOpenFileName(this, pstrLastQcPath, "*.qc");
+			if (pstrFilePath)
+			{
+				// Get dir path
+				CString path;
+				Viewer_GetDirectoryPath(pstrFilePath, path);
+
+				Uint32 i;
+				for (i = 0; i < m_qcFileHistoryArray.size(); i++)
+				{
+					if(!qstrcicmp(m_qcFileHistoryArray[i], path))
+						break;
+				}
+
+				// swap existing recent file
+				if (i != m_qcFileHistoryArray.size())
+				{
+					CString tmp = m_qcFileHistoryArray[0];
+					m_qcFileHistoryArray[0] = m_qcFileHistoryArray[i];
+					m_qcFileHistoryArray[i] = tmp;
+				}
+				else
+				{
+					if(m_qcFileHistoryArray.size() < MAX_COMPILER_HISTORY)
+						m_qcFileHistoryArray.resize(m_qcFileHistoryArray.size()+1);
+
+					for (i = m_qcFileHistoryArray.size()-1; i > 0; i--)
+						m_qcFileHistoryArray[i] = m_qcFileHistoryArray[i-1];
+
+					m_qcFileHistoryArray[0] = pstrFilePath;
+				}
+			}
+
+			// Reset these
+			InitCopyPathHistory();
+			InitQcHistory();
+			SaveCompilerHistory();
+
+			// Redraw the window
+			redraw();
+		}
+		break;
+	case IDC_COMPILER_COPY_PATH_BUTTON:
+		{
+			const char *pstrFolder = mxGetSelectFolder(this);
+			if (pstrFolder)
+			{
+				Uint32 i;
+				for (i = 0; i < m_copyPathHistoryArray.size(); i++)
+				{
+					if(!qstrcicmp(m_copyPathHistoryArray[i], pstrFolder))
+						break;
+				}
+
+				// swap existing recent file
+				if (i != m_copyPathHistoryArray.size())
+				{
+					CString tmp = m_copyPathHistoryArray[0];
+					m_copyPathHistoryArray[0] = m_copyPathHistoryArray[i];
+					m_copyPathHistoryArray[i] = tmp;
+				}
+				else
+				{
+					if(m_copyPathHistoryArray.size() < MAX_COMPILER_HISTORY)
+						m_copyPathHistoryArray.resize(m_copyPathHistoryArray.size()+1);
+
+					for(i = m_copyPathHistoryArray.size()-1; i > 0; i--)
+						m_copyPathHistoryArray[i] = m_copyPathHistoryArray[i-1];
+
+					m_copyPathHistoryArray[0] = pstrFolder;
+				}
+			}
+			// Re-initialize these
+			InitCopyPathHistory();
+			SaveCompilerHistory();
+
+			// Redraw window
+			redraw();
+		}
+		break;
+	case IDC_COMPILER_COPY_PATH:
+		{
+			Int32 selectIdx = m_pChoiceCopyPaths->getSelectedIndex();
+			m_pChoiceCopyPaths->select(0);
+
+			if(selectIdx < 0 || selectIdx >= MAX_COMPILER_HISTORY || selectIdx >= m_copyPathHistoryArray.size())
+			{
+				mxMessageBox(this, "Output directory index was invalid.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+				return 0;
+			}
+
+			CString tmp = m_copyPathHistoryArray[0];
+			m_copyPathHistoryArray[0] = m_copyPathHistoryArray[selectIdx];
+			m_copyPathHistoryArray[selectIdx] = tmp;
+
+			SaveCompilerHistory();
+			InitCopyPathHistory();
+		}
+		break;
+	case IDC_COMPILER_FILE_PATH:
+		{
+			Int32 selectIdx = m_pChoiceQcPaths->getSelectedIndex();
+			m_pChoiceQcPaths->select(0);
+
+			if(selectIdx < 0 || selectIdx >= MAX_COMPILER_HISTORY || selectIdx >= m_qcFileHistoryArray.size())
+			{
+				mxMessageBox(this, "Output directory index was invalid.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+				return 0;
+			}
+
+			CString tmp = m_qcFileHistoryArray[0];
+			m_qcFileHistoryArray[0] = m_qcFileHistoryArray[selectIdx];
+			m_qcFileHistoryArray[selectIdx] = tmp;
+
+			SaveCompilerHistory();
+			InitQcHistory();
+		}
+		break;
+	case IDC_COMPILER_EDIT_BUTTON:
+		{
+			EditQC();
+		}
+		break;
+	case IDC_COMPILER_COPY_BUTTON:
+		{
+			CopyFiles();
+		}
+		break;
+	case IDC_COMPILER_LOAD_DEST_FILE_BTN:
+		{
+			LoadDestinationFile();
 		}
 		break;
 	default:
@@ -2187,6 +2448,424 @@ void CControlPanel::ClearMaterialsList( void )
 
 	m_pChoiceMaterial->removeAll();
 	m_pChoiceMaterial->select(0);
+}
+
+//=============================================
+// @brief Opens a QC file for editing
+//
+//=============================================
+void CControlPanel::EditQC( void )
+{
+	Int32 qcIndex = m_pChoiceQcPaths->getSelectedIndex();
+	if(qcIndex < 0 || qcIndex >= MAX_COMPILER_HISTORY || qcIndex >= m_qcFileHistoryArray.size())
+	{
+		mxMessageBox(this, "QC index was invalid.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return;
+	}
+
+	CFileAssociation *pFileAssoc = CFileAssociation::GetInstance();
+	if(!pFileAssoc)
+	{
+		mxMessageBox(this, "Couldn't get file assoc window.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return;
+	}
+
+	// Get the associated program for QCs
+	CString programToUse;
+	const Char* pstrAssoc = pFileAssoc->GetProgram( "qc" );
+	Int32 openMode = pFileAssoc->GetMode( "qc" );
+	if(pstrAssoc && openMode == 0)
+		programToUse = pstrAssoc;
+	else
+		programToUse = DEFAULT_EDITOR;
+
+	CString cmd;
+	cmd << programToUse << " \"" << m_qcFileHistoryArray[qcIndex] << "\"";
+
+	if(WinExec(cmd.c_str(), SW_SHOW) <= WINEXEC_ERROR_CODE_MAX)
+		mxMessageBox(this, "Error executing specified program.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+
+	SetFocus((HWND)this->getHandle());
+}
+
+//=============================================
+// @brief Opens the editor for the selected QC's log file
+//
+//=============================================
+void CControlPanel::ViewLog( void )
+{
+	// Get the QC we want to compile
+	Int32 qcIndex = m_pChoiceQcPaths->getSelectedIndex();
+	if(qcIndex < 0 || qcIndex >= MAX_COMPILER_HISTORY || qcIndex >= m_qcFileHistoryArray.size())
+	{
+		mxMessageBox(this, "QC index was invalid.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return;
+	}
+
+	// Retrieve the QC path
+	CString qcPath = m_qcFileHistoryArray[qcIndex];
+	Int32 dotPosition = qcPath.find(0, ".");
+	if(dotPosition != CString::CSTRING_NO_POSITION)
+	{
+		Uint32 nbRemove = qcPath.length() - dotPosition;
+		qcPath.erase(dotPosition, nbRemove);
+	}
+
+	CFileAssociation *pFileAssoc = CFileAssociation::GetInstance();
+	if(!pFileAssoc)
+	{
+		mxMessageBox(this, "Couldn't get file assoc window.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return;
+	}
+
+	// Get the associated program for QCs
+	CString programToUse;
+	const Char* pstrAssoc = pFileAssoc->GetProgram( "log" );
+	Int32 openMode = pFileAssoc->GetMode( "log" );
+	if(pstrAssoc && openMode == 0)
+		programToUse = pstrAssoc;
+	else
+		programToUse = DEFAULT_EDITOR;
+
+	CString cmd;
+	cmd << programToUse << " \"" << qcPath << ".log\"";
+
+	if(WinExec(cmd.c_str(), SW_SHOW) <= WINEXEC_ERROR_CODE_MAX)
+		mxMessageBox(this, "Error executing specified program.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+
+	SetFocus((HWND)this->getHandle());
+}
+
+//=============================================
+// @brief Compiles a QC file
+//
+//=============================================
+void CControlPanel::CompileQC( void )
+{
+	const Char *pstrCompilerPath = gConfig.GetOptionValue(COptionsWindow::OW_COMPILER_PATH);
+	if(!pstrCompilerPath)
+	{
+		mxMessageBox(this, "Compiler not specified.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return;
+	}
+
+	// Get the QC we want to compile
+	Int32 qcIndex = m_pChoiceQcPaths->getSelectedIndex();
+	if(qcIndex < 0 || qcIndex >= MAX_COMPILER_HISTORY || qcIndex >= m_qcFileHistoryArray.size())
+	{
+		mxMessageBox(this, "QC index was invalid.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return;
+	}
+
+	// Retrieve the QC path
+	const CString& qcPath = m_qcFileHistoryArray[qcIndex];
+
+	// Retrieve the folder
+	Uint32 length = qcPath.length() - 1;
+	while(qcPath[length] != '\\' && qcPath[length] != '/')
+		length--;
+
+	// Assign final contents
+	CString path(qcPath.c_str(), length);
+
+	// Build command
+	CString cmd;
+	cmd << "cd \"" << path << "\" & ";
+	cmd << "\"" << pstrCompilerPath << "\"" <<" ";
+
+	// Get command args
+	const Char *pstrCmdArgs = gConfig.GetOptionValue(COptionsWindow::OW_COMPILER_ARGS);
+	if(pstrCmdArgs)
+		 cmd << " " << pstrCmdArgs << " ";
+
+	// Add checkbox stuff
+	for(Uint32 i = 0; i < NB_COMPILER_FLAGS; i++)
+	{
+		if(m_pCompilerFlagCheckBoxes[i]->isChecked())
+			cmd << " -" << COMPILER_FLAGS[i].argument << " ";
+	}
+
+	// Add final arg, the QC path
+	cmd << " \"" << qcPath << "\"";
+	system(cmd.c_str());
+}
+
+//=============================================
+// @brief Returns the destination file name
+//
+//=============================================
+CString CControlPanel::GetDestinationFilename( void )
+{
+	Int32 qcIndex = m_pChoiceQcPaths->getSelectedIndex();
+	if(qcIndex < 0 || qcIndex >= MAX_COMPILER_HISTORY || qcIndex >= m_qcFileHistoryArray.size())
+	{
+		mxMessageBox(this, "QC index was invalid.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return "";
+	}
+
+	// Retrieve the QC path
+	const CString& qcPath = m_qcFileHistoryArray[qcIndex];
+	const byte* pFile = FL_LoadFile(qcPath.c_str(), nullptr);
+	if(!pFile)
+	{
+		mxMessageBox (this, "File not found.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return "";
+	}
+
+	CString basename;
+	Char token[MAX_PARSE_LENGTH];
+
+	CString line;
+	const Char* pstr = reinterpret_cast<const Char*>(pFile);
+	while(pstr)
+	{
+		pstr = Common::ReadLine(pstr, line);
+		if(line.empty())
+			continue;
+
+		const Char* plstr = Common::Parse(line.c_str(), token);
+		if(!plstr)
+			continue;
+
+		if(!qstrcmp(token, "$modelname"))
+		{
+			Common::Parse(plstr, token);
+			Common::Basename(token, basename);
+			break;
+		}
+	}
+
+	FL_FreeFile(pFile);
+
+	return basename;
+}
+
+//=============================================
+// @brief Loads destination file
+//
+//=============================================
+void CControlPanel::LoadDestinationFile( void )
+{
+	CString destFilename = GetDestinationFilename();
+	if(destFilename.empty())
+	{
+		mxMessageBox(this, "$modelname not found in Qc file.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return;
+	}
+
+	Int32 outDirIndex = m_pChoiceCopyPaths->getSelectedIndex();
+	if(outDirIndex < 0 || outDirIndex >= MAX_COMPILER_HISTORY || outDirIndex >= m_copyPathHistoryArray.size())
+	{
+		mxMessageBox(this, "Output directory index was invalid.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return;
+	}
+
+	// Retrieve the QC path
+	const CString& qcPath = m_copyPathHistoryArray[outDirIndex];
+
+	// Assign final contents
+	CString path;
+	path << qcPath << PATH_SLASH_CHAR << destFilename << ".mdl";
+
+	// Finally, load the model
+	CMDLViewer::GetInstance()->LoadModel(path.c_str());
+}
+
+//=============================================
+// @brief Copies files to the destination folder
+//
+//=============================================
+void CControlPanel::CopyFiles( void )
+{
+	CString destFilename = GetDestinationFilename();
+	if(destFilename.empty())
+	{
+		mxMessageBox(this, "$modelname not found in Qc file.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return;
+	}
+
+	// Copy the MDL file
+	bool copiedMDL = CopyFile(destFilename.c_str(), "mdl");
+	// Copy the VBM file
+	bool copiedVBM = CopyFile(destFilename.c_str(), "vbm");
+
+	// Copy the .mdl and .vbm files
+	CString msg;
+	if(copiedMDL && copiedVBM)
+	{
+		Int32 outDirIndex = m_pChoiceCopyPaths->getSelectedIndex();
+		if(outDirIndex < 0 || outDirIndex >= MAX_COMPILER_HISTORY || outDirIndex >= m_copyPathHistoryArray.size())
+		{
+			mxMessageBox(this, "Output directory index was invalid.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+			return;
+		}
+
+		msg << destFilename << ".mdl and " << destFilename << ".vbm successfully copied to " << m_copyPathHistoryArray[outDirIndex];
+	}
+	else if(copiedMDL)
+	{
+		Int32 outDirIndex = m_pChoiceCopyPaths->getSelectedIndex();
+		if(outDirIndex < 0 || outDirIndex >= MAX_COMPILER_HISTORY || outDirIndex >= m_copyPathHistoryArray.size())
+		{
+			mxMessageBox(this, "Output directory index was invalid.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+			return;
+		}
+
+		msg << destFilename << ".mdl successfully copied to " << m_copyPathHistoryArray[outDirIndex];
+	}
+	else
+	{
+		msg = "No files were copied.";
+	}
+
+	mxMessageBox(this, msg.c_str(), CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_INFORMATION);
+}
+
+//=============================================
+// @brief Copies specified file to the destination folder
+//
+//=============================================
+bool CControlPanel::CopyFile( const Char* pstrBaseName, const Char* pstrExtension )
+{
+	Int32 qcIndex = m_pChoiceQcPaths->getSelectedIndex();
+	if(qcIndex < 0 || qcIndex >= MAX_COMPILER_HISTORY || qcIndex >= m_qcFileHistoryArray.size())
+	{
+		mxMessageBox(this, "QC index was invalid.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return false;
+	}
+
+	Int32 outDirIndex = m_pChoiceCopyPaths->getSelectedIndex();
+	if(outDirIndex < 0 || outDirIndex >= MAX_COMPILER_HISTORY || outDirIndex >= m_copyPathHistoryArray.size())
+	{
+		mxMessageBox(this, "Output directory index was invalid.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return false;
+	}
+
+	// Retrieve the QC path
+	const CString& qcPath = m_qcFileHistoryArray[qcIndex];
+
+	// Retrieve the folder
+	Uint32 length = qcPath.length() - 1;
+	while(qcPath[length] != '\\' && qcPath[length] != '/')
+		length--;
+
+	// Assign final contents
+	CString path(qcPath.c_str(), length);
+	path << PATH_SLASH_CHAR << pstrBaseName << "." << pstrExtension;
+
+	Uint32 fileSize = 0;
+	const byte* pFile = FL_LoadFile(path.c_str(), &fileSize);
+	if(!pFile)
+	{
+		CString msg;
+		msg << "Couldn't open " << path << " for reading.";
+		mxMessageBox(this, msg.c_str(), CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+		return false;
+	}
+
+	CString outputPath;
+	outputPath << m_copyPathHistoryArray[outDirIndex] << PATH_SLASH_CHAR << pstrBaseName << "." << pstrExtension;
+
+	bool result = FL_WriteFile(pFile, fileSize, outputPath.c_str());
+	FL_FreeFile(pFile);
+
+	if(!result)
+	{
+		CString msg;
+		msg << "Failed to open " << outputPath << " for writing.";
+		mxMessageBox(this, msg.c_str(), CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+	}
+	
+	return result;	
+}
+
+//=============================================
+// @brief Loads history information
+//
+//=============================================
+void CControlPanel::GetCompilerHistory( void )
+{
+	m_pChoiceQcPaths->removeAll();
+	for(Uint32 i = 0; i < MAX_COMPILER_HISTORY; i++)
+	{
+		CString optionName;
+		optionName << LAST_QC_PATH_HEADER << "_" << i;
+
+		const Char* pstrValue = gConfig.GetOptionValue(optionName.c_str());
+		if(!pstrValue)
+			break;
+
+		if(m_qcFileHistoryArray.size() <= i)
+			m_qcFileHistoryArray.resize(i+1);
+
+		m_qcFileHistoryArray[i] = pstrValue;
+		m_pChoiceQcPaths->add(pstrValue);
+	}
+	m_pChoiceQcPaths->select(0);
+
+	m_pChoiceCopyPaths->removeAll();
+	for(Uint32 i = 0; i < MAX_COMPILER_HISTORY; i++)
+	{
+		CString optionName;
+		optionName << LAST_COPY_PATH_HEADER << "_" << i;
+		const Char* pstrValue = gConfig.GetOptionValue(optionName.c_str());
+		if(!pstrValue)
+			break;
+
+		if(m_copyPathHistoryArray.size() <= i)
+			m_copyPathHistoryArray.resize(i+1);
+
+		m_copyPathHistoryArray[i] = pstrValue;
+		m_pChoiceCopyPaths->add(pstrValue);
+	}
+	m_pChoiceCopyPaths->select(0);
+}
+
+//=============================================
+// @brief Saves history information
+//
+//=============================================
+void CControlPanel::SaveCompilerHistory( void )
+{
+	for(Uint32 i = 0; i < m_qcFileHistoryArray.size(); i++)
+	{
+		CString optionName;
+		optionName << LAST_QC_PATH_HEADER << "_" << i;
+		gConfig.SetOption(optionName.c_str(), m_qcFileHistoryArray[i].c_str());
+	}
+
+	for(Uint32 i = 0; i < m_copyPathHistoryArray.size(); i++)
+	{
+		CString optionName;
+		optionName << LAST_COPY_PATH_HEADER << "_" << i;
+		gConfig.SetOption(optionName.c_str(), m_copyPathHistoryArray[i].c_str());
+	}
+}
+
+//=============================================
+// @brief Initializes QC history
+//
+//=============================================
+void CControlPanel::InitQcHistory( void )
+{
+	m_pChoiceQcPaths->removeAll();
+	for (Uint32 i = 0; i < m_qcFileHistoryArray.size(); i++)
+		m_pChoiceQcPaths->add(m_qcFileHistoryArray[i].c_str());
+
+	m_pChoiceQcPaths->select(0);
+}
+
+//=============================================
+// @brief Initializes copy path history
+//
+//=============================================
+void CControlPanel::InitCopyPathHistory( void )
+{
+	m_pChoiceCopyPaths->removeAll();
+	for (Uint32 i = 0; i < m_copyPathHistoryArray.size(); i++)
+		m_pChoiceCopyPaths->add(m_copyPathHistoryArray[i].c_str());
+
+	m_pChoiceCopyPaths->select(0);
 }
 
 //=============================================

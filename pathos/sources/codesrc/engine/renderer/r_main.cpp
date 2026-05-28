@@ -77,6 +77,7 @@ All Rights Reserved.
 #include "aldformat.h"
 #include "stb_dxt.h"
 #include "bsp_shared.h"
+#include "file.h"
 
 // Global cvars
 CCVar* g_pCvarBumpMaps = nullptr;
@@ -113,6 +114,7 @@ CCVar* g_pCvarLightmapCompression = nullptr;
 CCVar* g_pCvarFPSGraphHeight = nullptr;
 CCVar* g_pCvarFPSGraphWidth = nullptr;
 CCVar* g_pCvarFPSGraph = nullptr;
+CCVar* g_pCvarLightmapPadding = nullptr;
 
 // Caustics texture list file path
 static const Char CAUSTICS_TEXTURE_FILE_PATH[] = "textures/general/caustics_textures.txt";
@@ -212,6 +214,8 @@ bool R_Init( void )
 	g_pCvarLightmapCompression = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_lightmap_compression", "0", "Controls whether lightmap data is compressed to the DXT1 format(Experimental)." );
 	g_pCvarFPSGraphHeight = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_fpsgraphheight", "60", "Height of the FPS graph." );
 	g_pCvarFPSGraphWidth = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_fpsgraphwidth", "256", "Width of the FPS graph." );
+	g_pCvarLightmapPadding = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_lightmap_padding", "2", "Controls padding of lightmap data to avoid edge aliasing.", R_LightmapPaddingCvarCallBack);
+
 	g_pCvarFPSGraph = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_fpsgraph", "0", "Show render FPS timegraph." );
 
 	gCommands.CreateCommand("r_exportald", Cmd_ExportALD, "Exports current lightmap info as nightstage light info");
@@ -225,6 +229,7 @@ bool R_Init( void )
 	gCommands.CreateCommand("createdynlight", Cmd_CreateDynamicLight, "Creates a dynamic light");
 	gCommands.CreateCommand("createspotlight", Cmd_CreateSpotLight, "Creates a dynamic spotlight");
 	gCommands.CreateCommand("loadmodel", Cmd_LoadModel, "Loads a model.");
+	gCommands.CreateCommand("loadtga", Cmd_LoadTGA, "Loads a .tga file");
 
 	gCommands.CreateCommand("efx_tempsprite", Cmd_EFX_TempSprite, "Creates a temporary sprite entity.");
 	gCommands.CreateCommand("efx_tempmodel", Cmd_EFX_TempModel, "Creates a temporary model entity.");
@@ -3409,6 +3414,24 @@ void R_ActiveLoadMaxShadersCvarCallBack( CCVar* pCVar )
 	}
 }
 
+//=============================================
+//
+//=============================================
+void R_LightmapPaddingCvarCallBack( CCVar* pCVar )
+{
+	Int32 paddingAmount = pCVar->GetValue();
+	if(paddingAmount < 0)
+	{
+		Con_Printf("Invalid setting %d for cvar '%s', min value is 0.\n", paddingAmount, pCVar->GetName());
+		gConsole.CVarSetFloatValue(pCVar->GetName(), 0);
+	}
+	else if(paddingAmount > MAX_LIGHTMAP_PADDING)
+	{
+		Con_Printf("Invalid setting %d for cvar '%s', max value is %d.\n", paddingAmount, pCVar->GetName(), MAX_LIGHTMAP_PADDING);
+		gConsole.CVarSetFloatValue(pCVar->GetName(), MAX_LIGHTMAP_PADDING);
+	}
+}
+
 //====================================
 //
 //====================================
@@ -4012,6 +4035,71 @@ void Cmd_LoadModel( void )
 		Con_Printf("%s - Failed to load '%s'.\n", __FUNCTION__, strModel.c_str());
 	else
 		Con_Printf("%s - Loaded '%s'.\n", __FUNCTION__, strModel.c_str());
+}
+
+//====================================
+//
+//====================================
+void Cmd_LoadTGA( void )
+{
+	if(gCommands.Cmd_Argc() < 2)
+	{
+		Con_Printf("loadtga usage: loadtga <texture file path>\n");
+		return;
+	}
+
+	CString strFilename = gCommands.Cmd_Argv(1);
+	if(strFilename.find(0, ".tga") == CString::CSTRING_NO_POSITION)
+	{
+		Con_Printf("%s - Not a .tga file.\n", __FUNCTION__);
+		return;
+	}
+
+	CString filePath;
+	if(strFilename.find(0, ":") == CString::CSTRING_NO_POSITION)
+		filePath << TEXTURE_BASE_DIRECTORY_PATH << strFilename;
+	else
+		filePath = strFilename;
+
+	const byte* pFile = FL_LoadFile(filePath.c_str(), nullptr);
+	if(!pFile)
+	{
+		Con_EPrintf("Could not load '%s'.\n", filePath.c_str());
+		return;
+	}
+
+	byte* pdata = nullptr;
+	Uint32 width, height, bpp, size;
+	texture_compression_t compression;
+	if(!TGA_Load(filePath.c_str(), pFile, pdata, width, height, bpp, size, compression, Con_Printf))
+	{
+		Con_EPrintf("Failure when trying to load '%s'.\n", filePath.c_str());
+		return;
+	}
+
+	Con_Printf("Loaded .tga file '%s' - Width: %d, height: %d, bits per pixel: %d, size: %d.\n", 
+		filePath.c_str(), width, height, bpp, size);
+
+	FL_FreeFile(pFile);
+
+	if(!FL_CreateDirectory("dumps/loadtga"))
+	{
+		Con_EPrintf("%s - Could not create directory '%s/dumps/'.\n", __FUNCTION__, ens.gamedir.c_str());
+		return;
+	}
+
+	CString basename;
+	Common::Basename(strFilename.c_str(), basename);
+
+	CString output;
+	output << "dumps/loadtga" << PATH_SLASH_CHAR << basename << ".tga";
+
+	if(TGA_Write(pdata, 4, width, height, output.c_str(), FL_GetInterface(), Con_Printf, nullptr, nullptr, true))
+		Con_Printf("Wrote %s.\n", output.c_str());
+	else
+		Con_Printf("Failed to write %s.\n", output.c_str());
+
+	delete[] pdata;
 }
 
 //====================================
@@ -5316,23 +5404,28 @@ void Cmd_BSPToSMD_Lightmap( void )
 
 	// alloc lightmap data ptrs
 	Uint32 lightmapdatasize = 0;
-	color32_t* plightmap = new color32_t[lightmapWidth*lightmapHeight];
-	memset(plightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
+	Uint32 lightmappixelsize = lightmapWidth*lightmapHeight;
+	color32_t* plightmap = new color32_t[lightmappixelsize];
+	for(Uint32 i = 0; i < lightmappixelsize; i++)
+		plightmap[i] = color32_t(0, 0, 0, 255);
 
 	// alloc ambient lightmap's data
 	Uint32 amblightdatasize = 0;
 	color32_t* pambientlightmap = new color32_t[lightmapWidth*lightmapHeight];
-	memset(pambientlightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
+	for(Uint32 i = 0; i < lightmappixelsize; i++)
+		pambientlightmap[i] = color32_t(0, 0, 0, 255);
 
 	// alloc diffuse lightmap's data
 	Uint32 diffuselightdatasize = 0;
 	color32_t* pdiffuselightmap = new color32_t[lightmapWidth*lightmapHeight];
-	memset(pdiffuselightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
+	for(Uint32 i = 0; i < lightmappixelsize; i++)
+		pdiffuselightmap[i] = color32_t(0, 0, 0, 255);
 
 	// alloc lightvec lightmap's data
 	Uint32 lightvecsdatasize = 0;
 	color32_t* plightvecslightmap = new color32_t[lightmapWidth*lightmapHeight];
-	memset(plightvecslightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
+	for(Uint32 i = 0; i < lightmappixelsize; i++)
+		plightvecslightmap[i] = color32_t(0, 0, 0, 255);
 
 	// Process the surfaces
 	for(Uint32 j = 0; j < ens.pworld->numsurfaces; j++)
@@ -5349,26 +5442,28 @@ void Cmd_BSPToSMD_Lightmap( void )
 		Uint32 ysize = (psurface->extents[1] / psurface->lightmapdivider)+1;
 		Uint32 size = xsize*ysize;
 
+		Uint32 paddingAmount = clamp(g_pCvarLightmapPadding->GetValue(), 0, MAX_LIGHTMAP_PADDING);
+
 		// Build the base lightmap
 		color24_t* psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_DEFAULT] + psurface->lightoffset);
-		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightmap, styleIndex, lightmapWidth, false, false);
+		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightmap, styleIndex, lightmapWidth, 0, paddingAmount, false, false);
 		lightmapdatasize += size*sizeof(color32_t);
 
 		if(pdatapointers[SURF_LIGHTMAP_AMBIENT] && pdatapointers[SURF_LIGHTMAP_DIFFUSE] && pdatapointers[SURF_LIGHTMAP_VECTORS])
 		{
 			// Ambient lightmap
 			psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_AMBIENT] + psurface->lightoffset);
-			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pambientlightmap, styleIndex, lightmapWidth, 0);
+			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pambientlightmap, styleIndex, lightmapWidth, 0, paddingAmount);
 			amblightdatasize += size*sizeof(color32_t);
 
 			// Diffuse lightmap
 			psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_DIFFUSE] + psurface->lightoffset);
-			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pdiffuselightmap, styleIndex, lightmapWidth, 0);
+			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pdiffuselightmap, styleIndex, lightmapWidth, 0, paddingAmount);
 			diffuselightdatasize += size*sizeof(color32_t);
 
 			// Light vectors lightmap
 			psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_VECTORS] + psurface->lightoffset);
-			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightvecslightmap, styleIndex, lightmapWidth, 0, true);
+			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightvecslightmap, styleIndex, lightmapWidth, 0, paddingAmount, true);
 			lightvecsdatasize += size*sizeof(color32_t);
 		}
 	}

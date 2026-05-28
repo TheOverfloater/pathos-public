@@ -356,7 +356,6 @@
     <ClInclude Include="..\..\shared\textures_shared.h" />
     <ClInclude Include="..\..\shared\vbmformat.h" />
     <ClInclude Include=".\optionswindow.h" />
-    <ClInclude Include=".\compilerwindow.h" />
     <ClInclude Include=".\controlpanel.h" />
     <ClInclude Include=".\fileassociation.h" />
     <ClInclude Include=".\glwindow.h" />
@@ -391,7 +390,6 @@
     <ClCompile Include="..\..\shared\vbm_shared.cpp" />
     <ClCompile Include=".\main.cpp" />
     <ClCompile Include=".\optionswindow.cpp" />
-    <ClCompile Include=".\compilerwindow.cpp" />
     <ClCompile Include=".\config.cpp" />
     <ClCompile Include=".\controlpanel.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>

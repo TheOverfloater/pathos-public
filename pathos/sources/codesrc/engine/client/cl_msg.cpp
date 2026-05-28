@@ -521,27 +521,24 @@ void CL_AddEntityEffects( cl_entity_t* pentity )
 	}
 
 	// Only allow DIMLIGHT/BRIGHTLIGHT on non-players
-	if(pentity->entindex > LADDER_ENTITY_INDEX)
+	if(pentity->entindex > cls.maxclients)
 	{
-		if(pentity->curstate.effects & (EF_BRIGHTLIGHT|EF_DIMLIGHT))
+		if(pentity->curstate.effects & EF_BRIGHTLIGHT)
 		{
-			if(pentity->curstate.effects & EF_BRIGHTLIGHT)
-			{
-				cl_dlight_t* pdl = CL_AllocDynamicPointLight(pentity->entindex, -1, false, true, pentity);
-				pdl->origin = pentity->curstate.origin + Vector(0, 0, 16);
-				pdl->color = Vector(0.98, 0.98, 0.98);
-				pdl->radius = Common::RandomFloat(400, 431);
-				pdl->die = cls.cl_time + 0.001;
-			}
+			cl_dlight_t* pdl = CL_AllocDynamicPointLight(pentity->entindex, -1, false, true, pentity);
+			pdl->origin = pentity->curstate.origin + Vector(0, 0, 16);
+			pdl->color = Vector(0.98, 0.98, 0.98);
+			pdl->radius = Common::RandomFloat(400, 431);
+			pdl->die = cls.cl_time + 0.001;
+		}
 
-			if(pentity->curstate.effects & EF_BRIGHTLIGHT)
-			{
-				cl_dlight_t* pdl = CL_AllocDynamicPointLight(pentity->entindex, -2, false, true, pentity);
-				pdl->origin = pentity->curstate.origin;
-				pdl->color = Vector(0.39, 0.39, 0.39);
-				pdl->radius = Common::RandomFloat(200, 231);
-				pdl->die = cls.cl_time + 0.001;
-			}
+		if(pentity->curstate.effects & EF_BRIGHTLIGHT)
+		{
+			cl_dlight_t* pdl = CL_AllocDynamicPointLight(pentity->entindex, -2, false, true, pentity);
+			pdl->origin = pentity->curstate.origin;
+			pdl->color = Vector(0.39, 0.39, 0.39);
+			pdl->radius = Common::RandomFloat(200, 231);
+			pdl->die = cls.cl_time + 0.001;
 		}
 	}
 

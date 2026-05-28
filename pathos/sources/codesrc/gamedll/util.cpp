@@ -1033,12 +1033,12 @@ namespace Util
 		Vector startPos = position + Vector(0, 0, 8);
 		Vector endPos = position - Vector(0, 0, 8192);
 
-		CArray<Float>* plightstylesarray = gSVLightStyles.GetLightStyleValuesArray();
-
 		Vector lightcolors[MAX_SURFACE_STYLES];
 		byte lightstyles[MAX_SURFACE_STYLES];
 		if(!gd_engfuncs.pfnRecursiveLightPoint(pbrushmodel, pbrushmodel->pnodes, startPos, endPos, lightcolors, lightstyles))
 			return 0;
+
+		CArray<Float>* plightstylesarray = gSVLightStyles.GetLightStyleValuesArray();
 
 		// Calculate illumination
 		Vector lightcolor;

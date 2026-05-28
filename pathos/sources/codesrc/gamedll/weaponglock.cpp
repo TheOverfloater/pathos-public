@@ -76,7 +76,7 @@ const Uint32 CWeaponGlock::VGLOCK_FL_OFF = 0;
 const Uint32 CWeaponGlock::VGLOCK_FL_ON = 1;
 
 // Recoil degrade speed
-const Float CWeaponGlock::WEAPON_RECOIL_DEGRADE = 2;
+const Float CWeaponGlock::WEAPON_RECOIL_DEGRADE = 0.8;
 
 // Silencer item name
 const Char CWeaponGlock::SILENCER_ENTITY_NAME[] = "item_glock_silencer";

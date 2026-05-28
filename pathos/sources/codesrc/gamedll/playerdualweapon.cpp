@@ -85,7 +85,7 @@ bool CPlayerDualWeapon::AddAmmo( Int32 count, const Char* pstrname, Int32 maxcli
 		m_clip = WEAPON_NO_CLIP;
 		ammoid = m_pPlayer->GiveAmmo(count, pstrname, maxcarry, true, pWeapon);
 	}
-	else if(!m_clip)
+	else if(!m_clip && !qstrcmp(pWeapon->GetClassName(), GetClassName()))
 	{
 		Uint32 prevClip = m_clip;
 		Int32 clipgive = m_clip+count;
@@ -135,8 +135,7 @@ bool CPlayerDualWeapon::AddAmmo( Int32 count, const Char* pstrname, Int32 maxcli
 
 		// Play sound and add hud msg if needed
 		if (!pWeapon->HasSpawnFlag(CPlayerWeapon::FL_WEAPON_NO_NOTICE)
-			&& numgive == 0 && clipgive != 0 && pWeapon != this
-			&& !qstrcmp(pWeapon->GetClassName(), GetClassName()))
+			&& numgive == 0 && clipgive != 0 && pWeapon != this)
 		{
 			Util::EmitEntitySound(m_pPlayer, AMMO_PICKUP_SOUND, SND_CHAN_ITEM);
 

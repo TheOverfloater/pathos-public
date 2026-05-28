@@ -47,6 +47,8 @@ static constexpr Uint32 MAX_MODEL_LIGHTS = 2048;
 static constexpr Uint32 MAINFRAME_RENDERPASS_ID = 0;
 // Max lights in a single batch
 static constexpr Uint32 MAX_BATCH_LIGHTS = 4;
+// Max active-load shaders per frame
+static constexpr Uint32 MAX_LIGHTMAP_PADDING = 8;
 
 extern CGLExtF gGLExtF;
 
@@ -490,6 +492,7 @@ extern CCVar* g_pCvarTraceGlow;
 extern CCVar* g_pCvarBatchDynamicLights;
 extern CCVar* g_pCvarOverdarkenTreshold;
 extern CCVar* g_pCvarDumpLightmaps;
+extern CCVar* g_pCvarLightmapPadding;
 
 extern void R_InitRenderInterface( r_interface_t &renderFuncs );
 
@@ -553,6 +556,7 @@ extern bool R_DrawViewModelParticles( void );
 extern Float R_GetRenderFOV( Float viewsize );
 extern void R_AnisotropyCvarCallBack( CCVar* pCVar );
 extern void R_ActiveLoadMaxShadersCvarCallBack( CCVar* pCVar );
+extern void R_LightmapPaddingCvarCallBack( CCVar* pCVar );
 
 extern bool R_IsSpecialRenderEntity( const cl_entity_t& entity );
 extern void R_LoadSprite( cache_model_t* pmodel );
@@ -572,6 +576,7 @@ extern void Cmd_CreateSprite( void );
 extern void Cmd_CreateDynamicLight( void );
 extern void Cmd_CreateSpotLight( void );
 extern void Cmd_LoadModel( void );
+extern void Cmd_LoadTGA( void );
 
 extern void Cmd_EFX_TempSprite( void );
 extern void Cmd_EFX_TempModel( void );

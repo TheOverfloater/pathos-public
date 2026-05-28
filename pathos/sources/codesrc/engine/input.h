@@ -114,6 +114,8 @@ public:
 	const Char* GetKeynameForScancode( Int32 scancodeIdx );
 	// Returns the mouse button name for a bind
 	const Char* GetMouseButtonName( Int32 button );
+	// Returns the mouse wheel event name for a bind
+	const Char* GetMouseWheelEventName( Int32 button );
 
 	// Tells if the cursor is visible
 	inline bool IsMouseVisible( void ) const { return m_isCursorVisible; }

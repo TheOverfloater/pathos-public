@@ -725,6 +725,8 @@ public:
 	// The settings window cannot be resized
 	virtual bool isResizable( void ) { return false; }
 
+	// Handles a mosue wheel event
+	virtual bool mouseWheelEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool keyDown, Int32 scroll );
 	// Handles a mouse button event
 	virtual bool mouseButtonEvent( Int32 mouseX, Int32 mouseY, Int32 button, bool keyDown );
 	// Handles a keyboard input event

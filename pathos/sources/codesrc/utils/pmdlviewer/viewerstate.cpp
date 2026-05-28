@@ -33,7 +33,6 @@
 #include "controlpanel.h"
 #include "glwindow.h"
 #include "fileassociation.h"
-#include "compilerwindow.h"
 #include "controlpanel.h"
 #include "folderviewer.h"
 
@@ -933,11 +932,6 @@ bool Viewer_Init( Int32 argc, Char* argv[] )
 	if(!pOptionsWindow)
 		return false;
 
-	// Create compiler window instance
-	CCompilerWindow *pCompilerWindow = CCompilerWindow::CreateInstance();
-	if(!pCompilerWindow)
-		return false;
-
 	// Create instance of texture manager
 	CTextureManager* pTextureManager = CTextureManager::CreateInstance(FILE_INTERFACE_MOD_DIR, Viewer_ErrorPopup, Viewer_ErrorPopup, g_glExtF, false);
 	if(!pTextureManager)
@@ -1018,7 +1012,6 @@ void Viewer_Shutdown( void )
 	CControlPanel::DeleteInstance();
 	CFileAssociation::DeleteInstance();
 	COptionsWindow::DeleteInstance();
-	CCompilerWindow::DeleteInstance();
 	CBasicVBMRenderer::DeleteInstance();
 	CBasicDraw::DeleteInstance();
 

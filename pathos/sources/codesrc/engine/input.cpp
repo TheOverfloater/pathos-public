@@ -775,7 +775,7 @@ void CInput::MouseWheelEvent( Int32 button, bool keyDown, Int32 scroll )
 			// Add it to the buffer
 			gCommands.AddCommand(keyCommand.c_str());
 		}
-		else
+		else if(keyDown)
 		{
 			// Add it to the buffer
 			gCommands.AddCommand(keyBinding.c_str());
@@ -1034,6 +1034,17 @@ const Char* CInput::GetMouseButtonName( Int32 button )
 {
 	assert(button < NB_MOUSE_BTN);
 	Uint32 scancodeIdx = SDL_NUM_SCANCODES + button;
+	return m_keyInfoArray[scancodeIdx].name.c_str();
+}
+
+//=============================================
+// Class: CConfig
+// Function: GetMouseButtonName
+//=============================================
+const Char* CInput::GetMouseWheelEventName( Int32 button )
+{
+	assert(button < NUM_WHEEL_KEYS);
+	Uint32 scancodeIdx = SDL_NUM_SCANCODES + NB_MOUSE_BTN + 1 + button;
 	return m_keyInfoArray[scancodeIdx].name.c_str();
 }
 
