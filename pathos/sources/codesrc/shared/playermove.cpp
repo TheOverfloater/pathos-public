@@ -1186,6 +1186,7 @@ void CPlayerMovement::Jump( void )
 	// Add a punch to the player's view angles
 	m_pPlayerState->punchamount[0] = Common::RandomFloat(25, 50);
 
+#if 0
 	Vector direction = m_pPlayerState->velocity;
 	Math::VectorNormalize(direction);
 
@@ -1218,7 +1219,10 @@ void CPlayerMovement::Jump( void )
 	// Add in movement direction velocity
 	for(Int32 i = 0; i < 2; i++)
 		m_pPlayerState->velocity[i] += direction[i]*sqrt(2*wishspeed*55.0);
-
+#else
+	//// Add in jump velocity
+	m_pPlayerState->velocity[2] = sqrt(2 * 800 * 45.0);
+#endif
 	// NOTES: Do we really need this?
 	FixupGravityVelocity();
 

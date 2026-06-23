@@ -110,7 +110,7 @@ bool CSkyRenderer::InitGL( void )
 		m_attribs.u_color = m_pShader->InitUniform("color", CGLSLShader::UNIFORM_FLOAT4);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
 
 		if(!R_CheckShaderUniform(m_attribs.u_color, "color", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_modelview, "modelview", m_pShader, Sys_ErrorPopup)

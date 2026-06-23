@@ -122,7 +122,7 @@ bool CText::InitGL ( void )
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_color = m_pShader->InitUniform("color", CGLSLShader::UNIFORM_FLOAT4);
-		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_offset = m_pShader->InitUniform("offset", CGLSLShader::UNIFORM_FLOAT2);
 
 		if(!R_CheckShaderUniform(m_attribs.u_projection, "fogcolor", m_pShader, Sys_ErrorPopup)

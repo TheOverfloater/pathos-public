@@ -91,8 +91,8 @@ bool CBasicDraw::InitGL( const CGLExtF& gGlExtF, const file_interface_t& fileFun
 		// Get attrib info
 		m_shaderAttribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
 		m_shaderAttribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
-		m_shaderAttribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_shaderAttribs.u_rectangle = m_pShader->InitUniform("rectangle0", CGLSLShader::UNIFORM_INT1);
+		m_shaderAttribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_shaderAttribs.u_rectangle = m_pShader->InitUniform("rectangle0", CGLSLShader::UNIFORM_SAMPLERRECT);
 		m_shaderAttribs.u_multiplier = m_pShader->InitUniform("multiplier", CGLSLShader::UNIFORM_FLOAT1);
 		m_shaderAttribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_FLOAT3);
 		m_shaderAttribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_FLOAT2);

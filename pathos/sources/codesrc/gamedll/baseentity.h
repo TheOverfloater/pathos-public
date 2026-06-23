@@ -659,11 +659,19 @@ public:
 
 public:
 	//
-	// Player specific functions
+	// Player weapon specific functions
 	//
 
 	// Tells if the entity is a weapon
 	virtual bool IsWeapon( void ) const { return false; }
+	// Set default ammo value
+	virtual void SetDefaultAmmo( Uint32 ammoCount ) { STUBWARNING; }
+
+public:
+	//
+	// Player specific functions
+	//
+
 	// Returns the weapon information
 	virtual bool GetWeaponInfo( weaponinfo_t* pWeapon ) { STUBWARNING; return false; };
 	// Gives ammo to the player

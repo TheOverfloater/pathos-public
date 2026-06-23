@@ -122,8 +122,8 @@ bool CMenuParticles::InitGL( void )
 
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture1 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_texture2 = m_pShader->InitUniform("texture1", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture1 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_texture2 = m_pShader->InitUniform("texture1", CGLSLShader::UNIFORM_SAMPLER2D);
 
 		if(!R_CheckShaderUniform(m_attribs.u_projection, "projection", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_modelview, "modelview", m_pShader, Sys_ErrorPopup)

@@ -152,8 +152,8 @@ public:
 	virtual Double GetWeaponNextThinkTime( void ) const { return m_nextThinkTime; }
 	// Tells if the entity is a weapon
 	virtual bool IsWeapon( void ) const override { return true; }
-	// Tries to add accessories from pWeapon
-	virtual void AddAccessories( CPlayerWeapon* pWeapon ) override { };
+	// Set default ammo value
+	virtual void SetDefaultAmmo( Uint32 ammoCount ) override { m_defaultAmmo = ammoCount; }
 
 public:
 	// Performs post-think functions

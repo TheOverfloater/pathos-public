@@ -54,10 +54,12 @@ CGLSLShader::CGLSLShader ( const file_interface_t& fileFuncs, const CGLExtF& glE
 	m_onDemandLoad( false ),
 	m_useBinaryShaders( false ),
 	m_areUBOsBound( false ),
+	m_recheckSamplerUniforms( false ),
 	m_shaderFlags( flags ),
 	m_isActive( false ),
 	m_bFailed( false ),
-	m_pProgressUpdateCallbackFn(*pfnCallback)
+	m_pProgressUpdateCallbackFn(*pfnCallback),
+	m_nextSamplerIndex( 0 )
 {
 	memset(m_uniformMatrix, 0, sizeof(m_uniformMatrix));
 
@@ -99,10 +101,12 @@ CGLSLShader::CGLSLShader ( const file_interface_t& fileFuncs, const CGLExtF& glE
 	m_onDemandLoad( false ),
 	m_useBinaryShaders( false ),
 	m_areUBOsBound( false ),
+	m_recheckSamplerUniforms( false ),
 	m_shaderFlags( flags ),
 	m_isActive( false ),
 	m_bFailed( false ),
-	m_pProgressUpdateCallbackFn(*pfnCallback)
+	m_pProgressUpdateCallbackFn(*pfnCallback),
+	m_nextSamplerIndex( 0 )
 {
 	memset(m_uniformMatrix, 0, sizeof(m_uniformMatrix));
 
@@ -2188,6 +2192,9 @@ void CGLSLShader::SyncUniform( glsl_uniform_t& uniform )
 	switch (uniform.type)
 	{
 		case UNIFORM_INT1:
+		case UNIFORM_SAMPLER2D:
+		case UNIFORM_SAMPLERCUBE:
+		case UNIFORM_SAMPLERRECT:
 		{
 			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount) != 0)
 			{
@@ -2284,6 +2291,8 @@ void CGLSLShader::ResetShader ( void )
 		DisableAttribute(i);
 
 	m_lastIndex = NO_POSITION;
+	m_lastQueriedKey = ShaderValuesStringType_t();
+	m_recheckSamplerUniforms = true;
 }
 
 //=============================================
@@ -2486,7 +2495,7 @@ Int32 CGLSLShader::InitUniform( const Char *szname, uniform_e type, Uint32 eleme
 
 	glsl_uniform_t newUniform;
 	newUniform.indexes.resize(m_shadersArray.size());
-	if(type != UNIFORM_INT1)
+	if(type != UNIFORM_INT1 && type != UNIFORM_SAMPLER2D && type != UNIFORM_SAMPLERCUBE && type != UNIFORM_SAMPLERRECT)
 		newUniform.elementcount = elementcount;
 	else
 		newUniform.elementcount = 1;
@@ -2494,6 +2503,9 @@ Int32 CGLSLShader::InitUniform( const Char *szname, uniform_e type, Uint32 eleme
 	switch(type)
 	{
 	case UNIFORM_INT1:
+	case UNIFORM_SAMPLER2D:
+	case UNIFORM_SAMPLERCUBE:
+	case UNIFORM_SAMPLERRECT:
 		newUniform.stride = 1;
 		break;
 	case UNIFORM_FLOAT1:
@@ -2670,6 +2682,27 @@ bool CGLSLShader :: SetDeterminator ( Int32 index, Int32 value, bool update )
 }
 
 //=============================================
+// @brief Performs pre-render checks
+//
+//=============================================
+bool CGLSLShader :: PerformPreRenderChecks( void )
+{
+	// Shift any overlapping samplers of different type
+	if((m_shaderFlags & FL_GLSL_CHECK_SAMPLER_OVERLAP) && m_recheckSamplerUniforms)
+	{
+		ShiftOverlappingSamplers();
+
+		// Do final check to see if we have any issues
+		if(!CheckSamplerUniforms())
+			return false;
+
+		m_recheckSamplerUniforms = false;
+	}
+
+	return true;
+}
+
+//=============================================
 // @brief Rechecks determinator options and binds the appropriate shader
 //
 //=============================================
@@ -2695,10 +2728,19 @@ bool CGLSLShader :: VerifyDeterminators ( void )
 #ifdef USE_SHADER_VALUES_MAP
 	Char* pvaluesbytes = reinterpret_cast<Char*>(m_pDeterminatorValues);
 	ShaderValuesStringType_t valuestr(pvaluesbytes, m_determinatorArray.size() * sizeof(Int16));
+	if(m_lastIndex == NO_POSITION || valuestr != m_lastQueriedKey)
+	{
+		ShaderValuesIndexMapType_t::iterator it = m_shaderValuesIndexMap.find(valuestr);
+		if(it != m_shaderValuesIndexMap.end())
+			shaderIndex = it->second;
 
-	ShaderValuesIndexMapType_t::iterator it = m_shaderValuesIndexMap.find(valuestr);
-	if(it != m_shaderValuesIndexMap.end())
-		shaderIndex = it->second;
+		m_lastQueriedKey = valuestr;
+	}
+	else
+	{
+		// Use last queried index
+		shaderIndex = m_lastIndex;
+	}
 #else
 	Uint32 determinatorCount = m_determinatorArray.size();
 	for(Uint32 i = 0; i < m_shadersArray.size(); i++)
@@ -2718,30 +2760,176 @@ bool CGLSLShader :: VerifyDeterminators ( void )
 			return true;
 
 		m_shaderIndex = shaderIndex;
+
+		// Bind the shader used
+		bool result;
 		if(m_isActive)
-		{
-			if(EnableShader())
-				return true;
-			else
-				return false;
-		}
+			result = EnableShader();
 		else
-		{
-			// Will be tested later
-			return true;
-		}
+			result = true;
+
+		// We failed for some reason
+		return result;
 	}
+	else
+	{
+		CString buffer;
+		buffer << "Invalid determinator values in shader " << m_shaderFile << ":\n";
 
-	CString buffer;
-	buffer << "Invalid determinator values in shader " << m_shaderFile << ":\n";
+		for(Uint32 i = 0; i < m_determinatorArray.size(); i++)
+			buffer << "Name: " << m_determinatorArray[i].name << ", value: " << m_pDeterminatorValues[i] << "\n";
 
-	for(Uint32 i = 0; i < m_determinatorArray.size(); i++)
-		buffer << "Name: " << m_determinatorArray[i].name << ", value: " << m_pDeterminatorValues[i] << "\n";
-
-	m_errorString = buffer;
-	return false;
+		m_errorString = buffer;
+		return false;
+	}
 }
 
+//=============================================
+// @brief Check sampler uniforms for any overlap
+//
+// @return TRUE if there's no overlap, FALSE otherwise
+//=============================================
+bool CGLSLShader :: CheckSamplerUniforms( void )
+{
+	if(!(m_shaderFlags & FL_GLSL_CHECK_SAMPLER_OVERLAP))
+		return true;
+
+	if(m_uniformsArray.empty())
+		return true;
+
+#ifdef _DEBUG
+	for(Uint32 i = 0; i < m_uniformsArray.size(); i++)
+	{
+		glsl_uniform_t& uniform1 = m_uniformsArray[i];
+		if(uniform1.type != UNIFORM_SAMPLER2D
+			&& uniform1.type != UNIFORM_SAMPLERCUBE
+			&& uniform1.type != UNIFORM_SAMPLERRECT)
+		{
+			// Don't consider anything but other samplers
+			continue;
+		}
+
+		if(uniform1.indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
+			continue;
+
+		for(Uint32 j = 0; j < m_uniformsArray.size(); j++)
+		{
+			if(i == j)
+				continue;
+
+			glsl_uniform_t& uniform2 = m_uniformsArray[j];
+			if(uniform2.type != UNIFORM_SAMPLER2D
+				&& uniform2.type != UNIFORM_SAMPLERCUBE
+				&& uniform2.type != UNIFORM_SAMPLERRECT)
+			{
+				// Don't consider anything but other samplers
+				continue;
+			}
+
+			if(uniform1.type == uniform2.type)
+				continue;
+
+			if(uniform2.indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
+				continue;
+
+			if(uniform1.currentvalues[0] == uniform2.currentvalues[0])
+			{
+				const Char* uniform1TypeName = UNIFORM_TYPENAMES[uniform1.type];
+				const Char* uniform2TypeName = UNIFORM_TYPENAMES[uniform2.type];
+
+				m_errorString.clear();
+				m_errorString << "Sampler uniform '" << uniform1.name << "' of type " << uniform1TypeName;
+				m_errorString << " and sampler uniform '" << uniform2.name << "' of type " << uniform2TypeName;
+				m_errorString << "' overlap on texture unit " << static_cast<Int32>(uniform1.currentvalues[0]);
+				return false;
+			}
+		}
+	}
+#endif
+	return true;
+}
+
+//=============================================
+// @brief Shifts unused samplers to avoid issues
+//
+//=============================================
+void CGLSLShader :: ShiftOverlappingSamplers( void )
+{
+	if(!m_recheckSamplerUniforms)
+		return;
+
+	Int32 sampler2DIndex = NO_POSITION;
+	Int32 samplerCubeIndex = NO_POSITION;
+	Int32 samplerRectIndex = NO_POSITION;
+
+	Uint32 shiftedIndex = m_nextSamplerIndex;
+	for(Uint32 i = 0; i < m_uniformsArray.size(); i++)
+	{
+		glsl_uniform_t& uniform = m_uniformsArray[i];
+		if(uniform.type != UNIFORM_SAMPLER2D
+			&& uniform.type != UNIFORM_SAMPLERCUBE
+			&& uniform.type != UNIFORM_SAMPLERRECT)
+		{
+			// Don't consider anything but other samplers
+			continue;
+		}
+
+		// Skip if it's not used at all by the shader
+		if(uniform.indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
+			continue;
+
+		// Do not touch used uniforms
+		if(uniform.used)
+			continue;
+
+		// The point is to make sure none of the different types
+		// overlap on the same unit. Samplers of the same type
+		// can use the same unit otherwise.
+		Int32 bindIndex;
+		switch(uniform.type)
+		{
+		case UNIFORM_SAMPLERCUBE:
+			{
+				if(samplerCubeIndex == NO_POSITION)
+				{
+					samplerCubeIndex = shiftedIndex;
+					shiftedIndex++;
+				}
+
+				bindIndex = samplerCubeIndex;
+			}
+			break;
+		case UNIFORM_SAMPLERRECT:
+			{
+				if(samplerRectIndex == NO_POSITION)
+				{
+					samplerRectIndex = shiftedIndex;
+					shiftedIndex++;
+				}
+
+				bindIndex = samplerRectIndex;
+			}
+			break;
+		default:
+		case UNIFORM_SAMPLER2D:
+			{
+				if(sampler2DIndex == NO_POSITION)
+				{
+					sampler2DIndex = shiftedIndex;
+					shiftedIndex++;
+				}
+
+				bindIndex = sampler2DIndex;
+			}
+			break;
+		}
+
+		// Set unit for this sampler
+		SetUniform1i(i, shiftedIndex);
+	}
+
+	m_recheckSamplerUniforms = false;
+}
 
 //=============================================
 // @brief Returns the index of a determinator

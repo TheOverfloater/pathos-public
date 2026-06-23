@@ -141,9 +141,9 @@ bool CParticleEngine::InitGL( void )
 
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture0 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_rtexture0 = m_pShader->InitUniform("rtexture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_rtexture1 = m_pShader->InitUniform("rtexture1", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture0 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_rtexture0 = m_pShader->InitUniform("rtexture0", CGLSLShader::UNIFORM_SAMPLERRECT);
+		m_attribs.u_rtexture1 = m_pShader->InitUniform("rtexture1", CGLSLShader::UNIFORM_SAMPLERRECT);
 
 		m_attribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_FLOAT3);
 		m_attribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_FLOAT2);
@@ -221,7 +221,7 @@ bool CParticleEngine::InitGL( void )
 
 			field.clear();
 			field << "proj_lights_" << static_cast<Int32>(i) << "_texture";
-			m_attribs.proj_lights[i].u_texture = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_INT1);
+			m_attribs.proj_lights[i].u_texture = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_SAMPLER2D);
 			if(!R_CheckShaderUniform(m_attribs.proj_lights[i].u_texture, field.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
 

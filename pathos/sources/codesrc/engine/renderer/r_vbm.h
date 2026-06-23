@@ -198,7 +198,7 @@ struct vbm_dlight_attribs_t
 		u_light_matrix(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_light_cone_size(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_light_spotdirection(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_light_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE)
+		u_d_light_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE)
 	{}
 
 	Int32 u_light_color;
@@ -211,7 +211,7 @@ struct vbm_dlight_attribs_t
 	Int32 u_light_cone_size;
 	Int32 u_light_spotdirection;
 
-	Int32 d_light_shadowmap;
+	Int32 u_d_light_shadowmap;
 };
 
 struct vbm_attribs
@@ -257,18 +257,18 @@ struct vbm_attribs
 		u_scope_scrsize(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_phong_exponent(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_specularfactor(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_numlights(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_numlights(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_shadertype(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_chrome(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_alphatest(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_flexes(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_luminance(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_ao(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_bumpmapping(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_numdlights(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_use_ubo(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_blendmultipass(CGLSLShader::PROPERTY_UNAVAILABLE)
+		d_flexes(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_alphatest(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_chrome(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_luminance(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_ao(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_bumpmapping(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_numdlights(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_blendmultipass(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{
 			for(Uint32 i = 0; i < MAX_SHADER_BONES; i++)
 				boneindexes[i] = 0;
@@ -333,19 +333,20 @@ struct vbm_attribs
 	Int32 u_specularfactor;
 
 	attrib_light lights[MAX_ENT_MLIGHTS];
-	Int32 d_numlights;
 
 	Int32 d_shadertype;
-	Int32 d_chrome;
-	Int32 d_alphatest;
-	Int32 d_flexes;
-	Int32 d_specular;
-	Int32 d_luminance;
-	Int32 d_ao;
-	Int32 d_bumpmapping;
-	Int32 d_numdlights;
 	Int32 d_use_ubo;
-	Int32 d_blendmultipass;
+	Int32 d_flexes;
+	Int32 d_alphatest;
+
+	Int32 u_d_numlights;
+	Int32 u_d_chrome;
+	Int32 u_d_specular;
+	Int32 u_d_luminance;
+	Int32 u_d_ao;
+	Int32 u_d_bumpmapping;
+	Int32 u_d_numdlights;
+	Int32 u_d_blendmultipass;
 	
 	vbm_dlight_attribs_t dlights[MAX_BATCH_LIGHTS];
 };
@@ -407,6 +408,8 @@ public:
 	bool InitGame( void );
 	// Clears game objects
 	void ClearGame( void );
+	// Deletes all decals
+	void DeleteDecals( void );
 
 public:
 	// Draws a model
@@ -463,8 +466,6 @@ public:
 	const Char* GetShaderErrorString( void ) const;
 
 private:
-	// Deletes all decals
-	void DeleteDecals( void );
 	// Sets orientation-related data
 	void SetOrientation( void );
 	// Sets up the transformation matrix
@@ -583,9 +584,11 @@ private:
 	// Applies a decal on a triangle
 	bool DecalTriangle( Int32 pbodypartindex, Int32 submodelindex, vbmdecal_t* pdecal, vbm_decal_mesh_t*& pmesh, const vbmvertex_t **pverts, const byte *pboneids, const Vector& position, const Vector& normal, vbmdecal_t *decal, const Vector& up, const Vector& right, Uint32& curstart, byte flags, en_material_t* pmaterial );
 	// Deletes a decal
-	static void DeleteDecal( vbmdecal_t *pdecal );
+	void DeleteDecal( vbmdecal_t *pdecal );
 	// Retreives the offset for the decal mesh
 	void GetDecalOffsets( Uint32 numverts, Uint32 numindexes, Uint32& vertexoffset, Uint32& indexoffset );
+	// Clears a single decal
+	void ClearDecal( vbmdecal_t* pdecal );
 
 private:
 	// Builds the VBO
@@ -631,6 +634,8 @@ private:
 	struct rtt_texture_t* m_pScreenTexture;
 	// Screen FBO pointer
 	CFBOCache::cache_fbo_t* m_pScreenFBO;
+	// First texture unit to use
+	Int32 m_firstTextureUnit;
 
 private:
 	// Currently rendered VBM submodel

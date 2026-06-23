@@ -124,7 +124,7 @@ bool CDynamicLightManager::InitGL( void )
 		m_vsmAttribs.u_projection = m_pVSMShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 
 		m_vsmAttribs.u_size = m_pVSMShader->InitUniform("size", CGLSLShader::UNIFORM_FLOAT1);
-		m_vsmAttribs.u_texture = m_pVSMShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
+		m_vsmAttribs.u_texture = m_pVSMShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
 
 		if(!R_CheckShaderUniform(m_vsmAttribs.u_modelview, "modelview", m_pVSMShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_vsmAttribs.u_projection, "projection", m_pVSMShader, Sys_ErrorPopup)

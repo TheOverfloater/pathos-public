@@ -169,9 +169,9 @@ bool CPostProcess :: InitGL( void )
 		m_attribs.u_vignette_strength = m_pShader->InitUniform("vignetteStrength", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_vignette_radius = m_pShader->InitUniform("vignetteRadius", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_offsetdivider = m_pShader->InitUniform("offsetdivider", CGLSLShader::UNIFORM_FLOAT2);
-		m_attribs.u_texture1rect = m_pShader->InitUniform("texture0rect", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_texture2rect = m_pShader->InitUniform("blurtextureRect", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_texture2d = m_pShader->InitUniform("normal2dTexture", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture1rect = m_pShader->InitUniform("texture0rect", CGLSLShader::UNIFORM_SAMPLERRECT);
+		m_attribs.u_texture2rect = m_pShader->InitUniform("blurtextureRect", CGLSLShader::UNIFORM_SAMPLERRECT);
+		m_attribs.u_texture2d = m_pShader->InitUniform("normal2dTexture", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_darken_steps = m_pShader->InitUniform("darken_steps", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_brighten_multiplier = m_pShader->InitUniform("brighten_multiplier", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_blur_brightness = m_pShader->InitUniform("blur_brightness", CGLSLShader::UNIFORM_FLOAT1);

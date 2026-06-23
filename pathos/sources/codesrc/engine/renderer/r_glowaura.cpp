@@ -106,8 +106,8 @@ bool CGlowAura::InitGL( void )
 
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture0 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_scrntexturerect = m_pShader->InitUniform("scrntexturerect", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture0 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_scrntexturerect = m_pShader->InitUniform("scrntexturerect", CGLSLShader::UNIFORM_SAMPLERRECT);
 		m_attribs.u_size = m_pShader->InitUniform("size", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_screensize = m_pShader->InitUniform("screensize", CGLSLShader::UNIFORM_FLOAT2);
 

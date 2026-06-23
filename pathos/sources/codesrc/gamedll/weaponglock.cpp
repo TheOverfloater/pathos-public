@@ -334,9 +334,11 @@ void CWeaponGlock::PrimaryAttack( void )
 
 	// Add extra recoil if rapidly firing
 	if(m_nextAttackTime == -1)
-		AddRecoil(1.2);
+		AddRecoil(0.5);
+	else
+		AddRecoil(0.3);
 
-	m_nextAttackTime = g_pGameVars->time + 0.3;
+	m_nextAttackTime = g_pGameVars->time + 0.4;
 	m_nextIdleTime = g_pGameVars->time + GetSequenceTime(m_sequenceNames[animationIndex]);
 	m_playedFidgetAnimation = true;
 }

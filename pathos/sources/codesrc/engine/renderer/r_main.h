@@ -37,8 +37,6 @@ struct cache_model_t;
 struct glowquery_t;
 struct fbobind_t;
 
-// Maximum textures bound at once
-static constexpr Uint32 MAX_BOUND_TEXTURES = 16;
 // Near clipping distance
 static constexpr Float NEAR_CLIP_DISTANCE = 4.0f;
 // Max number of model lights

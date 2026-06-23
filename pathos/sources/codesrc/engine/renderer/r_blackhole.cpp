@@ -91,8 +91,8 @@ bool CBlackHoleRenderer::InitGL( void )
 
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_texturerect = m_pShader->InitUniform("texture0Rect", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_texturerect = m_pShader->InitUniform("texture0Rect", CGLSLShader::UNIFORM_SAMPLERRECT);
 
 		m_attribs.u_screensize = m_pShader->InitUniform("screensize", CGLSLShader::UNIFORM_FLOAT2);
 		m_attribs.u_screenpos = m_pShader->InitUniform("screenpos", CGLSLShader::UNIFORM_FLOAT2);

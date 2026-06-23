@@ -402,6 +402,9 @@ void CTextureManager::DeleteTextures( rs_level_t level, bool keepentry )
 //=============================================
 void CTextureManager::DeleteTexture( const Char *pstrFilename )
 {
+	CString filename(pstrFilename);
+	filename.tolower();
+
 	// Delete the texture
 	if(m_texturesMap.empty())
 		return;
@@ -411,7 +414,7 @@ void CTextureManager::DeleteTexture( const Char *pstrFilename )
 	{
 		en_texture_t* ptexture = it->second;
 
-		if(!qstrcmp(pstrFilename, ptexture->filepath))
+		if(!qstrcmp(filename.c_str(), ptexture->filepath))
 		{
 			if(ptexture->palloc)
 			{
@@ -627,8 +630,11 @@ mt_texture_t CTextureManager::GetTextureType( const Char* pstrTypename )
 //=============================================
 en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs_level_t level, bool prompt, bool isloadingfromalias )
 {
+	CString filename(pstrFilename);
+	filename.tolower();
+
 	// See if we already have it loaded
-	en_material_t* pmaterial = FindMaterialScript(pstrFilename, level);
+	en_material_t* pmaterial = FindMaterialScript(filename.c_str(), level);
 	if(pmaterial)
 		return pmaterial;
 
@@ -638,10 +644,10 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 
 	// Base directory is fixed
 	CString filePath;
-	if(qstrstr(pstrFilename, ":") == nullptr)
-		filePath << TEXTURE_BASE_DIRECTORY_PATH << pstrFilename;
+	if(filename.find(0, ":") == CString::CSTRING_NO_POSITION)
+		filePath << TEXTURE_BASE_DIRECTORY_PATH << filename;
 	else
-		filePath = pstrFilename;
+		filePath = filename;
 
 	// Load the file in
 	const Char* pfile = reinterpret_cast<const Char*>(m_fileFuncs.pfnLoadFile(filePath.c_str(), nullptr));
@@ -681,7 +687,7 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 	// Prevent infinite recursion
 	if(isloadingfromalias && isaliasscript)
 	{
-		m_printErrorFunction("Could not load '%s', because it is an alias script linked to by another alias script.\n", pstrFilename);
+		m_printErrorFunction("Could not load '%s', because it is an alias script linked to by another alias script.\n", filename.c_str());
 		m_fileFuncs.pfnFreeFile(pfile);
 		return nullptr;
 	}
@@ -710,7 +716,7 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 		pmaterial = new en_material_t();
 
 		// Set basic info
-		pmaterial->filepath = pstrFilename;
+		pmaterial->filepath = filename;
 		pmaterial->level = level;
 		pmaterial->index = m_materialsIndexPtrArray.size();
 
@@ -940,7 +946,7 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 
 		// Add to mappings
 		alias_mapping_t mapping;
-		mapping.filename = pstrFilename;
+		mapping.filename = filename;
 		mapping.pmaterialfile = pmaterial;
 		mapping.level = level;
 
@@ -985,7 +991,7 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 	m_materialsIndexPtrArray.push_back(pmaterial);
 
 	// Add this to the list
-	HashResourceTypeKey_t key(pstrFilename, level);
+	HashResourceTypeKey_t key(filename, level);
 	m_materialsMap.insert(std::pair<HashResourceTypeKey_t, en_material_t*>(key, pmaterial));
 
 	return pmaterial;
@@ -1054,10 +1060,13 @@ const byte* CTextureManager::LoadFile( const Char* pstrFileName, texture_format_
 //=============================================
 en_texture_t* CTextureManager::LoadTexture( const Char* pstrFilename, rs_level_t level, Int32 flags, const GLint* pborder )
 {
+	CString filename(pstrFilename);
+	filename.tolower();
+
 	// Don't allow invalid resource levels
 	if(level != RS_GAME_LEVEL && level != RS_WINDOW_LEVEL)
 	{
-		m_printErrorFunction("Invalid resource level for texture '%s'.\n", pstrFilename);
+		m_printErrorFunction("Invalid resource level for texture '%s'.\n", filename.c_str());
 		return nullptr;
 	}
 
@@ -1069,7 +1078,7 @@ en_texture_t* CTextureManager::LoadTexture( const Char* pstrFilename, rs_level_t
 	}
 
 	// See if it's already loaded
-	en_texture_t* ptexture = FindTexture(pstrFilename, level);
+	en_texture_t* ptexture = FindTexture(filename.c_str(), level);
 	if(ptexture && !ptexture->needsload)
 		return ptexture;
 
@@ -1083,10 +1092,10 @@ en_texture_t* CTextureManager::LoadTexture( const Char* pstrFilename, rs_level_t
 
 	// Base directory is fixed
 	CString filePath;
-	if(qstrstr(pstrFilename, ":") == nullptr)
-		filePath << TEXTURE_BASE_DIRECTORY_PATH << pstrFilename;
+	if(filename.find(0, ":") == CString::CSTRING_NO_POSITION)
+		filePath << TEXTURE_BASE_DIRECTORY_PATH << filename;
 	else
-		filePath = pstrFilename;
+		filePath = filename;
 
 	// Load the file
 	texture_format_t format = TX_FORMAT_UNDEFINED;
@@ -1100,33 +1109,33 @@ en_texture_t* CTextureManager::LoadTexture( const Char* pstrFilename, rs_level_t
 	// Check the format
 	if(format == TX_FORMAT_UNDEFINED)
 	{
-		m_printErrorFunction("Unknown or unsupported file format for '%s'\n", pstrFilename);
+		m_printErrorFunction("Unknown or unsupported file format for '%s'\n", filename.c_str());
 		return nullptr;
 	}
 
 	if(format == TX_FORMAT_TGA)
 	{
-		if(!TGA_Load(pstrFilename, pfile, pdata, width, height, bpp, datasize, compression, m_printErrorFunction))
+		if(!TGA_Load(filename.c_str(), pfile, pdata, width, height, bpp, datasize, compression, m_printErrorFunction))
 		{
-			m_printErrorFunction("Failed to load TGA image file '%s'.\n", pstrFilename);
+			m_printErrorFunction("Failed to load TGA image file '%s'.\n", filename.c_str());
 			m_fileFuncs.pfnFreeFile(pfile);
 			return nullptr;
 		}
 	}
 	else if(format == TX_FORMAT_DDS)
 	{
-		if(!DDS_Load(pstrFilename, pfile, pdata, width, height, bpp, datasize, compression, m_printErrorFunction))
+		if(!DDS_Load(filename.c_str(), pfile, pdata, width, height, bpp, datasize, compression, m_printErrorFunction))
 		{
-			m_printErrorFunction("Failed to load DDS image file '%s'.\n", pstrFilename);
+			m_printErrorFunction("Failed to load DDS image file '%s'.\n", filename.c_str());
 			m_fileFuncs.pfnFreeFile(pfile);
 			return nullptr;
 		}
 	}
 	else if (format == TX_FORMAT_BMP) 
 	{
-		if (!BMP_Load(pstrFilename, pfile, pdata, width, height, bpp, datasize, compression, m_printErrorFunction)) 
+		if (!BMP_Load(filename.c_str(), pfile, pdata, width, height, bpp, datasize, compression, m_printErrorFunction)) 
 		{
-			m_printErrorFunction("Failed to load BMP image file '%s'.\n", pstrFilename);
+			m_printErrorFunction("Failed to load BMP image file '%s'.\n", filename.c_str());
 			m_fileFuncs.pfnFreeFile(pfile);
 			return nullptr;
 		}
@@ -1134,7 +1143,7 @@ en_texture_t* CTextureManager::LoadTexture( const Char* pstrFilename, rs_level_t
 	else
 	{
 		// Shouldn't happen
-		m_printErrorFunction("Unsupported file format %d for '%s'.\n", format, pstrFilename);
+		m_printErrorFunction("Unsupported file format %d for '%s'.\n", format, filename.c_str());
 		m_fileFuncs.pfnFreeFile(pfile);
 		return nullptr;
 	}
@@ -1145,19 +1154,19 @@ en_texture_t* CTextureManager::LoadTexture( const Char* pstrFilename, rs_level_t
 	// Do this here instead of in the loaders
 	if(!Common::IsPowerOfTwo(width) || !Common::IsPowerOfTwo(height))
 	{
-		m_printErrorFunction("%s is not a power of two texture.\n", pstrFilename);
+		m_printErrorFunction("%s is not a power of two texture.\n", filename.c_str());
 		return false;
 	}
 
 	// Allocate a new texture if it's not already present
-	HashResourceTypeKey_t key(pstrFilename, level);
+	HashResourceTypeKey_t key(filename.c_str(), level);
 	if(!ptexture)
 		ptexture = AllocTexture(key);
 
 	ptexture->width = width;
 	ptexture->height = height;
 	ptexture->bpp = bpp;
-	ptexture->filepath = pstrFilename;
+	ptexture->filepath = filename;
 	ptexture->level = level;
 	ptexture->flags = flags;
 	ptexture->format = format;
@@ -1345,7 +1354,10 @@ en_texture_t* CTextureManager::LoadFromMemory( const Char* pstrTextureName, rs_l
 //=============================================
 en_texture_t* CTextureManager::FindTexture( const Char* pstrFilename, rs_level_t level )
 {
-	HashResourceTypeKey_t key(pstrFilename, level);
+	CString filename(pstrFilename);
+	filename.tolower();
+
+	HashResourceTypeKey_t key(filename.c_str(), level);
 
 	TexturesMap_t::iterator it = m_texturesMap.find(key);
 	if(it == m_texturesMap.end())
@@ -1363,7 +1375,10 @@ en_texture_t* CTextureManager::FindTexture( const Char* pstrFilename, rs_level_t
 //=============================================
 en_material_t* CTextureManager::FindMaterialScript( const Char* pstrFilename, rs_level_t level )
 {
-	HashResourceTypeKey_t key(pstrFilename, level);
+	CString filename(pstrFilename);
+	filename.tolower();
+
+	HashResourceTypeKey_t key(filename, level);
 	MaterialsMap_t::iterator itMaterial = m_materialsMap.find(key);
 	if(itMaterial != m_materialsMap.end())
 		return itMaterial->second;
@@ -1388,7 +1403,10 @@ en_material_t* CTextureManager::FindMaterialScript( const Char* pstrFilename, rs
 //=============================================
 en_texture_t* CTextureManager::LoadPallettedTexture( const Char* pstrFilename, rs_level_t level, const byte *pdata, const color24_t *ppal, Uint32 width, Uint32 height, Int32 flags )
 {
-	en_texture_t* ptexture = FindTexture(pstrFilename, level);
+	CString filename(pstrFilename);
+	filename.tolower();
+
+	en_texture_t* ptexture = FindTexture(filename.c_str(), level);
 	if(ptexture)
 	{
 		if(ptexture->width == width && ptexture->height == height)
@@ -1470,11 +1488,11 @@ en_texture_t* CTextureManager::LoadPallettedTexture( const Char* pstrFilename, r
 	delete[] pcol2;
 
 	// Create entry
-	HashResourceTypeKey_t key(pstrFilename, level);
+	HashResourceTypeKey_t key(filename.c_str(), level);
 	ptexture = AllocTexture(key);
 	ptexture->bpp = 4;
 	ptexture->compression = TX_COMPRESSION_NONE;
-	ptexture->filepath = pstrFilename;
+	ptexture->filepath = filename.c_str();
 	ptexture->format = TX_FORMAT_MEMORY;
 	ptexture->height = height;
 	ptexture->width = width;

@@ -52,9 +52,10 @@ public:
 public:
 	enum shaderflags_t
 	{
-		FL_GLSL_SHADER_NONE			= 0,
-		FL_GLSL_ONDEMAND_LOAD		= (1<<0),
-		FL_GLSL_BINARY_SHADER_OPS	= (1<<1)
+		FL_GLSL_SHADER_NONE				= 0,
+		FL_GLSL_ONDEMAND_LOAD			= (1<<0),
+		FL_GLSL_BINARY_SHADER_OPS		= (1<<1),
+		FL_GLSL_CHECK_SAMPLER_OVERLAP	= (1<<2)
 	};
 
 	enum uniformindex_t
@@ -72,7 +73,12 @@ public:
 		UNIFORM_FLOAT2,
 		UNIFORM_FLOAT3,
 		UNIFORM_FLOAT4,
-		UNIFORM_MATRIX4
+		UNIFORM_MATRIX4,
+		UNIFORM_SAMPLER2D,
+		UNIFORM_SAMPLERCUBE,
+		UNIFORM_SAMPLERRECT,
+
+		NB_UNIFORM_TYPES
 	};
 
 	enum determinator_e
@@ -141,7 +147,8 @@ public:
 			type(UNIFORM_UNDEFINED),
 			stride(0),
 			sync(false),
-			elementcount(0)
+			elementcount(0),
+			used(false)
 			{}
 
 		CString name;
@@ -156,6 +163,7 @@ public:
 		Uint32 elementcount;
 
 		bool sync;
+		bool used;
 	};
 
 	// <glsl_ubo_t>
@@ -393,6 +401,22 @@ public:
 	};
 
 public:
+	// Uniform typename strings
+	const Char* UNIFORM_TYPENAMES[NB_UNIFORM_TYPES] =
+	{
+		"UNIFORM_NOSYNC",
+		"UNIFORM_INT1",
+		"UNIFORM_FLOAT1",
+		"UNIFORM_FLOAT2",
+		"UNIFORM_FLOAT3",
+		"UNIFORM_FLOAT4",
+		"UNIFORM_MATRIX4",
+		"UNIFORM_SAMPLER2D",
+		"UNIFORM_SAMPLERCUBE",
+		"UNIFORM_SAMPLERRECT"
+	};
+
+public:
 	CGLSLShader( const file_interface_t& fileFuncs, const CGLExtF& glExtF, const Char *szfile, Int32 flags = FL_GLSL_SHADER_NONE, pfnProgressUpdateFunction_t pfnCallback = nullptr );
 	CGLSLShader( const file_interface_t& fileFuncs, const CGLExtF& glExtF, Int32 flags = FL_GLSL_SHADER_NONE, pfnProgressUpdateFunction_t pfnCallback = nullptr );
 	~CGLSLShader( void );
@@ -413,6 +437,10 @@ public:
 	inline void SetUniform1i( Int32 index, Int32 x );
 	// Uniform matrix assignment variations
 	inline void SetUniformMatrix4fv( Int32 index, const Float *matrix, bool transpose = false );
+	// Reset sampler unit count
+	inline void ResetSamplerIndex( Int32 minIndex = 0 );
+	// Auto-set sampler index
+	inline Int32 AutoSetSamplerUniform( Int32 index );
 
 	// Enables syncing on a uniform
 	inline void EnableSync( Int32 uniform );
@@ -447,6 +475,8 @@ public:
 	Int32 GetDeterminatorIndex( const Char *szname );
 	// Checks all determinators and binds the appropriate shader
 	bool VerifyDeterminators( void );
+	// Performs pre-render checks
+	bool PerformPreRenderChecks( void );
 
 	// Compiles a single shader object
 	bool CompileShader( Uint32 index, glsl_shader_t* pshader, csdshaderdata_t* pshaderdata );
@@ -515,6 +545,10 @@ private:
 	bool LoadFromBSD( void );
 	// Compiles all CSD shaders
 	bool CompileCSDShaderData( void );
+	// Check samplers for overlap
+	bool CheckSamplerUniforms( void );
+	// Shifts unused samplers to avoid issues
+	void ShiftOverlappingSamplers( void );
 
 	// Constructs all the possible variations
 	bool ConstructBranches( const Char* pSrc, Uint32 fileSize );
@@ -554,6 +588,8 @@ private:
 	bool m_useBinaryShaders;
 	// TRUE if the UBOs got bound
 	bool m_areUBOsBound;
+	// TRUE if we should recheck sampler uniforms
+	bool m_recheckSamplerUniforms;
 	// Shader flags
 	Int32 m_shaderFlags;
 
@@ -563,6 +599,9 @@ private:
 	Int32 m_lastIndex;
 	// TRUE if VBO was changed
 	bool m_vboChanged;
+
+	// Available sampler index
+	Int32 m_nextSamplerIndex;
 
 	// Array of determinators
 	CArray<glsl_determinator_t> m_determinatorArray;
@@ -581,6 +620,8 @@ private:
 #ifdef USE_SHADER_VALUES_MAP
 	// Shader value map
 	ShaderValuesIndexMapType_t m_shaderValuesIndexMap;
+	// Last queried key
+	ShaderValuesStringType_t m_lastQueriedKey;
 #endif
 	// Used to store permutation arrays
 	Int16 *m_pDeterminatorValues;

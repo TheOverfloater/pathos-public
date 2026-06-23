@@ -85,7 +85,7 @@ bool CMirrorManager::InitGL( void )
 		m_attribs.u_mirrormatrix = m_pShader->InitUniform("mirror_matrix", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
 
 		if(!R_CheckShaderUniform(m_attribs.u_dt_x, "dt_x", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_dt_y, "dt_y", m_pShader, Sys_ErrorPopup)

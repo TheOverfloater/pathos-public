@@ -113,6 +113,7 @@ CVBMRenderer::CVBMRenderer( void ):
 	m_pFlexTexture(nullptr),
 	m_pScreenTexture(nullptr),
 	m_pScreenFBO(nullptr),
+	m_firstTextureUnit(0),
 	m_pVBMSubModel(nullptr),
 	m_decalIndexCacheSize(0),
 	m_decalVertexCacheSize(0),
@@ -224,7 +225,14 @@ bool CVBMRenderer::Init( void )
 void CVBMRenderer::Shutdown( void )
 {
 	ClearGL();
-	ClearGame();
+
+	if(m_numVBMDecals)
+	{
+		for(Uint32 i = 0; i < MAX_VBM_TOTAL_DECALS; i++)
+			ClearDecal(&m_vbmDecals[i]);
+
+		m_numVBMDecals = 0;
+	}
 
 	if(m_pFlexManager)
 	{
@@ -242,7 +250,7 @@ bool CVBMRenderer::InitGL( void )
 	// Init shader here because we need to check for the compatibility and the cvar
 	if(!m_pShader)
 	{
-		Int32 shaderFlags = CGLSLShader::FL_GLSL_SHADER_NONE;
+		Int32 shaderFlags = CGLSLShader::FL_GLSL_CHECK_SAMPLER_OVERLAP;
 		if(R_IsExtensionSupported("GL_ARB_get_program_binary"))
 			shaderFlags |= CGLSLShader::FL_GLSL_BINARY_SHADER_OPS;
 		else if(g_pCvarGLSLOnDemand->GetValue() > 0)
@@ -367,7 +375,7 @@ bool CVBMRenderer::InitGL( void )
 				return false;
 		}
 
-		m_attribs.u_flextexture = m_pShader->InitUniform("flextexture", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_flextexture = m_pShader->InitUniform("flextexture", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_flextexturesize = m_pShader->InitUniform("flextexture_size", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_phong_exponent = m_pShader->InitUniform("phong_exponent", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_specularfactor = m_pShader->InitUniform("specfactor", CGLSLShader::UNIFORM_FLOAT1);
@@ -375,13 +383,13 @@ bool CVBMRenderer::InitGL( void )
 		m_attribs.u_causticsm2 = m_pShader->InitUniform("causticsm2", CGLSLShader::UNIFORM_NOSYNC);
 		m_attribs.u_scroll = m_pShader->InitUniform("scroll", CGLSLShader::UNIFORM_FLOAT2);
 		m_attribs.u_color = m_pShader->InitUniform("color", CGLSLShader::UNIFORM_FLOAT4);
-		m_attribs.u_texture0 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_texture1 = m_pShader->InitUniform("texture1", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_rectangle = m_pShader->InitUniform("rectangle", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_spectexture = m_pShader->InitUniform("spectexture", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_lumtexture = m_pShader->InitUniform("lumtexture", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_aotexture = m_pShader->InitUniform("aomaptex", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_normalmap = m_pShader->InitUniform("normalmap", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture0 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_texture1 = m_pShader->InitUniform("texture1", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_rectangle = m_pShader->InitUniform("rectangle", CGLSLShader::UNIFORM_SAMPLERRECT);
+		m_attribs.u_spectexture = m_pShader->InitUniform("spectexture", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_lumtexture = m_pShader->InitUniform("lumtexture", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_aotexture = m_pShader->InitUniform("aomaptex", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_normalmap = m_pShader->InitUniform("normalmap", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_FLOAT3);
 		m_attribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_FLOAT2);
 		m_attribs.u_light_radius = m_pShader->InitUniform("light_radius", CGLSLShader::UNIFORM_FLOAT1);
@@ -431,30 +439,33 @@ bool CVBMRenderer::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_normalmatrix, "normalmatrix", m_pShader, Sys_ErrorPopup))
 			return false;
 
-		m_attribs.d_numlights = m_pShader->GetDeterminatorIndex("num_lights");
-		m_attribs.d_chrome = m_pShader->GetDeterminatorIndex("chrome");
-		m_attribs.d_shadertype = m_pShader->GetDeterminatorIndex("shadertype");
-		m_attribs.d_alphatest = m_pShader->GetDeterminatorIndex("alphatest");
-		m_attribs.d_flexes = m_pShader->GetDeterminatorIndex("flex");
-		m_attribs.d_specular = m_pShader->GetDeterminatorIndex("specular");
-		m_attribs.d_luminance = m_pShader->GetDeterminatorIndex("luminance");
-		m_attribs.d_bumpmapping = m_pShader->GetDeterminatorIndex("bumpmapping");
-		m_attribs.d_numdlights = m_pShader->GetDeterminatorIndex("numdlights");
 		m_attribs.d_use_ubo = m_pShader->GetDeterminatorIndex("use_ubo");
-		m_attribs.d_ao = m_pShader->GetDeterminatorIndex("ao");
-		m_attribs.d_blendmultipass = m_pShader->GetDeterminatorIndex("blendmultipass");
+		m_attribs.d_shadertype = m_pShader->GetDeterminatorIndex("shadertype");
+		m_attribs.d_flexes = m_pShader->GetDeterminatorIndex("flex");
+		m_attribs.d_alphatest = m_pShader->GetDeterminatorIndex("alphatest");
 
-		if(!R_CheckShaderDeterminator(m_attribs.d_numlights, "num_lights", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_chrome, "chrome", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_shadertype, "shadertype", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_alphatest, "alphatest", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_flexes, "flex", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_specular, "specular", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_luminance, "luminance", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_bumpmapping, "bumpmapping", m_pShader, Sys_ErrorPopup)
+		if(!R_CheckShaderDeterminator(m_attribs.d_shadertype, "shadertype", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_use_ubo, "use_ubo", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_ao, "ao", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_blendmultipass, "blendmultipass", m_pShader, Sys_ErrorPopup))
+			|| !R_CheckShaderDeterminator(m_attribs.d_flexes, "flex", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderDeterminator(m_attribs.d_alphatest, "alphatest", m_pShader, Sys_ErrorPopup))
+			return false;
+
+		m_attribs.u_d_numlights = m_pShader->InitUniform("d_num_lights", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_d_chrome = m_pShader->InitUniform("d_chrome", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_d_specular = m_pShader->InitUniform("d_specular", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_d_luminance = m_pShader->InitUniform("d_luminance", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_d_bumpmapping = m_pShader->InitUniform("d_bumpmapping", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_d_numdlights = m_pShader->InitUniform("d_numdlights", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_d_ao = m_pShader->InitUniform("d_ao", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_d_blendmultipass = m_pShader->InitUniform("d_blendmultipass", CGLSLShader::UNIFORM_INT1);
+
+		if(!R_CheckShaderUniform(m_attribs.u_d_numlights, "num_lights", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_d_chrome, "chrome", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_d_specular, "specular", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_d_luminance, "luminance", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_d_bumpmapping, "bumpmapping", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_d_ao, "ao", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_d_blendmultipass, "blendmultipass", m_pShader, Sys_ErrorPopup))
 			return false;
 
 		for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
@@ -487,18 +498,18 @@ bool CVBMRenderer::InitGL( void )
 			lightspotdirection << "dlight_" << i << "_spotdirection";
 
 			CString lightdeterminatorshadowmap;
-			lightdeterminatorshadowmap << "dlight" << i << "_shadow";
+			lightdeterminatorshadowmap << "d_dlight" << i << "_shadow";
 
 			m_attribs.dlights[i].u_light_color = m_pShader->InitUniform(lightcolor.c_str(), CGLSLShader::UNIFORM_FLOAT4);
 			m_attribs.dlights[i].u_light_origin = m_pShader->InitUniform(lightorigin.c_str(), CGLSLShader::UNIFORM_FLOAT3);
 			m_attribs.dlights[i].u_light_radius = m_pShader->InitUniform(lightradius.c_str(), CGLSLShader::UNIFORM_FLOAT1);
-			m_attribs.dlights[i].u_light_cubemap = m_pShader->InitUniform(lightcubemap.c_str(), CGLSLShader::UNIFORM_INT1);
-			m_attribs.dlights[i].u_light_projtexture = m_pShader->InitUniform(lightprojtexture.c_str(), CGLSLShader::UNIFORM_INT1);
-			m_attribs.dlights[i].u_light_shadowmap = m_pShader->InitUniform(lightshadowmap.c_str(), CGLSLShader::UNIFORM_INT1);
+			m_attribs.dlights[i].u_light_cubemap = m_pShader->InitUniform(lightcubemap.c_str(), CGLSLShader::UNIFORM_SAMPLERCUBE);
+			m_attribs.dlights[i].u_light_projtexture = m_pShader->InitUniform(lightprojtexture.c_str(), CGLSLShader::UNIFORM_SAMPLER2D);
+			m_attribs.dlights[i].u_light_shadowmap = m_pShader->InitUniform(lightshadowmap.c_str(), CGLSLShader::UNIFORM_SAMPLER2D);
 			m_attribs.dlights[i].u_light_matrix = m_pShader->InitUniform(lightmatrix.c_str(), CGLSLShader::UNIFORM_MATRIX4);
 			m_attribs.dlights[i].u_light_cone_size = m_pShader->InitUniform(lightconesize.c_str(), CGLSLShader::UNIFORM_FLOAT1);
 			m_attribs.dlights[i].u_light_spotdirection = m_pShader->InitUniform(lightspotdirection.c_str(), CGLSLShader::UNIFORM_FLOAT3);
-			m_attribs.dlights[i].d_light_shadowmap = m_pShader->GetDeterminatorIndex(lightdeterminatorshadowmap.c_str());
+			m_attribs.dlights[i].u_d_light_shadowmap = m_pShader->InitUniform(lightdeterminatorshadowmap.c_str(), CGLSLShader::UNIFORM_INT1);
 
 			if(!R_CheckShaderUniform(m_attribs.dlights[i].u_light_color, lightcolor.c_str(), m_pShader, Sys_ErrorPopup)
 				|| !R_CheckShaderUniform(m_attribs.dlights[i].u_light_origin, lightorigin.c_str(), m_pShader, Sys_ErrorPopup)
@@ -509,7 +520,7 @@ bool CVBMRenderer::InitGL( void )
 				|| !R_CheckShaderUniform(m_attribs.dlights[i].u_light_matrix, lightmatrix.c_str(), m_pShader, Sys_ErrorPopup)
 				|| !R_CheckShaderUniform(m_attribs.dlights[i].u_light_cone_size, lightconesize.c_str(), m_pShader, Sys_ErrorPopup)
 				|| !R_CheckShaderUniform(m_attribs.dlights[i].u_light_spotdirection, lightspotdirection.c_str(), m_pShader, Sys_ErrorPopup)
-				|| !R_CheckShaderDeterminator(m_attribs.dlights[i].d_light_shadowmap, lightdeterminatorshadowmap.c_str(), m_pShader, Sys_ErrorPopup))
+				|| !R_CheckShaderUniform(m_attribs.dlights[i].u_d_light_shadowmap, lightdeterminatorshadowmap.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
 		}
 
@@ -548,9 +559,6 @@ void CVBMRenderer::ClearGL( void )
 		delete m_pVBO;
 		m_pVBO = nullptr;
 	}
-
-	// Delete any decals
-	DeleteDecals();
 }
 
 //=============================================
@@ -583,7 +591,13 @@ bool CVBMRenderer::InitGame( void )
 //=============================================
 void CVBMRenderer::ClearGame( void )
 {
-	DeleteDecals();
+	if(m_numVBMDecals)
+	{
+		for(Uint32 i = 0; i < MAX_VBM_TOTAL_DECALS; i++)
+			ClearDecal(&m_vbmDecals[i]);
+
+		m_numVBMDecals = 0;
+	}
 
 	if(m_pShader)
 	{
@@ -2960,13 +2974,12 @@ bool CVBMRenderer::SetupRenderer( void )
 	if(m_areUBOsSupported)
 		m_pShader->SetUniformBufferObjectData(m_attribs.ub_modellights, (void*)m_uboModelLightData, sizeof(m_uboModelLightData));
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, m_numModelLights, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false))
-		return false;
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, m_numModelLights);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	m_pShader->EnableAttribute(m_attribs.a_normal);
 	m_pShader->EnableAttribute(m_attribs.a_tangent);
@@ -3014,11 +3027,12 @@ bool CVBMRenderer::SetupRenderer( void )
 //=============================================
 bool CVBMRenderer::RestoreRenderer( void )
 {
-	if(!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false))
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
+
+	if(!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE))
 		return false;
 
 	m_pShader->DisableAttribute(m_attribs.a_flexcoord);
@@ -3254,13 +3268,12 @@ bool CVBMRenderer::DrawFirst( void )
 bool CVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, bool drawBlended )
 {
 	// Set the determinator states
-	if(!m_pShader->SetDeterminator(m_attribs.d_chrome, ((!m_isMultiPass || m_useBlending) && (pmaterial->flags & (TX_FL_CHROME) || pmaterial->flags & (TX_FL_EYEGLINT) && drawBlended)) ? TRUE : FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, (pmaterial->flags & (TX_FL_FULLBRIGHT|TX_FL_SCOPE)) ? 0 : m_numModelLights, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, (pmaterial->ptextures[MT_TX_SPECULAR]) && !(pmaterial->flags & TX_FL_FULLBRIGHT) && (!m_isMultiPass || m_useBlending) && g_pCvarSpecular->GetValue() > 0 ? true : false, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, (pmaterial->ptextures[MT_TX_LUMINANCE]) && !(pmaterial->flags & TX_FL_FULLBRIGHT), false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, (pmaterial->ptextures[MT_TX_AO]) && !(pmaterial->flags & TX_FL_FULLBRIGHT), false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, (pmaterial->ptextures[MT_TX_NORMALMAP]) && !(pmaterial->flags & TX_FL_FULLBRIGHT) && g_pCvarBumpMaps->GetValue() > 0, false))
-	return false;
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, ((!m_isMultiPass || m_useBlending) && (pmaterial->flags & (TX_FL_CHROME) || pmaterial->flags & (TX_FL_EYEGLINT) && drawBlended)) ? TRUE : FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, (pmaterial->flags & (TX_FL_FULLBRIGHT|TX_FL_SCOPE)) ? 0 : m_numModelLights);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, (pmaterial->ptextures[MT_TX_SPECULAR]) && !(pmaterial->flags & TX_FL_FULLBRIGHT) && (!m_isMultiPass || m_useBlending) && g_pCvarSpecular->GetValue() > 0 ? true : false);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, (pmaterial->ptextures[MT_TX_LUMINANCE]) && !(pmaterial->flags & TX_FL_FULLBRIGHT));
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, (pmaterial->ptextures[MT_TX_AO]) && !(pmaterial->flags & TX_FL_FULLBRIGHT));
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, (pmaterial->ptextures[MT_TX_NORMALMAP]) && !(pmaterial->flags & TX_FL_FULLBRIGHT) && g_pCvarBumpMaps->GetValue() > 0);
 
 	// Alpha testing needs to be handled specially
 	Int32 alphatestMode = ALPHATEST_DISABLED;
@@ -3281,7 +3294,7 @@ bool CVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, b
 	if(pmaterial->flags & TX_FL_SCOPE)
 	{
 		// Apply scope effect
-		result = m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_scope, false);
+		result = m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_scope);
 	}
 	else if(pmaterial->flags & TX_FL_FULLBRIGHT)
 	{
@@ -3289,58 +3302,67 @@ bool CVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, b
 		if(!pmaterial->fullbrightcolor.IsZero())
 			m_pShader->SetUniform4f(m_attribs.u_color, pmaterial->fullbrightcolor.x, pmaterial->fullbrightcolor.y, pmaterial->fullbrightcolor.z, m_renderAlpha);
 
-		result = m_pShader->SetDeterminator(m_attribs.d_shadertype, rns.fog.settings.active ? vbm_texonly_fog : vbm_texonly, false);
+		result = m_pShader->SetDeterminator(m_attribs.d_shadertype, rns.fog.settings.active ? vbm_texonly_fog : vbm_texonly);
 	}
 	else if(m_isMultiPass && !m_useBlending) 
 	{
 		// Multipass without textures
-		result = m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_notexture, false);
+		result = m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_notexture);
 	}
 	else
 	{
 		// Normal textured single-pass rendering
-		result = m_pShader->SetDeterminator(m_attribs.d_shadertype, rns.fog.settings.active ? vbm_texture_fog : vbm_texture, false);
+		result = m_pShader->SetDeterminator(m_attribs.d_shadertype, rns.fog.settings.active ? vbm_texture_fog : vbm_texture);
 	}
 		
+	// Verify the settings
+	if(!result)
+		return false;
+
+	// Reset sampler to the first texture unit available
+	m_pShader->ResetSamplerIndex(m_firstTextureUnit);
+	Int32 textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_texture0);
+
+	if(drawBlended && pmaterial->flags & TX_FL_EYEGLINT)
+		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, m_pGlintTexture->palloc->gl_index);
+	else if(!m_isMultiPass || m_useBlending || pmaterial->flags & (TX_FL_ALPHATEST|TX_FL_FULLBRIGHT|TX_FL_SCOPE))
+		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
+
 	if(pmaterial->flags & TX_FL_SCOPE)
 	{
 		Float flscale = pmaterial->scale / g_pCvarReferenceFOV->GetValue();
 		m_pShader->SetUniform1f(m_attribs.u_scope_scale, flscale);
-
 		m_pShader->SetUniform2f(m_attribs.u_scope_scrsize, rns.screenwidth, rns.screenheight);
-		R_BindRectangleTexture(GL_TEXTURE1_ARB, m_pScreenTexture->palloc->gl_index);
-		m_pShader->SetUniform1i(m_attribs.u_rectangle, 1);
-	}
 
-	// Verify the settings
-	if(!result || !m_pShader->VerifyDeterminators())
-		return false;
+		textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_rectangle);
+		R_BindRectangleTexture(GL_TEXTURE0_ARB + textureIndex, m_pScreenTexture->palloc->gl_index);
+	}
 
 	if(pmaterial->ptextures[MT_TX_SPECULAR] && g_pCvarSpecular->GetValue() > 0)
 	{
 		m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
 		m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
 
-		m_pShader->SetUniform1i(m_attribs.u_spectexture, 2);
-		R_Bind2DTexture(GL_TEXTURE2, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
+		textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_spectexture);
+		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
 	}
 
 	if(pmaterial->ptextures[MT_TX_LUMINANCE])
 	{
-		m_pShader->SetUniform1i(m_attribs.u_lumtexture, 3);
-		R_Bind2DTexture(GL_TEXTURE3, pmaterial->ptextures[MT_TX_LUMINANCE]->palloc->gl_index);
+		textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_lumtexture);
+		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, pmaterial->ptextures[MT_TX_LUMINANCE]->palloc->gl_index);
 	}
 
 	if(pmaterial->ptextures[MT_TX_NORMALMAP] && g_pCvarBumpMaps->GetValue() > 0)
 	{
-		m_pShader->SetUniform1i(m_attribs.u_normalmap, 4);
-		R_Bind2DTexture(GL_TEXTURE4, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
+		textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_normalmap);
+		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
 	}
 	
 	if (pmaterial->ptextures[MT_TX_AO])
 	{
-		m_pShader->SetUniform1i(m_attribs.u_aotexture, 5);
-		R_Bind2DTexture(GL_TEXTURE5, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
+		textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_aotexture);
+		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
 	}
 
 	if(pmaterial->scrollu || pmaterial->scrollv)
@@ -3356,13 +3378,12 @@ bool CVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, b
 		m_pShader->SetUniform2f(m_attribs.u_scroll, 0, 0);
 	}
 
+	// Fix overlapping sampler issue
+	if(!m_pShader->PerformPreRenderChecks())
+		return false;
+
 	if(pmesh->numbones)
 		SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
-	
-	if(drawBlended && pmaterial->flags & TX_FL_EYEGLINT)
-		R_Bind2DTexture(GL_TEXTURE0, m_pGlintTexture->palloc->gl_index);
-	else if(!m_isMultiPass || m_useBlending || pmaterial->flags & (TX_FL_ALPHATEST|TX_FL_FULLBRIGHT|TX_FL_SCOPE))
-		R_Bind2DTexture(GL_TEXTURE0, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
 
 	if(pmaterial->flags & TX_FL_NO_CULLING)
 		glDisable(GL_CULL_FACE);
@@ -3399,13 +3420,14 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 	if(!m_numDynamicLights)
 		return true;
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, specularPass, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false))
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false))
 		return false;
+
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, specularPass);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 
@@ -3421,26 +3443,12 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 		glBlendFunc(GL_ONE, GL_ONE);
 	}
 
-	Int32 firstexunit = 0;
-
-	if(m_useFlexes)
-	{
-		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, TRUE, false))
-			return false;
-
-		m_pShader->SetUniform1i(m_attribs.u_flextexture, firstexunit);
-		R_Bind2DTexture(GL_TEXTURE0_ARB+firstexunit, m_pFlexTexture->gl_index);
-		firstexunit++;
-	}
-	else
-	{
-		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false))
-			return false;
-	}
+	// Set this determinator
+	if(!m_pShader->SetDeterminator(m_attribs.d_flexes, m_useFlexes, false))
+		return false;
 
 	// Linked list of dynamic light batches
 	CLinkedList<lightbatch_t> lightBatches;
-
 	for(Uint32 i = 0; i < m_numDynamicLights; i++)
 	{
 		cl_dlight_t *pdlight = m_pDynamicLights[i];
@@ -3542,20 +3550,23 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 
 		if(batch.type == LB_TYPE_POINTLIGHT || batch.type == LB_TYPE_POINTLIGHT_SHADOW)
 		{
-			if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_dynlight, false))
+			if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_dynlight))
 				return false;
 		}
 		else
 		{
-			if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_spotlight, false))
+			if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_spotlight))
 				return false;
 		}
 
 		// Latest light index
 		Uint32 lightindex = 0;
-		// Next available texture unit
-		Int32 texunit = firstexunit;
-		
+
+		// The m_firstTextureUnit marks the first available unit
+		Int32 texunit = m_firstTextureUnit;
+		// Reset everything after this sampler
+		m_pShader->ResetSamplerIndex(texunit);
+
 		batch.lightslist.begin();
 		while(!batch.lightslist.end())
 		{
@@ -3569,19 +3580,16 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 			{
 				if(DL_CanShadow(pdlight))
 				{
-					if(!m_pShader->SetDeterminator(m_attribs.dlights[lightindex].d_light_shadowmap, TRUE, false))
-						return false;
-
+					m_pShader->SetUniform1i(m_attribs.dlights[lightindex].u_d_light_shadowmap, TRUE);
 					m_pShader->EnableSync(m_attribs.dlights[lightindex].u_light_shadowmap);
-					m_pShader->SetUniform1i(m_attribs.dlights[lightindex].u_light_shadowmap, texunit);
-					R_Bind2DTexture(GL_TEXTURE0+texunit, pdlight->getProjShadowMap()->pfbo->ptexture1->gl_index);
-					texunit++;
+
+					texunit = m_pShader->AutoSetSamplerUniform(m_attribs.dlights[lightindex].u_light_shadowmap);
+					R_Bind2DTexture(GL_TEXTURE0 + texunit, pdlight->getProjShadowMap()->pfbo->ptexture1->gl_index);
 				}
 				else
 				{
 					m_pShader->DisableSync(m_attribs.dlights[lightindex].u_light_shadowmap);
-					if(!m_pShader->SetDeterminator(m_attribs.dlights[lightindex].d_light_shadowmap, FALSE, false))
-						return false;
+					m_pShader->SetUniform1i(m_attribs.dlights[lightindex].u_d_light_shadowmap, FALSE);
 				}
 
 				Int32 textureIndex = pdlight->textureindex;
@@ -3589,9 +3597,8 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 					textureIndex = 0;
 
 				m_pShader->EnableSync(m_attribs.dlights[lightindex].u_light_projtexture);
-				m_pShader->SetUniform1i(m_attribs.dlights[lightindex].u_light_projtexture, texunit);
-				R_Bind2DTexture(GL_TEXTURE0+texunit, rns.objects.projective_textures[textureIndex]->palloc->gl_index);
-				texunit++;
+				texunit = m_pShader->AutoSetSamplerUniform(m_attribs.dlights[lightindex].u_light_projtexture);
+				R_Bind2DTexture(GL_TEXTURE0 + texunit, rns.objects.projective_textures[textureIndex]->palloc->gl_index);
 
 				Vector angles = pdlight->angles;
 				Common::FixVector(angles);
@@ -3629,13 +3636,11 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 
 				if(DL_CanShadow(pdlight))
 				{
-					if(!m_pShader->SetDeterminator(m_attribs.dlights[lightindex].d_light_shadowmap, TRUE, false))
-						return false;
-
+					m_pShader->SetUniform1i(m_attribs.dlights[lightindex].u_d_light_shadowmap, TRUE);
 					m_pShader->EnableSync(m_attribs.dlights[lightindex].u_light_cubemap);
-					m_pShader->SetUniform1i(m_attribs.dlights[lightindex].u_light_cubemap, texunit);
-					R_BindCubemapTexture(GL_TEXTURE0+texunit, pdlight->getCubeShadowMap()->pfbo->ptexture1->gl_index);
-					texunit++;
+
+					texunit = m_pShader->AutoSetSamplerUniform(m_attribs.dlights[lightindex].u_light_cubemap);
+					R_BindCubemapTexture(GL_TEXTURE0 + texunit, pdlight->getCubeShadowMap()->pfbo->ptexture1->gl_index);
 
 					glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
@@ -3652,8 +3657,7 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 				else
 				{
 					m_pShader->DisableSync(m_attribs.dlights[lightindex].u_light_cubemap);
-					if(!m_pShader->SetDeterminator(m_attribs.dlights[lightindex].d_light_shadowmap, FALSE, false))
-						return false;
+					m_pShader->SetUniform1i(m_attribs.dlights[lightindex].u_d_light_shadowmap, FALSE);
 				}
 			}
 
@@ -3672,9 +3676,8 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 			lightindex++;
 		}
 
-		if(!m_pShader->SetDeterminator(m_attribs.d_numdlights, lightindex, false))
-			return false;
-		
+		m_pShader->SetUniform1i(m_attribs.u_d_numdlights, lightindex);
+
 		for (Uint32 j = 0; j < m_numDrawSubmodels; j++)
 		{
 			m_pVBMSubModel = m_pSubmodelDrawList[j];
@@ -3697,86 +3700,55 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 				if(pmaterial->flags & TX_FL_SCOPE)
 					continue;
 
-				// Normal map unit
-				Int32 normalmapunit = NO_POSITION;
-				// Specular map unit
-				Int32 specularmapunit = NO_POSITION;
-				// AO mapping unit to use
-				Int32 aomapunit = NO_POSITION;
-				// Default texture unit
-				Int32 maintextureunit = NO_POSITION;
-				// First unit used
-				Int32 firstunit = texunit;
-				// Local texture unit tracking
-				Int32 texunit_local = firstunit;
-				
+				// Local texture unit tracking for each mesh
+				// As texunit marks the last used unit, we need to add +1
+				Int32 texunit_inner = texunit + 1;
+				// Clear every sampler higher than this unit
+				m_pShader->ResetSamplerIndex(texunit_inner);
+
 				if(specularPass)
 				{
 					if(!pmaterial->ptextures[MT_TX_SPECULAR])
 						continue;
 
-					// Set specular map
-					specularmapunit = texunit_local;
-					texunit_local++;
-
 					m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
 					m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
 
-					R_Bind2DTexture(GL_TEXTURE0+specularmapunit, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
+					texunit_inner = m_pShader->AutoSetSamplerUniform(m_attribs.u_spectexture);
+					R_Bind2DTexture(GL_TEXTURE0 + texunit_inner, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
 				}
 
 				if(pmaterial->ptextures[MT_TX_NORMALMAP] && g_pCvarBumpMaps->GetValue() > 0)
 				{
-					if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, TRUE, false))
-						return false;
+					m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, TRUE);
 
-					// Set normal map
-					normalmapunit = texunit_local;
-					texunit_local++;
-
-					R_Bind2DTexture(GL_TEXTURE0+normalmapunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
+					texunit_inner = m_pShader->AutoSetSamplerUniform(m_attribs.u_normalmap);
+					R_Bind2DTexture(GL_TEXTURE0 + texunit_inner, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
 				}
 				else
 				{
-					if(!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false))
-						return false;
-
-					// This always needs a value
-					normalmapunit = texunit_local;
+					m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
 				}
 
 				if (pmaterial->ptextures[MT_TX_AO])
 				{
-					if (!m_pShader->SetDeterminator(m_attribs.d_ao, TRUE, false))
-						return false;
+					m_pShader->SetUniform1i(m_attribs.u_d_ao, TRUE);
 
-					// Specify the AO map unit
-					aomapunit = texunit_local;
-					texunit_local++;
-
-					R_Bind2DTexture(GL_TEXTURE0+aomapunit, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
+					texunit_inner = m_pShader->AutoSetSamplerUniform(m_attribs.u_aotexture);
+					R_Bind2DTexture(GL_TEXTURE0 + texunit_inner, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
 				}
 				else
 				{
-					if (!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false))
-						return false;
-
-					aomapunit = NO_POSITION;
+					m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 				}
 				
 				if(transparentPass || m_useBlending)
 				{
-					if (!m_pShader->SetDeterminator(m_attribs.d_blendmultipass, rns.fog.settings.active ? BLENDMULTIPASS_BLACKFOG : BLENDMULTIPASS_NORMAL, false))
-						return false;
+					m_pShader->SetUniform1i(m_attribs.u_d_blendmultipass, rns.fog.settings.active ? BLENDMULTIPASS_BLACKFOG : BLENDMULTIPASS_NORMAL);
+					m_pShader->SetUniform1i(m_attribs.u_d_chrome, (pmaterial->flags & (TX_FL_CHROME) || pmaterial->flags & (TX_FL_EYEGLINT)) ? TRUE : FALSE);
 
-					if(!m_pShader->SetDeterminator(m_attribs.d_chrome, (pmaterial->flags & (TX_FL_CHROME) || pmaterial->flags & (TX_FL_EYEGLINT)) ? TRUE : FALSE, false))
-						return false;
-
-					// Specify the AO map unit
-					maintextureunit = texunit_local;
-					texunit_local++;
-
-					R_Bind2DTexture(GL_TEXTURE0 + maintextureunit, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
+					texunit_inner = m_pShader->AutoSetSamplerUniform(m_attribs.u_texture0);
+					R_Bind2DTexture(GL_TEXTURE0 + texunit_inner, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
 
 					// Set transparency
 					Float alpha = m_renderAlpha;
@@ -3787,78 +3759,29 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 				}
 				else
 				{
-					if (!m_pShader->SetDeterminator(m_attribs.d_blendmultipass, BLENDMULTIPASS_OFF, false))
-						return false;
-
-					if(!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false))
-						return false;
-
+					m_pShader->SetUniform1i(m_attribs.u_d_blendmultipass, BLENDMULTIPASS_OFF);
+					m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
 					m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
 				}
 
-				// u_specular always needs to be set, otherwise AMD will complain
-				// about two samplers being on the same unit.
-				m_pShader->SetUniform1i(m_attribs.u_normalmap, normalmapunit);
-
-				if (specularmapunit != NO_POSITION)
-					m_pShader->SetUniform1i(m_attribs.u_spectexture, specularmapunit);
-				else if (aomapunit != NO_POSITION)
-					m_pShader->SetUniform1i(m_attribs.u_spectexture, aomapunit + 1);
-				else
-					m_pShader->SetUniform1i(m_attribs.u_spectexture, normalmapunit + 1);
-
-				if(aomapunit != NO_POSITION)
-					m_pShader->SetUniform1i(m_attribs.u_aotexture, aomapunit);
-
-				if(maintextureunit != NO_POSITION)
-					m_pShader->SetUniform1i(m_attribs.u_texture0, maintextureunit);
-				else
-					m_pShader->SetUniform1i(m_attribs.u_texture0, 0);
-
-				if(!m_pShader->VerifyDeterminators())
+				// Fix overlapping sampler issue
+				if(!m_pShader->PerformPreRenderChecks())
 					return false;
+
+				R_ValidateShader(m_pShader);
 
 				if(pmesh->numbones)
 					SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
 
-				R_ValidateShader(m_pShader);
-
 				glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 
 				// Remove all current texture binds
-				R_ClearBinds(firstunit);
+				R_ClearBinds(texunit + 1);
 			}
 		}
 
 		// Reset texunits
-		texunit = firstexunit;
-
-		batch.lightslist.begin();
-		while(!batch.lightslist.end())
-		{
-			cl_dlight_t* pdlight = batch.lightslist.get();
-
-			if(pdlight->cone_size)
-			{
-				if(DL_CanShadow(pdlight))
-				{
-					R_Bind2DTexture(GL_TEXTURE1+texunit, 0);
-					texunit++;
-				}
-
-				R_Bind2DTexture(GL_TEXTURE0+texunit, 0);
-				texunit++;
-			}
-			else if(DL_CanShadow(pdlight))
-			{
-				R_BindCubemapTexture(GL_TEXTURE0+texunit, 0);
-				texunit++;
-
-				glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-			}
-
-			batch.lightslist.next();
-		}
+		R_ClearBinds(texunit);
 
 		// Reset everything
 		for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
@@ -3873,21 +3796,15 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 			m_pShader->DisableSync(m_attribs.dlights[i].u_light_cone_size);
 			m_pShader->DisableSync(m_attribs.dlights[i].u_light_spotdirection);
 		
-			// Reset all of these
-			if(!m_pShader->SetDeterminator(m_attribs.dlights[i].d_light_shadowmap, FALSE, false))
-				return false;		
+			m_pShader->SetUniform1i(m_attribs.dlights[i].u_d_light_shadowmap, FALSE);
 		}
-
-		// Remove all binds after vertex texture
-		R_ClearBinds(firstexunit);
 
 		lightBatches.next();
 	}
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_numdlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_blendmultipass, BLENDMULTIPASS_OFF, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false))
-		return false;
+	m_pShader->SetUniform1i(m_attribs.u_d_numdlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_blendmultipass, BLENDMULTIPASS_OFF);
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
 
 	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
 	m_pShader->SetUniform1i(m_attribs.u_texture0, 0);
@@ -3937,20 +3854,15 @@ bool CVBMRenderer::DrawFinal ( void )
 	m_pShader->EnableSync(m_attribs.u_fogcolor);
 	m_pShader->EnableSync(m_attribs.u_fogparams);
 
-	if(m_useFlexes)
-	{
-		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, TRUE, false))
-			return false;
+	// m_firstTextureUnit marks the first free unit
+	Int32 firstexunit = m_firstTextureUnit;
+	// Clear everything after this unit
+	m_pShader->ResetSamplerIndex(firstexunit);
 
-		m_pShader->SetUniform1i(m_attribs.u_flextexture, 1);
-		R_Bind2DTexture(GL_TEXTURE1_ARB, m_pFlexTexture->gl_index);
-	}
-	else
-	{
-		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false))
-			return false;
-	}
-	
+	// Set this determinator
+	if(!m_pShader->SetDeterminator(m_attribs.d_flexes, m_useFlexes, false))
+		return false;
+
 	bool hasSpecular = false;
 	Int32 textureFlags = 0;
 
@@ -3959,13 +3871,14 @@ bool CVBMRenderer::DrawFinal ( void )
 	if (skinnum != 0 && skinnum < m_pVBMHeader->numskinfamilies)
 		pskinref += (skinnum * m_pVBMHeader->numskinref);
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false))
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false))
 		return false;
+
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
 
 	if(!m_useBlending)
 	{
@@ -3987,7 +3900,6 @@ bool CVBMRenderer::DrawFinal ( void )
 				if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_caustics))
 					return false;
 
-				m_pShader->SetUniform1i(m_attribs.u_texture1, 1);
 				m_pShader->SetUniform4fv(m_attribs.u_causticsm1, splane, 1);
 				m_pShader->SetUniform4fv(m_attribs.u_causticsm2, tplane, 1);
 				m_pShader->SetUniform4f(m_attribs.u_color, 
@@ -4001,8 +3913,13 @@ bool CVBMRenderer::DrawFinal ( void )
 				Int32 causticsNextFrame = (causticsCurFrame+1) % rns.objects.caustics_textures.size();
 				Float causticsInterp = (causticsTime)-static_cast<Int32>(causticsTime);
 
-				R_Bind2DTexture(GL_TEXTURE0, rns.objects.caustics_textures[causticsCurFrame]->palloc->gl_index);
-				R_Bind2DTexture(GL_TEXTURE1, rns.objects.caustics_textures[causticsNextFrame]->palloc->gl_index);
+				// No need for complex tracking of units here, as these are only set once
+				Int32 firstexunit_local = m_pShader->AutoSetSamplerUniform(m_attribs.u_texture0);
+				R_Bind2DTexture(GL_TEXTURE0 + firstexunit_local, rns.objects.caustics_textures[causticsCurFrame]->palloc->gl_index);
+
+				// Bind other texture too
+				firstexunit_local = m_pShader->AutoSetSamplerUniform(m_attribs.u_texture1);
+				R_Bind2DTexture(GL_TEXTURE0 + firstexunit_local, rns.objects.caustics_textures[causticsNextFrame]->palloc->gl_index);
 
 				m_pShader->SetUniform1f(m_attribs.u_caustics_interp, causticsInterp);
 
@@ -4024,6 +3941,10 @@ bool CVBMRenderer::DrawFinal ( void )
 						if(pmaterial->flags & (TX_FL_ALPHABLEND|TX_FL_ADDITIVE|TX_FL_FULLBRIGHT|TX_FL_SCOPE))
 							continue;
 
+						// Fix overlapping sampler issue
+						if(!m_pShader->PerformPreRenderChecks())
+							return false;
+
 						if(pmesh->numbones)
 							SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
 
@@ -4043,6 +3964,11 @@ bool CVBMRenderer::DrawFinal ( void )
 		m_pShader->EnableAttribute(m_attribs.a_texcoord1);
 		if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_texonly))
 			return false;
+
+		// Ensure every sampler gets reset, except for flex
+		m_pShader->ResetSamplerIndex(m_firstTextureUnit);
+		// Set the texturing unit only once
+		Int32 firstexunit_local = m_pShader->AutoSetSamplerUniform(m_attribs.u_texture0);
 
 		for (Uint32 i = 0; i < m_numDrawSubmodels; i++)
 		{
@@ -4084,10 +4010,14 @@ bool CVBMRenderer::DrawFinal ( void )
 					m_pShader->SetUniform2f(m_attribs.u_scroll, 0, 0);
 				}
 
+				// Fix overlapping sampler issue
+				if(!m_pShader->PerformPreRenderChecks())
+					return false;
+
 				if(pmesh->numbones)
 					SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
 
-				R_Bind2DTexture(GL_TEXTURE0, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
+				R_Bind2DTexture(GL_TEXTURE0 + firstexunit_local, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
 				R_ValidateShader(m_pShader);
 
 				glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
@@ -4095,9 +4025,7 @@ bool CVBMRenderer::DrawFinal ( void )
 
 			if(textureFlags & TX_FL_CHROME)
 			{
-				if(!m_pShader->SetDeterminator(m_attribs.d_chrome, true))
-					return false;
-
+				m_pShader->SetUniform1i(m_attribs.u_d_chrome, TRUE);
 				m_pShader->EnableAttribute(m_attribs.a_normal);
 
 				m_pShader->SetUniform3f(m_attribs.u_vorigin, rns.view.v_origin[0], rns.view.v_origin[1], rns.view.v_origin[2]);
@@ -4115,24 +4043,29 @@ bool CVBMRenderer::DrawFinal ( void )
 					if(!(pmaterial->flags & TX_FL_CHROME))
 						continue;
 
+					// Fix overlapping sampler issue
+					if(!m_pShader->PerformPreRenderChecks())
+						return false;
+
 					if(pmesh->numbones)
 						SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
 
-					R_Bind2DTexture(GL_TEXTURE0, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
+					R_Bind2DTexture(GL_TEXTURE0 + firstexunit_local, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
 					R_ValidateShader(m_pShader);
 
 					glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 				}
 
-				if(!m_pShader->SetDeterminator(m_attribs.d_chrome, false))
-					return false;
-
+				m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
 				m_pShader->DisableAttribute(m_attribs.a_normal);
 
 				// Remove it from the bit flags
 				textureFlags &= ~TX_FL_CHROME;
 			}
 		}
+
+		// Ensure these get reset
+		m_pShader->ResetSamplerIndex(m_firstTextureUnit);
 	}
 	else
 	{
@@ -4179,6 +4112,7 @@ bool CVBMRenderer::DrawFinal ( void )
 	// No further stuff is needed in this case
 	if(m_useBlending)
 		return true;
+
 	//
 	// Render meshes with fog
 	//
@@ -4242,8 +4176,10 @@ bool CVBMRenderer::DrawFinal ( void )
 		else
 			result = m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_texture_fog, false);
 
-		if(!result || !m_pShader->SetDeterminator(m_attribs.d_numlights, m_numModelLights))
+		if(!result)
 			return false;
+
+		m_pShader->SetUniform1i(m_attribs.u_d_numlights, m_numModelLights);
 
 		m_pShader->EnableAttribute(m_attribs.a_texcoord1);
 		m_pShader->EnableAttribute(m_attribs.a_normal);
@@ -4356,9 +4292,10 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 
 	glBlendFunc(GL_ONE, GL_ONE);
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_numlights, m_numModelLights, false) || 
-		!m_pShader->SetDeterminator(m_attribs.d_specular, TRUE, false) || 
-		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_speconly, false))
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, m_numModelLights);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, TRUE);
+
+	if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_speconly))
 		return false;
 
 	m_pShader->EnableSync(m_attribs.u_sky_ambient);
@@ -4372,9 +4309,6 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 
 	m_pShader->EnableSync(m_attribs.u_normalmatrix);
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_normalmatrix, rns.view.modelview.GetInverse());
-
-	m_pShader->SetUniform1i(m_attribs.u_spectexture, 2);
-	m_pShader->SetUniform1i(m_attribs.u_normalmap, 3);
 
 	// Set all the uniforms again
 	Vector vtransformed;
@@ -4391,17 +4325,6 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 
 		for (Int32 j = 0; j < m_pVBMSubModel->nummeshes; j++) 
 		{
-			// First texture unit used
-			Int32 textureunit = 2;
-			// Normal mapping unit used
-			Int32 normalmapunit = NO_POSITION;
-			// Specular mapping unit used
-			Int32 specularmapunit = NO_POSITION;
-			// Ambient occlusion mapping unit used
-			Int32 aomapunit = NO_POSITION;
-			// Default texture unit
-			Int32 maintextureunit = NO_POSITION;
-
 			const vbmmesh_t *pmesh = m_pVBMSubModel->getMesh(m_pVBMHeader, j);
 			const vbmtexture_t *ptexture = m_pVBMHeader->getTexture(pskinref[pmesh->skinref]);
 
@@ -4425,65 +4348,46 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 			m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
 			m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
 
-			// Set the specular mapping unit
-			specularmapunit = textureunit;
-			textureunit++;
+			// m_firstTextureUnit marks the first available unit
+			Int32 texunit_local = m_firstTextureUnit;
+			// Reset every sampler after firstexunit
+			m_pShader->ResetSamplerIndex(texunit_local);
 
-			R_Bind2DTexture(GL_TEXTURE0 + specularmapunit, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
-			m_pShader->SetUniform1i(m_attribs.u_spectexture, specularmapunit);
-
+			texunit_local = m_pShader->AutoSetSamplerUniform(m_attribs.u_spectexture);
+			R_Bind2DTexture(GL_TEXTURE0 + texunit_local, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
+			
 			// Set normal map if any
 			if (pmaterial->ptextures[MT_TX_NORMALMAP])
 			{
-				if (!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, TRUE, false))
-					return false;
+				m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, TRUE);
 
-				// Specify the normal map unit
-				normalmapunit = textureunit;
-				textureunit++;
-
-				R_Bind2DTexture(GL_TEXTURE0 + normalmapunit, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
+				texunit_local = m_pShader->AutoSetSamplerUniform(m_attribs.u_normalmap);
+				R_Bind2DTexture(GL_TEXTURE0 + texunit_local, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
 			}
 			else
 			{
-				if (!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false))
-					return false;
-
-				normalmapunit = NO_POSITION;
+				m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
 			}
 
 			if (pmaterial->ptextures[MT_TX_AO])
 			{
-				if (!m_pShader->SetDeterminator(m_attribs.d_ao, TRUE, false))
-					return false;
+				m_pShader->SetUniform1i(m_attribs.u_d_ao, TRUE);
 
-				// Specify the AO map unit
-				aomapunit = textureunit;
-				textureunit++;
-
-				R_Bind2DTexture(GL_TEXTURE0 + aomapunit, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
+				texunit_local = m_pShader->AutoSetSamplerUniform(m_attribs.u_aotexture);
+				R_Bind2DTexture(GL_TEXTURE0 + texunit_local, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
 			}
 			else
 			{
-				if (!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false))
-					return false;
-
-				aomapunit = NO_POSITION;
+				m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 			}
 
 			if(transparentPass || m_useBlending)
 			{
-				if (!m_pShader->SetDeterminator(m_attribs.d_blendmultipass, rns.fog.settings.active ? BLENDMULTIPASS_BLACKFOG : BLENDMULTIPASS_NORMAL, false))
-					return false;
+				m_pShader->SetUniform1i(m_attribs.u_d_blendmultipass, rns.fog.settings.active ? BLENDMULTIPASS_BLACKFOG : BLENDMULTIPASS_NORMAL);
+				m_pShader->SetUniform1i(m_attribs.u_d_chrome, (pmaterial->flags & (TX_FL_CHROME) || pmaterial->flags & (TX_FL_EYEGLINT)) ? TRUE : FALSE);
 
-				if(!m_pShader->SetDeterminator(m_attribs.d_chrome, (pmaterial->flags & (TX_FL_CHROME) || pmaterial->flags & (TX_FL_EYEGLINT)) ? TRUE : FALSE, false))
-					return false;
-
-				// Specify the AO map unit
-				maintextureunit = textureunit;
-				textureunit++;
-
-				R_Bind2DTexture(GL_TEXTURE0 + maintextureunit, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
+				texunit_local = m_pShader->AutoSetSamplerUniform(m_attribs.u_texture0);
+				R_Bind2DTexture(GL_TEXTURE0 + texunit_local, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
 
 				// Set transparency
 				Float alpha = m_renderAlpha;
@@ -4494,35 +4398,10 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 			}
 			else
 			{
-				if (!m_pShader->SetDeterminator(m_attribs.d_blendmultipass, BLENDMULTIPASS_OFF, false))
-					return false;
-
-				if(!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false))
-					return false;
-
+				m_pShader->SetUniform1i(m_attribs.u_d_blendmultipass, BLENDMULTIPASS_OFF);
+				m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
 				m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
 			}
-					
-			// u_specular always needs to be set, otherwise AMD will complain
-			// about two samplers being on the same unit.
-			m_pShader->SetUniform1i(m_attribs.u_normalmap, normalmapunit);
-			if (specularmapunit != NO_POSITION)
-				m_pShader->SetUniform1i(m_attribs.u_spectexture, specularmapunit);
-			else if (aomapunit != NO_POSITION)
-				m_pShader->SetUniform1i(m_attribs.u_spectexture, aomapunit + 1);
-			else
-				m_pShader->SetUniform1i(m_attribs.u_spectexture, normalmapunit + 1);
-
-			if(aomapunit != NO_POSITION)
-				m_pShader->SetUniform1i(m_attribs.u_aotexture, aomapunit);
-
-			if(maintextureunit != NO_POSITION)
-				m_pShader->SetUniform1i(m_attribs.u_texture0, maintextureunit);
-			else
-				m_pShader->SetUniform1i(m_attribs.u_texture0, 0);
-
-			if(!m_pShader->VerifyDeterminators())
-				return false;
 
 			if(pmaterial->scrollu || pmaterial->scrollv)
 			{
@@ -4537,6 +4416,10 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 				m_pShader->SetUniform2f(m_attribs.u_scroll, 0, 0);
 			}
 
+			// Fix overlapping sampler issue
+			if(!m_pShader->PerformPreRenderChecks())
+				return false;
+
 			if(pmesh->numbones)
 				SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
 
@@ -4545,7 +4428,7 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 			glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 
 			// Remove binds
-			R_ClearBinds(textureunit);
+			R_ClearBinds(m_firstTextureUnit);
 		}
 	}
 
@@ -4561,29 +4444,19 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 		if(!DrawLights(true, transparentPass))
 			return false;
 
-		if(m_useFlexes)
-		{
-			m_pShader->SetUniform1i(m_attribs.u_flextexture, 1);
-			R_Bind2DTexture(GL_TEXTURE1_ARB, m_pFlexTexture->gl_index);
-		}
-
 		m_pShader->EnableSync(m_attribs.u_fogcolor);
 		m_pShader->EnableSync(m_attribs.u_fogparams);
 	}
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_blendmultipass, BLENDMULTIPASS_OFF, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false))
-		return false;
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_blendmultipass, BLENDMULTIPASS_OFF);
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
 
 	m_pShader->DisableAttribute(m_attribs.a_texcoord1);
 	m_pShader->DisableAttribute(m_attribs.a_normal);
-
-	if(transparentPass)
-		m_pShader->SetUniform1i(m_attribs.u_texture0, 0);
 
 	return true;
 }
@@ -4625,35 +4498,40 @@ bool CVBMRenderer::DrawWireframe( void )
 	m_pShader->DisableSync(m_attribs.u_normalmatrix);
 
 	m_pShader->EnableSync(m_attribs.u_color);
-	m_pShader->EnableSync(m_attribs.u_flextexture);
-	m_pShader->EnableSync(m_attribs.u_flextexturesize);
 	m_pShader->EnableSync(m_attribs.u_fogcolor);
 	m_pShader->EnableSync(m_attribs.u_fogparams);
+
+	// Reset any samplers altogether
+	m_pShader->ResetSamplerIndex();
 
 	if(m_pVBMHeader->flags & VBM_HAS_FLEXES && m_isVertexFetchSupported)
 	{
 		m_pShader->EnableAttribute(m_attribs.a_flexcoord);
 
-		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, 1, false))
+		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, TRUE, false))
 			return false;
 
-		m_pShader->SetUniform1i(m_attribs.u_flextexture, 1);
-		R_Bind2DTexture(GL_TEXTURE1_ARB, m_pFlexTexture->gl_index);
+		// Use AutoSetSamplerUniform always, even if we only use one unit
+		Int32 textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_flextexture);
+		R_Bind2DTexture(GL_TEXTURE0_ARB + textureIndex, m_pFlexTexture->gl_index);
 	}
 	else
 	{
-		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, 0, false))
+		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false))
 			return false;
 	}
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_chrome, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid))
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false))
+		return false;
+
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, 0);
+
+	if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid))
 		return false;
 
 	if(m_isMultiPass)
@@ -4697,10 +4575,10 @@ bool CVBMRenderer::DrawWireframe( void )
 	if(g_pCvarWireFrame->GetValue() >= 2)
 		glEnable(GL_DEPTH_TEST);
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_flexes, 0, false))
+	if(!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false))
 		return false;
-
-	return true;
+	else
+		return true;
 }
 
 //=============================================
@@ -5381,6 +5259,15 @@ void CVBMRenderer::DeleteDecal( vbmdecal_t *pdecal )
 		}
 	}
 
+	ClearDecal(pdecal);
+}
+
+//=============================================
+//
+//
+//=============================================
+void CVBMRenderer::ClearDecal( vbmdecal_t* pdecal )
+{
 	if(!pdecal->meshes.empty())
 	{
 		for(Uint32 i = 0; i < pdecal->meshes.size(); i++)
@@ -5444,23 +5331,21 @@ bool CVBMRenderer::DrawDecals( void )
 	m_pShader->DisableSync(m_attribs.u_normalmatrix);
 
 	m_pShader->EnableSync(m_attribs.u_color);
-	m_pShader->EnableSync(m_attribs.u_flextexture);
-	m_pShader->EnableSync(m_attribs.u_flextexturesize);
 	m_pShader->EnableSync(m_attribs.u_fogcolor);
 	m_pShader->EnableSync(m_attribs.u_fogparams);
 	m_pShader->EnableSync(m_attribs.u_texture0);
 	m_pShader->EnableSync(m_attribs.u_texture1);
 
 	Int32 alphatestMode = (rns.msaa && rns.mainframe) ? ALPHATEST_COVERAGE : ALPHATEST_LESSTHAN;
-
-	if(!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_alphatest, alphatestMode, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false))
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, alphatestMode, false))
 		return false;
+
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	m_pShader->EnableAttribute(m_attribs.a_texcoord1);
 
@@ -5470,19 +5355,23 @@ bool CVBMRenderer::DrawDecals( void )
 		gGLExtF.glSampleCoverage(0.5, GL_FALSE);
 	}
 
+	// Reset all units used
+	m_pShader->ResetSamplerIndex();
+
+	Int32 textureIndex = 0;
 	if((m_pVBMHeader->flags & VBM_HAS_FLEXES) && m_isVertexFetchSupported)
 	{
 		m_pShader->EnableAttribute(m_attribs.a_flexcoord);
 
-		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, 1, false))
+		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, TRUE, false))
 			return false;
 
-		m_pShader->SetUniform1i(m_attribs.u_flextexture, 1);
-		R_Bind2DTexture(GL_TEXTURE1_ARB, m_pFlexTexture->gl_index);
+		textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_flextexture);
+		R_Bind2DTexture(GL_TEXTURE0_ARB + textureIndex, m_pFlexTexture->gl_index);
 	}
 	else
 	{
-		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, 0, false))
+		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false))
 			return false;
 	}
 
@@ -5500,7 +5389,12 @@ bool CVBMRenderer::DrawDecals( void )
 
 	while(pnext)
 	{
-		R_Bind2DTexture(GL_TEXTURE0, pnext->pentry->ptexture->palloc->gl_index);
+		// textureIndex holds the last used unit, so add +1
+		Int32 local_index = textureIndex + 1;
+		m_pShader->ResetSamplerIndex(local_index);
+
+		local_index = m_pShader->AutoSetSamplerUniform(m_attribs.u_texture0);
+		R_Bind2DTexture(GL_TEXTURE0 + local_index, pnext->pentry->ptexture->palloc->gl_index);
 
 		for(Uint32 i = 0; i < pnext->meshes.size(); i++)
 		{
@@ -5572,17 +5466,13 @@ bool CVBMRenderer::DrawDecals( void )
 			// Bind main texture if using alphatest
 			if(renderMode == DECAL_RENDERMODE_ALPHATEST)
 			{
-				if((m_pVBMHeader->flags & VBM_HAS_FLEXES) && m_isVertexFetchSupported)
-				{
-					m_pShader->SetUniform1i(m_attribs.u_texture1, 2);
-					R_Bind2DTexture(GL_TEXTURE2, pmesh->ptexture->palloc->gl_index);
-				}
-				else
-				{
-					m_pShader->SetUniform1i(m_attribs.u_texture1, 1);
-					R_Bind2DTexture(GL_TEXTURE1, pmesh->ptexture->palloc->gl_index);
-				}
+				local_index = m_pShader->AutoSetSamplerUniform(m_attribs.u_texture1);
+				R_Bind2DTexture(GL_TEXTURE0 + local_index, pmesh->ptexture->palloc->gl_index);
 			}
+
+			// Fix overlapping sampler issue
+			if(!m_pShader->PerformPreRenderChecks())
+				return false;
 
 			SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->pbones, pmesh->numbones);
 
@@ -5595,8 +5485,8 @@ bool CVBMRenderer::DrawDecals( void )
 		pnext = next;
 	}
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false)
-		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, 0, false))
+	if(!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false))
 		return false;
 
 	if(m_pVBMHeader->flags & VBM_HAS_FLEXES && m_isVertexFetchSupported)
@@ -5702,6 +5592,7 @@ bool CVBMRenderer::DrawNormalSubmodels( void )
 {
 	// Reset
 	m_numDrawSubmodels = 0;
+	m_firstTextureUnit = 0;
 
 	for (Int32 i = 0; i < m_pVBMHeader->numbodyparts; i++)
 	{
@@ -5752,15 +5643,22 @@ bool CVBMRenderer::DrawFlexedSubmodels( void )
 
 		m_pShader->EnableAttribute(m_attribs.a_flexcoord);
 
-		m_pShader->SetUniform1i(m_attribs.u_flextexture, 1);
-		m_pShader->SetUniform1f(m_attribs.u_flextexturesize, VBM_FLEXTEXTURE_SIZE);
+		// Always use AutoSetSamplerUniform if overlap checks are present
+		m_pShader->ResetSamplerIndex();
+		Int32 textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_flextexture);
+		R_Bind2DTexture(GL_TEXTURE0_ARB + textureIndex, m_pFlexTexture->gl_index);
 
-		R_Bind2DTexture(GL_TEXTURE1_ARB, m_pFlexTexture->gl_index);
+		m_pShader->SetUniform1f(m_attribs.u_flextexturesize, VBM_FLEXTEXTURE_SIZE);
+		m_firstTextureUnit = textureIndex + 1;
 
 		if(!m_pShader->SetDeterminator(m_attribs.d_flexes, TRUE, false))
 			return false;
 
 		m_useFlexes = true;
+	}
+	else
+	{
+		m_firstTextureUnit = 0;
 	}
 
 	for (Int32 i = 0; i < m_pVBMHeader->numbodyparts; i++)
@@ -5806,9 +5704,6 @@ bool CVBMRenderer::DrawFlexedSubmodels( void )
 			return false;
 
 		m_pShader->DisableAttribute(m_attribs.a_flexcoord);
-
-		m_pShader->DisableSync(m_attribs.u_flextexture);
-		m_pShader->DisableSync(m_attribs.u_flextexturesize);
 	}
 
 	m_useFlexes = false;
@@ -6022,8 +5917,6 @@ bool CVBMRenderer::PrepareDraw( void )
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_normalmatrix, rns.view.modelview.GetInverse());
-
-	m_pShader->SetUniform1i(m_attribs.u_texture0, 0);
 	return true;
 }
 
@@ -6293,20 +6186,20 @@ bool CVBMRenderer::PrepareVSM( cl_dlight_t *dl )
 	m_pShader->EnableAttribute(m_attribs.a_boneindexes);
 	m_pShader->EnableAttribute(m_attribs.a_boneweights);
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_vsm))
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
+
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_vsm))
 	{
 		m_pVBO->UnBind();
 		return false;
 	}
 
-	m_pShader->SetUniform1i(m_attribs.u_texture0, 0);
 	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
 	m_pShader->SetUniform1f(m_attribs.u_light_radius, dl->radius);
 
@@ -6315,8 +6208,6 @@ bool CVBMRenderer::PrepareVSM( cl_dlight_t *dl )
 
 	m_pShader->DisableSync(m_attribs.u_causticsm1);
 	m_pShader->DisableSync(m_attribs.u_causticsm2);
-	m_pShader->DisableSync(m_attribs.u_flextexture);
-	m_pShader->DisableSync(m_attribs.u_flextexturesize);
 	m_pShader->DisableSync(m_attribs.u_vorigin);
 	m_pShader->DisableSync(m_attribs.u_vright);
 	m_pShader->DisableSync(m_attribs.u_sky_ambient);
@@ -6498,6 +6389,7 @@ bool CVBMRenderer::DrawModelVSM( cl_entity_t *pEntity, cl_dlight_t *dl )
 	if (skinnum != 0 && skinnum < m_pVBMHeader->numskinfamilies)
 		pskinref += (skinnum * m_pVBMHeader->numskinref);
 
+	Int32 lastBoundShader = -1;
 	for (Int32 i = 0; i < m_pVBMHeader->numbodyparts; i++)
 	{
 		SetupModel(i, VBM_LOD_SHADOW);
@@ -6517,20 +6409,31 @@ bool CVBMRenderer::DrawModelVSM( cl_entity_t *pEntity, cl_dlight_t *dl )
 			if(pmaterial->flags & TX_FL_ALPHATEST)
 			{
 				m_pShader->EnableAttribute(m_attribs.a_texcoord1);
-				if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_vsmalpha, false))
-					return false;
+				if(lastBoundShader != vbm_vsmalpha)
+				{
+					if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_vsmalpha))
+						return false;
+
+					lastBoundShader = vbm_vsmalpha;
+				}
 
 				R_Bind2DTexture(GL_TEXTURE0, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
 			}
 			else
 			{
-				if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_vsm, false))
-					return false;
+				if(lastBoundShader != vbm_vsm)
+				{
+					if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_vsm))
+						return false;
+
+					lastBoundShader = vbm_vsm;
+				}
 
 				m_pShader->DisableAttribute(m_attribs.a_texcoord1);
 			}
 
-			if(!m_pShader->VerifyDeterminators())
+			// Fix overlapping sampler issue
+			if(!m_pShader->PerformPreRenderChecks())
 				return false;
 
 			if(pmesh->numbones)
@@ -6601,14 +6504,15 @@ bool CVBMRenderer::PrepAuraPass( void )
 	m_pShader->EnableAttribute(m_attribs.a_boneindexes);
 	m_pShader->EnableAttribute(m_attribs.a_boneweights);
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid))
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
+
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid))
 	{
 		m_pVBO->UnBind();
 		return false;
@@ -6620,8 +6524,6 @@ bool CVBMRenderer::PrepAuraPass( void )
 	m_pShader->DisableSync(m_attribs.u_causticsm1);
 	m_pShader->DisableSync(m_attribs.u_causticsm2);
 	m_pShader->DisableSync(m_attribs.u_light_radius);
-	m_pShader->DisableSync(m_attribs.u_flextexture);
-	m_pShader->DisableSync(m_attribs.u_flextexturesize);
 	m_pShader->DisableSync(m_attribs.u_vorigin);
 	m_pShader->DisableSync(m_attribs.u_vright);
 	m_pShader->DisableSync(m_attribs.u_sky_ambient);
@@ -6889,15 +6791,16 @@ const vbmsubmodel_t* CVBMRenderer::GetIdealLOD( const vbmsubmodel_t* psubmodel, 
 //=============================================
 bool CVBMRenderer::DrawBones( void )
 {
-	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, FALSE) ||
-		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, true))
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
+
+	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, true))
 		return false;
 
 	glDisable(GL_DEPTH_TEST);
@@ -6960,15 +6863,16 @@ bool CVBMRenderer::DrawHitBoxes( void )
 {
 	Vector bboxpoints[8];
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, FALSE) ||
-		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, true))
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
+
+	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, true))
 		return false;
 
 	glDepthMask(GL_FALSE);
@@ -7008,15 +6912,16 @@ bool CVBMRenderer::DrawHitBoxes( void )
 //=============================================
 bool CVBMRenderer::DrawBoundingBox( void )
 {
-	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, FALSE) ||
-		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, true))
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
+
+	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, true))
 		return false;
 
 	glDepthMask(GL_FALSE);
@@ -7092,15 +6997,16 @@ bool CVBMRenderer::DrawBoundingBox( void )
 //=============================================
 bool CVBMRenderer::DrawLightVectors( void )
 {
-	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, true))
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
+
+	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, true))
 		return false;
 
 	glEnable(GL_DEPTH_TEST);
@@ -7458,15 +7364,16 @@ bool CVBMRenderer::DrawLightVectors( void )
 //=============================================
 bool CVBMRenderer::DrawAttachments( void )
 {
-	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, true))
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
+
+	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, true))
 		return false;
 
 	glDisable(GL_DEPTH_TEST);
@@ -7558,15 +7465,16 @@ bool CVBMRenderer::DrawHullBoundingBox( void )
 	if( m_pCurrentEntity->curstate.effects & EF_CLIENTENT )
 		return true;
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_numlights, 0, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_chrome, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_ao, FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, true))
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
+
+	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, true))
 		return false;
 
 	glDepthMask(GL_FALSE);

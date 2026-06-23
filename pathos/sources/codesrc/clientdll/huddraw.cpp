@@ -92,7 +92,7 @@ bool CHUDDraw::InitGL( void )
 	m_attribs.u_color = m_pShader->InitUniform("color", CGLSLShader::UNIFORM_FLOAT4);
 	m_attribs.u_size = m_pShader->InitUniform("size", CGLSLShader::UNIFORM_FLOAT2);
 	m_attribs.u_indent = m_pShader->InitUniform("indent", CGLSLShader::UNIFORM_FLOAT1);
-	m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
+	m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
 	m_attribs.u_alphamod = m_pShader->InitUniform("alphamod", CGLSLShader::UNIFORM_FLOAT4);
 
 	if(!R_CheckShaderUniform(m_attribs.u_modelview, "modelview", m_pShader, cl_engfuncs.pfnErrorPopup)

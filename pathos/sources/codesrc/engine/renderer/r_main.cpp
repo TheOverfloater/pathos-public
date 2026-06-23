@@ -5528,17 +5528,20 @@ void Cmd_TimeRefresh( void )
 
 	Double beginTime = Sys_FloatTime();
 
+	Float prevAngle = rns.view.params.v_angles[YAW];
+
 	for(Uint32 i = 0; i < 128; i++)
 	{
 		glViewport(0, 0, rns.screenwidth, rns.screenheight);
 		glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-		rns.view.v_angles[YAW] = (static_cast<Float>(i)/128.0f) * 360.0f;
-		R_DrawScene();
+		rns.view.params.v_angles[YAW] = (static_cast<Float>(i)/128.0f) * 360.0f;
+		R_Draw(rns.view.params);
 
 		// Increment frame counter
 		rns.framecount++;
+		gWindow.SwapWindow();
 	}
 
 	glFinish();
@@ -5546,6 +5549,8 @@ void Cmd_TimeRefresh( void )
 	Double endTime = Sys_FloatTime();
 	Double duration = endTime - beginTime;
 	Float fps = 128.0f / duration;
+
+	rns.view.params.v_angles[YAW] = prevAngle;
 
 	Con_Printf("%f seconds(%f fps)\n", static_cast<Float>(duration), fps);
 
@@ -5610,6 +5615,7 @@ void Cmd_DetailAuto( void )
 		{
 			CString folderPath = WAD_GetWADFolderPath(wadList[j].c_str(), WORLD_TEXTURES_PATH_BASE);
 			CString materialPath = WAD_GetWADTexturePath(folderPath.c_str(), texname.c_str());
+			materialPath.tolower();
 
 			pmaterial = pTextureManager->FindMaterialScript(materialPath.c_str(), RS_GAME_LEVEL);
 			if(pmaterial)
@@ -5650,23 +5656,26 @@ void Cmd_DetailAuto( void )
 		delete detailTextureAssociationArray[i];
 
 	// Write list of textures missing detail textures
-	CString str;
-	str << "World textures missign detail textures: " << NEWLINE;
+	if(!missingList.empty())
+	{
+		CString str;
+		str << "World textures missing detail textures: " << NEWLINE;
 
-	for(Uint32 i = 0; i < missingList.size(); i++)
-		str << missingList[i] << NEWLINE;
+		for(Uint32 i = 0; i < missingList.size(); i++)
+			str << missingList[i] << NEWLINE;
 
-	// Write to file
-	CString mapname;
-	Common::Basename(ens.pworld->name.c_str(), mapname);
+		// Write to file
+		CString mapname;
+		Common::Basename(ens.pworld->name.c_str(), mapname);
 
-	CString filepath;
-	filepath << "logs/" << mapname << "_detail_missing.log";
+		CString filepath;
+		filepath << "logs/" << mapname << "_detail_missing.log";
 
-	const byte* pwritedata = reinterpret_cast<const byte*>(str.c_str());
-	FL_WriteFile(pwritedata, str.length(), filepath.c_str());
+		const byte* pwritedata = reinterpret_cast<const byte*>(str.c_str());
+		FL_WriteFile(pwritedata, str.length(), filepath.c_str());
 
-	Con_Printf("Wrote list of textures without detail texture associations to '%s'.\n", filepath.c_str());
+		Con_Printf("Wrote list of textures without detail texture associations to '%s'.\n", filepath.c_str());
+	}
 }
 
 //====================================

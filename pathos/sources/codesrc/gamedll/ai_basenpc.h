@@ -715,7 +715,7 @@ protected:
 	// Get an ideal weapon drop position
 	bool GetWeaponDropPosition( Uint32 attachmentIndex, Vector& outPosition );
 	// Drops an item/weapon
-	CBaseEntity* DropItem( weaponid_t weaponId, Uint32 attachmentIndex, bool wasGibbed );
+	CBaseEntity* DropItem( weaponid_t weaponId, Uint32 attachmentIndex, bool wasGibbed, Int32 clipAmmoCount = -1 );
 
 	// Checks clear damage list for any dmg bit that needs to be cleared
 	void ProcessClearDamageList( void );
