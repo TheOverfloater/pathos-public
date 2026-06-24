@@ -182,6 +182,7 @@ bool CBSPRenderer::InitGL( void )
 		m_attribs.u_d_ao = m_pShader->InitUniform("d_ao", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_d_numlights = m_pShader->InitUniform("d_numlights", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_d_blendmultipass = m_pShader->InitUniform("d_blendmultipass", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_d_lightmap_bicubic = m_pShader->InitUniform("d_lightmap_bicubic", CGLSLShader::UNIFORM_INT1);
 
 		if(!R_CheckShaderUniform(m_attribs.u_d_fogtype, "d_fogtype", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_bumpmapping, "d_bumpmapping", m_pShader, Sys_ErrorPopup)
@@ -190,6 +191,7 @@ bool CBSPRenderer::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_d_ao, "d_ao", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_numlights, "d_numlights", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_blendmultipass, "d_blendmultipass", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_d_lightmap_bicubic, "d_lightmap_bicubic", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_cubemaps, "d_cubemaps", m_pShader, Sys_ErrorPopup))
 			return false;
 
@@ -1688,6 +1690,8 @@ bool CBSPRenderer::Prepare( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, false);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, false);
 	m_pShader->SetUniform1i(m_attribs.u_d_cubemaps, CUBEMAPS_OFF);
+
+	m_pShader->SetUniform1i(m_attribs.u_d_lightmap_bicubic, g_pCvarBicubicLightmaps->GetValue() > 0 ? 1 : 0);
 
 	// Load in current modelview
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_normalmatrix, rns.view.modelview.GetInverse());

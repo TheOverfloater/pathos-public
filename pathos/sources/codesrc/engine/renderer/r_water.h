@@ -197,7 +197,8 @@ struct water_attribs
 		d_rectrefract(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_flowmap(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_lightonly(CGLSLShader::PROPERTY_UNAVAILABLE)
+		d_lightonly(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_lightmap_bicubic(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{}
 
 	Int32 a_origin;
@@ -244,6 +245,7 @@ struct water_attribs
 	Int32 d_specular;
 	Int32 d_flowmap;
 	Int32 d_lightonly;
+	Int32 d_lightmap_bicubic;
 };
 
 /*

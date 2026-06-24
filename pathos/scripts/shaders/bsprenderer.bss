@@ -281,6 +281,7 @@ uniform highp int d_light1_shadowmap;
 uniform highp int d_light2_shadowmap;
 uniform highp int d_light3_shadowmap;
 uniform highp int d_blendmultipass;
+uniform highp int d_lightmap_bicubic;
 
 in vec2 ps_lmapcoord;
 in vec2 ps_texcoord;
@@ -517,12 +518,90 @@ vec4 EncodeDepth( vec3 v_origin, float l_radius )
 	return finalColor;
 }
 
+// Bicubic lightmapping code based on godot engine implementation
+float w0(float a) 
+{
+	return (1.0 / 6.0) * (a * (a * (-a + 3.0) - 3.0) + 1.0);
+}
+
+float w1(float a) 
+{
+	return (1.0 / 6.0) * (a * a * (3.0 * a - 6.0) + 4.0);
+}
+
+float w2(float a) 
+{
+	return (1.0 / 6.0) * (a * (a * (-3.0 * a + 3.0) + 3.0) + 1.0);
+}
+
+float w3(float a) 
+{
+	return (1.0 / 6.0) * (a * a * a);
+}
+
+float g0(float a) 
+{
+	return w0(a) + w1(a);
+}
+
+float g1(float a) 
+{
+	return w2(a) + w3(a);
+}
+
+float h0(float a) 
+{
+	return -1.0 + w1(a) / (w0(a) + w1(a));
+}
+
+float h1(float a) 
+{
+	return 1.0 + w3(a) / (w2(a) + w3(a));
+}
+
+vec4 texture2D_bicubic(sampler2D tex, vec2 uv, vec2 texture_size) 
+{
+	vec2 texel_size = vec2(1.0) / texture_size;
+
+	uv = uv * texture_size + vec2(0.5);
+
+	vec2 iuv = floor(uv);
+	vec2 fuv = fract(uv);
+
+	float g0x = g0(fuv.x);
+	float g1x = g1(fuv.x);
+	float h0x = h0(fuv.x);
+	float h1x = h1(fuv.x);
+	float h0y = h0(fuv.y);
+	float h1y = h1(fuv.y);
+
+	vec2 p0 = (vec2(iuv.x + h0x, iuv.y + h0y) - vec2(0.5)) * texel_size;
+	vec2 p1 = (vec2(iuv.x + h1x, iuv.y + h0y) - vec2(0.5)) * texel_size;
+	vec2 p2 = (vec2(iuv.x + h0x, iuv.y + h1y) - vec2(0.5)) * texel_size;
+	vec2 p3 = (vec2(iuv.x + h1x, iuv.y + h1y) - vec2(0.5)) * texel_size;
+
+	return (g0(fuv.y) * (g0x * texture(tex, p0) + g1x * texture(tex, p1))) +
+			(g1(fuv.y) * (g0x * texture(tex, p2) + g1x * texture(tex, p3)));
+}
+
+vec4 SampleLightmap(sampler2D tex, vec2 uv) 
+{
+	if (d_lightmap_bicubic == 1) 
+	{
+		return texture2D_bicubic(tex, uv, vec2(textureSize(tex, 0)));
+	} 
+	else 
+	{
+		return texture(tex, uv);
+	}
+}
+
 vec3 GetLightDir( sampler2D vecsLightmap )
 {
 	vec3 lightVec;
 	if(d_bumpmapping == 1)
 	{
-		lightVec = (2.0 * texture2D(vecsLightmap, ps_lmapcoord).xyz) - 1.0;
+		lightVec = (2.0 * SampleLightmap(vecsLightmap, ps_lmapcoord).xyz) - 1.0;
 		return normalize(lightVec);
 	}
 	else
@@ -534,7 +613,7 @@ vec3 GetLightDir( sampler2D vecsLightmap )
 vec4 GetDiffuseLight( sampler2D diffuseTexture )
 {
 	if(d_bumpmapping == 1)
-		return texture2D(diffuseTexture, ps_lmapcoord);
+		return SampleLightmap(diffuseTexture, ps_lmapcoord);
 	else
 		return vec4(0, 0, 0, 0);
 }
@@ -543,7 +622,7 @@ vec4 AddBaseLight( sampler2D ambLightmap, vec4 diffuseColor, vec3 lightDir, vec3
 {
 	if(d_bumpmapping == 0)
 	{
-		vec4 lightmapColor = texture2D(ambLightmap, ps_lmapcoord);
+		vec4 lightmapColor = SampleLightmap(ambLightmap, ps_lmapcoord);
 		if(d_luminance == 1)
 			lightmapColor.xyz += texture(luminance, ps_texcoord).xyz;
 
@@ -553,7 +632,7 @@ vec4 AddBaseLight( sampler2D ambLightmap, vec4 diffuseColor, vec3 lightDir, vec3
 	else
 	{
 		// Lightmap is always on unit 0
-		vec4 ambientColor = texture2D(ambLightmap, ps_lmapcoord);
+		vec4 ambientColor = SampleLightmap(ambLightmap, ps_lmapcoord);
 		vec4 finalColor = ambientColor + diffuseColor * dot(lightDir, v_normal);
 		
 		if(d_luminance == 1)
@@ -772,7 +851,7 @@ void main()
 	// Texture unit 0 only and texunit 0 * 4
 	$branch shadertype == 3 || shadertype == 22
 	$begin
-		finalColor = texture2D(baselightmap, ps_lmapcoord) * color;
+		finalColor = SampleLightmap(baselightmap, ps_lmapcoord) * color;
 		$branch shadertype == 22
 		$begin
 			finalColor.xyz *= 4;

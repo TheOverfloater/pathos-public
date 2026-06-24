@@ -115,6 +115,7 @@ CCVar* g_pCvarFPSGraphHeight = nullptr;
 CCVar* g_pCvarFPSGraphWidth = nullptr;
 CCVar* g_pCvarFPSGraph = nullptr;
 CCVar* g_pCvarLightmapPadding = nullptr;
+CCVar* g_pCvarBicubicLightmaps = nullptr;
 
 // Caustics texture list file path
 static const Char CAUSTICS_TEXTURE_FILE_PATH[] = "textures/general/caustics_textures.txt";
@@ -215,6 +216,7 @@ bool R_Init( void )
 	g_pCvarFPSGraphHeight = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_fpsgraphheight", "60", "Height of the FPS graph." );
 	g_pCvarFPSGraphWidth = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_fpsgraphwidth", "256", "Width of the FPS graph." );
 	g_pCvarLightmapPadding = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_lightmap_padding", "2", "Controls padding of lightmap data to avoid edge aliasing.", R_LightmapPaddingCvarCallBack);
+	g_pCvarBicubicLightmaps = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT | FL_CV_SAVE), "r_lightmap_bicubic", "1", "Toggle bicubic lightmap filtering.");
 
 	g_pCvarFPSGraph = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_fpsgraph", "0", "Show render FPS timegraph." );
 

@@ -109,6 +109,7 @@ struct bsp_shader_attribs
 		u_d_ao(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_d_numlights(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_d_blendmultipass(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_lightmap_bicubic(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_position(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_tangent(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_binormal(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -162,6 +163,7 @@ struct bsp_shader_attribs
 	Int32 u_d_ao;
 	Int32 u_d_numlights;
 	Int32 u_d_blendmultipass;
+	Int32 u_d_lightmap_bicubic;
 
 	// vertex attribs
 	Int32 a_position;

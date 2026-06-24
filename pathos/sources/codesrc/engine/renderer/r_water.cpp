@@ -167,13 +167,15 @@ bool CWaterShader::InitGL( void )
 		m_attribs.d_specular = m_pShader->GetDeterminatorIndex("specular");
 		m_attribs.d_flowmap = m_pShader->GetDeterminatorIndex("flowmap");
 		m_attribs.d_lightonly = m_pShader->GetDeterminatorIndex("lightonly");
+		m_attribs.d_lightmap_bicubic = m_pShader->GetDeterminatorIndex("lightmap_bicubic");
 
 		if(!R_CheckShaderDeterminator(m_attribs.d_fog, "fog", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_side, "side", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_rectrefract, "rectrefract", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_specular, "specular", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_flowmap, "flowmap", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_lightonly, "lightonly", m_pShader, Sys_ErrorPopup))
+			|| !R_CheckShaderDeterminator(m_attribs.d_lightonly, "lightonly", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderDeterminator(m_attribs.d_lightmap_bicubic, "lightmap_bicubic", m_pShader, Sys_ErrorPopup))
 			return false;
 
 		m_attribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_FLOAT3);
@@ -1829,6 +1831,11 @@ bool CWaterShader::DrawWater( bool skybox )
 	else
 	{
 		result = m_pShader->SetDeterminator(m_attribs.d_fog, FALSE, false);
+	}
+
+	if (result)
+	{
+		result = m_pShader->SetDeterminator(m_attribs.d_lightmap_bicubic, g_pCvarBicubicLightmaps->GetValue() > 0 ? 1 : 0, false);
 	}
 
 	if(!result)

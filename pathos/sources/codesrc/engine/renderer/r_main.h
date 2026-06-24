@@ -491,6 +491,7 @@ extern CCVar* g_pCvarBatchDynamicLights;
 extern CCVar* g_pCvarOverdarkenTreshold;
 extern CCVar* g_pCvarDumpLightmaps;
 extern CCVar* g_pCvarLightmapPadding;
+extern CCVar* g_pCvarBicubicLightmaps;
 
 extern void R_InitRenderInterface( r_interface_t &renderFuncs );
 
