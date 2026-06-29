@@ -202,6 +202,12 @@ struct bsp_shader_attribs
 	// fragment shader uniforms
 	Int32 u_cubemap;
 	Int32 u_cubemap_prev;
+
+	// Parallax correction
+	Int32 u_cube_min;
+	Int32 u_cube_max;
+	Int32 u_cube_origin;
+
 	Int32 u_baselightmap;
 	Int32 u_maintexture;
 	Int32 u_detailtex;

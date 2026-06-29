@@ -215,6 +215,10 @@ bool CCubemapManager::InitGame( void )
 		pnewcubemap->height = pcubemap->height;
 		Math::VectorCopy(pcubemap->origin, pnewcubemap->origin);
 
+		Math::VectorCopy(pcubemap->box_mins, pnewcubemap->box_mins);
+		Math::VectorCopy(pcubemap->box_maxs, pnewcubemap->box_maxs);
+		pnewcubemap->use_parallax = (pcubemap->use_parallax != 0) ? true : false;
+
 		pnewcubemap->palloc = pTextureManager->GenTextureIndex(RS_GAME_LEVEL);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, pnewcubemap->palloc->gl_index);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -486,6 +490,7 @@ void CCubemapManager::BuildCubemapList( const entitydata_t* pEntities, Uint32 nu
 
 		// Add the new cubemap
 		AddCubemap( i, origin, cubemapSize );
+		LinkParallaxBounds(&m_cubemapsArray[m_cubemapsArray.size() - 1], pEntities, numEntities);
 	}
 }
 
@@ -614,7 +619,10 @@ bool CCubemapManager::VerifyECDFile( const ecdheader_t* pheader )
 			|| pcubemap->entindex != m_cubemapsArray[i].entindex
 			|| pcubemap->width != m_cubemapsArray[i].width
 			|| pcubemap->height != m_cubemapsArray[i].height
-			|| pcubemap->origin != m_cubemapsArray[i].origin)
+			|| pcubemap->origin != m_cubemapsArray[i].origin
+			|| pcubemap->box_mins != m_cubemapsArray[i].box_mins
+			|| pcubemap->box_maxs != m_cubemapsArray[i].box_maxs
+			|| (pcubemap->use_parallax != 0) != m_cubemapsArray[i].use_parallax)
 			return false;
 	}
 
@@ -691,6 +699,10 @@ void CCubemapManager::SaveCubemapFile( void )
 		pcubemap->width = m_cubemapsArray[i].width;
 		pcubemap->height = m_cubemapsArray[i].height;
 		Math::VectorCopy(m_cubemapsArray[i].origin, pcubemap->origin);
+
+		Math::VectorCopy(m_cubemapsArray[i].box_mins, pcubemap->box_mins);
+		Math::VectorCopy(m_cubemapsArray[i].box_maxs, pcubemap->box_maxs);
+		pcubemap->use_parallax = m_cubemapsArray[i].use_parallax ? true : false;
 		
 		pcubemap->cubemapoffset = fileBuffer.getdatasize();
 
@@ -959,4 +971,61 @@ bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRe
 	// Restore view size
 	glViewport(0, 0, rns.screenwidth, rns.screenheight);
 	return result;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CCubemapManager::LinkParallaxBounds(cubemapinfo_t* pCube, const entitydata_t* pEntities, Uint32 numEntities)
+{
+	for (Uint32 i = 0; i < numEntities; i++)
+	{
+		const Char* pClassname = ValueForKey(pEntities[i], "classname");
+		if (!pClassname || qstrcmp(pClassname, "env_cubemap"))
+			continue;
+
+		Vector entOrigin;
+		const Char* pOrgStr = ValueForKey(pEntities[i], "origin");
+		if (pOrgStr)
+			Common::StringToVector(pOrgStr, entOrigin);
+
+		// If this is the entity that belongs to our cubemap
+		if (Math::VectorCompare(entOrigin, pCube->origin))
+		{
+			const Char* pParallaxTarget = ValueForKey(pEntities[i], "parallax_target");
+			if (!pParallaxTarget || !qstrlen(pParallaxTarget))
+				return;
+
+			// Find the OBB entity by name
+			for (Uint32 j = 0; j < numEntities; j++)
+			{
+				const Char* pTargetName = ValueForKey(pEntities[j], "targetname");
+				if (pTargetName && !qstrcmp(pTargetName, pParallaxTarget))
+				{
+					const Char* pModelName = ValueForKey(pEntities[j], "model");
+					if (pModelName && pModelName[0] == '*')
+					{
+						Int32 mIdx = SDL_atoi(pModelName + 1) + 1;
+						cache_model_t* pBoxModel = gModelCache.GetModelByIndex(mIdx);
+
+						// Get min/max for parallax corrected
+						if (pBoxModel)
+						{
+							Vector obbOrigin;
+							const Char* pObbOrgStr = ValueForKey(pEntities[j], "origin");
+							if (pObbOrgStr)
+								Common::StringToVector(pObbOrgStr, obbOrigin);
+
+							Math::VectorAdd(obbOrigin, pBoxModel->mins, pCube->box_mins);
+							Math::VectorAdd(obbOrigin, pBoxModel->maxs, pCube->box_maxs);
+							pCube->use_parallax = true;
+							return;
+						}
+					}
+				}
+			}
+			return;
+		}
+	}
 }

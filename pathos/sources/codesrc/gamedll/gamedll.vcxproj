@@ -242,6 +242,7 @@
     <ClCompile Include="envblackhole.cpp" />
     <ClCompile Include="envblackandwhite.cpp" />
     <ClCompile Include="envchromatic.cpp" />
+    <ClCompile Include="envcubemapobb.cpp" />
     <ClCompile Include="envdlighttrain.cpp" />
     <ClCompile Include="envearthquake.cpp" />
     <ClCompile Include="envelighttrain.cpp" />

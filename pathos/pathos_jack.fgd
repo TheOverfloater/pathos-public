@@ -855,6 +855,8 @@
 	spritewidth(integer) : "Width" : 5
 	segments(integer) : "Segments" : 30
 ]
+@SolidClass base(Targetname) = env_cubemap_obb : "Cubemap Parallax Boundary" []
+
 @PointClass base(Targetname) size(-16 -16 -16, 16 16 16) = env_cubemap : "Cubemap"
 [
   size(Choices) : "Size" : 0 =
@@ -864,8 +866,9 @@
       2 : "64*64"
       3 : "128*128"
       4 : "256*256"
-      4 : "512*512"
+      5 : "512*512"
   ]
+  parallax_target(target_destination) : "Parallax OBB Name" : ""
 ]
 @PointClass base(Targetname) size(-8 -8 -8, 8 8 8) color(230 230 255) = env_decal: "Decal Entity" 
 [
