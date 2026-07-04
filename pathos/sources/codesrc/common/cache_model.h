@@ -130,7 +130,5 @@ struct cache_model_t
 
 	// Pointer to cache data
 	void *pcachedata;
-
-	Int32 vlight_offset;
 };
 #endif

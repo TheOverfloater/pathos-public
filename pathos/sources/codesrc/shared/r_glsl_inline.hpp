@@ -12,6 +12,7 @@ All Rights Reserved.
 
 #include "r_glextf.h"
 #include "r_common.h"
+#include "constants.h"
 
 //=============================================
 // @brief Sets the values of the uniform
@@ -445,5 +446,79 @@ inline void CGLSLShader :: SetUniformBufferObjectData( Int32 index, void* pBuffe
 	m_glExtF.glBindBuffer(GL_UNIFORM_BUFFER, ubo.buffer_id);
 	m_glExtF.glBufferSubData(GL_UNIFORM_BUFFER, 0, dataSize, pBufferData);
 	m_glExtF.glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+//=============================================
+// @brief Reset sampler unit count
+//
+//=============================================
+inline void CGLSLShader :: ResetSamplerIndex( Int32 minIndex )
+{
+	if(minIndex == m_nextSamplerIndex)
+		return;
+
+	for(Uint32 i = 0; i < m_uniformsArray.size(); i++)
+	{
+		glsl_uniform_t& uniform = m_uniformsArray[i];
+		if(uniform.type != UNIFORM_SAMPLER2D
+			&& uniform.type != UNIFORM_SAMPLERCUBE
+			&& uniform.type != UNIFORM_SAMPLERRECT
+			|| !uniform.used)
+		{
+			// Don't consider anything but other samplers
+			continue;
+		}
+
+		// If it falls in the range, mark it as not used
+		if(uniform.currentvalues[0] >= minIndex
+			&& uniform.currentvalues[0] < m_nextSamplerIndex)
+		{
+			if(uniform.used)
+			{
+				m_recheckSamplerUniforms = true;
+				uniform.used = false;
+			}
+		}
+	}
+
+	m_nextSamplerIndex = minIndex;
+}
+
+//=============================================
+// @brief Auto-set sampler index
+//
+// @param index Index of the uniform
+// @return Available free index assigned
+//=============================================
+inline Int32 CGLSLShader :: AutoSetSamplerUniform( Int32 index )
+{
+	if(index < 0 || index >= m_uniformsArray.size())
+		return m_nextSamplerIndex;
+
+	glsl_uniform_t& uniform = m_uniformsArray[index];
+	if(uniform.type != UNIFORM_SAMPLER2D
+		&& uniform.type != UNIFORM_SAMPLERCUBE
+		&& uniform.type != UNIFORM_SAMPLERRECT)
+	{
+		// Don't consider anything but other samplers
+		return m_nextSamplerIndex;
+	}
+
+	if(m_nextSamplerIndex >= MAX_BOUND_TEXTURES)
+		return m_nextSamplerIndex;
+
+	Int32 samplerIndex = m_nextSamplerIndex;
+	m_nextSamplerIndex++;
+
+	SetUniform1i(index, samplerIndex);
+
+	// Mark this sampler uniform as used
+	if(!uniform.used)
+	{
+		m_recheckSamplerUniforms = true;
+		uniform.used = true;
+	}
+
+	return samplerIndex;
 }
 #endif //R_GLSL_INLINE_H

@@ -31,7 +31,7 @@ public:
 	// Flashlight sprite file
 	static const Char FLASHLIGHT_SPRITE_FILE[];
 
-	// Values view leaning calculations
+	// Values for view model lag calculations
 	static const Float VIEWMODEL_LAG_MULT;
 	static const Float VIEWMODEL_LAG_SPEED;
 

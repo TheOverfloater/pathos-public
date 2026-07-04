@@ -18,8 +18,17 @@ All Rights Reserved.
 #include "r_common.h"
 
 //=============================================
-// @brief
-//
+// @brief Load a BMP file and extract the pure image data
+// 
+// @param pstrFilename File path
+// @param pfile Pointer to file data
+// @param pdata Output image data pointer parameter
+// @param width Output width parameter
+// @param height Output height parameter
+// @param size Output size parameter
+// @param compression Output compression parameter
+// @param pfnPrintFn Pointer to print function to use
+// @return TRUE on success, FALSE on failure
 //=============================================
 bool BMP_Load( const char* pstrFilename, const byte* pfile, byte*& pdata, Uint32& width, Uint32& height, Uint32& bpp, Uint32& size, texture_compression_t& compression, pfnPrintf_t pfnPrintFn ) 
 {
@@ -85,10 +94,21 @@ bool BMP_Load( const char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 }
 
 //=============================================
-// @brief
+// @brief Load a paletted BMP file, while keeping the
+// paletted color format.
 //
+// @param pstrFilename File path
+// @param pfile Pointer to file data
+// @param ppalette Output color palette data pointer parameter
+// @param pdata Output color index data pointer parameter
+// @param width Output width parameter
+// @param height Output height parameter
+// @param size Output size parameter
+// @param compression Output compression parameter
+// @param pfnPrintFn Pointer to print function to use
+// @return TRUE on success, FALSE on failure
 //=============================================
-bool BMP_Load8Bit(const char* pstrFilename, const byte* pfile, byte*& ppalette, byte*& pdata, Uint32& width, Uint32& height, Uint32& size, texture_compression_t& compression, pfnPrintf_t pfnPrintFn)
+bool BMP_Load8Bit_Original(const char* pstrFilename, const byte* pfile, byte*& ppalette, byte*& pdata, Uint32& width, Uint32& height, Uint32& size, texture_compression_t& compression, pfnPrintf_t pfnPrintFn)
 {
     const bmp_header_t* ptrBmpHeader = reinterpret_cast<const bmp_header_t*>(pfile);
     if (ptrBmpHeader->magic != BMP_MAGIC_NUMBER)

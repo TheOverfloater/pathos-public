@@ -91,8 +91,8 @@ bool CBlackHoleRenderer::InitGL( void )
 
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_texturerect = m_pShader->InitUniform("texture0Rect", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_texturerect = m_pShader->InitUniform("texture0Rect", CGLSLShader::UNIFORM_SAMPLERRECT);
 
 		m_attribs.u_screensize = m_pShader->InitUniform("screensize", CGLSLShader::UNIFORM_FLOAT2);
 		m_attribs.u_screenpos = m_pShader->InitUniform("screenpos", CGLSLShader::UNIFORM_FLOAT2);
@@ -375,8 +375,6 @@ bool CBlackHoleRenderer::DrawBlackHoles( void )
 	if (m_blackHolesList.empty())
 		return true;
 
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
@@ -484,7 +482,7 @@ bool CBlackHoleRenderer::DrawBlackHoles( void )
 
 		R_ValidateShader(m_pShader);
 
-		glDrawArrays(GL_TRIANGLES, 0, NUM_BLACKHOLE_VERTEXES);
+		m_pShader->DrawArrays(GL_TRIANGLES, 0, NUM_BLACKHOLE_VERTEXES);
 	}
 
 	if (pTexture)
@@ -500,7 +498,6 @@ bool CBlackHoleRenderer::DrawBlackHoles( void )
 	}
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	glDepthMask(GL_TRUE);
 

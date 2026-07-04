@@ -893,3 +893,14 @@
  - Add safeguards to prevent a crash of specific BSP lumps are absent.
  - Add checks to CTempEntityManager::CreateBreakModel to prevent spawning inside a solid.
  - Fix saved display settings not being considered when starting a game instance.
+
+2026 May 28th:
+ - Fix issue in Common::Parse causing a crash when reading QC files.
+ - Add padding feature to lightmaps to fix issues with aliasing due to bilinear filtering and MSAA.
+ - Add support for opening TGA files with greyscale or paletted data formats.
+ - Modify TGA loader to consider the ID Length field for the data offset.
+ - Fix issue in TGA header with non-flipped TGAs being corrupted.
+ - Fix EF_BRIGHTLIGHT and EF_DIMLIGHT not being considered properly for non-player entities.
+ - Add support for binding mouse wheel events to input commands.
+ - Fix bug in weapon pickup code that caused an invalid clip size to be calculated.
+ - The Pathos Model Viewer compiler window was changed into another tab for better usability.

@@ -15,11 +15,9 @@ All Rights Reserved.
 #include "modelcache.h"
 #include "pbspv1file.h"
 #include "pbspv2file.h"
-#include "pbspv3file.h"
 #include "bspv30.h"
 #include "pbspv1.h"
 #include "pbspv2.h"
-#include "pbspv3.h"
 #include "system.h"
 #include "texturemanager.h"
 #include "studio.h"
@@ -208,7 +206,6 @@ cache_model_t* CModelCache::LoadSpriteModel( const Char* pstrFilename, const byt
 	pnew->pcachedata = psprite;
 	pnew->type = MOD_SPRITE;
 	pnew->name = pstrFilename;
-	pnew->vlight_offset = -1;
 
 	// needs to be loaded to gpu
 	pnew->isloaded = false;
@@ -376,8 +373,6 @@ cache_model_t* CModelCache::LoadVBMModel( const Char* pstrFilename, const byte* 
 	if(pmcddata)
 		pnew->cacheflags |= CACHE_FL_HAS_MCD;
 
-	pnew->vlight_offset = -1;
-
 	// needs to be loaded to gpu
 	pnew->isloaded = false;
 
@@ -391,6 +386,12 @@ cache_model_t* CModelCache::LoadVBMModel( const Char* pstrFilename, const byte* 
 		if(SDL_fabs(pstudiohdr->bbmax[i]) > pnew->radius)
 			pnew->radius = pstudiohdr->bbmax[i];
 	}
+
+	// Create hash of vertex data
+	const vbmvertex_t* pvertexdata = pcache->pvbmhdr->getVertexes();
+	Uint32 vertexdatasize = pcache->pvbmhdr->numverts*sizeof(vbmvertex_t);
+	CMD5 hash(reinterpret_cast<const byte*>(pvertexdata),  vertexdatasize);
+	pcache->vertexhash = hash.HexDigest();
 
 	return pnew;
 }
@@ -416,9 +417,6 @@ cache_model_t* CModelCache::LoadBSPModel( const Char* pstrFilename, const byte* 
 			break;
 		case PBSPV2_VERSION:
 			pmodel = PBSPV2_Load(pfile, reinterpret_cast<const dpbspv2header_t*>(pfile), pstrFilename);
-			break;
-		case PBSPV3_VERSION:
-			pmodel = PBSPV3_Load(pfile, reinterpret_cast<const dpbspv3header_t*>(pfile), pstrFilename);
 			break;
 		default:
 			Con_EPrintf("%s - PBSP file '%s' has an unknown version number '%d'.\n", __FUNCTION__, pstrFilename, fileHeaderVersion);
@@ -531,11 +529,19 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 		for(Uint32 j = 0 ; j < NB_SURF_LIGHTMAP_LAYERS; j++)
 		{
 			pnewmodel->plightdata[j] = model.plightdata[j];
-			pnewmodel->pvertexlightdata[j] = model.pvertexlightdata[j];
 			pnewmodel->plightdata_original[j] = model.plightdata_original[j];
 			pnewmodel->original_lightdatasizes[j] = model.original_lightdatasizes[j];
 			pnewmodel->original_compressiontype[j] = model.original_compressiontype[j];
 			pnewmodel->original_compressionlevel[j] = model.original_compressionlevel[j];
+		}
+
+		for(Uint32 j = 0 ; j < NB_BAKED_VERTEXLIGHT_LAYERS; j++)
+		{
+			pnewmodel->pvertexlightdata[j] = model.pvertexlightdata[j];
+			pnewmodel->pvertexlightdata_original[j] = model.pvertexlightdata_original[j];
+			pnewmodel->original_vertexlightdatasizes[j] = model.original_vertexlightdatasizes[j];
+			pnewmodel->original_vertexlightcompressiontype[j] = model.original_vertexlightcompressiontype[j];
+			pnewmodel->original_vertexlightcompressionlevel[j] = model.original_vertexlightcompressionlevel[j];
 		}
 
 		pnewmodel->hulls[0].firstclipnode = psubmodel->headnode[0];
@@ -586,7 +592,6 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 		pnew->mins = pnewmodel->mins;
 		pnew->maxs = pnewmodel->maxs;
 		pnew->radius = pnewmodel->radius;
-		pnew->vlight_offset = -1;
 		pnew->isloaded = true;
 	}
 }

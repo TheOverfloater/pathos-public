@@ -46,9 +46,13 @@ bool DDS_Load( const Char* pstrFilename, const byte* pfile, byte*& pdata, Uint32
 	}
 
 	if(ddsFourCC == D3DFMT_DXT1)
+	{
 		compression = TX_COMPRESSION_DXT1;
+	}
 	else if(ddsFourCC == D3DFMT_DXT5)
+	{
 		compression = TX_COMPRESSION_DXT5;
+	}
 	else
 	{
 		pfnPrintFn("Incorrect compression on: %s. Only DXT1 and DXT5 DDS files are supported.\n", pstrFilename);

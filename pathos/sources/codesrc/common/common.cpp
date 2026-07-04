@@ -111,7 +111,7 @@ namespace Common
 			{
 				while(true)
 				{
-					if(*ppstr == '*' && *(ppstr+1) == '/')
+					if(*ppstr == '\0' || *ppstr == '*' && *(ppstr+1) == '/')
 						break;
 
 					ppstr++;
@@ -180,6 +180,10 @@ namespace Common
 	{
 		Char* ppdest = pdest;
 		const Char* ppstr = pstr;
+
+		// skip whitespaces
+		while(*ppstr && SDL_isspace(*ppstr) && *ppstr != '\n' && *ppstr != '\r')
+			ppstr++;
 
 		while(*ppstr && *ppstr != '\n' && *ppstr != '\r')
 		{
@@ -726,16 +730,22 @@ namespace Common
 		if(!pstrPath)
 			return;
 
-		Uint32 i = qstrlen(pstrPath);
+		Int32 slashPosition = NO_POSITION;
+		Int32 i = qstrlen(pstrPath);
 		while(i >= 0)
 		{
 			if(pstrPath[i] == '\\' || pstrPath[i] == '/')
+			{
+				slashPosition = i;
 				break;
+			}
 
 			i--;
 		}
 
-		if(i > 0)
+		if(slashPosition == NO_POSITION)
+			output = "./";
+		else if(i > 0)
 			output.assign(pstrPath, i);
 	}
 

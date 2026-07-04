@@ -73,9 +73,6 @@
     <Filter Include="Header Files\ui\windows">
       <UniqueIdentifier>{490b317a-28a5-4e64-b1b8-fa9426a06071}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{c7b4e1b8-b078-46b2-b5cd-712d7ae4cc13}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -434,9 +431,6 @@
     </ClCompile>
     <ClCompile Include="..\shared\collision_shared.cpp">
       <Filter>Source Files\shared</Filter>
-    </ClCompile>
-    <ClCompile Include="pbspv3.cpp">
-      <Filter>Source Files\bsp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -976,12 +970,6 @@
     </ClInclude>
     <ClInclude Include="..\shared\collision_shared.h">
       <Filter>Header Files\shared</Filter>
-    </ClInclude>
-    <ClInclude Include="pbspv3.h">
-      <Filter>Header Files\bsp</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\pbspv3file.h">
-      <Filter>Header Files\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

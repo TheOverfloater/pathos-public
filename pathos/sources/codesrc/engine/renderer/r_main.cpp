@@ -77,6 +77,7 @@ All Rights Reserved.
 #include "aldformat.h"
 #include "stb_dxt.h"
 #include "bsp_shared.h"
+#include "file.h"
 
 // Global cvars
 CCVar* g_pCvarBumpMaps = nullptr;
@@ -113,6 +114,8 @@ CCVar* g_pCvarLightmapCompression = nullptr;
 CCVar* g_pCvarFPSGraphHeight = nullptr;
 CCVar* g_pCvarFPSGraphWidth = nullptr;
 CCVar* g_pCvarFPSGraph = nullptr;
+CCVar* g_pCvarLightmapPadding = nullptr;
+CCVar* g_pCvarBicubicLightmaps = nullptr;
 
 // Caustics texture list file path
 static const Char CAUSTICS_TEXTURE_FILE_PATH[] = "textures/general/caustics_textures.txt";
@@ -212,6 +215,9 @@ bool R_Init( void )
 	g_pCvarLightmapCompression = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_lightmap_compression", "0", "Controls whether lightmap data is compressed to the DXT1 format(Experimental)." );
 	g_pCvarFPSGraphHeight = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_fpsgraphheight", "60", "Height of the FPS graph." );
 	g_pCvarFPSGraphWidth = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_fpsgraphwidth", "256", "Width of the FPS graph." );
+	g_pCvarLightmapPadding = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_lightmap_padding", "2", "Controls padding of lightmap data to avoid edge aliasing.", R_LightmapPaddingCvarCallBack);
+	g_pCvarBicubicLightmaps = gConsole.CreateCVar(CVAR_FLOAT, (FL_CV_CLIENT | FL_CV_SAVE), "r_lightmap_bicubic", "1", "Toggle bicubic lightmap filtering.");
+
 	g_pCvarFPSGraph = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_fpsgraph", "0", "Show render FPS timegraph." );
 
 	gCommands.CreateCommand("r_exportald", Cmd_ExportALD, "Exports current lightmap info as nightstage light info");
@@ -225,6 +231,7 @@ bool R_Init( void )
 	gCommands.CreateCommand("createdynlight", Cmd_CreateDynamicLight, "Creates a dynamic light");
 	gCommands.CreateCommand("createspotlight", Cmd_CreateSpotLight, "Creates a dynamic spotlight");
 	gCommands.CreateCommand("loadmodel", Cmd_LoadModel, "Loads a model.");
+	gCommands.CreateCommand("loadtga", Cmd_LoadTGA, "Loads a .tga file");
 
 	gCommands.CreateCommand("efx_tempsprite", Cmd_EFX_TempSprite, "Creates a temporary sprite entity.");
 	gCommands.CreateCommand("efx_tempmodel", Cmd_EFX_TempModel, "Creates a temporary model entity.");
@@ -517,8 +524,9 @@ bool R_InitGL( void )
 		else
 			loadstage = DAYSTAGE_NORMAL_RESTORE;
 
-		byte* pdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
-		if(ALD_Load(loadstage, pdatapointers))
+		byte* plmapdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
+		byte* pvertexlightdatapointers[NB_BAKED_VERTEXLIGHT_LAYERS] = {nullptr};
+		if(ALD_Load(loadstage, plmapdatapointers, pvertexlightdatapointers))
 		{
 			for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
 			{
@@ -526,7 +534,16 @@ bool R_InitGL( void )
 				if (ens.pworld->plightdata[i])
 					delete[] ens.pworld->plightdata[i];
 
-				ens.pworld->plightdata[i] = reinterpret_cast<color24_t*>(pdatapointers[i]);
+				ens.pworld->plightdata[i] = reinterpret_cast<color24_t*>(plmapdatapointers[i]);
+			}
+
+			for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+			{
+				// All data was successfully set, so release original data
+				if (ens.pworld->pvertexlightdata[i])
+					delete[] ens.pworld->pvertexlightdata[i];
+
+				ens.pworld->pvertexlightdata[i] = reinterpret_cast<color24_t*>(pvertexlightdatapointers[i]);
 			}
 		}
 		else
@@ -1903,7 +1920,7 @@ bool R_DrawLogo( en_texture_t* ptexture, Int32 basewidth, Int32 baseheight )
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if(!pDraw->EnableTexture())
+	if(!pDraw->DisableRectangleTexture() || !pDraw->EnableTexture())
 	{
 		Sys_ErrorPopup("Shader error: %s.\n", pDraw->GetShaderError());
 		return false;
@@ -2070,6 +2087,10 @@ bool R_DrawNormal( void )
 			// Draw any ladders on client
 			if(!cls.dllfuncs.pfnDrawLadders())
 				return false;
+
+			// Draw VBM decals
+			if(!gVBMRenderer.DrawDecals(false))
+				return false;
 		}
 
 		// Draw mirrors
@@ -2152,6 +2173,10 @@ bool R_DrawTransparent( void )
 		{
 			// Draw transparent VBM entities
 			if(!gVBMRenderer.DrawTransparent())
+				return false;
+
+			// Draw VBM decals
+			if(!gVBMRenderer.DrawDecals(true))
 				return false;
 		}
 
@@ -3409,6 +3434,24 @@ void R_ActiveLoadMaxShadersCvarCallBack( CCVar* pCVar )
 	}
 }
 
+//=============================================
+//
+//=============================================
+void R_LightmapPaddingCvarCallBack( CCVar* pCVar )
+{
+	Int32 paddingAmount = pCVar->GetValue();
+	if(paddingAmount < 0)
+	{
+		Con_Printf("Invalid setting %d for cvar '%s', min value is 0.\n", paddingAmount, pCVar->GetName());
+		gConsole.CVarSetFloatValue(pCVar->GetName(), 0);
+	}
+	else if(paddingAmount > MAX_LIGHTMAP_PADDING)
+	{
+		Con_Printf("Invalid setting %d for cvar '%s', max value is %d.\n", paddingAmount, pCVar->GetName(), MAX_LIGHTMAP_PADDING);
+		gConsole.CVarSetFloatValue(pCVar->GetName(), MAX_LIGHTMAP_PADDING);
+	}
+}
+
 //====================================
 //
 //====================================
@@ -4012,6 +4055,71 @@ void Cmd_LoadModel( void )
 		Con_Printf("%s - Failed to load '%s'.\n", __FUNCTION__, strModel.c_str());
 	else
 		Con_Printf("%s - Loaded '%s'.\n", __FUNCTION__, strModel.c_str());
+}
+
+//====================================
+//
+//====================================
+void Cmd_LoadTGA( void )
+{
+	if(gCommands.Cmd_Argc() < 2)
+	{
+		Con_Printf("loadtga usage: loadtga <texture file path>\n");
+		return;
+	}
+
+	CString strFilename = gCommands.Cmd_Argv(1);
+	if(strFilename.find(0, ".tga") == CString::CSTRING_NO_POSITION)
+	{
+		Con_Printf("%s - Not a .tga file.\n", __FUNCTION__);
+		return;
+	}
+
+	CString filePath;
+	if(strFilename.find(0, ":") == CString::CSTRING_NO_POSITION)
+		filePath << TEXTURE_BASE_DIRECTORY_PATH << strFilename;
+	else
+		filePath = strFilename;
+
+	const byte* pFile = FL_LoadFile(filePath.c_str(), nullptr);
+	if(!pFile)
+	{
+		Con_EPrintf("Could not load '%s'.\n", filePath.c_str());
+		return;
+	}
+
+	byte* pdata = nullptr;
+	Uint32 width, height, bpp, size;
+	texture_compression_t compression;
+	if(!TGA_Load(filePath.c_str(), pFile, pdata, width, height, bpp, size, compression, Con_Printf))
+	{
+		Con_EPrintf("Failure when trying to load '%s'.\n", filePath.c_str());
+		return;
+	}
+
+	Con_Printf("Loaded .tga file '%s' - Width: %d, height: %d, bits per pixel: %d, size: %d.\n", 
+		filePath.c_str(), width, height, bpp, size);
+
+	FL_FreeFile(pFile);
+
+	if(!FL_CreateDirectory("dumps/loadtga"))
+	{
+		Con_EPrintf("%s - Could not create directory '%s/dumps/'.\n", __FUNCTION__, ens.gamedir.c_str());
+		return;
+	}
+
+	CString basename;
+	Common::Basename(strFilename.c_str(), basename);
+
+	CString output;
+	output << "dumps/loadtga" << PATH_SLASH_CHAR << basename << ".tga";
+
+	if(TGA_Write(pdata, 4, width, height, output.c_str(), FL_GetInterface(), Con_Printf, nullptr, nullptr, true))
+		Con_Printf("Wrote %s.\n", output.c_str());
+	else
+		Con_Printf("Failed to write %s.\n", output.c_str());
+
+	delete[] pdata;
 }
 
 //====================================
@@ -5307,32 +5415,42 @@ void Cmd_BSPToSMD_Lightmap( void )
 	else
 		loadstage = DAYSTAGE_NORMAL_RESTORE;
 
-	byte* pdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
-	if(!ALD_Load(loadstage, pdatapointers))
+	byte* plmapdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
+	byte* pvertexlightdatapointers[NB_BAKED_VERTEXLIGHT_LAYERS] = {nullptr};
+
+	if(!ALD_Load(loadstage, plmapdatapointers, pvertexlightdatapointers))
 	{
 		Con_EPrintf("%s - Failed to restore lightmap data from backup.\n", __FUNCTION__);
 		return;
 	}
 
+	for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+		delete[] pvertexlightdatapointers[i];
+
 	// alloc lightmap data ptrs
 	Uint32 lightmapdatasize = 0;
-	color32_t* plightmap = new color32_t[lightmapWidth*lightmapHeight];
-	memset(plightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
+	Uint32 lightmappixelsize = lightmapWidth*lightmapHeight;
+	color32_t* plightmap = new color32_t[lightmappixelsize];
+	for(Uint32 i = 0; i < lightmappixelsize; i++)
+		plightmap[i] = color32_t(0, 0, 0, 255);
 
 	// alloc ambient lightmap's data
 	Uint32 amblightdatasize = 0;
 	color32_t* pambientlightmap = new color32_t[lightmapWidth*lightmapHeight];
-	memset(pambientlightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
+	for(Uint32 i = 0; i < lightmappixelsize; i++)
+		pambientlightmap[i] = color32_t(0, 0, 0, 255);
 
 	// alloc diffuse lightmap's data
 	Uint32 diffuselightdatasize = 0;
 	color32_t* pdiffuselightmap = new color32_t[lightmapWidth*lightmapHeight];
-	memset(pdiffuselightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
+	for(Uint32 i = 0; i < lightmappixelsize; i++)
+		pdiffuselightmap[i] = color32_t(0, 0, 0, 255);
 
 	// alloc lightvec lightmap's data
 	Uint32 lightvecsdatasize = 0;
 	color32_t* plightvecslightmap = new color32_t[lightmapWidth*lightmapHeight];
-	memset(plightvecslightmap, 0, sizeof(color32_t)*lightmapWidth*lightmapHeight);
+	for(Uint32 i = 0; i < lightmappixelsize; i++)
+		plightvecslightmap[i] = color32_t(0, 0, 0, 255);
 
 	// Process the surfaces
 	for(Uint32 j = 0; j < ens.pworld->numsurfaces; j++)
@@ -5349,26 +5467,28 @@ void Cmd_BSPToSMD_Lightmap( void )
 		Uint32 ysize = (psurface->extents[1] / psurface->lightmapdivider)+1;
 		Uint32 size = xsize*ysize;
 
+		Uint32 paddingAmount = clamp(g_pCvarLightmapPadding->GetValue(), 0, MAX_LIGHTMAP_PADDING);
+
 		// Build the base lightmap
-		color24_t* psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_DEFAULT] + psurface->lightoffset);
-		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightmap, styleIndex, lightmapWidth, false, false);
+		color24_t* psrc = reinterpret_cast<color24_t*>(plmapdatapointers[SURF_LIGHTMAP_DEFAULT] + psurface->lightoffset);
+		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightmap, styleIndex, lightmapWidth, 0, paddingAmount, false, false);
 		lightmapdatasize += size*sizeof(color32_t);
 
-		if(pdatapointers[SURF_LIGHTMAP_AMBIENT] && pdatapointers[SURF_LIGHTMAP_DIFFUSE] && pdatapointers[SURF_LIGHTMAP_VECTORS])
+		if(plmapdatapointers[SURF_LIGHTMAP_AMBIENT] && plmapdatapointers[SURF_LIGHTMAP_DIFFUSE] && plmapdatapointers[SURF_LIGHTMAP_VECTORS])
 		{
 			// Ambient lightmap
-			psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_AMBIENT] + psurface->lightoffset);
-			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pambientlightmap, styleIndex, lightmapWidth, 0);
+			psrc = reinterpret_cast<color24_t*>(plmapdatapointers[SURF_LIGHTMAP_AMBIENT] + psurface->lightoffset);
+			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pambientlightmap, styleIndex, lightmapWidth, 0, paddingAmount);
 			amblightdatasize += size*sizeof(color32_t);
 
 			// Diffuse lightmap
-			psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_DIFFUSE] + psurface->lightoffset);
-			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pdiffuselightmap, styleIndex, lightmapWidth, 0);
+			psrc = reinterpret_cast<color24_t*>(plmapdatapointers[SURF_LIGHTMAP_DIFFUSE] + psurface->lightoffset);
+			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pdiffuselightmap, styleIndex, lightmapWidth, 0, paddingAmount);
 			diffuselightdatasize += size*sizeof(color32_t);
 
 			// Light vectors lightmap
-			psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_VECTORS] + psurface->lightoffset);
-			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightvecslightmap, styleIndex, lightmapWidth, 0, true);
+			psrc = reinterpret_cast<color24_t*>(plmapdatapointers[SURF_LIGHTMAP_VECTORS] + psurface->lightoffset);
+			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightvecslightmap, styleIndex, lightmapWidth, 0, paddingAmount, true);
 			lightvecsdatasize += size*sizeof(color32_t);
 		}
 	}
@@ -5415,7 +5535,7 @@ void Cmd_BSPToSMD_Lightmap( void )
 	}
 
 	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
-		delete[] pdatapointers[i];
+		delete[] plmapdatapointers[i];
 
 	delete[] plightmap;
 	delete[] pambientlightmap;
@@ -5433,17 +5553,20 @@ void Cmd_TimeRefresh( void )
 
 	Double beginTime = Sys_FloatTime();
 
+	Float prevAngle = rns.view.params.v_angles[YAW];
+
 	for(Uint32 i = 0; i < 128; i++)
 	{
 		glViewport(0, 0, rns.screenwidth, rns.screenheight);
 		glClearColor(GL_ZERO, GL_ZERO, GL_ZERO, GL_ZERO);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-		rns.view.v_angles[YAW] = (static_cast<Float>(i)/128.0f) * 360.0f;
-		R_DrawScene();
+		rns.view.params.v_angles[YAW] = (static_cast<Float>(i)/128.0f) * 360.0f;
+		R_Draw(rns.view.params);
 
 		// Increment frame counter
 		rns.framecount++;
+		gWindow.SwapWindow();
 	}
 
 	glFinish();
@@ -5451,6 +5574,8 @@ void Cmd_TimeRefresh( void )
 	Double endTime = Sys_FloatTime();
 	Double duration = endTime - beginTime;
 	Float fps = 128.0f / duration;
+
+	rns.view.params.v_angles[YAW] = prevAngle;
 
 	Con_Printf("%f seconds(%f fps)\n", static_cast<Float>(duration), fps);
 
@@ -5515,6 +5640,7 @@ void Cmd_DetailAuto( void )
 		{
 			CString folderPath = WAD_GetWADFolderPath(wadList[j].c_str(), WORLD_TEXTURES_PATH_BASE);
 			CString materialPath = WAD_GetWADTexturePath(folderPath.c_str(), texname.c_str());
+			materialPath.tolower();
 
 			pmaterial = pTextureManager->FindMaterialScript(materialPath.c_str(), RS_GAME_LEVEL);
 			if(pmaterial)
@@ -5555,23 +5681,26 @@ void Cmd_DetailAuto( void )
 		delete detailTextureAssociationArray[i];
 
 	// Write list of textures missing detail textures
-	CString str;
-	str << "World textures missign detail textures: " << NEWLINE;
+	if(!missingList.empty())
+	{
+		CString str;
+		str << "World textures missing detail textures: " << NEWLINE;
 
-	for(Uint32 i = 0; i < missingList.size(); i++)
-		str << missingList[i] << NEWLINE;
+		for(Uint32 i = 0; i < missingList.size(); i++)
+			str << missingList[i] << NEWLINE;
 
-	// Write to file
-	CString mapname;
-	Common::Basename(ens.pworld->name.c_str(), mapname);
+		// Write to file
+		CString mapname;
+		Common::Basename(ens.pworld->name.c_str(), mapname);
 
-	CString filepath;
-	filepath << "logs/" << mapname << "_detail_missing.log";
+		CString filepath;
+		filepath << "logs/" << mapname << "_detail_missing.log";
 
-	const byte* pwritedata = reinterpret_cast<const byte*>(str.c_str());
-	FL_WriteFile(pwritedata, str.length(), filepath.c_str());
+		const byte* pwritedata = reinterpret_cast<const byte*>(str.c_str());
+		FL_WriteFile(pwritedata, str.length(), filepath.c_str());
 
-	Con_Printf("Wrote list of textures without detail texture associations to '%s'.\n", filepath.c_str());
+		Con_Printf("Wrote list of textures without detail texture associations to '%s'.\n", filepath.c_str());
+	}
 }
 
 //====================================

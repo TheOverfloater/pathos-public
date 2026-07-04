@@ -14,6 +14,8 @@ All Rights Reserved.
 
 // Used for custom rendermode types
 static constexpr Uint32 RENDERMODE_BITMASK = 255;
+// Max lightstyles affecting an entity
+static constexpr Uint32 MAX_ENTITY_STYLES = 4;
 
 enum movetype_t
 {
@@ -183,6 +185,7 @@ struct entity_state_t
 		speed(0),
 		stamina(0),
 		modelindex(0),
+		vlight_vbo_index(NO_POSITION),
 		ltime(0),
 		nextthink(0),
 		movetype(MOVETYPE_NONE),
@@ -255,6 +258,10 @@ struct entity_state_t
 	{
 		memset(controllers, 0, sizeof(controllers));
 		memset(blending, 0, sizeof(blending));
+		
+		vlight_styles[0] = 0;
+		for(Uint32 i = 1; i < MAX_ENTITY_STYLES; i++)
+			vlight_styles[i] = 255;
 	}
 
 	entindex_t entindex;
@@ -293,6 +300,9 @@ struct entity_state_t
 
 	Int32 modelindex;
 
+	Int32 vlight_vbo_index;
+	byte vlight_styles[MAX_ENTITY_STYLES];
+
 	Vector absmin;
 	Vector absmax;
 	Vector mins;
@@ -330,9 +340,6 @@ struct entity_state_t
 	Float scale;
 
 	Int32 rendertype;
-
-	// Offset to find vertex light data
-	Int32 vlight_offset;
 
 	Int32 rendermode;
 	Float renderamt;

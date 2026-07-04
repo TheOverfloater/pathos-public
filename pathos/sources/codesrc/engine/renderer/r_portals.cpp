@@ -145,8 +145,8 @@ bool CPortalManager::InitGL( void )
 		m_attribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_FLOAT2);
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_texturerect = m_pShader->InitUniform("texture0Rect", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_texturerect = m_pShader->InitUniform("texture0Rect", CGLSLShader::UNIFORM_SAMPLERRECT);
 		m_attribs.u_screenwidth = m_pShader->InitUniform("screenwidth", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_screenheight = m_pShader->InitUniform("screenheight", CGLSLShader::UNIFORM_FLOAT1);
 
@@ -680,8 +680,6 @@ bool CPortalManager::DrawPortals( void )
 	if(rns.portalpass)
 		return true;
 
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
@@ -707,7 +705,6 @@ bool CPortalManager::DrawPortals( void )
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return false;
 	}
 
@@ -716,7 +713,6 @@ bool CPortalManager::DrawPortals( void )
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return false;
 	}
 
@@ -766,7 +762,7 @@ bool CPortalManager::DrawPortals( void )
 
 		R_ValidateShader(m_pShader);
 
-		glDrawArrays(GL_TRIANGLES, m_pCurrentPortal->start_vertex, m_pCurrentPortal->num_vertexes);
+		m_pShader->DrawArrays(GL_TRIANGLES, m_pCurrentPortal->start_vertex, m_pCurrentPortal->num_vertexes);
 
 		// Set framecount for decals
 		for(Uint32 j = 0; j < m_pCurrentPortal->surfaces.size(); j++)
@@ -774,7 +770,6 @@ bool CPortalManager::DrawPortals( void )
 	}
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	// Clear any binds
 	R_ClearBinds();

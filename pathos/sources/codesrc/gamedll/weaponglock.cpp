@@ -76,7 +76,7 @@ const Uint32 CWeaponGlock::VGLOCK_FL_OFF = 0;
 const Uint32 CWeaponGlock::VGLOCK_FL_ON = 1;
 
 // Recoil degrade speed
-const Float CWeaponGlock::WEAPON_RECOIL_DEGRADE = 2;
+const Float CWeaponGlock::WEAPON_RECOIL_DEGRADE = 0.8;
 
 // Silencer item name
 const Char CWeaponGlock::SILENCER_ENTITY_NAME[] = "item_glock_silencer";
@@ -334,9 +334,11 @@ void CWeaponGlock::PrimaryAttack( void )
 
 	// Add extra recoil if rapidly firing
 	if(m_nextAttackTime == -1)
-		AddRecoil(1.2);
+		AddRecoil(0.5);
+	else
+		AddRecoil(0.3);
 
-	m_nextAttackTime = g_pGameVars->time + 0.3;
+	m_nextAttackTime = g_pGameVars->time + 0.4;
 	m_nextIdleTime = g_pGameVars->time + GetSequenceTime(m_sequenceNames[animationIndex]);
 	m_playedFidgetAnimation = true;
 }

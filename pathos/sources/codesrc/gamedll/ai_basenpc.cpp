@@ -6087,7 +6087,7 @@ bool CBaseNPC::GetWeaponDropPosition( Uint32 attachmentIndex, Vector& outPositio
 // @brief
 //
 //=============================================
-CBaseEntity* CBaseNPC::DropItem( weaponid_t weaponId, Uint32 attachmentIndex, bool wasGibbed )
+CBaseEntity* CBaseNPC::DropItem( weaponid_t weaponId, Uint32 attachmentIndex, bool wasGibbed, Int32 clipAmmoCount )
 {
 	if(weaponId <= WEAPON_NONE || WEAPON_NONE >= NUM_WEAPONS)
 		return nullptr;
@@ -6144,6 +6144,9 @@ CBaseEntity* CBaseNPC::DropItem( weaponid_t weaponId, Uint32 attachmentIndex, bo
 		Util::RemoveEntity(pEntity);
 		return nullptr;
 	}
+
+	if(clipAmmoCount != -1)
+		pEntity->SetDefaultAmmo(clipAmmoCount);
 
 	return pEntity;
 }

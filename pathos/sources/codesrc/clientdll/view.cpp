@@ -36,7 +36,7 @@ const Float CDefaultView::FLASHLIGHT_FADE_SPEED = 3.5;
 // Flashlight sprite file
 const Char CDefaultView::FLASHLIGHT_SPRITE_FILE[] = "sprites/flare1.spr";
 
-// Values view leaning calculations
+// Values for view model lag calculations
 const Float CDefaultView::VIEWMODEL_LAG_MULT = 0.4f;
 const Float CDefaultView::VIEWMODEL_LAG_SPEED = 5;
 

@@ -169,9 +169,9 @@ bool CPostProcess :: InitGL( void )
 		m_attribs.u_vignette_strength = m_pShader->InitUniform("vignetteStrength", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_vignette_radius = m_pShader->InitUniform("vignetteRadius", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_offsetdivider = m_pShader->InitUniform("offsetdivider", CGLSLShader::UNIFORM_FLOAT2);
-		m_attribs.u_texture1rect = m_pShader->InitUniform("texture0rect", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_texture2rect = m_pShader->InitUniform("blurtextureRect", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_texture2d = m_pShader->InitUniform("normal2dTexture", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture1rect = m_pShader->InitUniform("texture0rect", CGLSLShader::UNIFORM_SAMPLERRECT);
+		m_attribs.u_texture2rect = m_pShader->InitUniform("blurtextureRect", CGLSLShader::UNIFORM_SAMPLERRECT);
+		m_attribs.u_texture2d = m_pShader->InitUniform("normal2dTexture", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_darken_steps = m_pShader->InitUniform("darken_steps", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_brighten_multiplier = m_pShader->InitUniform("brighten_multiplier", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_blur_brightness = m_pShader->InitUniform("blur_brightness", CGLSLShader::UNIFORM_FLOAT1);
@@ -345,7 +345,7 @@ bool CPostProcess :: DrawGamma( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 	return true;
 }
 
@@ -369,7 +369,7 @@ bool CPostProcess :: DrawDistortion( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 	return true;
 }
 
@@ -393,7 +393,7 @@ bool CPostProcess :: DrawBlur( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 	// blur vertically
 	FetchScreen(&m_pScreenRTT);
@@ -404,7 +404,7 @@ bool CPostProcess :: DrawBlur( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 	return true;
 }
 
@@ -428,7 +428,7 @@ bool CPostProcess :: DrawMotionBlur( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 	// Copy to the blur rectangle now
 	R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pBlurScreenTexture->gl_index, true);
@@ -468,7 +468,7 @@ bool CPostProcess :: DrawFade( screenfade_t& fade )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 	glDisable(GL_BLEND);
 
 	// Check if we need to reset
@@ -508,7 +508,7 @@ bool CPostProcess :: DrawFilmGrain( void )
 		return false;
 	}
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 	return true;
 }
 
@@ -526,7 +526,7 @@ bool CPostProcess::DrawChromatic( void )
 	if (!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_CHROMATIC))
 		return false;
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 	return true;
 }
 
@@ -544,7 +544,7 @@ bool CPostProcess::DrawBlackAndWhite( void )
 	if (!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_BW))
 		return false;
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 	return true;
 }
 
@@ -563,7 +563,7 @@ bool CPostProcess::DrawVignette( void )
 	if (!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_VIGNETTE))
 		return false;
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 	return true;
 }
 
@@ -684,7 +684,7 @@ bool CPostProcess::DrawOverlays( void )
 		R_Bind2DTexture(GL_TEXTURE0, overlay.ptexture->palloc->gl_index);
 		R_ValidateShader(m_pShader);
 
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 	m_pShader->SetUniform2f(m_attribs.u_tcscale, rns.screenwidth, rns.screenheight);
@@ -730,7 +730,7 @@ bool CPostProcess :: DrawBloom( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 	if (bloomCvarValue == 2)
 		return true;
@@ -756,7 +756,7 @@ bool CPostProcess :: DrawBloom( void )
 	}
 
 	R_ValidateShader(m_pShader);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 	FetchScreen(&pDarkenRTT);
 	R_BindRectangleTexture(GL_TEXTURE0_ARB, pDarkenRTT->palloc->gl_index);
@@ -769,7 +769,7 @@ bool CPostProcess :: DrawBloom( void )
 	}
 
 	R_ValidateShader(m_pShader);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 	// Now draw the blurred bloom texture
 	FetchScreen(&pDarkenRTT);
@@ -783,7 +783,7 @@ bool CPostProcess :: DrawBloom( void )
 	}
 
 	R_ValidateShader(m_pShader);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 	R_BindRectangleTexture(GL_TEXTURE0_ARB, pDarkenRTT->palloc->gl_index);
 
@@ -805,7 +805,7 @@ bool CPostProcess :: DrawBloom( void )
 	m_pShader->SetUniform1f(m_attribs.u_brighten_multiplier, brightenCvarValue);
 
 	R_ValidateShader(m_pShader);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 	if (bloomCvarValue != 3)
 		glDisable(GL_BLEND);
@@ -884,8 +884,6 @@ bool CPostProcess :: Draw( bool noFilmGrain )
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
@@ -925,7 +923,6 @@ bool CPostProcess :: Draw( bool noFilmGrain )
 	{
 		glEnable(GL_DEPTH_TEST);
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return false;
 	}
 
@@ -938,7 +935,6 @@ bool CPostProcess :: Draw( bool noFilmGrain )
 			{
 				glEnable(GL_DEPTH_TEST);
 				m_pShader->DisableShader();
-				m_pVBO->UnBind();
 				return false;
 			}
 		}
@@ -948,7 +944,6 @@ bool CPostProcess :: Draw( bool noFilmGrain )
 		{
 			glEnable(GL_DEPTH_TEST);
 			m_pShader->DisableShader();
-			m_pVBO->UnBind();
 			return false;
 		}
 
@@ -989,7 +984,6 @@ bool CPostProcess :: Draw( bool noFilmGrain )
 				{
 					glEnable(GL_DEPTH_TEST);
 					m_pShader->DisableShader();
-					m_pVBO->UnBind();
 					return false;
 				}
 			}
@@ -1001,7 +995,6 @@ bool CPostProcess :: Draw( bool noFilmGrain )
 				{
 					glEnable(GL_DEPTH_TEST);
 					m_pShader->DisableShader();
-					m_pVBO->UnBind();
 					return false;
 				}
 			}
@@ -1021,7 +1014,6 @@ bool CPostProcess :: Draw( bool noFilmGrain )
 			{
 				glEnable(GL_DEPTH_TEST);
 				m_pShader->DisableShader();
-				m_pVBO->UnBind();
 				return false;
 			}
 		}
@@ -1041,7 +1033,6 @@ bool CPostProcess :: Draw( bool noFilmGrain )
 		{
 			glEnable(GL_DEPTH_TEST);
 			m_pShader->DisableShader();
-			m_pVBO->UnBind();
 			return false;
 		}
 	}
@@ -1054,7 +1045,6 @@ bool CPostProcess :: Draw( bool noFilmGrain )
 			glEnable(GL_DEPTH_TEST);
 			Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 			m_pShader->DisableShader();
-			m_pVBO->UnBind();
 			return false;
 		}
 	}
@@ -1067,7 +1057,6 @@ bool CPostProcess :: Draw( bool noFilmGrain )
 			glEnable(GL_DEPTH_TEST);
 			Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 			m_pShader->DisableShader();
-			m_pVBO->UnBind();
 			return false;
 		}
 	}
@@ -1079,7 +1068,7 @@ bool CPostProcess :: Draw( bool noFilmGrain )
 		{
 			glEnable(GL_DEPTH_TEST);
 			m_pShader->DisableShader();
-			m_pVBO->UnBind();
+
 			return false;
 		}
 	}
@@ -1096,8 +1085,6 @@ bool CPostProcess :: Draw( bool noFilmGrain )
 	m_pShader->DisableAttribute(m_attribs.a_origin);
 	m_pShader->DisableAttribute(m_attribs.a_texcoord);
 	m_pShader->DisableShader();
-
-	m_pVBO->UnBind();
 
 	// Clear any binds
 	R_ClearBinds();

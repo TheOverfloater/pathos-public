@@ -169,8 +169,8 @@ bool CMonitorManager::InitGL( void )
 		m_attribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_FLOAT2);
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_scantexture = m_pShader->InitUniform("scantexture", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_scantexture = m_pShader->InitUniform("scantexture", CGLSLShader::UNIFORM_SAMPLER2D);
 
 		if(!R_CheckShaderUniform(m_attribs.u_fogcolor, "fogcolor", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_fogparams, "fogparams", m_pShader, Sys_ErrorPopup)
@@ -725,8 +725,6 @@ bool CMonitorManager::DrawMonitors( void )
 	if(rns.monitorpass)
 		return true;
 
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
@@ -753,7 +751,6 @@ bool CMonitorManager::DrawMonitors( void )
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return false;
 	}
 
@@ -794,7 +791,7 @@ bool CMonitorManager::DrawMonitors( void )
 
 		R_ValidateShader(m_pShader);
 
-		glDrawArrays(GL_TRIANGLES, m_pCurrentMonitor->start_vertex, m_pCurrentMonitor->num_vertexes);
+		m_pShader->DrawArrays(GL_TRIANGLES, m_pCurrentMonitor->start_vertex, m_pCurrentMonitor->num_vertexes);
 
 		// Set framecount for decals
 		for(Uint32 j = 0; j < m_pCurrentMonitor->surfaces.size(); j++)
@@ -802,7 +799,6 @@ bool CMonitorManager::DrawMonitors( void )
 	}
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	// Clear any binds
 	R_ClearBinds();

@@ -122,8 +122,8 @@ bool CMenuParticles::InitGL( void )
 
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture1 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_texture2 = m_pShader->InitUniform("texture1", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture1 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_texture2 = m_pShader->InitUniform("texture1", CGLSLShader::UNIFORM_SAMPLER2D);
 
 		if(!R_CheckShaderUniform(m_attribs.u_projection, "projection", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_modelview, "modelview", m_pShader, Sys_ErrorPopup)
@@ -168,8 +168,6 @@ bool CMenuParticles::Draw( void )
 {
 	if(!m_isActive)
 		return true;
-
-	m_pVBO->Bind();
 
 	if(!m_pShader->EnableShader())
 	{
@@ -256,14 +254,13 @@ bool CMenuParticles::Draw( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, m_numBatchedVertexes);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, m_numBatchedVertexes);
 
 	m_pShader->DisableAttribute(m_attribs.a_vertex);
 	m_pShader->DisableAttribute(m_attribs.a_color);
 	m_pShader->DisableAttribute(m_attribs.a_texcoord);
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	return true;
 }

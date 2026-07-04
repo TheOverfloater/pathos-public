@@ -46,6 +46,7 @@ enum mt_texture_t
 	MT_TX_DETAIL,
 	MT_TX_SPECULAR,
 	MT_TX_LUMINANCE,
+	MT_TX_AO,
 
 	// Must be last
 	NB_MT_TX,
@@ -68,7 +69,11 @@ enum texture_compression_t
 	TX_COMPRESSION_NONE = 0,
 	TX_COMPRESSION_RLE,
 	TX_COMPRESSION_DXT1,
-	TX_COMPRESSION_DXT5
+	TX_COMPRESSION_DXT5,
+	TX_COMPRESSION_COLORMAP,
+	TX_COMPRESSION_COLORMAP_RLE,
+	TX_COMPRESSION_GREYSCALE,
+	TX_COMPRESSION_GREYSCALE_RLE,
 };
 
 struct en_texalloc_t
@@ -144,6 +149,7 @@ struct en_material_t
 	inline en_texture_t* getdetail( void ) { return ptextures[MT_TX_DETAIL]; }
 	inline en_texture_t* getspecular( void ) { return ptextures[MT_TX_SPECULAR]; }
 	inline en_texture_t* getluminance( void ) { return ptextures[MT_TX_LUMINANCE]; }
+	inline en_texture_t* getao( void ) { return ptextures[MT_TX_AO]; }
 
 	CString filepath;
 	rs_level_t level;

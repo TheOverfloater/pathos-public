@@ -17,6 +17,9 @@ All Rights Reserved.
 #include "cbuffer.h"
 #include "constants.h"
 
+// Buffer allocation size
+static const Uint32 BUFFER_ALLOC_SIZE = 65535;
+
 // Total duration of vertex shader compile calls
 Double CGLSLShader::g_vertexShaderCompileTotalDuration = 0;
 // Total duration of vertex shader verification calls
@@ -42,9 +45,8 @@ CGLSLShader::CGLSLShader ( const file_interface_t& fileFuncs, const CGLExtF& glE
 	m_fileInterface(fileFuncs),
 	m_glExtF( glExtF ),
 	m_shaderIndex( 0 ),
-	m_pVBO( nullptr ),
 	m_lastIndex( NO_POSITION ),
-	m_vboChanged( false ),
+	m_vboAttribsChangedBits( 0 ),
 	m_pVertexScript( nullptr ),
 	m_pFragmentScript( nullptr ),
 	m_pDeterminatorValues( nullptr ),
@@ -54,10 +56,12 @@ CGLSLShader::CGLSLShader ( const file_interface_t& fileFuncs, const CGLExtF& glE
 	m_onDemandLoad( false ),
 	m_useBinaryShaders( false ),
 	m_areUBOsBound( false ),
+	m_recheckSamplerUniforms( false ),
 	m_shaderFlags( flags ),
 	m_isActive( false ),
 	m_bFailed( false ),
-	m_pProgressUpdateCallbackFn(*pfnCallback)
+	m_pProgressUpdateCallbackFn(*pfnCallback),
+	m_nextSamplerIndex( 0 )
 {
 	memset(m_uniformMatrix, 0, sizeof(m_uniformMatrix));
 
@@ -87,9 +91,8 @@ CGLSLShader::CGLSLShader ( const file_interface_t& fileFuncs, const CGLExtF& glE
 	m_fileInterface(fileFuncs),
 	m_glExtF( glExtF ),
 	m_shaderIndex( 0 ),
-	m_pVBO( nullptr ),
 	m_lastIndex( NO_POSITION ),
-	m_vboChanged( false ),
+	m_vboAttribsChangedBits( 0 ),
 	m_pVertexScript( nullptr ),
 	m_pFragmentScript( nullptr ),
 	m_pDeterminatorValues( nullptr ),
@@ -99,10 +102,12 @@ CGLSLShader::CGLSLShader ( const file_interface_t& fileFuncs, const CGLExtF& glE
 	m_onDemandLoad( false ),
 	m_useBinaryShaders( false ),
 	m_areUBOsBound( false ),
+	m_recheckSamplerUniforms( false ),
 	m_shaderFlags( flags ),
 	m_isActive( false ),
 	m_bFailed( false ),
-	m_pProgressUpdateCallbackFn(*pfnCallback)
+	m_pProgressUpdateCallbackFn(*pfnCallback),
+	m_nextSamplerIndex( 0 )
 {
 	memset(m_uniformMatrix, 0, sizeof(m_uniformMatrix));
 
@@ -211,10 +216,9 @@ void CGLSLShader::FreeShaderData ( void )
 
 		m_shadersArray.clear();
 	}
-#ifdef USE_SHADER_VALUES_MAP
+
 	if(!m_shaderValuesIndexMap.empty())
 		m_shaderValuesIndexMap.clear();
-#endif
 }
 
 //=============================================
@@ -540,7 +544,6 @@ bool CGLSLShader::CompileFromCSD( void )
 			m_pShaderDeterminatorValues[j * m_pCSDHeader->numdeterminators + i] = pinvalues[j];
 	}
 
-#ifdef USE_SHADER_VALUES_MAP
 	// Create map
 	for(Uint32 i = 0; i < m_pCSDHeader->numshaders; i++)
 	{
@@ -549,7 +552,6 @@ bool CGLSLShader::CompileFromCSD( void )
 		std::pair<ShaderValuesIndexMapType_t::iterator, bool> insertResult = m_shaderValuesIndexMap.insert(ShaderValuesIndexMapPairType_t(valuestr, i));
 		assert(insertResult.second == true);
 	}
-#endif
 
 	// Allocate the shaders
 	m_shadersArray.resize(m_pCSDHeader->numshaders);
@@ -1234,14 +1236,7 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 	CString szToken2;
 	CString szToken3;
 
-	Uint32 chunkSize = 0;
-	constexpr Uint32 chunkMaxSize = 65535;
-	Char *pChunkBuffer = new Char[chunkMaxSize]();
-	if(!pChunkBuffer)
-	{
-		m_errorString << "Failed to allocate " << static_cast<Int32>(chunkMaxSize) << " bytes for " << m_shaderFile;
-		return false;
-	}
+	CBuffer chunkBuffer(BUFFER_ALLOC_SIZE);
 
 	// Allocate the new chunk
 	(*pchunkptr) = static_cast<shader_chunk_t*>(Common::ResizeArray((*pchunkptr), sizeof(shader_chunk_t), (*numchunkptr)));
@@ -1283,7 +1278,6 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 						m_errorString << "Unexpected EOF in " << m_shaderFile;
 						if(pchunkconditionals)
 							delete[] pchunkconditionals;
-						delete[] pChunkBuffer;
 						return false;
 					}
 
@@ -1308,7 +1302,6 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 						m_errorString << "Unexpected EOF on " << m_shaderFile;
 						if(pchunkconditionals)
 							delete[] pchunkconditionals;
-						delete[] pChunkBuffer;
 						return false;
 					}
 
@@ -1336,7 +1329,6 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 						m_errorString << "Determinator " << szToken1 << " not found in listing for " << m_shaderFile;
 						if(pchunkconditionals)
 							delete[] pchunkconditionals;
-						delete[] pChunkBuffer;
 						return false;
 					}
 
@@ -1358,7 +1350,6 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 						m_errorString << "Unrecognized comparison: " << szToken2;
 						if(pchunkconditionals)
 							delete[] pchunkconditionals;
-						delete[] pChunkBuffer;
 						return false;
 					}
 
@@ -1383,7 +1374,6 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 					m_errorString << "Unexpected " << szToken1 << " token for $branch in " << m_shaderFile << ", $begin expected.";
 					if(pchunkconditionals)
 						delete[] pchunkconditionals;
-					delete[] pChunkBuffer;
 					return false;
 				}
 
@@ -1392,18 +1382,18 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 				{
 					if(pchunkconditionals)
 						delete[] pchunkconditionals;
-					delete[] pChunkBuffer;
 					return false;
 				}
 
 				// Copy the data to the final buffer
+				Uint32 chunkSize = chunkBuffer.getdatasize();
 				pchunk->isize = chunkSize;
 				pchunk->pdata = new Char[chunkSize+1];
-				memcpy(pchunk->pdata, pChunkBuffer, chunkSize);
+				memcpy(pchunk->pdata, chunkBuffer.getbufferdata(), chunkSize);
 
 				// Null terminate the string
 				pchunk->pdata[pchunk->isize] = '\0';
-				chunkSize = 0;
+				chunkBuffer.reset();
 
 				// Free the conditionals array
 				delete[] pchunkconditionals;
@@ -1432,32 +1422,22 @@ bool CGLSLShader::ReadChunks( const Char **ppscan, shader_chunk_t** pchunkptr, U
 			else
 			{
 				m_errorString << "Unexpected " << szToken1 << " token for $branch in " << m_shaderFile;
-				delete[] pChunkBuffer;
 				return false;
 			}
 		}
 
-		if(chunkSize == chunkMaxSize)
-		{
-			m_errorString << "Shader script " << m_shaderFile << " << too long, max is " << static_cast<Int32>(chunkMaxSize) << " characters";
-			delete[] pChunkBuffer;
-			return false;
-		}
-
 		// Read the script contents in char by char
-		pChunkBuffer[chunkSize] = (**ppscan);
+		chunkBuffer.append((*ppscan), 1);
 		(*ppscan) = (*ppscan + 1);
-		chunkSize++;
 	}
 
 	// Copy the data to the final buffer
-	pchunk->isize = chunkSize;
-	pchunk->pdata = new Char[chunkSize+1];
-	memcpy(pchunk->pdata, pChunkBuffer, chunkSize);
+	pchunk->isize = chunkBuffer.getdatasize();
+	pchunk->pdata = new Char[pchunk->isize+1];
+	memcpy(pchunk->pdata, chunkBuffer.getbufferdata(), pchunk->isize);
 
 	// Null terminate the string
 	pchunk->pdata[pchunk->isize] = '\0';
-	delete[] pChunkBuffer;
 
 	return true;
 }
@@ -1599,18 +1579,10 @@ bool CGLSLShader::ShouldIncludeChunk( Uint32 id, shader_chunk_t *pchunk )
 // @param size Pointer to variable holding the buffer load
 // @param maxBufferSize Maximum size of the buffer
 //=============================================
-bool CGLSLShader::RecursiveAddChunks( Uint32 id, shader_chunk_t* pchunk, Char* pstrbuf, Uint32* size, Uint32 maxBufferSize )
+bool CGLSLShader::RecursiveAddChunks( Uint32 id, shader_chunk_t* pchunk, CBuffer& buffer )
 {
-	if((*size) + pchunk->isize >= maxBufferSize)
-	{
-		m_errorString << "Exceeded maxBufferSize(" << static_cast<Int32>(maxBufferSize) << ") in shader " << m_shaderFile;
-		return false;
-	}
-
 	// Add the chunk's data to the destination buffer
-	Char* pdestptr = pstrbuf + (*size);
-	memcpy(pdestptr, pchunk->pdata, pchunk->isize);
-	(*size) += pchunk->isize;
+	buffer.append(pchunk->pdata, pchunk->isize);
 
 	// Add any sub-chunks
 	for(Uint32 i = 0; i < pchunk->numchunks; i++)
@@ -1618,7 +1590,7 @@ bool CGLSLShader::RecursiveAddChunks( Uint32 id, shader_chunk_t* pchunk, Char* p
 		if(!ShouldIncludeChunk(id, &pchunk->pchunks[i]))
 			continue;
 
-		if(!RecursiveAddChunks(id, &pchunk->pchunks[i], pstrbuf, size, maxBufferSize))
+		if(!RecursiveAddChunks(id, &pchunk->pchunks[i], buffer))
 			return false;
 	}
 
@@ -1635,9 +1607,7 @@ bool CGLSLShader::RecursiveAddChunks( Uint32 id, shader_chunk_t* pchunk, Char* p
 bool CGLSLShader::SpliceScripts( Uint32 id, Char **vsptr, Char **fsptr )
 {
 	// Buffer to write to
-	constexpr Uint32 maxBufferSize = 131072;
-	Char *pstrbuffer = new Char[maxBufferSize];
-	Uint32 buffersize = 0;
+	CBuffer tempBuffer(BUFFER_ALLOC_SIZE);
 
 	// Splice vertex script data
 	for(Uint32 i = 0; i < m_pVertexScript->numchunks; i++)
@@ -1645,17 +1615,18 @@ bool CGLSLShader::SpliceScripts( Uint32 id, Char **vsptr, Char **fsptr )
 		if(!ShouldIncludeChunk(id, &m_pVertexScript->pchunks[i]))
 			continue;
 
-		if(!RecursiveAddChunks(id, &m_pVertexScript->pchunks[i], pstrbuffer, &buffersize, maxBufferSize))
+		if(!RecursiveAddChunks(id, &m_pVertexScript->pchunks[i], tempBuffer))
 			return false;
 	}
 
 	// Allocate the final buffer
+	Uint32 buffersize = tempBuffer.getdatasize();
 	(*vsptr) = new Char[buffersize+1];
-	memcpy((*vsptr), pstrbuffer, sizeof(Char)*buffersize);
+	memcpy((*vsptr), tempBuffer.getbufferdata(), sizeof(Char)*buffersize);
 	(*vsptr)[buffersize] = '\0';
 
 	// Reset this
-	buffersize = 0;
+	tempBuffer.reset();
 
 	// Splice fragment script data
 	for(Uint32 i = 0; i < m_pFragmentScript->numchunks; i++)
@@ -1663,17 +1634,16 @@ bool CGLSLShader::SpliceScripts( Uint32 id, Char **vsptr, Char **fsptr )
 		if(!ShouldIncludeChunk(id, &m_pFragmentScript->pchunks[i]))
 			continue;
 
-		if(!RecursiveAddChunks(id, &m_pFragmentScript->pchunks[i], pstrbuffer, &buffersize, maxBufferSize))
+		if(!RecursiveAddChunks(id, &m_pFragmentScript->pchunks[i], tempBuffer))
 			return false;
 	}
 
 	// Allocate the final buffer
+	buffersize = tempBuffer.getdatasize();
 	(*fsptr) = new Char[buffersize+1];
-	memcpy((*fsptr), pstrbuffer, sizeof(Char)*buffersize);
+	memcpy((*fsptr), tempBuffer.getbufferdata(), sizeof(Char)*buffersize);
 	(*fsptr)[buffersize] = '\0';
 
-	// Free the temporary buffer
-	delete[] pstrbuffer;
 	return true;
 }
 
@@ -1799,7 +1769,6 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 				m_pShaderDeterminatorValues[j * nbDeterminators + i] = dt.values[j];
 		}
 
-#ifdef USE_SHADER_VALUES_MAP
 		// Create map
 		for(Uint32 i = 0; i < nbShaders; i++)
 		{
@@ -1808,7 +1777,6 @@ bool CGLSLShader::ConstructBranches ( const Char* pSrc, Uint32 fileSize )
 			std::pair<ShaderValuesIndexMapType_t::iterator, bool> insertResult = m_shaderValuesIndexMap.insert(ShaderValuesIndexMapPairType_t(valuestr, i));
 			assert(insertResult.second == true);
 		}
-#endif
 	}
 
 	// Get the temp buffer for writing the file
@@ -2113,48 +2081,46 @@ bool CGLSLShader::EnableShader ( void )
 		m_areUBOsBound = true;
 	}
 
-	if(!m_vboChanged && m_shaderIndex == m_lastIndex)
-		return true;
-
-	// resync attribs if previous shader was valid
-	if(m_lastIndex != NO_POSITION && m_lastIndex != m_shaderIndex)
+	// Bind primary VBO's VAO
+	if(!m_pVBOArray.empty())
 	{
-		for(Uint32 i = 0; i < m_vertexAttribsArray.size(); i++)
+		CVBO* pPrimaryVBO = m_pVBOArray[0];
+		if(pPrimaryVBO)
 		{
-			glsl_attrib_t *pattrib = &m_vertexAttribsArray[i];
+			if(!pPrimaryVBO->IsVAOBound())
+				pPrimaryVBO->BindVAO();
 
-			if(pattrib->indexes[m_shaderIndex] == pattrib->indexes[m_lastIndex])
-				continue;
-
-			// Disable if not present here
-			if(pattrib->indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
-			{
-				m_pVBO->DisableAttribPointer(pattrib->indexes[m_lastIndex]);
-			}
-			else if(pattrib->indexes[m_lastIndex] != PROPERTY_UNAVAILABLE)
-			{
-				m_pVBO->DisableAttribPointer(pattrib->indexes[m_lastIndex]);
-			}
+			if(pPrimaryVBO->HasIBO() && !pPrimaryVBO->IsIBOBound())
+				pPrimaryVBO->BindIBO();
 		}
 	}
 
+	if(m_shaderIndex == m_lastIndex)
+		return true;
+
+	// Mark any changed attribs for later, or disable them now
+	// if they were used in the previous shader, but not this one
 	for(Uint32 i = 0; i < m_vertexAttribsArray.size(); i++)
 	{
-		glsl_attrib_t *pattrib = &m_vertexAttribsArray[i];
+		glsl_attrib_t& attrib = m_vertexAttribsArray[i];
+		if(!attrib.active)
+			continue;
 
-		if(!m_vboChanged)
+		if(m_lastIndex != NO_POSITION && attrib.indexes[m_shaderIndex] != attrib.indexes[m_lastIndex])
 		{
-			if(m_lastIndex != NO_POSITION && pattrib->indexes[m_shaderIndex] == pattrib->indexes[m_lastIndex])
+			CVBO* pVBO = m_pVBOArray[attrib.vboindex];
+			if(!pVBO)
 				continue;
-		}
 
-		if(pattrib->indexes[m_shaderIndex] != PROPERTY_UNAVAILABLE && pattrib->active)
-			m_pVBO->SetAttribPointer(pattrib->indexes[m_shaderIndex], pattrib->size, pattrib->type, pattrib->stride, pattrib->pointer);
+			if(attrib.indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
+				pVBO->DisableAttribPointer(attrib.indexes[m_lastIndex]);
+			else
+				m_vboAttribsChangedBits |= (1<<i);
+		}
 	}
 
 	// Resync values
 	m_lastIndex = m_shaderIndex;
-	m_vboChanged = false;
 
 	for(Uint32 i = 0; i < m_uniformsArray.size(); i++)
 	{
@@ -2188,6 +2154,9 @@ void CGLSLShader::SyncUniform( glsl_uniform_t& uniform )
 	switch (uniform.type)
 	{
 		case UNIFORM_INT1:
+		case UNIFORM_SAMPLER2D:
+		case UNIFORM_SAMPLERCUBE:
+		case UNIFORM_SAMPLERRECT:
 		{
 			if (memcmp(pshadervalue, pcurrentvalue, sizeof(Float) * uniform.stride * uniform.elementcount) != 0)
 			{
@@ -2259,17 +2228,25 @@ void CGLSLShader::DisableShader ( void )
 		m_areUBOsBound = false;
 	}
 
-	// Disable any attribs we might've had active
-#ifdef DONT_USE_VAO
+	// Disable all attribs
 	for(Uint32 i = 0; i < m_vertexAttribsArray.size(); i++)
-	{
-		if(!m_vertexAttribsArray[i].active)
-			continue;
-
 		DisableAttribute(i);
-	}
-#endif
 
+	// Unbind VAO
+	if(!m_pVBOArray.empty())
+	{
+		CVBO* pPrimaryVBO = m_pVBOArray[0];
+		if(pPrimaryVBO)
+		{
+			if(pPrimaryVBO->IsVAOBound())
+				pPrimaryVBO->UnbindVAO();
+
+			if(pPrimaryVBO->HasIBO() && pPrimaryVBO->IsIBOBound())
+				pPrimaryVBO->UnBindIBO();
+		}
+	}
+
+	// Disable shader too
 	m_glExtF.glUseProgram(0);
 	m_isActive = false;
 }
@@ -2284,6 +2261,8 @@ void CGLSLShader::ResetShader ( void )
 		DisableAttribute(i);
 
 	m_lastIndex = NO_POSITION;
+	m_lastQueriedKey = ShaderValuesStringType_t();
+	m_recheckSamplerUniforms = true;
 }
 
 //=============================================
@@ -2332,6 +2311,9 @@ Int32 CGLSLShader::InitAttribute( const Char *szname, Uint32 size, Int32 type, U
 		Uint32 i = 0;
 		for(; i < m_shadersArray.size(); i++)
 		{
+			if (!m_shadersArray[i].program_id)
+				continue;
+
 			if(newAttrib.indexes[i] != PROPERTY_UNAVAILABLE)
 				break;
 		}
@@ -2368,15 +2350,17 @@ Int32 CGLSLShader::InitAttribute( const Char *szname, Uint32 size, Int32 type, U
 // @param index Index of the vertex attribute
 // @param pointer Pointer holding the offset of the attribute
 //=============================================
-void CGLSLShader::SetAttributePointer( Int32 index, const void *pointer )
+void CGLSLShader::SetAttributePointer( Int32 index, const void *pointer, Int32 vboindex )
 {
 	glsl_attrib_t *pattrib = &m_vertexAttribsArray[index];
-	pattrib->pointer = pointer;
+	if(pattrib->pointer != pointer || pattrib->vboindex != vboindex || !pattrib->active)
+	{
+		pattrib->pointer = pointer;
+		pattrib->active = true;
+		pattrib->vboindex = vboindex;
 
-	if(pattrib->indexes[m_shaderIndex] != PROPERTY_UNAVAILABLE)
-		m_pVBO->SetAttribPointer(pattrib->indexes[m_shaderIndex], pattrib->size, pattrib->type, pattrib->stride, pattrib->pointer);
-
-	pattrib->active = true;
+		m_vboAttribsChangedBits |= (1<<index);
+	}
 }
 
 //=============================================
@@ -2390,10 +2374,9 @@ void CGLSLShader::EnableAttribute( Int32 index )
 	if(pattrib->active)
 		return;
 
-	if(pattrib->indexes[m_shaderIndex] != PROPERTY_UNAVAILABLE)
-		m_pVBO->SetAttribPointer(pattrib->indexes[m_shaderIndex], pattrib->size, pattrib->type, pattrib->stride, pattrib->pointer);
-
 	pattrib->active = true;
+
+	m_vboAttribsChangedBits |= (1<<index);
 }
 
 //=============================================
@@ -2407,10 +2390,25 @@ void CGLSLShader::DisableAttribute( Int32 index )
 	if(!pattrib->active)
 		return;
 
-	if(m_pVBO && pattrib->indexes[m_shaderIndex] != PROPERTY_UNAVAILABLE)
-		m_pVBO->DisableAttribPointer(pattrib->indexes[m_shaderIndex]);
-
+	// Mark as changed
 	pattrib->active = false;
+
+	// Make sure it's disabled right now
+	if(pattrib->indexes[m_shaderIndex] != PROPERTY_UNAVAILABLE || 
+		m_lastIndex != NO_POSITION && pattrib->indexes[m_lastIndex] != PROPERTY_UNAVAILABLE)
+	{
+		CVBO* pVBO = m_pVBOArray[pattrib->vboindex];
+		if(!pVBO)
+			return;
+
+		if(pattrib->indexes[m_shaderIndex] != PROPERTY_UNAVAILABLE)
+			pVBO->DisableAttribPointer(pattrib->indexes[m_shaderIndex]);
+
+		if(m_lastIndex != NO_POSITION && pattrib->indexes[m_lastIndex] != PROPERTY_UNAVAILABLE)
+			pVBO->DisableAttribPointer(pattrib->indexes[m_lastIndex]);
+	}
+
+	m_vboAttribsChangedBits |= (1<<pattrib->vboindex);
 }
 
 //=============================================
@@ -2418,54 +2416,81 @@ void CGLSLShader::DisableAttribute( Int32 index )
 //
 // @param pVBO Pointer to CVBO object
 //=============================================
-void CGLSLShader::SetVBO( CVBO *pVBO )
+void CGLSLShader::SetVBO( CVBO *pVBO, Int32 index )
 {
-	if(m_pVBO == pVBO)
+	if(m_pVBOArray.size() <= index)
+	{
+		// Resize arrays to fit this VBO
+		m_pVBOArray.resize(index + 1);
+	}
+	else if(m_pVBOArray[index] == pVBO)
+	{
+		// Nothing has changed
 		return;
+	}
 
 	// If SetVBO is called, assume always we're changing
-	CVBO* pPrevVBO = m_pVBO;
-	m_pVBO = pVBO;
+	CVBO* pPrevVBO = m_pVBOArray[index];
+	m_pVBOArray[index] = pVBO;
 
-	// Re-set the attrib pointers if we are active
-	if(m_isActive)
+	if(m_isActive && pPrevVBO)
 	{
-		if(pPrevVBO && pPrevVBO->IsActive())
+		// Signal to re-set the pointers later on, and disable the ones
+		// pointing to the previous VBO
+		if(m_shaderIndex != NO_POSITION)
 		{
 			for(Uint32 i = 0; i < m_vertexAttribsArray.size(); i++)
 			{
-				glsl_attrib_t *pattrib = &m_vertexAttribsArray[i];
+				glsl_attrib_t& attrib = m_vertexAttribsArray[i];
+				if(index == 0 || attrib.vboindex == index)
+				{
+					if(!attrib.active)
+						continue;
 
-				if(pattrib->indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
-					continue;
-
-				pPrevVBO->DisableAttribPointer(pattrib->indexes[m_shaderIndex]);
+					pPrevVBO->DisableAttribPointer(attrib.indexes[m_shaderIndex]);
+					m_vboAttribsChangedBits |= (1<<i);
+				}
 			}
-
-			pPrevVBO->UnBind();
 		}
 
-		if(pVBO)
+		// Bind the VAO if needed
+		if(index == 0)
 		{
-			pVBO->Bind();
-
-			for(Uint32 i = 0; i < m_vertexAttribsArray.size(); i++)
+			// Unbind previous VAO if the first index VBO got changed
+			if(pPrevVBO != pVBO)
 			{
-				glsl_attrib_t *pattrib = &m_vertexAttribsArray[i];
-				if(pattrib->indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
-					continue;
+				if(pPrevVBO->IsVAOBound())
+					pPrevVBO->UnbindVAO();
 
-				if(pattrib->active)
-					pVBO->SetAttribPointer(pattrib->indexes[m_shaderIndex], pattrib->size, pattrib->type, pattrib->stride, pattrib->pointer);
-				else
-					pVBO->DisableAttribPointer(pattrib->indexes[m_shaderIndex]);
+				if(pPrevVBO->IsIBOBound())
+					pPrevVBO->UnBindIBO();
 			}
 		}
 	}
-	else
+	else if(!pPrevVBO && m_shaderIndex != NO_POSITION)
 	{
-		// signal to re-set the pointers later on
-		m_vboChanged = true;
+		// Mark everything as changed
+		for(Uint32 i = 0; i < m_vertexAttribsArray.size(); i++)
+		{
+			glsl_attrib_t& attrib = m_vertexAttribsArray[i];
+
+			if(attrib.vboindex == index)
+				m_vboAttribsChangedBits |= (1<<i);
+		}
+	}
+
+	// If we're active, bind now
+	if(m_isActive)
+	{
+		if(pVBO)
+		{
+			// Bind the new VAO
+			pVBO->BindVAO();
+
+			// Bind IBO if present
+			if(pVBO->HasIBO())
+				pVBO->BindIBO();
+		}
 	}
 }
 
@@ -2486,7 +2511,7 @@ Int32 CGLSLShader::InitUniform( const Char *szname, uniform_e type, Uint32 eleme
 
 	glsl_uniform_t newUniform;
 	newUniform.indexes.resize(m_shadersArray.size());
-	if(type != UNIFORM_INT1)
+	if(type != UNIFORM_INT1 && type != UNIFORM_SAMPLER2D && type != UNIFORM_SAMPLERCUBE && type != UNIFORM_SAMPLERRECT)
 		newUniform.elementcount = elementcount;
 	else
 		newUniform.elementcount = 1;
@@ -2494,6 +2519,9 @@ Int32 CGLSLShader::InitUniform( const Char *szname, uniform_e type, Uint32 eleme
 	switch(type)
 	{
 	case UNIFORM_INT1:
+	case UNIFORM_SAMPLER2D:
+	case UNIFORM_SAMPLERCUBE:
+	case UNIFORM_SAMPLERRECT:
 		newUniform.stride = 1;
 		break;
 	case UNIFORM_FLOAT1:
@@ -2670,6 +2698,27 @@ bool CGLSLShader :: SetDeterminator ( Int32 index, Int32 value, bool update )
 }
 
 //=============================================
+// @brief Performs pre-render checks
+//
+//=============================================
+bool CGLSLShader :: PerformPreRenderChecks( void )
+{
+	// Shift any overlapping samplers of different type
+	if((m_shaderFlags & FL_GLSL_CHECK_SAMPLER_OVERLAP) && m_recheckSamplerUniforms)
+	{
+		ShiftOverlappingSamplers();
+
+		// Do final check to see if we have any issues
+		if(!CheckSamplerUniforms())
+			return false;
+
+		m_recheckSamplerUniforms = false;
+	}
+
+	return true;
+}
+
+//=============================================
 // @brief Rechecks determinator options and binds the appropriate shader
 //
 //=============================================
@@ -2691,26 +2740,21 @@ bool CGLSLShader :: VerifyDeterminators ( void )
 
 	// Shader to bind
 	Int32 shaderIndex = NO_POSITION;
-
-#ifdef USE_SHADER_VALUES_MAP
 	Char* pvaluesbytes = reinterpret_cast<Char*>(m_pDeterminatorValues);
 	ShaderValuesStringType_t valuestr(pvaluesbytes, m_determinatorArray.size() * sizeof(Int16));
-
-	ShaderValuesIndexMapType_t::iterator it = m_shaderValuesIndexMap.find(valuestr);
-	if(it != m_shaderValuesIndexMap.end())
-		shaderIndex = it->second;
-#else
-	Uint32 determinatorCount = m_determinatorArray.size();
-	for(Uint32 i = 0; i < m_shadersArray.size(); i++)
+	if(m_lastIndex == NO_POSITION || valuestr != m_lastQueriedKey)
 	{
-		Int16* pCheckValues = m_pShaderDeterminatorValues + i * determinatorCount;
-		if(memcmp(pCheckValues, m_pDeterminatorValues, sizeof(Int16)*determinatorCount) == 0)
-		{
-			shaderIndex = static_cast<Int32>(i);
-			break;
-		}
+		ShaderValuesIndexMapType_t::iterator it = m_shaderValuesIndexMap.find(valuestr);
+		if(it != m_shaderValuesIndexMap.end())
+			shaderIndex = it->second;
+
+		m_lastQueriedKey = valuestr;
 	}
-#endif
+	else
+	{
+		// Use last queried index
+		shaderIndex = m_lastIndex;
+	}
 
 	if(shaderIndex != NO_POSITION)
 	{
@@ -2718,30 +2762,176 @@ bool CGLSLShader :: VerifyDeterminators ( void )
 			return true;
 
 		m_shaderIndex = shaderIndex;
+
+		// Bind the shader used
+		bool result;
 		if(m_isActive)
-		{
-			if(EnableShader())
-				return true;
-			else
-				return false;
-		}
+			result = EnableShader();
 		else
-		{
-			// Will be tested later
-			return true;
-		}
+			result = true;
+
+		// We failed for some reason
+		return result;
 	}
+	else
+	{
+		CString buffer;
+		buffer << "Invalid determinator values in shader " << m_shaderFile << ":\n";
 
-	CString buffer;
-	buffer << "Invalid determinator values in shader " << m_shaderFile << ":\n";
+		for(Uint32 i = 0; i < m_determinatorArray.size(); i++)
+			buffer << "Name: " << m_determinatorArray[i].name << ", value: " << m_pDeterminatorValues[i] << "\n";
 
-	for(Uint32 i = 0; i < m_determinatorArray.size(); i++)
-		buffer << "Name: " << m_determinatorArray[i].name << ", value: " << m_pDeterminatorValues[i] << "\n";
-
-	m_errorString = buffer;
-	return false;
+		m_errorString = buffer;
+		return false;
+	}
 }
 
+//=============================================
+// @brief Check sampler uniforms for any overlap
+//
+// @return TRUE if there's no overlap, FALSE otherwise
+//=============================================
+bool CGLSLShader :: CheckSamplerUniforms( void )
+{
+	if(!(m_shaderFlags & FL_GLSL_CHECK_SAMPLER_OVERLAP))
+		return true;
+
+	if(m_uniformsArray.empty())
+		return true;
+
+#ifdef _DEBUG
+	for(Uint32 i = 0; i < m_uniformsArray.size(); i++)
+	{
+		glsl_uniform_t& uniform1 = m_uniformsArray[i];
+		if(uniform1.type != UNIFORM_SAMPLER2D
+			&& uniform1.type != UNIFORM_SAMPLERCUBE
+			&& uniform1.type != UNIFORM_SAMPLERRECT)
+		{
+			// Don't consider anything but other samplers
+			continue;
+		}
+
+		if(uniform1.indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
+			continue;
+
+		for(Uint32 j = 0; j < m_uniformsArray.size(); j++)
+		{
+			if(i == j)
+				continue;
+
+			glsl_uniform_t& uniform2 = m_uniformsArray[j];
+			if(uniform2.type != UNIFORM_SAMPLER2D
+				&& uniform2.type != UNIFORM_SAMPLERCUBE
+				&& uniform2.type != UNIFORM_SAMPLERRECT)
+			{
+				// Don't consider anything but other samplers
+				continue;
+			}
+
+			if(uniform1.type == uniform2.type)
+				continue;
+
+			if(uniform2.indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
+				continue;
+
+			if(uniform1.currentvalues[0] == uniform2.currentvalues[0])
+			{
+				const Char* uniform1TypeName = UNIFORM_TYPENAMES[uniform1.type];
+				const Char* uniform2TypeName = UNIFORM_TYPENAMES[uniform2.type];
+
+				m_errorString.clear();
+				m_errorString << "Sampler uniform '" << uniform1.name << "' of type " << uniform1TypeName;
+				m_errorString << " and sampler uniform '" << uniform2.name << "' of type " << uniform2TypeName;
+				m_errorString << "' overlap on texture unit " << static_cast<Int32>(uniform1.currentvalues[0]);
+				return false;
+			}
+		}
+	}
+#endif
+	return true;
+}
+
+//=============================================
+// @brief Shifts unused samplers to avoid issues
+//
+//=============================================
+void CGLSLShader :: ShiftOverlappingSamplers( void )
+{
+	if(!m_recheckSamplerUniforms)
+		return;
+
+	Int32 sampler2DIndex = NO_POSITION;
+	Int32 samplerCubeIndex = NO_POSITION;
+	Int32 samplerRectIndex = NO_POSITION;
+
+	Uint32 shiftedIndex = m_nextSamplerIndex;
+	for(Uint32 i = 0; i < m_uniformsArray.size(); i++)
+	{
+		glsl_uniform_t& uniform = m_uniformsArray[i];
+		if(uniform.type != UNIFORM_SAMPLER2D
+			&& uniform.type != UNIFORM_SAMPLERCUBE
+			&& uniform.type != UNIFORM_SAMPLERRECT)
+		{
+			// Don't consider anything but other samplers
+			continue;
+		}
+
+		// Skip if it's not used at all by the shader
+		if(uniform.indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
+			continue;
+
+		// Do not touch used uniforms
+		if(uniform.used)
+			continue;
+
+		// The point is to make sure none of the different types
+		// overlap on the same unit. Samplers of the same type
+		// can use the same unit otherwise.
+		Int32 bindIndex;
+		switch(uniform.type)
+		{
+		case UNIFORM_SAMPLERCUBE:
+			{
+				if(samplerCubeIndex == NO_POSITION)
+				{
+					samplerCubeIndex = shiftedIndex;
+					shiftedIndex++;
+				}
+
+				bindIndex = samplerCubeIndex;
+			}
+			break;
+		case UNIFORM_SAMPLERRECT:
+			{
+				if(samplerRectIndex == NO_POSITION)
+				{
+					samplerRectIndex = shiftedIndex;
+					shiftedIndex++;
+				}
+
+				bindIndex = samplerRectIndex;
+			}
+			break;
+		default:
+		case UNIFORM_SAMPLER2D:
+			{
+				if(sampler2DIndex == NO_POSITION)
+				{
+					sampler2DIndex = shiftedIndex;
+					shiftedIndex++;
+				}
+
+				bindIndex = sampler2DIndex;
+			}
+			break;
+		}
+
+		// Set unit for this sampler
+		SetUniform1i(i, shiftedIndex);
+	}
+
+	m_recheckSamplerUniforms = false;
+}
 
 //=============================================
 // @brief Returns the index of a determinator
@@ -2762,6 +2952,92 @@ Int32 CGLSLShader :: GetDeterminatorIndex( const Char *szname )
 	m_errorString = msg;
 
 	return DETERMINATOR_UNDEFINED;
+}
+
+//=============================================
+// @brief Clears time counters
+//
+//=============================================
+void CGLSLShader :: AlignVertexAttribs( void )
+{
+	if(!m_vboAttribsChangedBits)
+		return;
+
+	// Mark changed VBOs
+	Int32 vboChangedBits = 0;
+	for(Uint32 i = 0; i < m_vertexAttribsArray.size(); i++)
+	{
+		glsl_attrib_t *pattrib = &m_vertexAttribsArray[i];
+		if(m_vboAttribsChangedBits & (1<<i))
+			vboChangedBits |= (1<<pattrib->vboindex);
+	}
+
+	// Now change the attribs
+	for(Uint32 i = 0; i < m_pVBOArray.size(); i++)
+	{
+		// Only bother if this VBO got attribs pointing to it changed
+		if(!(vboChangedBits & (1<<i)))
+			continue;
+
+		CVBO* pVBO = m_pVBOArray[i];
+		if(!pVBO)
+			continue;
+
+		// Bind this VBO
+		pVBO->BindVBO();
+
+		for(Uint32 j = 0; j < m_vertexAttribsArray.size(); j++)
+		{
+			glsl_attrib_t *pattrib = &m_vertexAttribsArray[j];
+			if(pattrib->indexes[m_shaderIndex] == PROPERTY_UNAVAILABLE)
+				continue;
+
+			if(pattrib->vboindex != i || !pattrib->active)
+				continue;
+
+			if(!(m_vboAttribsChangedBits & (1<<j)))
+				continue;
+
+			pVBO->SetAttribPointer(pattrib->indexes[m_shaderIndex], pattrib->size, pattrib->type, pattrib->stride, pattrib->pointer);
+		}
+
+		// Unbind the VBO after setting pointers
+		pVBO->UnBindVBO();
+	}
+
+	// Clear all changed flags
+	m_vboAttribsChangedBits = 0;
+}
+//=============================================
+// @brief Clears time counters
+//
+//=============================================
+void CGLSLShader :: DrawArrays( GLenum primitiveType, Int32 first, Uint32 count )
+{
+	// Make sure this is valid
+	assert(!m_pVBOArray.empty() && m_pVBOArray[0] && m_pVBOArray[0]->IsVAOBound());
+
+	// Ensure these are always aligned
+	AlignVertexAttribs();
+
+	// Draw the primitives
+	glDrawArrays(primitiveType, first, count);
+}
+
+//=============================================
+// @brief Clears time counters
+//
+//=============================================
+void CGLSLShader :: DrawElements( GLenum primitiveType, Uint32 count, GLenum type, void* pindices )
+{
+	// Make sure this is valid
+	assert(!m_pVBOArray.empty() && m_pVBOArray[0] && m_pVBOArray[0]->IsVAOBound() && m_pVBOArray[0]->IsIBOBound());
+
+	// Ensure these are always aligned
+	AlignVertexAttribs();
+
+	// Draw the primitives
+	glDrawElements(primitiveType, count, type, pindices);
 }
 
 //=============================================

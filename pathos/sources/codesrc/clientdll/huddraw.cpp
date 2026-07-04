@@ -92,7 +92,7 @@ bool CHUDDraw::InitGL( void )
 	m_attribs.u_color = m_pShader->InitUniform("color", CGLSLShader::UNIFORM_FLOAT4);
 	m_attribs.u_size = m_pShader->InitUniform("size", CGLSLShader::UNIFORM_FLOAT2);
 	m_attribs.u_indent = m_pShader->InitUniform("indent", CGLSLShader::UNIFORM_FLOAT1);
-	m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
+	m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
 	m_attribs.u_alphamod = m_pShader->InitUniform("alphamod", CGLSLShader::UNIFORM_FLOAT4);
 
 	if(!R_CheckShaderUniform(m_attribs.u_modelview, "modelview", m_pShader, cl_engfuncs.pfnErrorPopup)
@@ -410,8 +410,6 @@ bool CHUDDraw::SetupDraw( void )
 	modelview.Ortho(GL_ZERO, GL_ONE, GL_ONE, GL_ZERO, 0.1, 100);
 	modelview.Scale(1.0f/(Float)m_screenWidth, 1.0f/(Float)m_screenHeight, 1.0);
 
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 		return false;
 
@@ -445,7 +443,6 @@ void CHUDDraw::FinishDraw( void )
 	glDepthMask(GL_TRUE);
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 }
 
 //=============================================
@@ -467,7 +464,7 @@ bool CHUDDraw::DrawBody( bool indent )
 
 	cl_renderfuncs.pfnValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, NUM_BODY_VERTEXES);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, NUM_BODY_VERTEXES);
 
 	return true;
 }
@@ -496,7 +493,7 @@ bool CHUDDraw::DrawQuad( en_texture_t *ptexture )
 
 	cl_renderfuncs.pfnValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, NUM_BODY_VERTEXES, NUM_QUAD_VERTEXES);
+	m_pShader->DrawArrays(GL_TRIANGLES, NUM_BODY_VERTEXES, NUM_QUAD_VERTEXES);
 
 	return true;
 }

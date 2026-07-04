@@ -141,9 +141,9 @@ bool CParticleEngine::InitGL( void )
 
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture0 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_rtexture0 = m_pShader->InitUniform("rtexture0", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_rtexture1 = m_pShader->InitUniform("rtexture1", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture0 = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_rtexture0 = m_pShader->InitUniform("rtexture0", CGLSLShader::UNIFORM_SAMPLERRECT);
+		m_attribs.u_rtexture1 = m_pShader->InitUniform("rtexture1", CGLSLShader::UNIFORM_SAMPLERRECT);
 
 		m_attribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_FLOAT3);
 		m_attribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_FLOAT2);
@@ -221,7 +221,7 @@ bool CParticleEngine::InitGL( void )
 
 			field.clear();
 			field << "proj_lights_" << static_cast<Int32>(i) << "_texture";
-			m_attribs.proj_lights[i].u_texture = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_INT1);
+			m_attribs.proj_lights[i].u_texture = m_pShader->InitUniform(field.c_str(), CGLSLShader::UNIFORM_SAMPLER2D);
 			if(!R_CheckShaderUniform(m_attribs.proj_lights[i].u_texture, field.c_str(), m_pShader, Sys_ErrorPopup))
 				return false;
 
@@ -3306,7 +3306,6 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 	if(!m_numVertexes)
 		return true;
 
-	m_pVBO->Bind();
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
@@ -3540,7 +3539,6 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 				{
 					Sys_ErrorPopup("%s - Failed to get screen texture for rendering", __FUNCTION__);
 					m_pShader->DisableShader();
-					m_pVBO->UnBind();
 					return false;
 				}
 			}
@@ -3552,7 +3550,6 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 				{
 					Sys_ErrorPopup("%s - Failed to get distortion texture for rendering", __FUNCTION__);
 					m_pShader->DisableShader();
-					m_pVBO->UnBind();
 					return false;
 				}
 			}
@@ -3594,7 +3591,7 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 		R_ValidateShader(m_pShader);
 
 		// Render elements
-		glDrawElements(GL_TRIANGLES, psystem->numindexes, GL_UNSIGNED_INT, BUFFER_OFFSET(psystem->indexoffset));
+		m_pShader->DrawElements(GL_TRIANGLES, psystem->numindexes, GL_UNSIGNED_INT, BUFFER_OFFSET(psystem->indexoffset));
 
 		if(pdefinition->render_flags & RENDER_FL_NOCULL)
 			glEnable(GL_CULL_FACE);
@@ -3654,7 +3651,7 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 			R_ValidateShader(m_pShader);
 
 			// Render elements
-			glDrawArrays(GL_TRIANGLES, m_screenRectangleBase, 6);
+			m_pShader->DrawArrays(GL_TRIANGLES, m_screenRectangleBase, 6);
 
 			glEnable(GL_DEPTH_TEST);
 			if(!m_pShader->SetDeterminator(m_attribs.d_type, SHADER_PRT_NORMAL, false)
@@ -3703,7 +3700,6 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 	glDepthMask(GL_TRUE);
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	// Clear any binds
 	R_ClearBinds();

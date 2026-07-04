@@ -35,6 +35,17 @@ enum surf_lmap_layers_t
 	NB_SURF_LIGHTMAP_LAYERS
 };
 
+// Baked vertex lighting layers
+enum baked_vertexlight_layers_t
+{
+	VERTEX_LIGHTING_VECTORS = 0,
+	VERTEX_LIGHTING_AMBIENT,
+	VERTEX_LIGHTING_DIFFUSE,
+
+	// Must be last
+	NB_BAKED_VERTEXLIGHT_LAYERS
+};
+
 //
 // BSP structures in memory
 //
@@ -378,18 +389,27 @@ struct brushmodel_t
 		lightdatasize(0),
 		vertexlightdatasize(0),
 		lightmaplayercount(0),
+		vertexlightlayercount(0),
 		pentdata(nullptr),
 		entdatasize(0)
 	{
 		for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
 		{
 			plightdata[i] = nullptr;
-			pvertexlightdata[i] = nullptr;
 			plightdata_original[i] = nullptr;
 			original_lightdatasizes[i] = 0;
 			original_compressiontype[i] = 0;
 			original_compressionlevel[i] = 0;
 			plightdata_water[i] = nullptr;
+		}
+
+		for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+		{
+			pvertexlightdata[i] = nullptr;
+			pvertexlightdata_original[i] = nullptr;
+			original_vertexlightdatasizes[i] = 0;
+			original_vertexlightcompressiontype[i] = 0;
+			original_vertexlightcompressionlevel[i] = 0;
 		}
 	}
 
@@ -442,6 +462,23 @@ struct brushmodel_t
 				{
 					delete[] plightdata[i];
 					plightdata[i] = nullptr;
+				}
+
+			}
+
+			for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+			{
+
+				if(pvertexlightdata_original[i] && pvertexlightdata_original[i] != reinterpret_cast<byte*>(pvertexlightdata[i]))
+				{
+					delete[] pvertexlightdata_original[i];
+					pvertexlightdata_original[i] = nullptr;
+				}
+
+				if(pvertexlightdata[i])
+				{
+					delete[] pvertexlightdata[i];
+					pvertexlightdata[i] = nullptr;
 				}
 			}
 		}
@@ -536,10 +573,6 @@ struct brushmodel_t
 	color24_t* plightdata[NB_SURF_LIGHTMAP_LAYERS];
 	Uint32 lightdatasize;
 
-	// Vertex light data
-	color24_t* pvertexlightdata[NB_SURF_LIGHTMAP_LAYERS];
-	Uint32 vertexlightdatasize;
-
 	// Original light data without decompression
 	byte* plightdata_original[NB_SURF_LIGHTMAP_LAYERS];
 	Uint32 original_lightdatasizes[NB_SURF_LIGHTMAP_LAYERS];
@@ -549,8 +582,20 @@ struct brushmodel_t
 	// For water
 	color24_t* plightdata_water[NB_SURF_LIGHTMAP_LAYERS];
 
+	// Vertex light data
+	color24_t* pvertexlightdata[NB_BAKED_VERTEXLIGHT_LAYERS];
+	Uint32 vertexlightdatasize;
+
+	// Original vertex light data without decompression
+	byte* pvertexlightdata_original[NB_BAKED_VERTEXLIGHT_LAYERS];
+	Uint32 original_vertexlightdatasizes[NB_BAKED_VERTEXLIGHT_LAYERS];
+	Int32 original_vertexlightcompressiontype[NB_BAKED_VERTEXLIGHT_LAYERS];
+	Int32 original_vertexlightcompressionlevel[NB_BAKED_VERTEXLIGHT_LAYERS];
+
 	// Number of lightmap layers
 	Uint32 lightmaplayercount;
+	// Number of vertex lighting layers
+	Uint32 vertexlightlayercount;
 
 	// entities
 	Char* pentdata;

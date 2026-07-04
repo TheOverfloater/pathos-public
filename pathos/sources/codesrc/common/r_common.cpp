@@ -29,24 +29,27 @@ const Char* SCREEN_RATIO_STRINGS[NB_SCREENRATIO_STRINGS] = {
 // @brief
 //
 //=============================================
-void R_AllocBlock ( Uint32 w, Uint32 h, Uint32 &x, Uint32 &y, Uint32& width, Uint32 &height, Uint32*& pallocations )
-{ 
-	if(w > width || h > height)
+void R_AllocBlock ( Uint32 w, Uint32 h, Uint32 &x, Uint32 &y, Uint32& width, Uint32 &height, Uint32*& pallocations, Uint32 padamount )
+{
+	Uint32 padwidth = w + (padamount * 2);
+	Uint32 padheight = h + (padamount * 2);
+
+	if(padwidth > width || padheight > height)
 	{
-		while(width < w)
+		while(width < padwidth)
 			width *= 2;
 
-		while(height < h)
+		while(height < padheight)
 			height *= 2;
 	}
 
 	Uint32 ibest1 = height;
-	for(Uint32 i = 0; i < width-w; i++)
+	for(Uint32 i = 0; i < width-padwidth; i++)
 	{
 		Uint32 ibest2 = 0;
 
 		Uint32 j = 0;
-		for(; j < w; j++)
+		for(; j < padwidth; j++)
 		{
 			if(pallocations[i+j] >= ibest1)
 				break;
@@ -55,14 +58,14 @@ void R_AllocBlock ( Uint32 w, Uint32 h, Uint32 &x, Uint32 &y, Uint32& width, Uin
 				ibest2 = pallocations[i+j];
 		}
 
-		if(j == w)
+		if(j == padwidth)
 		{
-			x= i;
+			x = i;
 			y = ibest1 = ibest2;
 		}
 	}
 
-	if((ibest1+h) > height)
+	if((ibest1+padheight) > height)
 	{
 		if(height == width)
 		{
@@ -88,19 +91,23 @@ void R_AllocBlock ( Uint32 w, Uint32 h, Uint32 &x, Uint32 &y, Uint32& width, Uin
 		}
 
 		// try again
-		R_AllocBlock(w, h, x, y, width, height, pallocations);
+		R_AllocBlock(w, h, x, y, width, height, pallocations, padamount);
 		return;
 	}
 
-	for(Uint32 i = 0; i < w; i++)
-		pallocations[x+i] = ibest1+h;
+	for(Uint32 i = 0; i < padwidth; i++)
+		pallocations[x+i] = ibest1+padheight;
+
+	// Offset by pad amount
+	x += padamount;
+	y += padamount;
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-void R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psamples, const msurface_t *psurface, color32_t *pout, Int32 index, Uint32 sizex, Float overdarken, bool isvectormap, bool fullbright )
+void R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psamples, const msurface_t *psurface, color32_t *pout, Int32 index, Uint32 sizex, Float overdarken, Uint32 padamount, bool isvectormap, bool fullbright )
 {
 	const Uint32 smax = (psurface->extents[0] / psurface->lightmapdivider) + 1;
 	const Uint32 tmax = (psurface->extents[1] / psurface->lightmapdivider) + 1;
@@ -168,17 +175,109 @@ void R_BuildLightmap( Uint16 light_s, Uint16 light_t, const color24_t *psamples,
 
 	if(pout)
 	{
+		// Copy colors to destination
 		color32_t *pdest = pout + light_t * sizex + light_s;
-
+		color24_t *psrc = pblock;
 		for (Uint32 i = 0; i < tmax; i++, pdest += sizex)
 		{
 			for (Uint32 j = 0; j < smax; j++)
 			{
-				pdest[j].r = pblock->r;
-				pdest[j].g = pblock->g;
-				pdest[j].b = pblock->b;
+				pdest[j].r = psrc->r;
+				pdest[j].g = psrc->g;
+				pdest[j].b = psrc->b;
 				pdest[j].a = 255;
-				pblock++;
+				psrc++;
+			}
+		}
+
+		// Apply padding if any is present
+		if(padamount)
+		{
+			// Add horizontal padding
+			for(Uint32 i = 0; i < tmax; i++)
+			{
+				// Add top padding
+				for(Uint32 k = 0; k < smax; k++)
+				{
+					for(Uint32 j = 0; j < padamount; j++)
+					{
+						pdest = pout + (light_t - (j+1)) * sizex + light_s + k;
+						psrc = pblock + k;
+						pdest->r = psrc->r;
+						pdest->g = psrc->g;
+						pdest->b = psrc->b;
+
+						// Add bottom padding
+						pdest = pout + (light_t + (tmax + j)) * sizex + light_s + k;
+						psrc = pblock + (tmax - 1) * smax + k;
+						pdest->r = psrc->r;
+						pdest->g = psrc->g;
+						pdest->b = psrc->b;
+					}
+				}
+			}
+
+			// Add add vertical padding
+			for(Uint32 i = 0; i < smax; i++)
+			{
+				for(Uint32 k = 0; k < tmax; k++)
+				{
+					for(Uint32 j = 0; j < padamount; j++)
+					{
+						// Add left side padding
+						pdest = pout + (light_t * sizex) + k * sizex + light_s - (j+1);
+						psrc = pblock + smax * k;
+						pdest->r = psrc->r;
+						pdest->g = psrc->g;
+						pdest->b = psrc->b;
+
+						// Add right side padding
+						pdest = pout + (light_t * sizex) + k * sizex + light_s + smax + j;
+						psrc = pblock + smax * k + smax - 1;
+						pdest->r = psrc->r;
+						pdest->g = psrc->g;
+						pdest->b = psrc->b;
+					}
+				}
+			}
+
+			// Manage corner pixels
+			for(Uint32 i = 0; i < padamount; i++)
+			{
+				for(Uint32 j = 0; j < padamount; j++)
+				{
+					// Top left
+					pdest = pout + (light_t - (i+1)) * sizex + light_s - (j+1);
+					psrc = pblock;
+
+					pdest->r = psrc->r;
+					pdest->g = psrc->g;
+					pdest->b = psrc->b;
+
+					// Top right
+					pdest = pout + (light_t - (i+1)) * sizex + light_s + smax + j;
+					psrc = pblock + smax - 1;
+
+					pdest->r = psrc->r;
+					pdest->g = psrc->g;
+					pdest->b = psrc->b;
+
+					// Bottom left
+					pdest = pout + (light_t + tmax + (padamount - (i+1))) * sizex + light_s - (j + 1);
+					psrc = pblock + smax * (tmax - 1);
+
+					pdest->r = psrc->r;
+					pdest->g = psrc->g;
+					pdest->b = psrc->b;
+
+					// Bottom right
+					pdest = pout + (light_t + tmax + (padamount - (i+1))) * sizex + light_s + smax + j;
+					psrc = pblock + (smax * tmax) - 1;
+
+					pdest->r = psrc->r;
+					pdest->g = psrc->g;
+					pdest->b = psrc->b;
+				}
 			}
 		}
 	}

@@ -52,9 +52,10 @@ public:
 public:
 	enum shaderflags_t
 	{
-		FL_GLSL_SHADER_NONE			= 0,
-		FL_GLSL_ONDEMAND_LOAD		= (1<<0),
-		FL_GLSL_BINARY_SHADER_OPS	= (1<<1)
+		FL_GLSL_SHADER_NONE				= 0,
+		FL_GLSL_ONDEMAND_LOAD			= (1<<0),
+		FL_GLSL_BINARY_SHADER_OPS		= (1<<1),
+		FL_GLSL_CHECK_SAMPLER_OVERLAP	= (1<<2)
 	};
 
 	enum uniformindex_t
@@ -72,7 +73,12 @@ public:
 		UNIFORM_FLOAT2,
 		UNIFORM_FLOAT3,
 		UNIFORM_FLOAT4,
-		UNIFORM_MATRIX4
+		UNIFORM_MATRIX4,
+		UNIFORM_SAMPLER2D,
+		UNIFORM_SAMPLERCUBE,
+		UNIFORM_SAMPLERRECT,
+
+		NB_UNIFORM_TYPES
 	};
 
 	enum determinator_e
@@ -141,7 +147,8 @@ public:
 			type(UNIFORM_UNDEFINED),
 			stride(0),
 			sync(false),
-			elementcount(0)
+			elementcount(0),
+			used(false)
 			{}
 
 		CString name;
@@ -156,6 +163,7 @@ public:
 		Uint32 elementcount;
 
 		bool sync;
+		bool used;
 	};
 
 	// <glsl_ubo_t>
@@ -190,6 +198,7 @@ public:
 			size(0),
 			stride(0),
 			type(0),
+			vboindex(0),
 			pointer(nullptr),
 			active(false)
 		{}
@@ -200,6 +209,7 @@ public:
 		Uint32 size;
 		Uint32 stride;
 		Int32 type;
+		Int32 vboindex;
 
 		const void *pointer;
 		bool active;
@@ -393,6 +403,22 @@ public:
 	};
 
 public:
+	// Uniform typename strings
+	const Char* UNIFORM_TYPENAMES[NB_UNIFORM_TYPES] =
+	{
+		"UNIFORM_NOSYNC",
+		"UNIFORM_INT1",
+		"UNIFORM_FLOAT1",
+		"UNIFORM_FLOAT2",
+		"UNIFORM_FLOAT3",
+		"UNIFORM_FLOAT4",
+		"UNIFORM_MATRIX4",
+		"UNIFORM_SAMPLER2D",
+		"UNIFORM_SAMPLERCUBE",
+		"UNIFORM_SAMPLERRECT"
+	};
+
+public:
 	CGLSLShader( const file_interface_t& fileFuncs, const CGLExtF& glExtF, const Char *szfile, Int32 flags = FL_GLSL_SHADER_NONE, pfnProgressUpdateFunction_t pfnCallback = nullptr );
 	CGLSLShader( const file_interface_t& fileFuncs, const CGLExtF& glExtF, Int32 flags = FL_GLSL_SHADER_NONE, pfnProgressUpdateFunction_t pfnCallback = nullptr );
 	~CGLSLShader( void );
@@ -413,6 +439,10 @@ public:
 	inline void SetUniform1i( Int32 index, Int32 x );
 	// Uniform matrix assignment variations
 	inline void SetUniformMatrix4fv( Int32 index, const Float *matrix, bool transpose = false );
+	// Reset sampler unit count
+	inline void ResetSamplerIndex( Int32 minIndex = 0 );
+	// Auto-set sampler index
+	inline Int32 AutoSetSamplerUniform( Int32 index );
 
 	// Enables syncing on a uniform
 	inline void EnableSync( Int32 uniform );
@@ -425,6 +455,11 @@ public:
 	// Sets the data for the UBO
 	inline void SetUniformBufferObjectData( Int32 index, void* pBufferData, Uint32 dataSize );
 
+	// Draws GL elements
+	void DrawArrays( GLenum primitiveType, Int32 first, Uint32 count );
+	// Draws GL elements
+	void DrawElements( GLenum primitiveType, Uint32 count, GLenum type, void* pindices );
+
 public:
 	// Initializes a uniform
 	Int32 InitUniform( const Char *szname, uniform_e type, Uint32 elementcount = 1 );
@@ -433,11 +468,13 @@ public:
 	// Initializes a vertex attribute
 	Int32 InitAttribute( const Char *szname, Uint32 size, Int32 type, Uint32 stride, const void *pointer );
 	// Sets a vertex attribute's data pointer
-	void SetAttributePointer( Int32 index, const void *pointer );
+	void SetAttributePointer( Int32 index, const void *pointer, Int32 vboindex = 0 );
 	// Enables a vertex attribute
 	void EnableAttribute( Int32 index );
 	// Disables a vertex attribute
 	void DisableAttribute( Int32 index );
+	// Get the number of registered attributes
+	Uint32 GetNbAttributes( void ) const { return m_vertexAttribsArray.size(); }
 
 	// Creates a new GLSL vertex attribute, and returns it's pointer
 	glsl_determinator_t *AddDeterminator( const Char *szname );
@@ -447,6 +484,8 @@ public:
 	Int32 GetDeterminatorIndex( const Char *szname );
 	// Checks all determinators and binds the appropriate shader
 	bool VerifyDeterminators( void );
+	// Performs pre-render checks
+	bool PerformPreRenderChecks( void );
 
 	// Compiles a single shader object
 	bool CompileShader( Uint32 index, glsl_shader_t* pshader, csdshaderdata_t* pshaderdata );
@@ -463,7 +502,7 @@ public:
 	void ResetShader( void );
 
 	// Sets the associated VBO
-	void SetVBO( class CVBO *pVBO );
+	void SetVBO( class CVBO *pVBO, Int32 index = 0 );
 	
 	// Returns the shader script's name
 	const Char* GetShaderScriptName( void ) const { return m_shaderFile.c_str(); }
@@ -515,6 +554,10 @@ private:
 	bool LoadFromBSD( void );
 	// Compiles all CSD shaders
 	bool CompileCSDShaderData( void );
+	// Check samplers for overlap
+	bool CheckSamplerUniforms( void );
+	// Shifts unused samplers to avoid issues
+	void ShiftOverlappingSamplers( void );
 
 	// Constructs all the possible variations
 	bool ConstructBranches( const Char* pSrc, Uint32 fileSize );
@@ -531,7 +574,7 @@ private:
 	// Tells if a chunk should be included in this variation
 	bool ShouldIncludeChunk( Uint32 id, shader_chunk_t *pchunk );
 	// Recursively adds all usable shader chunks to a shader
-	bool RecursiveAddChunks( Uint32 id, shader_chunk_t* pchunk, Char* pstrbuf, Uint32* size, Uint32 maxBufferSize );
+	bool RecursiveAddChunks( Uint32 id, shader_chunk_t* pchunk, CBuffer& buffer );
 	// Recursively frees all GLSL chunks
 	void RecursiveFreeChunks( shader_chunk_t* pchunk );
 
@@ -542,6 +585,9 @@ private:
 
 	// Re-syncs a uniform
 	void SyncUniform( glsl_uniform_t& uniform );
+
+	// Re-aligns VBO attribs prior to drawing
+	void AlignVertexAttribs( void );
 
 private:
 	// TRUE if the shader is active
@@ -554,6 +600,8 @@ private:
 	bool m_useBinaryShaders;
 	// TRUE if the UBOs got bound
 	bool m_areUBOsBound;
+	// TRUE if we should recheck sampler uniforms
+	bool m_recheckSamplerUniforms;
 	// Shader flags
 	Int32 m_shaderFlags;
 
@@ -561,8 +609,11 @@ private:
 	Int32 m_shaderIndex;
 	// Index of the last shader bound
 	Int32 m_lastIndex;
-	// TRUE if VBO was changed
-	bool m_vboChanged;
+	// Bitflags for VBOs if their attribs got changed
+	Int32 m_vboAttribsChangedBits;
+
+	// Available sampler index
+	Int32 m_nextSamplerIndex;
 
 	// Array of determinators
 	CArray<glsl_determinator_t> m_determinatorArray;
@@ -578,17 +629,17 @@ private:
 	CArray<invalid_state_t> m_invalidStatesArray;
 	// Array of disabled determinator states
 	CArray<disabled_state_t> m_disabledStatesArray;
-#ifdef USE_SHADER_VALUES_MAP
 	// Shader value map
 	ShaderValuesIndexMapType_t m_shaderValuesIndexMap;
-#endif
+	// Last queried key
+	ShaderValuesStringType_t m_lastQueriedKey;
 	// Used to store permutation arrays
 	Int16 *m_pDeterminatorValues;
 	// Shader determinator values
 	Int16 *m_pShaderDeterminatorValues;
 
 	// Pointer to VBO associated with this shader
-	CVBO *m_pVBO;
+	CArray<CVBO*> m_pVBOArray;
 
 	// Compile-time vertex script data
 	shader_script_t *m_pVertexScript;

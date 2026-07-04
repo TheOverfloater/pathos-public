@@ -86,7 +86,7 @@ inline void*& CBuffer::getbufferdata( void )
 }
 
 //=============================================
-// @brief Returns the current data writing position into the buffer
+// @brief Retreives the writing offset into the buffer data
 //
 // @return Current writind position
 //=============================================
@@ -96,13 +96,22 @@ inline Uint32 CBuffer::getdatasize( void ) const
 }
 
 //=============================================
-// @brief Returns the current data writing position into the buffer
+// @brief Returns the current allocated buffer size
 //
-// @return Current writind position
+// @return Current allocated buffer size
 //=============================================
 inline Uint32 CBuffer::getbuffersize( void ) const
 {
 	return m_bufferSize;
+}
+
+//=============================================
+// @brief Resets the writing position to zero
+//
+//=============================================
+inline void CBuffer::reset( void )
+{
+	m_bufferDataPosition = 0;
 }
 
 //=============================================

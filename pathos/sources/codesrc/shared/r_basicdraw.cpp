@@ -91,8 +91,8 @@ bool CBasicDraw::InitGL( const CGLExtF& gGlExtF, const file_interface_t& fileFun
 		// Get attrib info
 		m_shaderAttribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
 		m_shaderAttribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
-		m_shaderAttribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
-		m_shaderAttribs.u_rectangle = m_pShader->InitUniform("rectangle0", CGLSLShader::UNIFORM_INT1);
+		m_shaderAttribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_shaderAttribs.u_rectangle = m_pShader->InitUniform("rectangle0", CGLSLShader::UNIFORM_SAMPLERRECT);
 		m_shaderAttribs.u_multiplier = m_pShader->InitUniform("multiplier", CGLSLShader::UNIFORM_FLOAT1);
 		m_shaderAttribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_FLOAT3);
 		m_shaderAttribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_FLOAT2);
@@ -182,18 +182,18 @@ void CBasicDraw::End( bool clearData )
 	switch(m_primitiveType)
 	{
 		case DRAW_TRIANGLES:
-			glDrawArrays(GL_TRIANGLES, 0, m_numVertexes);
+			m_pShader->DrawArrays(GL_TRIANGLES, 0, m_numVertexes);
 			break;
 		case DRAW_POINTS:
-			glDrawArrays(GL_POINTS, 0, m_numVertexes);
+			m_pShader->DrawArrays(GL_POINTS, 0, m_numVertexes);
 			break;
 		case DRAW_LINES:
-			glDrawArrays(GL_LINES, 0, m_numVertexes);
+			m_pShader->DrawArrays(GL_LINES, 0, m_numVertexes);
 			break;
 		case DRAW_QUADS:
 		{
 			Uint32 numTriangleIndexes = (m_numVertexes / 4) * 6;
-			glDrawElements(GL_TRIANGLES, numTriangleIndexes, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+			m_pShader->DrawElements(GL_TRIANGLES, numTriangleIndexes, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
 		}
 		break;
 	}
@@ -247,7 +247,6 @@ bool CBasicDraw::Enable( void )
 	if(!m_pVBO)
 		return false;
 
-	m_pVBO->Bind();
 	if(!m_pShader->EnableShader())
 		return false;
 
@@ -278,9 +277,6 @@ void CBasicDraw::Disable( void )
 {
 	if(m_pShader)
 		m_pShader->DisableShader();
-
-	if(m_pVBO)
-		m_pVBO->UnBind();
 
 	m_isActive = false;
 }

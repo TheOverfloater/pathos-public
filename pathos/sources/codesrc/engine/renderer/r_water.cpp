@@ -167,13 +167,15 @@ bool CWaterShader::InitGL( void )
 		m_attribs.d_specular = m_pShader->GetDeterminatorIndex("specular");
 		m_attribs.d_flowmap = m_pShader->GetDeterminatorIndex("flowmap");
 		m_attribs.d_lightonly = m_pShader->GetDeterminatorIndex("lightonly");
+		m_attribs.d_lightmap_bicubic = m_pShader->GetDeterminatorIndex("lightmap_bicubic");
 
 		if(!R_CheckShaderDeterminator(m_attribs.d_fog, "fog", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_side, "side", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_rectrefract, "rectrefract", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_specular, "specular", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_flowmap, "flowmap", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_lightonly, "lightonly", m_pShader, Sys_ErrorPopup))
+			|| !R_CheckShaderDeterminator(m_attribs.d_lightonly, "lightonly", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderDeterminator(m_attribs.d_lightmap_bicubic, "lightmap_bicubic", m_pShader, Sys_ErrorPopup))
 			return false;
 
 		m_attribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_FLOAT3);
@@ -191,14 +193,14 @@ bool CWaterShader::InitGL( void )
 		m_attribs.u_phongexponent = m_pShader->InitUniform("phongexponent", CGLSLShader::UNIFORM_FLOAT1);
 		m_attribs.u_normalmatrix = m_pShader->InitUniform("normalmatrix", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_normalmatrix_v = m_pShader->InitUniform("normalmatrix_v", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_normalmap = m_pShader->InitUniform("normalMap", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_flowmap = m_pShader->InitUniform("flowMap", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_lightmap = m_pShader->InitUniform("lightMap", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_refract = m_pShader->InitUniform("refractMap", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_reflect = m_pShader->InitUniform("reflectMap", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_rectrefract = m_pShader->InitUniform("rectangleRefractMap", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_diffusemap = m_pShader->InitUniform("diffuseMap", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_lightvecsmap = m_pShader->InitUniform("lightvecsMap", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_normalmap = m_pShader->InitUniform("normalMap", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_flowmap = m_pShader->InitUniform("flowMap", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_lightmap = m_pShader->InitUniform("lightMap", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_refract = m_pShader->InitUniform("refractMap", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_reflect = m_pShader->InitUniform("reflectMap", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_rectrefract = m_pShader->InitUniform("rectangleRefractMap", CGLSLShader::UNIFORM_SAMPLERRECT);
+		m_attribs.u_diffusemap = m_pShader->InitUniform("diffuseMap", CGLSLShader::UNIFORM_SAMPLER2D);
+		m_attribs.u_lightvecsmap = m_pShader->InitUniform("lightvecsMap", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_stylestrength = m_pShader->InitUniform("stylestrength", CGLSLShader::UNIFORM_FLOAT1);
@@ -401,19 +403,29 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
  	if(!pcachemodel)
 		return;
 
+	Uint32 paddingAmount = clamp(g_pCvarLightmapPadding->GetValue(), 0, MAX_LIGHTMAP_PADDING);
+
 	brushmodel_t* pbrushmodel = pcachemodel->getBrushmodel();
 	msurface_t *psurfaces = pbrushmodel->psurfaces + pbrushmodel->firstmodelsurface;
 
 	// Holds texture data
 	for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
 	{
-		color32_t* plightmapdata = new color32_t[pwater->lightmaptextureheights[i] * pwater->lightmaptexturewidths[i]];
+		Uint32 lightmappixelsize = pwater->lightmaptextureheights[i] * pwater->lightmaptexturewidths[i];
+		color32_t* plightmapdata = new color32_t[lightmappixelsize];
+		for(Uint32 j = 0; j < lightmappixelsize; j++)
+			plightmapdata[j] = color32_t(0, 0, 0, 255);
+
+		color32_t* pdiffusemaptexture = new color32_t[lightmappixelsize];
+		for(Uint32 j = 0; j < lightmappixelsize; j++)
+			plightmapdata[j] = color32_t(0, 0, 0, 255);
+
+		color32_t* plightvecstexture = new color32_t[lightmappixelsize];
+		for(Uint32 j = 0; j < lightmappixelsize; j++)
+			plightmapdata[j] = color32_t(0, 0, 0, 255);
+
 		Uint32 lightmapdatasize = 0;
-
-		color32_t* pdiffusemaptexture = new color32_t[pwater->lightmaptextureheights[i] * pwater->lightmaptexturewidths[i]];
 		Uint32 diffuselightdatasize = 0;
-
-		color32_t* plightvecstexture = new color32_t[pwater->lightmaptextureheights[i] * pwater->lightmaptexturewidths[i]];
 		Uint32 lightvecsdatasize = 0;
 
 		// Get overdarken treshold
@@ -451,7 +463,7 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 			else
 				psrc = nullptr;
 
-			R_BuildLightmap(psurf->light_s[i], psurf->light_t[i], psrc, psurf, plightmapdata, i, pwater->lightmaptexturewidths[i], overdarken, 0);
+			R_BuildLightmap(psurf->light_s[i], psurf->light_t[i], psrc, psurf, plightmapdata, i, pwater->lightmaptexturewidths[i], overdarken, paddingAmount);
 			lightmapdatasize += size * sizeof(color32_t);
 
 			// See if we have anything to bind
@@ -459,12 +471,12 @@ void CWaterShader::CreateLightmapTexture( cl_water_t* pwater )
 			{
 				// Grab diffuse lightmap data
 				psrc = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(pbrushmodel->plightdata_water[SURF_LIGHTMAP_DIFFUSE]) + psurf->lightoffset_water);
-				R_BuildLightmap(psurf->light_s[i], psurf->light_t[i], psrc, psurf, pdiffusemaptexture, i, pwater->lightmaptexturewidths[i], 0);
+				R_BuildLightmap(psurf->light_s[i], psurf->light_t[i], psrc, psurf, pdiffusemaptexture, i, pwater->lightmaptexturewidths[i], 0, paddingAmount);
 				diffuselightdatasize += size * sizeof(color32_t);
 
 				// Grab vectors lightmap data
 				psrc = reinterpret_cast<color24_t*>(reinterpret_cast<byte*>(pbrushmodel->plightdata_water[SURF_LIGHTMAP_VECTORS]) + psurf->lightoffset_water);
-				R_BuildLightmap(psurf->light_s[i], psurf->light_t[i], psrc, psurf, plightvecstexture, i, pwater->lightmaptexturewidths[i], 0, true);
+				R_BuildLightmap(psurf->light_s[i], psurf->light_t[i], psrc, psurf, plightvecstexture, i, pwater->lightmaptexturewidths[i], 0, paddingAmount, true);
 				lightvecsdatasize += size * sizeof(color32_t);
 			}
 		}
@@ -1009,6 +1021,8 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 	Uint32 *pindexes = new Uint32[indexcount];
 	Uint32 indexoffset = 0;
 
+	Uint32 paddingAmount = clamp(g_pCvarLightmapPadding->GetValue(), 0, MAX_LIGHTMAP_PADDING);
+
 	pwater->mins = NULL_MINS;
 	pwater->maxs = NULL_MAXS;
 
@@ -1018,12 +1032,12 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 	pwater->start_index = index_base;
 	pwater->num_indexes = indexcount;
 
-	// For tracking lightmap allocations
 	for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
 	{
 		pwater->lightmaptexturewidths[i] = WATER_LIGHTMAP_DEFAULT_WIDTH;
 		pwater->lightmaptextureheights[i] = WATER_LIGHTMAP_DEFAULT_HEIGHT;
 
+		// For tracking lightmap allocations
 		Uint32* pallocations = new Uint32[pwater->lightmaptexturewidths[i]];
 		for(Uint32 j = 0; j < pwater->lightmaptexturewidths[i]; j++)
 			pallocations[j] = 0;
@@ -1041,7 +1055,7 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 			Uint32 xsize = (psurf->extents[0] / psurf->lightmapdivider)+1;
 			Uint32 ysize = (psurf->extents[1] / psurf->lightmapdivider)+1;
 
-			R_AllocBlock(xsize, ysize, psurf->light_s[i], psurf->light_t[i], pwater->lightmaptexturewidths[i], pwater->lightmaptextureheights[i], pallocations);
+			R_AllocBlock(xsize, ysize, psurf->light_s[i], psurf->light_t[i], pwater->lightmaptexturewidths[i], pwater->lightmaptextureheights[i], pallocations, paddingAmount);
 		}
 
 		delete[] pallocations;
@@ -1792,8 +1806,6 @@ bool CWaterShader::DrawWater( bool skybox )
 	if(rns.mirroring)
 		return true;
 
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
@@ -1819,11 +1831,15 @@ bool CWaterShader::DrawWater( bool skybox )
 		result = m_pShader->SetDeterminator(m_attribs.d_fog, FALSE, false);
 	}
 
+	if (result)
+	{
+		result = m_pShader->SetDeterminator(m_attribs.d_lightmap_bicubic, g_pCvarBicubicLightmaps->GetValue() > 0 ? 1 : 0, false);
+	}
+
 	if(!result)
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return false;
 	}
 
@@ -2039,7 +2055,7 @@ bool CWaterShader::DrawWater( bool skybox )
 		
 		R_ValidateShader(m_pShader);
 
-		glDrawElements(GL_TRIANGLES, m_pCurrentWater->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pCurrentWater->start_index));
+		m_pShader->DrawElements(GL_TRIANGLES, m_pCurrentWater->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pCurrentWater->start_index));
 
 		if(rectangleUnit != NO_POSITION)
 			R_BindRectangleTexture(GL_TEXTURE0+rectangleUnit, 0);
@@ -2113,7 +2129,7 @@ bool CWaterShader::DrawWater( bool skybox )
 					for(Uint32 l = 0; l < stylebatches.batches[k].size(); l++)
 					{
 						cl_water_style_batch_t& batch = stylebatches.batches[k][l];
-						glDrawElements(GL_TRIANGLES, batch.num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(batch.start_index));
+						m_pShader->DrawElements(GL_TRIANGLES, batch.num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(batch.start_index));
 					}
 				}
 			}
@@ -2128,7 +2144,6 @@ bool CWaterShader::DrawWater( bool skybox )
 	}
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	if(pRTT)
 		gRTTCache.Free(pRTT);

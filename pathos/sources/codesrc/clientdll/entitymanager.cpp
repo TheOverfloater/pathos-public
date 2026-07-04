@@ -571,18 +571,6 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 	if (pvalue)
 		newEntity.curstate.scale = SDL_atof(pvalue);
 
-	pvalue = ValueForKey(entity, "vlight_offset");
-	if (pvalue)
-	{
-		newEntity.curstate.vlight_offset = SDL_atoi(pvalue);
-		if (pmodel)
-			const_cast<cache_model_t*>(pmodel)->vlight_offset = newEntity.curstate.vlight_offset;
-	}
-	else
-	{
-		newEntity.curstate.vlight_offset = -1;
-	}
-
 	pvalue = ValueForKey(entity, "lightorigin");
 	if(pvalue && qstrlen(pvalue))
 	{
@@ -601,6 +589,24 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 	// Retreive studio cache object
 	const vbmcache_t* pstudiocache = newEntity.pmodel->getVBMCache();
 	const studiohdr_t* pstudiohdr = pstudiocache->pstudiohdr;
+
+	// Manage things for vertex baked stuff
+	pvalue = ValueForKey(entity, "vlight_hash");
+	if(pvalue)
+	{
+		// Extract hash value
+		CString vlight_hash(pvalue);
+		if(qstrcmp(pstudiocache->vertexhash, vlight_hash))
+		{
+			cl_engfuncs.pfnCon_Printf("[flags=onlyonce_game]%s - Vertex hash for model '%s' in BSP does not math with cache hash, model has been changed.\nBaked vertex lighting will be discarded for all entities using this model.\n", __FUNCTION__, pmodel->name.c_str());
+			newEntity.curstate.vlight_vbo_index = NO_POSITION;
+		}
+		else
+		{
+			// Set up vertex light data
+			SetupModelVertexLighting(entity, &newEntity, pmodel);
+		}
+	}
 
 	// seqname overrides sequence parameter
 	pvalue = ValueForKey(entity, "seqname");
@@ -733,6 +739,88 @@ const entitydata_t* CEntityManager::FindEntityByTargetName( const Char* pstrClas
 const CArray<entitydata_t>& CEntityManager::GetEntityList( void ) const
 {
 	return m_bspEntitiesArray;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CEntityManager::SetupModelVertexLighting( const entitydata_t& entity, cl_entity_t* pcliententity, const cache_model_t* pmodel )
+{
+	// Read the offset into data
+	const Char* pvalue = ValueForKey(entity, "vlight_offset");
+	if(!pvalue)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Entity with model '%s' missing 'vlight_offset' field.\n", __FUNCTION__, pmodel->name.c_str());
+		return;
+	}
+
+	Int32 vlight_offset = SDL_atoi(pvalue);
+	if(vlight_offset < 0)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Entity with model '%s' has an invalid value for 'vlight_offset' field.\n", __FUNCTION__, pmodel->name.c_str());
+		return;
+	}
+
+	// Read the vertex count
+	pvalue = ValueForKey(entity, "vlight_vertexcount");
+	if(!pvalue)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Entity with model '%s' missing 'vlight_vertexcount' field.\n", __FUNCTION__, pmodel->name.c_str());
+		return;
+	}
+
+	Int32 vlight_vertexcount = SDL_atoi(pvalue);
+	if(vlight_vertexcount < 0)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Entity with model '%s' has an invalid value for 'vlight_vertexcount' field.\n", __FUNCTION__, pmodel->name.c_str());
+		return;
+	}
+
+	// Retrieve any lightstyles
+	pvalue = ValueForKey(entity, "vlight_styles");
+	if(pvalue)
+	{
+		CString token;
+		Uint32 index = 0;
+
+		const Char* pstr = pvalue;
+		while(pstr)
+		{
+			if(index >= MAX_ENTITY_STYLES)
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Too many lightstyles on env_model entity with model '%s'.\n", __FUNCTION__, token.c_str(), pmodel->name.c_str());
+				break;
+			}
+
+			pstr = Common::Parse(pstr, token, ";");
+			if(pstr && (*pstr) == ';')
+				pstr++;
+
+			if(!Common::IsNumber(token))
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Numerical value expected for 'vlight_styles', got '%d' instead.\n", __FUNCTION__, token.c_str());
+				continue;
+			}
+				
+			Int32 value = SDL_atoi(token.c_str());
+			if(value < 0 || value > 255)
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Invalid value '%d' specified for 'vlight_styles'.\n", __FUNCTION__, token.c_str());
+				continue;
+			}
+
+			pcliententity->curstate.vlight_styles[index] = value;
+			index++;
+		}
+	}
+
+	// Call engine to set up this information
+	if(!cl_efxapi.pfnSetupEntityVertexLightVBO(pcliententity, vlight_offset, vlight_vertexcount, pcliententity->curstate.vlight_styles))
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Failed to set up baked vertex lighting for entity with model '%s'.\n", __FUNCTION__, pmodel->name.c_str());
+		return;
+	}
 }
 
 //=============================================

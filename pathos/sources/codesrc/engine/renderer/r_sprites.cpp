@@ -127,7 +127,7 @@ bool CSpriteRenderer::InitGL( void )
 		m_attribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_FLOAT2);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
 
 		if(!R_CheckShaderUniform(m_attribs.u_fogcolor, "fogcolor", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_fogparams, "fogparams", m_pShader, Sys_ErrorPopup)
@@ -453,7 +453,7 @@ bool CSpriteRenderer::DrawSpriteArrays( cl_entity_t* entitiesArray, Uint32 numEn
 		R_Bind2DTexture(GL_TEXTURE0, frame->ptexture->palloc->gl_index);
 		R_ValidateShader(m_pShader);
 
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, BUFFER_OFFSET(pEntity->curstate.iuser1));
+		m_pShader->DrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, BUFFER_OFFSET(pEntity->curstate.iuser1));
 
 		if(pEntity->curstate.rendermode == RENDER_TRANSGLOW)
 		{
@@ -476,9 +476,6 @@ bool CSpriteRenderer::DrawSprites( void )
 		R_ReleaseRenderPassQueryObjects(rns.renderpassidx, GL_QUERY_SPRITES);
 		return true;
 	}
-
-	// Bind now for glows
-	m_pVBO->Bind();
 
 	if(!m_pShader->EnableShader())
 	{
@@ -506,7 +503,6 @@ bool CSpriteRenderer::DrawSprites( void )
 	{
 		Sys_ErrorPopup("Shader error: %s.", __FUNCTION__);
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return false;
 	}
 
@@ -552,7 +548,6 @@ bool CSpriteRenderer::DrawSprites( void )
 	{
 		R_ReleaseRenderPassQueryObjects(rns.renderpassidx, GL_QUERY_SPRITES);
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return true;
 	}
 
@@ -560,7 +555,6 @@ bool CSpriteRenderer::DrawSprites( void )
 	{
 		Sys_ErrorPopup("Shader error: %s.", __FUNCTION__);
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return false;
 	}
 
@@ -584,7 +578,6 @@ bool CSpriteRenderer::DrawSprites( void )
 	{
 		Sys_ErrorPopup("Shader error: %s.", __FUNCTION__);
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return false;
 	}
 
@@ -633,7 +626,6 @@ bool CSpriteRenderer::DrawSprites( void )
 	glDepthMask(GL_TRUE);
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	// Clear any binds
 	R_ClearBinds();
@@ -955,7 +947,7 @@ void CSpriteRenderer::DrawFunction( const Vector& origin )
 	sprite_vertex_t* pVertex = m_pVertexes + m_occlusionQueryVBOBufferOffset;
 	m_pVBO->VBOSubBufferData(sizeof(sprite_vertex_t)*m_occlusionQueryVBOBufferOffset, pVertex, sizeof(sprite_vertex_t));
 
-	glDrawArrays(GL_POINTS, m_occlusionQueryVBOBufferOffset, 1);
+	m_pShader->DrawArrays(GL_POINTS, m_occlusionQueryVBOBufferOffset, 1);
 }
 
 //====================================
@@ -1005,15 +997,9 @@ void CSpriteRenderer::ReleaseDrawBuffer( void )
 //====================================
 void CSpriteRenderer::CreateVBO( void )
 {
-	bool isActive = false;
-
 	if(m_pVBO)
 	{
 		m_pShader->SetVBO(nullptr);
-		isActive = m_pVBO->IsActive();
-		if(isActive)
-			m_pVBO->UnBind();
-
 		delete m_pVBO;
 	}
 
@@ -1027,9 +1013,6 @@ void CSpriteRenderer::CreateVBO( void )
 
 	Uint32 vertexBufferSize = m_drawBufferAllocSize + GLOW_NUM_TRACES;
 	m_pVBO = new CVBO(gGLExtF, m_pVertexes, sizeof(sprite_vertex_t)*vertexBufferSize, pindexes, sizeof(Uint32)*m_drawBufferAllocSize*6);
-
-	if(isActive)
-		m_pVBO->Bind();
 
 	m_pShader->SetVBO(m_pVBO);
 

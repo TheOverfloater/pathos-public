@@ -85,7 +85,7 @@ bool CMirrorManager::InitGL( void )
 		m_attribs.u_mirrormatrix = m_pShader->InitUniform("mirror_matrix", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_MATRIX4);
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
-		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_texture = m_pShader->InitUniform("texture0", CGLSLShader::UNIFORM_SAMPLER2D);
 
 		if(!R_CheckShaderUniform(m_attribs.u_dt_x, "dt_x", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_dt_y, "dt_y", m_pShader, Sys_ErrorPopup)
@@ -600,8 +600,6 @@ bool CMirrorManager::DrawMirrors( void )
 	if(rns.mirroring)
 		return true;
 
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
@@ -626,7 +624,6 @@ bool CMirrorManager::DrawMirrors( void )
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return false;
 	}
 
@@ -672,7 +669,7 @@ bool CMirrorManager::DrawMirrors( void )
 
 		R_ValidateShader(m_pShader);
 
-		glDrawArrays(GL_TRIANGLES, m_pCurrentMirror->start_vertex, m_pCurrentMirror->num_vertexes);
+		m_pShader->DrawArrays(GL_TRIANGLES, m_pCurrentMirror->start_vertex, m_pCurrentMirror->num_vertexes);
 
 		// Set framecount for decals
 		const brushmodel_t *pbrushmodel = pentity->pmodel->getBrushmodel();
@@ -682,7 +679,6 @@ bool CMirrorManager::DrawMirrors( void )
 	}
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	// Clear any binds
 	R_ClearBinds();

@@ -81,7 +81,7 @@ struct light_attribs_t
 		u_light_matrix(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_light_cone_size(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_light_spotdirection(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_light_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE)
+		u_d_light_shadowmap(CGLSLShader::PROPERTY_UNAVAILABLE)
 	{}
 
 	Int32 u_light_color;
@@ -93,21 +93,22 @@ struct light_attribs_t
 	Int32 u_light_matrix;
 	Int32 u_light_cone_size;
 	Int32 u_light_spotdirection;
-	Int32 d_light_shadowmap;
+	Int32 u_d_light_shadowmap;
 };
 
 struct bsp_shader_attribs
 {
 	bsp_shader_attribs():
 		d_shadertype(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_fogtype(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_alphatest(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_bumpmapping(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_cubemaps(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_luminance(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_numlights(CGLSLShader::PROPERTY_UNAVAILABLE),
-		d_blendmultipass(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_fogtype(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_bumpmapping(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_cubemaps(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_luminance(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_numlights(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_blendmultipass(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_lightmap_bicubic(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_position(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_tangent(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_binormal(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -150,14 +151,16 @@ struct bsp_shader_attribs
 	{}
 
 	Int32 d_shadertype;
-	Int32 d_fogtype;
 	Int32 d_alphatest;
-	Int32 d_bumpmapping;
-	Int32 d_specular;
-	Int32 d_cubemaps;
-	Int32 d_luminance;
-	Int32 d_numlights;
-	Int32 d_blendmultipass;
+
+	Int32 u_d_fogtype;
+	Int32 u_d_bumpmapping;
+	Int32 u_d_specular;
+	Int32 u_d_cubemaps;
+	Int32 u_d_luminance;
+	Int32 u_d_numlights;
+	Int32 u_d_blendmultipass;
+	Int32 u_d_lightmap_bicubic;
 
 	// vertex attribs
 	Int32 a_position;
@@ -653,8 +656,6 @@ private:
 
 	// Shader attrib info
 	bsp_shader_attribs m_attribs;
-	// TRUE if cubemapping is supported
-	bool m_isCubemappingSupported;
 };
 extern CBSPRenderer gBSPRenderer;
 #endif
