@@ -387,6 +387,12 @@ cache_model_t* CModelCache::LoadVBMModel( const Char* pstrFilename, const byte* 
 			pnew->radius = pstudiohdr->bbmax[i];
 	}
 
+	// Create hash of vertex data
+	const vbmvertex_t* pvertexdata = pcache->pvbmhdr->getVertexes();
+	Uint32 vertexdatasize = pcache->pvbmhdr->numverts*sizeof(vbmvertex_t);
+	CMD5 hash(reinterpret_cast<const byte*>(pvertexdata),  vertexdatasize);
+	pcache->vertexhash = hash.HexDigest();
+
 	return pnew;
 }
 
@@ -493,6 +499,7 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 		pnewmodel->pasdatasize = model.pasdatasize;
 		pnewmodel->lightdatasize = model.lightdatasize;
 		pnewmodel->lightmaplayercount = model.lightmaplayercount;
+		pnewmodel->vertexlightdatasize = model.vertexlightdatasize;
 		pnewmodel->pclipnodes = model.pclipnodes;
 		pnewmodel->numclipnodes = model.numclipnodes;
 		pnewmodel->pedges = model.pedges;
@@ -526,6 +533,15 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 			pnewmodel->original_lightdatasizes[j] = model.original_lightdatasizes[j];
 			pnewmodel->original_compressiontype[j] = model.original_compressiontype[j];
 			pnewmodel->original_compressionlevel[j] = model.original_compressionlevel[j];
+		}
+
+		for(Uint32 j = 0 ; j < NB_BAKED_VERTEXLIGHT_LAYERS; j++)
+		{
+			pnewmodel->pvertexlightdata[j] = model.pvertexlightdata[j];
+			pnewmodel->pvertexlightdata_original[j] = model.pvertexlightdata_original[j];
+			pnewmodel->original_vertexlightdatasizes[j] = model.original_vertexlightdatasizes[j];
+			pnewmodel->original_vertexlightcompressiontype[j] = model.original_vertexlightcompressiontype[j];
+			pnewmodel->original_vertexlightcompressionlevel[j] = model.original_vertexlightcompressionlevel[j];
 		}
 
 		pnewmodel->hulls[0].firstclipnode = psubmodel->headnode[0];

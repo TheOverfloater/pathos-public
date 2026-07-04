@@ -58,6 +58,18 @@ brushmodel_t* PBSPV2_Load( const byte* pfile, const dpbspv2header_t* pheader, co
 		return nullptr;
 	}
 
+	// If PBSPV2_FL_HAS_VERTEX_LIGHTING is set, then load in vertex lighting data
+	if(pheader->flags & PBSPV2_FL_HAS_VERTEX_LIGHTING)
+	{
+		if(!PBSPV2_LoadVertexLighting(pfile, (*pmodel), pheader->lumps[PBSPV2_LUMP_VERTEX_LIGHTING_AMBIENT], VERTEX_LIGHTING_AMBIENT)
+			|| !PBSPV2_LoadVertexLighting(pfile, (*pmodel), pheader->lumps[PBSPV2_LUMP_VERTEX_LIGHTING_DIFFUSE], VERTEX_LIGHTING_DIFFUSE)
+			|| !PBSPV2_LoadVertexLighting(pfile, (*pmodel), pheader->lumps[PBSPV2_LUMP_VERTEX_LIGHTING_VECTORS], VERTEX_LIGHTING_VECTORS))
+		{
+			delete pmodel;
+			return nullptr;
+		}
+	}
+
 	return pmodel;
 }
 
@@ -328,7 +340,7 @@ bool PBSPV2_LoadTextures( const byte* pfile, brushmodel_t& model, const dpbspv2l
 //=============================================
 bool PBSPV2_DecompressLightingData( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump, color24_t*& pdestptr, Uint32& destsize, byte*& poriginaldataptr, Uint32& originalsize, Int32& compression, Int32 compressionlevel )
 {
-	const dpbspv2lmapdata_t* plightmapdata = reinterpret_cast<const dpbspv2lmapdata_t*>(pfile + lump.offset);
+	const dpbspv2lightingdata_t* plightmapdata = reinterpret_cast<const dpbspv2lightingdata_t*>(pfile + lump.offset);
 	if(plightmapdata->noncompressedsize % sizeof(color24_t))
 	{
 		Con_EPrintf("%s - Inconsistent decompressed data size in '%s'.\n", __FUNCTION__, model.name.c_str());
@@ -389,7 +401,7 @@ bool PBSPV2_LoadDefaultLighting( const byte* pfile, brushmodel_t& model, const d
 		return true;
 
 	// Check if sizes are correct
-	if(lump.size != sizeof(dpbspv2lmapdata_t))
+	if(lump.size != sizeof(dpbspv2lightingdata_t))
 	{
 		Con_EPrintf("%s - Inconsistent lump size in '%s'.\n", __FUNCTION__, model.name.c_str());
 		return false;
@@ -410,7 +422,7 @@ bool PBSPV2_LoadLightingDataLayer( const byte* pfile, brushmodel_t& model, const
 		return true;
 
 	// Check if sizes are correct
-	if(lump.size != sizeof(dpbspv2lmapdata_t))
+	if(lump.size != sizeof(dpbspv2lightingdata_t))
 	{
 		Con_EPrintf("%s - Inconsistent lump size in '%s'.\n", __FUNCTION__, model.name.c_str());
 		return false;
@@ -425,7 +437,7 @@ bool PBSPV2_LoadLightingDataLayer( const byte* pfile, brushmodel_t& model, const
 	{
 		if(datasize != model.lightdatasize)
 		{
-			Con_EPrintf("%s - Inconsistent lump size %d in '%s' for light data layer %d, expected size was %d.\n", __FUNCTION__, lump.size, model.name.c_str(), layer, model.lightdatasize);
+			Con_EPrintf("%s - Inconsistent lump size %d in '%s' for light data layer %d, expected size was %d.\n", __FUNCTION__, datasize, model.name.c_str(), layer, model.lightdatasize);
 			return false;
 		}
 	}
@@ -928,4 +940,39 @@ bool PBSPV2_LoadSubmodels( const byte* pfile, brushmodel_t& model, const dpbspv2
 	}
 
 	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool PBSPV2_LoadVertexLighting(const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump, baked_vertexlight_layers_t layer)
+{
+	if (!lump.size)
+		return true;
+
+	// Check if sizes are correct
+	if (lump.size != sizeof(dpbspv2lightingdata_t))
+	{
+		Con_EPrintf("%s - Inconsistent lump size in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
+	Uint32 datasize = 0;
+	bool result = PBSPV2_DecompressLightingData(pfile, model, lump, model.pvertexlightdata[layer], datasize, 
+		model.pvertexlightdata_original[layer], model.original_vertexlightdatasizes[layer],
+		model.original_vertexlightcompressiontype[layer], model.original_vertexlightcompressionlevel[layer]);
+
+	if(!model.vertexlightdatasize)
+	{
+		// First lump loaded defines the expected size
+		model.vertexlightdatasize = datasize;
+	}
+	else if(result && datasize != model.lightdatasize)
+	{
+		Con_EPrintf("%s - Inconsistent lump size %d in '%s' for baked vertex light data layer %d, expected size was %d.\n", __FUNCTION__, datasize, model.name.c_str(), layer, model.lightdatasize);
+		return false;
+	}
+
+	return result;
 }

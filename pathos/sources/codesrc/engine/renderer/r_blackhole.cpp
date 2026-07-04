@@ -375,8 +375,6 @@ bool CBlackHoleRenderer::DrawBlackHoles( void )
 	if (m_blackHolesList.empty())
 		return true;
 
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
@@ -484,7 +482,7 @@ bool CBlackHoleRenderer::DrawBlackHoles( void )
 
 		R_ValidateShader(m_pShader);
 
-		glDrawArrays(GL_TRIANGLES, 0, NUM_BLACKHOLE_VERTEXES);
+		m_pShader->DrawArrays(GL_TRIANGLES, 0, NUM_BLACKHOLE_VERTEXES);
 	}
 
 	if (pTexture)
@@ -500,7 +498,6 @@ bool CBlackHoleRenderer::DrawBlackHoles( void )
 	}
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	glDepthMask(GL_TRUE);
 

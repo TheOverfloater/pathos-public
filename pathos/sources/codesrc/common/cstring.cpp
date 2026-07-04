@@ -228,9 +228,9 @@ void CString::Append(Uint32 i)
 	g_pWorkBuffer[0] = '\0';
 
 	if(m_pString && m_pString != EMPTY_STRING)
-		sprintf_s(g_pWorkBuffer, g_workBufferSize, "%s%d", m_pString, i);
+		sprintf_s(g_pWorkBuffer, g_workBufferSize, "%s%u", m_pString, i);
 	else
-		sprintf_s(g_pWorkBuffer, g_workBufferSize, "%d", i);
+		sprintf_s(g_pWorkBuffer, g_workBufferSize, "%u", i);
 
 #ifdef _DEBUG
 	assert(qstrlen(g_pWorkBuffer) == newlength);

@@ -66,6 +66,13 @@ enum pbspv2_lumps_t
 	PBSPV2_LUMP_EDGES,
 	PBSPV2_LUMP_SURFEDGES,
 	PBSPV2_LUMP_MODELS,
+
+	// These lumps are available if header->flags has PBSPV2_FL_HAS_VERTEX_LIGHTING set
+	PBSPV2_LUMP_VERTEX_LIGHTING_AMBIENT,
+	PBSPV2_LUMP_VERTEX_LIGHTING_DIFFUSE,
+	PBSPV2_LUMP_VERTEX_LIGHTING_VECTORS,
+
+	// MUST BE LAST
 	PBSPV2_NB_LUMPS
 };
 
@@ -75,7 +82,8 @@ enum pbspv2_lumps_t
 enum pbspv2_flags_t
 {
 	PBSPV2_FL_NONE					= 0,
-	PBSPV2_FL_HAS_SMOOTHING_GROUPS	= (1<<0)
+	PBSPV2_FL_HAS_SMOOTHING_GROUPS	= (1<<0),
+	PBSPV2_FL_HAS_VERTEX_LIGHTING	= (1<<1)
 };
 
 //
@@ -107,7 +115,7 @@ struct dpbspv2header_t
 	Int32 version;
 	Int64 flags;
 
-	dpbspv2lump_t lumps[PBSPV2_NB_LUMPS];
+	dpbspv2lump_t lumps[1];
 };
 
 //
@@ -236,7 +244,7 @@ struct dpbspv2face_t
 	Int32 numedges;
 	Int32 texinfo;
 	Float samplescale;
-	Int32 smoothgroupbits;
+	Int32 smoothgroupbits; // This is set if pheader->flags has PBSPV2_FL_HAS_SMOOTHING_GROUPS set
 
 	byte lmstyles[PBSPV2_MAX_LIGHTMAPS];
 	Int32 lightoffset;
@@ -267,9 +275,9 @@ struct dpbspv2leaf_t
 	byte ambient_level[PBSPV2_NUM_AMBIENTS];
 };
 
-struct dpbspv2lmapdata_t
+struct dpbspv2lightingdata_t
 {
-	dpbspv2lmapdata_t():
+	dpbspv2lightingdata_t():
 		compression(0),
 		compressionlevel(0),
 		dataoffset(0),

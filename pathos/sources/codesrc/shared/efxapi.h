@@ -30,6 +30,7 @@ struct cl_efxapi_t
 	cl_entity_t*			(*pfnAllocTempSpriteEntity)( Int32 key, Float life );
 
 	void					(*pfnCreateCableEntity)( const Vector& start, const Vector& end, Uint32 depth, Uint32 width, Uint32 numsegments );
+	bool					(*pfnSetupEntityVertexLightVBO)( cl_entity_t* pentity, Int32 vlightoffset, Uint32 vertexcount, byte* plightstyles );
 	void					(*pfnSetFogParameters)( entindex_t entindex, const Vector& color, Float start, Float end, bool affectsky, Float blendtime );
 	void					(*pfnSetSkyboxParameters)( const Vector& worldorigin, Float skysize, Float fogend, Float fogstart, const Vector& fogcolor, Int32 skytexturesetindex, bool affectskybox, bool isactive );
 	mlight_t*				(*pfnAllocEntityLight)( Int32 key, Float life, Int32 attachment );

@@ -169,8 +169,6 @@ bool CMenuParticles::Draw( void )
 	if(!m_isActive)
 		return true;
 
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
@@ -256,14 +254,13 @@ bool CMenuParticles::Draw( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, m_numBatchedVertexes);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, m_numBatchedVertexes);
 
 	m_pShader->DisableAttribute(m_attribs.a_vertex);
 	m_pShader->DisableAttribute(m_attribs.a_color);
 	m_pShader->DisableAttribute(m_attribs.a_texcoord);
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	return true;
 }

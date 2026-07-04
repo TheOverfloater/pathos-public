@@ -198,6 +198,7 @@ public:
 			size(0),
 			stride(0),
 			type(0),
+			vboindex(0),
 			pointer(nullptr),
 			active(false)
 		{}
@@ -208,6 +209,7 @@ public:
 		Uint32 size;
 		Uint32 stride;
 		Int32 type;
+		Int32 vboindex;
 
 		const void *pointer;
 		bool active;
@@ -453,6 +455,11 @@ public:
 	// Sets the data for the UBO
 	inline void SetUniformBufferObjectData( Int32 index, void* pBufferData, Uint32 dataSize );
 
+	// Draws GL elements
+	void DrawArrays( GLenum primitiveType, Int32 first, Uint32 count );
+	// Draws GL elements
+	void DrawElements( GLenum primitiveType, Uint32 count, GLenum type, void* pindices );
+
 public:
 	// Initializes a uniform
 	Int32 InitUniform( const Char *szname, uniform_e type, Uint32 elementcount = 1 );
@@ -461,11 +468,13 @@ public:
 	// Initializes a vertex attribute
 	Int32 InitAttribute( const Char *szname, Uint32 size, Int32 type, Uint32 stride, const void *pointer );
 	// Sets a vertex attribute's data pointer
-	void SetAttributePointer( Int32 index, const void *pointer );
+	void SetAttributePointer( Int32 index, const void *pointer, Int32 vboindex = 0 );
 	// Enables a vertex attribute
 	void EnableAttribute( Int32 index );
 	// Disables a vertex attribute
 	void DisableAttribute( Int32 index );
+	// Get the number of registered attributes
+	Uint32 GetNbAttributes( void ) const { return m_vertexAttribsArray.size(); }
 
 	// Creates a new GLSL vertex attribute, and returns it's pointer
 	glsl_determinator_t *AddDeterminator( const Char *szname );
@@ -493,7 +502,7 @@ public:
 	void ResetShader( void );
 
 	// Sets the associated VBO
-	void SetVBO( class CVBO *pVBO );
+	void SetVBO( class CVBO *pVBO, Int32 index = 0 );
 	
 	// Returns the shader script's name
 	const Char* GetShaderScriptName( void ) const { return m_shaderFile.c_str(); }
@@ -565,7 +574,7 @@ private:
 	// Tells if a chunk should be included in this variation
 	bool ShouldIncludeChunk( Uint32 id, shader_chunk_t *pchunk );
 	// Recursively adds all usable shader chunks to a shader
-	bool RecursiveAddChunks( Uint32 id, shader_chunk_t* pchunk, Char* pstrbuf, Uint32* size, Uint32 maxBufferSize );
+	bool RecursiveAddChunks( Uint32 id, shader_chunk_t* pchunk, CBuffer& buffer );
 	// Recursively frees all GLSL chunks
 	void RecursiveFreeChunks( shader_chunk_t* pchunk );
 
@@ -576,6 +585,9 @@ private:
 
 	// Re-syncs a uniform
 	void SyncUniform( glsl_uniform_t& uniform );
+
+	// Re-aligns VBO attribs prior to drawing
+	void AlignVertexAttribs( void );
 
 private:
 	// TRUE if the shader is active
@@ -597,8 +609,8 @@ private:
 	Int32 m_shaderIndex;
 	// Index of the last shader bound
 	Int32 m_lastIndex;
-	// TRUE if VBO was changed
-	bool m_vboChanged;
+	// Bitflags for VBOs if their attribs got changed
+	Int32 m_vboAttribsChangedBits;
 
 	// Available sampler index
 	Int32 m_nextSamplerIndex;
@@ -617,19 +629,17 @@ private:
 	CArray<invalid_state_t> m_invalidStatesArray;
 	// Array of disabled determinator states
 	CArray<disabled_state_t> m_disabledStatesArray;
-#ifdef USE_SHADER_VALUES_MAP
 	// Shader value map
 	ShaderValuesIndexMapType_t m_shaderValuesIndexMap;
 	// Last queried key
 	ShaderValuesStringType_t m_lastQueriedKey;
-#endif
 	// Used to store permutation arrays
 	Int16 *m_pDeterminatorValues;
 	// Shader determinator values
 	Int16 *m_pShaderDeterminatorValues;
 
 	// Pointer to VBO associated with this shader
-	CVBO *m_pVBO;
+	CArray<CVBO*> m_pVBOArray;
 
 	// Compile-time vertex script data
 	shader_script_t *m_pVertexScript;

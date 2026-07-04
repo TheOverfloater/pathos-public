@@ -421,7 +421,10 @@ bool CMenu::DrawMenuBackground( CBasicDraw* pDraw )
 	pDraw->SetModelview(rns.view.modelview.GetMatrix());
 	pDraw->SetProjection(rns.view.projection.GetMatrix());
 
-	if(!pDraw->EnableTexture() || !pDraw->DisableRectangleTexture())
+	if(!pDraw->DisableRectangleTexture())
+		return false;
+
+	if(!pDraw->EnableTexture())
 		return false;
 
 	glDisable(GL_CULL_FACE);

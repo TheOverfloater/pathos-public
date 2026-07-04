@@ -470,4 +470,18 @@ void BSP_ReleaseLightmapData( brushmodel_t& model )
 			model.plightdata[i] = nullptr;
 		}
 	}
+
+	for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+	{
+		if(model.pvertexlightdata_original[i] && reinterpret_cast<byte*>(model.pvertexlightdata[i]) != model.pvertexlightdata_original[i])
+			delete[] model.plightdata_original[i];
+
+		if (model.pvertexlightdata[i])
+		{
+			delete[](byte*)model.pvertexlightdata[i];
+			model.pvertexlightdata[i] = nullptr;
+		}
+
+		model.vertexlightdatasize = 0;
+	}
 }

@@ -185,7 +185,6 @@ bool CCableRenderer::DrawCables( void )
 	if(m_cablesArray.empty())
 		return true;
 
-	m_pVBO->Bind();
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.\n", m_pShader->GetError());
@@ -230,13 +229,12 @@ bool CCableRenderer::DrawCables( void )
 
 		R_ValidateShader(m_pShader);
 
-		glDrawArrays(GL_TRIANGLES, pcable->start_vertex, pcable->num_vertexes);
+		m_pShader->DrawArrays(GL_TRIANGLES, pcable->start_vertex, pcable->num_vertexes);
 	}
 
 	glEnable(GL_CULL_FACE);
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	return true;
 }

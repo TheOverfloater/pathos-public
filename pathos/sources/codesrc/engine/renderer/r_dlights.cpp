@@ -1123,7 +1123,6 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 
-	m_pVSMVBO->Bind();
 	if(!m_pVSMShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
@@ -1154,7 +1153,6 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 			{
 				Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
 				m_pVSMShader->DisableShader();
-				m_pVSMVBO->UnBind();
 				return false;
 			}
 
@@ -1165,7 +1163,7 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 
 			R_ValidateShader(m_pVSMShader);
 
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			m_pVSMShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 			// blur vertically
 			R_BindFBO(dl->pshadowmap->pfbo);
@@ -1175,14 +1173,13 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 			{
 				Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
 				m_pVSMShader->DisableShader();
-				m_pVSMVBO->UnBind();
 				return false;
 			}
 
 			R_Bind2DTexture(GL_TEXTURE0, m_blurFBO.ptexture1->gl_index);
 			R_ValidateShader(m_pVSMShader);
 
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			m_pVSMShader->DrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		else
 		{
@@ -1194,14 +1191,13 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 			{
 				Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
 				m_pVSMShader->DisableShader();
-				m_pVSMVBO->UnBind();
 				return false;
 			}
 
 			R_Bind2DTexture(GL_TEXTURE0, m_renderFBO.ptexture1->gl_index);
 			R_ValidateShader(m_pVSMShader);
 
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			m_pVSMShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 			R_BindFBO(nullptr);
 		}
@@ -1213,7 +1209,6 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 	glEnable(GL_DEPTH_TEST);
 
 	m_pVSMShader->DisableShader();
-	m_pVSMVBO->UnBind();
 
 	return true;
 }
@@ -1312,7 +1307,6 @@ bool CDynamicLightManager::DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
 
-	m_pVSMVBO->Bind();
 	if(!m_pVSMShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pVSMShader->GetError());
@@ -1351,7 +1345,7 @@ bool CDynamicLightManager::DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int
 
 			R_ValidateShader(m_pVSMShader);
 
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			m_pVSMShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 			// blur horizontally
 			R_BindFBO(dl->psmcubemap->pfbo);
@@ -1368,7 +1362,7 @@ bool CDynamicLightManager::DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int
 			R_Bind2DTexture(GL_TEXTURE0, m_cubeBlurFBO.ptexture1->gl_index);
 			R_ValidateShader(m_pVSMShader);
 
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			m_pVSMShader->DrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		else
 		{
@@ -1385,7 +1379,7 @@ bool CDynamicLightManager::DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int
 			R_Bind2DTexture(GL_TEXTURE0, m_cubeRenderFBO.ptexture1->gl_index);
 			R_ValidateShader(m_pVSMShader);
 
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			m_pVSMShader->DrawArrays(GL_TRIANGLES, 0, 6);
 			
 			R_BindFBO(nullptr);
 		}
@@ -1397,7 +1391,6 @@ bool CDynamicLightManager::DrawCubemapPass( cl_dlight_t *dl, Vector vangles, Int
 	glEnable(GL_DEPTH_TEST);
 
 	m_pVSMShader->DisableShader();
-	m_pVSMVBO->UnBind();
 	
 	return true;
 }

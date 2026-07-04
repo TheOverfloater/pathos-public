@@ -9,7 +9,6 @@ All Rights Reserved.
 */
 
 // Notes:
-// AO mapping related code was done by valina354.
 // The original Paranoia world renderer was done 
 // by BUzer, which this code originates from partially.
 
@@ -179,7 +178,6 @@ bool CBSPRenderer::InitGL( void )
 		m_attribs.u_d_specular = m_pShader->InitUniform("d_specular", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_d_cubemaps = m_pShader->InitUniform("d_cubemaps", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_d_luminance = m_pShader->InitUniform("d_luminance", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_d_ao = m_pShader->InitUniform("d_ao", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_d_numlights = m_pShader->InitUniform("d_numlights", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_d_blendmultipass = m_pShader->InitUniform("d_blendmultipass", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_d_lightmap_bicubic = m_pShader->InitUniform("d_lightmap_bicubic", CGLSLShader::UNIFORM_INT1);
@@ -188,7 +186,6 @@ bool CBSPRenderer::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_d_bumpmapping, "d_bumpmapping", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_specular, "d_specular", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_luminance, "d_luminance", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_d_ao, "d_ao", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_numlights, "d_numlights", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_blendmultipass, "d_blendmultipass", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_lightmap_bicubic, "d_lightmap_bicubic", m_pShader, Sys_ErrorPopup)
@@ -245,7 +242,6 @@ bool CBSPRenderer::InitGL( void )
 		m_attribs.u_chrometex = m_pShader->InitUniform("chrometex", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_normalmap = m_pShader->InitUniform("normalmap", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_luminance = m_pShader->InitUniform("luminance", CGLSLShader::UNIFORM_SAMPLER2D);
-		m_attribs.u_aomap = m_pShader->InitUniform("aomaptex", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_difflightmap = m_pShader->InitUniform("difflightmap", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_lightvecstex = m_pShader->InitUniform("lightvecstex", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_specular = m_pShader->InitUniform("speculartex", CGLSLShader::UNIFORM_SAMPLER2D);
@@ -276,7 +272,6 @@ bool CBSPRenderer::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_detailtex, "detailtex", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_chrometex, "chrometex", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_normalmap, "normalmap", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_aomap, "aomaptex", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_difflightmap, "difflightmap", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_lightvecstex, "lightvecstex", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_specular, "speculartex", m_pShader, Sys_ErrorPopup)
@@ -1274,7 +1269,6 @@ bool CBSPRenderer::DrawNormal( void )
 {
 	// Set shader's VBO and bind it
 	m_pShader->SetVBO(m_pVBO);
-	m_pVBO->Bind();
 
 	if(!m_pShader->EnableShader())
 	{
@@ -1306,7 +1300,6 @@ bool CBSPRenderer::DrawNormal( void )
 		result = false;
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	// Clear any binds
 	R_ClearBinds();
@@ -1330,8 +1323,6 @@ bool CBSPRenderer::DrawTransparent( void )
 
 	// Set shader's VBO and bind it
 	m_pShader->SetVBO(m_pVBO);
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Rendering error: %s.", m_pShader->GetError());
@@ -1426,7 +1417,6 @@ bool CBSPRenderer::DrawTransparent( void )
 		result = DrawDecals(true);
 
 		// Disable VBO
-		m_pDecalVBO->UnBind();
 		m_pShader->DisableShader();
 	}
 
@@ -1450,8 +1440,6 @@ bool CBSPRenderer::DrawSkyBox( bool inZElements )
 {
 	// Set shader's VBO and bind it
 	m_pShader->SetVBO(m_pVBO);
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Rendering error: %s.", m_pShader->GetError());
@@ -1519,7 +1507,6 @@ bool CBSPRenderer::DrawSkyBox( bool inZElements )
 	m_pShader->DisableAttribute(m_attribs.a_dtexcoord);
 	m_pShader->DisableAttribute(m_attribs.a_fogcoord);
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	return true;
 }
@@ -2199,7 +2186,7 @@ bool CBSPRenderer::DrawFirst( void )
 		ptexturehandle = &m_texturesArray[i];
 		drawbatch_t *pbatch = &ptexturehandle->single_batches[0];
 		for(Uint32 j = 0; j < ptexturehandle->numsinglebatches; j++, pbatch++)
-			glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+			m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 
 		if(m_pCurrentEntity->curstate.effects & EF_CONVEYOR)
 			m_pShader->SetUniform2f(m_attribs.u_uvoffset, 0, 0);
@@ -2241,7 +2228,6 @@ bool CBSPRenderer::DrawFirst( void )
 			m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 			m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
 			m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
-			m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 			m_pShader->SetUniform1i(m_attribs.u_d_cubemaps, CUBEMAPS_OFF);
 
 			if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, shader_solidcolor, false)
@@ -2252,7 +2238,7 @@ bool CBSPRenderer::DrawFirst( void )
 
 			pbatch = &ptexturehandle->single_batches[0];
 			for(Uint32 j = 0; j < ptexturehandle->numsinglebatches; j++, pbatch++)
-				glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+				m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -2409,22 +2395,6 @@ bool CBSPRenderer::DrawFirst( void )
 			{
 				m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 			}
-		
-			if (pmaterial->ptextures[MT_TX_AO])
-			{
-				m_pShader->SetUniform1i(m_attribs.u_d_ao, TRUE);
-
-				en_texture_t* paotexture = pmaterial->ptextures[MT_TX_AO];
-				textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_aomap);
-				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, paotexture->palloc->gl_index);
-
-				// We'll need texcoords
-				useTexcoord = true;
-			}
-			else
-			{
-				m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
-			}
 
 			R_ValidateShader(m_pShader);
 
@@ -2441,7 +2411,7 @@ bool CBSPRenderer::DrawFirst( void )
 			bsp_texture_t* pbatchtexturehandle = &m_texturesArray[i];
 			drawbatch_t *pbatch = &pbatchtexturehandle->multi_batches[0];
 			for(Uint32 j = 0; j < pbatchtexturehandle->nummultibatches; j++, pbatch++)
-				glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+				m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 
 			if(alphatestMode == ALPHATEST_COVERAGE)
 			{
@@ -2627,23 +2597,6 @@ bool CBSPRenderer::DrawFirst( void )
 						m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 					}
 
-					// Set AO if present
-					if (pmaterial->ptextures[MT_TX_AO])
-					{
-						m_pShader->SetUniform1i(m_attribs.u_d_ao, TRUE);
-
-						en_texture_t* paotexture = pmaterial->ptextures[MT_TX_AO];
-						textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_aomap);
-						R_Bind2DTexture(GL_TEXTURE0 + textureIndex, paotexture->palloc->gl_index);
-
-						// We'll need texcoords
-						useTexcoord = true;
-					}
-					else
-					{
-						m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
-					}
-
 					if(!m_pShader->VerifyDeterminators())
 						return false;
 
@@ -2657,7 +2610,7 @@ bool CBSPRenderer::DrawFirst( void )
 
 					drawbatch_t *pbatch = &batches.batches[0];
 					for(Uint32 l = 0; l < batches.numbatches; l++, pbatch++)
-						glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+						m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 
 					if(useTexcoord)
 						m_pShader->DisableAttribute(m_attribs.a_texcoord);
@@ -2688,7 +2641,6 @@ bool CBSPRenderer::DrawFirst( void )
 		return false;
 
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 
 	return true;
@@ -2918,19 +2870,6 @@ bool CBSPRenderer::BindTextures( bsp_texture_t* phandle, cubemapinfo_t* pcubemap
 	else
 	{
 		m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
-	}
-	
-	if (pmaterial->ptextures[MT_TX_AO])
-	{
-		m_pShader->SetUniform1i(m_attribs.u_d_ao, TRUE);
-
-		en_texture_t* paotexture = pmaterial->ptextures[MT_TX_AO];
-		textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_aomap);
-		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, paotexture->palloc->gl_index);
-	}
-	else
-	{
-		m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 	}
 
 	if(enableNormal)
@@ -3593,20 +3532,6 @@ bool CBSPRenderer::DrawLights( bool specular )
 				m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, false);
 			}
 
-			if (pmaterial->ptextures[MT_TX_AO])
-			{
-				// Specify the AO map unit
-				texunit = m_pShader->AutoSetSamplerUniform(m_attribs.u_aomap);
-				R_Bind2DTexture(GL_TEXTURE0 + texunit, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
-				useTexCoord = true;
-
-				m_pShader->SetUniform1i(m_attribs.u_d_ao, true);
-			}
-			else
-			{
-				m_pShader->SetUniform1i(m_attribs.u_d_ao, false);
-			}
-
 			if(!specular && m_isEntityTransparent)
 			{
 				// Set main texture
@@ -3649,7 +3574,7 @@ bool CBSPRenderer::DrawLights( bool specular )
 
 			drawbatch_t *pdrawbatch = &ptexturehandle->light_batches[0];
 			for(Uint32 j = 0; j < ptexturehandle->numlightbatches; j++, pdrawbatch++)
-				glDrawElements(GL_TRIANGLES, pdrawbatch->end_index-pdrawbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pdrawbatch->start_index));
+				m_pShader->DrawElements(GL_TRIANGLES, pdrawbatch->end_index-pdrawbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pdrawbatch->start_index));
 		}
 
 		batch.lightslist.begin();
@@ -3711,7 +3636,6 @@ bool CBSPRenderer::DrawLights( bool specular )
 	// Reset determinators
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
 	m_pShader->SetUniform1i(m_attribs.u_d_fogtype, fog_none);
 	m_pShader->SetUniform1i(m_attribs.u_d_blendmultipass, blendmultipass_no);
@@ -3794,7 +3718,7 @@ bool CBSPRenderer::DrawFinal( void )
 
 					drawbatch_t *pbatch = &m_texturesArray[i].multi_batches[0];
 					for(Uint32 j = 0; j < m_texturesArray[i].nummultibatches; j++, pbatch++)
-						glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+						m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 				}
 			}
 		}
@@ -3850,7 +3774,7 @@ bool CBSPRenderer::DrawFinal( void )
 
 			drawbatch_t *pbatch = &m_texturesArray[i].multi_batches[0];
 			for(Uint32 j = 0; j < m_texturesArray[i].nummultibatches; j++, pbatch++)
-				glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+				m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 
 			if(m_pCurrentEntity->curstate.effects & EF_CONVEYOR)
 				m_pShader->SetUniform2f(m_attribs.u_uvoffset, 0, 0);
@@ -3969,7 +3893,7 @@ bool CBSPRenderer::DrawFinal( void )
 
 			drawbatch_t *pbatch = &ptexturehandle->multi_batches[0];
 			for(Uint32 j = 0; j < ptexturehandle->nummultibatches; j++, pbatch++)
-				glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+				m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 		}
 
 		// texindex base
@@ -4026,7 +3950,7 @@ bool CBSPRenderer::DrawFinal( void )
 
 				drawbatch_t *pbatch = &m_texturesArray[i].multi_batches[0];
 				for(Uint32 j = 0; j < m_texturesArray[i].nummultibatches; j++, pbatch++)
-					glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+					m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 			}
 
 			if(rns.fog.specialfog)
@@ -4070,7 +3994,7 @@ bool CBSPRenderer::DrawFinal( void )
 
 			drawbatch_t *pbatch = &m_texturesArray[i].multi_batches[0];
 			for(Uint32 j = 0; j < m_texturesArray[i].nummultibatches; j++, pbatch++)
-				glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+				m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 		}
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -4146,24 +4070,11 @@ bool CBSPRenderer::DrawFinalSpecular( void )
 		outer_index = m_pShader->AutoSetSamplerUniform(m_attribs.u_specular);
 		R_Bind2DTexture(GL_TEXTURE0 + outer_index, pspecular->palloc->gl_index);
 
-		if (pmaterial->ptextures[MT_TX_AO])
-		{
-			m_pShader->SetUniform1i(m_attribs.u_d_ao, TRUE);
-
-			en_texture_t* paotexture = pmaterial->ptextures[MT_TX_AO];
-			outer_index = m_pShader->AutoSetSamplerUniform(m_attribs.u_aomap);
-			R_Bind2DTexture(GL_TEXTURE0 + outer_index, paotexture->palloc->gl_index);
-		}
-		else
-		{
-			m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
-		}
-
 		R_ValidateShader(m_pShader);
 
 		drawbatch_t *pbatch = &m_texturesArray[i].multi_batches[0];
 		for(Uint32 j = 0; j < m_texturesArray[i].nummultibatches; j++, pbatch++)
-			glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+			m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 	}
 
 	//
@@ -4232,24 +4143,11 @@ bool CBSPRenderer::DrawFinalSpecular( void )
 					texture_index = m_pShader->AutoSetSamplerUniform(m_attribs.u_specular);
 					R_Bind2DTexture(GL_TEXTURE0 + texture_index, pspecular->palloc->gl_index);
 
-					if (pmaterial->ptextures[MT_TX_AO])
-					{
-						m_pShader->SetUniform1i(m_attribs.u_d_ao, TRUE);
-
-						en_texture_t* paotexture = pmaterial->ptextures[MT_TX_AO];
-						texture_index = m_pShader->AutoSetSamplerUniform(m_attribs.u_aomap);
-						R_Bind2DTexture(GL_TEXTURE0 + texture_index, paotexture->palloc->gl_index);
-					}
-					else
-					{
-						m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
-					}
-
 					R_ValidateShader(m_pShader);
 
 					drawbatch_t *pbatch = &batches.batches[0];
 					for(Uint32 l = 0; l < batches.numbatches; l++, pbatch++)
-						glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+						m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 				}
 			}
 		}
@@ -4347,7 +4245,7 @@ bool CBSPRenderer::DrawVSMFaces( void )
 			ptexturehandle = &m_texturesArray[i];
 			drawbatch_t *pbatch = &ptexturehandle->single_batches[0];
 			for(Uint32 j = 0; j < ptexturehandle->numsinglebatches; j++, pbatch++)
-				glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+				m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 
 			// Restore and disable
 			m_pShader->DisableAttribute(m_attribs.a_texcoord);
@@ -4362,7 +4260,7 @@ bool CBSPRenderer::DrawVSMFaces( void )
 			ptexturehandle = &m_texturesArray[i];
 			drawbatch_t *pbatch = &ptexturehandle->single_batches[0];
 			for(Uint32 j = 0; j < ptexturehandle->numsinglebatches; j++, pbatch++)
-				glDrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
+				m_pShader->DrawElements(GL_TRIANGLES, pbatch->end_index-pbatch->start_index, GL_UNSIGNED_INT, BUFFER_OFFSET(pbatch->start_index));
 		}
 	}
 
@@ -4377,7 +4275,6 @@ bool CBSPRenderer::DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 nume
 {
 	// Set shader's VBO and bind it
 	m_pShader->SetVBO(m_pVBO);
-	m_pVBO->Bind();
 
 	if(!m_pShader->EnableShader())
 	{
@@ -4506,7 +4403,6 @@ bool CBSPRenderer::DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 nume
 	m_multiPassMode = MULTIPASS_NORMAL;
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	if(!result)
 	{
@@ -5374,7 +5270,7 @@ bool CBSPRenderer::DrawDecal( bsp_decal_t *pdecal, bool transparents, decal_rend
 			R_Bind2DTexture(GL_TEXTURE0 + textureIndex, ptexture->palloc->gl_index);
 		}
 
-		glDrawArrays(GL_TRIANGLES, pgroup->start_vertex, pgroup->num_vertexes);
+		m_pShader->DrawArrays(GL_TRIANGLES, pgroup->start_vertex, pgroup->num_vertexes);
 
 		// Reload the original if needed
 		if(pgroup->pentity && R_IsEntityMoved(*pgroup->pentity))	
@@ -5495,7 +5391,6 @@ bool CBSPRenderer::DrawNormalDecals( void )
 {
 	// Set shader's VBO
 	m_pShader->SetVBO(m_pDecalVBO);
-	m_pDecalVBO->Bind();
 
 	if(!m_pShader->EnableShader())
 	{
@@ -5523,7 +5418,6 @@ bool CBSPRenderer::DrawNormalDecals( void )
 		result = m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false);
 
 	m_pShader->DisableShader();
-	m_pDecalVBO->UnBind();
 
 	return result;
 }

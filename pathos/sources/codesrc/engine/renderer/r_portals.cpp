@@ -680,8 +680,6 @@ bool CPortalManager::DrawPortals( void )
 	if(rns.portalpass)
 		return true;
 
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
@@ -707,7 +705,6 @@ bool CPortalManager::DrawPortals( void )
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return false;
 	}
 
@@ -716,7 +713,6 @@ bool CPortalManager::DrawPortals( void )
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return false;
 	}
 
@@ -766,7 +762,7 @@ bool CPortalManager::DrawPortals( void )
 
 		R_ValidateShader(m_pShader);
 
-		glDrawArrays(GL_TRIANGLES, m_pCurrentPortal->start_vertex, m_pCurrentPortal->num_vertexes);
+		m_pShader->DrawArrays(GL_TRIANGLES, m_pCurrentPortal->start_vertex, m_pCurrentPortal->num_vertexes);
 
 		// Set framecount for decals
 		for(Uint32 j = 0; j < m_pCurrentPortal->surfaces.size(); j++)
@@ -774,7 +770,6 @@ bool CPortalManager::DrawPortals( void )
 	}
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	// Clear any binds
 	R_ClearBinds();

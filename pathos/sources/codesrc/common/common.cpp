@@ -730,16 +730,22 @@ namespace Common
 		if(!pstrPath)
 			return;
 
-		Uint32 i = qstrlen(pstrPath);
+		Int32 slashPosition = NO_POSITION;
+		Int32 i = qstrlen(pstrPath);
 		while(i >= 0)
 		{
 			if(pstrPath[i] == '\\' || pstrPath[i] == '/')
+			{
+				slashPosition = i;
 				break;
+			}
 
 			i--;
 		}
 
-		if(i > 0)
+		if(slashPosition == NO_POSITION)
+			output = "./";
+		else if(i > 0)
 			output.assign(pstrPath, i);
 	}
 

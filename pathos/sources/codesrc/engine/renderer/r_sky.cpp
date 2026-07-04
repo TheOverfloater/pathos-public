@@ -398,7 +398,6 @@ bool CSkyRenderer::DrawSky( void )
 		&& (!rns.fog.blend1.affectsky || !rns.fog.blend2.affectsky))
 		&& (!rns.sky.fog.active || !rns.sky.fog.affectsky))
 	{
-		m_pVBO->Bind();
 		if(!m_pShader->EnableShader())
 		{
 			Sys_ErrorPopup("Shader error: %s.\n", m_pShader->GetError());
@@ -453,7 +452,7 @@ bool CSkyRenderer::DrawSky( void )
 		for (Uint32 i = 0; i < 6; i++)
 		{
 			R_Bind2DTexture(GL_TEXTURE0, pTexturesArray[i]->palloc->gl_index);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, BUFFER_OFFSET(m_skyIndexBase+i*6));
+			m_pShader->DrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, BUFFER_OFFSET(m_skyIndexBase+i*6));
 		}
 		glDepthMask(GL_TRUE);
 
@@ -470,7 +469,6 @@ bool CSkyRenderer::DrawSky( void )
 
 		// Disable shader and VBO
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 	}
 
 	if(drawskybox && !rns.water_skydraw && !rns.portalpass)
@@ -547,7 +545,6 @@ bool CSkyRenderer::DrawSky( void )
 		if(flFrac > 1.0) 
 			flFrac = 1.0;
 
-		m_pVBO->Bind();
 		if(!m_pShader->EnableShader())
 		{
 			Sys_ErrorPopup("Shader error: %s.\n", m_pShader->GetError());
@@ -583,7 +580,7 @@ bool CSkyRenderer::DrawSky( void )
 
 		R_ValidateShader(m_pShader);
 
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, BUFFER_OFFSET(m_screenQuadBase));
+		m_pShader->DrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, BUFFER_OFFSET(m_screenQuadBase));
 
 		glDepthMask(GL_TRUE);
 		glEnable(GL_DEPTH_TEST);
@@ -597,7 +594,6 @@ bool CSkyRenderer::DrawSky( void )
 
 		// Disable shader and VBO
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 	}
 
 	return true;
