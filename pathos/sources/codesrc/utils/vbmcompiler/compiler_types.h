@@ -334,7 +334,7 @@ namespace smdl
 		submodel_t();
 		~submodel_t();
 		mesh_t* getMesh( Int32 skinref );
-		Int32 addVertex( const vertex_t& vertex );
+		Int32 addVertex( const vertex_t& vertex, Float vertexMergeTreshold );
 		Int32 addNormal( const normal_t& normal, Float normalBlendTreshold );
 		Int32 addWeightInfo( Float* pweights, Int32* pboneindexes, Int32 numbones, Float weightTreshold );
 

@@ -904,3 +904,29 @@
  - Add support for binding mouse wheel events to input commands.
  - Fix bug in weapon pickup code that caused an invalid clip size to be calculated.
  - The Pathos Model Viewer compiler window was changed into another tab for better usability.
+
+2026 June 23rd:
+ - Massive shader optimization to reduce permutations spliced, reducing boot time enormously.
+ - Shader optimization reducing memory load enormously.
+ - Various optimizations to CGLSLShader class.
+ - Added new safeguards to shader code to prevent incompatible sampler types overlapping on the same texture unit.
+ - Fix timerefresh command not rotating the view as it is supposed to during testing.
+ - Fix for rare crash with VBM decals when clearing game instance.
+ - Minor changes to weapon code allowing for custom ammo capacity on weapons dropped by NPCs.
+ - Restore Half-Life-like jumping physics on player.
+ - Fix rn_detail_auto command not working due to upper/lowercase differences in CTextureManager class.
+
+Merge PR # 55:
+ - Merge changes from PR #55
+ - Apply required changes to VBM renderer to handle VBOs separately
+ - Rework shader code to support multiple VBOs
+ - Add CBuffer to CGLSLShader class to support resizing arrays during shader splicing
+ - Modify PBSPV2 header to support new additional lumps
+ - Expand ALD format to support storing vertex lighting data layers
+ - Remove PBSPV3 code, as a new BSP format is not needed
+ - Modify CGLSLShader class to handle VBO binds, etc itself
+ - Separate VBM decal VBO into itself
+
+2026 July 4th:
+ - Remove unused Pathos Model Viewer source files
+ - Modify VBM Compiler to use distance threshold for vertex merging instead of vertex mangling

@@ -35,6 +35,8 @@ All Rights Reserved.
 
 // Default allocation size for MDL file buffer
 const Uint32 CStudioModelCompiler::DEFAULT_MDL_ALLOCATION_SIZE = 1024*1024;
+// Default vertex merge treshold distance
+const Float CStudioModelCompiler::DEFAULT_VERTEX_MERGE_TRESHOLD = 0.001;
 // Default minimum weight treshold
 const Float CStudioModelCompiler::MINIMUM_WEIGHT_TRESHOLD = 1.0 / 1000.0;
 // Default texture gamma
@@ -74,7 +76,8 @@ CStudioModelCompiler::CStudioModelCompiler( void ):
 	m_studioFlags(0),
 	m_weightTreshold(0),
 	m_normalMergeTreshold(0),
-	m_textureGamma(0)
+	m_textureGamma(0),
+	m_vertexMergeTreshold(0)
 {
 	Uint32 nbRenderModes = sizeof(DEFAULT_RENDERMODE_DEFINITIONS) / sizeof(smdl::rendermode_definition_t);
 	for(Uint32 i = 0; i < nbRenderModes; i++)
@@ -1643,7 +1646,7 @@ bool CStudioModelCompiler::LoadTexture( smdl::texture_t* ptexture )
 		{
 			for(Uint32 j = 0; j < srcWidth; j++)
 			{
-				(*pdest) = *(ptexturedata + i * trueWidth + j);
+				(*pdest) = *(ptexturedata + (srcHeight - i - 1) * trueWidth + j);
 				pdest++;
 			}
 
@@ -2148,7 +2151,10 @@ void CStudioModelCompiler::CalculateSubmodelSTCoords( smdl::submodel_t* psubmode
 				else
 					value = SDL_floor(value);
 
-				vertex.int_texcoords[k] = value;
+				if(k == 1)
+					vertex.int_texcoords[k] = (1.0 - value);
+				else
+					vertex.int_texcoords[k] = value + ptexture->fileheight;
 			}
 		}
 	}
@@ -3604,6 +3610,11 @@ void CStudioModelCompiler::SetDefaultValues( void )
 	else
 		m_normalMergeTreshold = DEFAULT_NORMAL_MERGE_TRESHOLD;
 
+	if(g_options.vertex_merge_treshold != 0)
+		m_vertexMergeTreshold = g_options.vertex_merge_treshold;
+	else
+		m_vertexMergeTreshold = DEFAULT_VERTEX_MERGE_TRESHOLD;
+
 	m_weightTreshold = MINIMUM_WEIGHT_TRESHOLD;
 	m_textureGamma = DEFAULT_TEXTURE_GAMMA_VALUE;
 }
@@ -4409,7 +4420,10 @@ smdl::texture_t* CStudioModelCompiler::GetTextureForName( const Char* pstrTextur
 		pnewtexture->skinref = m_pTexturesArray.size();
 
 		// Stupid HL legacy stuff
-		if(pnewtexture->name.find(0, "chrome") != CString::CSTRING_NO_POSITION)
+		CString texname(pnewtexture->name);
+		texname.tolower();
+
+		if(texname.find(0, "chrome") != CString::CSTRING_NO_POSITION)
 			pnewtexture->flags |= STUDIO_NF_CHROME;
 
 		m_pTexturesArray.push_back(pnewtexture);

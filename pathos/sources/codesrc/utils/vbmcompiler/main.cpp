@@ -69,6 +69,7 @@ void ApplicationUsage( void )
 	Msg("\t'-e' - Set maximum texture resolution.\n");
 	Msg("\t'-p' - Set texture padding size.\n");
 	Msg("\t'-m' - Don't enforce collision meshes having to be closed.\n");
+	Msg("\t'-v' - Specify vertex merge treshold distance.\n");
 }
 
 //===============================================
@@ -431,6 +432,30 @@ int _tmain(Int32 argc, _TCHAR* argv[])
 		{
 			g_options.setFlag(CMP_FL_MCD_NO_NEIGHBOR_CHECK);
 			Msg(" - Closed collision mesh enforcement disabled.\n");
+		}
+		else if(!qstrcmp(argument, "-v"))
+		{
+			if((i + 1) >= argc)
+			{
+				ErrorMsg("Expected value after parameter '%s'.\n", argument.c_str());
+				OnExitApplication();
+				return -1;
+			}
+
+			i++;
+			CString argparam = argv[i];
+			if(argparam[0] == '-' || !Common::IsNumber(argparam.c_str()))
+			{
+				ErrorMsg("Expected numerical value for parameter '%s', got '%s' instead.\n", argument.c_str(), argparam.c_str());
+				OnExitApplication();
+				return -1;
+			}
+
+			Float value = SDL_atof(argparam.c_str());
+			value = SDL_cos(value * (M_PI / 180.0));
+			g_options.vertex_merge_treshold = value;
+
+			Msg(" - Vertex merge distance treshold set at '%f'\n", value);
 		}
 		else
 		{
