@@ -985,4 +985,9 @@
       <Filter>Header Files\Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="pathos-engine.manifest">
+      <Filter>Header Files\Resource Files</Filter>
+    </Manifest>
+  </ItemGroup>
 </Project>
