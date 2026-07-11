@@ -2790,7 +2790,7 @@ bool R_DrawInterface( void )
 
 		return false;
 	}
-
+	
 	// Draw shown texture if set
 	if(!R_DrawShownMaterial())
 	{
@@ -2819,7 +2819,7 @@ bool R_DrawInterface( void )
 
 		return false;
 	}
-
+	
 	pDraw->Disable();
 
 	glEnable(GL_DEPTH_TEST);

@@ -928,7 +928,7 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 				if(i != 3)
 					break;
 			}
-			else if(qstrlen(token) > 0)
+			else if(qstrlen(token) > 0 && qstrcmp(token, "$noradshadows"))
 			{
 				m_printErrorFunction("Unknown field '%s' in '%s'.\n", token, filePath.c_str());
 			}

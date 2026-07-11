@@ -376,6 +376,7 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 	pheader->header = ALD_HEADER_ENCODED;
 	pheader->version = ALD_HEADER_VERSION;
 	pheader->lightdatasize = pworldmodel->lightdatasize;
+	pheader->vertexlightdatasize = pworldmodel->vertexlightdatasize;
 
 	// Check for original and include it's data
 	const byte* poriginal = FL_LoadFile(filename.c_str());

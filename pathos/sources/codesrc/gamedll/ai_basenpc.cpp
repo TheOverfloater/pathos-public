@@ -2889,21 +2889,30 @@ void CBaseNPC::UpdateDistances( void )
 	Int32 endDistance = CEnvFog::GetFogEndDistance();
 	if(endDistance > 0)
 	{
+		// Get fog color also
+		color24_t& fogColor = CEnvFog::GetFogColor();
+		Float colorStrength = (fogColor.r / 255.0f + fogColor.g / 255.0f + fogColor.b / 255.0f) / 3.0f;
+
 		// These fractions should depend on fog end distance
 		Float minVisibilityFraction;
 		Float minFiringFractionEdgeCase;
 		Float minFiringFractionGeneric;
-		if(endDistance < 2000)
+		if(colorStrength < 0.25)
+		{
+			minVisibilityFraction = 0.9;
+			minFiringFractionEdgeCase = 0.4;
+			minFiringFractionGeneric = 0.5;
+		}
+		else if(endDistance < 2000)
 		{
 			minVisibilityFraction = 0.9;
 			minFiringFractionEdgeCase = 0.6;
 			minFiringFractionGeneric = 0.7;
 		}
-		else
 		{
 			minVisibilityFraction = 0.9;
-			minFiringFractionEdgeCase = 0.8;
-			minFiringFractionGeneric = 0.8;
+			minFiringFractionEdgeCase = 0.7;
+			minFiringFractionGeneric = 0.7;
 		}
 
 		// Put visibility at very edge
@@ -3368,7 +3377,7 @@ npcstate_t CBaseNPC::GetIdealNPCState( void )
 					m_enemy.reset();
 
 				m_idealNPCState = NPC_STATE_ALERT;
-				Util::EntityConPrintf(m_pEdict, "Combat state with no enemy.\n");
+				Util::EntityConDPrintf(m_pEdict, "Combat state with no enemy.\n");
 			}
 		}
 		break;
@@ -6568,8 +6577,8 @@ Double CBaseNPC::OpenDoor( CBaseEntity* pDoorEntity )
 		return g_pGameVars->time;
 
 	if(pDoorEntity->HasSpawnFlag(CFuncDoor::FL_NO_NPCS)
-		|| pDoorEntity->GetToggleState() == TS_AT_TOP
-		|| pDoorEntity->GetToggleState() == TS_GOING_UP)
+		|| pDoorEntity->GetToggleState() == TSTATE_AT_TOP
+		|| pDoorEntity->GetToggleState() == TSTATE_GOING_UP)
 		return g_pGameVars->time;
 
 	// Trigger the door to open
@@ -8296,7 +8305,7 @@ bool CBaseNPC::HandleBlockage( CBaseEntity* pBlocker, CBaseEntity* pTargetEntity
 			&& !pBlocker->HasSpawnFlag(CFuncDoor::FL_NO_NPCS)
 			&& !pBlocker->IsLockedByMaster())
 		{
-			if(pBlocker->GetToggleState() != TS_AT_TOP)
+			if(pBlocker->GetToggleState() != TSTATE_AT_TOP)
 			{
 				if(pBlocker->HasTargetName())
 				{

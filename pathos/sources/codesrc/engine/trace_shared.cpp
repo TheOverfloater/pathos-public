@@ -564,7 +564,7 @@ bool TR_TracelineBBoxCheck( const entity_state_t& entity, const cache_model_t* p
 		Math::VectorSubtract(end, start, direction);
 		direction.Normalize();
 
-		return CollisionShared::IntersectBVHNodePoint(start, end, hullmins, hullmaxs, direction);
+		return CollisionShared::IntersectBBoxPoint(start, end, hullmins, hullmaxs, direction);
 	}
 	else
 	{

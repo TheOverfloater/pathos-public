@@ -25,7 +25,7 @@ private:
 			pEntity(nullptr),
 			solidity(SOLID_NOT),
 			flags(0),
-			togglestate(TS_NONE)
+			togglestate(TSTATE_NONE)
 			{
 			}
 

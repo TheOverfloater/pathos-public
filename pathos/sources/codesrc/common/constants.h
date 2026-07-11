@@ -622,11 +622,11 @@ enum npcstate_t
 
 enum togglestate_t
 {
-	TS_NONE = 0,
-	TS_AT_TOP,
-	TS_AT_BOTTOM,
-	TS_GOING_UP,
-	TS_GOING_DOWN
+	TSTATE_NONE = 0,
+	TSTATE_AT_TOP,
+	TSTATE_AT_BOTTOM,
+	TSTATE_GOING_UP,
+	TSTATE_GOING_DOWN
 };
 
 enum scriptstate_t

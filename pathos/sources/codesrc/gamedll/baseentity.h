@@ -306,7 +306,7 @@ public:
 	virtual bool IsEnvPosPortalWorldEntity( void ) const { return false; }
 
 	// Returns toggle state of an entity
-	virtual togglestate_t GetToggleState( void ) const { return TS_AT_TOP; }
+	virtual togglestate_t GetToggleState( void ) const { return TSTATE_AT_TOP; }
 	virtual void SetToggleState( togglestate_t state, bool reverse ) { };
 
 	// Returns the number of portal surfaces tied to an envpos_portal entity
@@ -315,7 +315,7 @@ public:
 	virtual const edict_t* GetPortalSurfaceByIndex( Uint32 index ) const { return nullptr; }
 
 	// Returns the entity's toggle state
-	virtual togglestate_t GetToggleState( void ) { return TS_NONE; }
+	virtual togglestate_t GetToggleState( void ) { return TSTATE_NONE; }
 	// Death notice from child entities
 	virtual void ChildDeathNotice( CBaseEntity* pChild ) { };
 

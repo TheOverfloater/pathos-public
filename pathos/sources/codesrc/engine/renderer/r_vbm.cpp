@@ -339,8 +339,8 @@ bool CVBMRenderer::InitGL( void )
 			return false;
 
 		m_attribs.a_vertexlight_vectors = m_pShader->InitAttribute("in_vlight_vectors", 3, GL_UNSIGNED_BYTE, sizeof(vbm_vlight_glvertex_t), OFFSET(vbm_vlight_glvertex_t, vertexlight0_vector));
-		m_attribs.a_vertexlight_diffuse = m_pShader->InitAttribute("in_vlight_diffuse", 3, GL_UNSIGNED_BYTE, sizeof(vbm_vlight_glvertex_t), OFFSET(vbm_vlight_glvertex_t, vertexlight0_vector));
-		m_attribs.a_vertexlight_ambient = m_pShader->InitAttribute("in_vlight_ambient", 3, GL_UNSIGNED_BYTE, sizeof(vbm_vlight_glvertex_t), OFFSET(vbm_vlight_glvertex_t, vertexlight0_vector));
+		m_attribs.a_vertexlight_diffuse = m_pShader->InitAttribute("in_vlight_diffuse", 3, GL_UNSIGNED_BYTE, sizeof(vbm_vlight_glvertex_t), OFFSET(vbm_vlight_glvertex_t, vertexlight0_diffuse));
+		m_attribs.a_vertexlight_ambient = m_pShader->InitAttribute("in_vlight_ambient", 3, GL_UNSIGNED_BYTE, sizeof(vbm_vlight_glvertex_t), OFFSET(vbm_vlight_glvertex_t, vertexlight0_ambient));
 
 		if(!R_CheckShaderVertexAttribute(m_attribs.a_vertexlight_vectors, "in_vlight_vectors", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderVertexAttribute(m_attribs.a_vertexlight_diffuse, "in_vlight_diffuse", m_pShader, Sys_ErrorPopup)
@@ -1401,11 +1401,11 @@ bool CVBMRenderer::SetModel( void )
 		// Set the current VBO and enable basic attribs we'll need
 		m_pShader->SetVBO(pVBO);
 		m_pCurrentVBO = pVBO;
-
-		m_pShader->EnableAttribute(m_attribs.a_origin);
-		m_pShader->EnableAttribute(m_attribs.a_boneindexes);
-		m_pShader->EnableAttribute(m_attribs.a_boneweights);
 	}
+
+	m_pShader->EnableAttribute(m_attribs.a_origin);
+	m_pShader->EnableAttribute(m_attribs.a_boneindexes);
+	m_pShader->EnableAttribute(m_attribs.a_boneweights);
 
 	m_pCacheModel = pmodel;
 
@@ -1904,10 +1904,10 @@ bool CVBMRenderer::RebuildVertexLightingVBOs( void )
 	for(Uint32 i = 0; i < m_pVertexLightingVBOArray.size(); i++)
 	{
 		vlight_vbo_t* pvlightvbo = m_pVertexLightingVBOArray[i];
-		if(pvlightvbo[i].pvbo)
+		if(pvlightvbo->pvbo)
 		{
-			delete pvlightvbo[i].pvbo;
-			pvlightvbo[i].pvbo = nullptr;
+			delete pvlightvbo->pvbo;
+			pvlightvbo->pvbo = nullptr;
 		}
 
 		if(!BuildVertexLightVBO(pvlightvbo))
@@ -2051,6 +2051,12 @@ void CVBMRenderer::UpdateLightValues ( void )
 //=============================================
 void CVBMRenderer::SetupLighting ( Int32 flags )
 {
+	// Do not bother calculating lighting for vertex lit objects
+	if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION && 
+		m_pCurrentEntity->curstate.vlight_vbo_index > 0 &&
+		m_pCurrentEntity->curstate.vlight_vbo_index < m_pVertexLightingVBOArray.size())
+		return;
+
 	// Rebuild the entity's light origin each frame
 	Vector lightorigin;
 	Vector saved_lightorigin;
@@ -3619,7 +3625,8 @@ bool CVBMRenderer::DrawStyles( bool specularPass, bool transparentPass )
 
 	// Switch over to the appropriate vertex light only shader
 	Int32 shaderIndex = specularPass ? vbm_vlight_only_specular : vbm_vlight_only;
-	if(!m_pShader->SetDeterminator(m_attribs.d_vertexlight, TRUE, false) 
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+		|| !m_pShader->SetDeterminator(m_attribs.d_vertexlight, TRUE, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, shaderIndex))
 		return false;
 

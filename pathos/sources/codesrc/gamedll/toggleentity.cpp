@@ -17,7 +17,7 @@ All Rights Reserved.
 //=============================================
 CToggleEntity::CToggleEntity( edict_t* pedict ):
 	CDelayEntity(pedict),
-	m_toggleState(TS_NONE),
+	m_toggleState(TSTATE_NONE),
 	m_activateFinished(0),
 	m_moveDistance(0),
 	m_waitTime(0),

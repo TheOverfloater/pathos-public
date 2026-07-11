@@ -468,6 +468,15 @@ cache_model_t* CModelCache::LoadBSPModel( const Char* pstrFilename, const byte* 
 		pmodel->lightmaplayercount++;
 	}
 
+	pmodel->vertexlightlayercount = 0;
+	for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+	{
+		if(!pmodel->pvertexlightdata[i])
+			break;
+
+		pmodel->vertexlightlayercount++;
+	}
+
 	// Set sampling data
 	BSP_SetSamplingLightData(*pmodel);
 

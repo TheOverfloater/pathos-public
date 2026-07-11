@@ -28,15 +28,13 @@ All Rights Reserved.
 // Quaternion and vector arrays used for bone transforms
 CArray<Vector>	g_bonePositions1;
 CArray<vec4_t>	g_boneQuaternions1;
-// Quaternion and vector arrays used for bone transforms
 CArray<Vector>	g_bonePositions2;
 CArray<vec4_t>	g_boneQuaternions2;
-// Quaternion and vector arrays used for bone transforms
 CArray<Vector>	g_bonePositions3;
 CArray<vec4_t>	g_boneQuaternions3;
-// Quaternion and vector arrays used for bone transforms
 CArray<Vector>	g_bonePositions4;
 CArray<vec4_t>	g_boneQuaternions4;
+
 // Used for bone transform calculations
 Float	g_boneMatrix[3][4];
 

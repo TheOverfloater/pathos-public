@@ -1166,30 +1166,13 @@
       0 : "No"
       1 : "Yes"
   ]
-  zhlt_studioshadow(choices) :"Opaque (Blocks Light)" : "" =
-  [
-	"": "Normal"
-	1: "Opaque (Blocks Light)"
-  ]
-  zhlt_shadowmode(choices) : "Shadow mode" : 1 =
-  [
-	0: "Fast, no tracing"
-	1: "Normal, trace each triangle (supports transparency)"
-	2: "Slow, trace planes bbox for each triangle"
-  ]
-  zhlt_vertexlight(choices) : "Baked Vertex Lighting" : 0 =
-  [
-    0 : "Off"
-    1 : "On"
-  ]
-  vlight_offset(Integer) : "vlight_offset (INTERNAL)" : 0
   spawnflags(flags) =
   [
     1 : "Triggering Changes Skin" : 0
     2 : "No elight tracelines" : 0
     4 : "No VIS checks" : 0
     8 : "Start Invisible" : 0
-	16 : "Disable Baked Shadows" : 1
+	16 : "Disable Baked Shadows" : 0
   ] 
   scale(Integer) : "Scale" : 1
 ]

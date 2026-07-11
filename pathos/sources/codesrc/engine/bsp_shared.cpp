@@ -476,12 +476,16 @@ void BSP_ReleaseLightmapData( brushmodel_t& model )
 		if(model.pvertexlightdata_original[i] && reinterpret_cast<byte*>(model.pvertexlightdata[i]) != model.pvertexlightdata_original[i])
 			delete[] model.plightdata_original[i];
 
+		model.plightdata_original[i] = nullptr;
+
+		model.original_vertexlightdatasizes[i] = 0;
+		model.original_vertexlightcompressiontype[i] = 0;
+		model.original_vertexlightcompressionlevel[i] = 0;
+
 		if (model.pvertexlightdata[i])
 		{
 			delete[](byte*)model.pvertexlightdata[i];
 			model.pvertexlightdata[i] = nullptr;
 		}
-
-		model.vertexlightdatasize = 0;
 	}
 }

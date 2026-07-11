@@ -1049,5 +1049,8 @@ void Viewer_GetDirectoryPath( const Char* strIn, CString& out )
 	while(i > 0 && strIn[i] != '\\' && strIn[i] != '/')
 		i--;
 
-	out.assign(strIn, i);
+	if(i <= 0)
+		out.clear();
+	else
+		out.assign(strIn, i);
 }

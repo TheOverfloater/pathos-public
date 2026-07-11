@@ -41,7 +41,9 @@ public:
 	static void UpdateFogGlobals( void );
 	static bool FogCull( const edict_t& client, const edict_t& entity );
 	static const Float GetFogEndDistance( void ) { return g_fogEndDist; }
-	static void SetFogCullParams( Float endDistance, Float blendTime, bool affectSky );
+	static color24_t& GetFogColor( void ) { return g_fogColor; }
+	static void SetFogCullParams( Float endDistance, Float blendTime, bool affectSky, const color24_t& color );
+	static void SetFogCullParams( Float endDistance, Float blendTime, bool affectSky, const Vector& color );
 
 protected:
 	Float m_startDistance;
@@ -52,6 +54,8 @@ protected:
 	bool m_dontAffectSky;
 
 protected:
+	// Current fog color
+	static color24_t g_fogColor;
 	// Current fog end distance
 	static Uint32 g_fogEndDist;
 	// Fog ideal distance to set

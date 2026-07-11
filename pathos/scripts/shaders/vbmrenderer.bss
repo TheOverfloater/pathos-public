@@ -167,7 +167,7 @@ void main()
 		ps_vlight_ambient = in_vlight_ambient / 255.0;
 		ps_vlight_diffuse = in_vlight_diffuse / 255.0;
 
-		vec3 worldlightdir = normalize((in_vlight_vectors / 127.5) - 1.0);
+		vec3 worldlightdir = -normalize((in_vlight_vectors / 127.5) - 1.0);
 		ps_vlight_vectors = normalize((normalmatrix * vec4(worldlightdir, 0.0)).xyz);
 	$end	
 	
@@ -252,8 +252,8 @@ $invalid_state 2 alphatest 1 2 shadertype 3 11
 $invalid_state 2 alphatest 1 2 shadertype 13 13
 $invalid_state 2 alphatest 1 2 shadertype 15 15
 $invalid_state 2 alphatest 1 2 shadertype 18 19
-$invalid_state 2 vertexlight 1 1 shadertype 3 12
-$invalid_state 2 vertexlight 1 1 shadertype 13 14
+$invalid_state 2 vertexlight 1 1 shadertype 3 11
+$invalid_state 2 vertexlight 1 1 shadertype 13 13
 $invalid_state 2 vertexlight 1 1 shadertype 16 17
 $begin
 $branch use_ubo == 1
@@ -611,9 +611,10 @@ vec4 AddModelLight( vec3 l_origin, vec3 l_color, float l_radius, vec3 v_origin, 
 vec4 AddBaseLight( vec3 s_lightdir, vec3 s_ambient, vec3 s_diffuse, vec3 v_normal, vec3 v_origin, float specularStrength, float styleStrength )
 {
 	float fldot = -dot(s_lightdir, v_normal);
+	fldot = clamp(fldot, 0.0, 1.0);
 	
 	vec4 outColor;
-	outColor.xyz = ((1.0 - fldot) * s_ambient) + (fldot * s_diffuse);
+	outColor.xyz = s_ambient + (fldot * s_diffuse);
 	
 	if (d_specular == 1)
 	{
@@ -738,8 +739,7 @@ void main()
 	$begin
 		$branch vertexlight == 0
 		$begin
-			vec3 diffuseColor = skylight_diffuse + skylight_ambient;
-			lightColor = AddBaseLight(skylight_dir, skylight_ambient, diffuseColor, v_normal, ps_vertexpos, specularFactor, 1.0);
+			lightColor = AddBaseLight(skylight_dir, skylight_ambient, skylight_diffuse, v_normal, ps_vertexpos, specularFactor, 1.0);
 			
 			$branch shadertype != 15 && shadertype != 19
 			$begin

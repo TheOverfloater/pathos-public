@@ -626,7 +626,10 @@ CMenu::rendercode_t CMenu::DrawMenuElements( CBasicDraw* pDraw )
 	pDraw->SetModelview(rns.view.modelview.GetMatrix());
 	pDraw->SetProjection(rns.view.projection.GetMatrix());
 
-	if(!pDraw->EnableTexture() || !pDraw->DisableRectangleTexture())
+	if(!pDraw->DisableRectangleTexture())
+		return RC_BASICDRAW_FAIL;
+
+	if(!pDraw->EnableTexture())
 		return RC_BASICDRAW_FAIL;
 
 	glDisable(GL_CULL_FACE);

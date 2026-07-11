@@ -140,16 +140,16 @@ bool CFuncTrackChange::Spawn( void )
 	if(HasSpawnFlag(FL_START_AT_BOTTOM))
 	{
 		gd_engfuncs.pfnSetOrigin(m_pEdict, m_position2);
-		m_toggleState = TS_AT_BOTTOM;
+		m_toggleState = TSTATE_AT_BOTTOM;
 		m_pState->angles = m_startAngles;
-		m_targetState = TS_AT_TOP;
+		m_targetState = TSTATE_AT_TOP;
 	}
 	else
 	{
 		gd_engfuncs.pfnSetOrigin(m_pEdict, m_position1);
-		m_toggleState = TS_AT_TOP;
+		m_toggleState = TSTATE_AT_TOP;
 		m_pState->angles = m_endAngles;
-		m_targetState = TS_AT_BOTTOM;
+		m_targetState = TSTATE_AT_BOTTOM;
 	}
 
 	EnableUse();
@@ -166,13 +166,13 @@ bool CFuncTrackChange::Spawn( void )
 void CFuncTrackChange::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value )
 {
 	// Do not allow use while moving
-	if(m_toggleState != TS_AT_TOP && m_toggleState != TS_AT_BOTTOM)
+	if(m_toggleState != TSTATE_AT_TOP && m_toggleState != TSTATE_AT_BOTTOM)
 		return;
 
 	// If train is in the safe area, but not on this, then play alarm sound
-	if(m_toggleState == TS_AT_TOP)
+	if(m_toggleState == TSTATE_AT_TOP)
 		m_code = EvaluateTrain(m_pTopTrack);
-	else if(m_toggleState == TS_AT_BOTTOM)
+	else if(m_toggleState == TSTATE_AT_BOTTOM)
 		m_code = EvaluateTrain(m_pBottomTrack);
 	else
 		m_code = TRAIN_BLOCKING;
@@ -185,7 +185,7 @@ void CFuncTrackChange::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, u
 
 	DisableUse();
 
-	if(m_toggleState == TS_AT_TOP)
+	if(m_toggleState == TSTATE_AT_TOP)
 		GoDown();
 	else
 		GoUp();
@@ -218,12 +218,12 @@ void CFuncTrackChange::GoUp( void )
 	if(m_code == TRAIN_BLOCKING)
 		return;
 
-	UpdateAutoTargets(TS_GOING_UP);
+	UpdateAutoTargets(TSTATE_GOING_UP);
 
 	if(HasSpawnFlag(FL_ROTATE_ONLY))
 	{
 		SetMoveDone(&CFuncPlat::CallHitTop);
-		m_toggleState = TS_GOING_UP;
+		m_toggleState = TSTATE_GOING_UP;
 		AngularMove(m_endAngles, m_pState->speed);
 	}
 	else
@@ -250,12 +250,12 @@ void CFuncTrackChange::GoDown( void )
 	if(m_code == TRAIN_BLOCKING)
 		return;
 
-	UpdateAutoTargets(TS_GOING_DOWN);
+	UpdateAutoTargets(TSTATE_GOING_DOWN);
 
 	if(HasSpawnFlag(FL_ROTATE_ONLY))
 	{
 		SetMoveDone(&CFuncPlat::CallHitBottom);
-		m_toggleState = TS_GOING_DOWN;
+		m_toggleState = TSTATE_GOING_DOWN;
 		AngularMove(m_startAngles, m_pState->speed);
 	}
 	else
@@ -330,18 +330,18 @@ void CFuncTrackChange::InitEntity( void )
 	UpdateAutoTargets((togglestate_t)m_toggleState);
 	SetThink(nullptr);
 
-	if(m_toggleState == TS_GOING_DOWN || m_toggleState == TS_GOING_UP)
+	if(m_toggleState == TSTATE_GOING_DOWN || m_toggleState == TSTATE_GOING_UP)
 	{
 		m_pTrain->RemoveFlags(FL_INITIALIZE);
 
-		if(m_toggleState == TS_GOING_DOWN)
+		if(m_toggleState == TSTATE_GOING_DOWN)
 		{
-			m_toggleState = TS_AT_TOP;
+			m_toggleState = TSTATE_AT_TOP;
 			GoDown();
 		}
 		else
 		{
-			m_toggleState = TS_AT_BOTTOM;
+			m_toggleState = TSTATE_AT_BOTTOM;
 			GoUp();
 		}
 	}
@@ -465,12 +465,12 @@ void CFuncTrackChange::UpdateAutoTargets( togglestate_t state )
 	if(!m_pTopTrack || !m_pBottomTrack)
 		return;
 
-	if(m_toggleState == TS_AT_TOP)
+	if(m_toggleState == TSTATE_AT_TOP)
 		m_pTopTrack->RemoveSpawnFlag(CPathTrack::FL_DISABLED);
 	else
 		m_pTopTrack->SetSpawnFlag(CPathTrack::FL_DISABLED);
 
-	if(m_toggleState == TS_AT_BOTTOM)
+	if(m_toggleState == TSTATE_AT_BOTTOM)
 		m_pBottomTrack->RemoveSpawnFlag(CPathTrack::FL_DISABLED);
 	else
 		m_pBottomTrack->SetSpawnFlag(CPathTrack::FL_DISABLED);

@@ -795,6 +795,9 @@ void CMDLViewer::redraw( void )
 //=============================================
 bool CMDLViewer::LoadModel( const Char* pstrFilepath )
 {
+	if(!pstrFilepath)
+		return false;
+
 	CString dirpath;
 	Viewer_GetDirectoryPath(pstrFilepath, dirpath);
 	gConfig.SetOption(VIEWER_MDL_LOAD_PATH, dirpath.c_str());

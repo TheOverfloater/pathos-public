@@ -43,9 +43,9 @@ void CFuncTrackAutoChange::CallUse( CBaseEntity* pActivator, CBaseEntity* pCalle
 		return;
 
 	CPathTrack* pTarget = nullptr;
-	if(m_toggleState == TS_AT_TOP)
+	if(m_toggleState == TSTATE_AT_TOP)
 		pTarget = m_pTopTrack;
-	else if(m_toggleState == TS_AT_BOTTOM)
+	else if(m_toggleState == TSTATE_AT_BOTTOM)
 		pTarget = m_pBottomTrack;
 
 	if(pActivator->IsFuncTrackTrainEntity())
@@ -55,7 +55,7 @@ void CFuncTrackAutoChange::CallUse( CBaseEntity* pActivator, CBaseEntity* pCalle
 		{
 			DisableUse();
 
-			if(m_toggleState == TS_AT_TOP)
+			if(m_toggleState == TSTATE_AT_TOP)
 				GoDown();
 			else
 				GoUp();
@@ -67,12 +67,12 @@ void CFuncTrackAutoChange::CallUse( CBaseEntity* pActivator, CBaseEntity* pCalle
 			pTarget = pTarget->GetNext();
 
 		if(pTarget && m_pTrain->GetPath() != pTarget 
-			&& ShouldToggle(useMode, (m_targetState != TS_AT_TOP) ? true : false))
+			&& ShouldToggle(useMode, (m_targetState != TSTATE_AT_TOP) ? true : false))
 		{
-			if(m_targetState == TS_AT_TOP)
-				m_targetState = TS_AT_BOTTOM;
+			if(m_targetState == TSTATE_AT_TOP)
+				m_targetState = TSTATE_AT_BOTTOM;
 			else
-				m_targetState = TS_AT_TOP;
+				m_targetState = TSTATE_AT_TOP;
 		}
 		
 		UpdateAutoTargets((togglestate_t)m_targetState);
@@ -91,7 +91,7 @@ void CFuncTrackAutoChange::UpdateAutoTargets( togglestate_t state )
 	CPathTrack* pTarget = nullptr;
 	CPathTrack* pNextTarget = nullptr;
 
-	if(m_toggleState == TS_AT_TOP)
+	if(m_toggleState == TSTATE_AT_TOP)
 	{
 		pTarget = m_pTopTrack->GetNext();
 		pNextTarget = m_pBottomTrack->GetNext();

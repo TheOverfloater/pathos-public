@@ -930,3 +930,22 @@ Merge PR # 55:
 2026 July 4th:
  - Remove unused Pathos Model Viewer source files
  - Modify VBM Compiler to use distance threshold for vertex merging instead of vertex mangling
+
+2026 July 11th:
+ - Fix crash due to unlit VBM texture types being used with baked vertex lighting
+ - Rename all toggle-state TS_ prefixes to TSTATE_ to avoid compiler errors
+ - Fix ALD export not setting vertex lighting data size
+ - Fix vertex lighting data sizes not being reset when releasing lighting data
+ - Rename CollisionShared::IntersectBVHNodePoint to more general CollisionShared::IntersectBBoxPoint
+ - Fix vertex lighting data layers not being counted propperly in model cache bSP loading function
+ - Fix single-frame blue screen bug in menu when booting up game
+ - Fix models disappearing randomly due to vertex attribs not being reset to enabled upon model change in VBM renderer
+ - Fix crash when deleting VBOs for vertex lighting data upon rebuilding VBM Renderer VBO data
+ - Fix for not calculating light fetch information for vertex lit models
+ - Fix for crash when rendering lightstyles for vertex lit VBM models combined with alpha testing
+ - Remove superflous comments on quaternion and bone position arrays in VBM traceline code
+ - Improve AI code when detecting min shooting and visibility distances in dark fog conditions
+ - Fix crash in Pathos Model Viewer when exiting the Load File popup window without specifying a target
+ - Fix for compile error due to missing EQUAL_EPSILON define in VBM Compiler
+ - Mark lamp prop textures with $noradshadows to avoid dark maps with missing lights
+ 

@@ -221,7 +221,7 @@ bool CFuncButton::Spawn( void )
 	if(!m_lip)
 		m_lip = DEFAULT_LIP_VALUE;
 
-	m_toggleState = TS_AT_BOTTOM;
+	m_toggleState = TSTATE_AT_BOTTOM;
 
 	// Set movement vectors
 	SetSpawnProperties();
@@ -254,7 +254,7 @@ bool CFuncButton::Spawn( void )
 void CFuncButton::ButtonUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value )
 {
 	// Don't toggle if moving
-	if(m_toggleState == TS_GOING_UP || m_toggleState == TS_GOING_DOWN)
+	if(m_toggleState == TSTATE_GOING_UP || m_toggleState == TSTATE_GOING_DOWN)
 		return;
 
 	// Check if we're a paired button that got disabled
@@ -263,7 +263,7 @@ void CFuncButton::ButtonUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usem
 
 	m_activator = pActivator;
 
-	if(m_toggleState == TS_AT_TOP)
+	if(m_toggleState == TSTATE_AT_TOP)
 	{
 		if(!m_stayPushed && HasSpawnFlag(FL_TOGGLE))
 		{
@@ -324,7 +324,7 @@ void CFuncButton::SetDelayOnPairs( void )
 void CFuncButton::SetPairedButtonDelay( Float delayTime )
 {
 	if(m_stayPushed)
-		m_toggleState = TS_AT_TOP;
+		m_toggleState = TSTATE_AT_TOP;
 	else
 		m_nextUsableTime = g_pGameVars->time + delayTime;
 }
@@ -434,7 +434,7 @@ void CFuncButton::SparkThink( void )
 void CFuncButton::TriggerAndWait( void )
 {
 	// Complain about state if not valid
-	if(m_toggleState != TS_GOING_UP)
+	if(m_toggleState != TSTATE_GOING_UP)
 	{
 		Util::EntityConPrintf(m_pEdict, "Expected to be going up, but state is %d.\n", m_toggleState);
 		return;
@@ -444,7 +444,7 @@ void CFuncButton::TriggerAndWait( void )
 	if(IsLockedByMaster())
 		return;
 
-	m_toggleState = TS_AT_TOP;
+	m_toggleState = TSTATE_AT_TOP;
 
 	// If button is to stay pushed, then reset accordingly
 	if(m_stayPushed || HasSpawnFlag(FL_TOGGLE))
@@ -474,13 +474,13 @@ void CFuncButton::TriggerAndWait( void )
 void CFuncButton::ReturnThink( void )
 {
 	// Complain about state if not valid
- 	if(m_toggleState != TS_AT_TOP)
+ 	if(m_toggleState != TSTATE_AT_TOP)
 	{
 		Util::EntityConPrintf(m_pEdict, "Expected to be at top, but state is %d.\n", m_toggleState);
 		return;
 	}
 
-	m_toggleState = TS_GOING_DOWN;
+	m_toggleState = TSTATE_GOING_DOWN;
 
 	SetMoveDone(&CFuncButton::ReturnBack);
 	BeginReturnMovement();
@@ -496,7 +496,7 @@ void CFuncButton::ReturnThink( void )
 void CFuncButton::ReturnBack( void )
 {
 	// Complain about state if not valid
- 	if(m_toggleState != TS_GOING_DOWN)
+ 	if(m_toggleState != TSTATE_GOING_DOWN)
 	{
 		Util::EntityConPrintf(m_pEdict, "Expected to be going up, but state is %d.\n", m_toggleState);
 		return;
@@ -539,7 +539,7 @@ void CFuncButton::ReturnBack( void )
 	SetReturnBackSparking();
 
 	// Set toggle state
-	m_toggleState = TS_AT_BOTTOM;
+	m_toggleState = TSTATE_AT_BOTTOM;
 }
 
 //=============================================
@@ -588,13 +588,13 @@ void CFuncButton::ButtonActivate( void )
 	// Play the sound
 	Util::EmitEntitySound(this, m_useSoundFile, SND_CHAN_BODY);
 
-	if(m_toggleState != TS_AT_BOTTOM)
+	if(m_toggleState != TSTATE_AT_BOTTOM)
 	{
 		Util::EntityConPrintf(m_pEdict, "Expected to be at bottom, but state is %d.\n", m_toggleState);
 		return;
 	}
 
-	m_toggleState = TS_GOING_UP;
+	m_toggleState = TSTATE_GOING_UP;
 
 	// Set move done function
 	SetMoveDone(&CFuncButton::TriggerAndWait);
@@ -630,11 +630,11 @@ void CFuncButton::BeginReturnMovement( void )
 //=============================================
 CFuncButton::buttoncode_t CFuncButton::GetResponseToTouch( void )
 {
-	if(m_toggleState == TS_GOING_UP || m_toggleState == TS_GOING_DOWN
-		|| (m_toggleState == TS_AT_TOP && !m_stayPushed && !HasSpawnFlag(FL_TOGGLE)))
+	if(m_toggleState == TSTATE_GOING_UP || m_toggleState == TSTATE_GOING_DOWN
+		|| (m_toggleState == TSTATE_AT_TOP && !m_stayPushed && !HasSpawnFlag(FL_TOGGLE)))
 		return BUTTON_CODE_NONE;
 
-	if(m_toggleState == TS_AT_TOP)
+	if(m_toggleState == TSTATE_AT_TOP)
 	{
 		if(HasSpawnFlag(FL_TOGGLE) && !m_stayPushed)
 			return BUTTON_CODE_RETURN;
@@ -701,8 +701,8 @@ usableobject_type_t CFuncButton::GetUsableObjectType( void )
 	}
 	else if(HasSpawnFlag(FL_TOGGLE) && !m_stayPushed)
 	{
-		if(m_toggleState == TS_GOING_UP
-			|| m_toggleState == TS_GOING_DOWN)
+		if(m_toggleState == TSTATE_GOING_UP
+			|| m_toggleState == TSTATE_GOING_DOWN)
 		{
 			if(!HasSpawnFlag(FL_DISABLED_NO_RETICLE))
 				type = USABLE_OBJECT_LOCKED;
@@ -710,10 +710,10 @@ usableobject_type_t CFuncButton::GetUsableObjectType( void )
 		else
 			type = USABLE_OBJECT_DEFAULT;
 	}	
-	else if(m_toggleState != TS_AT_BOTTOM)
+	else if(m_toggleState != TSTATE_AT_BOTTOM)
 	{
 		if(m_nextUsableTime > g_pGameVars->time 
-			|| m_toggleState != TS_AT_BOTTOM)
+			|| m_toggleState != TSTATE_AT_BOTTOM)
 		{
 			if(!HasSpawnFlag(FL_DISABLED_NO_RETICLE))
 			{

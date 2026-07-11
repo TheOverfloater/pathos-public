@@ -601,7 +601,6 @@ void CBasicVBMRenderer::InitVBM ( void )
 	Int32 row_verts = VBM_FLEXTEXTURE_SIZE/3;
 
 	m_pVBO = new CVBO(m_glExtF, true, true);
-	m_pShader->SetVBO(m_pVBO);
 
 	const vbmvertex_t *pvertexes = m_pVBMHeader->getVertexes();
 
@@ -635,6 +634,8 @@ void CBasicVBMRenderer::InitVBM ( void )
 
 	m_pVBO->Append(pvbovertexes, vertexCount*sizeof(vbm_glvertex_t), m_pVBMHeader->getIndexes(), m_pVBMHeader->numindexes*sizeof(Uint32));
 	delete [] pvbovertexes;
+
+	m_pShader->SetVBO(m_pVBO);
 
 	// Set draw buffer beginning
 	m_drawBufferOffset = m_pVBMHeader->numverts;
@@ -1181,7 +1182,7 @@ void CBasicVBMRenderer::DrawBox( const Vector& bbmin, const Vector& bbmax )
 
 	// Draw the planes
 	m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferOffset, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
-	glDrawArrays(GL_TRIANGLES, m_drawBufferOffset, m_numTempVertexes);
+	m_pShader->DrawArrays(GL_TRIANGLES, m_drawBufferOffset, m_numTempVertexes);
 }
 
 //=============================================
@@ -1249,7 +1250,7 @@ bool CBasicVBMRenderer::DrawBones( void )
 		m_numTempVertexes++;
 
 		m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferOffset, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
-		glDrawArrays(GL_LINES, m_drawBufferOffset, m_numTempVertexes);
+		m_pShader->DrawArrays(GL_LINES, m_drawBufferOffset, m_numTempVertexes);
 
 		// Draw point
 		m_numTempVertexes = 0;
@@ -1264,7 +1265,7 @@ bool CBasicVBMRenderer::DrawBones( void )
 		m_pShader->SetUniform4f(m_attribs.u_color, BONE_ORIGIN_COLOR[0], BONE_ORIGIN_COLOR[1], BONE_ORIGIN_COLOR[2], 1.0);
 
 		m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferOffset, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
-		glDrawArrays(GL_POINTS, m_drawBufferOffset, m_numTempVertexes);
+		m_pShader->DrawArrays(GL_POINTS, m_drawBufferOffset, m_numTempVertexes);
 	}
 
 	glEnable(GL_DEPTH_TEST);
@@ -1386,13 +1387,13 @@ bool CBasicVBMRenderer::DrawAttachments( void )
 		m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferOffset, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
 
 		// Draw the line
-		glDrawArrays(GL_LINES, m_drawBufferOffset, m_numTempVertexes);
+		m_pShader->DrawArrays(GL_LINES, m_drawBufferOffset, m_numTempVertexes);
 
 		// Draw the point
 		glPointSize(5);
 		m_pShader->SetUniform4f(m_attribs.u_color, ATTACHMENT_ORIGIN_COLOR[0], ATTACHMENT_ORIGIN_COLOR[1], ATTACHMENT_ORIGIN_COLOR[2], 1.0);
 
-		glDrawArrays(GL_POINTS, m_drawBufferOffset+1, 1);
+		m_pShader->DrawArrays(GL_POINTS, m_drawBufferOffset+1, 1);
 	}
 
 	glEnable(GL_DEPTH_TEST);
@@ -1554,12 +1555,8 @@ bool CBasicVBMRenderer::DrawModel( CMatrix& modelview, CMatrix& projection )
 		break;
 	}
 
-	m_pVBO->Bind();
 	if(!m_pShader->EnableShader())
-	{
-		m_pVBO->UnBind();
 		return false;
-	}
 
 	m_pShader->EnableAttribute(m_attribs.a_origin);
 	m_pShader->EnableAttribute(m_attribs.a_boneindexes);
@@ -1683,7 +1680,6 @@ bool CBasicVBMRenderer::DrawModel( CMatrix& modelview, CMatrix& projection )
 			if(!DrawSubmodel())
 			{
 				m_pShader->DisableShader();
-				m_pVBO->UnBind();
 				return false;
 			}
 		}
@@ -1706,7 +1702,6 @@ bool CBasicVBMRenderer::DrawModel( CMatrix& modelview, CMatrix& projection )
 			if(!DrawSubmodelSolid(true))
 			{
 				m_pShader->DisableShader();
-				m_pVBO->UnBind();
 				return false;
 			}
 		}
@@ -1730,7 +1725,6 @@ bool CBasicVBMRenderer::DrawModel( CMatrix& modelview, CMatrix& projection )
 			if(!DrawSubmodelSolid(true))
 			{
 				m_pShader->DisableShader();
-				m_pVBO->UnBind();
 				return false;
 			}
 		}
@@ -1745,7 +1739,6 @@ bool CBasicVBMRenderer::DrawModel( CMatrix& modelview, CMatrix& projection )
 		if(!DrawBones())
 		{
 			m_pShader->DisableShader();
-			m_pVBO->UnBind();
 			return false;
 		}
 	}
@@ -1755,7 +1748,6 @@ bool CBasicVBMRenderer::DrawModel( CMatrix& modelview, CMatrix& projection )
 		if(!DrawAttachments())
 		{
 			m_pShader->DisableShader();
-			m_pVBO->UnBind();
 			return false;
 		}
 	}
@@ -1765,13 +1757,11 @@ bool CBasicVBMRenderer::DrawModel( CMatrix& modelview, CMatrix& projection )
 		if(!DrawHitBoxes())
 		{
 			m_pShader->DisableShader();
-			m_pVBO->UnBind();
 			return false;
 		}
 	}
 		
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	return true;
 }
@@ -2043,7 +2033,7 @@ bool CBasicVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pme
 	if(pmaterial->flags & TX_FL_NO_CULLING)
 		glDisable(GL_CULL_FACE);
 
-	glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+	m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 
 	if(pmaterial->flags & TX_FL_NO_CULLING)
 		glEnable(GL_CULL_FACE);
@@ -2112,7 +2102,7 @@ bool CBasicVBMRenderer::DrawSubmodelSolid( bool setFlexes )
 				m_pShader->SetUniform4fv(m_attribs.boneindexes[j], (Float *)m_weightBoneTransform[pboneindexes[j]].matrix, 3);
 		}
 
-		glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+		m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 
 		m_triangleCounter += pmesh->num_indexes/3;
 	}

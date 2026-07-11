@@ -2599,8 +2599,8 @@ namespace Util
 
 				// Make sure we can actually trigger this
 				if(pTargetEntity->HasSpawnFlag(CFuncDoor::FL_NO_NPCS)
-					|| pTargetEntity->GetToggleState() == TS_AT_TOP
-					|| pTargetEntity->GetToggleState() == TS_GOING_UP)
+					|| pTargetEntity->GetToggleState() == TSTATE_AT_TOP
+					|| pTargetEntity->GetToggleState() == TSTATE_GOING_UP)
 					continue;
 
 				entitesArray.push_back(pTargetEntity);

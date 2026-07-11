@@ -968,7 +968,7 @@ bool PBSPV2_LoadVertexLighting(const byte* pfile, brushmodel_t& model, const dpb
 		// First lump loaded defines the expected size
 		model.vertexlightdatasize = datasize;
 	}
-	else if(result && datasize != model.lightdatasize)
+	else if(result && datasize != model.vertexlightdatasize)
 	{
 		Con_EPrintf("%s - Inconsistent lump size %d in '%s' for baked vertex light data layer %d, expected size was %d.\n", __FUNCTION__, datasize, model.name.c_str(), layer, model.lightdatasize);
 		return false;

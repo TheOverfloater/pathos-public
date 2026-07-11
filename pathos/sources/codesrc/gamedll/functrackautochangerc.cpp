@@ -46,9 +46,9 @@ void CFuncTrackAutoChangeRC::CallUse( CBaseEntity* pActivator, CBaseEntity* pCal
 		return;
 
 	CPathTrack* pTarget = nullptr;
-	if(m_toggleState == TS_AT_TOP)
+	if(m_toggleState == TSTATE_AT_TOP)
 		pTarget = m_pTopTrack;
-	else if(m_toggleState == TS_AT_BOTTOM)
+	else if(m_toggleState == TSTATE_AT_BOTTOM)
 		pTarget = m_pBottomTrack;
 
 	m_code = EvaluateTrain(pTarget);
@@ -57,7 +57,7 @@ void CFuncTrackAutoChangeRC::CallUse( CBaseEntity* pActivator, CBaseEntity* pCal
 	{
 		DisableUse();
 
-		if (m_toggleState == TS_AT_TOP)
+		if (m_toggleState == TSTATE_AT_TOP)
 			GoDown();
 		else
 			GoUp();
@@ -82,7 +82,7 @@ void CFuncTrackAutoChangeRC::CallBlocked( CBaseEntity* pBlocker )
 void CFuncTrackAutoChangeRC::HitBottom(void)
 {
 	CFuncTrackAutoChange::HitBottom();
-	m_targetState = TS_AT_TOP;
+	m_targetState = TSTATE_AT_TOP;
 }
 
 //=============================================
@@ -92,5 +92,5 @@ void CFuncTrackAutoChangeRC::HitBottom(void)
 void CFuncTrackAutoChangeRC::HitTop(void)
 {
 	CFuncTrackAutoChange::HitTop();
-	m_targetState = TS_AT_BOTTOM;
+	m_targetState = TSTATE_AT_BOTTOM;
 }

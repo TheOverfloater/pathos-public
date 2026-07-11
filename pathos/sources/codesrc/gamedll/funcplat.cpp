@@ -59,13 +59,13 @@ bool CFuncPlat::Spawn( void )
 	if(m_pFields->targetname != NO_STRING_VALUE)
 	{
 		gd_engfuncs.pfnSetOrigin(m_pEdict, m_position1);
-		m_toggleState = TS_AT_TOP;
+		m_toggleState = TSTATE_AT_TOP;
 		SetUse(&CFuncPlat::PlatUse);
 	}
 	else
 	{
 		gd_engfuncs.pfnSetOrigin(m_pEdict, m_position2);
-		m_toggleState = TS_AT_BOTTOM;
+		m_toggleState = TSTATE_AT_BOTTOM;
 	}
 
 	if(!IsTogglePlat())
@@ -118,20 +118,20 @@ void CFuncPlat::PlatUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_
 {
 	if(IsTogglePlat())
 	{
-		bool isOn = (m_toggleState == TS_AT_BOTTOM) ? true : false;
+		bool isOn = (m_toggleState == TSTATE_AT_BOTTOM) ? true : false;
 		if(!ShouldToggle(useMode, isOn))
 			return;
 
-		if(m_toggleState == TS_AT_TOP)
+		if(m_toggleState == TSTATE_AT_TOP)
 			GoDown();
-		else if(m_toggleState == TS_AT_BOTTOM)
+		else if(m_toggleState == TSTATE_AT_BOTTOM)
 			GoUp();
 	}
 	else
 	{
 		SetUse(nullptr);
 
-		if(m_toggleState == TS_AT_TOP)
+		if(m_toggleState == TSTATE_AT_TOP)
 			GoDown();
 	}
 }
@@ -150,12 +150,12 @@ void CFuncPlat::CallBlocked( CBaseEntity* pBlocker )
 		Util::EmitEntitySound(this, m_moveSoundFile, SND_CHAN_VOICE, m_volume);
 
 	// Check for issues
-	if(m_toggleState != TS_GOING_UP && m_toggleState != TS_GOING_DOWN)
+	if(m_toggleState != TSTATE_GOING_UP && m_toggleState != TSTATE_GOING_DOWN)
 		Util::EntityConPrintf(m_pEdict, "Expected to be at going up or going down, but state is %d instead.\n", m_toggleState);
 
-	if(m_toggleState == TS_GOING_UP)
+	if(m_toggleState == TSTATE_GOING_UP)
 		GoUp();
-	else if(m_toggleState == TS_GOING_DOWN)
+	else if(m_toggleState == TSTATE_GOING_DOWN)
 		GoDown();
 }
 
@@ -195,10 +195,10 @@ void CFuncPlat::GoUp( void )
 	if(m_moveSoundFile)
 		Util::EmitEntitySound(this, m_moveSoundFile, SND_CHAN_VOICE, m_volume);
 
-	if(m_toggleState != TS_AT_BOTTOM && m_toggleState != TS_GOING_DOWN)
+	if(m_toggleState != TSTATE_AT_BOTTOM && m_toggleState != TSTATE_GOING_DOWN)
 		Util::EntityConPrintf(m_pEdict, "Expected to be at bottom or going down, but state is %d instead.\n", m_toggleState);
 
-	m_toggleState = TS_GOING_UP;
+	m_toggleState = TSTATE_GOING_UP;
 	SetMoveDone(&CFuncPlat::CallHitTop);
 	LinearMove(m_position1, m_pState->speed);
 }
@@ -212,10 +212,10 @@ void CFuncPlat::GoDown( void )
 	if(m_moveSoundFile)
 		Util::EmitEntitySound(this, m_moveSoundFile, SND_CHAN_VOICE, m_volume);
 
-	if(m_toggleState != TS_AT_TOP && m_toggleState != TS_GOING_UP)
+	if(m_toggleState != TSTATE_AT_TOP && m_toggleState != TSTATE_GOING_UP)
 		Util::EntityConPrintf(m_pEdict, "Expected to be at top or going up, but state is %d instead.\n", m_toggleState);
 
-	m_toggleState = TS_GOING_DOWN;
+	m_toggleState = TSTATE_GOING_DOWN;
 	SetMoveDone(&CFuncPlat::CallHitBottom);
 	LinearMove(m_position2, m_pState->speed);
 }
@@ -232,10 +232,10 @@ void CFuncPlat::HitTop( void )
 	if(m_stopSoundFile)
 		Util::EmitEntitySound(this, m_stopSoundFile, SND_CHAN_ITEM, m_volume);
 
-	if(m_toggleState != TS_GOING_UP)
+	if(m_toggleState != TSTATE_GOING_UP)
 		Util::EntityConPrintf(m_pEdict, "Expected to be going up, but state is %d instead.\n", m_toggleState);
 
-	m_toggleState = TS_AT_TOP;
+	m_toggleState = TSTATE_AT_TOP;
 
 	if(!IsTogglePlat())
 	{
@@ -257,8 +257,8 @@ void CFuncPlat::HitBottom( void )
 	if(m_stopSoundFile)
 		Util::EmitEntitySound(this, m_stopSoundFile, SND_CHAN_ITEM, m_volume);
 
-	if(m_toggleState != TS_GOING_DOWN)
+	if(m_toggleState != TSTATE_GOING_DOWN)
 		Util::EntityConPrintf(m_pEdict, "Expected to be going down, but state is %d instead.\n", m_toggleState);
 
-	m_toggleState = TS_AT_BOTTOM;
+	m_toggleState = TSTATE_AT_BOTTOM;
 }
