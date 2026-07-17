@@ -543,6 +543,9 @@
   <ItemGroup>
     <ResourceCompile Include="pathos-engine.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="pathos-engine.manifest" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
