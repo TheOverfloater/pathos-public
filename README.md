@@ -37,4 +37,10 @@ For a basic list of those I credit, whose work I referenced to write my own vers
  - Iriy "BUzer" Sitnikov for his help in teaching me how to do graphics programming, and for the Paranoia mod and toolkit, which helped me a lot with writing the first renderer version back in 2008-2009.
  - Ryokeen for helping me back when I was learning how to do graphics programming with the first renderer version.
 
+People who have contributed to Pathos with their work:
+ - Petru "valina354" Răzvan, who has made various valuable contributions to Pathos over the years.
+ - Joël Troch for his improvements to Pathos's code.
+ - Kleadron for his various contributions to Pathos to enhance backwards compatiblity with Half-Life features.
+ - Meetem for the help and suggestions he gave with various features.
+
 Thank you all!
