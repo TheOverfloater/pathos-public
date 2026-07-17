@@ -13,7 +13,7 @@ All Rights Reserved.
 #include "brushmodel_shared.h"
 
 #define ALD_HEADER_ENCODED		(('D'<<24)+('L'<<16)+('A'<<8)+'P')
-#define ALD_HEADER_VERSION		2
+#define ALD_HEADER_VERSION		3
 
 enum aldlumptype_t 
 {
@@ -42,7 +42,8 @@ struct aldheader_t
 		lumpoffset(0),
 		numlumps(0),
 		lightdatasize(0),
-		vertexlightdatasize(0)
+		vertexlightdatasize(0),
+		lightgridsampledatasize(0)
 		{}
 
 	Int32 header;
@@ -53,6 +54,7 @@ struct aldheader_t
 	Int32 numlumps;
 	Int32 lightdatasize;
 	Int32 vertexlightdatasize;
+	Int32 lightgridsampledatasize;
 };
 
 struct aldlump_t
@@ -65,6 +67,9 @@ struct aldlump_t
 
 		for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
 			vertexlightlayeroffsets[i] = 0;
+
+		for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
+			lightgridlayeroffsets[i] = 0;
 	}
 
 	// Type of ALD lump
@@ -73,6 +78,8 @@ struct aldlump_t
 	Int32 lmaplayeroffsets[NB_SURF_LIGHTMAP_LAYERS];
 	// The offsets to each layer of baked vertex lighting
 	Int32 vertexlightlayeroffsets[NB_BAKED_VERTEXLIGHT_LAYERS];
+	// The offsets to each layer of light grid sample data
+	Int32 lightgridlayeroffsets[NB_LIGHTGRID_DATA_LAYERS];
 };
 
 struct aldlayer_t

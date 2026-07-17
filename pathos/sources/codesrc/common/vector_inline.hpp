@@ -411,6 +411,21 @@ inline bool Vector::IsNAN( Int32 index ) const
 }
 
 //=============================================
+// @brief Return the highest value of the vector
+//
+// @return Highest value of the vector
+//=============================================
+inline Float Vector::GetMaximum( void ) const
+{
+	if(x > y && x > z)
+		return x;
+	if(y > z)
+		return y;
+	else
+		return z;
+}
+
+//=============================================
 // @brief Multiplies a Vector with a float
 //
 // @return Resulting vector

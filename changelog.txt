@@ -949,3 +949,9 @@ Merge PR # 55:
  - Fix for compile error due to missing EQUAL_EPSILON define in VBM Compiler
  - Mark lamp prop textures with $noradshadows to avoid dark maps with missing lights
  
+2026 July 17th:
+ - Introduce new light grid feature related changes.
+ - Modify ALD format to also contain ALD file data.
+ - Add [] operators to color24_t and color32_t structs.
+ - Remove lightdata layer counting for baked vertex lighting.
+ - Move elight/model related light reduction to it's own variables.

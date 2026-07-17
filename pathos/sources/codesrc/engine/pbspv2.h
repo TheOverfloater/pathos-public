@@ -36,4 +36,5 @@ extern bool PBSPV2_LoadEntities( const byte* pfile, brushmodel_t& model, const d
 extern bool PBSPV2_LoadSubmodels( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump );
 extern bool PBSPV2_LoadVertexLighting( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump, baked_vertexlight_layers_t layer );
 extern bool PBSPV2_DecompressLightingData( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump, color24_t*& pdestptr, Uint32& destsize, byte*& poriginaldataptr, Uint32& originalsize, Int32& compression, Int32 compressionlevel );
+extern bool PBSPV2_LoadLightGridData( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump );
 #endif //PBSPV2_H

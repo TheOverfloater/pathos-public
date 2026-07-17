@@ -83,6 +83,8 @@ public:
 	inline bool IsZero( void ) const;
 	// Tells if the vector value is NAN
 	inline bool IsNAN( Int32 index ) const;
+	// Return the highest value of the vector
+	inline Float GetMaximum( void ) const;
 
 public:
 	// Elements of the vector

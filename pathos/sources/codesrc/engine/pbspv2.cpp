@@ -70,6 +70,16 @@ brushmodel_t* PBSPV2_Load( const byte* pfile, const dpbspv2header_t* pheader, co
 		}
 	}
 
+	// If PBSPV2_FL_HAS_LIGHTGRID_DATA is set, then load in vertex lighting data
+	if(pheader->flags & PBSPV2_FL_HAS_LIGHTGRID_DATA)
+	{
+		if(!PBSPV2_LoadLightGridData(pfile, (*pmodel), pheader->lumps[PBSPV2_LUMP_LIGHTGRID_DATA]))
+		{
+			delete pmodel;
+			return nullptr;
+		}
+	}
+
 	return pmodel;
 }
 
@@ -975,4 +985,110 @@ bool PBSPV2_LoadVertexLighting(const byte* pfile, brushmodel_t& model, const dpb
 	}
 
 	return result;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool PBSPV2_LoadLightGridData( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump )
+{
+	if (!lump.size)
+		return true;
+
+	// Get pointer to BSP data
+	const dlightgridlumpheader_t* psrcgrid = reinterpret_cast<const dlightgridlumpheader_t*>(pfile + lump.offset);
+
+	// Allocate grid object
+	lightgriddata_t* pdestgrid = new lightgriddata_t();
+	model.plightgrid = pdestgrid;
+
+	pdestgrid->rootnodeindex = psrcgrid->rootnodeindex;
+	pdestgrid->gridmins = psrcgrid->grid_mins;
+
+	for(Uint32 i = 0; i < 3; i++)
+		pdestgrid->gridscale[i] = 1.0f / static_cast<Float>(psrcgrid->grid_distance[i]);
+	
+	for(Uint32 i = 0; i < 3; i++)
+		pdestgrid->gridsize[i] = psrcgrid->grid_size[i];
+
+	// Copy over raw light sample data
+	for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
+	{
+		const byte* psrcdata = nullptr;
+		switch(i)
+		{
+		case LIGHTGRID_LAYER_VECTORS:
+			psrcdata = reinterpret_cast<const byte*>(psrcgrid) + psrcgrid->lightvectorsoffset;
+			break;
+		case LIGHTGRID_LAYER_AMBIENT:
+			psrcdata = reinterpret_cast<const byte*>(psrcgrid) + psrcgrid->ambientdataoffset;
+			break;
+		case LIGHTGRID_LAYER_DIFFUSE:
+			psrcdata = reinterpret_cast<const byte*>(psrcgrid) + psrcgrid->diffusedataoffset;
+			break;
+		}
+
+		assert(psrcdata != nullptr);
+
+		pdestgrid->prawsampledata[i] = new byte[psrcgrid->rawsampledatasize];
+		memcpy(pdestgrid->prawsampledata[i], psrcdata, sizeof(byte)*psrcgrid->rawsampledatasize);
+	}
+
+	// Copy nodes
+	const dlightgridnode_t* psrcnodes = reinterpret_cast<const dlightgridnode_t*>(reinterpret_cast<const byte*>(psrcgrid) + psrcgrid->nodesoffset);
+	pdestgrid->nodes.resize(psrcgrid->numnodes);
+
+	for(Uint32 i = 0; i < psrcgrid->numnodes; i++)
+	{
+		const dlightgridnode_t* psrcnode = &psrcnodes[i];
+		lightgridnode_t& destnode = pdestgrid->nodes[i];
+
+		for(Uint32 j = 0; j < 3; j++)
+			destnode.divisionpoint[j] = psrcnode->divisionpoint[j];
+
+		for(Uint32 j = 0; j < 8; j++)
+			destnode.children[j] = psrcnode->children[j];
+	}
+
+	// Copy leaves
+	const dlightgridleaf_t* psrcleaves = reinterpret_cast<const dlightgridleaf_t*>(reinterpret_cast<const byte*>(psrcgrid) + psrcgrid->leafsoffset);
+	pdestgrid->leaves.resize(psrcgrid->numleafs);
+
+	for(Uint32 i = 0; i < psrcgrid->numleafs; i++)
+	{
+		const dlightgridleaf_t* psrcleaf = &psrcleaves[i];
+		lightgridleaf_t& destleaf = pdestgrid->leaves[i];
+
+		destleaf.firstsample = psrcleaf->firstsample;
+		destleaf.numsamples = psrcleaf->numsamples;
+		
+		for(Uint32 j = 0; j < 3; j++)
+			destleaf.mins[j] = psrcleaf->mins[j];
+
+		for(Uint32 j = 0; j < 3; j++)
+			destleaf.size[j] = psrcleaf->size[j];
+	}
+
+	// Copy samples
+	const dlightgridsample_t* psrcsamples = reinterpret_cast<const dlightgridsample_t*>(reinterpret_cast<const byte*>(psrcgrid) + psrcgrid->sampleoffset);
+	pdestgrid->samples.resize(psrcgrid->numsamples);
+
+	for(Uint32 i = 0; i < psrcgrid->numsamples; i++)
+	{
+		const dlightgridsample_t* psrcsample = &psrcsamples[i];
+		lightgridsample_t& destsample = pdestgrid->samples[i];
+
+		for(Uint32 j = 0; j < PBSPV2_MAX_LIGHTMAPS; j++)
+			destsample.styles[j] = psrcsample->styles[j];
+
+		// We need this for ALD
+		destsample.rawsampleoffset = psrcsample->rawsampleoffset;
+
+		// Set pointers for ease of access
+		for(Uint32 j = 0; j < NB_LIGHTGRID_DATA_LAYERS; j++)
+			destsample.plightdata[j] = pdestgrid->prawsampledata[j] + destsample.rawsampleoffset;
+	}
+	
+	return true;
 }

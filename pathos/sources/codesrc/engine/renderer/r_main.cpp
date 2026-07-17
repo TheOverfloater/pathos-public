@@ -526,7 +526,9 @@ bool R_InitGL( void )
 
 		byte* plmapdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
 		byte* pvertexlightdatapointers[NB_BAKED_VERTEXLIGHT_LAYERS] = {nullptr};
-		if(ALD_Load(loadstage, plmapdatapointers, pvertexlightdatapointers))
+		byte* plightgriddatapointers[NB_BAKED_VERTEXLIGHT_LAYERS] = {nullptr};
+
+		if(ALD_Load(loadstage, plmapdatapointers, pvertexlightdatapointers, plightgriddatapointers))
 		{
 			for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
 			{
@@ -545,6 +547,9 @@ bool R_InitGL( void )
 
 				ens.pworld->pvertexlightdata[i] = reinterpret_cast<color24_t*>(pvertexlightdatapointers[i]);
 			}
+
+			// Set the sampling data also
+			BSP_SetLightGridSampleData(*ens.pworld, plightgriddatapointers);
 		}
 		else
 		{
@@ -5417,8 +5422,9 @@ void Cmd_BSPToSMD_Lightmap( void )
 
 	byte* plmapdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
 	byte* pvertexlightdatapointers[NB_BAKED_VERTEXLIGHT_LAYERS] = {nullptr};
+	byte* plightgriddatapointers[NB_BAKED_VERTEXLIGHT_LAYERS] = {nullptr};
 
-	if(!ALD_Load(loadstage, plmapdatapointers, pvertexlightdatapointers))
+	if(!ALD_Load(loadstage, plmapdatapointers, pvertexlightdatapointers, plightgriddatapointers))
 	{
 		Con_EPrintf("%s - Failed to restore lightmap data from backup.\n", __FUNCTION__);
 		return;
@@ -5426,6 +5432,9 @@ void Cmd_BSPToSMD_Lightmap( void )
 
 	for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
 		delete[] pvertexlightdatapointers[i];
+
+	for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
+		delete[] plightgriddatapointers[i];
 
 	// alloc lightmap data ptrs
 	Uint32 lightmapdatasize = 0;

@@ -319,6 +319,7 @@ void CL_SetDayStage( daystage_t daystage )
 	// Data pointers for our load result
 	byte* plmapdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
 	byte* pvertexlightdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
+	byte* plightgriddatapointers[NB_LIGHTGRID_DATA_LAYERS] = {nullptr};
 
 	// If restoring to DAYSTAGE_NORMAL from any other stage, then we
 	// need to load the restore file 
@@ -328,7 +329,7 @@ void CL_SetDayStage( daystage_t daystage )
 	else
 		loadstage = rns.daystage;
 
-	if (!ALD_Load(loadstage, plmapdatapointers, pvertexlightdatapointers))
+	if (!ALD_Load(loadstage, plmapdatapointers, pvertexlightdatapointers, plightgriddatapointers))
 	{
 		// Mark as having relevant data
 		rns.hasdaystagedata = false;
@@ -357,6 +358,8 @@ void CL_SetDayStage( daystage_t daystage )
 
 	// Set new sampling data
 	BSP_SetSamplingLightData(*ens.pworld);
+	// Set new light grid data
+	BSP_SetLightGridSampleData(*ens.pworld, plightgriddatapointers);
 
 	// Reset lighting on entities
 	CL_ResetLighting();

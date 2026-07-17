@@ -34,7 +34,7 @@ static const Vector VEC_VIEW = Vector( 0, 0, 32 );
 
 // Use this definition globally
 static const Float ON_EPSILON = 0.01;
-static const Float EQUAL_EPSILON = 0.001;
+static const Float P_EQUAL_EPSILON = 0.001;
 
 // View punch damping related
 static constexpr Float VIEW_PUNCH_DAMPING = 9.0f;
@@ -1009,10 +1009,10 @@ enum bm_velocity_t
 
 enum planeside_t
 {
-	SIDE_CROSS = -2,
-	SIDE_FRONT = 0,
-	SIDE_BACK,
-	SIDE_ON,
+	PLANESIDE_CROSS = -2,
+	PLANESIDE_FRONT = 0,
+	PLANESIDE_BACK,
+	PLANESIDE_ON,
 
 	SIDE_NB
 };

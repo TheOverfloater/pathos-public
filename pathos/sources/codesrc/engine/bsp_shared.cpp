@@ -451,6 +451,32 @@ void BSP_Model_ReserveWaterLighting( brushmodel_t& model, color24_t* psrclightda
 // @brief
 //
 //=============================================
+void BSP_SetLightGridSampleData( brushmodel_t& model, byte* psrclightdataptrs[] )
+{
+	if(!model.plightgrid)
+		return;
+
+	for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
+	{
+		if(model.plightgrid->prawsampledata[i])
+			delete[] model.plightgrid->prawsampledata[i];
+
+		model.plightgrid->prawsampledata[i] = psrclightdataptrs[i];
+	}
+
+	for(Uint32 i = 0; i < model.plightgrid->samples.size(); i++)
+	{
+		lightgridsample_t& sample = model.plightgrid->samples[i];
+		
+		for(Uint32 j = 0; j < NB_LIGHTGRID_DATA_LAYERS; j++)
+			sample.plightdata[j] = model.plightgrid->prawsampledata[j] + sample.rawsampleoffset;
+	}
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 void BSP_ReleaseLightmapData( brushmodel_t& model )
 {
 	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)

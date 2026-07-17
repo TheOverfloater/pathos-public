@@ -2015,6 +2015,42 @@ void CVBMRenderer::UpdateLightValues ( void )
 			// Reset this
 			m_pLightingInfo->lighttime = -1;
 		}
+
+		if(m_pLightingInfo->reductiontime > 0 && m_pLightingInfo->reductiontime != -1)
+		{
+			// If blend time expired, then set the final values
+			Float reducefulltime = m_pLightingInfo->reductiontime + LIGHTING_LERP_TIME;
+			if(reducefulltime < rns.time)
+			{
+				// Set final value
+				m_pLightingInfo->lightreduction = m_pLightingInfo->target_lightreduction;
+				m_pLightingInfo->reductiontime = -1;
+			}
+			else
+			{
+				Double reducetime = rns.time - m_pLightingInfo->reductiontime;
+				Double reducefrac = reducetime / LIGHTING_LERP_TIME;
+
+				m_pLightingInfo->lightreduction = m_pLightingInfo->prev_lightreduction * (1.0 - reducefrac);
+				m_pLightingInfo->lightreduction += reducefrac * m_pLightingInfo->target_lightreduction;
+			}
+		}
+		else if(m_pLightingInfo->reductiontime != -1)
+		{
+			// Reset this
+			m_pLightingInfo->reductiontime = -1;
+		}
+	}
+
+	// Add light reduction if needed
+	if(m_pLightingInfo->lightreduction > 0)
+	{
+		Vector tmp;
+		Math::VectorScale(m_pLightingInfo->direct_color, m_pLightingInfo->lightreduction*0.6, tmp);
+		Math::VectorSubtract(m_pLightingInfo->direct_color, tmp, m_pLightingInfo->direct_color);
+	
+		Math::VectorScale(m_pLightingInfo->ambient_color, m_pLightingInfo->lightreduction*0.4, tmp);
+		Math::VectorSubtract(m_pLightingInfo->ambient_color, tmp, m_pLightingInfo->ambient_color);
 	}
 
 	// Copy into the render target vectors
@@ -2053,7 +2089,7 @@ void CVBMRenderer::SetupLighting ( Int32 flags )
 {
 	// Do not bother calculating lighting for vertex lit objects
 	if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION && 
-		m_pCurrentEntity->curstate.vlight_vbo_index > 0 &&
+		m_pCurrentEntity->curstate.vlight_vbo_index >= 0 &&
 		m_pCurrentEntity->curstate.vlight_vbo_index < m_pVertexLightingVBOArray.size())
 		return;
 
@@ -2113,6 +2149,7 @@ void CVBMRenderer::SetupLighting ( Int32 flags )
 	bool gotLighting = false;
 	bool gotBumpLighting = false;
 	bool gotLightmapLighting = false;
+	bool gotLightGridLighting = false;
 
 	Vector surfnormal;
 	byte lightstyles[MAX_SURFACE_STYLES] = { 0 };
@@ -2120,8 +2157,16 @@ void CVBMRenderer::SetupLighting ( Int32 flags )
 	Vector lightcolors[MAX_SURFACE_STYLES];
 	Vector lmapdiffusecolors[MAX_SURFACE_STYLES];
 
+	// Try and get lighting from the light grid
+	if(ens.pworld->plightgrid && Mod_GetLightGridLighting(ens.pworld->plightgrid, lightorigin, lightcolors, lmapdiffusecolors, lightdirs, lightstyles))
+	{
+		gotLighting = true;
+		gotBumpLighting = true;
+		gotLightGridLighting = true;
+	}
+
 	// Try to trace against the sky vector
-	if(rns.sky.drawsky && !cls.skycolor.IsZero() && m_pCvarSkyLighting->GetValue() >= 1)
+	if(!gotLighting && rns.sky.drawsky && !cls.skycolor.IsZero() && m_pCvarSkyLighting->GetValue() >= 1)
 	{
 		Vector skytracevector;
 		Vector skyvector = cls.skyvec;
@@ -2386,19 +2431,21 @@ void CVBMRenderer::SetupLighting ( Int32 flags )
 			if(lightstyles[j] == NULL_LIGHTSTYLE_INDEX)
 				break;
 
-			Float dp = -Math::DotProduct(lightdirs[j], lightdirs[j]);
+			Float dp = -Math::DotProduct(lightdirs[j], lightdirs[0]);
 			if(dp > 1)
 				dp = 1;
 			else if(dp < 0)
 				dp = 0;
 
 			Math::VectorScale(lmapdiffusecolors[j], dp, diffusecolors[j]);
-			Math::VectorCopy(lightcolors[j], ambientcolors[j]);
+			Math::VectorScale(lmapdiffusecolors[j], (1.0 - dp), ambientcolors[j]);
+			Math::VectorAdd(ambientcolors[j], lightcolors[j], ambientcolors[j]);
 		}
 	}
 
 	// Reduce direct light based on how many lights are affecting us
-	if((m_numModelLights > 0 || m_numDynamicLights > 0) 
+	Float fllightreduction = 0;
+	if(m_pExtraInfo && (m_numModelLights > 0 || m_numDynamicLights > 0) 
 		&& !(m_pCurrentEntity->curstate.flags & EF_LADDER)
 		&& !R_IsEntityTransparent(*m_pCurrentEntity, true))
 	{
@@ -2406,22 +2453,54 @@ void CVBMRenderer::SetupLighting ( Int32 flags )
 		if(numlights > NUM_LIGHT_REDUCTIONS) 
 			numlights = NUM_LIGHT_REDUCTIONS;
 
-		Float fllightreduction = (static_cast<Float>(numlights)/NUM_LIGHT_REDUCTIONS);
+		fllightreduction = (static_cast<Float>(numlights)/NUM_LIGHT_REDUCTIONS);
 		if(fllightreduction > 1.0)
 			fllightreduction = 1.0;
-
-		// Modify the light values
-		Math::VectorScale(diffusecolors[BASE_LIGHTMAP_INDEX], fllightreduction*0.6, tmp);
-		Math::VectorSubtract(diffusecolors[BASE_LIGHTMAP_INDEX], tmp, diffusecolors[BASE_LIGHTMAP_INDEX]);
-	
-		Math::VectorScale(ambientcolors[BASE_LIGHTMAP_INDEX], fllightreduction*0.4, tmp);
-		Math::VectorSubtract(ambientcolors[BASE_LIGHTMAP_INDEX], tmp, ambientcolors[BASE_LIGHTMAP_INDEX]);
 	}
 
 	// Only do anything if the values actually changed
 	if(m_pExtraInfo)
 	{
-		if(rns.time == 0 || m_pLightingInfo->lighttime == 0 || m_pLightingInfo->reset 
+		if(rns.time == 0 || m_pLightingInfo->reductiontime == 0 || m_pLightingInfo->reset 
+			|| fllightreduction != m_pLightingInfo->target_lightreduction)
+		{
+			if(rns.time == 0 || m_pLightingInfo->reductiontime == 0 || m_pExtraInfo->plightinfo->reset)
+			{
+				m_pLightingInfo->target_lightreduction = fllightreduction;
+				m_pLightingInfo->lightreduction = fllightreduction;
+				m_pLightingInfo->reductiontime = -1;
+			}
+			else
+			{
+				m_pLightingInfo->prev_lightreduction = m_pLightingInfo->lightreduction;
+				m_pLightingInfo->target_lightreduction = fllightreduction;
+				m_pLightingInfo->reductiontime = rns.time;
+			}
+		}
+
+		if(gotLightGridLighting)
+		{
+			// Set final values
+			Math::VectorCopy(ambientcolors[BASE_LIGHTMAP_INDEX], m_pLightingInfo->ambient_color);
+			Math::VectorCopy(diffusecolors[BASE_LIGHTMAP_INDEX], m_pLightingInfo->direct_color);
+			Math::VectorCopy(lightdir, m_pLightingInfo->lightdirection);
+
+			// Set final lightstyle values as well
+			for(Uint32 i = 0; i < (MAX_SURFACE_STYLES-1); i++)
+			{
+				if(m_pLightingInfo->lightstyles[i] == NULL_LIGHTSTYLE_INDEX)
+					continue;
+
+				Math::VectorCopy(ambientcolors[i+1], m_pLightingInfo->lightstylecolors_ambient[i]);
+				Math::VectorCopy(diffusecolors[i+1], m_pLightingInfo->lightstylecolors_diffuse[i]);
+				m_pLightingInfo->lightstyles[i] = lightstyles[i+1];
+			}
+
+			// Set this to signal that we don't need to do this again
+			m_pLightingInfo->lighttime = -1;
+			m_pLightingInfo->lastlightorigin = lightorigin;
+		}
+		else if(rns.time == 0 || m_pLightingInfo->lighttime == 0 || m_pLightingInfo->reset 
 			|| !CompareLightValues(ambientcolors, diffusecolors, lightdir, lightstyles))
 		{
 			if(rns.time == 0 || m_pLightingInfo->lighttime == 0 
@@ -2511,6 +2590,9 @@ void CVBMRenderer::SetupLighting ( Int32 flags )
 	}
 	else
 	{
+		m_pLightingInfo->lightreduction = fllightreduction;
+
+		// Just directly use the color values
 		Math::VectorCopy(ambientcolors[BASE_LIGHTMAP_INDEX], m_pLightingInfo->ambient_color);
 		Math::VectorCopy(diffusecolors[BASE_LIGHTMAP_INDEX], m_pLightingInfo->direct_color);
 		Math::VectorCopy(lightdir, m_pLightingInfo->lightdirection);
@@ -8298,12 +8380,11 @@ bool CVBMRenderer::SetupEntityVertexLightVBO( cl_entity_t* pentity, Int32 vlight
 
 	vbmcache_t* pvbmcache = pmodel->getVBMCache();
 	vbmheader_t* pvbmheader = pvbmcache->pvbmhdr;
-	if(vertexcount != pvbmheader->numverts)
+	if(vertexcount != static_cast<Uint32>(pvbmheader->numverts))
 	{
 		Con_Printf("%s - Vertex count between BSP vertex lighting data and VBM file '%s' doesn't match(BSP: %d, model: %d).\n", __FUNCTION__, pmodel->name.c_str(), vertexcount, pvbmheader->numverts);
 		return false;
 	}
-
 
 	vlight_vbo_t* pnew = new vlight_vbo_t();
 	pnew->pvbmcache = pvbmcache;
