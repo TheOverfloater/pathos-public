@@ -66,7 +66,17 @@ enum pbspv2_lumps_t
 	PBSPV2_LUMP_EDGES,
 	PBSPV2_LUMP_SURFEDGES,
 	PBSPV2_LUMP_MODELS,
-	PBSPV2_NB_LUMPS
+
+	// These lumps are available if header->flags has PBSPV2_FL_HAS_VERTEX_LIGHTING set
+	PBSPV2_LUMP_VERTEX_LIGHTING_AMBIENT,
+	PBSPV2_LUMP_VERTEX_LIGHTING_DIFFUSE,
+	PBSPV2_LUMP_VERTEX_LIGHTING_VECTORS,
+
+	// This lump is available if header->flags has PBSPV2_FL_HAS_LIGHTGRID_DATA set
+	PBSPV2_LUMP_LIGHTGRID_DATA,
+
+	// MUST BE LAST
+	PBSPV2_NB_LUMPS // Don't actually use this anywhere if possible
 };
 
 //
@@ -75,11 +85,13 @@ enum pbspv2_lumps_t
 enum pbspv2_flags_t
 {
 	PBSPV2_FL_NONE					= 0,
-	PBSPV2_FL_HAS_SMOOTHING_GROUPS	= (1<<0)
+	PBSPV2_FL_HAS_SMOOTHING_GROUPS	= (1<<0),
+	PBSPV2_FL_HAS_VERTEX_LIGHTING	= (1<<1),
+	PBSPV2_FL_HAS_LIGHTGRID_DATA	= (1<<2)
 };
 
 //
-// Header for Pathos BSP V1
+// Header for Pathos BSP V2
 //
 
 struct dpbspv2lump_t
@@ -107,7 +119,7 @@ struct dpbspv2header_t
 	Int32 version;
 	Int64 flags;
 
-	dpbspv2lump_t lumps[PBSPV2_NB_LUMPS];
+	dpbspv2lump_t lumps[1];
 };
 
 //
@@ -236,7 +248,7 @@ struct dpbspv2face_t
 	Int32 numedges;
 	Int32 texinfo;
 	Float samplescale;
-	Int32 smoothgroupbits;
+	Int32 smoothgroupbits; // This is set if pheader->flags has PBSPV2_FL_HAS_SMOOTHING_GROUPS set
 
 	byte lmstyles[PBSPV2_MAX_LIGHTMAPS];
 	Int32 lightoffset;
@@ -267,9 +279,9 @@ struct dpbspv2leaf_t
 	byte ambient_level[PBSPV2_NUM_AMBIENTS];
 };
 
-struct dpbspv2lmapdata_t
+struct dpbspv2lightingdata_t
 {
-	dpbspv2lmapdata_t():
+	dpbspv2lightingdata_t():
 		compression(0),
 		compressionlevel(0),
 		dataoffset(0),
@@ -283,4 +295,94 @@ struct dpbspv2lmapdata_t
 	Int32 datasize;
 	Int32 noncompressedsize;
 };
+
+struct dlightgridlumpheader_t
+{
+    dlightgridlumpheader_t():
+        rootnodeindex(NO_POSITION),
+        leafsoffset(NO_POSITION),
+        numleafs(0),
+        nodesoffset(NO_POSITION),
+        numnodes(0),
+        sampleoffset(NO_POSITION),
+        numsamples(0),
+        rawsampledatasize(0),
+        ambientdataoffset(NO_POSITION),
+        diffusedataoffset(NO_POSITION),
+        lightvectorsoffset(NO_POSITION)
+    {
+        for(Uint32 i = 0; i < 3; i++)
+			grid_distance[i] = 0;
+
+        for(Uint32 i = 0; i < 3; i++)
+			grid_size[i] = 0;
+    }
+
+    Int32 grid_distance[3];
+    Int32 grid_size[3];
+    Vector grid_mins;
+    Int32 rootnodeindex;
+
+    Int32 leafsoffset;
+    Int32 numleafs;
+
+    Int32 nodesoffset;
+    Int32 numnodes;
+
+    Int32 sampleoffset;
+    Int32 numsamples;
+
+    Int32 rawsampledatasize;
+    Int32 ambientdataoffset;
+    Int32 diffusedataoffset;
+    Int32 lightvectorsoffset;
+};
+
+struct dlightgridnode_t
+{
+    dlightgridnode_t()
+    {
+        for(Uint32 i = 0; i < 3; i++)
+			divisionpoint[i] = 0;
+
+         for(Uint32 i = 0; i < 8; i++)
+			children[i] = 0;
+    }
+
+    Int32 divisionpoint[3];
+    Int32 children[8];
+};
+
+struct dlightgridleaf_t
+{
+    dlightgridleaf_t():
+        firstsample(NO_POSITION),
+        numsamples(0)
+    {
+        for(Uint32 i = 0; i < 3; i++)
+			mins[i] = 0;
+
+        for(Uint32 i = 0; i < 3; i++)
+			size[i] = 0;
+    }
+
+	Int32 mins[3];
+	Int32 size[3];
+    
+    Int32 firstsample;
+    Int32 numsamples;
+};
+
+struct dlightgridsample_t
+{
+    dlightgridsample_t():
+        rawsampleoffset(NO_POSITION)
+    {
+        memset(styles, 0, sizeof(styles));
+    }
+
+	byte styles[PBSPV2_MAX_LIGHTMAPS];
+    Int32 rawsampleoffset;
+};
+
 #endif //PBSPV2FILE_H

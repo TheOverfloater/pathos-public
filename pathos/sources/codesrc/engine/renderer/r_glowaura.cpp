@@ -324,7 +324,7 @@ bool CGlowAura::BlurTexture( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 	// Allocate the blur 1 target and fetch to it
 	m_pBlurRTT = gRTTCache.Alloc(AURA_RESOLUTION, AURA_RESOLUTION);
@@ -346,7 +346,7 @@ bool CGlowAura::BlurTexture( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 	// Fetch to the RTT
 	R_Bind2DTexture(GL_TEXTURE0_ARB, m_pBlurRTT->palloc->gl_index);
@@ -363,7 +363,7 @@ bool CGlowAura::BlurTexture( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 	// Bind it to the blur1 target
 	R_Bind2DTexture(GL_TEXTURE0_ARB, m_pBlurRTT->palloc->gl_index);
@@ -391,7 +391,7 @@ bool CGlowAura::DrawFinal( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 	//
 	// Draw the auras
@@ -410,7 +410,7 @@ bool CGlowAura::DrawFinal( void )
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDisable(GL_BLEND);
 
@@ -480,7 +480,6 @@ bool CGlowAura::DrawAuras( void )
 	glDisable(GL_POLYGON_OFFSET_FILL);
 	glDisable(GL_DEPTH_TEST);
 
-	m_pVBO->Bind();
 	if(!m_pShader->EnableShader())
 		return false;
 
@@ -534,7 +533,6 @@ bool CGlowAura::DrawAuras( void )
 	glDepthFunc(GL_LEQUAL);
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	// Free the RTT textures for reuse
 	if (m_pScreenRTT)

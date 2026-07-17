@@ -10,7 +10,7 @@ REM Check if the BSP file exists
 IF NOT exist %mapname%.map GOTO Error_NoMAP
 
 ECHO Compiling %mapname%...
-hlrad -bumpmaps -low -chart -blur 1.0 -smooth2 60 -notexscale -minlight 1 -estimate %mapname%.map
+hlrad -moddir "D:\Games\Pathos Engine\pathos"  -bumpmaps -low -chart -blur 1.0 -smooth2 60 -notexscale -minlight 1 -estimate %mapname%.map
 GOTO CopyPrompt
 
 :CopyPrompt

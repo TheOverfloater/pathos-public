@@ -615,8 +615,6 @@ mt_texture_t CTextureManager::GetTextureType( const Char* pstrTypename )
 		return MT_TX_SPECULAR;
 	else if(!qstrcmp(pstrTypename, "luminance"))
 		return MT_TX_LUMINANCE;
-	else if (!qstrcmp(pstrTypename, "ao"))
-		return MT_TX_AO;
 	else
 		return MT_TX_UNKNOWN;
 }
@@ -928,7 +926,7 @@ en_material_t* CTextureManager::LoadMaterialScript( const Char* pstrFilename, rs
 				if(i != 3)
 					break;
 			}
-			else if(qstrlen(token) > 0)
+			else if(qstrlen(token) > 0 && qstrcmp(token, "$noradshadows"))
 			{
 				m_printErrorFunction("Unknown field '%s' in '%s'.\n", token, filePath.c_str());
 			}
@@ -1725,9 +1723,6 @@ void CTextureManager::WritePMFFile( en_material_t* pmaterial )
 
 	if(pmaterial->ptextures[MT_TX_LUMINANCE])
 		data << "\t$texture luminance " << pmaterial->ptextures[MT_TX_LUMINANCE]->filepath << NEWLINE;
-	
-	if (pmaterial->ptextures[MT_TX_AO])
-		data << "\t$texture ao " << pmaterial->ptextures[MT_TX_AO]->filepath << NEWLINE;
 
 	data << "}" << NEWLINE;
 

@@ -16,6 +16,7 @@ All Rights Reserved.
 #include "r_glsl.h"
 #include "r_main.h"
 #include "r_fbocache.h"
+#include "r_vbo.h"
 
 // Notes:
 // Part of this implementation is based on the implementation in the Half-Life SDK
@@ -58,7 +59,9 @@ enum vbm_shtype
 	vbm_texonly_fog,
 	vbm_speconly,
 	vbm_texonly_holes,
-	vbm_texonly_holes_fog
+	vbm_texonly_holes_fog,
+	vbm_vlight_only,
+	vbm_vlight_only_specular
 };
 
 enum vbm_blendmultipass_t
@@ -156,7 +159,50 @@ struct vbm_glvertex_t
 	Float boneindexes[MAX_VBM_BONEWEIGHTS];
 	Float boneweights[MAX_VBM_BONEWEIGHTS];
 	Float flexcoord[2];
+
 	byte pad[4];
+};
+
+struct vbm_vlight_glvertex_t
+{
+	vbm_vlight_glvertex_t() 
+	{
+		memset(vertexlight0_vector, 0, sizeof(vertexlight0_vector));
+		memset(vertexlight0_ambient, 0, sizeof(vertexlight0_ambient));
+		memset(vertexlight0_diffuse, 0, sizeof(vertexlight0_diffuse));
+
+		memset(vertexlight1_vector, 0, sizeof(vertexlight1_vector));
+		memset(vertexlight1_ambient, 0, sizeof(vertexlight1_ambient));
+		memset(vertexlight1_diffuse, 0, sizeof(vertexlight1_diffuse));
+
+		memset(vertexlight2_vector, 0, sizeof(vertexlight2_vector));
+		memset(vertexlight2_ambient, 0, sizeof(vertexlight2_ambient));
+		memset(vertexlight2_diffuse, 0, sizeof(vertexlight2_diffuse));
+
+		memset(vertexlight3_vector, 0, sizeof(vertexlight3_vector));
+		memset(vertexlight3_ambient, 0, sizeof(vertexlight3_ambient));
+		memset(vertexlight3_diffuse, 0, sizeof(vertexlight3_diffuse));
+
+		memset(pad, 0, sizeof(pad));
+	}
+		
+	byte vertexlight0_vector[3];
+	byte vertexlight0_ambient[3];
+	byte vertexlight0_diffuse[3];
+
+	byte vertexlight1_vector[3];
+	byte vertexlight1_ambient[3];
+	byte vertexlight1_diffuse[3];
+
+	byte vertexlight2_vector[3];
+	byte vertexlight2_ambient[3];
+	byte vertexlight2_diffuse[3];
+
+	byte vertexlight3_vector[3];
+	byte vertexlight3_ambient[3];
+	byte vertexlight3_diffuse[3];
+
+	byte pad[28];
 };
 
 struct ubo_modellight_t
@@ -184,6 +230,35 @@ struct attrib_light
 	Int32 u_color;
 	Int32 u_origin;
 	Int32 u_radius;
+};
+
+struct vlight_vbo_t
+{
+	vlight_vbo_t():
+		pvbmcache(nullptr),
+		pvbo(nullptr),
+		vlightoffset(NO_POSITION),
+		vertexcount(0),
+		stylecount(0)
+	{
+		for(Uint32 i = 0; i < MAX_ENTITY_STYLES; i++)
+			styles[i] = NULL_LIGHTSTYLE_INDEX;
+	}
+
+	~vlight_vbo_t()
+	{
+		if(pvbo)
+			delete pvbo;
+	}
+
+	vbmcache_t* pvbmcache;
+	CVBO* pvbo;
+
+	Int32 vlightoffset;
+	Uint32 vertexcount;
+
+	byte styles[MAX_ENTITY_STYLES];
+	Uint32 stylecount;
 };
 
 struct vbm_dlight_attribs_t
@@ -225,6 +300,9 @@ struct vbm_attribs
 		a_boneindexes(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_boneweights(CGLSLShader::PROPERTY_UNAVAILABLE),
 		a_flexcoord(CGLSLShader::PROPERTY_UNAVAILABLE),
+		a_vertexlight_ambient(CGLSLShader::PROPERTY_UNAVAILABLE),
+		a_vertexlight_diffuse(CGLSLShader::PROPERTY_UNAVAILABLE),
+		a_vertexlight_vectors(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_projection(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_modelview(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_normalmatrix(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -244,7 +322,6 @@ struct vbm_attribs
 		u_rectangle(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_spectexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_lumtexture(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_aotexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_normalmap(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_sky_ambient(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_sky_diffuse(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -257,18 +334,22 @@ struct vbm_attribs
 		u_scope_scrsize(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_phong_exponent(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_specularfactor(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_vlight_stylestrength(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_d_numlights(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_shadertype(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_use_ubo(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_flexes(CGLSLShader::PROPERTY_UNAVAILABLE),
 		d_alphatest(CGLSLShader::PROPERTY_UNAVAILABLE),
+		d_vertexlight(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_d_chrome(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_d_specular(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_d_luminance(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_d_ao(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_d_bumpmapping(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_d_numdlights(CGLSLShader::PROPERTY_UNAVAILABLE),
-		u_d_blendmultipass(CGLSLShader::PROPERTY_UNAVAILABLE)
+		u_d_blendmultipass(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_vlight_style1(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_vlight_style2(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_d_vlight_style3(CGLSLShader::PROPERTY_UNAVAILABLE)
 		{
 			for(Uint32 i = 0; i < MAX_SHADER_BONES; i++)
 				boneindexes[i] = 0;
@@ -282,6 +363,10 @@ struct vbm_attribs
 	Int32 a_boneindexes;
 	Int32 a_boneweights;
 	Int32 a_flexcoord;
+
+	Int32 a_vertexlight_ambient;
+	Int32 a_vertexlight_diffuse;
+	Int32 a_vertexlight_vectors;
 
 	Int32 u_projection;
 	Int32 u_modelview;
@@ -312,7 +397,6 @@ struct vbm_attribs
 	Int32 u_rectangle;
 	Int32 u_spectexture;
 	Int32 u_lumtexture;
-	Int32 u_aotexture;
 	Int32 u_normalmap;
 
 	Int32 u_sky_ambient;
@@ -331,6 +415,7 @@ struct vbm_attribs
 
 	Int32 u_phong_exponent;
 	Int32 u_specularfactor;
+	Int32 u_vlight_stylestrength;
 
 	attrib_light lights[MAX_ENT_MLIGHTS];
 
@@ -338,16 +423,19 @@ struct vbm_attribs
 	Int32 d_use_ubo;
 	Int32 d_flexes;
 	Int32 d_alphatest;
+	Int32 d_vertexlight;
 
 	Int32 u_d_numlights;
 	Int32 u_d_chrome;
 	Int32 u_d_specular;
 	Int32 u_d_luminance;
-	Int32 u_d_ao;
 	Int32 u_d_bumpmapping;
 	Int32 u_d_numdlights;
 	Int32 u_d_blendmultipass;
-	
+	Int32 u_d_vlight_style1;
+	Int32 u_d_vlight_style2;
+	Int32 u_d_vlight_style3;
+
 	vbm_dlight_attribs_t dlights[MAX_BATCH_LIGHTS];
 };
 
@@ -423,6 +511,11 @@ public:
 	// Rotates a vector by a bone matrix
 	void RotateVectorByBoneMatrix( cl_entity_t *pEntity, Int32 boneindex, Vector& vector, bool inverse );
 
+	// Sets up pre-baked vertex lighting for a model
+	bool SetupEntityVertexLightVBO( cl_entity_t* pentity, Int32 vlightoffset, Uint32 vertexcount, byte* plightstyles );
+	// Rebuilds vertex lighting VBOs
+	bool RebuildVertexLightingVBOs( void );
+
 	// Prepares for rendering a model
 	bool PrepareDraw( void );
 	// Resets renderer objects after drawing
@@ -433,6 +526,8 @@ public:
 	bool DrawTransparent( void );
 	// Draws skybox objects
 	bool DrawSky( void );
+	// Draws decals
+	bool DrawDecals( bool transparentPass );
 
 	// Draws VSM objects
 	bool DrawVSM( struct cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 numentities );
@@ -454,6 +549,8 @@ public:
 	bool DrawModelVSM( cl_entity_t *pEntity, cl_dlight_t *dl );
 
 public:
+	// Draws decals for an entity
+	bool DrawEntityDecals( cl_entity_t* pentity );
 	// Applies a decal to a model
 	void CreateDecal( const Vector& position, const Vector& normal, decalgroupentry_t *texptr, cl_entity_t *pEntity, byte flags );
 	// Releases entity VBM data
@@ -511,6 +608,8 @@ private:
 private:
 	// Calls main render routines
 	bool Render( Int32 flags );
+	// Draw debug stuff
+	bool DrawDebug( void );
 	// Sets up rendering routines
 	bool SetupRenderer( void );
 	// Restores rendering states
@@ -521,6 +620,8 @@ private:
 
 	// Draws first pass 
 	bool DrawFirst( void );
+	// Draw lightstyles only
+	bool DrawStyles( bool specularPass, bool transparentPass );
 	// Draws a mesh
 	bool DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, bool drawBlended );
 	// Draws lights
@@ -540,7 +641,7 @@ private:
 	// Draws the collision hull bbox
 	bool DrawHullBoundingBox( void );
 	// Draws decals
-	bool DrawDecals( void );
+	bool DrawModelDecals( void );
 	// Draws light vectors
 	bool DrawLightVectors( void );
 	// Draws attachments
@@ -570,6 +671,8 @@ private:
 
 	// Initializes the vertex texture
 	void CreateVertexTexture( void );
+	// Creates the VBO for a vlibht_vbo_t entry
+	bool BuildVertexLightVBO( vlight_vbo_t* pvlightvbo );
 
 	// Set bone UBO contents
 	void SetShaderBoneTransform( BoneTransformArray_t* pbonetransform, const byte* pboneindexes, Uint32 numbones );
@@ -592,9 +695,9 @@ private:
 
 private:
 	// Builds the VBO
-	void BuildVBO( void );
+	void BuildVBOs( void );
 	// Adds a VBM file to the VBO object
-	void AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, mcdheader_t* pmcd, vbm_glvertex_t* pvertexbuffer, Uint32* pindexbuffer, Uint32& vertexoffset, Uint32& indexoffset );
+	void BuildVBMVBO( vbmcache_t* pvbmcache );
 
 private:
 	// Toggles rendering of models
@@ -620,7 +723,15 @@ private:
 	// GLSL shader object
 	class CGLSLShader* m_pShader;
 	// VBO object
-	class CVBO* m_pVBO;
+	CArray<CVBO*> m_pVBMVBOArray;
+	// Decal VBO
+	CVBO* m_pDecalVBO;
+	// Temp draw VBO
+	CVBO* m_pTempDrawVBO;
+	// Currently used VBO
+	CVBO* m_pCurrentVBO;
+	// VBO object
+	CArray<vlight_vbo_t*> m_pVertexLightingVBOArray;
 
 	// Shader attribs
 	vbm_attribs m_attribs;

@@ -415,14 +415,18 @@ namespace smdl
 	// @param vertex Vertex to add to the vertex array
 	// @return Index of the vertex
 	//===============================================
-	Int32 submodel_t::addVertex( const vertex_t& vertex )
+	Int32 submodel_t::addVertex( const vertex_t& vertex, Float vertexMergeTreshold )
 	{
 		// Try and merge with an existing weight
 		for(Uint32 i = 0; i < numvertexes; i++)
 		{
 			const vertex_t& curVertex = vertexes[i];
-			if(curVertex.boneindex == vertex.boneindex && Math::VectorCompare(curVertex.position, vertex.position))
-				return i;
+			if(curVertex.boneindex == vertex.boneindex)
+			{
+				Float distanceDiff = (curVertex.position - vertex.position).Length();
+				if(distanceDiff <= vertexMergeTreshold)
+					return i;
+			}
 		}
 
 		// Resize if needed

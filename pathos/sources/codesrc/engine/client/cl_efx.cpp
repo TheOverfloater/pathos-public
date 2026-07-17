@@ -53,6 +53,7 @@ static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 	CL_AllocStaticSpriteEntity,		//pfnAllocStaticSpriteEntity
 	CL_AllocTempSpriteEntity,		//pfnAllocTempSpriteEntity
 	CL_CreateCableEntity,			//pfnCreateCableEntity
+	CL_SetupEntityVertexLightVBO,	//pfnSetupEntityVertexLightVBO
 	CL_SetFogParameters,			//pfnSetFogParameters
 	CL_SetSkyboxParameters,			//pfnSetSkyboxParameters
 	CL_AllocEntityLight,			//pfnAllocEntityLight
@@ -213,6 +214,14 @@ void CL_CreateCableEntity( const Vector& start, const Vector& end, Uint32 depth,
 //====================================
 //
 //====================================
+bool CL_SetupEntityVertexLightVBO( cl_entity_t* pentity, Int32 vlightoffset, Uint32 vertexcount, byte* plightstyles )
+{
+	return gVBMRenderer.SetupEntityVertexLightVBO(pentity, vlightoffset, vertexcount, plightstyles);
+}
+
+//====================================
+//
+//====================================
 void CL_SetFogParameters( entindex_t entindex, const Vector& color, Float start, Float end, bool affectsky, Float blendtime )
 {
 	bool active = (end < 1 && start < 1) ? false : true;
@@ -308,7 +317,9 @@ void CL_SetDayStage( daystage_t daystage )
 	// Get worldmodel ptr
 	brushmodel_t* pworldmodel = ens.pworld;
 	// Data pointers for our load result
-	byte* pdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
+	byte* plmapdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
+	byte* pvertexlightdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
+	byte* plightgriddatapointers[NB_LIGHTGRID_DATA_LAYERS] = {nullptr};
 
 	// If restoring to DAYSTAGE_NORMAL from any other stage, then we
 	// need to load the restore file 
@@ -318,7 +329,7 @@ void CL_SetDayStage( daystage_t daystage )
 	else
 		loadstage = rns.daystage;
 
-	if (!ALD_Load(loadstage, pdatapointers))
+	if (!ALD_Load(loadstage, plmapdatapointers, pvertexlightdatapointers, plightgriddatapointers))
 	{
 		// Mark as having relevant data
 		rns.hasdaystagedata = false;
@@ -332,17 +343,31 @@ void CL_SetDayStage( daystage_t daystage )
 		if (pworldmodel->plightdata[i])
 			delete[] pworldmodel->plightdata[i];
 
-		pworldmodel->plightdata[i] = reinterpret_cast<color24_t*>(pdatapointers[i]);
+		pworldmodel->plightdata[i] = reinterpret_cast<color24_t*>(plmapdatapointers[i]);
+	}
+
+	// Set the new pointer
+	for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+	{
+		// All data was successfully set, so release original data
+		if (pworldmodel->pvertexlightdata[i])
+			delete[] pworldmodel->pvertexlightdata[i];
+
+		pworldmodel->pvertexlightdata[i] = reinterpret_cast<color24_t*>(pvertexlightdatapointers[i]);
 	}
 
 	// Set new sampling data
 	BSP_SetSamplingLightData(*ens.pworld);
+	// Set new light grid data
+	BSP_SetLightGridSampleData(*ens.pworld, plightgriddatapointers);
 
 	// Reset lighting on entities
 	CL_ResetLighting();
 
 	// Tell the renderer to reload certain things
 	gBSPRenderer.InitLightmaps();
+	// Recreate VBOs for VBM renderer
+	gVBMRenderer.RebuildVertexLightingVBOs();
 
 	// Load day stage cubemaps
 	gCubemaps.InitGame();

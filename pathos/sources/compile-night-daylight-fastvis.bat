@@ -17,9 +17,9 @@ REM Fail if we have a leak pointfile
 IF exist %mapname%.lin GOTO Error_Leak
 
 hlvis -fast -low -chart -estimate %mapname%.map
-hlrad -extra -compress 0 -rgbcompress 0 -compressionlevel uber_compression -bumpmaps -low -chart -blur 2.0 -smooth 150 -smooth2 60 -notexscale -minlight 1 -estimate %mapname%.map
-hlrad -extra -compress 0 -rgbcompress 0 -compressionlevel uber_compression -bumpmaps -low -chart -blur 2.0 -smooth 150 -smooth2 60 -daystage nightmode -notexscale -minlight 1 -estimate %mapname%.map
-hlrad -extra -compress 0 -rgbcompress 0 -compressionlevel uber_compression -bumpmaps -low -chart -blur 2.0 -smooth 150 -smooth2 60 -daystage daylightreturn -notexscale -minlight 1 -estimate %mapname%.map
+hlrad -extra -moddir "D:\Games\Pathos Engine\pathos" -compressionlevel uber_compression -bumpmaps -low -chart -blur 2.0 -smooth 150 -smooth2 60 -notexscale -minlight 1 -estimate %mapname%.map
+hlrad -extra -moddir "D:\Games\Pathos Engine\pathos" -compressionlevel uber_compression -bumpmaps -low -chart -blur 2.0 -smooth 150 -smooth2 60 -daystage nightmode -notexscale -minlight 1 -estimate %mapname%.map
+hlrad -extra -moddir "D:\Games\Pathos Engine\pathos" -compressionlevel uber_compression -bumpmaps -low -chart -blur 2.0 -smooth 150 -smooth2 60 -daystage daylightreturn -notexscale -minlight 1 -estimate %mapname%.map
 GOTO CopyPrompt
 
 :CopyPrompt

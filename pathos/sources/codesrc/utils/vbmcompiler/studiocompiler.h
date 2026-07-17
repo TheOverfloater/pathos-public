@@ -27,6 +27,8 @@ class CStudioModelCompiler
 public:
 	// Default allocation size for MDL file buffer
 	static const Uint32 DEFAULT_MDL_ALLOCATION_SIZE;
+	// Default vertex merge treshold distance
+	static const Float DEFAULT_VERTEX_MERGE_TRESHOLD;
 	// Default minimum weight treshold
 	static const Float MINIMUM_WEIGHT_TRESHOLD;
 	// Default texture gamma
@@ -178,6 +180,11 @@ public:
 	const smdl::sequence_t* GetSequence( Int32 index ) const { return m_pSequencesArray[index]; }
 	// Returns the number of sequences
 	Uint32 GetNbSequences( void ) const { return m_pSequencesArray.size(); }
+	
+	// Get vertex merge treshold
+	Float GetVertexMergeTreshold( void ) const { return m_vertexMergeTreshold; }
+	// Set vertex merge distance
+	void SetVertexMergeTreshold( float treshold ) { m_vertexMergeTreshold = treshold; }
 
 	// Returns TRUE if we have collision data
 	bool HasCollisionMeshes( void ) const;
@@ -371,5 +378,8 @@ private:
 	Float m_normalMergeTreshold;
 	// Texture gamma value
 	Float m_textureGamma;
+
+	// Vertex merge distance
+	Float m_vertexMergeTreshold;
 };
 #endif // STUDIOCOMPILER_H

@@ -103,9 +103,9 @@ void CPlatTrigger::CallTouch( CBaseEntity* pOther )
 	if(!pOther->IsPlayer() || !pOther->IsAlive())
 		return;
 
-	if(m_pPlatform->GetToggleState() == TS_AT_BOTTOM)
+	if(m_pPlatform->GetToggleState() == TSTATE_AT_BOTTOM)
 		m_pPlatform->GoUp();
-	else if(m_pPlatform->GetToggleState() == TS_AT_TOP)
+	else if(m_pPlatform->GetToggleState() == TSTATE_AT_TOP)
 		m_pPlatform->SetNextThinkTime(m_pPlatform->GetLocalTime() + 1);
 }
 

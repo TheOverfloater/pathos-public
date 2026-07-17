@@ -1,4 +1,5 @@
 $texture
 {
+	$noradshadows
 	$texture diffuse models/wallight1/unlit.tga
 }

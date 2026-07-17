@@ -904,3 +904,54 @@
  - Add support for binding mouse wheel events to input commands.
  - Fix bug in weapon pickup code that caused an invalid clip size to be calculated.
  - The Pathos Model Viewer compiler window was changed into another tab for better usability.
+
+2026 June 23rd:
+ - Massive shader optimization to reduce permutations spliced, reducing boot time enormously.
+ - Shader optimization reducing memory load enormously.
+ - Various optimizations to CGLSLShader class.
+ - Added new safeguards to shader code to prevent incompatible sampler types overlapping on the same texture unit.
+ - Fix timerefresh command not rotating the view as it is supposed to during testing.
+ - Fix for rare crash with VBM decals when clearing game instance.
+ - Minor changes to weapon code allowing for custom ammo capacity on weapons dropped by NPCs.
+ - Restore Half-Life-like jumping physics on player.
+ - Fix rn_detail_auto command not working due to upper/lowercase differences in CTextureManager class.
+
+Merge PR # 55:
+ - Merge changes from PR #55
+ - Apply required changes to VBM renderer to handle VBOs separately
+ - Rework shader code to support multiple VBOs
+ - Add CBuffer to CGLSLShader class to support resizing arrays during shader splicing
+ - Modify PBSPV2 header to support new additional lumps
+ - Expand ALD format to support storing vertex lighting data layers
+ - Remove PBSPV3 code, as a new BSP format is not needed
+ - Modify CGLSLShader class to handle VBO binds, etc itself
+ - Separate VBM decal VBO into itself
+
+2026 July 4th:
+ - Remove unused Pathos Model Viewer source files
+ - Modify VBM Compiler to use distance threshold for vertex merging instead of vertex mangling
+
+2026 July 11th:
+ - Fix crash due to unlit VBM texture types being used with baked vertex lighting
+ - Rename all toggle-state TS_ prefixes to TSTATE_ to avoid compiler errors
+ - Fix ALD export not setting vertex lighting data size
+ - Fix vertex lighting data sizes not being reset when releasing lighting data
+ - Rename CollisionShared::IntersectBVHNodePoint to more general CollisionShared::IntersectBBoxPoint
+ - Fix vertex lighting data layers not being counted propperly in model cache bSP loading function
+ - Fix single-frame blue screen bug in menu when booting up game
+ - Fix models disappearing randomly due to vertex attribs not being reset to enabled upon model change in VBM renderer
+ - Fix crash when deleting VBOs for vertex lighting data upon rebuilding VBM Renderer VBO data
+ - Fix for not calculating light fetch information for vertex lit models
+ - Fix for crash when rendering lightstyles for vertex lit VBM models combined with alpha testing
+ - Remove superflous comments on quaternion and bone position arrays in VBM traceline code
+ - Improve AI code when detecting min shooting and visibility distances in dark fog conditions
+ - Fix crash in Pathos Model Viewer when exiting the Load File popup window without specifying a target
+ - Fix for compile error due to missing EQUAL_EPSILON define in VBM Compiler
+ - Mark lamp prop textures with $noradshadows to avoid dark maps with missing lights
+ 
+2026 July 17th:
+ - Introduce new light grid feature related changes.
+ - Modify ALD format to also contain ALD file data.
+ - Add [] operators to color24_t and color32_t structs.
+ - Remove lightdata layer counting for baked vertex lighting.
+ - Move elight/model related light reduction to it's own variables.

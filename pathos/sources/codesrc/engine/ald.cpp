@@ -74,6 +74,26 @@ const byte* ALD_LoadALDFile( const Char* pstrFilepath, cache_model_t* pworldcach
 		return nullptr;
 	}
 
+	if(static_cast<Uint32>(ploadheader->vertexlightdatasize) != pworldmodel->vertexlightdatasize)
+	{
+		Con_EPrintf("%s - ALD inconsistent with BSP baked vertex light data size(%d vs %d).\n", __FUNCTION__, ploadheader->vertexlightdatasize, pworldmodel->vertexlightdatasize);
+		FL_FreeFile(pFile);
+		return nullptr;
+	}
+
+	if(pworldmodel->plightgrid && pworldmodel->plightgrid->rawsampledatasize != pworldmodel->plightgrid->rawsampledatasize)
+	{
+		Con_EPrintf("%s - ALD inconsistent with BSP light grid sample data size(%d vs 0).\n", __FUNCTION__, ploadheader->lightgridsampledatasize, pworldmodel->plightgrid->rawsampledatasize);
+		FL_FreeFile(pFile);
+		return nullptr;
+	}
+	else if(!pworldmodel->plightgrid && ploadheader->lightgridsampledatasize)
+	{
+		Con_EPrintf("%s - ALD inconsistent with BSP light grid sample data size(%d vs 0).\n", __FUNCTION__, ploadheader->lightgridsampledatasize);
+		FL_FreeFile(pFile);
+		return nullptr;
+	}
+
 	return pFile;
 }
 
@@ -81,7 +101,7 @@ const byte* ALD_LoadALDFile( const Char* pstrFilepath, cache_model_t* pworldcach
 // @brief
 //
 //=============================================
-bool ALD_Load( daystage_t stage, byte** pdestarrays )
+bool ALD_Load( daystage_t stage, byte** pdestlmaparrays, byte** pdestvertexlightarrays, byte** pdestlightgridarrays )
 {
 	// Get worldmodel
 	cache_model_t* pworldcache = gModelCache.GetModelByIndex(WORLD_MODEL_INDEX);
@@ -160,10 +180,13 @@ bool ALD_Load( daystage_t stage, byte** pdestarrays )
 		return false;
 	}
 
+	//
+	// Manage lightmaps
+	//
 	Uint32 aldLightmapLayerCount = 0;
 	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
 	{
-		if(!plump->layeroffsets[i])
+		if(!plump->lmaplayeroffsets[i])
 			break;
 
 		aldLightmapLayerCount++;
@@ -176,6 +199,26 @@ bool ALD_Load( daystage_t stage, byte** pdestarrays )
 		return false;
 	}
 
+	
+	if(pworldmodel->vertexlightdatasize > 0)
+	{
+		Uint32 aldVertexLightLayerCount = 0;
+		for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+		{
+			if(!plump->vertexlightlayeroffsets[i])
+				continue;
+
+			aldVertexLightLayerCount++;
+		}
+
+		if(aldVertexLightLayerCount != NB_BAKED_VERTEXLIGHT_LAYERS)
+		{
+			Con_EPrintf("%s - ALD lump of type %d vertex lighting layer count is inconsistent with expected layer count(%d vs %d).\n", __FUNCTION__, plump->type, NB_BAKED_VERTEXLIGHT_LAYERS, aldVertexLightLayerCount);
+			FL_FreeFile(pFile);
+			return false;
+		}
+	}
+
 	for(Uint32 i = 0; i < pworldmodel->lightmaplayercount; i++)
 	{
 		// Load in the lump and copy the data
@@ -183,7 +226,7 @@ bool ALD_Load( daystage_t stage, byte** pdestarrays )
 		byte* paldlightdata = new byte[destinationsize];
 
 		// Get ptr to layer
-		const aldlayer_t* player = reinterpret_cast<const aldlayer_t*>(reinterpret_cast<const byte*>(ploadheader) + plump->layeroffsets[i]);
+		const aldlayer_t* player = reinterpret_cast<const aldlayer_t*>(reinterpret_cast<const byte*>(ploadheader) + plump->lmaplayeroffsets[i]);
 		const byte* pdatasrc = (pFile + player->dataoffset);
 
 		switch(player->compression)
@@ -215,7 +258,103 @@ bool ALD_Load( daystage_t stage, byte** pdestarrays )
 		}
 
 		// Set ptr for final
-		pdestarrays[i] = paldlightdata;
+		pdestlmaparrays[i] = paldlightdata;
+	}
+
+	//
+	// Manage baked vertex lighting
+	//
+	if(pworldmodel->vertexlightdatasize > 0)
+	{
+		for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+		{
+			// Load in the lump and copy the data
+			mz_ulong destinationsize = ploadheader->vertexlightdatasize;
+			byte* paldvertexlightdata = new byte[destinationsize];
+
+			// Get ptr to layer
+			const aldlayer_t* player = reinterpret_cast<const aldlayer_t*>(reinterpret_cast<const byte*>(ploadheader) + plump->vertexlightlayeroffsets[i]);
+			const byte* pdatasrc = (pFile + player->dataoffset);
+
+			switch(player->compression)
+			{
+			case ALD_COMPRESSION_NONE:
+			default:
+				memcpy(paldvertexlightdata, pdatasrc, sizeof(byte)*ploadheader->vertexlightdatasize);
+				break;
+			case ALD_COMPRESSION_MINIZ:
+				{
+					Int32 status = uncompress(paldvertexlightdata, &destinationsize, pdatasrc, player->datasize);
+					if(status != MZ_OK)
+					{
+						Con_EPrintf("%s - Miniz uncompress2 failed on lump of type %d vertex lighting layer %d with error code %d.\n", __FUNCTION__, plump->type, i, status);
+						delete[] paldvertexlightdata;
+						FL_FreeFile(pFile);
+						return false;
+					}
+
+					if(ploadheader->vertexlightdatasize != static_cast<Int32>(destinationsize))
+					{
+						Con_EPrintf("%s - Miniz uncompress produced inconsistent output size (expected %d, got %d instead).\n", __FUNCTION__, ploadheader->vertexlightdatasize, destinationsize);
+						delete[] paldvertexlightdata;
+						FL_FreeFile(pFile);
+						return false;
+					}
+				}
+				break;
+			}
+
+			// Set ptr for final
+			pdestvertexlightarrays[i] = paldvertexlightdata;
+		}
+	}
+
+	//
+	// Manage light grid
+	//
+	if(pworldmodel->plightgrid)
+	{
+		for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
+		{
+			// Load in the lump and copy the data
+			mz_ulong destinationsize = ploadheader->lightgridsampledatasize;
+			byte* paldlightgridrawsampledata = new byte[destinationsize];
+
+			// Get ptr to layer
+			const aldlayer_t* player = reinterpret_cast<const aldlayer_t*>(reinterpret_cast<const byte*>(ploadheader) + plump->lightgridlayeroffsets[i]);
+			const byte* pdatasrc = (pFile + player->dataoffset);
+
+			switch(player->compression)
+			{
+			case ALD_COMPRESSION_NONE:
+			default:
+				memcpy(paldlightgridrawsampledata, pdatasrc, sizeof(byte)*ploadheader->lightgridsampledatasize);
+				break;
+			case ALD_COMPRESSION_MINIZ:
+				{
+					Int32 status = uncompress(paldlightgridrawsampledata, &destinationsize, pdatasrc, player->datasize);
+					if(status != MZ_OK)
+					{
+						Con_EPrintf("%s - Miniz uncompress2 failed on lump of type %d vertex lighting layer %d with error code %d.\n", __FUNCTION__, plump->type, i, status);
+						delete[] paldlightgridrawsampledata;
+						FL_FreeFile(pFile);
+						return false;
+					}
+
+					if(ploadheader->lightgridsampledatasize != static_cast<Int32>(destinationsize))
+					{
+						Con_EPrintf("%s - Miniz uncompress produced inconsistent output size (expected %d, got %d instead).\n", __FUNCTION__, ploadheader->lightgridsampledatasize, destinationsize);
+						delete[] paldlightgridrawsampledata;
+						FL_FreeFile(pFile);
+						return false;
+					}
+				}
+				break;
+			}
+
+			// Set ptr for final
+			pdestlightgridarrays[i] = paldlightgridrawsampledata;
+		}
 	}
 
 	// Release the file
@@ -299,6 +438,7 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 	pheader->header = ALD_HEADER_ENCODED;
 	pheader->version = ALD_HEADER_VERSION;
 	pheader->lightdatasize = pworldmodel->lightdatasize;
+	pheader->vertexlightdatasize = pworldmodel->vertexlightdatasize;
 
 	// Check for original and include it's data
 	const byte* poriginal = FL_LoadFile(filename.c_str());
@@ -306,10 +446,18 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 	{
 		const aldheader_t* poldhdr = reinterpret_cast<const aldheader_t*>(poriginal);
 
+		Int32 expectedgridsampledatasize;
+		if(pworldmodel->plightgrid)
+			expectedgridsampledatasize = static_cast<Int32>(pworldmodel->plightgrid->rawsampledatasize);
+		else
+			expectedgridsampledatasize = 0;
+	
 		// Count how many usable lumps there are in the original
 		Uint32 oldlumpaddcount = 0;
 		// Only add if the light data size matches
-		if(poldhdr->lightdatasize == static_cast<Int32>(pworldmodel->lightdatasize))
+		if(poldhdr->lightdatasize == static_cast<Int32>(pworldmodel->lightdatasize)
+			&& poldhdr->vertexlightdatasize == static_cast<Int32>(pworldmodel->vertexlightdatasize)
+			&& poldhdr->lightgridsampledatasize == expectedgridsampledatasize)
 		{
 			for(Uint32 i = 0; i < poldhdr->numlumps; i++)
 			{
@@ -338,18 +486,65 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 				fileBuffer.addpointer(reinterpret_cast<void**>(&poutlump));
 				poutlump->type = poldlump->type;
 
+				// Export lightmap
 				for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
 				{
-					if(!poldlump->layeroffsets[j])
+					if(!poldlump->lmaplayeroffsets[j])
 						break;
 
 					// Set layer offset and allocate
-					poutlump->layeroffsets[j] = fileBuffer.getdatasize();
+					poutlump->lmaplayeroffsets[j] = fileBuffer.getdatasize();
 					fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
 					// Set layer data
-					const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(poriginal + poldlump->layeroffsets[j]);
-					aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + poutlump->layeroffsets[j]);
+					const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(poriginal + poldlump->lmaplayeroffsets[j]);
+					aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + poutlump->lmaplayeroffsets[j]);
+					poutlayer->compression = poldlayer->compression;
+					poutlayer->compressionlevel = poldlayer->compressionlevel;
+					poutlayer->datasize = poldlayer->datasize;
+					poutlayer->dataoffset = fileBuffer.getdatasize();
+
+					// Append the raw data
+					const byte* psrcdata = poriginal + poldlayer->dataoffset;
+					fileBuffer.append(psrcdata, sizeof(byte)*poldlayer->datasize);
+				}
+
+				// Export vertex lighting
+				for(Uint32 j = 0; j < NB_BAKED_VERTEXLIGHT_LAYERS; j++)
+				{
+					if(!poldlump->vertexlightlayeroffsets[j])
+						break;
+
+					// Set layer offset and allocate
+					poutlump->vertexlightlayeroffsets[j] = fileBuffer.getdatasize();
+					fileBuffer.append(nullptr, sizeof(aldlayer_t));
+
+					// Set layer data
+					const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(poriginal + poldlump->vertexlightlayeroffsets[j]);
+					aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + poutlump->vertexlightlayeroffsets[j]);
+					poutlayer->compression = poldlayer->compression;
+					poutlayer->compressionlevel = poldlayer->compressionlevel;
+					poutlayer->datasize = poldlayer->datasize;
+					poutlayer->dataoffset = fileBuffer.getdatasize();
+
+					// Append the raw data
+					const byte* psrcdata = poriginal + poldlayer->dataoffset;
+					fileBuffer.append(psrcdata, sizeof(byte)*poldlayer->datasize);
+				}
+
+				// Export vertex lighting
+				for(Uint32 j = 0; j < NB_LIGHTGRID_DATA_LAYERS; j++)
+				{
+					if(!poldlump->lightgridlayeroffsets[j])
+						break;
+
+					// Set layer offset and allocate
+					poutlump->lightgridlayeroffsets[j] = fileBuffer.getdatasize();
+					fileBuffer.append(nullptr, sizeof(aldlayer_t));
+
+					// Set layer data
+					const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(poriginal + poldlump->lightgridlayeroffsets[j]);
+					aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + poutlump->lightgridlayeroffsets[j]);
 					poutlayer->compression = poldlayer->compression;
 					poutlayer->compressionlevel = poldlayer->compressionlevel;
 					poutlayer->datasize = poldlayer->datasize;
@@ -390,10 +585,10 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 		if(daystage == DAYSTAGE_NORMAL_RESTORE && pworldmodel->plightdata_original[i])
 		{
 			// Set the offset and increment
-			pnewlump->layeroffsets[i] = fileBuffer.getdatasize();
+			pnewlump->lmaplayeroffsets[i] = fileBuffer.getdatasize();
 			fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
-			aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->layeroffsets[i]);
+			aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->lmaplayeroffsets[i]);
 			player->dataoffset = fileBuffer.getdatasize();
 			player->datasize = pworldmodel->original_lightdatasizes[i];
 			player->compression = pworldmodel->original_compressiontype[i];
@@ -419,10 +614,10 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 				break;
 
 			// Set the offset and increment
-			pnewlump->layeroffsets[i] = fileBuffer.getdatasize();
+			pnewlump->lmaplayeroffsets[i] = fileBuffer.getdatasize();
 			fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
-			aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->layeroffsets[i]);
+			aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->lmaplayeroffsets[i]);
 			fileBuffer.addpointer(reinterpret_cast<void**>(&player));
 
 			player->compression = compressionType;
@@ -448,7 +643,153 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 					Int32 result = compress2(pdestination, &resultsize, pdatasrc, pworldmodel->lightdatasize, MZ_DEFAULT_COMPRESSION);
 					if(result != MZ_OK)
 					{
-						Con_EPrintf("%s - Failed to compress layer %d, compress returned %d.\n", __FUNCTION__, i, result);
+						Con_EPrintf("%s - Failed to compress layer %d lightmap data, compress returned %d.\n", __FUNCTION__, i, result);
+						delete[] pdestination;
+						return false;
+					}
+
+					fileBuffer.append(pdestination, resultsize);
+					delete[] pdestination;
+
+					player->datasize = resultsize;
+					player->compressionlevel = MZ_DEFAULT_COMPRESSION;
+				}
+				break;
+			}
+
+			// Remove this ptr
+			fileBuffer.removepointer((const void**)&player);
+		}
+	}
+
+	// Export vertex lightdata if we have any
+	if(pworldmodel->vertexlightdatasize > 0)
+	{
+		// Set data in new lump
+		for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+		{
+			// Optimize DAYSTAGE_NORMAL_RESTORE by using the compressed data from the BSP
+			if(daystage == DAYSTAGE_NORMAL_RESTORE && pworldmodel->pvertexlightdata_original[i])
+			{
+				// Set the offset and increment
+				pnewlump->vertexlightlayeroffsets[i] = fileBuffer.getdatasize();
+				fileBuffer.append(nullptr, sizeof(aldlayer_t));
+
+				aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->vertexlightlayeroffsets[i]);
+				player->dataoffset = fileBuffer.getdatasize();
+				player->datasize = pworldmodel->original_vertexlightdatasizes[i];
+				player->compression = pworldmodel->original_vertexlightcompressiontype[i];
+				player->compressionlevel = pworldmodel->original_vertexlightcompressionlevel[i];
+
+				switch(pworldmodel->original_vertexlightcompressiontype[i])
+				{
+				case BSP_LMAP_COMPRESSION_MINIZ:
+					player->compression = ALD_COMPRESSION_MINIZ;
+					break;
+				case BSP_LMAP_COMPRESSION_NONE:
+				default:
+					player->compression = ALD_COMPRESSION_NONE;
+					break;
+				}
+
+				// append the original compressed data
+				fileBuffer.append(pworldmodel->pvertexlightdata_original[i], player->datasize);
+			}
+			else
+			{
+				if(!pworldmodel->pvertexlightdata[i])
+					break;
+
+				// Set the offset and increment
+				pnewlump->vertexlightlayeroffsets[i] = fileBuffer.getdatasize();
+				fileBuffer.append(nullptr, sizeof(aldlayer_t));
+
+				aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->vertexlightlayeroffsets[i]);
+				fileBuffer.addpointer(reinterpret_cast<void**>(&player));
+
+				player->compression = compressionType;
+				player->dataoffset = fileBuffer.getdatasize();
+		
+				switch(compressionType)
+				{
+				case ALD_COMPRESSION_NONE:
+					{
+						fileBuffer.append(pworldmodel->pvertexlightdata[i], pworldmodel->lightdatasize);
+						player->datasize = pworldmodel->vertexlightdatasize;
+						player->compressionlevel = 0;
+					}
+					break;
+				case ALD_COMPRESSION_MINIZ:
+					{
+						Uint32 destsize = compressBound(pworldmodel->vertexlightdatasize);
+						byte* pdestination = new byte[destsize];
+						memset(pdestination, 0, sizeof(byte)*destsize);
+
+						mz_ulong resultsize = destsize;
+						const byte* pdatasrc = reinterpret_cast<const byte*>(pworldmodel->pvertexlightdata[i]);
+						Int32 result = compress2(pdestination, &resultsize, pdatasrc, pworldmodel->vertexlightdatasize, MZ_DEFAULT_COMPRESSION);
+						if(result != MZ_OK)
+						{
+							Con_EPrintf("%s - Failed to compress layer %d vertex lighting data, compress returned %d.\n", __FUNCTION__, i, result);
+							delete[] pdestination;
+							return false;
+						}
+
+						fileBuffer.append(pdestination, resultsize);
+						delete[] pdestination;
+
+						player->datasize = resultsize;
+						player->compressionlevel = MZ_DEFAULT_COMPRESSION;
+					}
+					break;
+				}
+
+				// Remove this ptr
+				fileBuffer.removepointer((const void**)&player);
+			}
+		}
+	}
+
+	// Export vertex lightdata if we have any
+	if(pworldmodel->plightgrid)
+	{
+		// Set data in new lump
+		for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
+		{
+			if(!pworldmodel->plightgrid->prawsampledata[i])
+				break;
+
+			// Set the offset and increment
+			pnewlump->lightgridlayeroffsets[i] = fileBuffer.getdatasize();
+			fileBuffer.append(nullptr, sizeof(aldlayer_t));
+
+			aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->lightgridlayeroffsets[i]);
+			fileBuffer.addpointer(reinterpret_cast<void**>(&player));
+
+			player->compression = compressionType;
+			player->dataoffset = fileBuffer.getdatasize();
+		
+			switch(compressionType)
+			{
+			case ALD_COMPRESSION_NONE:
+				{
+					fileBuffer.append(pworldmodel->plightgrid->prawsampledata[i], pworldmodel->lightdatasize);
+					player->datasize = pworldmodel->plightgrid->rawsampledatasize;
+					player->compressionlevel = 0;
+				}
+				break;
+			case ALD_COMPRESSION_MINIZ:
+				{
+					Uint32 destsize = compressBound(pworldmodel->plightgrid->rawsampledatasize);
+					byte* pdestination = new byte[destsize];
+					memset(pdestination, 0, sizeof(byte)*destsize);
+
+					mz_ulong resultsize = destsize;
+					const byte* pdatasrc = reinterpret_cast<const byte*>(pworldmodel->plightgrid->prawsampledata[i]);
+					Int32 result = compress2(pdestination, &resultsize, pdatasrc, pworldmodel->plightgrid->rawsampledatasize, MZ_DEFAULT_COMPRESSION);
+					if(result != MZ_OK)
+					{
+						Con_EPrintf("%s - Failed to compress layer %d light grid sample data, compress returned %d.\n", __FUNCTION__, i, result);
 						delete[] pdestination;
 						return false;
 					}
@@ -559,7 +900,9 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 
 		// Count how many usable lumps there are in the original
 		Uint32 oldlumpaddcount = 0;
-		if(pheader->lightdatasize == poldhdr->lightdatasize)
+		if(pheader->lightdatasize == poldhdr->lightdatasize
+			&& pheader->vertexlightdatasize == poldhdr->vertexlightdatasize
+			&& pheader->lightgridsampledatasize == poldhdr->lightgridsampledatasize)
 		{
 			for(Uint32 i = 0; i < poldhdr->numlumps; i++)
 			{
@@ -590,16 +933,16 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 
 				for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
 				{
-					if(!poldlump->layeroffsets[j])
+					if(!poldlump->lmaplayeroffsets[j])
 						break;
 
 					// Set layer offset and allocate
-					poutlump->layeroffsets[j] = fileBuffer.getdatasize();
+					poutlump->lmaplayeroffsets[j] = fileBuffer.getdatasize();
 					fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
 					// Set layer data
-					const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(poriginal + poldlump->layeroffsets[j]);
-					aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + poutlump->layeroffsets[j]);
+					const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(poriginal + poldlump->lmaplayeroffsets[j]);
+					aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + poutlump->lmaplayeroffsets[j]);
 					poutlayer->compression = poldlayer->compression;
 					poutlayer->compressionlevel = poldlayer->compressionlevel;
 					poutlayer->datasize = poldlayer->datasize;
@@ -608,6 +951,56 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 					// Append the raw data
 					const byte* psrcdata = poriginal + poldlayer->dataoffset;
 					fileBuffer.append(psrcdata, sizeof(byte)*poldlayer->datasize);
+				}
+
+				if(poldhdr->vertexlightdatasize > 0)
+				{
+					for(Uint32 j = 0; j < NB_BAKED_VERTEXLIGHT_LAYERS; j++)
+					{
+						if(!poldlump->vertexlightlayeroffsets[j])
+							break;
+
+						// Set layer offset and allocate
+						poutlump->vertexlightlayeroffsets[j] = fileBuffer.getdatasize();
+						fileBuffer.append(nullptr, sizeof(aldlayer_t));
+
+						// Set layer data
+						const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(poriginal + poldlump->vertexlightlayeroffsets[j]);
+						aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + poutlump->vertexlightlayeroffsets[j]);
+						poutlayer->compression = poldlayer->compression;
+						poutlayer->compressionlevel = poldlayer->compressionlevel;
+						poutlayer->datasize = poldlayer->datasize;
+						poutlayer->dataoffset = fileBuffer.getdatasize();
+
+						// Append the raw data
+						const byte* psrcdata = poriginal + poldlayer->dataoffset;
+						fileBuffer.append(psrcdata, sizeof(byte)*poldlayer->datasize);
+					}
+				}
+
+				if(poldhdr->lightgridsampledatasize > 0)
+				{
+					for(Uint32 j = 0; j < NB_LIGHTGRID_DATA_LAYERS; j++)
+					{
+						if(!poldlump->lightgridlayeroffsets[j])
+							break;
+
+						// Set layer offset and allocate
+						poutlump->lightgridlayeroffsets[j] = fileBuffer.getdatasize();
+						fileBuffer.append(nullptr, sizeof(aldlayer_t));
+
+						// Set layer data
+						const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(poriginal + poldlump->lightgridlayeroffsets[j]);
+						aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + poutlump->lightgridlayeroffsets[j]);
+						poutlayer->compression = poldlayer->compression;
+						poutlayer->compressionlevel = poldlayer->compressionlevel;
+						poutlayer->datasize = poldlayer->datasize;
+						poutlayer->dataoffset = fileBuffer.getdatasize();
+
+						// Append the raw data
+						const byte* psrcdata = poriginal + poldlayer->dataoffset;
+						fileBuffer.append(psrcdata, sizeof(byte)*poldlayer->datasize);
+					}
 				}
 
 				fileBuffer.removepointer(reinterpret_cast<const void**>(poutlump));
@@ -675,7 +1068,21 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 	const aldheader_t* pcopyhdr = reinterpret_cast<const aldheader_t*>(pcopyfile);
 	if(pheader->lightdatasize && pcopyhdr->lightdatasize != pheader->lightdatasize)
 	{
-		Con_EPrintf("%s - Inconsistent light data size between copy file '%s' and original '%s'.\n", __FUNCTION__, copyfilename.c_str(), filename.c_str());
+		Con_EPrintf("%s - Inconsistent lightmap light data size between copy file '%s' and original '%s'.\n", __FUNCTION__, copyfilename.c_str(), filename.c_str());
+		FL_FreeFile(pcopyfile);
+		return;
+	}
+
+	if(pheader->vertexlightdatasize && pcopyhdr->vertexlightdatasize != pheader->vertexlightdatasize)
+	{
+		Con_EPrintf("%s - Inconsistent baked vertex light data size between copy file '%s' and original '%s'.\n", __FUNCTION__, copyfilename.c_str(), filename.c_str());
+		FL_FreeFile(pcopyfile);
+		return;
+	}
+
+	if(pheader->lightgridsampledatasize && pcopyhdr->lightgridsampledatasize != pheader->lightgridsampledatasize)
+	{
+		Con_EPrintf("%s - Inconsistent light grid sample data size between copy file '%s' and original '%s'.\n", __FUNCTION__, copyfilename.c_str(), filename.c_str());
 		FL_FreeFile(pcopyfile);
 		return;
 	}
@@ -702,16 +1109,16 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 
 	for(Uint32 j = 0; j < NB_SURF_LIGHTMAP_LAYERS; j++)
 	{
-		if(!pcopylump->layeroffsets[j])
+		if(!pcopylump->lmaplayeroffsets[j])
 			break;
 
 		// Set layer offset and allocate
-		pnewlump->layeroffsets[j] = fileBuffer.getdatasize();
+		pnewlump->lmaplayeroffsets[j] = fileBuffer.getdatasize();
 		fileBuffer.append(nullptr, sizeof(aldlayer_t));
 
 		// Set layer data
-		const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(pcopyfile + pcopylump->layeroffsets[j]);
-		aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->layeroffsets[j]);
+		const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(pcopyfile + pcopylump->lmaplayeroffsets[j]);
+		aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->lmaplayeroffsets[j]);
 		poutlayer->compression = poldlayer->compression;
 		poutlayer->compressionlevel = poldlayer->compressionlevel;
 		poutlayer->datasize = poldlayer->datasize;
@@ -720,6 +1127,56 @@ void ALD_CopyAndExportLightmaps( const Char* psrcaldfilename, daystage_t srcstag
 		// Append the raw data
 		const byte* psrcdata = pcopyfile + poldlayer->dataoffset;
 		fileBuffer.append(psrcdata, sizeof(byte)*poldlayer->datasize);
+	}
+
+	if(pcopyhdr->vertexlightdatasize > 0)
+	{
+		for(Uint32 j = 0; j < NB_BAKED_VERTEXLIGHT_LAYERS; j++)
+		{
+			if(!pcopylump->vertexlightlayeroffsets[j])
+				break;
+
+			// Set layer offset and allocate
+			pnewlump->vertexlightlayeroffsets[j] = fileBuffer.getdatasize();
+			fileBuffer.append(nullptr, sizeof(aldlayer_t));
+
+			// Set layer data
+			const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(pcopyfile + pcopylump->vertexlightlayeroffsets[j]);
+			aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->vertexlightlayeroffsets[j]);
+			poutlayer->compression = poldlayer->compression;
+			poutlayer->compressionlevel = poldlayer->compressionlevel;
+			poutlayer->datasize = poldlayer->datasize;
+			poutlayer->dataoffset = fileBuffer.getdatasize();
+
+			// Append the raw data
+			const byte* psrcdata = pcopyfile + poldlayer->dataoffset;
+			fileBuffer.append(psrcdata, sizeof(byte)*poldlayer->datasize);
+		}
+	}
+	
+	if(pcopyhdr->lightgridsampledatasize > 0)
+	{
+		for(Uint32 j = 0; j < NB_LIGHTGRID_DATA_LAYERS; j++)
+		{
+			if(!pcopylump->lightgridlayeroffsets[j])
+				break;
+
+			// Set layer offset and allocate
+			pnewlump->lightgridlayeroffsets[j] = fileBuffer.getdatasize();
+			fileBuffer.append(nullptr, sizeof(aldlayer_t));
+
+			// Set layer data
+			const aldlayer_t* poldlayer = reinterpret_cast<const aldlayer_t*>(pcopyfile + pcopylump->lightgridlayeroffsets[j]);
+			aldlayer_t* poutlayer = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->lightgridlayeroffsets[j]);
+			poutlayer->compression = poldlayer->compression;
+			poutlayer->compressionlevel = poldlayer->compressionlevel;
+			poutlayer->datasize = poldlayer->datasize;
+			poutlayer->dataoffset = fileBuffer.getdatasize();
+
+			// Append the raw data
+			const byte* psrcdata = pcopyfile + poldlayer->dataoffset;
+			fileBuffer.append(psrcdata, sizeof(byte)*poldlayer->datasize);
+		}
 	}
 
 	fileBuffer.removepointer((const void**)pnewlump);
@@ -889,5 +1346,5 @@ void ALD_InitGame( void )
 //=============================================
 void ALD_ClearGame( void )
 {
-	// Nothing here atm
+	// Nothing here atm, as the temp file manager takes care of this
 }

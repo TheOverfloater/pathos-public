@@ -203,6 +203,7 @@ bool CGeometrySMDParser::ParseTriangles( void )
 	
 	Float normalBlend = m_studioCompiler.GetNormalMergeTreshold();
 	Float minWeightTreshold = m_studioCompiler.GetWeightTreshold();
+	Float vertexMergeTreshold = m_studioCompiler.GetVertexMergeTreshold();
 
 	smdl::triangle_vertex_t triVertexes[3];
 	Vector triNormals[3];
@@ -369,12 +370,6 @@ bool CGeometrySMDParser::ParseTriangles( void )
 			// Transform to bone space
 			Math::VectorInverseTransform(vertexCoord, m_boneTransformInfoArray[boneIndex].matrix, vertex.position);
 
-			for(Uint32 j = 0; j < 3; j++)
-				vertex.position[j] = static_cast<Int32>(vertex.position[j] * VERTEX_ROUNDING_VALUE) / VERTEX_ROUNDING_VALUE;
-
-			for(Uint32 j = 0; j < 3; j++)
-				vertex.pos_original[j] = static_cast<Int32>(vertex.pos_original[j] * VERTEX_ROUNDING_VALUE) / VERTEX_ROUNDING_VALUE;
-
 			// Build normal
 			smdl::normal_t normal;
 			normal.boneindex = boneIndex;
@@ -383,7 +378,7 @@ bool CGeometrySMDParser::ParseTriangles( void )
 			Math::VectorInverseRotate(normalValue, m_boneTransformInfoArray[boneIndex].matrix, normal.normal);
 
 			ptrivertex->normalindex = m_pSubModel->addNormal(normal, normalBlend);
-			ptrivertex->vertexindex = m_pSubModel->addVertex(vertex);
+			ptrivertex->vertexindex = m_pSubModel->addVertex(vertex, vertexMergeTreshold);
 			ptrivertex->weightindex = m_pSubModel->addWeightInfo(weights, bones, numWeights, minWeightTreshold);
 		}
 

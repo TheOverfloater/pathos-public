@@ -47,8 +47,11 @@ struct attrib_t
 class CVBO
 {
 public:
-	CVBO( const CGLExtF& glExtF, const void *pvbodata, Uint32 ivbodatasize, const void *pibodata, Uint32 iibodatasize, bool keepcache = false );
-	CVBO ( const CGLExtF& glExtF, bool bvbo, bool bibo );
+	friend class CGLSLShader;
+
+public:
+	CVBO( const CGLExtF& glExtF, const void *pvbodata, Uint32 ivbodatasize, const void *pibodata, Uint32 iibodatasize, bool keepcache = false, bool usevao = true );
+	CVBO ( const CGLExtF& glExtF, bool bvbo, bool bibo, bool usevao = true );
 	~CVBO( void );
 	void Clear( void );
 
@@ -57,9 +60,6 @@ public:
 
 	void VBOSubBufferData( Uint32 offset, const void *pdata, Uint32 size );
 	void IBOSubBufferData( Uint32 offset, const void *pdata, Uint32 size );
-
-	void Bind( void );
-	void UnBind( void );
 
 	void ClearGL( void );
 	void RebindGL( void );
@@ -71,14 +71,26 @@ public:
 	void DeleteCaches( void );
 
 	bool IsValid( void ) const { return m_isValid; }
-	bool IsActive( void ) const { return m_bActive; }
+	bool IsVBOBound( void ) const { return m_isVBOBound; }
+	bool IsIBOBound( void ) const { return m_isIBOBound; }
+	bool IsVAOBound( void ) const { return m_isVAOBound; }
+	bool HasIBO( void ) const { return (m_uiIBOIndex != 0) ? true : false; }
+
+protected:
+	void BindVBO( void );
+	void UnBindVBO( void );
+
+	void BindIBO( void );
+	void UnBindIBO( void );
+
+	void BindVAO( void );
+	void UnbindVAO( void );
 
 public:
 	GLuint GetVBOIndex( void ) const { return m_uiVBOIndex; }
 	GLuint GetIBOIndex( void ) const { return m_uiIBOIndex; }
-#ifndef NO_VAO
 	GLuint GetVAOIndex( void ) const { return m_uiVAOIndex; }
-#endif
+
 	const void* GetVBOData( void ) const { return m_pVBOData; }
 	const Uint32 GetVBODataSize( void ) const { return m_iVBOSize; }
 
@@ -88,12 +100,15 @@ public:
 private:
 	GLuint	m_uiVBOIndex;
 	GLuint	m_uiIBOIndex;
-#ifndef NO_VAO
 	GLuint	m_uiVAOIndex;
-#endif
-	bool	m_bActive;
+
+	bool	m_isVAOBound;
+	bool	m_isVBOBound;
+	bool	m_isIBOBound;
+
 	bool	m_bCache;
 	bool	m_isValid;
+	bool	m_useVAO;
 
 	void *m_pVBOData;
 	Uint32 m_iVBOSize;

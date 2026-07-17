@@ -222,7 +222,7 @@ bool CFuncDoor::Spawn( void )
 	SetMovementVectors();
 
 	// Set toggle state
-	m_toggleState = TS_AT_BOTTOM;
+	m_toggleState = TSTATE_AT_BOTTOM;
 	m_isBlocked = false;
 
 	// Set as nodraw if set
@@ -427,7 +427,7 @@ void CFuncDoor::CallBlocked( CBaseEntity* pOther )
 	// Don't return of wait is null, or forced to close
 	if(m_waitTime != -1 && !m_forcedToClose)
 	{
-		if(m_toggleState == TS_GOING_DOWN)
+		if(m_toggleState == TSTATE_GOING_DOWN)
 			GoUp();
 		else
 			GoDown();
@@ -447,7 +447,7 @@ void CFuncDoor::CallBlocked( CBaseEntity* pOther )
 			if(Math::VectorCompare(pOther->GetVelocity(), m_pState->velocity) && Math::VectorCompare(pOther->GetAngularVelocity(), m_pState->avelocity))
 				RealignRelatedDoor(pRelatedDoor);
 
-			if(pRelatedDoor->GetToggleState() == TS_GOING_DOWN)
+			if(pRelatedDoor->GetToggleState() == TSTATE_GOING_DOWN)
 				pRelatedDoor->GoUp();
 			else
 				pRelatedDoor->GoDown();
@@ -475,7 +475,7 @@ Int32 CFuncDoor::GetEntityFlags( void )
 void CFuncDoor::SetToggleState( togglestate_t state, bool reverse )
 {
 	Vector setPosition;
-	if(state == TS_AT_TOP)
+	if(state == TSTATE_AT_TOP)
 		setPosition = m_position2;
 	else
 		setPosition = m_position1;
@@ -491,7 +491,7 @@ void CFuncDoor::SetToggleState( togglestate_t state, bool reverse )
 void CFuncDoor::SetForcedClose( void )
 {
 	// Don't bother with closed or closing doors
-	if(m_toggleState == TS_AT_BOTTOM || m_toggleState == TS_GOING_DOWN)
+	if(m_toggleState == TSTATE_AT_BOTTOM || m_toggleState == TSTATE_GOING_DOWN)
 		return;
 
 	// Remember so we don't allow overrides while closing
@@ -535,9 +535,9 @@ bool CFuncDoor::DoorActivate( void )
 	}
 
 	// Don't return if we're moving
-	if(!HasSpawnFlag(FL_NO_AUTO_RETURN) && m_toggleState != TS_AT_BOTTOM 
-		|| HasSpawnFlag(FL_NO_AUTO_RETURN) && m_toggleState != TS_AT_TOP 
-		&& m_toggleState != TS_AT_BOTTOM)
+	if(!HasSpawnFlag(FL_NO_AUTO_RETURN) && m_toggleState != TSTATE_AT_BOTTOM 
+		|| HasSpawnFlag(FL_NO_AUTO_RETURN) && m_toggleState != TSTATE_AT_TOP 
+		&& m_toggleState != TSTATE_AT_BOTTOM)
 		return false;
 
 	// Remember activator's origin for correction
@@ -547,7 +547,7 @@ bool CFuncDoor::DoorActivate( void )
 	// Reset blocked state
 	m_isBlocked = false;
 
-	if(HasSpawnFlag(FL_NO_AUTO_RETURN) && m_toggleState == TS_AT_TOP)
+	if(HasSpawnFlag(FL_NO_AUTO_RETURN) && m_toggleState == TSTATE_AT_TOP)
 	{
 		// Close the door
 		GoDown();
@@ -617,7 +617,7 @@ bool CFuncDoor::ShouldAutoCloseDoor( void )
 void CFuncDoor::GoUp( void )
 {
 	// Set toggle-state
-	m_toggleState = TS_GOING_UP;
+	m_toggleState = TSTATE_GOING_UP;
 
 	// Play sound if not silent
 	if(!m_isSilent)
@@ -649,7 +649,7 @@ void CFuncDoor::GoDown( void )
 		Util::EmitEntitySound(this, m_moveSoundFile, SND_CHAN_BODY, VOL_NORM, ATTN_NORM, PITCH_NORM, SND_FL_OCCLUSIONLESS);
 
 	// Begin moving down
-	m_toggleState = TS_GOING_DOWN;
+	m_toggleState = TSTATE_GOING_DOWN;
 
 	// Go and hit rock bottom
 	SetMoveDone(&CFuncDoor::HitBottom);
@@ -667,7 +667,7 @@ void CFuncDoor::HitTop( void )
 	m_isBlocked = false;
 
 	// Set toggle state
-	m_toggleState = TS_AT_TOP;
+	m_toggleState = TSTATE_AT_TOP;
 
 	if(!m_isSilent)
 	{
@@ -719,7 +719,7 @@ void CFuncDoor::HitBottom( void )
 	m_isBlocked = false;
 
 	// Set toggle state
-	m_toggleState = TS_AT_BOTTOM;
+	m_toggleState = TSTATE_AT_BOTTOM;
 
 	if(!m_isSilent)
 	{
@@ -757,7 +757,7 @@ void CFuncDoor::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_
 	m_activator = pActivator;
 
 	// If not ready to be used, ignore
-	if(m_toggleState == TS_AT_BOTTOM || HasSpawnFlag(FL_NO_AUTO_RETURN) && m_toggleState == TS_AT_TOP)
+	if(m_toggleState == TSTATE_AT_BOTTOM || HasSpawnFlag(FL_NO_AUTO_RETURN) && m_toggleState == TSTATE_AT_TOP)
 		DoorActivate();
 }
 
@@ -774,7 +774,7 @@ void CFuncDoor::DoorTouch( CBaseEntity* pOther )
 	// Don't open is locked by master
 	if(IsLockedByMaster() || m_pFields->targetname != NO_STRING_VALUE && !HasSpawnFlag(FL_TOUCH_OPENS))
 	{
-		if(m_toggleState == TS_AT_BOTTOM)
+		if(m_toggleState == TSTATE_AT_BOTTOM)
 			PlayLockSounds(true, false, LOCKED_SOUND_DELAY, m_nextLockedSoundTime);
 
 		// Don't do anything
@@ -802,7 +802,7 @@ void CFuncDoor::DoorTouch( CBaseEntity* pOther )
 //=============================================
 void CFuncDoor::SendInitMessage( const CBaseEntity* pPlayer )
 {
-	if(m_toggleState == TS_GOING_UP || m_toggleState == TS_GOING_DOWN)
+	if(m_toggleState == TSTATE_GOING_UP || m_toggleState == TSTATE_GOING_DOWN)
 		Util::EmitEntitySound(this, m_moveSoundFile, SND_CHAN_BODY, VOL_NORM, ATTN_NORM, PITCH_NORM, SND_FL_OCCLUSIONLESS);
 }
 

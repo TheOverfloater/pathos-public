@@ -1175,6 +1175,7 @@
     2 : "No elight tracelines" : 0
     4 : "No VIS checks" : 0
     8 : "Start Invisible" : 0
+	16 : "Disable Baked Shadows" : 0
   ] 
   scale(Integer) : "Scale" : 1
 ]

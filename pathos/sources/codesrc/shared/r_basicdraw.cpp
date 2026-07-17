@@ -182,18 +182,18 @@ void CBasicDraw::End( bool clearData )
 	switch(m_primitiveType)
 	{
 		case DRAW_TRIANGLES:
-			glDrawArrays(GL_TRIANGLES, 0, m_numVertexes);
+			m_pShader->DrawArrays(GL_TRIANGLES, 0, m_numVertexes);
 			break;
 		case DRAW_POINTS:
-			glDrawArrays(GL_POINTS, 0, m_numVertexes);
+			m_pShader->DrawArrays(GL_POINTS, 0, m_numVertexes);
 			break;
 		case DRAW_LINES:
-			glDrawArrays(GL_LINES, 0, m_numVertexes);
+			m_pShader->DrawArrays(GL_LINES, 0, m_numVertexes);
 			break;
 		case DRAW_QUADS:
 		{
 			Uint32 numTriangleIndexes = (m_numVertexes / 4) * 6;
-			glDrawElements(GL_TRIANGLES, numTriangleIndexes, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+			m_pShader->DrawElements(GL_TRIANGLES, numTriangleIndexes, GL_UNSIGNED_INT, BUFFER_OFFSET(0));
 		}
 		break;
 	}
@@ -247,7 +247,6 @@ bool CBasicDraw::Enable( void )
 	if(!m_pVBO)
 		return false;
 
-	m_pVBO->Bind();
 	if(!m_pShader->EnableShader())
 		return false;
 
@@ -278,9 +277,6 @@ void CBasicDraw::Disable( void )
 {
 	if(m_pShader)
 		m_pShader->DisableShader();
-
-	if(m_pVBO)
-		m_pVBO->UnBind();
 
 	m_isActive = false;
 }

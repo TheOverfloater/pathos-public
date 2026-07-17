@@ -451,6 +451,32 @@ void BSP_Model_ReserveWaterLighting( brushmodel_t& model, color24_t* psrclightda
 // @brief
 //
 //=============================================
+void BSP_SetLightGridSampleData( brushmodel_t& model, byte* psrclightdataptrs[] )
+{
+	if(!model.plightgrid)
+		return;
+
+	for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
+	{
+		if(model.plightgrid->prawsampledata[i])
+			delete[] model.plightgrid->prawsampledata[i];
+
+		model.plightgrid->prawsampledata[i] = psrclightdataptrs[i];
+	}
+
+	for(Uint32 i = 0; i < model.plightgrid->samples.size(); i++)
+	{
+		lightgridsample_t& sample = model.plightgrid->samples[i];
+		
+		for(Uint32 j = 0; j < NB_LIGHTGRID_DATA_LAYERS; j++)
+			sample.plightdata[j] = model.plightgrid->prawsampledata[j] + sample.rawsampleoffset;
+	}
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 void BSP_ReleaseLightmapData( brushmodel_t& model )
 {
 	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
@@ -468,6 +494,24 @@ void BSP_ReleaseLightmapData( brushmodel_t& model )
 		{
 			delete[] model.plightdata[i];
 			model.plightdata[i] = nullptr;
+		}
+	}
+
+	for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+	{
+		if(model.pvertexlightdata_original[i] && reinterpret_cast<byte*>(model.pvertexlightdata[i]) != model.pvertexlightdata_original[i])
+			delete[] model.plightdata_original[i];
+
+		model.plightdata_original[i] = nullptr;
+
+		model.original_vertexlightdatasizes[i] = 0;
+		model.original_vertexlightcompressiontype[i] = 0;
+		model.original_vertexlightcompressionlevel[i] = 0;
+
+		if (model.pvertexlightdata[i])
+		{
+			delete[](byte*)model.pvertexlightdata[i];
+			model.pvertexlightdata[i] = nullptr;
 		}
 	}
 }

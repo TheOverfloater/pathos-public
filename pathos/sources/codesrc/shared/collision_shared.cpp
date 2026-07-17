@@ -18,7 +18,7 @@ namespace CollisionShared
 	// @brief Test if a point-size traceline intersects a bounding box
 	//
 	//=============================================
-	bool IntersectBVHNodePoint( const Vector& start, const Vector& end, const Vector& bbmins, const Vector& bbmaxs, const Vector& normalDirection )
+	bool IntersectBBoxPoint( const Vector& start, const Vector& end, const Vector& bbmins, const Vector& bbmaxs, const Vector& normalDirection )
 	{
 		Float tx1 = (bbmins.x - start.x) / normalDirection.x;
 		Float tx2 = (bbmaxs.x - start.x) / normalDirection.x;

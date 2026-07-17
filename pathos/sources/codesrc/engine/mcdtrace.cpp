@@ -111,7 +111,7 @@ bool CMCDTrace::TraceLinePoint( const Vector& start, const Vector& end, const mc
 		if(!m_pSubModel->numcollisiontypes)
 			continue;
 
-		if(!CollisionShared::IntersectBVHNodePoint(start, end, m_pSubModel->mins, m_pSubModel->maxs, m_normDirection))
+		if(!CollisionShared::IntersectBBoxPoint(start, end, m_pSubModel->mins, m_pSubModel->maxs, m_normDirection))
 			continue;
 
 		// Get triangle mesh data
@@ -817,7 +817,7 @@ bool CMCDTrace::TestLineTriangleIntersect( const Vector& start, const Vector& en
 //=============================================
 void CMCDTrace::RecurseTreePointTrace( const Vector& start, const Vector& end, const mcdbvhnode_t* pbvhnode )
 {
-	if(!CollisionShared::IntersectBVHNodePoint(start, end, pbvhnode->mins, pbvhnode->maxs, m_normDirection))
+	if(!CollisionShared::IntersectBBoxPoint(start, end, pbvhnode->mins, pbvhnode->maxs, m_normDirection))
 		return;
 
 	if(pbvhnode->isleaf)

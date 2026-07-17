@@ -118,6 +118,19 @@ struct color32_t
 		else
 			return a;
 	}
+	const byte& operator[]( Uint32 n ) const
+	{
+		assert(n <= 3);
+
+		if(n == 0)
+			return r;
+		else if(n == 1)
+			return g;
+		else if(n == 2)
+			return b;
+		else
+			return a;
+	}
 
 	byte r;
 	byte g;
@@ -139,6 +152,17 @@ struct color24_t
 		b = _b;
 	}
 	byte& operator[]( Uint32 n )
+	{
+		assert(n <= 2);
+
+		if(n == 0)
+			return r;
+		else if(n == 1)
+			return g;
+		else
+			return b;
+	}
+	const byte& operator[]( Uint32 n ) const
 	{
 		assert(n <= 2);
 

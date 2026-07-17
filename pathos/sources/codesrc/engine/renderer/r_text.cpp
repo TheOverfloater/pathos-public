@@ -1003,7 +1003,7 @@ void CText::DrawSimpleStringChars( const Char* pstrString, const font_glyph_t* p
 		if(!SDL_isspace(*pstr))
 		{
 			m_pShader->SetUniform2f(m_attribs.u_offset, static_cast<Float>(_x), static_cast<Float>(_y));
-			glDrawArrays(GL_TRIANGLES, pglyph->start_vertex, 6);
+			m_pShader->DrawArrays(GL_TRIANGLES, pglyph->start_vertex, 6);
 		}
 
 		_x += pglyph->advancex; 
@@ -1468,7 +1468,7 @@ bool CText::DrawChar( Char character, Int32 x, Int32 y, Uint32 r, Uint32 g, Uint
 		R_ValidateShader(m_pShader);
 
 		m_pShader->SetUniform2f(m_attribs.u_offset, static_cast<Float>(x), static_cast<Float>(y));
-		glDrawArrays(GL_TRIANGLES, pglyph->start_vertex, 6);
+		m_pShader->DrawArrays(GL_TRIANGLES, pglyph->start_vertex, 6);
 	}
 
 	// Draw normal character
@@ -1483,7 +1483,7 @@ bool CText::DrawChar( Char character, Int32 x, Int32 y, Uint32 r, Uint32 g, Uint
 	R_ValidateShader(m_pShader);
 
 	m_pShader->SetUniform2f(m_attribs.u_offset, static_cast<Float>(x), static_cast<Float>(y));
-	glDrawArrays(GL_TRIANGLES, pglyph->start_vertex, 6);
+	m_pShader->DrawArrays(GL_TRIANGLES, pglyph->start_vertex, 6);
 
 	return true;
 };
@@ -1593,7 +1593,6 @@ bool CText::BindSet( const font_set_t *pset )
 	m_pCurrentSetInfo = m_fontInfoArray[m_pBoundFontSet->infoindex];
 
 	m_pShader->SetVBO(m_pCurrentSetInfo->pvbo);
-	m_pCurrentSetInfo->pvbo->Bind();
 
 	m_pShader->EnableAttribute(m_attribs.a_position);
 	m_pShader->EnableAttribute(m_attribs.a_texcoord);
@@ -1612,8 +1611,6 @@ void CText::UnBindCurrentSet( void )
 
 	m_pShader->DisableAttribute(m_attribs.a_position);
 	m_pShader->DisableAttribute(m_attribs.a_texcoord);
-
-	m_pCurrentSetInfo->pvbo->UnBind();
 	m_pShader->SetVBO(nullptr);
 
 	// Clear these anyway

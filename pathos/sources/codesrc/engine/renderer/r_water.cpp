@@ -1806,8 +1806,6 @@ bool CWaterShader::DrawWater( bool skybox )
 	if(rns.mirroring)
 		return true;
 
-	m_pVBO->Bind();
-
 	if(!m_pShader->EnableShader())
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
@@ -1842,7 +1840,6 @@ bool CWaterShader::DrawWater( bool skybox )
 	{
 		Sys_ErrorPopup("Shader error: %s.", m_pShader->GetError());
 		m_pShader->DisableShader();
-		m_pVBO->UnBind();
 		return false;
 	}
 
@@ -2058,7 +2055,7 @@ bool CWaterShader::DrawWater( bool skybox )
 		
 		R_ValidateShader(m_pShader);
 
-		glDrawElements(GL_TRIANGLES, m_pCurrentWater->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pCurrentWater->start_index));
+		m_pShader->DrawElements(GL_TRIANGLES, m_pCurrentWater->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pCurrentWater->start_index));
 
 		if(rectangleUnit != NO_POSITION)
 			R_BindRectangleTexture(GL_TEXTURE0+rectangleUnit, 0);
@@ -2132,7 +2129,7 @@ bool CWaterShader::DrawWater( bool skybox )
 					for(Uint32 l = 0; l < stylebatches.batches[k].size(); l++)
 					{
 						cl_water_style_batch_t& batch = stylebatches.batches[k][l];
-						glDrawElements(GL_TRIANGLES, batch.num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(batch.start_index));
+						m_pShader->DrawElements(GL_TRIANGLES, batch.num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(batch.start_index));
 					}
 				}
 			}
@@ -2147,7 +2144,6 @@ bool CWaterShader::DrawWater( bool skybox )
 	}
 
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 
 	if(pRTT)
 		gRTTCache.Free(pRTT);

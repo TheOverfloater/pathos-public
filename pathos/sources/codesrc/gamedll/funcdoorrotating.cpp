@@ -124,7 +124,7 @@ void CFuncDoorRotating::RealignRelatedDoor( CFuncDoor* pDoor )
 void CFuncDoorRotating::SetToggleState( togglestate_t state, bool reverse )
 {
 	Vector setAngles;
-	if(state == TS_AT_TOP)
+	if(state == TSTATE_AT_TOP)
 		setAngles = m_angle2 * (reverse ? -1 : 1);
 	else
 		setAngles = m_angle1 * (reverse ? -1 : 1);

@@ -35,6 +35,37 @@ enum surf_lmap_layers_t
 	NB_SURF_LIGHTMAP_LAYERS
 };
 
+// Baked vertex lighting layers
+enum baked_vertexlight_layers_t
+{
+	VERTEX_LIGHTING_VECTORS = 0,
+	VERTEX_LIGHTING_AMBIENT,
+	VERTEX_LIGHTING_DIFFUSE,
+
+	// Must be last
+	NB_BAKED_VERTEXLIGHT_LAYERS
+};
+
+// Light grid layers
+enum lightgrid_data_layers_t
+{
+	LIGHTGRID_LAYER_VECTORS = 0,
+	LIGHTGRID_LAYER_AMBIENT,
+	LIGHTGRID_LAYER_DIFFUSE,
+
+	// Must be last
+	NB_LIGHTGRID_DATA_LAYERS
+};
+
+//
+// Light grid flags
+//
+enum lg_octree_flags_t
+{
+	FL_OCTREE_NODE_OCCLUDED	= (1<<31),	// Flag for if the entire bounds is occluded for a node
+	FL_OCTREE_NODE_LEAF		= (1<<30)	// Flag for if an octree node is a leaf
+};
+
 //
 // BSP structures in memory
 //
@@ -339,6 +370,97 @@ struct hull_t
 	Vector clipmaxs;
 };
 
+struct lightgridnode_t
+{
+	lightgridnode_t()
+	{
+		for(Uint32 i = 0; i < 3; i++)
+			divisionpoint[i] = 0;
+
+		for(Uint32 i = 0; i < 8; i++)
+			children[i] = 0;
+	}
+
+	Int32 divisionpoint[3];
+	Int32 children[8];
+};
+
+struct lightgridleaf_t
+{
+	lightgridleaf_t():
+		firstsample(NO_POSITION),
+		numsamples(0)
+	{
+		for(Uint32 i = 0; i < 3; i++)
+			mins[i] = 0;
+
+		for(Uint32 i = 0; i < 3; i++)
+			size[i] = 0;
+	}
+
+	Int32 mins[3];
+	Int32 size[3];
+
+	Int32 firstsample;
+	Int32 numsamples;
+};
+
+struct lightgridsample_t
+{
+	lightgridsample_t():
+		rawsampleoffset(NO_POSITION)
+	{
+		for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
+			styles[i] = 0;
+
+		for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
+			plightdata[i] = nullptr;
+	}
+
+	byte styles[MAX_SURFACE_STYLES];
+	Int32 rawsampleoffset;
+	byte* plightdata[NB_LIGHTGRID_DATA_LAYERS];
+};
+
+struct lightgriddata_t
+{
+	lightgriddata_t():
+		rootnodeindex(NO_POSITION),
+		rawsampledatasize(0)
+	{
+		for(Uint32 i = 0; i < 3; i++)
+			gridscale[i] = 0;
+
+		for(Uint32 i = 0; i < 3; i++)
+			gridsize[i] = 0;
+
+		for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
+			prawsampledata[i] = nullptr;
+	}
+
+	~lightgriddata_t()
+	{
+		for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
+		{
+			if(prawsampledata[i])
+				delete[] prawsampledata[i];
+		}
+	}
+
+	Float gridscale[3];
+	Int32 gridsize[3];
+	Vector gridmins;
+
+	Int32 rootnodeindex;
+
+	CArray<lightgridnode_t> nodes;
+	CArray<lightgridleaf_t> leaves;
+	CArray<lightgridsample_t> samples;
+
+	byte* prawsampledata[NB_LIGHTGRID_DATA_LAYERS];
+	Uint32 rawsampledatasize;
+};
+
 struct brushmodel_t
 {
 	brushmodel_t():
@@ -375,7 +497,9 @@ struct brushmodel_t
 		visdatasize(0),
 		ppasdata(nullptr),
 		pasdatasize(0),
+		plightgrid(nullptr),
 		lightdatasize(0),
+		vertexlightdatasize(0),
 		lightmaplayercount(0),
 		pentdata(nullptr),
 		entdatasize(0)
@@ -388,6 +512,15 @@ struct brushmodel_t
 			original_compressiontype[i] = 0;
 			original_compressionlevel[i] = 0;
 			plightdata_water[i] = nullptr;
+		}
+
+		for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+		{
+			pvertexlightdata[i] = nullptr;
+			pvertexlightdata_original[i] = nullptr;
+			original_vertexlightdatasizes[i] = 0;
+			original_vertexlightcompressiontype[i] = 0;
+			original_vertexlightcompressionlevel[i] = 0;
 		}
 	}
 
@@ -427,6 +560,8 @@ struct brushmodel_t
 				delete[] pentdata;
 			if(hulls[0].pclipnodes)
 				delete[] hulls[0].pclipnodes;
+			if(plightgrid)
+				delete plightgrid;
 
 			for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
 			{
@@ -440,6 +575,23 @@ struct brushmodel_t
 				{
 					delete[] plightdata[i];
 					plightdata[i] = nullptr;
+				}
+
+			}
+
+			for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+			{
+
+				if(pvertexlightdata_original[i] && pvertexlightdata_original[i] != reinterpret_cast<byte*>(pvertexlightdata[i]))
+				{
+					delete[] pvertexlightdata_original[i];
+					pvertexlightdata_original[i] = nullptr;
+				}
+
+				if(pvertexlightdata[i])
+				{
+					delete[] pvertexlightdata[i];
+					pvertexlightdata[i] = nullptr;
 				}
 			}
 		}
@@ -530,6 +682,9 @@ struct brushmodel_t
 	byte *ppasdata;
 	Uint32 pasdatasize;
 
+	// Light grid data
+	lightgriddata_t* plightgrid;
+
 	// light data
 	color24_t* plightdata[NB_SURF_LIGHTMAP_LAYERS];
 	Uint32 lightdatasize;
@@ -542,6 +697,16 @@ struct brushmodel_t
 
 	// For water
 	color24_t* plightdata_water[NB_SURF_LIGHTMAP_LAYERS];
+
+	// Vertex light data
+	color24_t* pvertexlightdata[NB_BAKED_VERTEXLIGHT_LAYERS];
+	Uint32 vertexlightdatasize;
+
+	// Original vertex light data without decompression
+	byte* pvertexlightdata_original[NB_BAKED_VERTEXLIGHT_LAYERS];
+	Uint32 original_vertexlightdatasizes[NB_BAKED_VERTEXLIGHT_LAYERS];
+	Int32 original_vertexlightcompressiontype[NB_BAKED_VERTEXLIGHT_LAYERS];
+	Int32 original_vertexlightcompressionlevel[NB_BAKED_VERTEXLIGHT_LAYERS];
 
 	// Number of lightmap layers
 	Uint32 lightmaplayercount;

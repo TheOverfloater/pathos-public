@@ -59,6 +59,8 @@ public:
 private:
 	// Loads entvars
 	void LoadEntVars( void );
+	// Set up baked vertex lighting for entity
+	void SetupModelVertexLighting( const entitydata_t& entity, cl_entity_t* pcliententity, const cache_model_t* pmodel );
 
 	// Spawns an env_decal entity
 	void Entity_EnvDecal( const entitydata_t& entity );

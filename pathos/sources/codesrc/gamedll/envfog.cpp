@@ -11,6 +11,8 @@ All Rights Reserved.
 #include "gd_includes.h"
 #include "envfog.h"
 
+// Current fog color
+color24_t CEnvFog::g_fogColor;
 // Current fog end distance
 Uint32 CEnvFog::g_fogEndDist = 0;
 // Fog ideal distance to set
@@ -154,7 +156,7 @@ void CEnvFog::SendInitMessage( const CBaseEntity* pPlayer )
 		gd_engfuncs.pfnUserMessageEnd();
 
 		if(!g_fogEndDist && !g_fogBlendTime)
-			SetFogCullParams(m_endDistance, 0, m_dontAffectSky ? false : true);
+			SetFogCullParams(m_endDistance, 0, m_dontAffectSky ? false : true, m_pState->rendercolor);
 	}
 	else if(!HasSpawnFlag(FL_NO_OFF_MESSAGE))
 	{
@@ -199,9 +201,9 @@ void CEnvFog::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t 
 	if(prevstate != m_isActive)
 	{
 		if(m_isActive)
-			SetFogCullParams(m_endDistance, m_blendTime, m_dontAffectSky ? false : true);
+			SetFogCullParams(m_endDistance, m_blendTime, m_dontAffectSky ? false : true, m_pState->rendercolor);
 		else if(!HasSpawnFlag(FL_NO_OFF_MESSAGE))
-			SetFogCullParams(0, 0, false);
+			SetFogCullParams(0, 0, false, ZERO_VECTOR);
 
 		SendInitMessage(nullptr);
 	}
@@ -211,7 +213,7 @@ void CEnvFog::CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t 
 // @brief
 //
 //=============================================
-void CEnvFog::SetFogCullParams( Float endDistance, Float blendTime, bool affectSky )
+void CEnvFog::SetFogCullParams( Float endDistance, Float blendTime, bool affectSky, const color24_t& color )
 {
 	if(affectSky != g_fogAffectSky)
 	{
@@ -230,7 +232,17 @@ void CEnvFog::SetFogCullParams( Float endDistance, Float blendTime, bool affectS
 		g_fogBlendTime = 0;
 	}
 
+	g_fogColor = color;
 	g_fogAffectSky = affectSky;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+void CEnvFog::SetFogCullParams( Float endDistance, Float blendTime, bool affectSky, const Vector& color )
+{
+	SetFogCullParams(endDistance, blendTime, affectSky, color24_t(color.x, color.y, color.z));
 }
 
 //=============================================
@@ -243,6 +255,7 @@ void CEnvFog::ClearFogGlobals( void )
 	g_fogIdealEndDist = 0;
 	g_fogBlendTime = 0;
 	g_fogAffectSky = true;
+	g_fogColor = color24_t();
 }
 
 //=============================================

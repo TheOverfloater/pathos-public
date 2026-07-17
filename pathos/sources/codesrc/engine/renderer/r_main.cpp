@@ -524,8 +524,11 @@ bool R_InitGL( void )
 		else
 			loadstage = DAYSTAGE_NORMAL_RESTORE;
 
-		byte* pdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
-		if(ALD_Load(loadstage, pdatapointers))
+		byte* plmapdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
+		byte* pvertexlightdatapointers[NB_BAKED_VERTEXLIGHT_LAYERS] = {nullptr};
+		byte* plightgriddatapointers[NB_BAKED_VERTEXLIGHT_LAYERS] = {nullptr};
+
+		if(ALD_Load(loadstage, plmapdatapointers, pvertexlightdatapointers, plightgriddatapointers))
 		{
 			for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
 			{
@@ -533,8 +536,20 @@ bool R_InitGL( void )
 				if (ens.pworld->plightdata[i])
 					delete[] ens.pworld->plightdata[i];
 
-				ens.pworld->plightdata[i] = reinterpret_cast<color24_t*>(pdatapointers[i]);
+				ens.pworld->plightdata[i] = reinterpret_cast<color24_t*>(plmapdatapointers[i]);
 			}
+
+			for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+			{
+				// All data was successfully set, so release original data
+				if (ens.pworld->pvertexlightdata[i])
+					delete[] ens.pworld->pvertexlightdata[i];
+
+				ens.pworld->pvertexlightdata[i] = reinterpret_cast<color24_t*>(pvertexlightdatapointers[i]);
+			}
+
+			// Set the sampling data also
+			BSP_SetLightGridSampleData(*ens.pworld, plightgriddatapointers);
 		}
 		else
 		{
@@ -1910,7 +1925,7 @@ bool R_DrawLogo( en_texture_t* ptexture, Int32 basewidth, Int32 baseheight )
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if(!pDraw->EnableTexture())
+	if(!pDraw->DisableRectangleTexture() || !pDraw->EnableTexture())
 	{
 		Sys_ErrorPopup("Shader error: %s.\n", pDraw->GetShaderError());
 		return false;
@@ -2077,6 +2092,10 @@ bool R_DrawNormal( void )
 			// Draw any ladders on client
 			if(!cls.dllfuncs.pfnDrawLadders())
 				return false;
+
+			// Draw VBM decals
+			if(!gVBMRenderer.DrawDecals(false))
+				return false;
 		}
 
 		// Draw mirrors
@@ -2159,6 +2178,10 @@ bool R_DrawTransparent( void )
 		{
 			// Draw transparent VBM entities
 			if(!gVBMRenderer.DrawTransparent())
+				return false;
+
+			// Draw VBM decals
+			if(!gVBMRenderer.DrawDecals(true))
 				return false;
 		}
 
@@ -2772,7 +2795,7 @@ bool R_DrawInterface( void )
 
 		return false;
 	}
-
+	
 	// Draw shown texture if set
 	if(!R_DrawShownMaterial())
 	{
@@ -2801,7 +2824,7 @@ bool R_DrawInterface( void )
 
 		return false;
 	}
-
+	
 	pDraw->Disable();
 
 	glEnable(GL_DEPTH_TEST);
@@ -5397,12 +5420,21 @@ void Cmd_BSPToSMD_Lightmap( void )
 	else
 		loadstage = DAYSTAGE_NORMAL_RESTORE;
 
-	byte* pdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
-	if(!ALD_Load(loadstage, pdatapointers))
+	byte* plmapdatapointers[NB_SURF_LIGHTMAP_LAYERS] = {nullptr};
+	byte* pvertexlightdatapointers[NB_BAKED_VERTEXLIGHT_LAYERS] = {nullptr};
+	byte* plightgriddatapointers[NB_BAKED_VERTEXLIGHT_LAYERS] = {nullptr};
+
+	if(!ALD_Load(loadstage, plmapdatapointers, pvertexlightdatapointers, plightgriddatapointers))
 	{
 		Con_EPrintf("%s - Failed to restore lightmap data from backup.\n", __FUNCTION__);
 		return;
 	}
+
+	for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
+		delete[] pvertexlightdatapointers[i];
+
+	for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
+		delete[] plightgriddatapointers[i];
 
 	// alloc lightmap data ptrs
 	Uint32 lightmapdatasize = 0;
@@ -5447,24 +5479,24 @@ void Cmd_BSPToSMD_Lightmap( void )
 		Uint32 paddingAmount = clamp(g_pCvarLightmapPadding->GetValue(), 0, MAX_LIGHTMAP_PADDING);
 
 		// Build the base lightmap
-		color24_t* psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_DEFAULT] + psurface->lightoffset);
+		color24_t* psrc = reinterpret_cast<color24_t*>(plmapdatapointers[SURF_LIGHTMAP_DEFAULT] + psurface->lightoffset);
 		R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightmap, styleIndex, lightmapWidth, 0, paddingAmount, false, false);
 		lightmapdatasize += size*sizeof(color32_t);
 
-		if(pdatapointers[SURF_LIGHTMAP_AMBIENT] && pdatapointers[SURF_LIGHTMAP_DIFFUSE] && pdatapointers[SURF_LIGHTMAP_VECTORS])
+		if(plmapdatapointers[SURF_LIGHTMAP_AMBIENT] && plmapdatapointers[SURF_LIGHTMAP_DIFFUSE] && plmapdatapointers[SURF_LIGHTMAP_VECTORS])
 		{
 			// Ambient lightmap
-			psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_AMBIENT] + psurface->lightoffset);
+			psrc = reinterpret_cast<color24_t*>(plmapdatapointers[SURF_LIGHTMAP_AMBIENT] + psurface->lightoffset);
 			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pambientlightmap, styleIndex, lightmapWidth, 0, paddingAmount);
 			amblightdatasize += size*sizeof(color32_t);
 
 			// Diffuse lightmap
-			psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_DIFFUSE] + psurface->lightoffset);
+			psrc = reinterpret_cast<color24_t*>(plmapdatapointers[SURF_LIGHTMAP_DIFFUSE] + psurface->lightoffset);
 			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, pdiffuselightmap, styleIndex, lightmapWidth, 0, paddingAmount);
 			diffuselightdatasize += size*sizeof(color32_t);
 
 			// Light vectors lightmap
-			psrc = reinterpret_cast<color24_t*>(pdatapointers[SURF_LIGHTMAP_VECTORS] + psurface->lightoffset);
+			psrc = reinterpret_cast<color24_t*>(plmapdatapointers[SURF_LIGHTMAP_VECTORS] + psurface->lightoffset);
 			R_BuildLightmap(psurface->light_s[styleIndex], psurface->light_t[styleIndex], psrc, psurface, plightvecslightmap, styleIndex, lightmapWidth, 0, paddingAmount, true);
 			lightvecsdatasize += size*sizeof(color32_t);
 		}
@@ -5512,7 +5544,7 @@ void Cmd_BSPToSMD_Lightmap( void )
 	}
 
 	for(Uint32 i = 0; i < NB_SURF_LIGHTMAP_LAYERS; i++)
-		delete[] pdatapointers[i];
+		delete[] plmapdatapointers[i];
 
 	delete[] plightmap;
 	delete[] pambientlightmap;

@@ -12,8 +12,8 @@ All Rights Reserved.
 
 namespace CollisionShared
 {
-	// Test if a point-size traceline intersects a BVH node
-	bool IntersectBVHNodePoint( const Vector& start, const Vector& end, const Vector& bbmins, const Vector& bbmaxs, const Vector& normalDirection );
+	// Test if a point-size traceline intersects a bbox
+	bool IntersectBBoxPoint( const Vector& start, const Vector& end, const Vector& bbmins, const Vector& bbmaxs, const Vector& normalDirection );
 	// Test if an AABB intersects a bounding box
 	bool IntersectBBoxAABB( const Vector& center, const Vector& boxmins, const Vector& boxmaxs, const Vector& extents );
 	// Test if an AABB traceline intersects a bounding box

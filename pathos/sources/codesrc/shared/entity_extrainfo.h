@@ -32,6 +32,10 @@ struct entity_lightinfo_t
 {
 	entity_lightinfo_t():
 		flags(0),
+		lightreduction(0),
+		prev_lightreduction(0),
+		target_lightreduction(0),
+		reductiontime(0),
 		lighttime(0),
 		numsavedmlights(0),
 		reset(false)
@@ -50,6 +54,12 @@ struct entity_lightinfo_t
 	Vector ambient_color;
 	Vector direct_color;
 	Vector lightdirection;
+
+	// Light reduction factor
+	Float lightreduction;
+	Float prev_lightreduction;
+	Float target_lightreduction;
+	Double reductiontime;
 
 	// Current lightstyle ambient colors
 	Vector lightstylecolors_ambient[MAX_SURFACE_STYLES-1];

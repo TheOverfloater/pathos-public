@@ -12,6 +12,7 @@ All Rights Reserved.
 
 #include "datatypes.h"
 #include "vbmformat.h"
+#include "constants.h"
 
 // Notes:
 // Part of this implementation is based on the implementation in the Half-Life SDK,
@@ -749,8 +750,10 @@ struct vbmcache_t
 	vbmcache_t():
 		pstudiohdr(nullptr),
 		pvbmhdr(nullptr),
-		pmcdheader(nullptr)
+		pmcdheader(nullptr),
+		vboindex(NO_POSITION)
 		{}
+
 	~vbmcache_t()
 	{
 		if(pstudiohdr)
@@ -778,6 +781,11 @@ struct vbmcache_t
 	vbmheader_t *pvbmhdr;
 	// Pointer to mcd data
 	struct mcdheader_t *pmcdheader;
+
+	// Vertex data hash for vbm models
+	CString vertexhash;
+	// VBO index in VBM renderer for VBM models
+	Int32 vboindex;
 };
 
 typedef CArray<pmatrix3x4_t> BoneTransformArray_t;

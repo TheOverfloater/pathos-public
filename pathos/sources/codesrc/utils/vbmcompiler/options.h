@@ -48,6 +48,7 @@ struct vbmcompiler_options_t
 	vbmcompiler_options_t():
 		error(false),
 		normal_merge_treshold(0),
+		vertex_merge_treshold(0),
 		compilerflags(CMP_FL_NONE),
 		max_texture_resolution(DEFAULT_MAX_TEXTURE_RESOLUTION),
 		border_padding(DEFAULT_BORDER_PAD_VALUE)
@@ -84,6 +85,8 @@ public:
 
 	// Normal merge treshold specified in params
 	Float normal_merge_treshold;
+	// Vertex merge treshold specified in params
+	Float vertex_merge_treshold;
 
 	// Compiler flags
 	Int32 compilerflags;

@@ -41,7 +41,6 @@ uniform highp int d_bumpmapping;
 uniform highp int d_specular;
 uniform highp int d_cubemaps;
 uniform highp int d_luminance;
-uniform highp int d_ao;
 uniform highp int d_numlights;
 uniform highp int d_light0_shadowmap;
 uniform highp int d_light1_shadowmap;
@@ -218,7 +217,6 @@ uniform sampler2D difflightmap;
 uniform sampler2D lightvecstex;
 uniform sampler2D speculartex;
 uniform sampler2D luminance;
-uniform sampler2D aomaptex;
 
 uniform vec3 light_0_origin;
 uniform float light_0_radius;
@@ -281,7 +279,6 @@ uniform highp int d_bumpmapping;
 uniform highp int d_specular;
 uniform highp int d_cubemaps;
 uniform highp int d_luminance;
-uniform highp int d_ao;
 uniform highp int d_numlights;
 uniform highp int d_light0_shadowmap;
 uniform highp int d_light1_shadowmap;
@@ -718,13 +715,6 @@ vec4 CombineTextureLayers( vec3 v_origin, vec3 v_normal, float specularStrength 
 	vec4 lightDiffuse = GetDiffuseLight( difflightmap );
 	vec4 finalColor = AddBaseLight(baselightmap, lightDiffuse, lightDir, v_normal);
 
-	if( d_ao == 1 )
-	{
-		vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
-		finalColor.xyz *= aocolor;
-		lightDiffuse.xyz *= aocolor;
-	}
-
 	$branch shadertype == 0
 	$begin
 		vec4 texColor = texture2D(maintexture, ps_texcoord);
@@ -984,12 +974,6 @@ void main()
 				finalColor = finalColor * detailtexcolor;
 			}
 		}
-		
-		if( d_ao == 1 )
-		{
-			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
-			finalColor.xyz *= aocolor;
-		}
 	$end
 	
 	// Spotlight
@@ -1079,12 +1063,6 @@ void main()
 			}
 		}
 		
-		if( d_ao == 1 )
-		{
-			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
-			finalColor.xyz *= aocolor;
-		}
-		
 	$end
 	// Caustics
 	$branch shadertype == 9
@@ -1101,14 +1079,7 @@ void main()
 		vec3 v_normal = GetTangentSpaceNormal(ps_texcoord, normalmap, ps_normal);
 		vec4 diffuseLight = GetDiffuseLight( difflightmap );
 		
-		finalColor = AddBaseLight(baselightmap, diffuseLight, lightDir, v_normal);
-		
-		if( d_ao == 1 )
-		{
-			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
-			finalColor.xyz *= aocolor;
-		}
-		
+		finalColor = AddBaseLight(baselightmap, diffuseLight, lightDir, v_normal);		
 		finalColor.w = finalColor.w * texture2D(maintexture, ps_texcoord).w;
 	$end
 	
@@ -1153,14 +1124,7 @@ void main()
 		vec3 v_normal = GetTangentSpaceNormal(ps_texcoord, normalmap, ps_normal);
 		vec4 diffuseLight = GetDiffuseLight( difflightmap );
 		
-		finalColor = AddBaseLight(baselightmap, diffuseLight, lightDir, v_normal);
-		
-		if( d_ao == 1 )
-		{
-			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
-			finalColor.xyz *= aocolor;
-		}
-		
+		finalColor = AddBaseLight(baselightmap, diffuseLight, lightDir, v_normal);		
 		finalColor *= color;
 	$end
 	
@@ -1179,12 +1143,6 @@ void main()
 	$begin
 		vec3 v_normal = GetTangentSpaceNormal(ps_texcoord, normalmap, ps_normal);
 		finalColor = GetLightmappedSpecular( ps_vertexpos, v_normal, specularFactor );
-		
-		if( d_ao == 1 )
-		{
-			vec3 aocolor = texture(aomaptex, ps_texcoord).xyz;
-			finalColor.xyz *= aocolor;
-		}
 	$end
 	
 	// Cube mapping only

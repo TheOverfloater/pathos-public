@@ -1929,14 +1929,14 @@ bool CAINodeGraph::WalkPath( const Vector& startPosition, const Vector& endPosit
 		for(Uint32 i = 0; i < doorEntitiesArray.size(); i++)
 		{
 			CBaseEntity* pEntity = doorEntitiesArray[i];
-			pEntity->SetToggleState(TS_AT_TOP, false);
+			pEntity->SetToggleState(TSTATE_AT_TOP, false);
 		}
 
 		// Open func_door_rotating entities
 		for(Uint32 i = 0; i < rotatingDoorEntitiesArray.size(); i++)
 		{
 			CBaseEntity* pEntity = rotatingDoorEntitiesArray[i];
-			pEntity->SetToggleState(TS_AT_TOP, checkingReverse);
+			pEntity->SetToggleState(TSTATE_AT_TOP, checkingReverse);
 		}
 
 		if(!(pTestNPC->GetFlags() & (FL_FLY|FL_SWIM)))
@@ -2104,15 +2104,15 @@ bool CAINodeGraph::HandleLinkEntity( Int32 nodeIndex, Int32 entityIndex, const C
 		if(pEntity->HasSpawnFlag(CFuncDoor::FL_USE_ONLY|CFuncDoor::FL_TOUCH_OPENS) || !pEntity->HasTargetName())
 		{
 			if(capabilityBitSet.test(CBaseNPC::AI_CAP_OPEN_DOORS) && !pEntity->HasSpawnFlag(CFuncDoor::FL_NO_NPCS) 
-				|| toggleState == TS_AT_TOP && (pEntity->HasSpawnFlag(CFuncDoor::FL_NO_AUTO_RETURN) || pEntity->GetWaitTime() == -1))
+				|| toggleState == TSTATE_AT_TOP && (pEntity->HasSpawnFlag(CFuncDoor::FL_NO_AUTO_RETURN) || pEntity->GetWaitTime() == -1))
 				return true;
 			else
 				return false;
 		}
 		else
 		{
-			if(toggleState == TS_AT_TOP && (pEntity->HasSpawnFlag(CFuncDoor::FL_NO_AUTO_RETURN) || pEntity->GetWaitTime() == -1)
-				|| capabilityBitSet.test(CBaseNPC::AI_CAP_OPEN_DOORS) && (!pEntity->HasSpawnFlag(CFuncDoor::FL_NO_NPCS) || toggleState == TS_AT_TOP && (pEntity->HasSpawnFlag(CFuncDoor::FL_NO_AUTO_RETURN) || pEntity->GetWaitTime() == -1)))
+			if(toggleState == TSTATE_AT_TOP && (pEntity->HasSpawnFlag(CFuncDoor::FL_NO_AUTO_RETURN) || pEntity->GetWaitTime() == -1)
+				|| capabilityBitSet.test(CBaseNPC::AI_CAP_OPEN_DOORS) && (!pEntity->HasSpawnFlag(CFuncDoor::FL_NO_NPCS) || toggleState == TSTATE_AT_TOP && (pEntity->HasSpawnFlag(CFuncDoor::FL_NO_AUTO_RETURN) || pEntity->GetWaitTime() == -1)))
 				return true;
 			else
 				return false; 

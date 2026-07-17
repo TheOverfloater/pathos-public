@@ -47,6 +47,7 @@ extern cl_dlight_t* CL_AllocDynamicPointLight( Int32 key, Int32 subkey, bool iss
 extern void CL_SetSkyboxParameters( const Vector& worldorigin, Float skysize, Float fogend, Float fogstart, const Vector& fogcolor, Int32 skytexturesetindex, bool affectskybox, bool isactive );
 extern void CL_SetFogParameters( entindex_t entindex, const Vector& color, Float start, Float end, bool affectsky, Float blendtime );
 extern void CL_CreateCableEntity( const Vector& start, const Vector& end, Uint32 depth, Uint32 width, Uint32 numsegments );
+extern bool CL_SetupEntityVertexLightVBO( cl_entity_t* pentity, Int32 vlightoffset, Uint32 vertexcount, byte* plightstyles );
 extern cl_entity_t* CL_AllocStaticSpriteEntity( void );
 extern void CL_BreakModel( const Vector& origin, const Vector& size, bm_velocity_t velmode, const Vector& velvector, Uint32 randomvelmin, Uint32 randomvelmax, Float life, Uint32 num, Uint32 modelindex, Int32 sound, Float buoyancy, Float waterfriction, Int32 flags );
 extern void CL_Bubbles( const Vector& mins, const Vector& maxs, Float height, Uint32 modelindex, Uint32 num, Float speed );

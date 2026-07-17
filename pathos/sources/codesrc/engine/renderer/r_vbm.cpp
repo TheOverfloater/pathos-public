@@ -45,7 +45,8 @@ All Rights Reserved.
 // Part of this implementation is based on the implementation in the Half-Life SDK
 // The studiomodel format is Valve's original work, and I take no ownership of it
 // No copyright infringement intended
-// AO mapping related code was done by valina354.
+// Baked vertex lighting related code was done by valina354, extended and modified
+// by Overfloater.
 // Some of the code from which this originates from is the work of BUzer, so credit
 // goes to him for his work on Paranoia
 
@@ -108,7 +109,9 @@ CVBMRenderer::CVBMRenderer( void ):
 	m_pCvarLightRatio(nullptr),
 	m_pCvarDrawPlayer(nullptr),
 	m_pShader(nullptr),
-	m_pVBO(nullptr),
+	m_pDecalVBO(nullptr),
+	m_pTempDrawVBO(nullptr),
+	m_pCurrentVBO(nullptr),
 	m_drawBufferIndex(0),
 	m_pFlexTexture(nullptr),
 	m_pScreenTexture(nullptr),
@@ -251,10 +254,13 @@ bool CVBMRenderer::InitGL( void )
 	if(!m_pShader)
 	{
 		Int32 shaderFlags = CGLSLShader::FL_GLSL_CHECK_SAMPLER_OVERLAP;
+
+#ifndef _DEBUG
 		if(R_IsExtensionSupported("GL_ARB_get_program_binary"))
 			shaderFlags |= CGLSLShader::FL_GLSL_BINARY_SHADER_OPS;
 		else if(g_pCvarGLSLOnDemand->GetValue() > 0)
 			shaderFlags |= CGLSLShader::FL_GLSL_ONDEMAND_LOAD;
+#endif
 
 		m_pShader = new CGLSLShader(FL_GetInterface(), gGLExtF, shaderFlags, VID_ShaderCompileCallback);
 
@@ -332,6 +338,15 @@ bool CVBMRenderer::InitGL( void )
 		if(m_isVertexFetchSupported && !R_CheckShaderVertexAttribute(m_attribs.a_flexcoord, "in_flexcoord", m_pShader, Sys_ErrorPopup))
 			return false;
 
+		m_attribs.a_vertexlight_vectors = m_pShader->InitAttribute("in_vlight_vectors", 3, GL_UNSIGNED_BYTE, sizeof(vbm_vlight_glvertex_t), OFFSET(vbm_vlight_glvertex_t, vertexlight0_vector));
+		m_attribs.a_vertexlight_diffuse = m_pShader->InitAttribute("in_vlight_diffuse", 3, GL_UNSIGNED_BYTE, sizeof(vbm_vlight_glvertex_t), OFFSET(vbm_vlight_glvertex_t, vertexlight0_diffuse));
+		m_attribs.a_vertexlight_ambient = m_pShader->InitAttribute("in_vlight_ambient", 3, GL_UNSIGNED_BYTE, sizeof(vbm_vlight_glvertex_t), OFFSET(vbm_vlight_glvertex_t, vertexlight0_ambient));
+
+		if(!R_CheckShaderVertexAttribute(m_attribs.a_vertexlight_vectors, "in_vlight_vectors", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderVertexAttribute(m_attribs.a_vertexlight_diffuse, "in_vlight_diffuse", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderVertexAttribute(m_attribs.a_vertexlight_ambient, "in_vlight_ambient", m_pShader, Sys_ErrorPopup))
+			return false;
+
 		if(!m_areUBOsSupported)
 		{
 			for(Uint32 i = 0; i < MAX_SHADER_BONES; i++)
@@ -388,7 +403,6 @@ bool CVBMRenderer::InitGL( void )
 		m_attribs.u_rectangle = m_pShader->InitUniform("rectangle", CGLSLShader::UNIFORM_SAMPLERRECT);
 		m_attribs.u_spectexture = m_pShader->InitUniform("spectexture", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_lumtexture = m_pShader->InitUniform("lumtexture", CGLSLShader::UNIFORM_SAMPLER2D);
-		m_attribs.u_aotexture = m_pShader->InitUniform("aomaptex", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_normalmap = m_pShader->InitUniform("normalmap", CGLSLShader::UNIFORM_SAMPLER2D);
 		m_attribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_FLOAT3);
 		m_attribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_FLOAT2);
@@ -401,6 +415,7 @@ bool CVBMRenderer::InitGL( void )
 		m_attribs.u_vorigin = m_pShader->InitUniform("v_origin", CGLSLShader::UNIFORM_FLOAT3);
 		m_attribs.u_vright = m_pShader->InitUniform("v_right", CGLSLShader::UNIFORM_FLOAT3);
 		m_attribs.u_caustics_interp = m_pShader->InitUniform("caust_interp", CGLSLShader::UNIFORM_NOSYNC);
+		m_attribs.u_vlight_stylestrength = m_pShader->InitUniform("vlight_stylestrength", CGLSLShader::UNIFORM_FLOAT3);
 
 		if(!R_CheckShaderUniform(m_attribs.u_flextexture, "flextexture", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_flextexturesize, "flextexture_size", m_pShader, Sys_ErrorPopup)
@@ -415,7 +430,6 @@ bool CVBMRenderer::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_rectangle, "rectangle", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_spectexture, "spectexture", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_lumtexture, "lumtexture", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_aotexture, "aomaptex", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_normalmap, "normalmap", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_fogcolor, "fogcolor", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_fogparams, "fogparams", m_pShader, Sys_ErrorPopup)
@@ -427,7 +441,8 @@ bool CVBMRenderer::InitGL( void )
 			|| !R_CheckShaderUniform(m_attribs.u_sky_dir, "skylight_dir", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_vorigin, "v_origin", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_vright, "v_right", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_caustics_interp, "caust_interp", m_pShader, Sys_ErrorPopup))
+			|| !R_CheckShaderUniform(m_attribs.u_caustics_interp, "caust_interp", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_vlight_stylestrength, "vlight_stylestrength", m_pShader, Sys_ErrorPopup))
 			return false;
 
 		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_MATRIX4);
@@ -443,11 +458,13 @@ bool CVBMRenderer::InitGL( void )
 		m_attribs.d_shadertype = m_pShader->GetDeterminatorIndex("shadertype");
 		m_attribs.d_flexes = m_pShader->GetDeterminatorIndex("flex");
 		m_attribs.d_alphatest = m_pShader->GetDeterminatorIndex("alphatest");
+		m_attribs.d_vertexlight = m_pShader->GetDeterminatorIndex("vertexlight");
 
 		if(!R_CheckShaderDeterminator(m_attribs.d_shadertype, "shadertype", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_use_ubo, "use_ubo", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderDeterminator(m_attribs.d_flexes, "flex", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderDeterminator(m_attribs.d_alphatest, "alphatest", m_pShader, Sys_ErrorPopup))
+			|| !R_CheckShaderDeterminator(m_attribs.d_alphatest, "alphatest", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderDeterminator(m_attribs.d_vertexlight, "vertexlight", m_pShader, Sys_ErrorPopup))
 			return false;
 
 		m_attribs.u_d_numlights = m_pShader->InitUniform("d_num_lights", CGLSLShader::UNIFORM_INT1);
@@ -456,16 +473,20 @@ bool CVBMRenderer::InitGL( void )
 		m_attribs.u_d_luminance = m_pShader->InitUniform("d_luminance", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_d_bumpmapping = m_pShader->InitUniform("d_bumpmapping", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_d_numdlights = m_pShader->InitUniform("d_numdlights", CGLSLShader::UNIFORM_INT1);
-		m_attribs.u_d_ao = m_pShader->InitUniform("d_ao", CGLSLShader::UNIFORM_INT1);
 		m_attribs.u_d_blendmultipass = m_pShader->InitUniform("d_blendmultipass", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_d_vlight_style1 = m_pShader->InitUniform("d_vlight_style1", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_d_vlight_style2 = m_pShader->InitUniform("d_vlight_style2", CGLSLShader::UNIFORM_INT1);
+		m_attribs.u_d_vlight_style3 = m_pShader->InitUniform("d_vlight_style3", CGLSLShader::UNIFORM_INT1);
 
 		if(!R_CheckShaderUniform(m_attribs.u_d_numlights, "num_lights", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_chrome, "chrome", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_specular, "specular", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_luminance, "luminance", m_pShader, Sys_ErrorPopup)
 			|| !R_CheckShaderUniform(m_attribs.u_d_bumpmapping, "bumpmapping", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_d_ao, "ao", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_d_blendmultipass, "blendmultipass", m_pShader, Sys_ErrorPopup))
+			|| !R_CheckShaderUniform(m_attribs.u_d_blendmultipass, "blendmultipass", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_d_vlight_style1, "d_vlight_style1", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_d_vlight_style2, "d_vlight_style2", m_pShader, Sys_ErrorPopup)
+			|| !R_CheckShaderUniform(m_attribs.u_d_vlight_style3, "d_vlight_style3", m_pShader, Sys_ErrorPopup))
 			return false;
 
 		for(Uint32 i = 0; i < MAX_BATCH_LIGHTS; i++)
@@ -535,8 +556,14 @@ bool CVBMRenderer::InitGL( void )
 	if(CL_IsGameActive())
 	{
 		DeleteDecals();
-		BuildVBO();
+		BuildVBOs();
 		CreateVertexTexture();
+
+		if(!RebuildVertexLightingVBOs())
+		{
+			Con_EPrintf("%s - Error encountered while rebuilding VBOs for VBM renderer.", __FUNCTION__);
+			return false;
+		}
 	}
 
 	return true;
@@ -554,10 +581,41 @@ void CVBMRenderer::ClearGL( void )
 		m_pShader = nullptr;
 	}
 
-	if(m_pVBO)
+	if(!m_pVBMVBOArray.empty())
 	{
-		delete m_pVBO;
-		m_pVBO = nullptr;
+		for(Uint32 i = 0; i < m_pVBMVBOArray.size(); i++)
+		{
+			if(m_pVBMVBOArray[i])
+				delete m_pVBMVBOArray[i];
+		}
+
+		m_pVBMVBOArray.clear();
+	}
+
+	if(!m_pVertexLightingVBOArray.empty())
+	{
+		for(Uint32 i = 0; i < m_pVertexLightingVBOArray.size(); i++)
+		{
+			if(m_pVertexLightingVBOArray[i])
+			{
+				delete m_pVertexLightingVBOArray[i]->pvbo;
+				m_pVertexLightingVBOArray[i]->pvbo = nullptr;
+			}
+		}
+
+		m_pVertexLightingVBOArray.clear();
+	}
+
+	if(m_pDecalVBO)
+	{
+		delete m_pDecalVBO;
+		m_pDecalVBO = nullptr;
+	}
+
+	if(m_pTempDrawVBO)
+	{
+		delete m_pTempDrawVBO;
+		m_pTempDrawVBO = nullptr;
 	}
 }
 
@@ -580,7 +638,7 @@ bool CVBMRenderer::InitGame( void )
 		m_pGlintTexture = pTextureManager->GetDummyTexture();
 	}
 
-	BuildVBO();
+	BuildVBOs();
 
 	return true;
 }
@@ -605,10 +663,38 @@ void CVBMRenderer::ClearGame( void )
 		m_pShader->ResetShader();
 	}
 
-	if(m_pVBO)
+	if(!m_pVBMVBOArray.empty())
 	{
-		delete m_pVBO;
-		m_pVBO = nullptr;
+		for(Uint32 i = 0; i < m_pVBMVBOArray.size(); i++)
+		{
+			if(m_pVBMVBOArray[i])
+				delete m_pVBMVBOArray[i];
+		}
+
+		m_pVBMVBOArray.clear();
+	}
+
+	if(!m_pVertexLightingVBOArray.empty())
+	{
+		for(Uint32 i = 0; i < m_pVertexLightingVBOArray.size(); i++)
+		{
+			if(m_pVertexLightingVBOArray[i])
+				delete m_pVertexLightingVBOArray[i];
+		}
+
+		m_pVertexLightingVBOArray.clear();
+	}
+
+	if(m_pDecalVBO)
+	{
+		delete m_pDecalVBO;
+		m_pDecalVBO = nullptr;
+	}
+
+	if(m_pTempDrawVBO)
+	{
+		delete m_pTempDrawVBO;
+		m_pTempDrawVBO = nullptr;
 	}
 
 	if(m_pFlexManager)
@@ -1291,6 +1377,7 @@ void CVBMRenderer::EstimateGait( Double dt )
 //=============================================
 bool CVBMRenderer::SetModel( void )
 {
+	// Ensure this model actually exists
 	cache_model_t* pmodel = gModelCache.GetModelByIndex(m_pCurrentEntity->curstate.modelindex);
 	if(!pmodel)
 	{
@@ -1298,9 +1385,131 @@ bool CVBMRenderer::SetModel( void )
 		return false;
 	}
 
-	// Value depends on the loaded state
+	// Get cache ptr and check if it has GL data loaded
+	vbmcache_t* pcache = pmodel->getVBMCache();
+	if(!pmodel->isloaded)
+	{
+		// Build cache entry for this VBM
+		BuildVBMVBO(pcache);
+		// Mark as having GL data
+		pmodel->isloaded = true;
+	}
+
+	CVBO* pVBO = m_pVBMVBOArray[pcache->vboindex];
+	if(m_pCurrentVBO != pVBO)
+	{
+		// Set the current VBO and enable basic attribs we'll need
+		m_pShader->SetVBO(pVBO);
+		m_pCurrentVBO = pVBO;
+	}
+
+	m_pShader->EnableAttribute(m_attribs.a_origin);
+	m_pShader->EnableAttribute(m_attribs.a_boneindexes);
+	m_pShader->EnableAttribute(m_attribs.a_boneweights);
+
 	m_pCacheModel = pmodel;
-	return m_pCacheModel->isloaded ? true : false;
+
+	return true;
+}
+
+//=============================================
+//
+//
+//=============================================
+bool CVBMRenderer::DrawEntityDecals( cl_entity_t* pentity )
+{
+	// Make sure we can draw this entity right now
+	if(R_IsEntityTransparent(*pentity, true) && pentity->curstate.renderamt <= 0 ||
+		pentity->curstate.renderfx == RenderFx_MirrorOnly && !rns.mirroring ||
+		pentity->curstate.renderfx == RenderFx_MonitorOnly && !rns.monitorpass)
+		return true;
+
+	if(!pentity->pmodel)
+		return true;
+
+	// Set data pointers
+	m_pCurrentEntity = pentity;
+
+	// Ensure this model actually exists
+	cache_model_t* pmodel = gModelCache.GetModelByIndex(m_pCurrentEntity->curstate.modelindex);
+	if(!pmodel)
+	{
+		m_pCacheModel = nullptr;
+		return true;
+	}
+
+	m_pCacheModel = pmodel;
+
+	const vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
+	m_pStudioHeader = pstudiocache->pstudiohdr;
+	m_pVBMHeader = pstudiocache->pvbmhdr;
+
+	if(!m_pStudioHeader || !m_pVBMHeader)
+		return true;
+
+	SetExtraInfo();
+
+	// Don't bother if there's no extra info(temptentity)
+	if(!m_pExtraInfo)
+		return true;
+
+	// Don't bother if there's no decals to draw
+	if(!m_pExtraInfo->pvbmdecalheader)
+		return true;
+
+	// Also cull skybox entities now with frustum culling - the exception for 
+	// sky ents was an ancient remnant from the Paranoia-type skybox rendering, 
+	// and was never removed after that got replaced
+	if (CheckBBox())
+		return true;
+
+	// Set up player-relevant stuff
+	Vector savedAngles;
+	if(m_pCurrentEntity->player)
+	{
+		if(m_pCurrentEntity->curstate.gaitsequence)
+		{
+			// Save angles and process gait animation
+			savedAngles = m_pCurrentEntity->curstate.angles;
+			ProcessGait();
+		}
+		else
+		{
+			for(Uint32 i = 0; i < MAX_CONTROLLERS; i++)
+			{
+				m_pCurrentEntity->curstate.controllers[i] = 127.0f;
+				m_pCurrentEntity->latched.controllers[i] = m_pCurrentEntity->curstate.controllers[i];
+			}
+		}
+	}
+
+	// Set basic infos
+	SetOrientation();
+
+	// Only animate if needed
+	if(ShouldAnimate())
+	{
+		SetupTransformationMatrix();
+		SetupBones((VBM_SETUPBONES|VBM_RENDER));
+
+		if(m_pCurrentEntity->player && m_pCurrentEntity->curstate.gaitsequence)
+			m_pCurrentEntity->curstate.angles = savedAngles;
+	}
+
+	// Apply any flexes
+	if(m_pVBMHeader->flags & VBM_HAS_FLEXES)
+		m_pFlexManager->UpdateValues( rns.time, m_pCurrentEntity->curstate.health, m_pCurrentEntity->mouth.mouthopen, m_pExtraInfo->pflexstate, false );
+
+	// Draw the model decals
+	if(!DrawModelDecals())
+		return false;
+
+	// Make sure these states are reset
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+	glDepthFunc(GL_LEQUAL);
+
+	return true;
 }
 
 //=============================================
@@ -1324,36 +1533,8 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 	// Make sure model is handled
 	if(!SetModel())
 	{
-		if(!m_pCacheModel || !m_pCacheModel->pcachedata)
-		{
-			Con_Printf("%s - Failed to get model by index %d.\n", __FUNCTION__, m_pCurrentEntity->curstate.modelindex);
-			return true;
-		}
-
-		if(flags & VBM_RENDER)
-		{
-			EndDraw();
-
-			// Clear shader ptr
-			m_pShader->SetVBO(nullptr);
-			m_pShader->ResetShader();
-		}
-
-		if(m_pVBO)
-		{
-			delete m_pVBO;
-			m_pVBO = nullptr;
-		}
-		
-		BuildVBO();
-
-		// Re-set shader
-		if(flags & VBM_RENDER)
-		{
-			m_pShader->SetVBO(m_pVBO);
-			if(!PrepareDraw())
-				return false;
-		}
+		Con_Printf("%s - Failed to get model by index %d.\n", __FUNCTION__, m_pCurrentEntity->curstate.modelindex);
+		return true;
 	}
 
 	const vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
@@ -1500,12 +1681,14 @@ void CVBMRenderer::CalculateAttachments( void )
 //
 //
 //=============================================
-void CVBMRenderer::AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, mcdheader_t* pmcd, vbm_glvertex_t* pvertexbuffer, Uint32* pindexbuffer, Uint32& vertexoffset, Uint32& indexoffset )
+void CVBMRenderer::BuildVBMVBO( vbmcache_t* pvbmcache )
 {
+	vbmheader_t* pvbm = pvbmcache->pvbmhdr;
+
 	//
 	// Compile in vertexes
 	//
-	vbm_glvertex_t *pvboverts = pvertexbuffer + vertexoffset;
+	vbm_glvertex_t *pvboverts = new vbm_glvertex_t[pvbm->numverts];
 	const vbmvertex_t* pvbmverts = pvbm->getVertexes();
 	for(Int32 i = 0; i < pvbm->numverts; i++)
 	{
@@ -1540,22 +1723,19 @@ void CVBMRenderer::AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, mcdheader_t* pm
 		VBM_NormalizeWeights(pvboverts[i].boneweights, MAX_VBM_BONEWEIGHTS);
 	}
 
-	// Set the vertex offset
-	pvbm->vbooffset = vertexoffset;
-	vertexoffset += pvbm->numverts;
+	// Set the offsets to zero
+	pvbm->ibooffset = 0;
+	pvbm->vbooffset = 0;
 
-	//
-	// Compile in indexes
-	//
-	Uint32 *pvboindexes = pindexbuffer + indexoffset;
-	const Uint32 *pvbmindexes = pvbm->getIndexes();
+	// Set vertex hash
+	Uint32 bufferSize = pvbm->numverts * sizeof(vbmvertex_t);
+	CMD5 vertexHash(reinterpret_cast<const byte*>(pvbm->getVertexes()), bufferSize);
+	pvbmcache->vertexhash = vertexHash.HexDigest();
 
-	for(Int32 j = 0; j < pvbm->numindexes; j++)
-		pvboindexes[j] = pvbmindexes[j]+pvbm->vbooffset;
-
-	// Set the indexes
-	pvbm->ibooffset = indexoffset;
-	indexoffset += pvbm->numindexes;
+	// Set VBO
+	CVBO* pVBO = new CVBO(gGLExtF, pvboverts, pvbm->numverts*sizeof(vbm_glvertex_t), pvbm->getIndexes(), pvbm->numindexes*sizeof(Uint32));
+	pvbmcache->vboindex = m_pVBMVBOArray.size();
+	m_pVBMVBOArray.push_back(pVBO);
 
 	//
 	// Set up textures
@@ -1587,6 +1767,7 @@ void CVBMRenderer::AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, mcdheader_t* pm
 		ptexture->index = pmaterial->index;
 	}
 
+	mcdheader_t* pmcd = pvbmcache->pmcdheader;
 	if(pmcd)
 	{
 		for(Int32 i = 0; i < pmcd->numtextures; i++)
@@ -1623,25 +1804,31 @@ void CVBMRenderer::AddVBM( studiohdr_t *phdr, vbmheader_t *pvbm, mcdheader_t* pm
 //
 //
 //=============================================
-void CVBMRenderer::BuildVBO( void )
+void CVBMRenderer::BuildVBOs( void )
 {
 	if(ens.isloading)
 		VID_DrawLoadingScreen("Loading VBM geometry and textures");
 
-	if(m_pVBO)
+	if(!m_pVBMVBOArray.empty())
 	{
-		delete m_pVBO;
-		m_pVBO = nullptr;
+		for(Uint32 i = 0; i < m_pVBMVBOArray.size(); i++)
+			delete m_pVBMVBOArray[i];
+
+		m_pVBMVBOArray.clear();
 	}
 
-	// Estimate the final counts
-	Uint32 finalvertexcount = 0;
-	Uint32 finalindexcount = 0;
+	if(m_pDecalVBO)
+	{
+		delete m_pDecalVBO;
+		m_pDecalVBO = nullptr;
+	}
 
-	// Array holding all VBM caches
-	CArray<const vbmcache_t*> pvbmarray(gModelCache.GetNbCachedModels());
-	Uint32 finalvbmcount = 0;
-
+	if(m_pTempDrawVBO)
+	{
+		delete m_pTempDrawVBO;
+		m_pTempDrawVBO = nullptr;
+	}
+	
 	for(Uint32 i = 0; i < gModelCache.GetNbCachedModels(); i++)
 	{
 		cache_model_t *pmodel = gModelCache.GetModelByIndex((i+1));
@@ -1652,27 +1839,19 @@ void CVBMRenderer::BuildVBO( void )
 		if(pmodel->type != MOD_VBM)
 			continue;
 
-		const vbmcache_t* pcache = pmodel->getVBMCache();
+		vbmcache_t* pcache = pmodel->getVBMCache();
 		if(!pcache->pstudiohdr || !pcache->pvbmhdr)
 			continue;
 
 		if(!pcache->pvbmhdr->numbodyparts)
 			continue;
 
-		// Add to cache
-		pvbmarray[finalvbmcount] = pcache;
-		finalvbmcount++;
+		// Create entry
+		BuildVBMVBO(pcache);
 
-		// Increment the vertex and index counts
-		finalvertexcount += pcache->pvbmhdr->numverts;
-		finalindexcount += pcache->pvbmhdr->numindexes;
-
-		// Mark as loaded into GL
+		// Mark as loded into OpenGL
 		pmodel->isloaded = true;
 	}
-
-	// Add in the draw buffer
-	finalvertexcount += MAX_TEMP_VBM_VERTEXES;
 	
 	// Add in the decal buffer
 	m_decalVertexCacheSize = m_pCvarDecalCacheSize->GetValue();
@@ -1687,35 +1866,58 @@ void CVBMRenderer::BuildVBO( void )
 	m_decalIndexCacheSize = m_decalVertexCacheSize*3;
 
 	// Add these in
-	m_vCache_Base = finalvertexcount;
+	m_vCache_Base = 0;
 	m_vCache_Index = m_vCache_Base;
-	finalvertexcount += m_decalVertexCacheSize;
 
-	m_iCache_Base = finalindexcount;
+	m_iCache_Base = 0;
 	m_iCache_Index = m_iCache_Base;
-	finalindexcount += m_decalIndexCacheSize;
 
-	// Allocate buffers we'll send to the GPU
-	vbm_glvertex_t* pvertexbuffer = new vbm_glvertex_t[finalvertexcount];
-	memset(pvertexbuffer, 0, sizeof(vbm_glvertex_t)*finalvertexcount);
-	Uint32 vertexoffset = MAX_TEMP_VBM_VERTEXES;
+	// Create buffers for decals
+	vbm_glvertex_t* pvertexbuffer = new vbm_glvertex_t[m_decalVertexCacheSize];
+	memset(pvertexbuffer, 0, sizeof(vbm_glvertex_t)*m_decalVertexCacheSize);
 
-	Uint32* pindexbuffer = new Uint32[finalindexcount];
-	memset(pindexbuffer, 0, sizeof(Uint32)*finalindexcount);
-	Uint32 indexoffset = 0;
+	Uint32* pindexbuffer = new Uint32[m_decalIndexCacheSize];
+	memset(pindexbuffer, 0, sizeof(Uint32)*m_decalIndexCacheSize);
 
-	// Now process all the 
-	for(Uint32 i = 0; i < finalvbmcount; i++)
-	{
-		const vbmcache_t* pcache = pvbmarray[i];
-		AddVBM(pcache->pstudiohdr, pcache->pvbmhdr, pcache->pmcdheader, pvertexbuffer, pindexbuffer, vertexoffset, indexoffset);
-	}
-
-	m_pVBO = new CVBO(gGLExtF, pvertexbuffer, sizeof(vbm_glvertex_t)*finalvertexcount, pindexbuffer, sizeof(Uint32)*finalindexcount);
-	m_pShader->SetVBO(m_pVBO);
+	m_pDecalVBO = new CVBO(gGLExtF, pvertexbuffer, sizeof(vbm_glvertex_t)*m_decalVertexCacheSize, pindexbuffer, sizeof(Uint32)*m_decalIndexCacheSize);
 
 	delete[] pvertexbuffer;
 	delete[] pindexbuffer;
+
+	// Create buffer for drawing debug stuff
+	pvertexbuffer = new vbm_glvertex_t[MAX_TEMP_VBM_VERTEXES];
+	memset(pvertexbuffer, 0, sizeof(vbm_glvertex_t)*MAX_TEMP_VBM_VERTEXES);
+
+	m_pTempDrawVBO = new CVBO(gGLExtF, pvertexbuffer, sizeof(vbm_glvertex_t)*MAX_TEMP_VBM_VERTEXES, nullptr, 0);
+	delete[] pvertexbuffer;
+}
+
+//=============================================
+//
+//
+//=============================================
+bool CVBMRenderer::RebuildVertexLightingVBOs( void )
+{
+	if(m_pVertexLightingVBOArray.empty())
+		return true;
+
+	for(Uint32 i = 0; i < m_pVertexLightingVBOArray.size(); i++)
+	{
+		vlight_vbo_t* pvlightvbo = m_pVertexLightingVBOArray[i];
+		if(pvlightvbo->pvbo)
+		{
+			delete pvlightvbo->pvbo;
+			pvlightvbo->pvbo = nullptr;
+		}
+
+		if(!BuildVertexLightVBO(pvlightvbo))
+		{
+			Sys_ErrorPopup("%s - Could not compile vertex lighting VBO at index %d for model '%s'.\n", __FUNCTION__, i, pvlightvbo->pvbmcache->pvbmhdr->name);
+			return false;
+		}
+	}
+
+	return true;
 }
 
 //=============================================
@@ -1813,6 +2015,42 @@ void CVBMRenderer::UpdateLightValues ( void )
 			// Reset this
 			m_pLightingInfo->lighttime = -1;
 		}
+
+		if(m_pLightingInfo->reductiontime > 0 && m_pLightingInfo->reductiontime != -1)
+		{
+			// If blend time expired, then set the final values
+			Float reducefulltime = m_pLightingInfo->reductiontime + LIGHTING_LERP_TIME;
+			if(reducefulltime < rns.time)
+			{
+				// Set final value
+				m_pLightingInfo->lightreduction = m_pLightingInfo->target_lightreduction;
+				m_pLightingInfo->reductiontime = -1;
+			}
+			else
+			{
+				Double reducetime = rns.time - m_pLightingInfo->reductiontime;
+				Double reducefrac = reducetime / LIGHTING_LERP_TIME;
+
+				m_pLightingInfo->lightreduction = m_pLightingInfo->prev_lightreduction * (1.0 - reducefrac);
+				m_pLightingInfo->lightreduction += reducefrac * m_pLightingInfo->target_lightreduction;
+			}
+		}
+		else if(m_pLightingInfo->reductiontime != -1)
+		{
+			// Reset this
+			m_pLightingInfo->reductiontime = -1;
+		}
+	}
+
+	// Add light reduction if needed
+	if(m_pLightingInfo->lightreduction > 0)
+	{
+		Vector tmp;
+		Math::VectorScale(m_pLightingInfo->direct_color, m_pLightingInfo->lightreduction*0.6, tmp);
+		Math::VectorSubtract(m_pLightingInfo->direct_color, tmp, m_pLightingInfo->direct_color);
+	
+		Math::VectorScale(m_pLightingInfo->ambient_color, m_pLightingInfo->lightreduction*0.4, tmp);
+		Math::VectorSubtract(m_pLightingInfo->ambient_color, tmp, m_pLightingInfo->ambient_color);
 	}
 
 	// Copy into the render target vectors
@@ -1849,6 +2087,12 @@ void CVBMRenderer::UpdateLightValues ( void )
 //=============================================
 void CVBMRenderer::SetupLighting ( Int32 flags )
 {
+	// Do not bother calculating lighting for vertex lit objects
+	if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION && 
+		m_pCurrentEntity->curstate.vlight_vbo_index >= 0 &&
+		m_pCurrentEntity->curstate.vlight_vbo_index < m_pVertexLightingVBOArray.size())
+		return;
+
 	// Rebuild the entity's light origin each frame
 	Vector lightorigin;
 	Vector saved_lightorigin;
@@ -1905,6 +2149,7 @@ void CVBMRenderer::SetupLighting ( Int32 flags )
 	bool gotLighting = false;
 	bool gotBumpLighting = false;
 	bool gotLightmapLighting = false;
+	bool gotLightGridLighting = false;
 
 	Vector surfnormal;
 	byte lightstyles[MAX_SURFACE_STYLES] = { 0 };
@@ -1912,8 +2157,16 @@ void CVBMRenderer::SetupLighting ( Int32 flags )
 	Vector lightcolors[MAX_SURFACE_STYLES];
 	Vector lmapdiffusecolors[MAX_SURFACE_STYLES];
 
+	// Try and get lighting from the light grid
+	if(ens.pworld->plightgrid && Mod_GetLightGridLighting(ens.pworld->plightgrid, lightorigin, lightcolors, lmapdiffusecolors, lightdirs, lightstyles))
+	{
+		gotLighting = true;
+		gotBumpLighting = true;
+		gotLightGridLighting = true;
+	}
+
 	// Try to trace against the sky vector
-	if(rns.sky.drawsky && !cls.skycolor.IsZero() && m_pCvarSkyLighting->GetValue() >= 1)
+	if(!gotLighting && rns.sky.drawsky && !cls.skycolor.IsZero() && m_pCvarSkyLighting->GetValue() >= 1)
 	{
 		Vector skytracevector;
 		Vector skyvector = cls.skyvec;
@@ -2178,19 +2431,21 @@ void CVBMRenderer::SetupLighting ( Int32 flags )
 			if(lightstyles[j] == NULL_LIGHTSTYLE_INDEX)
 				break;
 
-			Float dp = -Math::DotProduct(lightdirs[j], lightdirs[j]);
+			Float dp = -Math::DotProduct(lightdirs[j], lightdirs[0]);
 			if(dp > 1)
 				dp = 1;
 			else if(dp < 0)
 				dp = 0;
 
 			Math::VectorScale(lmapdiffusecolors[j], dp, diffusecolors[j]);
-			Math::VectorCopy(lightcolors[j], ambientcolors[j]);
+			Math::VectorScale(lmapdiffusecolors[j], (1.0 - dp), ambientcolors[j]);
+			Math::VectorAdd(ambientcolors[j], lightcolors[j], ambientcolors[j]);
 		}
 	}
 
 	// Reduce direct light based on how many lights are affecting us
-	if((m_numModelLights > 0 || m_numDynamicLights > 0) 
+	Float fllightreduction = 0;
+	if(m_pExtraInfo && (m_numModelLights > 0 || m_numDynamicLights > 0) 
 		&& !(m_pCurrentEntity->curstate.flags & EF_LADDER)
 		&& !R_IsEntityTransparent(*m_pCurrentEntity, true))
 	{
@@ -2198,22 +2453,54 @@ void CVBMRenderer::SetupLighting ( Int32 flags )
 		if(numlights > NUM_LIGHT_REDUCTIONS) 
 			numlights = NUM_LIGHT_REDUCTIONS;
 
-		Float fllightreduction = (static_cast<Float>(numlights)/NUM_LIGHT_REDUCTIONS);
+		fllightreduction = (static_cast<Float>(numlights)/NUM_LIGHT_REDUCTIONS);
 		if(fllightreduction > 1.0)
 			fllightreduction = 1.0;
-
-		// Modify the light values
-		Math::VectorScale(diffusecolors[BASE_LIGHTMAP_INDEX], fllightreduction*0.6, tmp);
-		Math::VectorSubtract(diffusecolors[BASE_LIGHTMAP_INDEX], tmp, diffusecolors[BASE_LIGHTMAP_INDEX]);
-	
-		Math::VectorScale(ambientcolors[BASE_LIGHTMAP_INDEX], fllightreduction*0.4, tmp);
-		Math::VectorSubtract(ambientcolors[BASE_LIGHTMAP_INDEX], tmp, ambientcolors[BASE_LIGHTMAP_INDEX]);
 	}
 
 	// Only do anything if the values actually changed
 	if(m_pExtraInfo)
 	{
-		if(rns.time == 0 || m_pLightingInfo->lighttime == 0 || m_pLightingInfo->reset 
+		if(rns.time == 0 || m_pLightingInfo->reductiontime == 0 || m_pLightingInfo->reset 
+			|| fllightreduction != m_pLightingInfo->target_lightreduction)
+		{
+			if(rns.time == 0 || m_pLightingInfo->reductiontime == 0 || m_pExtraInfo->plightinfo->reset)
+			{
+				m_pLightingInfo->target_lightreduction = fllightreduction;
+				m_pLightingInfo->lightreduction = fllightreduction;
+				m_pLightingInfo->reductiontime = -1;
+			}
+			else
+			{
+				m_pLightingInfo->prev_lightreduction = m_pLightingInfo->lightreduction;
+				m_pLightingInfo->target_lightreduction = fllightreduction;
+				m_pLightingInfo->reductiontime = rns.time;
+			}
+		}
+
+		if(gotLightGridLighting)
+		{
+			// Set final values
+			Math::VectorCopy(ambientcolors[BASE_LIGHTMAP_INDEX], m_pLightingInfo->ambient_color);
+			Math::VectorCopy(diffusecolors[BASE_LIGHTMAP_INDEX], m_pLightingInfo->direct_color);
+			Math::VectorCopy(lightdir, m_pLightingInfo->lightdirection);
+
+			// Set final lightstyle values as well
+			for(Uint32 i = 0; i < (MAX_SURFACE_STYLES-1); i++)
+			{
+				if(m_pLightingInfo->lightstyles[i] == NULL_LIGHTSTYLE_INDEX)
+					continue;
+
+				Math::VectorCopy(ambientcolors[i+1], m_pLightingInfo->lightstylecolors_ambient[i]);
+				Math::VectorCopy(diffusecolors[i+1], m_pLightingInfo->lightstylecolors_diffuse[i]);
+				m_pLightingInfo->lightstyles[i] = lightstyles[i+1];
+			}
+
+			// Set this to signal that we don't need to do this again
+			m_pLightingInfo->lighttime = -1;
+			m_pLightingInfo->lastlightorigin = lightorigin;
+		}
+		else if(rns.time == 0 || m_pLightingInfo->lighttime == 0 || m_pLightingInfo->reset 
 			|| !CompareLightValues(ambientcolors, diffusecolors, lightdir, lightstyles))
 		{
 			if(rns.time == 0 || m_pLightingInfo->lighttime == 0 
@@ -2303,6 +2590,9 @@ void CVBMRenderer::SetupLighting ( Int32 flags )
 	}
 	else
 	{
+		m_pLightingInfo->lightreduction = fllightreduction;
+
+		// Just directly use the color values
 		Math::VectorCopy(ambientcolors[BASE_LIGHTMAP_INDEX], m_pLightingInfo->ambient_color);
 		Math::VectorCopy(diffusecolors[BASE_LIGHTMAP_INDEX], m_pLightingInfo->direct_color);
 		Math::VectorCopy(lightdir, m_pLightingInfo->lightdirection);
@@ -2851,14 +3141,39 @@ bool CVBMRenderer::Render( Int32 flags )
 			glDisable(GL_BLEND);
 		}
 
-		if(!DrawDecals())
-			return false;
-
 		if(!DrawWireframe())
 			return false;
 	}
 
+	if(!DrawDebug())
+		return false;
+
+	return true;
+}
+
+//=============================================
+//
+//
+//=============================================
+bool CVBMRenderer::DrawDebug( void )
+{
 	// Check for drawing special stuff
+	if(m_pCvarDrawModels->GetValue() < 2)
+		return true;
+
+	// Disable all attribs pointing to previous VBO
+	Uint32 attribCount = m_pShader->GetNbAttributes();
+	for(Uint32 i = 0; i < attribCount; i++) 
+		m_pShader->DisableAttribute(i);
+
+	// Set the current VBO and enable basic attribs we'll need
+	m_pShader->SetVBO(m_pTempDrawVBO);
+	m_pCurrentVBO = m_pTempDrawVBO;
+
+	m_pShader->EnableAttribute(m_attribs.a_origin);
+	m_pShader->EnableAttribute(m_attribs.a_boneindexes);
+	m_pShader->EnableAttribute(m_attribs.a_boneweights);
+
 	switch(static_cast<Int32>(m_pCvarDrawModels->GetValue()))
 	{
 	case 2:
@@ -2911,7 +3226,6 @@ bool CVBMRenderer::Render( Int32 flags )
 bool CVBMRenderer::SetupRenderer( void )
 {
 	// If in water with caustics, add to multipass
-
 	if(rns.inwater && g_pCvarCaustics->GetValue() >= 1 && m_pCurrentEntity->curstate.renderfx != RenderFx_NoDynamicLighting
 		&& gWaterShader.GetWaterQualitySetting() > CWaterShader::WATER_QUALITY_NO_REFLECT_REFRACT)
 	{
@@ -2923,6 +3237,21 @@ bool CVBMRenderer::SetupRenderer( void )
 	// If water caustics did not add to multipass, then check for lights
 	if(!m_isMultiPass && (m_numDynamicLights != 0 && g_pCvarDynamicLights->GetValue() >= 1))
 		m_isMultiPass = true;
+
+	// If doing baked lighting, check for styles
+	if(!m_isMultiPass && m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION)
+	{
+		CArray<Float>* pstylesarray = gLightStyles.GetLightStyleValuesArray();
+		for(Uint32 i = 1; i < MAX_ENTITY_STYLES; i++)
+		{
+			if(m_pCurrentEntity->curstate.vlight_styles[i] != NULL_LIGHTSTYLE_INDEX 
+				&& (*pstylesarray)[m_pCurrentEntity->curstate.vlight_styles[i]] > 0)
+			{
+				m_isMultiPass = true;
+				break;
+			}
+		}
+	}
 
 	bool result = false;
 	if(!rns.fog.settings.active && !m_isMultiPass) 
@@ -2979,11 +3308,38 @@ bool CVBMRenderer::SetupRenderer( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	m_pShader->EnableAttribute(m_attribs.a_normal);
 	m_pShader->EnableAttribute(m_attribs.a_tangent);
 	m_pShader->EnableAttribute(m_attribs.a_texcoord1);
+
+	// Bind VBO for baked vertex lighting if any
+	if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION
+		&& m_pVertexLightingVBOArray.size() > m_pCurrentEntity->curstate.vlight_vbo_index)
+	{
+		vlight_vbo_t* pvblightvbo = m_pVertexLightingVBOArray[m_pCurrentEntity->curstate.vlight_vbo_index];
+		m_pShader->SetVBO(pvblightvbo->pvbo, 1);
+
+		m_pShader->SetAttributePointer(m_attribs.a_vertexlight_vectors, OFFSET(vbm_vlight_glvertex_t, vertexlight0_vector), 1);
+		m_pShader->SetAttributePointer(m_attribs.a_vertexlight_ambient, OFFSET(vbm_vlight_glvertex_t, vertexlight0_ambient), 1);
+		m_pShader->SetAttributePointer(m_attribs.a_vertexlight_diffuse, OFFSET(vbm_vlight_glvertex_t, vertexlight0_diffuse), 1);
+
+		m_pShader->EnableAttribute(m_attribs.a_vertexlight_vectors);
+		m_pShader->EnableAttribute(m_attribs.a_vertexlight_ambient);
+		m_pShader->EnableAttribute(m_attribs.a_vertexlight_diffuse);
+
+		if(!m_pShader->SetDeterminator(m_attribs.d_vertexlight, TRUE, false))
+			return false;
+	}
+	else
+	{
+		m_pShader->DisableAttribute(m_attribs.a_vertexlight_vectors);
+		m_pShader->DisableAttribute(m_attribs.a_vertexlight_ambient);
+		m_pShader->DisableAttribute(m_attribs.a_vertexlight_diffuse);
+
+		if(!m_pShader->SetDeterminator(m_attribs.d_vertexlight, FALSE, false))
+			return false;
+	}
 
 	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, m_renderAlpha);
 
@@ -3030,13 +3386,27 @@ bool CVBMRenderer::RestoreRenderer( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	if(!m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE))
 		return false;
 
 	m_pShader->DisableAttribute(m_attribs.a_flexcoord);
 	m_pShader->DisableAttribute(m_attribs.a_texcoord2);
+
+	if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION)
+	{
+		// Disable the attributes used by baked vertex lighting
+		m_pShader->EnableAttribute(m_attribs.a_vertexlight_vectors);
+		m_pShader->EnableAttribute(m_attribs.a_vertexlight_ambient);
+		m_pShader->EnableAttribute(m_attribs.a_vertexlight_diffuse);
+
+		// Unbind secondary VBO from shader
+		m_pShader->SetVBO(nullptr, 1);
+
+		if(!m_pShader->SetDeterminator(m_attribs.d_vertexlight, FALSE, false))
+			return false;
+	}
+
 	return true;
 }
 
@@ -3159,7 +3529,7 @@ void CVBMRenderer::CalculateFlexesSW( const vbmsubmodel_t* psubmodel )
 	}
  
 	// Update the VBO
-	m_pVBO->VBOSubBufferData((m_pVBMHeader->vbooffset+pflexinfo->first_vertex)*sizeof(vbm_glvertex_t), m_tempVertexes, pflexinfo->num_vertexes*sizeof(vbm_glvertex_t));
+	m_pCurrentVBO->VBOSubBufferData((m_pVBMHeader->vbooffset+pflexinfo->first_vertex)*sizeof(vbm_glvertex_t), m_tempVertexes, pflexinfo->num_vertexes*sizeof(vbm_glvertex_t));
 }
 
 //=============================================
@@ -3265,6 +3635,234 @@ bool CVBMRenderer::DrawFirst( void )
 //
 //
 //=============================================
+bool CVBMRenderer::DrawStyles( bool specularPass, bool transparentPass )
+{
+	// Only draw styles if we have a valid VBO index AND are in multipass mode
+	if(!m_isMultiPass || m_pCurrentEntity->curstate.vlight_vbo_index == NO_POSITION)
+		return true;
+
+	// Check if we have any valid styles at all
+	CArray<Float>* pstylesarray = gLightStyles.GetLightStyleValuesArray();
+	Uint32 i = 1;
+	for(; i < MAX_ENTITY_STYLES; i++)
+	{
+		if(m_pCurrentEntity->curstate.vlight_styles[i] != NULL_LIGHTSTYLE_INDEX 
+			&& (*pstylesarray)[m_pCurrentEntity->curstate.vlight_styles[i]] > 0)
+			break;
+	}
+
+	// If there's no styles, then don't bother
+	if(i == MAX_ENTITY_STYLES)
+		return true;
+
+	// Fetch texture related ptrs
+	Int32 skinnum = m_pCurrentEntity->curstate.skin; // for short..
+	const Int16 *pskinref = m_pVBMHeader->getSkinFamilies();
+
+	if(skinnum != 0 && skinnum < m_pVBMHeader->numskinfamilies)
+		pskinref += (skinnum * m_pVBMHeader->numskinref);
+
+	CTextureManager* pTextureManager = CTextureManager::GetInstance();
+
+	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
+	m_pShader->SetUniform1i(m_attribs.u_d_specular, specularPass);
+	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
+
+	// If doing specular pass, these are already done by DrawFinalSpecular
+	if(!specularPass)
+	{
+		if(transparentPass || m_useBlending)
+			glDepthFunc(GL_LEQUAL);
+		else
+			glDepthFunc(GL_EQUAL);
+
+		glEnable(GL_BLEND);
+		glDepthMask(GL_FALSE);
+		glBlendFunc(GL_ONE, GL_ONE);
+
+		m_pShader->EnableAttribute(m_attribs.a_vertexlight_vectors);
+		m_pShader->EnableAttribute(m_attribs.a_vertexlight_ambient);
+		m_pShader->EnableAttribute(m_attribs.a_vertexlight_diffuse);
+	}
+
+	if(!transparentPass && !m_useBlending)
+	{
+		// If not drawing blended parts, don't sync fog and chrome stuff
+		m_pShader->DisableSync(m_attribs.u_vorigin);
+		m_pShader->DisableSync(m_attribs.u_vright);
+		m_pShader->DisableSync(m_attribs.u_fogcolor);
+		m_pShader->DisableSync(m_attribs.u_fogparams);
+	}
+	else
+	{
+		// If doing blending, set chrome related stuff
+		m_pShader->SetUniform3f(m_attribs.u_vorigin, rns.view.v_origin[0], rns.view.v_origin[1], rns.view.v_origin[2]);
+		m_pShader->SetUniform3f(m_attribs.u_vright, rns.view.v_right[0], rns.view.v_right[1], rns.view.v_right[2]);
+
+		m_pShader->SetUniform3f(m_attribs.u_fogcolor, 0, 0, 0);
+		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/(static_cast<Float>(rns.fog.settings.end)- static_cast<Float>(rns.fog.settings.start)));
+	}
+
+	// Switch over to the appropriate vertex light only shader
+	Int32 shaderIndex = specularPass ? vbm_vlight_only_specular : vbm_vlight_only;
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+		|| !m_pShader->SetDeterminator(m_attribs.d_vertexlight, TRUE, false) 
+		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, shaderIndex))
+		return false;
+
+	for(i = 1; i < MAX_ENTITY_STYLES; i++)
+	{
+		if(m_pCurrentEntity->curstate.vlight_styles[i] == NULL_LIGHTSTYLE_INDEX 
+			|| (*pstylesarray)[m_pCurrentEntity->curstate.vlight_styles[i]] <= 0)
+			continue;
+
+		// Set the attribute pointers to the appropriate layer
+		const void* pvectorsoffset;
+		const void* pambientoffset;
+		const void* pdiffuseoffset;
+		switch(i)
+		{
+		case 2:
+			pvectorsoffset = OFFSET(vbm_vlight_glvertex_t, vertexlight2_vector);
+			pambientoffset = OFFSET(vbm_vlight_glvertex_t, vertexlight2_ambient);
+			pdiffuseoffset = OFFSET(vbm_vlight_glvertex_t, vertexlight2_diffuse);
+			break;
+		case 3:
+			pvectorsoffset = OFFSET(vbm_vlight_glvertex_t, vertexlight3_vector);
+			pambientoffset = OFFSET(vbm_vlight_glvertex_t, vertexlight3_ambient);
+			pdiffuseoffset = OFFSET(vbm_vlight_glvertex_t, vertexlight3_diffuse);
+			break;
+		default:
+		case 1:
+			pvectorsoffset = OFFSET(vbm_vlight_glvertex_t, vertexlight1_vector);
+			pambientoffset = OFFSET(vbm_vlight_glvertex_t, vertexlight1_ambient);
+			pdiffuseoffset = OFFSET(vbm_vlight_glvertex_t, vertexlight1_diffuse);
+			break;
+		}
+
+		m_pShader->SetAttributePointer(m_attribs.a_vertexlight_vectors, pvectorsoffset, 1);
+		m_pShader->SetAttributePointer(m_attribs.a_vertexlight_ambient, pambientoffset, 1);
+		m_pShader->SetAttributePointer(m_attribs.a_vertexlight_diffuse, pdiffuseoffset, 1);
+
+		// Color strength comes from animated style
+		Float colorstrength = (*pstylesarray)[m_pCurrentEntity->curstate.vlight_styles[i]];
+
+		for (Uint32 j = 0; j < m_numDrawSubmodels; j++)
+		{
+			m_pVBMSubModel = m_pSubmodelDrawList[j];
+
+			for (Int32 k = 0; k < m_pVBMSubModel->nummeshes; k++) 
+			{
+				const vbmmesh_t *pmesh = m_pVBMSubModel->getMesh(m_pVBMHeader, k);
+				const vbmtexture_t *ptexture = m_pVBMHeader->getTexture(pskinref[pmesh->skinref]);
+				en_material_t* pmaterial = pTextureManager->FindMaterialScriptByIndex(ptexture->index);
+				if(!pmaterial)
+					continue;
+
+				if(!m_useBlending)
+				{
+					if(!transparentPass && (pmaterial->flags & (TX_FL_ADDITIVE|TX_FL_ALPHABLEND|TX_FL_FULLBRIGHT))
+						|| transparentPass && !(pmaterial->flags & (TX_FL_ADDITIVE|TX_FL_ALPHABLEND|TX_FL_FULLBRIGHT)))
+						continue;
+				}
+
+				if(pmaterial->flags & TX_FL_SCOPE)
+					continue;
+
+				// The m_firstTextureUnit marks the first available unit
+				Int32 texunit_inner = m_firstTextureUnit;
+				// Clear every sampler higher than this unit
+				m_pShader->ResetSamplerIndex(texunit_inner);
+
+				if(specularPass)
+				{
+					if(!pmaterial->ptextures[MT_TX_SPECULAR])
+						continue;
+
+					m_pShader->SetUniform1f(m_attribs.u_phong_exponent, pmaterial->phong_exp*g_pCvarPhongExponent->GetValue());
+					m_pShader->SetUniform1f(m_attribs.u_specularfactor, pmaterial->spec_factor);
+
+					texunit_inner = m_pShader->AutoSetSamplerUniform(m_attribs.u_spectexture);
+					R_Bind2DTexture(GL_TEXTURE0 + texunit_inner, pmaterial->ptextures[MT_TX_SPECULAR]->palloc->gl_index);
+				}
+
+				if(pmaterial->ptextures[MT_TX_NORMALMAP] && g_pCvarBumpMaps->GetValue() > 0)
+				{
+					m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, TRUE);
+
+					texunit_inner = m_pShader->AutoSetSamplerUniform(m_attribs.u_normalmap);
+					R_Bind2DTexture(GL_TEXTURE0 + texunit_inner, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
+				}
+				else
+				{
+					m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
+				}
+
+				if(transparentPass || m_useBlending)
+				{
+					m_pShader->SetUniform1i(m_attribs.u_d_blendmultipass, rns.fog.settings.active ? BLENDMULTIPASS_BLACKFOG : BLENDMULTIPASS_NORMAL);
+					m_pShader->SetUniform1i(m_attribs.u_d_chrome, (pmaterial->flags & (TX_FL_CHROME) || pmaterial->flags & (TX_FL_EYEGLINT)) ? TRUE : FALSE);
+
+					texunit_inner = m_pShader->AutoSetSamplerUniform(m_attribs.u_texture0);
+					R_Bind2DTexture(GL_TEXTURE0 + texunit_inner, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
+
+					// Set transparency
+					Float alpha = m_renderAlpha;
+					if(pmaterial->flags & (TX_FL_ALPHABLEND))
+						alpha *= pmaterial->alpha;
+
+					alpha *= colorstrength;
+					m_pShader->SetUniform4f(m_attribs.u_color, alpha, alpha, alpha, 1.0);
+				}
+				else
+				{
+					m_pShader->SetUniform1i(m_attribs.u_d_blendmultipass, BLENDMULTIPASS_OFF);
+					m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
+					m_pShader->SetUniform4f(m_attribs.u_color, colorstrength, colorstrength, colorstrength, 1.0);
+				}
+
+				// Fix overlapping sampler issue
+				if(!m_pShader->PerformPreRenderChecks())
+					return false;
+
+				R_ValidateShader(m_pShader);
+
+				if(pmesh->numbones)
+					SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
+
+				m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+
+				// Remove all current texture binds
+				R_ClearBinds(m_firstTextureUnit);
+			}
+		}
+	}
+
+	// If not doing specular pass, disable the attribs pointing to the secondary VBO
+	if(!specularPass)
+	{
+		m_pShader->DisableAttribute(m_attribs.a_vertexlight_vectors);
+		m_pShader->DisableAttribute(m_attribs.a_vertexlight_ambient);
+		m_pShader->DisableAttribute(m_attribs.a_vertexlight_diffuse);
+
+		glDepthFunc(GL_LEQUAL);
+		glDisable(GL_BLEND);
+	}
+
+	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
+
+	if(!m_pShader->SetDeterminator(m_attribs.d_vertexlight, FALSE, false))
+		return false;
+	else
+		return true;
+}
+
+//=============================================
+//
+//
+//=============================================
 bool CVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, bool drawBlended )
 {
 	// Set the determinator states
@@ -3272,7 +3870,6 @@ bool CVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, b
 	m_pShader->SetUniform1i(m_attribs.u_d_numlights, (pmaterial->flags & (TX_FL_FULLBRIGHT|TX_FL_SCOPE)) ? 0 : m_numModelLights);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, (pmaterial->ptextures[MT_TX_SPECULAR]) && !(pmaterial->flags & TX_FL_FULLBRIGHT) && (!m_isMultiPass || m_useBlending) && g_pCvarSpecular->GetValue() > 0 ? true : false);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, (pmaterial->ptextures[MT_TX_LUMINANCE]) && !(pmaterial->flags & TX_FL_FULLBRIGHT));
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, (pmaterial->ptextures[MT_TX_AO]) && !(pmaterial->flags & TX_FL_FULLBRIGHT));
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, (pmaterial->ptextures[MT_TX_NORMALMAP]) && !(pmaterial->flags & TX_FL_FULLBRIGHT) && g_pCvarBumpMaps->GetValue() > 0);
 
 	// Alpha testing needs to be handled specially
@@ -3359,12 +3956,6 @@ bool CVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, b
 		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, pmaterial->ptextures[MT_TX_NORMALMAP]->palloc->gl_index);
 	}
 	
-	if (pmaterial->ptextures[MT_TX_AO])
-	{
-		textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_aotexture);
-		R_Bind2DTexture(GL_TEXTURE0 + textureIndex, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
-	}
-
 	if(pmaterial->scrollu || pmaterial->scrollv)
 	{
 		Float scrollu = pmaterial->scrollu ? (rns.time * pmaterial->scrollu) : 0;
@@ -3390,7 +3981,7 @@ bool CVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, b
 
 	R_ValidateShader(m_pShader);
 
-	glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+	m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 
 	if(pmaterial->flags & TX_FL_NO_CULLING)
 		glEnable(GL_CULL_FACE);
@@ -3420,14 +4011,14 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 	if(!m_numDynamicLights)
 		return true;
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false))
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_vertexlight, FALSE, false))
 		return false;
 
 	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, specularPass);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	CTextureManager* pTextureManager = CTextureManager::GetInstance();
 
@@ -3730,18 +4321,6 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 					m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
 				}
 
-				if (pmaterial->ptextures[MT_TX_AO])
-				{
-					m_pShader->SetUniform1i(m_attribs.u_d_ao, TRUE);
-
-					texunit_inner = m_pShader->AutoSetSamplerUniform(m_attribs.u_aotexture);
-					R_Bind2DTexture(GL_TEXTURE0 + texunit_inner, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
-				}
-				else
-				{
-					m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
-				}
-				
 				if(transparentPass || m_useBlending)
 				{
 					m_pShader->SetUniform1i(m_attribs.u_d_blendmultipass, rns.fog.settings.active ? BLENDMULTIPASS_BLACKFOG : BLENDMULTIPASS_NORMAL);
@@ -3773,7 +4352,7 @@ bool CVBMRenderer::DrawLights( bool specularPass, bool transparentPass )
 				if(pmesh->numbones)
 					SetShaderBoneTransform(m_pWeightBoneTransform, pmesh->getBones(m_pVBMHeader), pmesh->numbones);
 
-				glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+				m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 
 				// Remove all current texture binds
 				R_ClearBinds(texunit + 1);
@@ -3860,7 +4439,8 @@ bool CVBMRenderer::DrawFinal ( void )
 	m_pShader->ResetSamplerIndex(firstexunit);
 
 	// Set this determinator
-	if(!m_pShader->SetDeterminator(m_attribs.d_flexes, m_useFlexes, false))
+	if(!m_pShader->SetDeterminator(m_attribs.d_flexes, m_useFlexes, false)
+		|| !m_pShader->SetDeterminator(m_attribs.d_vertexlight, FALSE, false))
 		return false;
 
 	bool hasSpecular = false;
@@ -3877,7 +4457,6 @@ bool CVBMRenderer::DrawFinal ( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
 
 	if(!m_useBlending)
@@ -3950,7 +4529,7 @@ bool CVBMRenderer::DrawFinal ( void )
 
 						R_ValidateShader(m_pShader);
 
-						glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+						m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 					}
 				}
 
@@ -4020,7 +4599,7 @@ bool CVBMRenderer::DrawFinal ( void )
 				R_Bind2DTexture(GL_TEXTURE0 + firstexunit_local, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
 				R_ValidateShader(m_pShader);
 
-				glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+				m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 			}
 
 			if(textureFlags & TX_FL_CHROME)
@@ -4053,7 +4632,7 @@ bool CVBMRenderer::DrawFinal ( void )
 					R_Bind2DTexture(GL_TEXTURE0 + firstexunit_local, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
 					R_ValidateShader(m_pShader);
 
-					glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+					m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 				}
 
 				m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
@@ -4147,7 +4726,7 @@ bool CVBMRenderer::DrawFinal ( void )
 
 				R_ValidateShader(m_pShader);
 
-				glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+				m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 			}
 		}
 	}
@@ -4245,6 +4824,10 @@ bool CVBMRenderer::DrawFinal ( void )
 		m_pShader->DisableAttribute(m_attribs.a_texcoord1);
 		m_pShader->DisableAttribute(m_attribs.a_normal);
 
+		// Draw any styles for transparents
+		if(!DrawStyles(false, true))
+			return false;
+
 		// Draw any dynamic lighting for transparents
 		if(!DrawLights(false, true))
 			return false;
@@ -4295,7 +4878,7 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 	m_pShader->SetUniform1i(m_attribs.u_d_numlights, m_numModelLights);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, TRUE);
 
-	if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_speconly))
+	if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_speconly, false))
 		return false;
 
 	m_pShader->EnableSync(m_attribs.u_sky_ambient);
@@ -4318,6 +4901,34 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 	m_pShader->SetUniform3f(m_attribs.u_sky_dir, vtransformed[0], vtransformed[1], vtransformed[2]);
 	m_pShader->SetUniform3f(m_attribs.u_sky_ambient, m_renderAmbientColor[0], m_renderAmbientColor[1], m_renderAmbientColor[2]);
 	m_pShader->SetUniform3f(m_attribs.u_sky_diffuse, m_renderDiffuseColor[0], m_renderDiffuseColor[1], m_renderDiffuseColor[2]);
+
+	// Bind VBO for baked vertex lighting if any
+	if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION
+		&& m_pVertexLightingVBOArray.size() > m_pCurrentEntity->curstate.vlight_vbo_index)
+	{
+		vlight_vbo_t* pvblightvbo = m_pVertexLightingVBOArray[m_pCurrentEntity->curstate.vlight_vbo_index];
+		m_pShader->SetVBO(pvblightvbo->pvbo, 1);
+
+		m_pShader->SetAttributePointer(m_attribs.a_vertexlight_vectors, OFFSET(vbm_vlight_glvertex_t, vertexlight0_vector), 1);
+		m_pShader->SetAttributePointer(m_attribs.a_vertexlight_ambient, OFFSET(vbm_vlight_glvertex_t, vertexlight0_ambient), 1);
+		m_pShader->SetAttributePointer(m_attribs.a_vertexlight_diffuse, OFFSET(vbm_vlight_glvertex_t, vertexlight0_diffuse), 1);
+
+		m_pShader->EnableAttribute(m_attribs.a_vertexlight_vectors);
+		m_pShader->EnableAttribute(m_attribs.a_vertexlight_ambient);
+		m_pShader->EnableAttribute(m_attribs.a_vertexlight_diffuse);
+
+		if(!m_pShader->SetDeterminator(m_attribs.d_vertexlight, TRUE))
+			return false;
+	}
+	else
+	{
+		m_pShader->DisableAttribute(m_attribs.a_vertexlight_vectors);
+		m_pShader->DisableAttribute(m_attribs.a_vertexlight_ambient);
+		m_pShader->DisableAttribute(m_attribs.a_vertexlight_diffuse);
+
+		if(!m_pShader->SetDeterminator(m_attribs.d_vertexlight, FALSE))
+			return false;
+	}
 
 	for (Uint32 i = 0; i < m_numDrawSubmodels; i++)
 	{
@@ -4369,18 +4980,6 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 				m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
 			}
 
-			if (pmaterial->ptextures[MT_TX_AO])
-			{
-				m_pShader->SetUniform1i(m_attribs.u_d_ao, TRUE);
-
-				texunit_local = m_pShader->AutoSetSamplerUniform(m_attribs.u_aotexture);
-				R_Bind2DTexture(GL_TEXTURE0 + texunit_local, pmaterial->ptextures[MT_TX_AO]->palloc->gl_index);
-			}
-			else
-			{
-				m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
-			}
-
 			if(transparentPass || m_useBlending)
 			{
 				m_pShader->SetUniform1i(m_attribs.u_d_blendmultipass, rns.fog.settings.active ? BLENDMULTIPASS_BLACKFOG : BLENDMULTIPASS_NORMAL);
@@ -4425,7 +5024,7 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 
 			R_ValidateShader(m_pShader);
 
-			glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+			m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 
 			// Remove binds
 			R_ClearBinds(m_firstTextureUnit);
@@ -4436,7 +5035,21 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 	m_pShader->DisableSync(m_attribs.u_sky_diffuse);
 	m_pShader->DisableSync(m_attribs.u_sky_dir);
 
+	// Draw any styles using specular
+	if(!DrawStyles(true, transparentPass))
+		return false;
+
+	// Disable normalmatrix sync only after doing styles
 	m_pShader->DisableSync(m_attribs.u_normalmatrix);
+
+	// Disable these attribs
+	if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION
+		&& m_pVertexLightingVBOArray.size() > m_pCurrentEntity->curstate.vlight_vbo_index)
+	{
+		m_pShader->DisableAttribute(m_attribs.a_vertexlight_vectors);
+		m_pShader->DisableAttribute(m_attribs.a_vertexlight_ambient);
+		m_pShader->DisableAttribute(m_attribs.a_vertexlight_diffuse);
+	}
 
 	// Draw dynamic light specular lighting
 	if(m_numDynamicLights)
@@ -4451,7 +5064,6 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_numlights, 0);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_blendmultipass, BLENDMULTIPASS_OFF);
 	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
 
@@ -4529,7 +5141,6 @@ bool CVBMRenderer::DrawWireframe( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, 0);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, 0);
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, 0);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, 0);
 
 	if(!m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid))
 		return false;
@@ -4563,7 +5174,7 @@ bool CVBMRenderer::DrawWireframe( void )
 
 			R_ValidateShader(m_pShader);
 
-			glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+			m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 		}
 	}
 
@@ -4876,14 +5487,14 @@ void CVBMRenderer::FinalizeDecalMesh( vbmdecal_t* pdecal, vbm_decal_mesh_t* pmes
 		VBM_NormalizeWeights(m_tempVertexes[i].boneweights, MAX_VBM_BONEWEIGHTS);
 	}
 
-	m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*vertexoffset, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
+	m_pDecalVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*vertexoffset, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
 	
 	if(!pdecal->start_vertex)
 		pdecal->start_vertex = vertexoffset;
 
 	pdecal->num_vertexes += m_numTempVertexes;
 
-	m_pVBO->IBOSubBufferData(sizeof(Uint32)*indexoffset, m_tempIndexes, sizeof(Uint32)*m_numTempIndexes);
+	m_pDecalVBO->IBOSubBufferData(sizeof(Uint32)*indexoffset, m_tempIndexes, sizeof(Uint32)*m_numTempIndexes);
 	pmesh->start_index = indexoffset;
 	pmesh->num_indexes = m_numTempIndexes;
 
@@ -5284,17 +5895,8 @@ void CVBMRenderer::ClearDecal( vbmdecal_t* pdecal )
 //
 //
 //=============================================
-bool CVBMRenderer::DrawDecals( void )
+bool CVBMRenderer::DrawModelDecals( void )
 {
-	if(m_pCvarDrawModelDecals->GetValue() < 1)
-		return true;
-
-	if(!m_pExtraInfo)
-		return true;
-
-	if(!m_pExtraInfo->pvbmdecalheader)
-		return true;
-
 	vbmdecal_t *pnext = m_pExtraInfo->pvbmdecalheader;
 
 	// Check if playermodel or v_ model was changed
@@ -5345,7 +5947,6 @@ bool CVBMRenderer::DrawDecals( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	m_pShader->EnableAttribute(m_attribs.a_texcoord1);
 
@@ -5478,7 +6079,7 @@ bool CVBMRenderer::DrawDecals( void )
 
 			R_ValidateShader(m_pShader);
 
-			glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(pmesh->start_index));
+			m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(pmesh->start_index));
 		}
 
 		vbmdecal_t *next = pnext->next;
@@ -5615,6 +6216,9 @@ bool CVBMRenderer::DrawNormalSubmodels( void )
 	if(!DrawFirst())
 		return false;
 
+	if(!DrawStyles(false, false))
+		return false;
+
 	if(!DrawLights(false, false))
 		return false;
 
@@ -5686,6 +6290,9 @@ bool CVBMRenderer::DrawFlexedSubmodels( void )
 			return false;
 
 		if(!DrawFirst())
+			return false;
+
+		if(!DrawStyles(false, false))
 			return false;
 
 		if(!DrawLights(false, false))
@@ -5903,16 +6510,8 @@ bool CVBMRenderer::PrepareDraw( void )
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 
-	m_pVBO->Bind();
 	if(!m_pShader->EnableShader())
-	{
-		m_pVBO->UnBind();
 		return false;
-	}
-
-	m_pShader->EnableAttribute(m_attribs.a_origin);
-	m_pShader->EnableAttribute(m_attribs.a_boneindexes);
-	m_pShader->EnableAttribute(m_attribs.a_boneweights);
 
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
@@ -5927,7 +6526,121 @@ bool CVBMRenderer::PrepareDraw( void )
 void CVBMRenderer::EndDraw( void )
 {
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
+}
+
+//=============================================
+//
+//
+//=============================================
+bool CVBMRenderer::DrawDecals( bool transparentPass )
+{
+	if(g_pCvarDrawEntities->GetValue() != 1)
+		return true;
+
+	if(m_pCvarDrawModelDecals->GetValue() < 1)
+		return true;
+
+	if(!PrepareDraw())
+	{
+		Sys_ErrorPopup("Rendering error: %s.", m_pShader->GetError());
+		return false;
+	}
+
+	// Set 
+	m_pShader->SetVBO(m_pDecalVBO);
+	m_pCurrentVBO = m_pDecalVBO;
+
+	m_pShader->EnableAttribute(m_attribs.a_origin);
+	m_pShader->EnableAttribute(m_attribs.a_boneindexes);
+	m_pShader->EnableAttribute(m_attribs.a_boneweights);
+
+	for(Uint32 i = 0; i < rns.objects.numvisents; i++)
+	{
+		cl_entity_t* pEntity = rns.objects.pvisents[i];
+
+		if(pEntity->curstate.effects & EF_LADDER)
+			continue;
+
+		if(pEntity->curstate.effects & EF_VIEWONLY)
+			continue;
+
+		// Handle skydraw specially
+		if (rns.water_skydraw)
+		{
+			if (pEntity->curstate.renderfx != RenderFx_SkyEnt
+				&& pEntity->curstate.renderfx != RenderFx_SkyEntScaled)
+				continue;
+		}
+		else
+		{
+			if (pEntity->curstate.renderfx == RenderFx_SkyEnt
+				|| pEntity->curstate.renderfx == RenderFx_SkyEntScaled)
+				continue;
+		}
+
+		// Handle portals specially
+		if (rns.portalpass)
+		{
+			if (pEntity->curstate.renderfx != RenderFx_InPortalEntity
+				&& pEntity->curstate.renderfx != RenderFx_InPortalScaledModel)
+				continue;
+		}
+		else
+		{
+			if (pEntity->curstate.renderfx == RenderFx_InPortalEntity
+				|| pEntity->curstate.renderfx == RenderFx_InPortalScaledModel)
+				continue;
+		}
+
+		// Never allow no-depth cull entities to be rendered here
+		if (pEntity->curstate.renderfx == RenderFx_SkyEntNC)
+			continue;
+
+		if(pEntity->pmodel->type != MOD_VBM)
+			continue;
+
+		if(R_IsSpecialRenderEntity(*pEntity))
+			continue;
+
+		if(transparentPass)
+		{
+			if(!R_IsEntityTransparent(*pEntity))
+				continue;
+		}
+		else
+		{
+			if(R_IsEntityTransparent(*pEntity))
+				continue;
+		}
+
+		if(pEntity->player)
+			continue;
+		
+		if(!DrawEntityDecals(pEntity))
+		{
+			Sys_ErrorPopup("Rendering error: %s.", m_pShader->GetError());
+			EndDraw();
+			return false;
+		}
+	}
+
+	if(m_pCvarDrawPlayer->GetValue() >= 1)
+	{
+		cl_entity_t* plocalplayer = CL_GetLocalPlayer();
+
+		if(!DrawEntityDecals(plocalplayer))
+		{
+			Sys_ErrorPopup("Rendering error: %s.", m_pShader->GetError());
+			EndDraw();
+			return false;
+		}
+	}
+
+	EndDraw();
+
+	// Clear any binds
+	R_ClearBinds();
+	return true;
 }
 
 //=============================================
@@ -6175,12 +6888,8 @@ bool CVBMRenderer::PrepareVSM( cl_dlight_t *dl )
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 
-	m_pVBO->Bind();
 	if(!m_pShader->EnableShader())
-	{
-		m_pVBO->UnBind();
 		return false;
-	}
 
 	m_pShader->EnableAttribute(m_attribs.a_origin);
 	m_pShader->EnableAttribute(m_attribs.a_boneindexes);
@@ -6191,14 +6900,10 @@ bool CVBMRenderer::PrepareVSM( cl_dlight_t *dl )
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_vsm))
-	{
-		m_pVBO->UnBind();
 		return false;
-	}
 
 	m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
 	m_pShader->SetUniform1f(m_attribs.u_light_radius, dl->radius);
@@ -6247,7 +6952,6 @@ void CVBMRenderer::EndVSM( void )
 {
 	m_pShader->DisableAttribute(m_attribs.a_texcoord1);
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 }
 
 //=============================================
@@ -6335,31 +7039,8 @@ bool CVBMRenderer::DrawModelVSM( cl_entity_t *pEntity, cl_dlight_t *dl )
 	// Make sure model is handled
 	if(!SetModel())
 	{
-		if(!m_pCacheModel || !m_pCacheModel->pcachedata)
-		{
-			Con_Printf("%s - Failed to get model by index %d.\n", __FUNCTION__, m_pCurrentEntity->curstate.modelindex);
-			return true;
-		}
-
-		EndVSM();
-
-		// Clear shader ptr
-		m_pShader->SetVBO(nullptr);
-		m_pShader->ResetShader();
-
-		if(m_pVBO)
-		{
-			delete m_pVBO;
-			m_pVBO = nullptr;
-		}
-		
-		// Rebuild the VBO
-		BuildVBO();
-
-		// Re-set shader
-		m_pShader->SetVBO(m_pVBO);
-		if(!PrepareVSM(dl))
-			return false;
+		Con_Printf("%s - Failed to get model by index %d.\n", __FUNCTION__, m_pCurrentEntity->curstate.modelindex);
+		return true;
 	}
 
 	const vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
@@ -6441,7 +7122,7 @@ bool CVBMRenderer::DrawModelVSM( cl_entity_t *pEntity, cl_dlight_t *dl )
 
 			R_ValidateShader(m_pShader);
 
-			glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+			m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 		}
 	}
 
@@ -6493,12 +7174,8 @@ bool CVBMRenderer::PrepAuraPass( void )
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 
-	m_pVBO->Bind();
 	if(!m_pShader->EnableShader())
-	{
-		m_pVBO->UnBind();
 		return false;
-	}
 
 	m_pShader->EnableAttribute(m_attribs.a_origin);
 	m_pShader->EnableAttribute(m_attribs.a_boneindexes);
@@ -6509,14 +7186,10 @@ bool CVBMRenderer::PrepAuraPass( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_bumpmapping, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid))
-	{
-		m_pVBO->UnBind();
 		return false;
-	}
 
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
 	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
@@ -6563,9 +7236,7 @@ bool CVBMRenderer::PrepAuraPass( void )
 void CVBMRenderer::FinishAuraPass( void )
 {
 	m_isAuraPass = false;
-
 	m_pShader->DisableShader();
-	m_pVBO->UnBind();
 }
 
 //=============================================
@@ -6586,31 +7257,8 @@ bool CVBMRenderer::DrawAura( cl_entity_t *pEntity, const Vector& color, Float al
 	// Make sure model is handled
 	if(!SetModel())
 	{
-		if(!m_pCacheModel || !m_pCacheModel->pcachedata)
-		{
-			Con_Printf("%s - Failed to get model by index %d.\n", __FUNCTION__, m_pCurrentEntity->curstate.modelindex);
-			return true;
-		}
-
-		FinishAuraPass();
-
-		// Clear shader ptr
-		m_pShader->SetVBO(nullptr);
-		m_pShader->ResetShader();
-
-		if(m_pVBO)
-		{
-			delete m_pVBO;
-			m_pVBO = nullptr;
-		}
-		
-		// Rebuild the VBO
-		BuildVBO();
-
-		// Re-set shader
-		m_pShader->SetVBO(m_pVBO);
-		if(!PrepAuraPass())
-			return false;
+		Con_Printf("%s - Failed to get model by index %d.\n", __FUNCTION__, m_pCurrentEntity->curstate.modelindex);
+		return true;
 	}
 
 	const vbmcache_t* pstudiocache = m_pCacheModel->getVBMCache();
@@ -6646,7 +7294,7 @@ bool CVBMRenderer::DrawAura( cl_entity_t *pEntity, const Vector& color, Float al
 
 			R_ValidateShader(m_pShader);
 
-			glDrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
+			m_pShader->DrawElements(GL_TRIANGLES, pmesh->num_indexes, GL_UNSIGNED_INT, BUFFER_OFFSET(m_pVBMHeader->ibooffset+pmesh->start_index));
 		}
 	}
 
@@ -6796,7 +7444,6 @@ bool CVBMRenderer::DrawBones( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
@@ -6840,11 +7487,11 @@ bool CVBMRenderer::DrawBones( void )
 		BatchVertex(Vector(0, 0, 0));
 		BatchVertex(worldOrigin);
 
-		m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
+		m_pTempDrawVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
 
 		R_ValidateShader(m_pShader);
 
-		glDrawArrays(GL_LINES, m_drawBufferIndex, m_numTempVertexes);
+		m_pShader->DrawArrays(GL_LINES, m_drawBufferIndex, m_numTempVertexes);
 	}
 
 	glEnable(GL_DEPTH_TEST);
@@ -6868,7 +7515,6 @@ bool CVBMRenderer::DrawHitBoxes( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
@@ -6917,7 +7563,6 @@ bool CVBMRenderer::DrawBoundingBox( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
@@ -6981,8 +7626,8 @@ bool CVBMRenderer::DrawBoundingBox( void )
 	}
 
 	// Draw the planes
-	m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
-	glDrawArrays(GL_TRIANGLES, m_drawBufferIndex, m_numTempVertexes);
+	m_pTempDrawVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
+	m_pShader->DrawArrays(GL_TRIANGLES, m_drawBufferIndex, m_numTempVertexes);
 
 	glEnable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -7002,7 +7647,6 @@ bool CVBMRenderer::DrawLightVectors( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
@@ -7369,7 +8013,6 @@ bool CVBMRenderer::DrawAttachments( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
@@ -7431,10 +8074,10 @@ bool CVBMRenderer::DrawAttachments( void )
 			m_tempVertexes[m_numTempVertexes].boneweights[j] = 0;
 		m_numTempVertexes++;
 
-		m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
+		m_pTempDrawVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
 
 		// Draw the line
-		glDrawArrays(GL_LINES, m_drawBufferIndex, m_numTempVertexes);
+		m_pShader->DrawArrays(GL_LINES, m_drawBufferIndex, m_numTempVertexes);
 
 		color.x = RANDOM_COLOR_ARRAY[(i+2)%NUM_RANDOM_COLORS][0];
 		color.y = RANDOM_COLOR_ARRAY[(i+2)%NUM_RANDOM_COLORS][1];
@@ -7444,7 +8087,7 @@ bool CVBMRenderer::DrawAttachments( void )
 		glPointSize(5);
 		m_pShader->SetUniform4f(m_attribs.u_color, color[0], color[1], color[2], 1.0);
 
-		glDrawArrays(GL_POINTS, m_drawBufferIndex+1, 1);
+		m_pShader->DrawArrays(GL_POINTS, m_drawBufferIndex+1, 1);
 	}
 
 	glEnable(GL_DEPTH_TEST);
@@ -7470,7 +8113,6 @@ bool CVBMRenderer::DrawHullBoundingBox( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_chrome, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
-	m_pShader->SetUniform1i(m_attribs.u_d_ao, FALSE);
 
 	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
@@ -7552,8 +8194,8 @@ bool CVBMRenderer::DrawHullBoundingBox( void )
 	}
 
 	// Draw the planes
-	m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
-	glDrawArrays(GL_TRIANGLES, m_drawBufferIndex, m_numTempVertexes);
+	m_pTempDrawVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
+	m_pShader->DrawArrays(GL_TRIANGLES, m_drawBufferIndex, m_numTempVertexes);
 
 	glEnable(GL_CULL_FACE);
 	glDepthMask(GL_TRUE);
@@ -7640,8 +8282,8 @@ void CVBMRenderer::DrawBox( const Vector& bbmin, const Vector& bbmax )
 	BatchVertex(bboxpoints[5]);
 
 	// Draw the planes
-	m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
-	glDrawArrays(GL_TRIANGLES, m_drawBufferIndex, m_numTempVertexes);
+	m_pTempDrawVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
+	m_pShader->DrawArrays(GL_TRIANGLES, m_drawBufferIndex, m_numTempVertexes);
 }
 
 //=============================================
@@ -7656,11 +8298,11 @@ void CVBMRenderer::DrawLine( const Vector& start, const Vector& end, const Vecto
 	BatchVertex(start);
 	BatchVertex(end);
 
-	m_pVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
+	m_pTempDrawVBO->VBOSubBufferData(sizeof(vbm_glvertex_t)*m_drawBufferIndex, m_tempVertexes, sizeof(vbm_glvertex_t)*m_numTempVertexes);
 
 	R_ValidateShader(m_pShader);
 
-	glDrawArrays(GL_LINES, m_drawBufferIndex, m_numTempVertexes);
+	m_pShader->DrawArrays(GL_LINES, m_drawBufferIndex, m_numTempVertexes);
 }
 
 //=============================================
@@ -7713,6 +8355,153 @@ const Char* CVBMRenderer::GetShaderErrorString( void ) const
 		return "";
 
 	return m_pShader->GetError();
+}
+
+//=============================================
+//
+//
+//=============================================
+bool CVBMRenderer::SetupEntityVertexLightVBO( cl_entity_t* pentity, Int32 vlightoffset, Uint32 vertexcount, byte* plightstyles )
+{
+	// Ensure this model actually exists
+	cache_model_t* pmodel = gModelCache.GetModelByIndex(pentity->curstate.modelindex);
+	if(!pmodel)
+	{
+		Con_Printf("%s - Failed to get model with index %d.\n", __FUNCTION__, m_pCurrentEntity->curstate.modelindex);
+		return false;
+	}
+
+	Uint32 stylecount = 1;
+	for(Uint32 i = 1; i < MAX_ENTITY_STYLES; i++)
+	{
+		if(plightstyles[i] != NULL_LIGHTSTYLE_INDEX)
+			stylecount++;
+	}
+
+	vbmcache_t* pvbmcache = pmodel->getVBMCache();
+	vbmheader_t* pvbmheader = pvbmcache->pvbmhdr;
+	if(vertexcount != static_cast<Uint32>(pvbmheader->numverts))
+	{
+		Con_Printf("%s - Vertex count between BSP vertex lighting data and VBM file '%s' doesn't match(BSP: %d, model: %d).\n", __FUNCTION__, pmodel->name.c_str(), vertexcount, pvbmheader->numverts);
+		return false;
+	}
+
+	vlight_vbo_t* pnew = new vlight_vbo_t();
+	pnew->pvbmcache = pvbmcache;
+	pnew->stylecount = stylecount;
+	pnew->vertexcount = pvbmheader->numverts;
+	pnew->vlightoffset = vlightoffset;
+
+	for(Uint32 i = 0; i < MAX_ENTITY_STYLES; i++)
+		pnew->styles[i] = plightstyles[i];
+
+	if(!BuildVertexLightVBO(pnew))
+	{
+		delete pnew;
+		return false;
+	}
+
+	pentity->curstate.vlight_vbo_index = m_pVertexLightingVBOArray.size();
+	m_pVertexLightingVBOArray.push_back(pnew);
+
+	return true;
+}
+
+//=============================================
+// @brief Creates the VBO for a vlibht_vbo_t entry
+//
+//=============================================
+bool CVBMRenderer::BuildVertexLightVBO( vlight_vbo_t* pvlightvbo )
+{
+	// Get world model
+	cache_model_t* pworld = gModelCache.GetModelByIndex(1);
+	if(!pworld)
+	{
+		Con_Printf("%s - Failed to get world model.\n", __FUNCTION__);
+		return false;
+	}
+
+	// Check if BSP has data
+	brushmodel_t* pworldbrushmodel = pworld->getBrushmodel();
+	if(!pworldbrushmodel->pvertexlightdata[VERTEX_LIGHTING_VECTORS]
+		|| !pworldbrushmodel->pvertexlightdata[VERTEX_LIGHTING_AMBIENT]
+		|| !pworldbrushmodel->pvertexlightdata[VERTEX_LIGHTING_DIFFUSE])
+	{
+		Con_Printf("%s - BSP has none, or incomplete vertex lighting data.\n", __FUNCTION__);
+		return false;
+	}
+
+	// Do bounds check
+	vbmheader_t* pvbmheader = pvlightvbo->pvbmcache->pvbmhdr;
+	Int32 offsetdatastart = pvlightvbo->vlightoffset;
+	Int32 offsetdataend = offsetdatastart + (pvbmheader->numverts * 3) * pvlightvbo->stylecount;
+	if(offsetdatastart > pworldbrushmodel->vertexlightdatasize || offsetdataend > pworldbrushmodel->vertexlightdatasize)
+	{
+		Con_Printf("%s - Vertex data pointer out of bounds.\n", __FUNCTION__);
+		return false;
+	}
+
+	// Create vertex data
+	const byte* pvlight_vector = reinterpret_cast<const byte*>(pworldbrushmodel->pvertexlightdata[VERTEX_LIGHTING_VECTORS]) + offsetdatastart;
+	const byte* pvlight_ambient = reinterpret_cast<const byte*>(pworldbrushmodel->pvertexlightdata[VERTEX_LIGHTING_AMBIENT]) + offsetdatastart;
+	const byte* pvlight_diffuse = reinterpret_cast<const byte*>(pworldbrushmodel->pvertexlightdata[VERTEX_LIGHTING_DIFFUSE]) + offsetdatastart;
+
+	Uint32 offsetindex = 0;
+	vbm_vlight_glvertex_t* pvertexbuffer = new vbm_vlight_glvertex_t[pvbmheader->numverts];
+
+	for(Uint32 i = 0; i < MAX_ENTITY_STYLES; i++)
+	{
+		if(i > BASE_LIGHTMAP_INDEX && pvlightvbo->styles[i] == NULL_LIGHTSTYLE_INDEX)
+			continue;
+
+		for(Uint32 j = 0; j < pvbmheader->numverts; j++)
+		{
+			byte* pdest_vector = nullptr;
+			byte* pdest_ambient = nullptr;
+			byte* pdest_diffuse = nullptr;
+			switch(i)
+			{
+			case 1:
+				pdest_vector = pvertexbuffer[j].vertexlight1_vector;
+				pdest_ambient = pvertexbuffer[j].vertexlight1_ambient;
+				pdest_diffuse = pvertexbuffer[j].vertexlight1_diffuse;
+				break;
+			case 2:
+				pdest_vector = pvertexbuffer[j].vertexlight2_vector;
+				pdest_ambient = pvertexbuffer[j].vertexlight2_ambient;
+				pdest_diffuse = pvertexbuffer[j].vertexlight2_diffuse;
+				break;
+			case 3:
+				pdest_vector = pvertexbuffer[j].vertexlight3_vector;
+				pdest_ambient = pvertexbuffer[j].vertexlight3_ambient;
+				pdest_diffuse = pvertexbuffer[j].vertexlight3_diffuse;
+				break;
+			default:
+			case 0:
+				pdest_vector = pvertexbuffer[j].vertexlight0_vector;
+				pdest_ambient = pvertexbuffer[j].vertexlight0_ambient;
+				pdest_diffuse = pvertexbuffer[j].vertexlight0_diffuse;
+				break;
+			}
+
+			for(Uint32 k = 0; k < 3; k++)
+				pdest_vector[k] = pvlight_vector[offsetindex * pvbmheader->numverts * 3 + j * 3 + k];
+
+			for(Uint32 k = 0; k < 3; k++)
+				pdest_ambient[k] = pvlight_ambient[offsetindex * pvbmheader->numverts * 3 + j * 3 + k];
+
+			for(Uint32 k = 0; k < 3; k++)
+				pdest_diffuse[k] = pvlight_diffuse[offsetindex * pvbmheader->numverts * 3 + j * 3 + k];
+		}
+
+		offsetindex++;
+	}
+
+	CVBO* pVBO = new CVBO(gGLExtF, pvertexbuffer, pvbmheader->numverts * sizeof(vbm_vlight_glvertex_t), nullptr, 0, false, false);
+	delete[] pvertexbuffer;
+
+	pvlightvbo->pvbo = pVBO;
+	return true;
 }
 
 //=============================================

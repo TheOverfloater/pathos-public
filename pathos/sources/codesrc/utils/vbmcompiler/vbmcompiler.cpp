@@ -21,6 +21,9 @@ All Rights Reserved.
 #include "refframesmdparser.h"
 #include "utils_filefuncs.h"
 
+// Epsilon value for vertex coords
+static const Float EQUAL_EPSILON = 0.001;
+
 // File buffer allocation size
 const Uint32 CVBMCompiler::VBM_FILEBUFFER_ALLOC_SIZE = 1024*1024;
 // Triangle alloc size
