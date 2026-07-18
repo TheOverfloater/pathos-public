@@ -335,7 +335,7 @@ bool ALD_Load( daystage_t stage, byte** pdestlmaparrays, byte** pdestvertexlight
 					Int32 status = uncompress(paldlightgridrawsampledata, &destinationsize, pdatasrc, player->datasize);
 					if(status != MZ_OK)
 					{
-						Con_EPrintf("%s - Miniz uncompress2 failed on lump of type %d vertex lighting layer %d with error code %d.\n", __FUNCTION__, plump->type, i, status);
+						Con_EPrintf("%s - Miniz uncompress2 failed on lump of type %d light grid layer %d with error code %d.\n", __FUNCTION__, plump->type, i, status);
 						delete[] paldlightgridrawsampledata;
 						FL_FreeFile(pFile);
 						return false;
@@ -439,6 +439,11 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 	pheader->version = ALD_HEADER_VERSION;
 	pheader->lightdatasize = pworldmodel->lightdatasize;
 	pheader->vertexlightdatasize = pworldmodel->vertexlightdatasize;
+
+	if(ens.pworld->plightgrid)
+		pheader->lightgridsampledatasize = ens.pworld->plightgrid->rawsampledatasize;
+	else
+		pheader->lightgridsampledatasize = 0;
 
 	// Check for original and include it's data
 	const byte* poriginal = FL_LoadFile(filename.c_str());
@@ -756,55 +761,84 @@ bool ALD_ExportLightmaps( aldcompression_t compressionType, daystage_t daystage,
 		// Set data in new lump
 		for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
 		{
-			if(!pworldmodel->plightgrid->prawsampledata[i])
-				break;
-
-			// Set the offset and increment
-			pnewlump->lightgridlayeroffsets[i] = fileBuffer.getdatasize();
-			fileBuffer.append(nullptr, sizeof(aldlayer_t));
-
-			aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->lightgridlayeroffsets[i]);
-			fileBuffer.addpointer(reinterpret_cast<void**>(&player));
-
-			player->compression = compressionType;
-			player->dataoffset = fileBuffer.getdatasize();
-		
-			switch(compressionType)
+			if(daystage == DAYSTAGE_NORMAL_RESTORE && pworldmodel->plightgrid->psampledata_original[i])
 			{
-			case ALD_COMPRESSION_NONE:
+				// Set the offset and increment
+				pnewlump->lightgridlayeroffsets[i] = fileBuffer.getdatasize();
+				fileBuffer.append(nullptr, sizeof(aldlayer_t));
+
+				aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->lightgridlayeroffsets[i]);
+				player->dataoffset = fileBuffer.getdatasize();
+				player->datasize = pworldmodel->plightgrid->sampledatasize_original[i];
+				player->compression = pworldmodel->plightgrid->original_compressiontypes[i];
+				player->compressionlevel = pworldmodel->plightgrid->original_compressionlevels[i];
+
+				switch(pworldmodel->original_vertexlightcompressiontype[i])
 				{
-					fileBuffer.append(pworldmodel->plightgrid->prawsampledata[i], pworldmodel->lightdatasize);
-					player->datasize = pworldmodel->plightgrid->rawsampledatasize;
-					player->compressionlevel = 0;
+				case BSP_LMAP_COMPRESSION_MINIZ:
+					player->compression = ALD_COMPRESSION_MINIZ;
+					break;
+				case BSP_LMAP_COMPRESSION_NONE:
+				default:
+					player->compression = ALD_COMPRESSION_NONE;
+					break;
 				}
-				break;
-			case ALD_COMPRESSION_MINIZ:
-				{
-					Uint32 destsize = compressBound(pworldmodel->plightgrid->rawsampledatasize);
-					byte* pdestination = new byte[destsize];
-					memset(pdestination, 0, sizeof(byte)*destsize);
 
-					mz_ulong resultsize = destsize;
-					const byte* pdatasrc = reinterpret_cast<const byte*>(pworldmodel->plightgrid->prawsampledata[i]);
-					Int32 result = compress2(pdestination, &resultsize, pdatasrc, pworldmodel->plightgrid->rawsampledatasize, MZ_DEFAULT_COMPRESSION);
-					if(result != MZ_OK)
-					{
-						Con_EPrintf("%s - Failed to compress layer %d light grid sample data, compress returned %d.\n", __FUNCTION__, i, result);
-						delete[] pdestination;
-						return false;
-					}
-
-					fileBuffer.append(pdestination, resultsize);
-					delete[] pdestination;
-
-					player->datasize = resultsize;
-					player->compressionlevel = MZ_DEFAULT_COMPRESSION;
-				}
-				break;
+				// append the original compressed data
+				fileBuffer.append(pworldmodel->plightgrid->psampledata_original[i], player->datasize);
 			}
+			else
+			{
+				if(!pworldmodel->plightgrid->prawsampledata[i])
+					break;
 
-			// Remove this ptr
-			fileBuffer.removepointer((const void**)&player);
+				// Set the offset and increment
+				pnewlump->lightgridlayeroffsets[i] = fileBuffer.getdatasize();
+				fileBuffer.append(nullptr, sizeof(aldlayer_t));
+
+				aldlayer_t* player = reinterpret_cast<aldlayer_t*>(reinterpret_cast<byte*>(pheader) + pnewlump->lightgridlayeroffsets[i]);
+				fileBuffer.addpointer(reinterpret_cast<void**>(&player));
+
+				player->compression = compressionType;
+				player->dataoffset = fileBuffer.getdatasize();
+		
+				switch(compressionType)
+				{
+				case ALD_COMPRESSION_NONE:
+					{
+						fileBuffer.append(pworldmodel->plightgrid->prawsampledata[i], pworldmodel->lightdatasize);
+						player->datasize = pworldmodel->plightgrid->rawsampledatasize;
+						player->compressionlevel = 0;
+					}
+					break;
+				case ALD_COMPRESSION_MINIZ:
+					{
+						Uint32 destsize = compressBound(pworldmodel->plightgrid->rawsampledatasize);
+						byte* pdestination = new byte[destsize];
+						memset(pdestination, 0, sizeof(byte)*destsize);
+
+						mz_ulong resultsize = destsize;
+						const byte* pdatasrc = reinterpret_cast<const byte*>(pworldmodel->plightgrid->prawsampledata[i]);
+						Int32 result = compress2(pdestination, &resultsize, pdatasrc, pworldmodel->plightgrid->rawsampledatasize, MZ_DEFAULT_COMPRESSION);
+						if(result != MZ_OK)
+						{
+							Con_EPrintf("%s - Failed to compress layer %d light grid sample data, compress returned %d.\n", __FUNCTION__, i, result);
+							delete[] pdestination;
+							return false;
+						}
+
+						fileBuffer.append(pdestination, resultsize);
+						delete[] pdestination;
+
+						player->datasize = resultsize;
+						player->compressionlevel = MZ_DEFAULT_COMPRESSION;
+					}
+					break;
+				}
+
+				// Remove this ptr
+				fileBuffer.removepointer((const void**)&player);
+			}
 		}
 	}
 

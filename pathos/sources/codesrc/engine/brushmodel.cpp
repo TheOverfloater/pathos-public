@@ -605,6 +605,20 @@ bool Mod_RecursiveLightPoint_BumpData( const brushmodel_t* pworld, mnode_t *pnod
 //=============================================
 //
 //=============================================
+Float Mod_GetStrongestSample( const Vector& v1, const Vector& v2 )
+{
+	Float maxv1 = v1.GetMaximum();
+	Float maxv2 = v2.GetMaximum();
+
+	if(maxv2 > maxv1)
+		return maxv2;
+	else
+		return maxv1;
+}
+
+//=============================================
+//
+//=============================================
 const lightgridsample_t* Mod_GetLightGridSample ( const lightgriddata_t* plightgrid, Int32 x, Int32 y, Int32 z )
 {
 	// Get the leaf index
@@ -633,21 +647,11 @@ const lightgridsample_t* Mod_GetLightGridSample ( const lightgriddata_t* plightg
 
 	// Get sample index
 	Int32 sampleindex = localx + leaf.size[0] * (localy + leaf.size[1] * localz);
-	return &plightgrid->samples[leaf.firstsample + sampleindex];
-}
-
-//=============================================
-//
-//=============================================
-Float Mod_GetStrongestSample( const Vector& v1, const Vector& v2 )
-{
-	Float maxv1 = v1.GetMaximum();
-	Float maxv2 = v2.GetMaximum();
-
-	if(maxv2 > maxv1)
-		return maxv2;
+	const lightgridsample_t& sample = plightgrid->samples[leaf.firstsample + sampleindex];
+	if(sample.rawsampleoffset == -1)
+		return nullptr;
 	else
-		return maxv1;
+		return &sample;
 }
 
 //=============================================
@@ -671,6 +675,9 @@ bool Mod_GetLightGridLighting ( const lightgriddata_t* plightgrid, const Vector&
 		tile[i] = SDL_floor((position[i] - plightgrid->gridmins[i]) * plightgrid->gridscale[i]);
 		frac[i] = (position[i] - plightgrid->gridmins[i]) * plightgrid->gridscale[i] - tile[i];
 	}
+
+	if(tile[0] < 0 || tile[1] < 0 || tile[2] < 0)
+		return false;
 
 	// Collect samples
 	Float s = 0;
@@ -794,12 +801,21 @@ bool Mod_GetLightGridLighting ( const lightgriddata_t* plightgrid, const Vector&
 		if(bestindex != NO_POSITION)
 		{
 			maxlights[bestindex] = 0;
-			poutstyles[i] = bestindex;
 
-			Math::VectorScale(amblights[bestindex], 1.0 / s, poutambientcolors[i]);
-			Math::VectorScale(difflights[bestindex], 1.0 / s, poutdiffusecolors[i]);
-			Math::VectorScale(lightvecs[bestindex], -1, poutlightdirs[i]);
-			poutlightdirs[i].Normalize();
+			if(poutstyles)
+				poutstyles[i] = bestindex;
+
+			if(poutambientcolors)
+				Math::VectorScale(amblights[bestindex], 1.0 / s, poutambientcolors[i]);
+
+			if(poutdiffusecolors)
+				Math::VectorScale(difflights[bestindex], 1.0 / s, poutdiffusecolors[i]);
+
+			if(poutlightdirs)
+			{
+				Math::VectorScale(lightvecs[bestindex], -1, poutlightdirs[i]);
+				poutlightdirs[i].Normalize();
+			}
 		}
 		else
 		{

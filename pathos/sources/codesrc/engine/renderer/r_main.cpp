@@ -3776,6 +3776,7 @@ Vector R_GetLightingForPosition( const Vector& position, const Vector& defaultco
 {
 	// For retaining lightcolors set by Mod_RecursiveLightPoint
 	Vector lightcolors[MAX_SURFACE_STYLES];
+	Vector difflightcolors[MAX_SURFACE_STYLES];
 	byte lightstyles[MAX_SURFACE_STYLES];
 
 	Vector end = position - Vector(0, 0, 8192);
@@ -3783,7 +3784,27 @@ Vector R_GetLightingForPosition( const Vector& position, const Vector& defaultco
 	// Get lightstyle values array
 	CArray<Float>* pStyleValuesArray = nullptr;
 
-	if(Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, position, end, lightcolors, lightstyles))
+	if(ens.pworld->plightgrid && Mod_GetLightGridLighting(ens.pworld->plightgrid, position, lightcolors, difflightcolors, nullptr, lightstyles))
+	{
+		Vector lcolor = lightcolors[BASE_LIGHTMAP_INDEX] + difflightcolors[BASE_LIGHTMAP_INDEX];
+		for(Uint32 j = 1; j < MAX_SURFACE_STYLES; j++)
+		{
+			if(lightstyles[j] == NULL_LIGHTSTYLE_INDEX)
+				break;
+
+			if(!pStyleValuesArray)
+				pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
+
+			Float value = (*pStyleValuesArray)[lightstyles[j]];
+
+			Vector fullcolor = lightcolors[j] + difflightcolors[j];
+			Math::VectorMA(lcolor, value, fullcolor, lcolor);
+		}
+
+		// Return final combined color
+		return lcolor;
+	}
+	else if(Mod_RecursiveLightPoint(ens.pworld, ens.pworld->pnodes, position, end, lightcolors, lightstyles))
 	{
 		Vector lcolor = lightcolors[BASE_LIGHTMAP_INDEX];
 		for(Uint32 j = 1; j < MAX_SURFACE_STYLES; j++)

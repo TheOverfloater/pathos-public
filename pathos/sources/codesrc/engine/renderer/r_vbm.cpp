@@ -1457,6 +1457,9 @@ bool CVBMRenderer::DrawEntityDecals( cl_entity_t* pentity )
 	if(!m_pExtraInfo->pvbmdecalheader)
 		return true;
 
+	// We need this for CheckBBox
+	SetOrientation();
+
 	// Also cull skybox entities now with frustum culling - the exception for 
 	// sky ents was an ancient remnant from the Paranoia-type skybox rendering, 
 	// and was never removed after that got replaced
@@ -1546,24 +1549,6 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 
 	SetExtraInfo();
 
-	if(flags & VBM_RENDER)
-	{
-		// Also cull skybox entities now with frustum culling - the exception for 
-		// sky ents was an ancient remnant from the Paranoia-type skybox rendering, 
-		// and was never removed after that got replaced
-		if (CheckBBox())
-			return true;
-
-		// See if we're using any scope textures, and if so, grab the screen texture
-		if(!(flags & VBM_SETUPBONES) && m_pCvarDrawModels->GetValue() >= 1 && (m_pVBMHeader->flags & VBM_HAS_SCOPE_TEXTURE))
-		{
-			m_pScreenTexture = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
-			R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenTexture->palloc->gl_index, true);
-			glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
-			R_BindRectangleTexture(GL_TEXTURE0_ARB, 0);
-		}
-	}
-
 	// Set up player-relevant stuff
 	Vector savedAngles;
 	if(m_pCurrentEntity->player)
@@ -1586,6 +1571,24 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 
 	// Set basic infos
 	SetOrientation();
+
+	if(flags & VBM_RENDER)
+	{
+		// Also cull skybox entities now with frustum culling - the exception for 
+		// sky ents was an ancient remnant from the Paranoia-type skybox rendering, 
+		// and was never removed after that got replaced
+		if (CheckBBox())
+			return true;
+
+		// See if we're using any scope textures, and if so, grab the screen texture
+		if(!(flags & VBM_SETUPBONES) && m_pCvarDrawModels->GetValue() >= 1 && (m_pVBMHeader->flags & VBM_HAS_SCOPE_TEXTURE))
+		{
+			m_pScreenTexture = gRTTCache.Alloc(rns.screenwidth, rns.screenheight, true);
+			R_BindRectangleTexture(GL_TEXTURE0_ARB, m_pScreenTexture->palloc->gl_index, true);
+			glCopyTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, 0, 0, rns.screenwidth, rns.screenheight, 0);
+			R_BindRectangleTexture(GL_TEXTURE0_ARB, 0);
+		}
+	}
 
 	// Only animate if needed
 	if(ShouldAnimate())
@@ -2158,11 +2161,18 @@ void CVBMRenderer::SetupLighting ( Int32 flags )
 	Vector lmapdiffusecolors[MAX_SURFACE_STYLES];
 
 	// Try and get lighting from the light grid
-	if(ens.pworld->plightgrid && Mod_GetLightGridLighting(ens.pworld->plightgrid, lightorigin, lightcolors, lmapdiffusecolors, lightdirs, lightstyles))
+	if(ens.pworld->plightgrid)
 	{
-		gotLighting = true;
-		gotBumpLighting = true;
-		gotLightGridLighting = true;
+		Vector grid_lightorigin;
+		Math::VectorScale(m_mins, 0.5, grid_lightorigin);
+		Math::VectorMA(grid_lightorigin, 0.5, m_maxs, grid_lightorigin);
+
+		if(Mod_GetLightGridLighting(ens.pworld->plightgrid, grid_lightorigin, lightcolors, lmapdiffusecolors, lightdirs, lightstyles))
+		{
+			gotLighting = true;
+			gotBumpLighting = true;
+			gotLightGridLighting = true;
+		}
 	}
 
 	// Try to trace against the sky vector
@@ -2999,10 +3009,7 @@ bool CVBMRenderer::CheckBBox( void )
 		Math::VectorCopy( vTemp, m_bboxCorners[i] );
 	}
 
-	Vector angles = m_pCurrentEntity->curstate.angles;
-	angles[PITCH] = -angles[PITCH];
-
-	Math::AngleMatrix(angles, (*m_pRotationMatrix));
+	Math::AngleMatrix(m_renderAngles, (*m_pRotationMatrix));
 
 	for (Uint32 i = 0; i < 8; i++ )
 	{
@@ -3070,9 +3077,12 @@ bool CVBMRenderer::CheckBBox( void )
 	}
 
 	// Add in origin
-	Math::VectorAdd(m_pCurrentEntity->curstate.origin, vMins, m_mins);
-	Math::VectorAdd(m_pCurrentEntity->curstate.origin, vMaxs, m_maxs);
-	
+	for(Uint32 i = 0; i < 3; i++)
+	{
+		m_mins[i] = m_renderOrigin[i] + vMins[i];
+		m_maxs[i] = m_renderOrigin[i] + vMaxs[i];
+	}
+
 	if(m_pExtraInfo)
 	{
 		m_pExtraInfo->absmin = m_mins;
@@ -7052,10 +7062,10 @@ bool CVBMRenderer::DrawModelVSM( cl_entity_t *pEntity, cl_dlight_t *dl )
 
 	// Set extra info
 	SetExtraInfo();
+	SetOrientation();
+
 	if (CheckBBox())
 		return true;
-
-	SetOrientation();
 
 	if(ShouldAnimate())
 	{
@@ -7269,12 +7279,12 @@ bool CVBMRenderer::DrawAura( cl_entity_t *pEntity, const Vector& color, Float al
 		return true;
 
 	SetExtraInfo();
+	SetOrientation();
+
 	if (CheckBBox())
 		return true;
 
 	m_pShader->SetUniform4f(m_attribs.u_color, color[0], color[1], color[2], alpha);
-
-	SetOrientation();
 	if(ShouldAnimate())
 	{
 		SetupTransformationMatrix();
