@@ -3847,6 +3847,20 @@ bool CBSPRenderer::DrawFinal( void )
 		m_pShader->SetUniformMatrix4fv(m_attribs.u_modelmatrix, modelMatrix.GetMatrix());
 		m_pShader->SetUniformMatrix4fv(m_attribs.u_inv_modelmatrix, modelMatrix.GetInverse());
 
+		// Parallax correction
+		if (pcubemapinfo->use_parallax)
+		{
+			Vector cam = rns.view.v_origin;
+			m_pShader->SetUniform3f(m_attribs.u_cube_min, pcubemapinfo->box_mins.x - cam.x, pcubemapinfo->box_mins.y - cam.y, pcubemapinfo->box_mins.z - cam.z);
+			m_pShader->SetUniform3f(m_attribs.u_cube_max, pcubemapinfo->box_maxs.x - cam.x, pcubemapinfo->box_maxs.y - cam.y, pcubemapinfo->box_maxs.z - cam.z);
+			m_pShader->SetUniform3f(m_attribs.u_cube_origin, pcubemapinfo->origin.x - cam.x, pcubemapinfo->origin.y - cam.y, pcubemapinfo->origin.z - cam.z);
+		}
+		else
+		{
+			m_pShader->SetUniform3f(m_attribs.u_cube_min, 0, 0, 0);
+			m_pShader->SetUniform3f(m_attribs.u_cube_max, 0, 0, 0);
+		}
+
 		m_pShader->ResetSamplerIndex();
 
 		// texindex base
