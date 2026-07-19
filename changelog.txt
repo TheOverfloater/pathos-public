@@ -955,3 +955,10 @@ Merge PR # 55:
  - Add [] operators to color24_t and color32_t structs.
  - Remove lightdata layer counting for baked vertex lighting.
  - Move elight/model related light reduction to it's own variables.
+
+2026 July 19th:
+ - Apply numerous fixes to parallax corrected cubemap code
+ - Fix blinking issue with cubemaps due to the cubemap strength only being applied if the modelview matrix wasn't set yet for the first texture rendered
+ - Fix crash caused by cubemap builds when NPCs were used as static props with facial animations
+ - Simplify parallax cubemap code by relying on already present pointers instead of looking the cubemap entity up again
+ - Fix issue with VBM models being overly darkened by faulty light reduction code
