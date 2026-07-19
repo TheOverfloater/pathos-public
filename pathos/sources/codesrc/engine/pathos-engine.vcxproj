@@ -118,6 +118,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;4018;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <FloatingPointModel>Precise</FloatingPointModel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>user32.lib;opengl32.lib;glu32.lib;shell32.lib;gdi32.lib;..\Win32\Debug\SDL2.lib;..\Win32\Debug\SDL2Main.lib;..\libs\freetype\objs\Win32\vc2010\freetype253_D.lib;..\libs\enet\enet.lib;..\libs\openal\libs\Win32\openal32.lib;..\libs\detours\lib.X86\detours.lib;..\Win32\Debug\libogg_static.lib;..\Win32\Debug\libvorbis_static.lib;..\Win32\Debug\libvorbisfile_static.lib;winmm.lib;ws2_32.lib;gdiplus.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -150,6 +151,7 @@
       <WarningLevel>Level4</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4996;4305;4244;4127;4100;4481;4512;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalDependencies>user32.lib;opengl32.lib;glu32.lib;shell32.lib;gdi32.lib;..\x64\Debug\SDL2.lib;..\x64\Debug\SDL2Main.lib;..\libs\freetype\objs\win64\vc2010\freetype253_D.lib;gdiplus.lib;comctl32.lib;..\libs\enet\enet64.lib;winmm.lib;ws2_32.lib;..\libs\openal\libs\Win64\openal32.lib;..\libs\detours\lib.X64\detours.lib;..\x64\Debug\libogg_static.lib;..\x64\Debug\libvorbisfile_static.lib;..\x64\Debug\libvorbis_static.lib;..\libs\vld.lib;%(AdditionalDependencies)</AdditionalDependencies>

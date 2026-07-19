@@ -1,7 +1,7 @@
 $texture
 {
 	$cubemaps
-	$cubemapstrength 0.5
+	$cubemapstrength 1
 	$int_width 256
 	$int_height 256
 	$dt_scalex 12.000000

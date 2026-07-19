@@ -134,7 +134,13 @@ struct bsp_shader_attribs
 		u_decalalpha(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_decalscale(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_cubemap(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_cube_min(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_cube_max(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_cube_origin(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_cubemap_prev(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_cube_prev_min(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_cube_prev_max(CGLSLShader::PROPERTY_UNAVAILABLE),
+		u_cube_prev_origin(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_baselightmap(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_maintexture(CGLSLShader::PROPERTY_UNAVAILABLE),
 		u_detailtex(CGLSLShader::PROPERTY_UNAVAILABLE),
@@ -198,7 +204,15 @@ struct bsp_shader_attribs
 
 	// fragment shader uniforms
 	Int32 u_cubemap;
+	Int32 u_cube_min;
+	Int32 u_cube_max;
+	Int32 u_cube_origin;
+
 	Int32 u_cubemap_prev;
+	Int32 u_cube_prev_min;
+	Int32 u_cube_prev_max;
+	Int32 u_cube_prev_origin;
+
 	Int32 u_baselightmap;
 	Int32 u_maintexture;
 	Int32 u_detailtex;

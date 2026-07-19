@@ -1636,7 +1636,7 @@ bool CVBMRenderer::DrawModel( Int32 flags, cl_entity_t* pentity )
 		GetDynamicLights();
 		SetupLighting(flags);
 
-		if(m_pVBMHeader->flags & VBM_HAS_FLEXES)
+		if((m_pVBMHeader->flags & VBM_HAS_FLEXES) && m_pExtraInfo)
 			m_pFlexManager->UpdateValues( rns.time, m_pCurrentEntity->curstate.health, m_pCurrentEntity->mouth.mouthopen, m_pExtraInfo->pflexstate, false );
 
 		// Draw the model
@@ -2045,21 +2045,21 @@ void CVBMRenderer::UpdateLightValues ( void )
 		}
 	}
 
-	// Add light reduction if needed
-	if(m_pLightingInfo->lightreduction > 0)
-	{
-		Vector tmp;
-		Math::VectorScale(m_pLightingInfo->direct_color, m_pLightingInfo->lightreduction*0.6, tmp);
-		Math::VectorSubtract(m_pLightingInfo->direct_color, tmp, m_pLightingInfo->direct_color);
-	
-		Math::VectorScale(m_pLightingInfo->ambient_color, m_pLightingInfo->lightreduction*0.4, tmp);
-		Math::VectorSubtract(m_pLightingInfo->ambient_color, tmp, m_pLightingInfo->ambient_color);
-	}
-
 	// Copy into the render target vectors
 	Math::VectorCopy(m_pLightingInfo->lightdirection, m_renderLightVector);
 	Math::VectorCopy(m_pLightingInfo->ambient_color, m_renderAmbientColor);
 	Math::VectorCopy(m_pLightingInfo->direct_color, m_renderDiffuseColor);
+
+	// Add light reduction if needed
+	if(m_pLightingInfo->lightreduction > 0)
+	{
+		Vector tmp;
+		Math::VectorScale(m_renderDiffuseColor, m_pLightingInfo->lightreduction*0.6, tmp);
+		Math::VectorSubtract(m_renderDiffuseColor, tmp, m_renderDiffuseColor);
+	
+		Math::VectorScale(m_renderAmbientColor, m_pLightingInfo->lightreduction*0.4, tmp);
+		Math::VectorSubtract(m_renderAmbientColor, tmp, m_renderAmbientColor);
+	}
 
 	// Add in any lightstyle crap to local every frame, as
 	// the lightstyle values can change on the fly

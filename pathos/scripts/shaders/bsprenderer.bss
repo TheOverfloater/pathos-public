@@ -11,7 +11,7 @@ uniform mat4 modelview;
 
 // Cubemaps
 uniform mat4 modelmatrix;
-uniform mat4 inv_modelmatrix;
+uniform highp mat4 inv_modelmatrix;
 
 // lighting
 uniform mat4 light_0_matrix;
@@ -258,6 +258,16 @@ uniform float phong_exponent;
 uniform float specfactor;
 uniform float interpolant;
 uniform float cubemapstrength;
+
+// Parallax correction
+uniform vec3 u_cube_min;
+uniform vec3 u_cube_max;
+uniform vec3 u_cube_origin;
+uniform vec3 u_cube_prev_min;
+uniform vec3 u_cube_prev_max;
+uniform vec3 u_cube_prev_origin;
+uniform highp mat4 inv_modelmatrix;
+
 uniform float decalalpha;
 uniform float light_radius;
 
@@ -768,7 +778,7 @@ vec4 GetLightmappedSpecular( vec3 v_origin, vec3 v_normal, float specularStrengt
 	return finalColor;
 }
 
-vec4 GetCubemapPixel ( vec3 reflectvec )
+vec4 GetCubemapPixel ( vec3 reflectvec, vec3 reflectvecprev )
 {
 	vec4 outColor;
 	if( d_cubemaps != 2 )
@@ -777,13 +787,30 @@ vec4 GetCubemapPixel ( vec3 reflectvec )
 	}
 	else
 	{
-		vec4 color1 = texture(cubemap_prev, reflectvec);
+		vec4 color1 = texture(cubemap_prev, reflectvecprev);
 		vec4 color2 = texture(cubemap, reflectvec);
 		
 		outColor = (1.0 - interpolant) * color1 + color2 * interpolant;
 	}
 	
 	return outColor * cubemapstrength;
+}
+
+vec3 CubemapParallaxCorrect(vec3 R, vec3 fragPos, vec3 boxMin, vec3 boxMax, vec3 probePos)
+{
+	vec3 invR = 1.0 / R;
+	vec3 t1 = (boxMin - fragPos) * invR;
+	vec3 t2 = (boxMax - fragPos) * invR;
+	vec3 tmin = min(t1, t2);
+	vec3 tmax = max(t1, t2);
+	float t_near = max(max(tmin.x, tmin.y), tmin.z);
+	float t_far = min(min(tmax.x, tmax.y), tmax.z);
+	t_near = min(t_far, t_near);
+	t_far = max(0, t_far);
+	
+	float intersection_t = t_far;
+	vec3 intersectPos = fragPos + R * intersection_t;
+	return -normalize(intersectPos - probePos);
 }
 
 vec4 AddCubemaps( float reflectivity )
@@ -809,8 +836,24 @@ vec4 AddCubemaps( float reflectivity )
 			v_normal = ps_cubenormal;
 		}
 
-		vec3 reflectvector = normalize(-reflect(normalize(ps_cubevertexpos), normalize(v_normal)));
-		return GetCubemapPixel(reflectvector) * pow(reflectivity, 16);
+		vec3 view_dir = normalize(ps_cubevertexpos);
+
+		vec3 reflectvec = reflect(view_dir, v_normal);
+		vec3 local_cube_min = (inv_modelmatrix * vec4(u_cube_min, 1.0)).xyz;
+		vec3 local_cube_max = (inv_modelmatrix * vec4(u_cube_max, 1.0)).xyz;
+		vec3 local_cube_origin = (inv_modelmatrix * vec4(u_cube_origin, 1.0)).xyz;
+		vec3 reflectvec_current = CubemapParallaxCorrect(reflectvec, ps_cubevertexpos, local_cube_min, local_cube_max, local_cube_origin);
+
+		vec3 reflectvec_prev;
+		if( d_cubemaps == 2 )
+		{
+			local_cube_min = (inv_modelmatrix * vec4(u_cube_prev_min, 1.0)).xyz;
+			local_cube_max = (inv_modelmatrix * vec4(u_cube_prev_max, 1.0)).xyz;
+			local_cube_origin = (inv_modelmatrix * vec4(u_cube_prev_origin, 1.0)).xyz;
+			reflectvec_prev = CubemapParallaxCorrect(reflectvec, ps_cubevertexpos, local_cube_min, local_cube_max, local_cube_origin);
+		}
+		
+		return GetCubemapPixel(reflectvec_current, reflectvec_prev) * pow(reflectivity, 16);
 	}
 }
 
