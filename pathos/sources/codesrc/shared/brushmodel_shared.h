@@ -435,15 +435,30 @@ struct lightgriddata_t
 			gridsize[i] = 0;
 
 		for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
+		{
 			prawsampledata[i] = nullptr;
+			psampledata_original[i] = nullptr;
+			sampledatasize_original[i] = 0;
+			original_compressiontypes[i] = 0;
+			original_compressionlevels[i] = 0;
+		}
 	}
 
 	~lightgriddata_t()
 	{
 		for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
 		{
+			if(psampledata_original[i] && psampledata_original[i] != reinterpret_cast<byte*>(prawsampledata[i]))
+			{
+				delete[] psampledata_original[i];
+				psampledata_original[i] = nullptr;
+			}
+
 			if(prawsampledata[i])
+			{
 				delete[] prawsampledata[i];
+				prawsampledata[i] = nullptr;
+			}
 		}
 	}
 
@@ -457,7 +472,11 @@ struct lightgriddata_t
 	CArray<lightgridleaf_t> leaves;
 	CArray<lightgridsample_t> samples;
 
-	byte* prawsampledata[NB_LIGHTGRID_DATA_LAYERS];
+	color24_t* prawsampledata[NB_LIGHTGRID_DATA_LAYERS];
+	byte* psampledata_original[NB_LIGHTGRID_DATA_LAYERS];
+	Uint32 sampledatasize_original[NB_LIGHTGRID_DATA_LAYERS];
+	Int32 original_compressiontypes[NB_LIGHTGRID_DATA_LAYERS];
+	Int32 original_compressionlevels[NB_LIGHTGRID_DATA_LAYERS];
 	Uint32 rawsampledatasize;
 };
 
@@ -581,7 +600,6 @@ struct brushmodel_t
 
 			for(Uint32 i = 0; i < NB_BAKED_VERTEXLIGHT_LAYERS; i++)
 			{
-
 				if(pvertexlightdata_original[i] && pvertexlightdata_original[i] != reinterpret_cast<byte*>(pvertexlightdata[i]))
 				{
 					delete[] pvertexlightdata_original[i];

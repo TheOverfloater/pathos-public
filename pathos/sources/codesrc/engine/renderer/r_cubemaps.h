@@ -94,13 +94,10 @@ struct ecdcubemap_t
 		cubemapindex(0),
 		width(0),
 		height(0),
-		use_parallax(0),
+		use_parallax(false),
 		cubemapoffset(0),
 		cubemapcount(0)
-	{
-		Math::VectorClear(box_mins);
-		Math::VectorClear(box_maxs);
-	}
+	{}
 
 	entindex_t entindex;
 	Int32 cubemapindex;
@@ -113,7 +110,7 @@ struct ecdcubemap_t
 	// Parallax correction
 	Vector box_mins;
 	Vector box_maxs;
-	Int32 use_parallax;
+	bool use_parallax;
 
 	Int32 cubemapoffset;
 	Int32 cubemapcount;
@@ -127,6 +124,7 @@ struct cubemapinfo_t
 		palloc(nullptr),
 		width(0),
 		height(0),
+		use_parallax(false),
 		pimagedata(nullptr)
 		{}
 
@@ -198,7 +196,7 @@ public:
 	// Gets the interpoland value
 	Float GetInterpolant( void ) const;
 	// Adds a new cubemap
-	void AddCubemap( entindex_t entindex, const Vector& origin, Uint32 resolution );
+	cubemapinfo_t* AddCubemap( entindex_t entindex, const Vector& origin, Uint32 resolution );
 
 private:
 	// Clears the class
@@ -212,7 +210,7 @@ private:
 	// Reads the cubemap file
 	bool RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRenderEntities, bool dumpTGAs );
 	// Links a cubemap to its parallax boundary entity
-	void LinkParallaxBounds(cubemapinfo_t* pCube, const entitydata_t* pEntities, Uint32 numEntities);
+	void LinkParallaxBounds( cubemapinfo_t* pCubemapInfo, const entitydata_t* pCubemapEntity, const struct entitydata_t* pEntities, Uint32 numEntities );
 	// Verifies if an ECD file is valid
 	bool VerifyECDFile( const ecdheader_t* pheader );
 

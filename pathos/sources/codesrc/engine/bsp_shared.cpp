@@ -461,7 +461,7 @@ void BSP_SetLightGridSampleData( brushmodel_t& model, byte* psrclightdataptrs[] 
 		if(model.plightgrid->prawsampledata[i])
 			delete[] model.plightgrid->prawsampledata[i];
 
-		model.plightgrid->prawsampledata[i] = psrclightdataptrs[i];
+		model.plightgrid->prawsampledata[i] = reinterpret_cast<color24_t*>(psrclightdataptrs[i]);
 	}
 
 	for(Uint32 i = 0; i < model.plightgrid->samples.size(); i++)
@@ -469,7 +469,7 @@ void BSP_SetLightGridSampleData( brushmodel_t& model, byte* psrclightdataptrs[] 
 		lightgridsample_t& sample = model.plightgrid->samples[i];
 		
 		for(Uint32 j = 0; j < NB_LIGHTGRID_DATA_LAYERS; j++)
-			sample.plightdata[j] = model.plightgrid->prawsampledata[j] + sample.rawsampleoffset;
+			sample.plightdata[j] = reinterpret_cast<byte*>(model.plightgrid->prawsampledata[j]) + sample.rawsampleoffset;
 	}
 }
 

@@ -348,36 +348,29 @@ bool PBSPV2_LoadTextures( const byte* pfile, brushmodel_t& model, const dpbspv2l
 // @brief
 //
 //=============================================
-bool PBSPV2_DecompressLightingData( const byte* pfile, brushmodel_t& model, const dpbspv2lump_t& lump, color24_t*& pdestptr, Uint32& destsize, byte*& poriginaldataptr, Uint32& originalsize, Int32& compression, Int32 compressionlevel )
+bool PBSPV2_DecompressLightingData( const byte* pfile, const dpbspv2lightingdata_t* plightdata, color24_t*& pdestptr, Uint32& destsize, byte*& poriginaldataptr, Uint32& originalsize, Int32& compression, Int32 compressionlevel )
 {
-	const dpbspv2lightingdata_t* plightmapdata = reinterpret_cast<const dpbspv2lightingdata_t*>(pfile + lump.offset);
-	if(plightmapdata->noncompressedsize % sizeof(color24_t))
-	{
-		Con_EPrintf("%s - Inconsistent decompressed data size in '%s'.\n", __FUNCTION__, model.name.c_str());
-		return false;
-	}
-
-	const byte* prawdatasrc = pfile + plightmapdata->dataoffset;
-	byte* poutputdataptr = new byte[plightmapdata->noncompressedsize];
-	memset(poutputdataptr, 0, sizeof(byte)*plightmapdata->noncompressedsize);
+	const byte* prawdatasrc = pfile + plightdata->dataoffset;
+	byte* poutputdataptr = new byte[plightdata->noncompressedsize];
+	memset(poutputdataptr, 0, sizeof(byte)*plightdata->noncompressedsize);
 
 	// Fill in original info
-	poriginaldataptr = new byte[plightmapdata->datasize];
-	memcpy(poriginaldataptr, prawdatasrc, plightmapdata->datasize);
-	originalsize = plightmapdata->datasize;
-	compression = plightmapdata->compression;
-	compressionlevel = plightmapdata->compressionlevel;
+	poriginaldataptr = new byte[plightdata->datasize];
+	memcpy(poriginaldataptr, prawdatasrc, plightdata->datasize);
+	originalsize = plightdata->datasize;
+	compression = plightdata->compression;
+	compressionlevel = plightdata->compressionlevel;
 
 	// Set final data
-	switch(plightmapdata->compression)
+	switch(plightdata->compression)
 	{
 	case BSP_LMAP_COMPRESSION_NONE:
-		memcpy(poutputdataptr, prawdatasrc, sizeof(byte)*plightmapdata->noncompressedsize);
+		memcpy(poutputdataptr, prawdatasrc, sizeof(byte)*plightdata->noncompressedsize);
 		break;
 	case BSP_LMAP_COMPRESSION_MINIZ:
 		{
-			mz_ulong destinationsize = plightmapdata->noncompressedsize;
-			Int32 status = uncompress(poutputdataptr, &destinationsize, prawdatasrc, plightmapdata->datasize);
+			mz_ulong destinationsize = plightdata->noncompressedsize;
+			Int32 status = uncompress(poutputdataptr, &destinationsize, prawdatasrc, plightdata->datasize);
 			if(status != MZ_OK)
 			{
 				Con_EPrintf("%s - Miniz uncompress failed with error code %d.\n", __FUNCTION__, status);
@@ -385,9 +378,9 @@ bool PBSPV2_DecompressLightingData( const byte* pfile, brushmodel_t& model, cons
 				return false;
 			}
 
-			if(plightmapdata->noncompressedsize != static_cast<Int32>(destinationsize))
+			if(plightdata->noncompressedsize != static_cast<Int32>(destinationsize))
 			{
-				Con_EPrintf("%s - Miniz uncompress produced inconsistent output size (expected %d, got %d instead).\n", __FUNCTION__, plightmapdata->noncompressedsize, destinationsize);
+				Con_EPrintf("%s - Miniz uncompress produced inconsistent output size (expected %d, got %d instead).\n", __FUNCTION__, plightdata->noncompressedsize, destinationsize);
 				delete[] poutputdataptr;
 				return false;
 			}
@@ -396,7 +389,7 @@ bool PBSPV2_DecompressLightingData( const byte* pfile, brushmodel_t& model, cons
 	}
 
 	pdestptr = reinterpret_cast<color24_t*>(poutputdataptr);
-	destsize = plightmapdata->noncompressedsize;
+	destsize = plightdata->noncompressedsize;
 
 	return true;
 }
@@ -417,7 +410,15 @@ bool PBSPV2_LoadDefaultLighting( const byte* pfile, brushmodel_t& model, const d
 		return false;
 	}
 
-	return PBSPV2_DecompressLightingData(pfile, model, lump, model.plightdata[SURF_LIGHTMAP_DEFAULT], model.lightdatasize, 
+	// Get raw data and check that the sizes are correct
+	const dpbspv2lightingdata_t* plightdata = reinterpret_cast<const dpbspv2lightingdata_t*>(pfile + lump.offset);
+	if(plightdata->noncompressedsize % sizeof(color24_t))
+	{
+		Con_EPrintf("%s - Inconsistent decompressed data size in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
+	return PBSPV2_DecompressLightingData(pfile, plightdata, model.plightdata[SURF_LIGHTMAP_DEFAULT], model.lightdatasize, 
 		model.plightdata_original[SURF_LIGHTMAP_DEFAULT], model.original_lightdatasizes[SURF_LIGHTMAP_DEFAULT],
 		model.original_compressiontype[SURF_LIGHTMAP_DEFAULT], model.original_compressionlevel[SURF_LIGHTMAP_DEFAULT]);
 }
@@ -438,8 +439,16 @@ bool PBSPV2_LoadLightingDataLayer( const byte* pfile, brushmodel_t& model, const
 		return false;
 	}
 
+	// Get raw data and check that the sizes are correct
+	const dpbspv2lightingdata_t* plightdata = reinterpret_cast<const dpbspv2lightingdata_t*>(pfile + lump.offset);
+	if(plightdata->noncompressedsize % sizeof(color24_t))
+	{
+		Con_EPrintf("%s - Inconsistent decompressed data size in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	Uint32 datasize = 0;
-	bool result = PBSPV2_DecompressLightingData(pfile, model, lump, model.plightdata[layer], datasize, 
+	bool result = PBSPV2_DecompressLightingData(pfile, plightdata, model.plightdata[layer], datasize, 
 		model.plightdata_original[layer], model.original_lightdatasizes[layer],
 		model.original_compressiontype[layer], model.original_compressionlevel[layer]);
 
@@ -968,8 +977,16 @@ bool PBSPV2_LoadVertexLighting(const byte* pfile, brushmodel_t& model, const dpb
 		return false;
 	}
 
+	// Get raw data and check that the sizes are correct
+	const dpbspv2lightingdata_t* plightdata = reinterpret_cast<const dpbspv2lightingdata_t*>(pfile + lump.offset);
+	if(plightdata->noncompressedsize % sizeof(color24_t))
+	{
+		Con_EPrintf("%s - Inconsistent decompressed data size in '%s'.\n", __FUNCTION__, model.name.c_str());
+		return false;
+	}
+
 	Uint32 datasize = 0;
-	bool result = PBSPV2_DecompressLightingData(pfile, model, lump, model.pvertexlightdata[layer], datasize, 
+	bool result = PBSPV2_DecompressLightingData(pfile, plightdata, model.pvertexlightdata[layer], datasize, 
 		model.pvertexlightdata_original[layer], model.original_vertexlightdatasizes[layer],
 		model.original_vertexlightcompressiontype[layer], model.original_vertexlightcompressionlevel[layer]);
 
@@ -998,6 +1015,11 @@ bool PBSPV2_LoadLightGridData( const byte* pfile, brushmodel_t& model, const dpb
 
 	// Get pointer to BSP data
 	const dlightgridlumpheader_t* psrcgrid = reinterpret_cast<const dlightgridlumpheader_t*>(pfile + lump.offset);
+	if(psrcgrid->totalsize != lump.size)
+	{
+		Con_EPrintf("%s - Inconsistent lump size %d in '%s' for light grid data, expected size was %d.\n", __FUNCTION__, lump.size, model.name.c_str(), psrcgrid->totalsize);
+		return false;
+	}
 
 	// Allocate grid object
 	lightgriddata_t* pdestgrid = new lightgriddata_t();
@@ -1005,6 +1027,7 @@ bool PBSPV2_LoadLightGridData( const byte* pfile, brushmodel_t& model, const dpb
 
 	pdestgrid->rootnodeindex = psrcgrid->rootnodeindex;
 	pdestgrid->gridmins = psrcgrid->grid_mins;
+	pdestgrid->rawsampledatasize = psrcgrid->rawsampledatasize;
 
 	for(Uint32 i = 0; i < 3; i++)
 		pdestgrid->gridscale[i] = 1.0f / static_cast<Float>(psrcgrid->grid_distance[i]);
@@ -1015,24 +1038,41 @@ bool PBSPV2_LoadLightGridData( const byte* pfile, brushmodel_t& model, const dpb
 	// Copy over raw light sample data
 	for(Uint32 i = 0; i < NB_LIGHTGRID_DATA_LAYERS; i++)
 	{
-		const byte* psrcdata = nullptr;
+		dpbspv2lightingdata_t tmp;
 		switch(i)
 		{
 		case LIGHTGRID_LAYER_VECTORS:
-			psrcdata = reinterpret_cast<const byte*>(psrcgrid) + psrcgrid->lightvectorsoffset;
+			tmp.compression = psrcgrid->vectorscompressiontype;
+			tmp.compressionlevel = psrcgrid->vectorscompressionlevel;
+			tmp.noncompressedsize = psrcgrid->rawsampledatasize;
+			tmp.datasize = psrcgrid->vectorscompressedsize;
+			tmp.dataoffset = psrcgrid->vectorsdataoffset;
 			break;
 		case LIGHTGRID_LAYER_AMBIENT:
-			psrcdata = reinterpret_cast<const byte*>(psrcgrid) + psrcgrid->ambientdataoffset;
+			tmp.compression = psrcgrid->ambientcompressiontype;
+			tmp.compressionlevel = psrcgrid->ambientcompressionlevel;
+			tmp.noncompressedsize = psrcgrid->rawsampledatasize;
+			tmp.datasize = psrcgrid->ambientcompressedsize;
+			tmp.dataoffset = psrcgrid->ambientdataoffset;
 			break;
 		case LIGHTGRID_LAYER_DIFFUSE:
-			psrcdata = reinterpret_cast<const byte*>(psrcgrid) + psrcgrid->diffusedataoffset;
+			tmp.compression = psrcgrid->diffusecompressiontype;
+			tmp.compressionlevel = psrcgrid->diffusecompressionlevel;
+			tmp.noncompressedsize = psrcgrid->rawsampledatasize;
+			tmp.datasize = psrcgrid->diffusecompressedsize;
+			tmp.dataoffset = psrcgrid->diffusedataoffset;
 			break;
 		}
 
-		assert(psrcdata != nullptr);
+		assert(tmp.datasize != 0);
 
-		pdestgrid->prawsampledata[i] = new byte[psrcgrid->rawsampledatasize];
-		memcpy(pdestgrid->prawsampledata[i], psrcdata, sizeof(byte)*psrcgrid->rawsampledatasize);
+		Uint32 datasize = 0;
+		bool result = PBSPV2_DecompressLightingData(reinterpret_cast<const byte*>(psrcgrid), &tmp, pdestgrid->prawsampledata[i], datasize, 
+			pdestgrid->psampledata_original[i], pdestgrid->sampledatasize_original[i],
+			pdestgrid->original_compressiontypes[i], pdestgrid->original_compressionlevels[i]);
+
+		if(!result)
+			return false;
 	}
 
 	// Copy nodes
@@ -1086,8 +1126,11 @@ bool PBSPV2_LoadLightGridData( const byte* pfile, brushmodel_t& model, const dpb
 		destsample.rawsampleoffset = psrcsample->rawsampleoffset;
 
 		// Set pointers for ease of access
-		for(Uint32 j = 0; j < NB_LIGHTGRID_DATA_LAYERS; j++)
-			destsample.plightdata[j] = pdestgrid->prawsampledata[j] + destsample.rawsampleoffset;
+		if(destsample.rawsampleoffset != -1)
+		{
+			for(Uint32 j = 0; j < NB_LIGHTGRID_DATA_LAYERS; j++)
+				destsample.plightdata[j] = reinterpret_cast<byte*>(pdestgrid->prawsampledata[j]) + destsample.rawsampleoffset;
+		}
 	}
 	
 	return true;

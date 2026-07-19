@@ -300,6 +300,7 @@ struct dlightgridlumpheader_t
 {
     dlightgridlumpheader_t():
         rootnodeindex(NO_POSITION),
+		totalsize(0),
         leafsoffset(NO_POSITION),
         numleafs(0),
         nodesoffset(NO_POSITION),
@@ -307,9 +308,18 @@ struct dlightgridlumpheader_t
         sampleoffset(NO_POSITION),
         numsamples(0),
         rawsampledatasize(0),
-        ambientdataoffset(NO_POSITION),
-        diffusedataoffset(NO_POSITION),
-        lightvectorsoffset(NO_POSITION)
+        ambientdataoffset(-1),
+        ambientcompressedsize(0),
+        ambientcompressionlevel(0),
+        ambientcompressiontype(0),
+        diffusedataoffset(-1),
+        diffusecompressedsize(0),
+        diffusecompressionlevel(0),
+        diffusecompressiontype(0),
+        vectorsdataoffset(-1),
+        vectorscompressedsize(0),
+        vectorscompressionlevel(0),
+        vectorscompressiontype(0)
     {
         for(Uint32 i = 0; i < 3; i++)
 			grid_distance[i] = 0;
@@ -322,6 +332,7 @@ struct dlightgridlumpheader_t
     Int32 grid_size[3];
     Vector grid_mins;
     Int32 rootnodeindex;
+    Uint32 totalsize;
 
     Int32 leafsoffset;
     Int32 numleafs;
@@ -332,10 +343,22 @@ struct dlightgridlumpheader_t
     Int32 sampleoffset;
     Int32 numsamples;
 
-    Int32 rawsampledatasize;
+	Int32 rawsampledatasize;
+
     Int32 ambientdataoffset;
+    Int32 ambientcompressedsize;
+    Int32 ambientcompressionlevel;
+    Int32 ambientcompressiontype;
+
     Int32 diffusedataoffset;
-    Int32 lightvectorsoffset;
+    Int32 diffusecompressedsize;
+    Int32 diffusecompressionlevel;
+    Int32 diffusecompressiontype;
+
+    Int32 vectorsdataoffset;
+    Int32 vectorscompressedsize;
+    Int32 vectorscompressionlevel;
+    Int32 vectorscompressiontype;
 };
 
 struct dlightgridnode_t

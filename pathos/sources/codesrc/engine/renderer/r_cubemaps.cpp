@@ -443,7 +443,7 @@ Float CCubemapManager::GetInterpolant( void ) const
 // @brief
 //
 //=============================================
-void CCubemapManager::AddCubemap( entindex_t entindex, const Vector& origin, Uint32 resolution )
+cubemapinfo_t* CCubemapManager::AddCubemap( entindex_t entindex, const Vector& origin, Uint32 resolution )
 {
 	m_cubemapsArray.resize(m_cubemapsArray.size()+1);
 	cubemapinfo_t* pcubemap = &m_cubemapsArray[m_cubemapsArray.size()-1];
@@ -453,6 +453,7 @@ void CCubemapManager::AddCubemap( entindex_t entindex, const Vector& origin, Uin
 	pcubemap->width = g_cubemapResolutions[resolution][0];
 	pcubemap->height = g_cubemapResolutions[resolution][1];
 	Math::VectorCopy(origin, pcubemap->origin);
+	return pcubemap;
 }
 
 //=============================================
@@ -489,8 +490,12 @@ void CCubemapManager::BuildCubemapList( const entitydata_t* pEntities, Uint32 nu
 		}
 
 		// Add the new cubemap
-		AddCubemap( i, origin, cubemapSize );
-		LinkParallaxBounds(&m_cubemapsArray[m_cubemapsArray.size() - 1], pEntities, numEntities);
+		cubemapinfo_t* pcubemap = AddCubemap( i, origin, cubemapSize );
+		if(pcubemap)
+		{
+			// Try and link bounds to this cubemap
+			LinkParallaxBounds(pcubemap, &pEntities[i], pEntities, numEntities);
+		}
 	}
 }
 
@@ -622,7 +627,7 @@ bool CCubemapManager::VerifyECDFile( const ecdheader_t* pheader )
 			|| pcubemap->origin != m_cubemapsArray[i].origin
 			|| pcubemap->box_mins != m_cubemapsArray[i].box_mins
 			|| pcubemap->box_maxs != m_cubemapsArray[i].box_maxs
-			|| (pcubemap->use_parallax != 0) != m_cubemapsArray[i].use_parallax)
+			|| pcubemap->use_parallax != m_cubemapsArray[i].use_parallax)
 			return false;
 	}
 
@@ -977,54 +982,38 @@ bool CCubemapManager::RenderCubemaps( cl_entity_t* pRenderEntities, Uint32 numRe
 // @brief
 //
 //=============================================
-void CCubemapManager::LinkParallaxBounds(cubemapinfo_t* pCube, const entitydata_t* pEntities, Uint32 numEntities)
+void CCubemapManager::LinkParallaxBounds( cubemapinfo_t* pCubemapInfo, const entitydata_t* pCubemapEntity, const struct entitydata_t* pEntities, Uint32 numEntities )
 {
-	for (Uint32 i = 0; i < numEntities; i++)
+	const Char* pParallaxTargetName = ValueForKey((*pCubemapEntity), "parallax_target");
+	if (!pParallaxTargetName || !qstrlen(pParallaxTargetName))
+		return;
+
+	// Find the OBB entity by name
+	for (Uint32 j = 0; j < numEntities; j++)
 	{
-		const Char* pClassname = ValueForKey(pEntities[i], "classname");
-		if (!pClassname || qstrcmp(pClassname, "env_cubemap"))
-			continue;
-
-		Vector entOrigin;
-		const Char* pOrgStr = ValueForKey(pEntities[i], "origin");
-		if (pOrgStr)
-			Common::StringToVector(pOrgStr, entOrigin);
-
-		// If this is the entity that belongs to our cubemap
-		if (Math::VectorCompare(entOrigin, pCube->origin))
+		const Char* pTargetName = ValueForKey(pEntities[j], "targetname");
+		if (pTargetName && !qstrcmp(pTargetName, pParallaxTargetName))
 		{
-			const Char* pParallaxTarget = ValueForKey(pEntities[i], "parallax_target");
-			if (!pParallaxTarget || !qstrlen(pParallaxTarget))
-				return;
-
-			// Find the OBB entity by name
-			for (Uint32 j = 0; j < numEntities; j++)
+			const Char* pModelName = ValueForKey(pEntities[j], "model");
+			if (pModelName && pModelName[0] == '*')
 			{
-				const Char* pTargetName = ValueForKey(pEntities[j], "targetname");
-				if (pTargetName && !qstrcmp(pTargetName, pParallaxTarget))
+				Int32 mIdx = SDL_atoi(pModelName + 1) + 1;
+				cache_model_t* pBoxModel = gModelCache.GetModelByIndex(mIdx);
+
+				// Get min/max for parallax corrected
+				if (pBoxModel)
 				{
-					const Char* pModelName = ValueForKey(pEntities[j], "model");
-					if (pModelName && pModelName[0] == '*')
-					{
-						Int32 mIdx = SDL_atoi(pModelName + 1) + 1;
-						cache_model_t* pBoxModel = gModelCache.GetModelByIndex(mIdx);
+					Vector obbOrigin;
+					const Char* pObbOrgStr = ValueForKey(pEntities[j], "origin");
+					if (pObbOrgStr)
+						Common::StringToVector(pObbOrgStr, obbOrigin);
 
-						// Get min/max for parallax corrected
-						if (pBoxModel)
-						{
-							Vector obbOrigin;
-							const Char* pObbOrgStr = ValueForKey(pEntities[j], "origin");
-							if (pObbOrgStr)
-								Common::StringToVector(pObbOrgStr, obbOrigin);
-
-							Math::VectorAdd(obbOrigin, pBoxModel->mins, pCube->box_mins);
-							Math::VectorAdd(obbOrigin, pBoxModel->maxs, pCube->box_maxs);
-							pCube->use_parallax = true;
-							return;
-						}
-					}
+					Math::VectorAdd(obbOrigin, pBoxModel->mins, pCubemapInfo->box_mins);
+					Math::VectorAdd(obbOrigin, pBoxModel->maxs, pCubemapInfo->box_maxs);
+					pCubemapInfo->use_parallax = true;
 				}
 			}
+
 			return;
 		}
 	}

@@ -142,7 +142,9 @@
     14: "Constant Glow"
     15: "Distort"
     16: "Hologram (Distort + fade)"
+    21: "No Shadows"
     22: "Traced Glow"
+    23: "No Dynamic Lighting"
     70: "Skybox Object"
     71: "Skybox Object - In Z"
     72: "Scaled Skybox VBM model"
@@ -1175,7 +1177,7 @@
     2 : "No elight tracelines" : 0
     4 : "No VIS checks" : 0
     8 : "Start Invisible" : 0
-	16 : "Disable Baked Shadows" : 0
+	16 : "No shadows" : 0
   ] 
   scale(Integer) : "Scale" : 1
 ]
@@ -1342,6 +1344,7 @@
 [
   framerate(integer) : "Framerate(0-1)" : 1
   rendercolor(color255) : "Render Color" : "0 0 0"
+  skin(integer) : "Skin" : 0
   spawnflags(flags) =
   [
     1 : "No shadowmaps" : 0
@@ -2309,7 +2312,7 @@
 [
    body(integer) : "Body" : 25
 ]
-@PointClass base(Targetname, Angles) size(-8 -8 -8, 8 8 8) studio("models/taperecorder.mdl") = item_taperecorder : "Tape recorder" 
+@PointClass base(Targetname, Target, Angles) size(-8 -8 -8, 8 8 8) studio("models/taperecorder.mdl") = item_taperecorder : "Tape recorder" 
 [
   soundfile(sound) : "Sound to play"
   title(string) : "Label title"
@@ -2736,6 +2739,8 @@
   spawnflags(Flags) =
   [
     1 : "All Day Stages" : 0
+    2 : "Create persistent save" : 0
+    4 : "USE Only" : 0
   ]
 ]
 

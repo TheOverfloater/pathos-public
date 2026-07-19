@@ -756,9 +756,6 @@
     <ClCompile Include="npcsecurity.cpp">
       <Filter>Source Files\entities\npc</Filter>
     </ClCompile>
-    <ClCompile Include="ai_common.cpp">
-      <Filter>Source Files\ai</Filter>
-    </ClCompile>
     <ClCompile Include="npcsecuritydead.cpp">
       <Filter>Source Files\entities\npc</Filter>
     </ClCompile>
