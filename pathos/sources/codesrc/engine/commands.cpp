@@ -345,8 +345,11 @@ void CCommandManager::CacheCommand( const Char* pstrCommand )
 		// handle 'say' specially
 		if(!qstrcmp(argument, "say") || !qstrcmp(argument, "say_team"))
 		{
-			m_commandArgs[m_numArgs].assign(pstr, qstrlen(pstr));
-			m_numArgs++;
+			if (pstr && pstr[0] != '\0')
+			{
+				m_commandArgs[m_numArgs].assign(pstr, qstrlen(pstr));
+				m_numArgs++;
+			}
 			break;
 		}
 	}
