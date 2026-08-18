@@ -879,7 +879,7 @@ void main()
 		finalColor = finalColor*color;		
 		
 		if( d_cubemaps >= 1 )
-			finalColor += AddCubemaps(specularFactor);
+			finalColor.xyz += AddCubemaps(specularFactor).xyz * finalColor.xyz;
 	$end
 	// Texture unit 0 only and texunit 0 * 4
 	$branch shadertype == 3 || shadertype == 22

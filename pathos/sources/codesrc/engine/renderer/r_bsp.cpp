@@ -3848,7 +3848,7 @@ bool CBSPRenderer::DrawFinal( void )
 	// Draw any cubemaps
 	if(pcubemapinfo && g_pCvarCubemaps->GetValue() > 0)
 	{
-		glBlendFunc(GL_ONE, GL_ONE);
+		glBlendFunc(GL_DST_COLOR, GL_ONE);
 
 		m_pShader->EnableAttribute(m_attribs.a_texcoord);
 		m_pShader->EnableAttribute(m_attribs.a_normal);
