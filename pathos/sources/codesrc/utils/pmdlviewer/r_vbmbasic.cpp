@@ -1646,8 +1646,8 @@ bool CBasicVBMRenderer::DrawModel( CMatrix& modelview, CMatrix& projection )
 				glBindTexture(GL_TEXTURE_RECTANGLE, m_pScreenTexture->gl_index);
 				glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, m_screenWidth, m_screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
 				m_screenTextureWidth = m_screenWidth;
@@ -1947,11 +1947,11 @@ bool CBasicVBMRenderer::DrawSubmodel ( void )
 bool CBasicVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pmesh, bool drawBlended )
 {
 	// Set the determinator states
-	if(!m_pShader->SetDeterminator(m_attribs.d_chrome, ((pmaterial->flags & (TX_FL_CHROME) || pmaterial->flags & (TX_FL_EYEGLINT) && drawBlended)) ? TRUE : FALSE, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_alphatest, ((pmaterial->flags & TX_FL_ALPHATEST) && !(pmaterial->flags & (TX_FL_SCOPE|TX_FL_CHROME|TX_FL_EYEGLINT))) ? true : false, false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_specular, (pmaterial->ptextures[MT_TX_SPECULAR]) && !(pmaterial->flags & TX_FL_FULLBRIGHT), false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_luminance, (pmaterial->ptextures[MT_TX_LUMINANCE]) && !(pmaterial->flags & TX_FL_FULLBRIGHT), false) ||
-		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, (pmaterial->ptextures[MT_TX_NORMALMAP]) && !(pmaterial->flags & TX_FL_FULLBRIGHT), false))
+	if(!m_pShader->SetDeterminator(m_attribs.d_chrome, ((pmaterial->flags & (TX_FL_CHROME) || pmaterial->flags & (TX_FL_EYEGLINT) && drawBlended) && (m_renderMode == RENDER_WIREFRAME)) ? TRUE : FALSE, false) ||
+		!m_pShader->SetDeterminator(m_attribs.d_alphatest, ((pmaterial->flags & TX_FL_ALPHATEST) && !(pmaterial->flags & (TX_FL_SCOPE|TX_FL_CHROME|TX_FL_EYEGLINT)) && (m_renderMode != RENDER_WIREFRAME)) ? true : false, false) ||
+		!m_pShader->SetDeterminator(m_attribs.d_specular, (pmaterial->ptextures[MT_TX_SPECULAR]) && !(pmaterial->flags & TX_FL_FULLBRIGHT) && (m_renderMode != RENDER_WIREFRAME), false) ||
+		!m_pShader->SetDeterminator(m_attribs.d_luminance, (pmaterial->ptextures[MT_TX_LUMINANCE]) && !(pmaterial->flags & TX_FL_FULLBRIGHT) && (m_renderMode != RENDER_WIREFRAME), false) ||
+		!m_pShader->SetDeterminator(m_attribs.d_bumpmapping, (pmaterial->ptextures[MT_TX_NORMALMAP]) && !(pmaterial->flags & TX_FL_FULLBRIGHT) && (m_renderMode != RENDER_WIREFRAME), false))
 	return false;
 
 	bool result = false;
@@ -1964,10 +1964,15 @@ bool CBasicVBMRenderer::DrawMesh( en_material_t *pmaterial, const vbmmesh_t *pme
 		else
 			result = m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_texture, false);
 	}
-	else
+	else if(m_renderMode == RENDER_SMOOTHSHADED)
 	{
 		result = m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_notexture, false);
 	}
+	else
+	{
+		result = m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false);
+	}
+
 	// Verify the settings
 	if(!result || !m_pShader->VerifyDeterminators())
 		return false;

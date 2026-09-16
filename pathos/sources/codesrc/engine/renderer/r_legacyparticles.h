@@ -109,7 +109,7 @@ public:
 	// Creates a blob explosion of type 1
 	void CreateBlobExplosion( const Vector& origin );
 	// Creates a particle effect based on the inputs
-	void CreateRocketExplosion( const Vector& origin, Uint32 color );
+	void CreateRocketExplosion( const Vector& origin );
 	// Creates a particle effect based on the inputs
 	void CreateParticleEffect( const Vector& origin, const Vector& velocity, Uint32 color, Uint32 count );
 	// Creates a lavasplash effect

@@ -427,8 +427,8 @@ public:
 	bool GetNodeLinkEntities( Int32 srcNode, Int32 linkNodeIndex, link_entity_t*& pLinkPtr, Uint32& numLinks );
 
 	Int32 GetNextNodeInRoute( Int32 currentNode, Int32 destNode, node_hull_types_t hullType, capability_indexes_t capabilityIndex );
-	Int32 GetNearestNode( const Vector& position, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity = nullptr, Float minDistance = -1, const CNodeIgnoreList* pIgnoreList = nullptr );
-	Int32 GetNearestNode( const Vector& position, Uint64 nodeTypes, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity = nullptr, Float minDistance = -1, const CNodeIgnoreList* pIgnoreList = nullptr );
+	Int32 GetNearestNode( const Vector& position, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity = nullptr, Float minDistance = -1, const CNodeIgnoreList* pIgnoreList = nullptr, bool reverseCheck = false );
+	Int32 GetNearestNode( const Vector& position, Uint64 nodeTypes, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity = nullptr, Float minDistance = -1, const CNodeIgnoreList* pIgnoreList = nullptr, bool reverseCheck = false );
 	Int32 GetNearestNode( const Vector& position );
 	Int32 GetShortestPath( Int32 startNode, Int32 endNode, node_hull_types_t hullType, const CBitSet& capabilityBitSet, Int32 *pNodeIndexArray, const CBaseEntity* pNPC = nullptr, const CBaseEntity* pTargetEntity = nullptr, const CNodeIgnoreList* pIgnoreList = nullptr, const CBaseEntity* pViewCheckNPC = nullptr );
 	Float GetPathLength( Int32 startNode, Int32 endNode, node_hull_types_t hullType, const CBitSet& capabilityBitSet );
@@ -456,7 +456,7 @@ private:
 	Int32 SearchHash( Int16 srcNode, Int16 dstNode );
 	static Uint32 GenHash( const byte* pData, Uint32 length );
 
-	void CheckNode( const Vector& origin, Int32 nodeIndex, Uint64 nodeTypes, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity, Float minDistance );
+	void CheckNode( const Vector& destination, Int32 nodeIndex, Uint64 nodeTypes, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity, Float minDistance, bool reverseCheck );
 	static bool WalkPath( const Vector& startPosition, const Vector& endPosition, CBaseEntity* pTestNPC, CArray<CBaseEntity*>& linkEntityArray, bool isWaterNode = false );
 	static bool IsLinkEntityManaged( CBaseEntity* pEntity );
 

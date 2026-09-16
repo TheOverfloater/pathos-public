@@ -39,7 +39,6 @@ struct cache_model_t
 		type(MOD_NONE),
 		cacheindex(0),
 		isloaded(false),
-		radius(0),
 		pcachedata(nullptr)
 	{}
 
@@ -126,8 +125,6 @@ struct cache_model_t
 	Vector mins;
 	// Maxs of the model
 	Vector maxs;
-	// Radius of the model
-	Float radius;
 
 	// Pointer to cache data
 	void *pcachedata;

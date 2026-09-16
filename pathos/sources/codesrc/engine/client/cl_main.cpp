@@ -33,7 +33,7 @@ All Rights Reserved.
 #include "modelcache.h"
 #include "networking.h"
 #include "vid.h"
-#include "trace_shared.h"
+#include "trace_core.h"
 #include "cl_snd.h"
 #include "file_interface.h"
 #include "file.h"

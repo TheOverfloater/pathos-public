@@ -89,7 +89,11 @@ bool CNodeViewer::Spawn( void )
 		m_color = COLOR_HUMAN_HULL;
 	}
 
-	m_baseNode = gNodeGraph.GetNearestNode(m_pState->origin, m_nodeType, this);
+	CBaseEntity* pEntity = GetOwner();
+	if(!pEntity)
+		pEntity = this;
+
+	m_baseNode = gNodeGraph.GetNearestNode(m_pState->origin, m_nodeType, pEntity);
 	if(m_baseNode == NO_POSITION)
 	{
 		gd_engfuncs.pfnCon_Printf("No node found.\n");

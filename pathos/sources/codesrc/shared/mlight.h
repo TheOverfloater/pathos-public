@@ -18,7 +18,8 @@ struct mlight_t
 	mlight_t():
 		entindex(0),
 		radius(0),
-		noblend(false)
+		noblend(false),
+		staticentity(false)
 		{}
 
 	entindex_t entindex;
@@ -31,6 +32,7 @@ struct mlight_t
 	Vector maxs;
 
 	bool noblend;
+	bool staticentity;
 };
 
 struct mlightinfo_t

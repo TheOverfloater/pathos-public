@@ -202,7 +202,6 @@ cache_model_t* CModelCache::LoadSpriteModel( const Char* pstrFilename, const byt
 	pnew->cacheindex = modelindex+1;
 	pnew->mins = Vector(-psprite->radius, -psprite->radius, -psprite->radius);
 	pnew->maxs = Vector(psprite->radius, psprite->radius, psprite->radius);
-	pnew->radius = psprite->radius;
 	pnew->pcachedata = psprite;
 	pnew->type = MOD_SPRITE;
 	pnew->name = pstrFilename;
@@ -376,17 +375,6 @@ cache_model_t* CModelCache::LoadVBMModel( const Char* pstrFilename, const byte* 
 	// needs to be loaded to gpu
 	pnew->isloaded = false;
 
-	// Determine radius
-	pnew->radius = 0;
-	for(Uint32 i = 0; i < 3; i++)
-	{
-		if(SDL_fabs(pstudiohdr->bbmin[i]) > pnew->radius)
-			pnew->radius = pstudiohdr->bbmin[i];
-
-		if(SDL_fabs(pstudiohdr->bbmax[i]) > pnew->radius)
-			pnew->radius = pstudiohdr->bbmax[i];
-	}
-
 	// Create hash of vertex data
 	const vbmvertex_t* pvertexdata = pcache->pvbmhdr->getVertexes();
 	Uint32 vertexdatasize = pcache->pvbmhdr->numverts*sizeof(vbmvertex_t);
@@ -449,6 +437,9 @@ cache_model_t* CModelCache::LoadBSPModel( const Char* pstrFilename, const byte* 
 
 	// Set up everything else
 	BSP_MakeHullZero((*pmodel));
+
+	// Set up BVHs for leaf brushes
+	BSP_SetupLeafBrushBVHs((*pmodel));
 
 	// Setup the submodels too
 	SetupBSPSubmodels(*pmodel, pstrFilename);
@@ -602,7 +593,6 @@ void CModelCache::SetupBSPSubmodels( brushmodel_t& model, const Char* loadName )
 		pnew->cacheindex = modelindex+1;
 		pnew->mins = pnewmodel->mins;
 		pnew->maxs = pnewmodel->maxs;
-		pnew->radius = pnewmodel->radius;
 		pnew->isloaded = true;
 
 		// Mark if we have brush collisions

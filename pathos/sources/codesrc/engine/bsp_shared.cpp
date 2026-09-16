@@ -611,3 +611,29 @@ void BSP_SetBrushType( brushmodel_t& model, mbrush_t* pbrush, Uint32 index )
 	else
 		pbrush->type = BRUSHTYPE_NORMAL;
 }
+
+//=============================================
+// @brief
+//
+//=============================================
+void BSP_SetupLeafBrushBVHs( brushmodel_t& model )
+{
+	for(Uint32 i = 0; i < model.numleafs; i++)
+	{
+		mleaf_t* pleaf = &model.pleafs[i];
+		if(!pleaf->numleafbrushes)
+			continue;
+
+		if(pleaf->numleafbrushes <= 1)
+			continue;
+
+		// Create BVH for leaf
+		CLeafBrushBVH* pnewbvh = new CLeafBrushBVH(pleaf);
+
+		// Only keep the BVH if there's more than one node
+		if(pnewbvh->GetNodeCount() > 1)
+			pleaf->pleafbrushbvh = pnewbvh;
+		else
+			delete pnewbvh;
+	}
+}

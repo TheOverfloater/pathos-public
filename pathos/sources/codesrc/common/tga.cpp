@@ -418,7 +418,6 @@ void TGA_RLE_CompressData( const byte* pdata, Uint32 width, Uint32 height, Uint3
 					{
 						Uint32 nbStorePixels = nbPixels-1;
 						TGA_RLE_StoreUniquePixels(rleBuffer, pixelsArray, nbStorePixels, bpp);
-						
 					}
 
 					nbPixels = 0;

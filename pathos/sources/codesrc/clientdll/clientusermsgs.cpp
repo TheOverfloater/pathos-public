@@ -789,15 +789,13 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 			for(Uint32 i = 0; i < 3; i++)
 				origin[i] = reader.ReadFloat();
 
-			Int32 color = reader.ReadByte();
-			
 			if(reader.HasError())
 			{
 				cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
 				return false;
 			}
 
-			cl_efxapi.pfnRocketExplosion(origin, color);
+			cl_efxapi.pfnRocketExplosion(origin);
 		}
 		break;
 	case TE_PARTICLEEFFECT:

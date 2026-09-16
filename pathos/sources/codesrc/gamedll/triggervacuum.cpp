@@ -271,7 +271,7 @@ Vector CTriggerVacuum::GetPullPosition( CBaseEntity* pPlayer, const Vector& play
 	Int32 playerNodeIndex = NO_POSITION;
 	Int32 myNodeIndex = gNodeGraph.GetNearestNode(m_pState->origin, nodeTypeBits, m_pTestHullNPC, pPlayer);
 	if(myNodeIndex != NO_POSITION)
-		playerNodeIndex = gNodeGraph.GetNearestNode(playerPosition, nodeTypeBits, m_pTestHullNPC, pPlayer);
+		playerNodeIndex = gNodeGraph.GetNearestNode(playerPosition, nodeTypeBits, m_pTestHullNPC, pPlayer, -1, nullptr, true);
 
 	if(myNodeIndex == NO_POSITION || playerNodeIndex == NO_POSITION)
 	{

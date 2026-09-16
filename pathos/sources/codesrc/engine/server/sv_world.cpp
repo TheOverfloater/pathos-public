@@ -20,7 +20,7 @@ All Rights Reserved.
 #include "modelcache.h"
 #include "frustum.h"
 #include "sv_world.h"
-#include "trace_shared.h"
+#include "trace_core.h"
 #include "vbmtrace.h"
 #include "sv_physics.h"
 #include "mcdtrace.h"
@@ -258,7 +258,7 @@ void SV_TouchLinks( edict_t* pentity, areanode_t* pnode )
 					else
 					{
 						Int32 brushtypebits = ((1<<BRUSHTYPE_NORMAL) | (1<<BRUSHTYPE_CLIP_BRUSH));
-						contents = TR_HullPointContents_Brush(pmodel->getBrushmodel(), localOrigin, HULL_MINS[hulltype], HULL_MAXS[hulltype], brushtypebits);
+						contents = TR_HullPointContents_Brush(pmodel->getBrushmodel(), localOrigin, pentity->state.mins, pentity->state.maxs, brushtypebits);
 					}
 
 					if(contents != CONTENTS_SOLID)
@@ -574,7 +574,7 @@ Int32 SV_HullPointContents( entindex_t entindex, hull_types_t hulltype, const Ve
 		if(hulltype != HULL_POINT)
 			brushtypebits |= (1<<BRUSHTYPE_CLIP_BRUSH);
 
-		contents = TR_HullPointContents_Brush(pbrushmodel, position, ZERO_VECTOR, ZERO_VECTOR, brushtypebits);
+		contents = TR_HullPointContents_Brush(pbrushmodel, position, HULL_MINS[hulltype], HULL_MAXS[hulltype], brushtypebits);
 	}
 	else
 	{
@@ -650,16 +650,52 @@ void SV_ClipToLinks( areanode_t& node, moveclip_t& clip, Int32 flags, hull_types
 		if((clip.flags & FL_TRACE_NO_TRANS) && ptouchedict->state.rendermode != RENDER_NORMAL && !(ptouchedict->state.flags & FL_WORLDBRUSH))
 			continue;
 
-		// See if it's in the box
-		if(Math::CheckMinsMaxs(clip.boxmins, clip.boxmaxs, ptouchedict->state.absmin, ptouchedict->state.absmax))
-			continue;
+		// Get model if present
+		const cache_model_t* pmodel = nullptr;
+		if(ptouchedict->state.modelindex)
+		{
+			pmodel = Cache_GetModel(ptouchedict->state.modelindex);
+			if(!pmodel)
+			{
+				Con_EPrintf("%s - Called on entity %s with no model.\n", __FUNCTION__, SV_GetString(ptouchedict->fields.classname));
+				continue;
+			}
+		}
+
+		// Because of how hull expansion works, we need to expand the hull of the rotated brush entity
+		// by the collision hull BEFORE we rotate those mins/maxs, otherwise the bounding box will
+		// not represent the actual expansion.
+		Vector entitymins, entitymaxs;
+		if(pmodel && pmodel->type == MOD_BRUSH && !ptouchedict->state.angles.IsZero())
+		{
+			Math::VectorAdd(pmodel->mins, (*clip.pmins1), entitymins);
+			Math::VectorAdd(pmodel->maxs, (*clip.pmaxs1), entitymaxs);
+
+			Vector rotatedmins, rotatedmaxs;
+			Math::RotateMinsMaxsByAngle(entitymins, entitymaxs, ptouchedict->state.angles, rotatedmins, rotatedmaxs);
+
+			Math::VectorSubtract(rotatedmins, Vector(1, 1, 1), rotatedmins);
+			Math::VectorAdd(rotatedmaxs, Vector(1, 1, 1), rotatedmaxs);
+
+			Math::VectorAdd(rotatedmins, ptouchedict->state.origin, entitymins);
+			Math::VectorAdd(rotatedmaxs, ptouchedict->state.origin, entitymaxs);
+
+			// See if it's in the box
+			if(Math::CheckMinsMaxs(clip.boxmins, clip.boxmaxs, entitymins, entitymaxs))
+				continue;
+		}
+		else
+		{
+			Math::VectorAdd(ptouchedict->state.absmin, (*clip.pmins1), entitymins);
+			Math::VectorAdd(ptouchedict->state.absmax, (*clip.pmaxs1), entitymaxs);
+
+			// See if it's in the box
+			if(Math::CheckMinsMaxs(clip.boxmins, clip.boxmaxs, entitymins, entitymaxs))
+				continue;
+		}
 
 		if(clip.pignore_edict && clip.pignore_edict->state.size[0] && !ptouchedict->state.size[0])
 			continue; // Don't let points intersect
-
-		// If all of the trace is solid, exit
-		if(clip.trace.flags & FL_TR_ALLSOLID)
-			return;
 
 		if(clip.pignore_edict)
 		{
@@ -681,11 +717,21 @@ void SV_ClipToLinks( areanode_t& node, moveclip_t& clip, Int32 flags, hull_types
 		if((trace.flags & (FL_TR_ALLSOLID|FL_TR_STARTSOLID)) || trace.fraction < clip.trace.fraction)
 		{
 			trace.hitentity = ptouchedict->entindex;
-			clip.trace = trace;
 
 			if(clip.trace.flags & FL_TR_STARTSOLID)
+			{
+				clip.trace = trace;
 				clip.trace.flags |= FL_TR_STARTSOLID;
+			}
+			else
+			{
+				clip.trace = trace;
+			}
 		}
+
+		// If all of the trace is solid, exit
+		if(clip.trace.flags & FL_TR_ALLSOLID)
+			return;
 	}
 
 	// Recurse down both sides
@@ -713,13 +759,41 @@ void SV_ClipToWorldBrush( areanode_t& node, moveclip_t& clip, Int32 flags, hull_
 		if(ptouchedict->state.solid != SOLID_BSP || !(ptouchedict->state.flags & FL_WORLDBRUSH))
 			continue;
 
-		// See if it's in the box
-		if(Math::CheckMinsMaxs(clip.boxmins, clip.boxmaxs, ptouchedict->state.absmin, ptouchedict->state.absmax))
-			continue;
+		// Get model if present
+		const cache_model_t* pmodel = nullptr;
+		if(ptouchedict->state.modelindex)
+		{
+			pmodel = Cache_GetModel(ptouchedict->state.modelindex);
+			if(!pmodel)
+			{
+				Con_EPrintf("%s - Called on entity %s with no model.\n", __FUNCTION__, SV_GetString(ptouchedict->fields.classname));
+				continue;
+			}
+		}
 
-		// If all of the trace is solid, exit
-		if(clip.trace.flags & FL_TR_ALLSOLID)
-			return;
+		// Because of how hull expansion works, we need to expand the hull of the rotated brush entity
+		// by the collision hull BEFORE we rotate those mins/maxs, otherwise the bounding box will
+		// not represent the actual expansion.
+		Vector entitymins, entitymaxs;
+		if(pmodel && pmodel->type == MOD_BRUSH && !ptouchedict->state.angles.IsZero())
+		{
+			Math::VectorAdd(pmodel->mins, (*clip.pmins1), entitymins);
+			Math::VectorAdd(pmodel->maxs, (*clip.pmaxs1), entitymaxs);
+
+			Vector rotatedmins, rotatedmaxs;
+			Math::RotateMinsMaxsByAngle(entitymins, entitymaxs, ptouchedict->state.angles, rotatedmins, rotatedmaxs);
+
+			Math::VectorSubtract(rotatedmins, Vector(1, 1, 1), rotatedmins);
+			Math::VectorAdd(rotatedmaxs, Vector(1, 1, 1), rotatedmaxs);
+
+			Math::VectorAdd(rotatedmins, ptouchedict->state.origin, entitymins);
+			Math::VectorAdd(rotatedmaxs, ptouchedict->state.origin, entitymaxs);
+		}
+		else
+		{
+			Math::VectorAdd(ptouchedict->state.absmin, (*clip.pmins1), entitymins);
+			Math::VectorAdd(ptouchedict->state.absmax, (*clip.pmaxs1), entitymaxs);
+		}
 
 		trace_t trace;
 		SV_SingleClipMoveToEntity(ptouchedict, *clip.pstart, *clip.pmins1, *clip.pmaxs1, *clip.pend, trace, hulltype);
@@ -727,11 +801,21 @@ void SV_ClipToWorldBrush( areanode_t& node, moveclip_t& clip, Int32 flags, hull_
 		if((trace.flags & (FL_TR_ALLSOLID|FL_TR_STARTSOLID)) || trace.fraction < clip.trace.fraction)
 		{
 			trace.hitentity = ptouchedict->entindex;
-			clip.trace = trace;
 
 			if(clip.trace.flags & FL_TR_STARTSOLID)
+			{
+				clip.trace = trace;
 				clip.trace.flags |= FL_TR_STARTSOLID;
+			}
+			else
+			{
+				clip.trace = trace;
+			}
 		}
+
+		// If all of the trace is solid, exit
+		if(clip.trace.flags & FL_TR_ALLSOLID)
+			return;
 	}
 
 	// Recurse down both sides
@@ -739,10 +823,10 @@ void SV_ClipToWorldBrush( areanode_t& node, moveclip_t& clip, Int32 flags, hull_
 		return;
 
 	if(clip.boxmaxs[node.axis] > node.dist)
-		SV_ClipToLinks(*node.pchildren[0], clip, flags, hulltype);
+		SV_ClipToWorldBrush(*node.pchildren[0], clip, flags, hulltype);
 
 	if(clip.boxmaxs[node.axis] < node.dist)
-		SV_ClipToLinks(*node.pchildren[1], clip, flags, hulltype);
+		SV_ClipToWorldBrush(*node.pchildren[1], clip, flags, hulltype);
 }
 
 //=============================================
@@ -831,10 +915,6 @@ void SV_ClipToLinksPoint( areanode_t& node, moveclip_t& clip, Int32 flags )
 		if(clip.pignore_edict && clip.pignore_edict->state.size[0] && !ptouchedict->state.size[0])
 			continue; // Don't let points intersect
 
-		// If all of the trace is solid, exit
-		if(clip.trace.flags & FL_TR_ALLSOLID)
-			return;
-
 		if(clip.pignore_edict)
 		{
 			// Don't clip against children
@@ -852,11 +932,21 @@ void SV_ClipToLinksPoint( areanode_t& node, moveclip_t& clip, Int32 flags )
 		if((trace.flags & (FL_TR_ALLSOLID|FL_TR_STARTSOLID)) || trace.fraction < clip.trace.fraction)
 		{
 			trace.hitentity = ptouchedict->entindex;
-			clip.trace = trace;
 
 			if(clip.trace.flags & FL_TR_STARTSOLID)
+			{
+				clip.trace = trace;
 				clip.trace.flags |= FL_TR_STARTSOLID;
+			}
+			else
+			{
+				clip.trace = trace;
+			}
 		}
+
+		// If all of the trace is solid, exit
+		if(clip.trace.flags & FL_TR_ALLSOLID)
+			return;
 	}
 
 	// Recurse down both sides
@@ -901,18 +991,10 @@ void SV_Move( trace_t& trace, const Vector& start, const Vector& mins, const Vec
 		clip.pmins1 = &mins;
 		clip.pmaxs1 = &maxs;
 
-		if(clip.flags & FL_TRACE_EXTRASIZE)
-		{
-			clip.mins2 = Vector(-15, -15, -15);
-			clip.maxs2 = Vector(15, 15, 15);
-		}
-		else
-		{
-			clip.mins2 = mins;
-			clip.maxs2 = maxs;
-		}
+		clip.mins2 = mins;
+		clip.maxs2 = maxs;
 
-		TR_MoveBounds(start, clip.mins2, clip.maxs2, traceEndpos, clip.boxmins, clip.boxmaxs);
+		TR_MoveBoundsPoint(start, traceEndpos, clip.boxmins, clip.boxmaxs);
 		if(hulltype == HULL_POINT)
 			SV_ClipToLinksPoint(svs.areanodes[0], clip, flags);
 		else
@@ -959,18 +1041,10 @@ void SV_MoveNoEntities( trace_t& trace, const Vector& start, const Vector& mins,
 		clip.pmins1 = &mins;
 		clip.pmaxs1 = &maxs;
 
-		if(clip.flags & FL_TRACE_EXTRASIZE)
-		{
-			clip.mins2 = Vector(-15, -15, -15);
-			clip.maxs2 = Vector(15, 15, 15);
-		}
-		else
-		{
-			clip.mins2 = mins;
-			clip.maxs2 = maxs;
-		}
+		clip.mins2 = mins;
+		clip.maxs2 = maxs;
 
-		TR_MoveBounds(start, clip.mins2, clip.maxs2, traceEndpos, clip.boxmins, clip.boxmaxs);
+		TR_MoveBoundsPoint(start, traceEndpos, clip.boxmins, clip.boxmaxs);
 		SV_ClipToWorldBrush(svs.areanodes[0], clip, flags, hulltype);
 
 		if(clip.trace.startSolid() || clip.trace.allSolid() || clip.trace.fraction < 1.0)
@@ -1075,17 +1149,18 @@ void SV_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 	trace.endpos = end;
 	trace.numhitcontents = 0;
 
+	const Vector& hullmins = svs.player_mins[hulltype];
+	const Vector& hullmaxs = svs.player_maxs[hulltype];
+
 	// trace against world first
 	edict_t* pworld = gEdicts.GetEdict(WORLDSPAWN_ENTITY_INDEX);
-	TR_PlayerTraceSingleEntity(pworld->state, pworld->pvbmhulldata, start, end, hulltype, traceflags, svs.player_mins[hulltype], svs.player_maxs[hulltype], trace);
+	TR_PlayerTraceSingleEntity(pworld->state, pworld->pvbmhulldata, start, end, hulltype, traceflags, hullmins, hullmaxs, trace);
 
 	// Trace against entities if applicable
 	if(!(traceflags & FL_TRACE_WORLD_ONLY))
 	{
 		Vector tracemins, tracemaxs;
 		TR_MoveBoundsPoint(start, end, tracemins, tracemaxs);
-		Math::VectorAdd(tracemins, svs.player_mins[hulltype], tracemins);
-		Math::VectorAdd(tracemaxs, svs.player_maxs[hulltype], tracemaxs);
 
 		for(Int32 i = 1; i < static_cast<Int32>(gEdicts.GetNbEdicts()); i++)
 		{
@@ -1130,23 +1205,43 @@ void SV_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 			if(traceflags & FL_TRACE_NO_TRANS && pentity->state.rendermode != RENDER_NORMAL)
 				continue;
 
+			// Update VBM hull data if needed
+			cache_model_t* pmodel = gModelCache.GetModelByIndex(pentity->state.modelindex);
+			if(!pmodel)
+				continue;
+
+			// Because of how hull expansion works, we need to expand the hull of the rotated brush entity
+			// by the collision hull BEFORE we rotate those mins/maxs, otherwise the bounding box will
+			// not represent the actual expansion.
 			Vector entitymins, entitymaxs;
-			Math::VectorAdd(pentity->state.absmin, svs.player_mins[hulltype], entitymins);
-			Math::VectorAdd(pentity->state.absmax, svs.player_maxs[hulltype], entitymaxs);
+			if(pmodel->type == MOD_BRUSH && !pentity->state.angles.IsZero())
+			{
+				Math::VectorAdd(pmodel->mins, hullmins, entitymins);
+				Math::VectorAdd(pmodel->maxs, hullmaxs, entitymaxs);
+
+				Vector rotatedmins, rotatedmaxs;
+				Math::RotateMinsMaxsByAngle(entitymins, entitymaxs, pentity->state.angles, rotatedmins, rotatedmaxs);
+
+				Math::VectorSubtract(rotatedmins, Vector(1, 1, 1), rotatedmins);
+				Math::VectorAdd(rotatedmaxs, Vector(1, 1, 1), rotatedmaxs);
+
+				Math::VectorAdd(rotatedmins, pentity->state.origin, entitymins);
+				Math::VectorAdd(rotatedmaxs, pentity->state.origin, entitymaxs);
+			}
+			else
+			{
+				Math::VectorAdd(pentity->state.absmin, hullmins, entitymins);
+				Math::VectorAdd(pentity->state.absmax, hullmaxs, entitymaxs);
+			}
 
 			// Optimize on traceline
 			if(Math::CheckMinsMaxs(tracemins, tracemaxs, entitymins, entitymaxs))
 				continue;
 
-			// Update VBM hull data if needed
-			cache_model_t* pmodel = gModelCache.GetModelByIndex(pentity->state.modelindex);
-			if(!pmodel)
-				return;
-
 			if(pmodel->type == MOD_VBM && (pmodel->flags & STUDIO_MF_TRACE_HITBOX || traceflags & FL_TRACE_HITBOXES))
-				TR_VBMSetHullInfo(pentity->pvbmhulldata, pmodel, svs.player_mins[hulltype], svs.player_maxs[hulltype], pentity->state, svs.time, hulltype);
+				TR_VBMSetHullInfo(pentity->pvbmhulldata, pmodel, hullmins, hullmaxs, pentity->state, svs.time, hulltype);
 
-			TR_PlayerTraceSingleEntity(pentity->state, pentity->pvbmhulldata, start, end, hulltype, traceflags, svs.player_mins[hulltype], svs.player_maxs[hulltype], trace);
+			TR_PlayerTraceSingleEntity(pentity->state, pentity->pvbmhulldata, start, end, hulltype, traceflags, hullmins, hullmaxs, trace);
 		}
 	}
 }

@@ -954,6 +954,9 @@
     <ClCompile Include="envcubemapobb.cpp">
       <Filter>Source Files\entities\env</Filter>
     </ClCompile>
+    <ClCompile Include="funcbrushcopy.cpp">
+      <Filter>Source Files\entities\func</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gamedll.h">
@@ -1798,6 +1801,9 @@
     </ClInclude>
     <ClInclude Include="envtracereffect.h">
       <Filter>Header Files\entities\env</Filter>
+    </ClInclude>
+    <ClInclude Include="funcbrushcopy.h">
+      <Filter>Header Files\entities\func</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

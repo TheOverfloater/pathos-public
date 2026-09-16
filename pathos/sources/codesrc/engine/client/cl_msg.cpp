@@ -732,6 +732,11 @@ bool CL_ReadPacketEntities( void )
 				state.mins[j] = reader.ReadFloat();
 			for(Uint32 j = 0; j < 3; j++)
 				state.maxs[j] = reader.ReadFloat();
+
+			for(Uint32 j = 0; j < 3; j++)
+				state.absmin[j] = reader.ReadFloat();
+			for(Uint32 j = 0; j < 3; j++)
+				state.absmax[j] = reader.ReadFloat();
 		}
 
 		if(updateMask & U_BASICS1)
@@ -805,6 +810,7 @@ bool CL_ReadPacketEntities( void )
 			state.flags = reader.ReadUint64();
 			state.waterlevel = static_cast<waterlevel_t>(reader.ReadInt32());
 			state.fov = reader.ReadFloat();
+			state.deadstate = reader.ReadInt32();
 		}
 
 		if(updateMask & U_ENTSINFO)

@@ -99,6 +99,9 @@ void CFuncTrainCopy::InitEntity( void )
 		return;
 	}
 
+	if(pCopyEntity->GetFlags() & FL_POINTHULL_ONLY)
+		SetFlags(FL_POINTHULL_ONLY);
+
 	// Initialize rest with original entity
 	CFuncTrain::InitEntity();
 }

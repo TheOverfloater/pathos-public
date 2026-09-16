@@ -12,6 +12,10 @@ All Rights Reserved.
 
 namespace CollisionShared
 {
+	// Test recursively if a line intersects a bbox
+	bool LineIntersectsBounds_Recursive( const Vector* p1, const Vector* p2, const Vector& mins, const Vector& maxs, int d );
+	// Test recursively if a line intersects a bbox
+	bool LineIntersectsBounds( const Vector* p1, const Vector* p2, const Vector& mins, const Vector& maxs );
 	// Test if a point-size traceline intersects a bbox
 	bool IntersectBBoxPoint( const Vector& start, const Vector& end, const Vector& bbmins, const Vector& bbmaxs, const Vector& normalDirection );
 	// Test if an AABB intersects a bounding box

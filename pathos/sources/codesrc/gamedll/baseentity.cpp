@@ -72,23 +72,11 @@ void CBaseEntity::SetObjectCollisionBox( void )
 
 	if(m_pState->solid == SOLID_BSP && !Math::IsVectorZero(m_pState->angles))
 	{
-		Float max = 0;
-		for(Uint32 i = 0; i < 3; i++)
-		{
-			Float size = SDL_fabs(m_pState->mins[i]);
-			if(size > max)
-				max = size;
+		Vector rotatedMins, rotatedMaxs;
+		Math::RotateMinsMaxsByAngle(m_pState->mins, m_pState->maxs, m_pState->angles, rotatedMins, rotatedMaxs);
 
-			size = SDL_fabs(m_pState->maxs[i]);
-			if(size > max)
-				max = size;
-		}
-
-		for(Uint32 i = 0; i < 3; i++)
-		{
-			m_pState->absmin[i] = m_pState->origin[i] - max;
-			m_pState->absmax[i] = m_pState->origin[i] + max;
-		}
+		Math::VectorAdd(m_pState->origin, rotatedMins, m_pState->absmin);
+		Math::VectorAdd(m_pState->origin, rotatedMaxs, m_pState->absmax);
 	}
 	else
 	{
@@ -96,11 +84,8 @@ void CBaseEntity::SetObjectCollisionBox( void )
 		Math::VectorAdd(m_pState->origin, m_pState->maxs, m_pState->absmax);
 	}
 
-	for(Uint32 i = 0; i < 3; i++)
-	{
-		m_pState->absmax[i] += 1;
-		m_pState->absmin[i] -= 1;
-	}
+	Math::VectorSubtract(m_pState->absmin, Vector(1, 1, 1), m_pState->absmin);
+	Math::VectorAdd(m_pState->absmax, Vector(1, 1, 1), m_pState->absmax);
 }
 
 //=============================================

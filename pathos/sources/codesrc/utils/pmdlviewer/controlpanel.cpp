@@ -35,6 +35,7 @@
 #include "stepsound.h"
 #include "fileassociation.h"
 #include "optionswindow.h"
+#include "common.h"
 
 // Last loaded WAV file option header
 const char CControlPanel::CP_LAST_WAV_PATH[] = "LAST_WAV_PATH";
@@ -135,6 +136,7 @@ CControlPanel::CControlPanel( mxWindow *parent ):
 	m_pLabelWAVLengthLabel(nullptr),
 	m_pLineEditLength(nullptr),
 	m_pLabelLength(nullptr),
+	m_pLabelWAVName(nullptr),
 	m_pCheckBoxFlexStay(nullptr),
 	m_pCheckBoxFlexLoop(nullptr),
 	m_pLabelFlexNames(nullptr),
@@ -491,6 +493,7 @@ void CControlPanel::InitFlexScriptingTab( void )
 
 	m_pLabelWAVLengthLabel = new mxLabel(m_pWindowFlexScripting, 5, 70, 100, 18, "WAV Length: 0.00s");
 	m_pLabelFlexTimeLabel = new mxLabel(m_pWindowFlexScripting, 110, 70, 100, 18, "Time: 0.00s");
+	m_pLabelWAVName = new mxLabel(m_pWindowFlexScripting, 250, 70, 300, 18, "WAV File Name:");
 }
 
 //=============================================
@@ -1462,7 +1465,12 @@ void CControlPanel::LoadWAVFile( void )
 	m_pLabelWAVLengthLabel->setLabel("Length: %.2fs", length);
 	m_pLabelFlexTimeLabel->setLabel("Time: %.2fs", vs.timeposition);
 
-	if(SDL_atof(m_pLineEditLength->getLabel()) < length)
+	CString fileBaseName;
+	Common::Basename(pstrFilePath, fileBaseName);
+
+	m_pLabelWAVName->setLabel("WAV File Name: %s.wav", fileBaseName.c_str());
+
+	if(vs.scripttimelength < length)
 	{
 		m_pLineEditLength->setLabel("%.2f", length);
 		vs.scripttimelength = length;
@@ -1663,12 +1671,14 @@ void CControlPanel::DeleteBind( Float position )
 		return;
 
 	Int32 flexIndex = vs.flexindex;
+	const Char* pstrname = m_pLabelFlexNames[flexIndex]->getLabel();
 
-	flexcontroller_t *pcontroller = NULL;
+	flexcontroller_t *pcontroller = nullptr;
+
 	Uint32 i = 0;
 	for(; i < vs.flexscript.controllers.size(); i++)
 	{
-		if(vs.flexscript.controllers[i].index == flexIndex)
+		if(!qstrcmp(vs.flexscript.controllers[i].name, pstrname))
 		{
 			pcontroller = &vs.flexscript.controllers[i];
 			break;
@@ -1708,6 +1718,10 @@ void CControlPanel::ResetScript( void )
 	vs.flexscript.duration = 0;
 	vs.flexscript.filename.clear();
 	vs.flexscript.flags = 0;
+	vs.scripttimelength = 0;
+
+	m_pLineEditLength->setLabel("");
+	m_pLabelWAVName->setLabel("WAV File Name:");
 }
 
 //=============================================

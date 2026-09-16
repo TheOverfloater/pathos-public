@@ -45,6 +45,7 @@ CSkyRenderer::CSkyRenderer( void ):
 	m_skyIndexBase(0),
 	m_screenQuadBase(0),
 	m_pCvarDrawSky(nullptr),
+	m_pCvarSkyBicubic(nullptr),
 	m_currentSkySet(NO_POSITION),
 	m_skyBoxSkySet(NO_POSITION),
 	m_skySetUsed(NO_POSITION),
@@ -69,6 +70,7 @@ CSkyRenderer::~CSkyRenderer( void )
 bool CSkyRenderer::Init( void )
 {
 	m_pCvarDrawSky = gConsole.CreateCVar( CVAR_FLOAT, FL_CV_CLIENT, "r_drawsky", "1", "Toggle sky rendering." );
+	m_pCvarSkyBicubic = gConsole.CreateCVar( CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), "r_sky_bicubic", "1", "Toggle bicubic sampling for 2d sky." );
 
 	return true;
 }
@@ -425,7 +427,8 @@ bool CSkyRenderer::DrawSky( void )
 		m_pShader->EnableAttribute(m_attribs.a_texcoord);
 		m_pShader->SetUniform4f(m_attribs.u_color, 1.0, 1.0, 1.0, 1.0);
 
-		if(!m_pShader->SetDeterminator(m_attribs.d_mode, SHADER_TEXTURE))
+		Int32 mode = (m_pCvarSkyBicubic->GetValue() >= 1) ? SHADER_TEXTURE_BICUBIC : SHADER_TEXTURE;
+		if(!m_pShader->SetDeterminator(m_attribs.d_mode, mode))
 		{
 			Sys_ErrorPopup("Rendering error: %s.", m_pShader->GetError());
 			return false;
@@ -636,7 +639,7 @@ void CSkyRenderer::LoadSkyTextures( const Char* pstrName, en_texture_t** pArray 
 		CString path;
 		path << SKYBOX_TEXTURE_DIR << pstrName << SKY_TEXTURE_POSTFIXES[i] << ".dds";
 
-		en_texture_t* ptexture = pTextureManager->LoadTexture(path.c_str(), RS_GAME_LEVEL, (TX_FL_CLAMP_S|TX_FL_CLAMP_T));
+		en_texture_t* ptexture = pTextureManager->LoadTexture(path.c_str(), RS_GAME_LEVEL, (TX_FL_CLAMP_S|TX_FL_CLAMP_T|TX_FL_NOMIPMAPS));
 		if(!ptexture)
 		{
 			rns.sky.drawsky = false;

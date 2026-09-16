@@ -29,7 +29,7 @@ struct cl_efxapi_t
 	cl_entity_t*			(*pfnAllocStaticSpriteEntity)( void );
 	cl_entity_t*			(*pfnAllocTempSpriteEntity)( Int32 key, Float life );
 
-	void					(*pfnCreateCableEntity)( const Vector& start, const Vector& end, Uint32 depth, Uint32 width, Uint32 numsegments );
+	void					(*pfnCreateCableEntity)( Int32 modelindex, const Vector& start, const Vector& end, Uint32 depth, Uint32 width, Uint32 numsegments, Float windx, Float windy );
 	bool					(*pfnSetupEntityVertexLightVBO)( cl_entity_t* pentity, Int32 vlightoffset, Uint32 vertexcount, byte* plightstyles );
 	void					(*pfnSetFogParameters)( entindex_t entindex, const Vector& color, Float start, Float end, bool affectsky, Float blendtime );
 	void					(*pfnSetSkyboxParameters)( const Vector& worldorigin, Float skysize, Float fogend, Float fogstart, const Vector& fogcolor, Int32 skytexturesetindex, bool affectskybox, bool isactive );
@@ -81,7 +81,7 @@ struct cl_efxapi_t
 	void					(*pfnParticleExplosion1)( const Vector& origin );
 	void					(*pfnParticleExplosion2)( const Vector& origin, Uint32 colorstart, Uint32 colorlength );
 	void					(*pfnBlobExplosion)( const Vector& origin );
-	void					(*pfnRocketExplosion)( const Vector& origin, Uint32 color );
+	void					(*pfnRocketExplosion)( const Vector& origin );
 	void					(*pfnParticleEffect)( const Vector& origin, const Vector& velocity, Uint32 color, Uint32 count );
 	void					(*pfnLavaSplash)( const Vector& origin );
 	void					(*pfnTeleportSplash)( const Vector& origin );

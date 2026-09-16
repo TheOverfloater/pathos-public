@@ -4410,10 +4410,22 @@ bool CBSPRenderer::DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 nume
 			if(R_IsEntityTransparent(*pEntity))
 				continue;
 
-			if(pEntity->curstate.renderfx == RenderFx_SkyEnt ||
-				pEntity->curstate.renderfx == RenderFx_SkyEntScaled ||
-				pEntity->curstate.renderfx == RenderFx_SkyEntNC ||
-				pEntity->curstate.renderfx == RenderFx_NoShadow ||
+			if(dl->isskydlight)
+			{
+				if(pEntity->curstate.renderfx != RenderFx_SkyEnt &&
+					pEntity->curstate.renderfx != RenderFx_SkyEntScaled &&
+					pEntity->curstate.renderfx != RenderFx_SkyEntNC)
+					continue;
+			}
+			else
+			{
+				if(pEntity->curstate.renderfx == RenderFx_SkyEnt ||
+					pEntity->curstate.renderfx == RenderFx_SkyEntScaled ||
+					pEntity->curstate.renderfx == RenderFx_SkyEntNC)
+					continue;
+			}
+
+			if(pEntity->curstate.renderfx == RenderFx_NoShadow ||
 				pEntity->curstate.rendertype == RT_WATERSHADER ||
 				pEntity->curstate.rendertype == RT_MIRROR ||
 				pEntity->curstate.rendertype == RT_MONITORENTITY ||
@@ -4453,25 +4465,26 @@ bool CBSPRenderer::DrawVSM( cl_dlight_t *dl, cl_entity_t** pvisents, Uint32 nume
 			if(R_IsEntityTransparent(*pEntity))
 				continue;
 
-			if(pEntity->curstate.renderfx == RenderFx_SkyEnt)
-				continue;
+			if(dl->isskydlight)
+			{
+				if(pEntity->curstate.renderfx != RenderFx_SkyEnt &&
+					pEntity->curstate.renderfx != RenderFx_SkyEntScaled &&
+					pEntity->curstate.renderfx != RenderFx_SkyEntNC)
+					continue;
+			}
+			else
+			{
+				if(pEntity->curstate.renderfx == RenderFx_SkyEnt ||
+					pEntity->curstate.renderfx == RenderFx_SkyEntScaled ||
+					pEntity->curstate.renderfx == RenderFx_SkyEntNC)
+					continue;
+			}
 
-			if (pEntity->curstate.renderfx == RenderFx_SkyEntScaled)
-				continue;
-
-			if(pEntity->curstate.renderfx == RenderFx_SkyEntNC)
-				continue;
-
-			if(pEntity->curstate.rendertype == RT_WATERSHADER)
-				continue;
-
-			if(pEntity->curstate.rendertype == RT_MIRROR)
-				continue;
-
-			if(pEntity->curstate.rendertype == RT_MONITORENTITY)
-				continue;
-
-			if (pEntity->curstate.rendertype == RT_PORTALSURFACE)
+			if(pEntity->curstate.renderfx == RenderFx_NoShadow ||
+				pEntity->curstate.rendertype == RT_WATERSHADER ||
+				pEntity->curstate.rendertype == RT_MIRROR ||
+				pEntity->curstate.rendertype == RT_MONITORENTITY ||
+				pEntity->curstate.rendertype == RT_PORTALSURFACE)
 				continue;
 
 			result = BatchBrushModelForVSM(*pEntity, false);
@@ -4703,6 +4716,7 @@ void CBSPRenderer::CreateDecal( const Vector& origin, const Vector& normal, deca
 
 		if(R_IsEntityMoved((*pentity)))
 		{
+			localnormal = normal;
 			Math::VectorSubtract(origin, pentity->curstate.origin, localorigin);
 			if(pentity->curstate.angles[0] || pentity->curstate.angles[1] || pentity->curstate.angles[2])
 			{

@@ -99,6 +99,7 @@ struct entity_lightinfo_t
 	Uint32 numsavedmlights;
 
 	Vector lastlightorigin;
+	Vector lastelightorigin;
 
 	// Used by nightstage
 	bool reset;

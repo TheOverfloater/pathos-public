@@ -16,7 +16,7 @@ All Rights Reserved.
 #include "brushmodel.h"
 #include "modelcache.h"
 #include "trace.h"
-#include "trace_shared.h"
+#include "trace_core.h"
 #include "cl_utils.h"
 #include "enginestate.h"
 #include "system.h"
@@ -62,7 +62,6 @@ Int32 CL_PointContents( const Vector& position, Int32* truecontents, bool partic
 	if(!pplayer)
 		return contents;
 
-	Vector mins, maxs;
 	for(Int32 i = 1; i < cls.numentities; i++)
 	{
 		cl_entity_t* pentity = CL_GetEntityByIndex(i);
@@ -72,19 +71,19 @@ Int32 CL_PointContents( const Vector& position, Int32* truecontents, bool partic
 		if(!pentity->curstate.modelindex)
 			continue;
 
+		if(pentity->curstate.solid == SOLID_TRIGGER)
+			continue;
+
+		if(pentity->curstate.solid == SOLID_NOT && pentity->curstate.skin >= CONTENTS_EMPTY)
+			continue;
+
 		if(pentity->curstate.msg_num != pplayer->curstate.msg_num)
 			continue;
 
 		if(pentity->curstate.flags & FL_PARTICLE_BLOCKER)
 			continue;
 
-		Math::VectorAdd(pentity->curstate.origin, pentity->curstate.mins, mins);
-		Math::VectorAdd(pentity->curstate.origin, pentity->curstate.maxs, maxs);
-
-		Math::VectorSubtract(mins, Vector(1, 1, 1), mins);
-		Math::VectorAdd(maxs, Vector(1, 1, 1), maxs);
-
-		if(!Math::PointInMinsMaxs(position, mins, maxs))
+		if(!Math::PointInMinsMaxs(position, pentity->curstate.absmin, pentity->curstate.absmax))
 			continue;
 
 		const cache_model_t* pmodel = Cache_GetModel(pentity->curstate.modelindex);
@@ -122,6 +121,12 @@ Int32 CL_PointContents( const Vector& position, Int32* truecontents, bool partic
 			if(!pentity->pmodel)
 				continue;
 
+			if(pentity->curstate.solid == SOLID_TRIGGER)
+				continue;
+
+			if(pentity->curstate.solid != SOLID_BSP)
+				continue;
+
 			if(!pentity->curstate.modelindex)
 				continue;
 
@@ -131,13 +136,7 @@ Int32 CL_PointContents( const Vector& position, Int32* truecontents, bool partic
 			if(!(pentity->curstate.flags & FL_PARTICLE_BLOCKER))
 				continue;
 
-			Math::VectorAdd(pentity->curstate.origin, pentity->curstate.mins, mins);
-			Math::VectorAdd(pentity->curstate.origin, pentity->curstate.maxs, maxs);
-
-			Math::VectorSubtract(mins, Vector(1, 1, 1), mins);
-			Math::VectorAdd(maxs, Vector(1, 1, 1), maxs);
-
-			if(!Math::PointInMinsMaxs(position, mins, maxs))
+			if(!Math::PointInMinsMaxs(position, pentity->curstate.absmin, pentity->curstate.absmax))
 				continue;
 
 			const cache_model_t* pmodel = Cache_GetModel(pentity->curstate.modelindex);
@@ -244,7 +243,7 @@ Int32 CL_HullPointContents( entindex_t entindex, hull_types_t hulltype, const Ve
 		if(hulltype != HULL_POINT)
 			brushtypebits |= (1<<BRUSHTYPE_CLIP_BRUSH);
 
-		contents = TR_HullPointContents_Brush(pbrushmodel, position, ZERO_VECTOR, ZERO_VECTOR, brushtypebits);
+		contents = TR_HullPointContents_Brush(pbrushmodel, position, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], brushtypebits);
 	}
 	else
 	{
@@ -266,9 +265,6 @@ void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 		return;
 	}
 
-	Vector mins;
-	Vector maxs;
-
 	// set basics
 	trace.fraction = 1.0;
 	trace.hitentity = NO_ENTITY_INDEX;
@@ -280,17 +276,18 @@ void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 	if(!pplayer)
 		return;
 
+	const Vector& hullmins = cls.pminfo.player_mins[hulltype];
+	const Vector& hullmaxs = cls.pminfo.player_maxs[hulltype];
+
 	// trace against world first
 	cl_entity_t* pworld = CL_GetEntityByIndex(WORLDSPAWN_ENTITY_INDEX);
-	TR_PlayerTraceSingleEntity(pworld->curstate, nullptr, start, end, hulltype, traceflags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
+	TR_PlayerTraceSingleEntity(pworld->curstate, nullptr, start, end, hulltype, traceflags, hullmins, hullmaxs, trace);
 
 	// Trace against entities if applicable
 	if(!(traceflags & FL_TRACE_WORLD_ONLY))
 	{
 		Vector tracemins, tracemaxs;
 		TR_MoveBoundsPoint(start, end, tracemins, tracemaxs);
-		Math::VectorAdd(tracemins, cls.pminfo.player_mins[hulltype], tracemins);
-		Math::VectorAdd(tracemaxs, cls.pminfo.player_maxs[hulltype], tracemaxs);
 
 		for(Int32 i = 1; i < cls.numentities; i++)
 		{
@@ -345,36 +342,39 @@ void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 			if(pplayer->curstate.msg_num != pentity->curstate.msg_num)
 				continue;
 
-			if(Cache_GetModelType(*pentity->pmodel) == MOD_BRUSH && !pentity->curstate.angles.IsZero())
+			// Because of how hull expansion works, we need to expand the hull of the rotated brush entity
+			// by the collision hull BEFORE we rotate those mins/maxs, otherwise the bounding box will
+			// not represent the actual expansion.
+			Vector entitymins, entitymaxs;
+			if(pentity->pmodel->type == MOD_BRUSH && !pentity->curstate.angles.IsZero())
 			{
-				for(Uint32 j = 0; j < 3; j++)
-				{
-					mins[j] = pentity->curstate.origin[j] - pentity->pmodel->radius;
-					maxs[j] = pentity->curstate.origin[j] + pentity->pmodel->radius;
-				}
+				Math::VectorAdd(pentity->pmodel->mins, hullmins, entitymins);
+				Math::VectorAdd(pentity->pmodel->maxs, hullmaxs, entitymaxs);
+
+				Vector rotatedmins, rotatedmaxs;
+				Math::RotateMinsMaxsByAngle(entitymins, entitymaxs, pentity->curstate.angles, rotatedmins, rotatedmaxs);
+
+				Math::VectorSubtract(rotatedmins, Vector(1, 1, 1), rotatedmins);
+				Math::VectorAdd(rotatedmaxs, Vector(1, 1, 1), rotatedmaxs);
+
+				Math::VectorAdd(rotatedmins, pentity->curstate.origin, entitymins);
+				Math::VectorAdd(rotatedmaxs, pentity->curstate.origin, entitymaxs);
 			}
 			else
 			{
-				Math::VectorAdd(pentity->curstate.origin, pentity->curstate.mins, mins);
-				Math::VectorAdd(pentity->curstate.origin, pentity->curstate.maxs, maxs);
+				Math::VectorAdd(pentity->curstate.absmin, hullmins, entitymins);
+				Math::VectorAdd(pentity->curstate.absmax, hullmaxs, entitymaxs);
 			}
 
-			Math::VectorAdd(mins, cls.pminfo.player_mins[hulltype], mins);
-			Math::VectorAdd(maxs, cls.pminfo.player_maxs[hulltype], maxs);
-
 			// Optimize on traceline
-			if(Math::CheckMinsMaxs(tracemins, tracemaxs, mins, maxs))
-				continue;
-
-			// Do cheap bbox check
-			if(!TR_TracelineBBoxCheck(pentity->curstate, pentity->pmodel, start, end, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype]))
+			if(Math::CheckMinsMaxs(tracemins, tracemaxs, entitymins, entitymaxs))
 				continue;
 
 			// Update VBM hull data if needed
 			if(pentity->pmodel->type == MOD_VBM && (pentity->pmodel->flags & STUDIO_MF_TRACE_HITBOX || traceflags & FL_TRACE_HITBOXES))
-				TR_VBMSetHullInfo(pentity->pvbmhulldata, pentity->pmodel, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], pentity->curstate, cls.cl_time, hulltype);
+				TR_VBMSetHullInfo(pentity->pvbmhulldata, pentity->pmodel, hullmins, hullmaxs, pentity->curstate, cls.cl_time, hulltype);
 
-			TR_PlayerTraceSingleEntity(pentity->curstate, pentity->pvbmhulldata, start, end, hulltype, traceflags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
+			TR_PlayerTraceSingleEntity(pentity->curstate, pentity->pvbmhulldata, start, end, hulltype, traceflags, hullmins, hullmaxs, trace);
 		}
 	}
 
@@ -382,8 +382,6 @@ void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 	{
 		Vector tracemins, tracemaxs;
 		TR_MoveBoundsPoint(start, end, tracemins, tracemaxs);
-		Math::VectorAdd(tracemins, cls.pminfo.player_mins[hulltype], tracemins);
-		Math::VectorAdd(tracemaxs, cls.pminfo.player_maxs[hulltype], tracemaxs);
 
 		for(Int32 i = 0; i < cls.numparticleblockers; i++)
 		{
@@ -404,28 +402,35 @@ void CL_PlayerTrace( const Vector& start, const Vector& end, Int32 traceflags, h
 			if(!(pentity->curstate.flags & FL_PARTICLE_BLOCKER))
 				continue;
 
-			if(Cache_GetModelType(*pentity->pmodel) == MOD_BRUSH && !pentity->curstate.angles.IsZero())
+			// Because of how hull expansion works, we need to expand the hull of the rotated brush entity
+			// by the collision hull BEFORE we rotate those mins/maxs, otherwise the bounding box will
+			// not represent the actual expansion.
+			Vector entitymins, entitymaxs;
+			if(pentity->pmodel->type == MOD_BRUSH && !pentity->curstate.angles.IsZero())
 			{
-				for(Uint32 j = 0; j < 3; j++)
-				{
-					mins[j] = pentity->curstate.origin[j] - pentity->pmodel->radius;
-					maxs[j] = pentity->curstate.origin[j] + pentity->pmodel->radius;
-				}
+				Math::VectorAdd(pentity->pmodel->mins, hullmins, entitymins);
+				Math::VectorAdd(pentity->pmodel->maxs, hullmaxs, entitymaxs);
+
+				Vector rotatedmins, rotatedmaxs;
+				Math::RotateMinsMaxsByAngle(entitymins, entitymaxs, pentity->curstate.angles, rotatedmins, rotatedmaxs);
+
+				Math::VectorSubtract(rotatedmins, Vector(1, 1, 1), rotatedmins);
+				Math::VectorAdd(rotatedmaxs, Vector(1, 1, 1), rotatedmaxs);
+
+				Math::VectorAdd(rotatedmins, pentity->curstate.origin, entitymins);
+				Math::VectorAdd(rotatedmaxs, pentity->curstate.origin, entitymaxs);
 			}
 			else
 			{
-				Math::VectorAdd(pentity->curstate.origin, pentity->curstate.mins, mins);
-				Math::VectorAdd(pentity->curstate.origin, pentity->curstate.maxs, maxs);
+				Math::VectorAdd(pentity->curstate.absmin, hullmins, entitymins);
+				Math::VectorAdd(pentity->curstate.absmax, hullmaxs, entitymaxs);
 			}
 
-			Math::VectorAdd(mins, cls.pminfo.player_mins[hulltype], mins);
-			Math::VectorAdd(maxs, cls.pminfo.player_maxs[hulltype], maxs);
-
 			// Optimize on traceline
-			if(Math::CheckMinsMaxs(tracemins, tracemaxs, mins, maxs))
+			if(Math::CheckMinsMaxs(tracemins, tracemaxs, entitymins, entitymaxs))
 				continue;
 
-			TR_PlayerTraceSingleEntity(pentity->curstate, pentity->pvbmhulldata, start, end, hulltype, traceflags, cls.pminfo.player_mins[hulltype], cls.pminfo.player_maxs[hulltype], trace);
+			TR_PlayerTraceSingleEntity(pentity->curstate, pentity->pvbmhulldata, start, end, hulltype, traceflags, hullmins, hullmaxs, trace);
 		}
 	}
 }

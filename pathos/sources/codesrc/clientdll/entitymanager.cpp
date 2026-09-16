@@ -20,6 +20,9 @@ All Rights Reserved.
 #include "view.h"
 #include "vbm_shared.h"
 
+// Default sprite for cables
+static const Char DEFAULT_CABLE_SPRITE[] = "sprites/cable/cable1.spr";
+
 // Class definition
 CEntityManager gEntityManager;
 
@@ -280,7 +283,50 @@ void CEntityManager::Entity_EnvCable( const entitydata_t& entity )
 		return;
 
 	Uint32 numsegments = atoi(pValue);
-	cl_efxapi.pfnCreateCableEntity(vorigin1, vorigin2, falldepth, flwidth, numsegments);
+
+	// Get x axis wind amount
+	Float windx = 0;
+	pValue = ValueForKey(entity, "windx");
+	if(pValue)
+	{
+		windx = SDL_atof(pValue);
+		if(windx == -1)
+			windx = 0;
+	}
+	else
+	{
+		// Apply a tiny amount of random wind
+		windx = Common::RandomFloat(4, 16);
+	}
+
+	// Get y axis wind amount
+	Float windy = 0;
+	pValue = ValueForKey(entity, "windy");
+	if(pValue)
+	{
+		windy = SDL_atof(pValue);
+		if(windy == -1)
+			windy = 0;
+	}
+	else
+	{
+		// Apply a tiny amount of random wind
+		windy = Common::RandomFloat(4, 8);
+	}
+
+	// Get model
+	pValue = ValueForKey(entity, "model");
+	if(!pValue || !qstrstr(pValue, ".spr"))
+		pValue = DEFAULT_CABLE_SPRITE;
+
+	const cache_model_t *pmodel = cl_engfuncs.pfnLoadModel(pValue);
+	if(!pmodel)
+	{
+		cl_engfuncs.pfnCon_Printf("[flags=onlyonce_game]%s - Failed to load '%s'.\n", __FUNCTION__, pValue);
+		return;
+	}
+
+	cl_efxapi.pfnCreateCableEntity(pmodel->cacheindex, vorigin1, vorigin2, falldepth, flwidth, numsegments, windx, windy);
 }
 
 //=============================================
@@ -439,6 +485,8 @@ void CEntityManager::Entity_EnvELight( const entitydata_t& entity, entindex_t& e
 
 	newEntity.identifier = m_lastIdentifierUsed;
 	m_lastIdentifierUsed++;
+
+	newEntity.curstate.effects = EF_STATICENTITY;
 
 	pvalue = ValueForKey(entity, "origin");
 	if (pvalue)
@@ -644,57 +692,10 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 	if (newEntity.curstate.sequence >=  pstudiohdr->numseq) 
 		newEntity.curstate.sequence = 0;
 
-	Vector vtemp;
-	Vector vbounds[8];
 	const mstudioseqdesc_t *pseqdesc = pstudiohdr->getSequence(newEntity.curstate.sequence);
-	for (int i = 0; i < 8; i++)
-	{
-		if ( i & 1 ) 
-			vtemp[0] = pseqdesc->bbmin[0];
-		else 
-			vtemp[0] = pseqdesc->bbmax[0];
-		if ( i & 2 ) 
-			vtemp[1] = pseqdesc->bbmin[1];
-		else 
-			vtemp[1] = pseqdesc->bbmax[1];
-		if ( i & 4 ) 
-			vtemp[2] = pseqdesc->bbmin[2];
-		else 
-			vtemp[2] = pseqdesc->bbmax[2];
 
-		Math::VectorCopy( vtemp, vbounds[i] );
-	}
-		
-	Float anglemarix[3][4];
-	Math::AngleMatrix(newEntity.curstate.angles, anglemarix);
-
-	for (int i = 0; i < 8; i++ )
-	{
-		Math::VectorCopy(vbounds[i], vtemp);
-		Math::VectorRotate(vtemp, anglemarix, vbounds[i]);
-	}
-
-	// Set the bounding box
-	Vector vmins = NULL_MINS;
-	Vector vmaxs = NULL_MAXS;
-	for(Uint32 i = 0; i < 8; i++)
-	{
-		// Mins
-		if(vbounds[i][0] < vmins[0]) 
-			vmins[0] = vbounds[i][0];
-		if(vbounds[i][1] < vmins[1]) 
-			vmins[1] = vbounds[i][1];
-		if(vbounds[i][2] < vmins[2]) 
-			vmins[2] = vbounds[i][2];
-
-		// Maxs
-		if(vbounds[i][0] > vmaxs[0]) 
-			vmaxs[0] = vbounds[i][0];
-		if(vbounds[i][1] > vmaxs[1]) 
-			vmaxs[1] = vbounds[i][1];
-		if(vbounds[i][2] > vmaxs[2]) 
-			vmaxs[2] = vbounds[i][2];
-	}
+	Vector vmins, vmaxs;
+	Math::RotateMinsMaxsByAngle(pseqdesc->bbmin, pseqdesc->bbmax, newEntity.curstate.angles, vmins, vmaxs);
 
 	entity_extrainfo_t *pInfo = cl_engfuncs.pfnGetEntityExtraData(&newEntity);
 

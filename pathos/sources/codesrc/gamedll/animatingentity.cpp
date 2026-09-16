@@ -339,7 +339,7 @@ void CAnimatingEntity::ResetSequenceInfo( void )
 	
 	m_isSequenceFinished = false;
 	m_isSequenceLooped = (GetSequenceFlags() & STUDIO_LOOPING) ? true : false;
-	m_lastEventCheckFrame = m_pState->frame;
+	m_lastEventCheckFrame = -1;
 }
 
 //=============================================
@@ -599,24 +599,10 @@ void CAnimatingEntity::ManageAnimationEvents( void )
 		return;
 
 	Float frame = VBM_EstimateFrame(pseqdesc, g_pGameVars->time, m_pState->frame, m_pState->animtime, m_pState->framerate, m_pState->effects);
-
-	// Fixes first-frame event bug
-	if(!frame)
-		m_lastEventCheckFrame = -0.01f;
-
 	if(frame == m_lastEventCheckFrame)
 		return;
 
-	bool looped = false;
 	if(frame <= m_lastEventCheckFrame)
-	{
-		if(m_lastEventCheckFrame - frame > 0.5)
-			looped = true;
-		else
-			return;
-	}
-
-	if(looped)
 	{
 		// Play animation events
 		for(Int32 i = 0; i < pseqdesc->numevents; i++)
@@ -633,7 +619,15 @@ void CAnimatingEntity::ManageAnimationEvents( void )
 			HandleAnimationEvent(pevent);
 		}
 
-		m_lastEventCheckFrame = -0.01;
+		m_lastEventCheckFrame = -1;
+	}
+	else if(!frame)
+	{
+		// Fixes first-frame event bug
+		// Do this AFTER the loop wrap-around part,
+		// otherwise we might miss on playing some
+		// events
+		m_lastEventCheckFrame = -1;
 	}
 
 	// Play animation events
@@ -1065,44 +1059,8 @@ bool CAnimatingEntity::GetSequenceBox( entity_state_t& state, Vector& mins, Vect
 	if(!ExtractBoundingBox(state, sequence, seqmins, seqmaxs))
 		return false;
 
-	Vector vTemp;
-	static Vector vBounds[8];
-	for (Uint32 i = 0; i < 8; i++)
-	{
-		if ( i & 1 ) vTemp[0] = seqmins[0];
-		else vTemp[0] = seqmaxs[0];
-		if ( i & 2 ) vTemp[1] = seqmins[1];
-		else vTemp[1] = seqmaxs[1];
-		if ( i & 4 ) vTemp[2] = seqmins[2];
-		else vTemp[2] = seqmaxs[2];
-		Math::VectorCopy( vTemp, vBounds[i] );
-	}
-
-	Vector angles = state.angles;
-	Float rotationmatrix[3][4];
-	Math::AngleMatrix(angles, rotationmatrix);
-
-	for (Uint32 i = 0; i < 8; i++ )
-	{
-		Math::VectorCopy(vBounds[i], vTemp);
-		Math::VectorRotate(vTemp, rotationmatrix, vBounds[i]);
-	}
-
-	// Set the bounding box
-	Vector vMins = NULL_MINS;
-	Vector vMaxs = NULL_MAXS;
-	for(Uint32 i = 0; i < 8; i++)
-	{
-		// Mins
-		if(vBounds[i][0] < vMins[0]) vMins[0] = vBounds[i][0];
-		if(vBounds[i][1] < vMins[1]) vMins[1] = vBounds[i][1];
-		if(vBounds[i][2] < vMins[2]) vMins[2] = vBounds[i][2];
-
-		// Maxs
-		if(vBounds[i][0] > vMaxs[0]) vMaxs[0] = vBounds[i][0];
-		if(vBounds[i][1] > vMaxs[1]) vMaxs[1] = vBounds[i][1];
-		if(vBounds[i][2] > vMaxs[2]) vMaxs[2] = vBounds[i][2];
-	}
+	Vector vMins, vMaxs;
+	Math::RotateMinsMaxsByAngle(seqmins, seqmaxs, state.angles, vMins, vMaxs);
 
 	// Make sure stuff like barnacles work fine
 	if(pstudiohdr->numbonecontrollers)

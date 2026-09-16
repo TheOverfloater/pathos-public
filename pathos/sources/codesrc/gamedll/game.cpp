@@ -51,6 +51,8 @@ CCVar* g_pCvarAutoAim = nullptr;
 CCVar* g_pCvarHoldToWalk = nullptr;
 // Old school blood effects cvar
 CCVar* g_pCvarOldSchoolBlood = nullptr;
+// Old school explosion effects
+CCVar* g_pCvarOldSchoolExplosions = nullptr;
 
 // Decal list object
 CDecalList gDecalList;
@@ -66,6 +68,11 @@ static const Uint32 MAX_NPC_FRAME_PENETRATIONS = 8;
 
 // Smoke sprite precache index
 Int32 g_smokeSpriteIndex = NO_PRECACHE;
+
+// Old-school explosion sprite
+const Char OLDSCHOOL_EXPLOSION_SPRITE_PATH[] = "sprites/qexplo1.spr";
+// Old-school explosion sound
+const Char OLDSCHOOL_EXPLOSION_SOUND_PATH[] = "weapons/explosion_oldschool.wav";
 
 // Counter for penetrations by NPCs
 Uint32 g_nbNPCPenetrations = 0;
@@ -90,6 +97,7 @@ bool InitGameObjects( void )
 	g_pCvarAutoAim = gd_engfuncs.pfnGetCVarPointer(AUTOAIM_CVAR_NAME);
 	g_pCvarHoldToWalk = gd_engfuncs.pfnCreateCVar(CVAR_FLOAT, (FL_CV_SV_ONLY|FL_CV_SAVE), "sv_holdtowalk", "0", "Make walking speed be applied only when holding the walk button");
 	g_pCvarOldSchoolBlood = gd_engfuncs.pfnCreateCVar(CVAR_FLOAT, (FL_CV_SV_ONLY|FL_CV_SAVE), "sv_oldschoolblood", "0", "Use classic Quake-like particles for blood effects");
+	g_pCvarOldSchoolExplosions = gd_engfuncs.pfnCreateCVar(CVAR_FLOAT, (FL_CV_SV_ONLY|FL_CV_SAVE), "sv_oldschoolexplosions", "0", "Use classic Quake-like particles for explosion effects");
 
 	// Create commands
 	gd_engfuncs.pfnCreateCommand("dumpcheats", DumpCheatCodes, "Dumps cheat codes");
@@ -429,6 +437,9 @@ void PrecacheGenericResources( void )
 	gd_engfuncs.pfnPrecacheDecal("bloodbigsplat2");
 
 	g_smokeSpriteIndex = gd_engfuncs.pfnPrecacheModel("sprites/smoke.spr");
+	gd_engfuncs.pfnPrecacheModel(OLDSCHOOL_EXPLOSION_SPRITE_PATH);
+
+	gd_engfuncs.pfnPrecacheSound(OLDSCHOOL_EXPLOSION_SOUND_PATH);
 
 	if(g_pCvarNPCDebug->GetValue() >= 1)
 	{

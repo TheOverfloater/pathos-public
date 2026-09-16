@@ -69,6 +69,7 @@ extern Uint32 Sys_LaunchArgc( void );
 
 extern void Sys_AddTempFile( const Char* pstrFilepath, rs_level_t level );
 extern void Sys_DeleteTempFiles( rs_level_t level );
+extern Int64 Sys_GetBuildNumber( void );
 
 extern bool Sys_GetDLLExports( const Char* pstrDLLName, void* pDLLHandle, CArray<dll_export_t>& destArray );
 

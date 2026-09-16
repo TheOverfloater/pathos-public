@@ -10,6 +10,8 @@ All Rights Reserved.
 #ifndef COM_MATH_INLINE_HPP
 #define COM_MATH_INLINE_HPP
 
+#include "constants.h"
+
 namespace Math
 {
 	//=============================================
@@ -1079,9 +1081,9 @@ namespace Math
 
 		Uint32 sides = 0;
 		if(dist1 >= pplane->dist)
-			sides = 1;
+			sides = SIDE_FRONT;
 		if(dist2 < pplane->dist)
-			sides |= 2;
+			sides |= SIDE_BACK;
 
 		return sides;
 	}
@@ -1109,5 +1111,67 @@ namespace Math
 		Math::VectorMA(dest, q3, t, dest);
 	}
 
+	//=============================================
+	// @brief
+	//
+	//=============================================
+	inline void RotateMinsMaxsByAngle( const Vector& inmins, const Vector& inmaxs, const Vector& angles, Vector& outmins, Vector& outmaxs )
+	{
+		Vector vTemp;
+		static Vector vBounds[8];
+		for (Uint32 i = 0; i < 8; i++)
+		{
+			if ( i & 1 ) 
+				vTemp[0] = inmins[0];
+			else 
+				vTemp[0] = inmaxs[0];
+
+			if ( i & 2 ) 
+				vTemp[1] = inmins[1];
+			else 
+				vTemp[1] = inmaxs[1];
+
+			if ( i & 4 ) 
+				vTemp[2] = inmins[2];
+			else 
+				vTemp[2] = inmaxs[2];
+
+			Math::VectorCopy( vTemp, vBounds[i] );
+		}
+
+		Vector _angles = angles;
+		_angles[PITCH] = -_angles[PITCH];
+
+		Float rotationmatrix[3][4];
+		Math::AngleMatrix(_angles, rotationmatrix);
+
+		for (Uint32 i = 0; i < 8; i++ )
+		{
+			Math::VectorCopy(vBounds[i], vTemp);
+			Math::VectorRotate(vTemp, rotationmatrix, vBounds[i]);
+		}
+
+		// Set the bounding box
+		outmins = NULL_MINS;
+		outmaxs = NULL_MAXS;
+		for(Uint32 i = 0; i < 8; i++)
+		{
+			// Mins
+			if(vBounds[i][0] < outmins[0]) 
+				outmins[0] = vBounds[i][0];
+			if(vBounds[i][1] < outmins[1]) 
+				outmins[1] = vBounds[i][1];
+			if(vBounds[i][2] < outmins[2]) 
+				outmins[2] = vBounds[i][2];
+
+			// Maxs
+			if(vBounds[i][0] > outmaxs[0]) 
+				outmaxs[0] = vBounds[i][0];
+			if(vBounds[i][1] > outmaxs[1]) 
+				outmaxs[1] = vBounds[i][1];
+			if(vBounds[i][2] > outmaxs[2]) 
+				outmaxs[2] = vBounds[i][2];
+		}
+	}
 };
 #endif //Common::MATH_INLINE_HPP

@@ -75,7 +75,7 @@ public:
 	void AnimateStyles( void );
 
 	// Returns a pointer to the lightstyles CArray object
-	CArray<Float>* GetLightStyleValuesArray( void );
+	const CArray<Float>* GetLightStyleValuesArray( void );
 
 private:
 	// Resets lightstyles

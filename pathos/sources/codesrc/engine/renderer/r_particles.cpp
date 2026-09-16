@@ -37,7 +37,7 @@ All Rights Reserved.
 #include "r_fbocache.h"
 #include "r_lightstyles.h"
 #include "modelcache.h"
-#include "trace_shared.h"
+#include "trace_core.h"
 
 //
 // Note: Credits go to Valve, because some of the 
@@ -66,7 +66,7 @@ CParticleEngine::CParticleEngine( void ):
 	m_iNumFreedSystems(0),
 	m_iNumCreatedSystems(0),
 	m_pShader(nullptr),
-	m_pVBO(nullptr),
+	m_currentBufferIndex(0),
 	m_screenRectangleBase(0),
 	m_pVertexes(nullptr),
 	m_numVertexes(0),
@@ -263,10 +263,12 @@ void CParticleEngine::ClearGL( void )
 		m_pShader = nullptr;
 	}
 
-	if(m_pVBO)
+	if(!m_pVBOArray.empty())
 	{
-		delete m_pVBO;
-		m_pVBO = nullptr;
+		for(Uint32 i = 0; i < m_pVBOArray.size(); i++)
+			delete m_pVBOArray[i];
+
+		m_pVBOArray.clear();
 	}
 }
 
@@ -466,7 +468,8 @@ particle_system_t *CParticleEngine::CreateSystem( const Char *szPath, const Vect
 	{
 		// Playerplane needs to find sky brush above
 		trace_t tr;
-		CL_PlayerTrace(origin, origin + Vector(0, 0, 8496), (FL_TRACE_WORLD_ONLY|FL_TRACE_PARTICLE_BLOCKERS|FL_TRACE_SKYBRUSHES), HULL_POINT, NO_ENTITY_INDEX, tr);
+		Int32 traceFlags = (FL_TRACE_WORLD_ONLY|FL_TRACE_PARTICLE_BLOCKERS|FL_TRACE_SKYBRUSHES|FL_TRACE_FORCE_CLIPNODES);
+		CL_PlayerTrace(origin, origin + Vector(0, 0, 8496), traceFlags, HULL_POINT, NO_ENTITY_INDEX, tr);
 
 		if(!tr.hasContents(CONTENTS_SKY))
 		{
@@ -1390,7 +1393,8 @@ void CParticleEngine::EnvironmentCreateFirst( particle_system_t *psystem )
 		vorigin[2] = Common::RandomLong(vplayer[2], vorigin[2]);
 
 		trace_t trace;
-		CL_PlayerTrace(vorigin, Vector(vorigin[0], vorigin[1], psystem->skyheight-8), (FL_TRACE_WORLD_ONLY|FL_TRACE_PARTICLE_BLOCKERS), HULL_POINT, NO_ENTITY_INDEX, trace);
+		Int32 traceFlags = (FL_TRACE_WORLD_ONLY|FL_TRACE_PARTICLE_BLOCKERS|FL_TRACE_FORCE_CLIPNODES);
+		CL_PlayerTrace(vorigin, Vector(vorigin[0], vorigin[1], psystem->skyheight-8), traceFlags, HULL_POINT, NO_ENTITY_INDEX, trace);
 
 		if((trace.flags & FL_TR_ALLSOLID) || trace.fraction != 1.0)
 			continue;
@@ -1453,8 +1457,15 @@ cl_particle_t *CParticleEngine::CreateParticle( particle_system_t *psystem, Floa
 
 			// Check if we impact a sky brush or not. If not, don't spawn particle
 			trace_t tr;
-			CL_PlayerTrace(parabolicposition, skytestposition, (FL_TRACE_WORLD_ONLY|FL_TRACE_PARTICLE_BLOCKERS|FL_TRACE_SKYBRUSHES), HULL_POINT, NO_ENTITY_INDEX, tr);
+			Int32 traceFlags = (FL_TRACE_WORLD_ONLY|FL_TRACE_PARTICLE_BLOCKERS|FL_TRACE_SKYBRUSHES|FL_TRACE_FORCE_CLIPNODES);
+			CL_PlayerTrace(parabolicposition, skytestposition, traceFlags, HULL_POINT, NO_ENTITY_INDEX, tr);
 			if(tr.noHit() || !tr.hasContents(CONTENTS_SKY))
+				return nullptr;
+
+			// Ensure the position is NOT inside a solid leaf, we need this extra check
+			// for brush based collisions, as the outside is not filled in that case.
+			cl_entity_t* pworldspawn = CL_GetEntityByIndex(WORLDSPAWN_ENTITY_INDEX);
+			if(CL_PointContents(pworldspawn, tr.endpos) == CONTENTS_SOLID)
 				return nullptr;
 
 			// Set final origin
@@ -2338,9 +2349,11 @@ bool CParticleEngine::CheckCollision( Vector& vecOrigin, Vector& vecVelocity, pa
 	}
 	else
 	{
-		// Just do a normal traceline
-		Int32 traceFlags = (FL_TRACE_PARTICLE_BLOCKERS|FL_TRACE_SKYBRUSHES);
-		traceFlags |= (pdefinition->collision_flags & COLLISION_FL_BMODELS) ? FL_TRACE_NORMAL : FL_TRACE_WORLD_ONLY;
+		// Force the use of clipnodes here, as point-line traces are faster using them
+		Int32 traceFlags = (FL_TRACE_PARTICLE_BLOCKERS|FL_TRACE_SKYBRUSHES|FL_TRACE_FORCE_CLIPNODES);
+		if(!(pdefinition->collision_flags & COLLISION_FL_BMODELS))
+			traceFlags |= FL_TRACE_WORLD_ONLY;
+
 		CL_PlayerTrace(vecOrigin, testPosition, traceFlags, HULL_POINT, NO_ENTITY_INDEX, tr);
 	}
 
@@ -3315,6 +3328,11 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 		return false;
 	}
 
+	CVBO* pCurrentVBO = m_pVBOArray[m_currentBufferIndex];
+	m_currentBufferIndex = (m_currentBufferIndex+1) % NUM_PARTICLE_BUFFERS;
+
+	m_pShader->SetVBO(pCurrentVBO);
+
 	m_pShader->EnableAttribute(m_attribs.a_color);
 	m_pShader->EnableAttribute(m_attribs.a_origin);
 	m_pShader->EnableAttribute(m_attribs.a_texcoord);
@@ -3344,7 +3362,7 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 	}
 
 	// Update the VBO
-	m_pVBO->VBOSubBufferData(0, m_pVertexes, sizeof(particle_vertex_t)*m_numVertexes);
+	pCurrentVBO->VBOSubBufferData(0, m_pVertexes, sizeof(particle_vertex_t)*m_numVertexes);
 
 	glEnable(GL_BLEND);
 	glDepthMask(GL_FALSE);
@@ -3702,6 +3720,7 @@ bool CParticleEngine::DrawParticles( prt_render_pass_e pass )
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
 
+	m_pShader->SetVBO(nullptr);
 	m_pShader->DisableShader();
 
 	// Clear any binds
@@ -3925,7 +3944,7 @@ void CParticleEngine::AllocParticles( void )
 	// Increase counter
 	m_particleAllocCount += PARTICLE_ALLOC_SIZE;
 
-	// Recreate VBO
+	// Recreate VBOs
 	CreateVBO();
 }
 
@@ -3951,10 +3970,12 @@ void CParticleEngine::ReleaseParticles( void )
 		m_pVertexes = nullptr;
 	}
 
-	if(m_pVBO)
+	if(!m_pVBOArray.empty())
 	{
-		delete m_pVBO;
-		m_pVBO = nullptr;
+		for(Uint32 i = 0; i < m_pVBOArray.size(); i++)
+			delete m_pVBOArray[i];
+
+		m_pVBOArray.clear();
 	}
 
 	m_particleAllocCount = 0;
@@ -3971,8 +3992,13 @@ void CParticleEngine::CreateVBO( void )
 		m_pShader->ResetShader();
 	}
 
-	if(m_pVBO)
-		delete m_pVBO;
+	if(!m_pVBOArray.empty())
+	{
+		for(Uint32 i = 0; i < m_pVBOArray.size(); i++)
+			delete m_pVBOArray[i];
+
+		m_pVBOArray.clear();
+	}
 
 	// Resize vertex array
 	if(m_pVertexes)
@@ -4024,12 +4050,14 @@ void CParticleEngine::CreateVBO( void )
 	m_pVertexes[base].origin[2] = -1; m_pVertexes[base].origin[3] = 1;
 	m_pVertexes[base].texcoord[0] = 1.0f; m_pVertexes[base].texcoord[1] = 0;
 
-	m_pVBO = new CVBO(gGLExtF, m_pVertexes, sizeof(particle_vertex_t)*vertexArraySize, indexes, sizeof(Uint32)*m_particleAllocCount*6);
+	m_pVBOArray.resize(NUM_PARTICLE_BUFFERS);
+	for(Uint32 i = 0; i < m_pVBOArray.size(); i++)
+		m_pVBOArray[i] = new CVBO(gGLExtF, m_pVertexes, sizeof(particle_vertex_t)*vertexArraySize, indexes, sizeof(Uint32)*m_particleAllocCount*6);
 
 	for(Uint32 i = 0; i < m_particleAllocCount*4; i++)
 		m_pVertexes[i].origin[3] = 1.0;
 
 	delete[] indexes;
 
-	m_pShader->SetVBO(m_pVBO);
+	m_currentBufferIndex = 0;
 }

@@ -2395,6 +2395,9 @@ void CGLSLShader::DisableAttribute( Int32 index )
 	// Mark as changed
 	pattrib->active = false;
 
+	if(m_pVBOArray.empty())
+		return;
+
 	// Make sure it's disabled right now
 	if(pattrib->indexes[m_shaderIndex] != PROPERTY_UNAVAILABLE || 
 		m_lastIndex != NO_POSITION && pattrib->indexes[m_lastIndex] != PROPERTY_UNAVAILABLE)

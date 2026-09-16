@@ -401,7 +401,7 @@ bool CL_RecursiveLightPoint( const brushmodel_t* pworld, mnode_t *pnode, const V
 
 	if(result && poutstyles && poutstylevalues)
 	{
-		CArray<Float>* pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
+		const CArray<Float>* pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
 
 		for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
 		{
@@ -431,7 +431,7 @@ extern bool CL_RecursiveLightPointBumpData( const brushmodel_t* pworld, mnode_t 
 
 	if(result && poutstyles && poutstylevalues)
 	{
-		CArray<Float>* pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
+		const CArray<Float>* pStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
 
 		for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
 		{

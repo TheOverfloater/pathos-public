@@ -66,6 +66,7 @@ namespace Math
 	extern inline void FindMinMaxValuesOf3( Float v1, Float v2, Float v3, Float& min, Float& max );
 	extern inline Uint32 BoxOnPlaneSide( const Vector& mins, const Vector& maxs, const plane_t* pplane );
 	extern inline void RotatePointAroundVector( const Vector& dir, const Vector& point, Float deg, Vector& dest );
+	extern inline void RotateMinsMaxsByAngle( const Vector& inmins, const Vector& inmaxs, const Vector& angles, Vector& outmins, Vector& outmaxs );
 };
 #include "com_math_inline.hpp"
 #endif //Common::MATH_H

@@ -18,6 +18,7 @@ extern CCVar* g_pCvarGravity;
 extern CCVar* g_pCvarAutoAim;
 extern CCVar* g_pCvarHoldToWalk;
 extern CCVar* g_pCvarOldSchoolBlood;
+extern CCVar* g_pCvarOldSchoolExplosions;
 
 enum bullet_types_t;
 
@@ -31,10 +32,16 @@ extern CFlexManager* g_pFlexManager;
 // Sentences file object
 extern CSentencesFile* g_pSentencesFile;
 
+// Number of penetrations done by NPCs
 extern Uint32 g_nbNPCPenetrations;
 
 // Smoke sprite precache index
 extern Int32 g_smokeSpriteIndex;
+
+// Old-school explosion sprite
+extern const Char OLDSCHOOL_EXPLOSION_SPRITE_PATH[];
+// Old-school explosion sound
+extern const Char OLDSCHOOL_EXPLOSION_SOUND_PATH[];
 
 extern bool InitGameObjects( void );
 extern void ClearGameObjects( void );

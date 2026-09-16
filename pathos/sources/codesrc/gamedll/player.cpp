@@ -4195,28 +4195,28 @@ void CPlayerEntity::ManageCheatImpulseCommands( Int32 impulse )
 		break;
 	case PLAYER_CHEATCODE_SHOW_SMALL_HULL_NODE_PATHS:
 		{
-			CBaseEntity* pEntity = CBaseEntity::CreateEntity("node_viewer_small", m_pState->origin, m_pState->angles, nullptr);
+			CBaseEntity* pEntity = CBaseEntity::CreateEntity("node_viewer_small", m_pState->origin, m_pState->angles, this);
 			if(pEntity)
 				pEntity->Spawn();
 		}
 		break;
 	case PLAYER_CHEATCODE_SHOW_FLY_HULL_NODE_PATHS:
 		{
-			CBaseEntity* pEntity = CBaseEntity::CreateEntity("node_viewer_fly", m_pState->origin, m_pState->angles, nullptr);
+			CBaseEntity* pEntity = CBaseEntity::CreateEntity("node_viewer_fly", m_pState->origin, m_pState->angles, this);
 			if(pEntity)
 				pEntity->Spawn();
 		}
 		break;
 	case PLAYER_CHEATCODE_SHOW_LARGE_HULL_NODE_PATHS:
 		{
-			CBaseEntity* pEntity = CBaseEntity::CreateEntity("node_viewer_large", m_pState->origin, m_pState->angles, nullptr);
+			CBaseEntity* pEntity = CBaseEntity::CreateEntity("node_viewer_large", m_pState->origin, m_pState->angles, this);
 			if(pEntity)
 				pEntity->Spawn();
 		}
 		break;
 	case PLAYER_CHEATCODE_SHOW_HUMAN_HULL_NODE_PATHS:
 		{
-			CBaseEntity* pEntity = CBaseEntity::CreateEntity("node_viewer_human", m_pState->origin, m_pState->angles, nullptr);
+			CBaseEntity* pEntity = CBaseEntity::CreateEntity("node_viewer_human", m_pState->origin, m_pState->angles, this);
 			if(pEntity)
 				pEntity->Spawn();
 		}

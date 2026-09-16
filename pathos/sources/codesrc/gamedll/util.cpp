@@ -1062,7 +1062,7 @@ namespace Util
 		if(!gd_engfuncs.pfnRecursiveLightPoint(pbrushmodel, pbrushmodel->pnodes, startPos, endPos, lightcolors, lightstyles))
 			return 0;
 
-		CArray<Float>* plightstylesarray = gSVLightStyles.GetLightStyleValuesArray();
+		const CArray<Float>* plightstylesarray = gSVLightStyles.GetLightStyleValuesArray();
 
 		// Calculate illumination
 		Vector lightcolor;
@@ -1608,13 +1608,12 @@ namespace Util
 	//=============================================
 	//
 	//=============================================
-	void CreateRocketExplosion( const Vector& origin, Int32 color )
+	void CreateRocketExplosion( const Vector& origin )
 	{
 		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
 			gd_engfuncs.pfnMsgWriteByte(TE_ROCKETEXPLOSION);
 			for(Uint32 i = 0; i < 3; i++)
 				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
-			gd_engfuncs.pfnMsgWriteByte(color);
 		gd_engfuncs.pfnUserMessageEnd();
 	}
 
@@ -2122,7 +2121,11 @@ namespace Util
 	void ExplosionSound( const Vector& origin )
 	{
 		CString soundname;
-		soundname << "weapons/explosion" << (Int32)Common::RandomLong(1, 3) << ".wav";
+
+		if(g_pCvarOldSchoolExplosions->GetValue() >= 1)
+			soundname << OLDSCHOOL_EXPLOSION_SOUND_PATH;
+		else
+			soundname << "weapons/explosion" << (Int32)Common::RandomLong(1, 3) << ".wav";
 
 		Util::EmitAmbientSound(origin, soundname.c_str(), VOL_NORM, 0.3, PITCH_NORM, SND_FL_NONE);
 	}
@@ -2559,10 +2562,12 @@ namespace Util
 	void FindLinkEntities( CBaseEntity* pLinkEntity, CArray<CBaseEntity*>& entitesArray, CBaseEntity* pNPC )
 	{
 		// If triggered by a trigger_multiple, tell it to wait
+		if(!pLinkEntity->IsFuncDoorEntity())
+			return;
+
 		if(pLinkEntity->HasTargetName())
 		{
 			const Char* pstrTargetName = pLinkEntity->GetTargetName();
-
 			if(pNPC)
 			{
 				edict_t* pTriggerEdict = Util::FindEntityByTarget(nullptr, pstrTargetName);
@@ -2573,66 +2578,10 @@ namespace Util
 						pEntity->TriggerWait(pNPC);
 				}
 			}
-
-			// See if there are other doors with the same name
-			edict_t* pEdict = nullptr;
-			while(true)
-			{
-				pEdict = Util::FindEntityByTargetName(pEdict, pstrTargetName);
-				if(!pEdict)
-					break;
-
-				if(pEdict == pLinkEntity->GetEdict())
-					continue;
-
-				// Only do anything if it's an actual func_door
-				CBaseEntity* pTargetEntity = CBaseEntity::GetClass(pEdict);
-				if(!pTargetEntity->IsFuncDoorEntity())
-					continue;
-
-				entitesArray.push_back(pTargetEntity);
-			}
 		}
-		else if(pLinkEntity->IsFuncDoorEntity())
-		{
-			Vector mins, maxs;
-			Vector doorOrigin = pLinkEntity->GetOrigin();
-			for(Uint32 i = 0; i < 3; i++)
-			{
-				mins[i] = doorOrigin[i] - CBaseNPC::NPC_DOOR_SEARCH_RADIUS;
-				maxs[i] = doorOrigin[i] + CBaseNPC::NPC_DOOR_SEARCH_RADIUS;
-			}
 
-			// See if there are other doors with the same name
-			edict_t* pEdict = nullptr;
-			while(true)
-			{
-				pEdict = Util::FindEntityInBBox(pEdict, mins, maxs);
-				if(!pEdict)
-					break;
-
-				if(pEdict == pLinkEntity->GetEdict())
-					continue;
-
-				// Only do anything if it's an actual func_door
-				CBaseEntity* pTargetEntity = CBaseEntity::GetClass(pEdict);
-				if(!pTargetEntity->IsFuncDoorRotatingEntity())
-					continue;
-
-				// It needs to be on the same axis, either on x or y
-				Vector targetDoorOrigin = pTargetEntity->GetOrigin();
-				if(targetDoorOrigin[0] != doorOrigin[0] && targetDoorOrigin[1] != doorOrigin[1])
-					continue;
-
-				// Make sure we can actually trigger this
-				if(pTargetEntity->HasSpawnFlag(CFuncDoor::FL_NO_NPCS)
-					|| pTargetEntity->GetToggleState() == TSTATE_AT_TOP
-					|| pTargetEntity->GetToggleState() == TSTATE_GOING_UP)
-					continue;
-
-				entitesArray.push_back(pTargetEntity);
-			}
-		}
+		// Add doors related to this one
+		pLinkEntity->GetRelatedDoors(entitesArray);
 	}
 
 	//=============================================

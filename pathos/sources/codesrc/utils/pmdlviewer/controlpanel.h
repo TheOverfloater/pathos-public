@@ -405,6 +405,7 @@ private:
 	mxLabel*		m_pLabelWAVLengthLabel;
 	mxLineEdit*		m_pLineEditLength;
 	mxLabel*		m_pLabelLength;
+	mxLabel*		m_pLabelWAVName;
 
 	mxCheckBox*		m_pCheckBoxFlexStay;
 	mxCheckBox*		m_pCheckBoxFlexLoop;

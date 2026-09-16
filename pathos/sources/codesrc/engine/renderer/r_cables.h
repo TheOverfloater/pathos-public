@@ -69,15 +69,30 @@ struct cable_attribs
 	Int32 d_fog;
 };
 
+struct cable_lsample_t
+{
+	cable_lsample_t()
+	{
+		memset(styles, 0, sizeof(styles));
+	}
+
+	Vector diffuselight[MAX_SURFACE_STYLES];
+	Vector ambientlight[MAX_SURFACE_STYLES];
+	Vector lightdirs[MAX_SURFACE_STYLES];
+	byte styles[MAX_SURFACE_STYLES];
+};
+
 struct cable_object_t
 {
 	cable_object_t():
 		numsegments(0),
-		ptexture(nullptr),
+		pmodel(nullptr),
 		start_vertex(0),
 		num_vertexes(0),
 		falldepth(0),
 		width(0),
+		windx(0),
+		windy(0),
 		numleafs(0)
 		{}
 
@@ -88,12 +103,15 @@ struct cable_object_t
 
 	Int32 numsegments;
 
-	en_texture_t *ptexture;
+	const cache_model_t* pmodel;
+	CArray<cable_lsample_t> pointsamples;
 
 	Int32 start_vertex;
 	Int32 num_vertexes;
 	Float falldepth;
 	Float width;
+	Float windx;
+	Float windy;
 
 	CArray<Uint32> leafnums;
 	Uint32 numleafs;
@@ -130,24 +148,18 @@ public:
 public:
 	// Draws cables
 	bool DrawCables( void );
-
-public:
 	// Adds a new cable object
-	void AddCable( const Vector& start, const Vector& end, Uint32 depth, Uint32 width, Uint32 numsegments );
+	void AddCable( Int32 spritemodelindex, const Vector& start, const Vector& end, Uint32 depth, Uint32 width, Uint32 numsegments, Float windx, Float windy );
+	// Recalculates lighting for cables
+	void RefreshLighting( void );
 
 private:
-	// Crafts VBO data for a cable
-	void InitCableVBOData( cable_object_t& cable );
+	// Calculate position of a segment
+	Vector CalculatePoint( Uint32 segment, Uint32 numsegments, const Vector& start, const Vector& end, const Vector& midpoint );
+	// Calculate light color for a point
+	Vector CalculateLighting( const cable_object_t& cable, const cable_lsample_t& sample, const Vector& position, const Vector& normal );
 
 private:
-	// Shader object
-	class CGLSLShader* m_pShader;
-	// VBO object
-	class CVBO* m_pVBO;
-
-	// Shader attribs
-	cable_attribs m_attribs;
-
 	// Array of cable objects
 	CArray<cable_object_t> m_cablesArray;
 };

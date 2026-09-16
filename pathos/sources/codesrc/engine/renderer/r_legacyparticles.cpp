@@ -378,7 +378,7 @@ void CLegacyParticles::CreateBlobExplosion( const Vector& origin )
 //====================================
 //
 //====================================
-void CLegacyParticles::CreateRocketExplosion( const Vector& origin, Uint32 color )
+void CLegacyParticles::CreateRocketExplosion( const Vector& origin )
 {
 	for(Uint32 i = 0; i < 1024; i++)
 	{
@@ -988,6 +988,7 @@ bool CLegacyParticles::DrawParticles( void )
 
 	R_ValidateShader(pDraw);
 
+	pDraw->SetColorMultiplier(2.0);
 	pDraw->Begin(CBasicDraw::DRAW_QUADS);
 
 	// Add rendered particles to the list
@@ -1080,6 +1081,7 @@ bool CLegacyParticles::DrawParticles( void )
 	}
 
 	pDraw->End();
+	pDraw->SetColorMultiplier(1.0);
 
 	bool result = true;
 	if(rns.fog.settings.active)

@@ -71,7 +71,8 @@ CFuncDoor::CFuncDoor( edict_t* pedict ):
 	m_isBlocked(false),
 	m_isSilent(false),
 	m_isOwnedChildDoor(false),
-	m_nextLockedSoundTime(0)
+	m_nextLockedSoundTime(0),
+	m_relatedDoorIdentifier(NO_STRING_VALUE)
 {
 }
 
@@ -98,6 +99,7 @@ void CFuncDoor::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CFuncDoor, m_activatorOrigin, EFIELD_COORD));
 	DeclareSaveField(DEFINE_DATA_FIELD(CFuncDoor, m_nextLockedSoundTime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CFuncDoor, m_relatedDoorsArray, EFIELD_CARRAY_EHANDLE));
+	DeclareSaveField(DEFINE_DATA_FIELD(CFuncDoor, m_relatedDoorIdentifier, EFIELD_STRING));
 }
 
 //=============================================
@@ -154,6 +156,11 @@ bool CFuncDoor::KeyValue( const keyvalue_t& kv )
 	else if(!qstrcmp(kv.keyname, "unlocked_sound_custom"))
 	{
 		m_unlockedSoundFile = gd_engfuncs.pfnAllocString(kv.value);
+		return true;
+	}
+	else if(!qstrcmp(kv.keyname, "relatedidentifier"))
+	{
+		m_relatedDoorIdentifier = gd_engfuncs.pfnAllocString(kv.value);
 		return true;
 	}
 	else if(!qstrcmp(kv.keyname, "zhlt_noclip"))
@@ -316,32 +323,103 @@ void CFuncDoor::InitEntity( void )
 					pOther->SetParentDoor(this);
 			}
 		}
+	}
 
-		// Find related doors that might not share the same origin
-		edict_t* pedict = nullptr;
+	// Find related doors that might not share the same origin
+	edict_t* pedict = nullptr;
+	while(true)
+	{
+		pedict = Util::FindEntityByClassname(pedict, pstrClassName);
+		if(!pedict)
+			break;
+
+		if(Util::IsNullEntity(pedict) || pedict == m_pEdict)
+			continue;
+
+		CBaseEntity* pOther = CBaseEntity::GetClass(pedict);
+		if(!pOther || !pOther->IsFuncDoorEntity())
+			continue;
+
+		// Check for exact classname
+		if(pstrTargetName && qstrlen(pstrTargetName) > 0)
+		{
+			if(qstrcmp(pstrTargetName, pOther->GetTargetName()))
+				continue;
+		}
+		else
+		{
+			if(qstrlen(pOther->GetTargetName()) > 0)
+				continue;
+		}
+
+		// Ensure this isnt' a child of us
+		if(pOther->GetParent() == this)
+			continue;
+
+		// Ensure the two touch eachother to some extent
+		Vector otherAbsMins = pOther->GetAbsMins();
+		Vector otherAbsMaxs = pOther->GetAbsMaxs();
+		Math::VectorSubtract(otherAbsMins, Vector(4, 4, 4), otherAbsMins);
+		Math::VectorAdd(otherAbsMaxs, Vector(4, 4, 4), otherAbsMaxs);
+
+		Vector myAbsMins = GetAbsMins();
+		Vector myAbsMaxs = GetAbsMaxs();
+		Math::VectorSubtract(myAbsMins, Vector(4, 4, 4), myAbsMins);
+		Math::VectorAdd(myAbsMaxs, Vector(4, 4, 4), myAbsMaxs);
+
+		if(Math::CheckMinsMaxs(otherAbsMins, otherAbsMaxs, myAbsMins, myAbsMaxs))
+			continue;
+
+		if(pOther->IsFuncDoorRotatingEntity())
+		{
+			// It needs to be on the same axis, either on x or y
+			const Vector& doorOrigin = GetOrigin();
+			const Vector& targetDoorOrigin = pOther->GetOrigin();
+			if(targetDoorOrigin[0] != doorOrigin[0] && targetDoorOrigin[1] != doorOrigin[1])
+				continue;
+		}
+
+		// Add as related door
+		m_relatedDoorsArray.push_back(pOther);
+	}
+
+	// Find related doors with the same shared identifier
+	if(m_relatedDoorIdentifier != NO_STRING_VALUE)
+	{
+		const Char* pstrMyIdentifier = GetDoorIdentifier();
+		pedict = nullptr;
 		while(true)
 		{
-			pedict = Util::FindEntityByTargetName(pedict, pstrTargetName);
+			pedict = Util::FindEntityByClassname(pedict, pstrClassName);
 			if(!pedict)
 				break;
 
-			if(Util::IsNullEntity(pedict) || pedict == m_pEdict)
+			if(pedict->free || pedict == m_pEdict)
 				continue;
 
 			CBaseEntity* pOther = CBaseEntity::GetClass(pedict);
-			if(!pOther || !pOther->IsFuncDoorEntity())
+			if(!pOther)
 				continue;
 
-			// Check for exact classname
-			if(qstrcmp(pstrClassName, pOther->GetClassName()))
-				continue;
+			if(pOther->IsFuncDoorEntity() && pOther->GetParent() != this)
+			{
+				const Char* pstrOtherIdentifier = pOther->GetDoorIdentifier();
+				if(!qstrlen(pstrOtherIdentifier))
+					continue;
 
-			// Ensure this isnt' a child of us
-			if(pOther->GetParent() == this)
-				continue;
+				if(!qstrcmp(pstrMyIdentifier, pstrOtherIdentifier))
+				{
+					Uint32 j = 0;
+					for(; j < m_relatedDoorsArray.size(); j++)
+					{
+						if(m_relatedDoorsArray[j].get() == pOther->GetEdict())
+							break;
+					}
 
-			// Add as related door
-			m_relatedDoorsArray.push_back(pOther);
+					if(j == m_relatedDoorsArray.size())
+						m_relatedDoorsArray.push_back(pOther);
+				}
+			}
 		}
 	}
 }
@@ -405,7 +483,9 @@ void CFuncDoor::CallBlocked( CBaseEntity* pOther )
 			GoDown();
 	}
 
-	// Reset related pieces
+	// Reset related pieces(This would not be necessary if
+	// I had parenting back then, but we keep this for legacy
+	// reasons)
 	for(Uint32 i = 0; i < m_relatedDoorsArray.size(); i++)
 	{
 		CBaseEntity* pEntity = m_relatedDoorsArray[i];
@@ -799,4 +879,20 @@ usableobject_type_t CFuncDoor::GetUsableObjectType( void )
 		return USABLE_OBJECT_LOCKED;
 	else
 		return USABLE_OBJECT_DEFAULT;
+}
+
+//=============================================
+// @brief Get related door entities from func_door/func_door_rotating
+//
+//=============================================
+void CFuncDoor::GetRelatedDoors( CArray<CBaseEntity*>& entitesArray ) const
+{
+	for(Uint32 i = 0; i < m_relatedDoorsArray.size(); i++)
+	{
+		CBaseEntity* pEntity = m_relatedDoorsArray[i];
+		if(!pEntity || !pEntity->IsFuncDoorEntity())
+			continue;
+
+		entitesArray.push_back(pEntity);
+	}
 }

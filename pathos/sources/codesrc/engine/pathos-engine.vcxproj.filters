@@ -162,9 +162,6 @@
     <ClCompile Include="..\shared\frustum.cpp">
       <Filter>Source Files\shared</Filter>
     </ClCompile>
-    <ClCompile Include="trace_shared.cpp">
-      <Filter>Source Files\shared</Filter>
-    </ClCompile>
     <ClCompile Include="renderer\r_vbm.cpp">
       <Filter>Source Files\renderer</Filter>
     </ClCompile>
@@ -432,6 +429,12 @@
     <ClCompile Include="..\shared\collision_shared.cpp">
       <Filter>Source Files\shared</Filter>
     </ClCompile>
+    <ClCompile Include="trace_core.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\shared\leafbrushbvh.cpp">
+      <Filter>Source Files\shared</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="system.h">
@@ -582,9 +585,6 @@
       <Filter>Header Files\shared</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\snd_shared.h">
-      <Filter>Header Files\shared</Filter>
-    </ClInclude>
-    <ClInclude Include="trace_shared.h">
       <Filter>Header Files\shared</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\cvar.h">
@@ -969,6 +969,12 @@
       <Filter>Header Files\shared</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\collision_shared.h">
+      <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="trace_core.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\shared\leafbrushbvh.h">
       <Filter>Header Files\shared</Filter>
     </ClInclude>
   </ItemGroup>

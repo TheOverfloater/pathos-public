@@ -60,5 +60,7 @@ bool CFuncClipEconomy::Spawn( void )
 	if(!SetModel(m_pFields->modelname))
 		return false;
 
+	m_pState->flags |= FL_POINTHULL_ONLY;
+
 	return true;
 }

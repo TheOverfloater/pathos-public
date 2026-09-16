@@ -44,12 +44,13 @@ enum trace_flags_t
 	FL_TRACE_NO_TRANS					= (1<<2),
 	FL_TRACE_NPC_CLIP					= (1<<3),
 	FL_TRACE_NO_NPCS					= (1<<4),
-	FL_TRACE_EXTRASIZE					= (1<<5),
-	FL_TRACE_HITBOXES					= (1<<6),
-	FL_TRACE_HIT_CORPSES				= (1<<7),
-	FL_TRACE_NO_TRANS_WORLDBRUSH		= (1<<8),
+	FL_TRACE_HITBOXES					= (1<<5),
+	FL_TRACE_HIT_CORPSES				= (1<<6),
+	FL_TRACE_NO_TRANS_WORLDBRUSH		= (1<<7),
 	FL_TRACE_PARTICLE_BLOCKERS			= (1<<8),
-	FL_TRACE_SKYBRUSHES					= (1<<9)
+	FL_TRACE_SKYBRUSHES					= (1<<9),
+	FL_TRACE_FORCE_CLIPNODES			= (1<<10),
+	FL_TRACE_CLIP_BRUSHES				= (1<<11)
 };
 
 struct trace_t

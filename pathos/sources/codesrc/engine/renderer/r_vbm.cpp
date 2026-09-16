@@ -28,7 +28,7 @@ All Rights Reserved.
 #include "common.h"
 #include "enginestate.h"
 #include "trace.h"
-#include "trace_shared.h"
+#include "trace_core.h"
 #include "cl_pmove.h"
 #include "r_dlights.h"
 #include "r_water.h"
@@ -50,9 +50,6 @@ All Rights Reserved.
 // Some of the code from which this originates from is the work of BUzer, so credit
 // goes to him for his work on Paranoia
 
-// Number of random colors
-static constexpr Uint32 NUM_RANDOM_COLORS = 16;
-
 // Number of light reductions
 const Uint32 CVBMRenderer::NUM_LIGHT_REDUCTIONS = 3;
 // Time it takes to interpolate lighting value changes
@@ -69,27 +66,6 @@ const Char CVBMRenderer::EYEGLINT_TEXTURE_PATH[] = "general/eyeglint.tga";
 
 // Default lightmap sampling offset
 const Float CVBMRenderer::DEFAULT_LIGHTMAP_SAMPLE_OFFSET = 16;
-
-// Array of random colors
-const Float RANDOM_COLOR_ARRAY[NUM_RANDOM_COLORS][3] = 
-{
-	{ 1.0, 0.0, 0.0 },
-	{ 0.0, 1.0, 0.0 },
-	{ 0.0, 0.0, 1.0 },
-	{ 1.0, 1.0, 0.0 },
-	{ 0.0, 1.0, 1.0 },
-	{ 0.5, 1.0, 0.5 },
-	{ 0.0, 1.0, 0.5 },
-	{ 0.5, 1.0, 0.0 },
-	{ 0.1, 0.6, 0.9 },
-	{ 0.5, 0.2, 0.5 },
-	{ 0.3, 0.8, 0.1 },
-	{ 0.5, 0.0, 0.4 },
-	{ 0.8, 0.1, 0.2 },
-	{ 0.8, 0.8, 0.3 },
-	{ 0.9, 0.5, 0.1 },
-	{ 0.2, 0.5, 0.5 }
-};
 
 // Class object definition
 CVBMRenderer gVBMRenderer;
@@ -1991,7 +1967,7 @@ void CVBMRenderer::UpdateLightValues ( void )
 				Math::VectorMA(tmp, lightfrac, m_pLightingInfo->target_lightdir, m_pLightingInfo->lightdirection);
 
 				// Lightstyle values array
-				CArray<Float>* pstylevalues = gLightStyles.GetLightStyleValuesArray();
+				const CArray<Float>* pstylevalues = gLightStyles.GetLightStyleValuesArray();
 
 				for(Uint32 i = 0; i < (MAX_SURFACE_STYLES-1); i++)
 				{
@@ -2709,6 +2685,20 @@ void CVBMRenderer::GetModelLights( void )
 	mlight_t* plightslist[MAX_ENT_ACTIVE_DLIGHTS] = { nullptr };
 	Float lightstrengths[MAX_ENT_ACTIVE_DLIGHTS] = { 0 };
 
+	// Optimization: Only trace against static elights if position changed
+	// since last check
+	bool positionChanged;
+	if(!m_pExtraInfo || m_pExtraInfo->plightinfo->lastelightorigin.IsZero() 
+		|| m_pExtraInfo->plightinfo->lastelightorigin != vcenter)
+	{
+		if(m_pExtraInfo && m_pExtraInfo->plightinfo)
+			m_pExtraInfo->plightinfo->lastelightorigin = vcenter;
+
+		positionChanged = true;
+	}
+	else
+		positionChanged = false;
+
 	//
 	// Reduce max active lights to 4 model/entity lights,
 	// and keep 2 slots for fading lights. This should help
@@ -2728,9 +2718,41 @@ void CVBMRenderer::GetModelLights( void )
 		// perform trace
 		if(!(m_pCurrentEntity->curstate.effects & EF_NOELIGHTTRACE))
 		{
-			CL_PlayerTrace(vcenter, mlight->origin, FL_TRACE_WORLD_ONLY, HULL_POINT, NO_ENTITY_INDEX, pmtrace);
-			if (pmtrace.fraction < 1.0 && !(pmtrace.flags & FL_TR_STARTSOLID))
-				continue; // blocked
+			// Check if the light was on the previous list and we havent' changed positions
+			bool prevOccluded = false;
+			bool skipTraceCheck = false;
+			if(plightinfo && mlight->entindex > 0 && mlight->staticentity && !positionChanged)
+			{
+				for(Uint32 j = 0; j < plightinfo->numsavedmlights; j++)
+				{
+					mlightinfo_t *pprevinfo = &plightinfo->savedmlights[j];
+					if(!pprevinfo->light.entindex)
+						continue;
+
+					if(pprevinfo->light.entindex == mlight->entindex)
+					{
+						skipTraceCheck = true;
+						prevOccluded = pprevinfo->occluded;
+						break;
+					}
+				}
+			}
+
+			if(!skipTraceCheck)
+			{
+				// Force clipnodes, as using hull 0 generated from visible nodes/leafs is much faster
+				// than doing the same with brush collisions
+				Int32 traceFlags = (FL_TRACE_FORCE_CLIPNODES|FL_TRACE_WORLD_ONLY);
+				CL_PlayerTrace(vcenter, mlight->origin, traceFlags, HULL_POINT, NO_ENTITY_INDEX, pmtrace);
+				if (pmtrace.fraction < 1.0 && !(pmtrace.flags & FL_TR_STARTSOLID))
+					continue; // blocked
+			}
+			else
+			{
+				// If the previnfo marks as occluded, then don't add to list
+				if(prevOccluded)
+					continue;
+			}
 		}
 
 		Math::VectorSubtract(mlight->origin, vcenter, vlightdir);
@@ -2868,23 +2890,30 @@ void CVBMRenderer::GetModelLights( void )
 					continue;
 			}
 
-			if(!(m_pCurrentEntity->curstate.effects & EF_NOELIGHTTRACE))
+			bool lightBlocked = false;
+			if(!(m_pCurrentEntity->curstate.effects & EF_NOELIGHTTRACE) && (!mlight->staticentity || positionChanged))
 			{
-				CL_PlayerTrace(vcenter, pprevinfo->light.origin, FL_TRACE_WORLD_ONLY, HULL_POINT, NO_ENTITY_INDEX, pmtrace);
-				if (pmtrace.fraction == 1.0)
-				{
-					j = 0;
-					for(; j < ptotallights.size(); j++)
-					{
-						if(pprevinfo->light.entindex == ptotallights[j]->entindex)
-							break;
-					}
+				// Force clipnodes, as using hull 0 generated from visible nodes/leafs is much faster
+				// than doing the same with brush collisions
+				Int32 traceFlags = (FL_TRACE_FORCE_CLIPNODES|FL_TRACE_WORLD_ONLY);
+				CL_PlayerTrace(vcenter, pprevinfo->light.origin, traceFlags, HULL_POINT, NO_ENTITY_INDEX, pmtrace);
+				if (pmtrace.fraction != 1.0)
+					lightBlocked = true;
+			}
 
-					if(j == ptotallights.size())
-					{
-						// not blocked, not on total list, probably turned off
-						continue; 
-					}
+			if(!lightBlocked)
+			{
+				j = 0;
+				for(; j < ptotallights.size(); j++)
+				{
+					if(pprevinfo->light.entindex == ptotallights[j]->entindex)
+						break;
+				}
+
+				if(j == ptotallights.size())
+				{
+					// not blocked, not on total list, probably turned off
+					continue; 
 				}
 			}
 
@@ -3281,7 +3310,7 @@ bool CVBMRenderer::SetupRenderer( void )
 	// If doing baked lighting, check for styles
 	if(!m_isMultiPass && m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION)
 	{
-		CArray<Float>* pstylesarray = gLightStyles.GetLightStyleValuesArray();
+		const CArray<Float>* pstylesarray = gLightStyles.GetLightStyleValuesArray();
 		for(Uint32 i = 1; i < MAX_ENTITY_STYLES; i++)
 		{
 			if(m_pCurrentEntity->curstate.vlight_styles[i] != NULL_LIGHTSTYLE_INDEX 
@@ -3725,7 +3754,7 @@ bool CVBMRenderer::DrawStyles( bool specularPass, bool transparentPass )
 		return true;
 
 	// Check if we have any valid styles at all
-	CArray<Float>* pstylesarray = gLightStyles.GetLightStyleValuesArray();
+	const CArray<Float>* pstylesarray = gLightStyles.GetLightStyleValuesArray();
 	Uint32 i = 1;
 	for(; i < MAX_ENTITY_STYLES; i++)
 	{
@@ -7263,6 +7292,9 @@ bool CVBMRenderer::DrawModelVSM( cl_entity_t *pEntity, cl_dlight_t *dl )
 	if (skinnum != 0 && skinnum < m_pVBMHeader->numskinfamilies)
 		pskinref += (skinnum * m_pVBMHeader->numskinref);
 
+	m_pShader->ResetSamplerIndex(0);
+	Int32 textureIndex = m_pShader->AutoSetSamplerUniform(m_attribs.u_texture0);
+
 	Int32 lastBoundShader = -1;
 	for (Int32 i = 0; i < m_pVBMHeader->numbodyparts; i++)
 	{
@@ -7291,8 +7323,7 @@ bool CVBMRenderer::DrawModelVSM( cl_entity_t *pEntity, cl_dlight_t *dl )
 					lastBoundShader = vbm_vsmalpha;
 				}
 
-				m_pShader->SetUniform1i(m_attribs.u_texture0, 0);
-				R_Bind2DTexture(GL_TEXTURE0, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
+				R_Bind2DTexture(GL_TEXTURE0 + textureIndex, pmaterial->ptextures[MT_TX_DIFFUSE]->palloc->gl_index);
 			}
 			else
 			{
@@ -7521,14 +7552,10 @@ void CVBMRenderer::DispatchClientEvents( void )
 		return;
 
 	Float flframe = VBM_EstimateFrame(pseqdesc, rns.time, m_pCurrentEntity->curstate.frame, m_pCurrentEntity->curstate.animtime, m_pCurrentEntity->curstate.framerate, m_pCurrentEntity->curstate.effects);
-
-	// Fixes first-frame event bug
-	if(!flframe) 
-		m_pCurrentEntity->eventframe = -0.01f;
-
 	if(flframe == m_pCurrentEntity->eventframe) 
 		return;
 
+	// Manage wrap-around
 	if (flframe < m_pCurrentEntity->eventframe)
 	{
 		if(m_pExtraInfo->paniminfo->prevframe_sequence == m_pCurrentEntity->curstate.sequence 
@@ -7542,12 +7569,18 @@ void CVBMRenderer::DispatchClientEvents( void )
 				
 				cls.dllfuncs.pfnVBMEvent(pevent, m_pCurrentEntity);
 			}
-
-			// Necessary to get the next loop working
-			m_pCurrentEntity->eventframe = -0.01;
 		}
-		else
-			m_pCurrentEntity->eventframe = -0.01;
+
+		// Necessary to get the next loop working
+		m_pCurrentEntity->eventframe = -1;
+	}
+	else if(!flframe)
+	{
+		// Fixes first-frame event bug
+		// Do this AFTER the loop wrap-around part,
+		// otherwise we might miss on playing some
+		// events
+		m_pCurrentEntity->eventframe = -1;
 	}
 
 	for (Int32 i = 0; i < pseqdesc->numevents; i++)
@@ -7648,7 +7681,7 @@ bool CVBMRenderer::DrawBones( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 
-	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
 		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, true))
 		return false;
@@ -7719,7 +7752,7 @@ bool CVBMRenderer::DrawHitBoxes( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 
-	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
 		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, true))
 		return false;
@@ -7767,7 +7800,7 @@ bool CVBMRenderer::DrawBoundingBox( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 
-	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
 		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, true))
 		return false;
@@ -7851,7 +7884,7 @@ bool CVBMRenderer::DrawLightVectors( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 
-	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
 		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, true))
 		return false;
@@ -8237,7 +8270,7 @@ bool CVBMRenderer::DrawAttachments( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 
-	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
 		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, true))
 		return false;
@@ -8337,7 +8370,7 @@ bool CVBMRenderer::DrawHullBoundingBox( void )
 	m_pShader->SetUniform1i(m_attribs.u_d_luminance, FALSE);
 	m_pShader->SetUniform1i(m_attribs.u_d_specular, FALSE);
 
-	if(m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
+	if(!m_pShader->SetDeterminator(m_attribs.d_alphatest, ALPHATEST_DISABLED, false) 
 		|| !m_pShader->SetDeterminator(m_attribs.d_shadertype, vbm_solid, false)
 		|| !m_pShader->SetDeterminator(m_attribs.d_flexes, FALSE, true))
 		return false;

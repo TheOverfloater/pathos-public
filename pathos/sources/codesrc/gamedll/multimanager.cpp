@@ -27,14 +27,8 @@ CMultiManager::CMultiManager( edict_t* pedict ):
 	m_isRunning(false),
 	m_startTime(0),
 	m_delay(0),
-	m_nbTargets(0),
 	m_currentIndex(0)
 {
-	for(Uint32 i = 0; i < MAX_MULTIMANAGER_TARGETS; i++)
-	{
-		m_targetNamesArray[i] = NO_STRING_VALUE;
-		m_targetDelaysArray[i] = 0;
-	}
 }
 
 //=============================================
@@ -59,9 +53,8 @@ void CMultiManager::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CMultiManager, m_startTime, EFIELD_TIME));
 	DeclareSaveField(DEFINE_DATA_FIELD(CMultiManager, m_delay, EFIELD_FLOAT));
 
-	DeclareSaveField(DEFINE_DATA_FIELD_ARRAY(CMultiManager, m_targetNamesArray, EFIELD_STRING, MAX_MULTIMANAGER_TARGETS));
-	DeclareSaveField(DEFINE_DATA_FIELD_ARRAY(CMultiManager, m_targetDelaysArray, EFIELD_FLOAT, MAX_MULTIMANAGER_TARGETS));
-	DeclareSaveField(DEFINE_DATA_FIELD(CMultiManager, m_nbTargets, EFIELD_UINT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CMultiManager, m_targetNamesArray, EFIELD_CARRAY_STRING));
+	DeclareSaveField(DEFINE_DATA_FIELD(CMultiManager, m_targetDelaysArray, EFIELD_CARRAY_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CMultiManager, m_currentIndex, EFIELD_UINT32));
 
 	DeclareSaveField(DEFINE_DATA_FIELD(CMultiManager, m_activator, EFIELD_EHANDLE));
@@ -80,21 +73,13 @@ bool CMultiManager::KeyValue( const keyvalue_t& kv )
 	}
 	else
 	{
-		if(m_nbTargets >= MAX_MULTIMANAGER_TARGETS)
-		{
-			Util::EntityConPrintf(m_pEdict, "Exceeded MAX_MULTIMANAGER_TARGETS.\n");
-			return true;
-		}
-
 		CString targetname(kv.keyname);
 		Uint32 hashpos = targetname.find(0, "#");
 		if(hashpos != CString::CSTRING_NO_POSITION)
 			targetname.erase(hashpos, targetname.length()-hashpos);
 
-		m_targetNamesArray[m_nbTargets] = gd_engfuncs.pfnAllocString(targetname.c_str());
-		m_targetDelaysArray[m_nbTargets] = SDL_atof(kv.value);
-		m_nbTargets++;
-
+		m_targetNamesArray.push_back(gd_engfuncs.pfnAllocString(targetname.c_str()));
+		m_targetDelaysArray.push_back(SDL_atof(kv.value));
 		return true;
 	}
 }
@@ -124,7 +109,7 @@ void CMultiManager::SortTargets( void )
 	while(isSwapped)
 	{
 		isSwapped = false;
-		for(Uint32 i = 1; i < m_nbTargets; i++)
+		for(Uint32 i = 1; i < m_targetNamesArray.size(); i++)
 		{
 			if(m_targetDelaysArray[i] < m_targetDelaysArray[i-1])
 			{
@@ -150,7 +135,7 @@ void CMultiManager::SortTargets( void )
 //=============================================
 Uint32 CMultiManager::GetNbTargets( void ) const
 {
-	return m_nbTargets;
+	return m_targetNamesArray.size();
 }
 
 //=============================================
@@ -159,7 +144,7 @@ Uint32 CMultiManager::GetNbTargets( void ) const
 //=============================================
 string_t CMultiManager::GetTargetNameByIndex( Uint32 index ) const
 {
-	if(index >= m_nbTargets)
+	if(index >= m_targetNamesArray.size())
 		return NO_STRING_VALUE;
 
 	return m_targetNamesArray[index];
@@ -171,7 +156,7 @@ string_t CMultiManager::GetTargetNameByIndex( Uint32 index ) const
 //=============================================
 Float CMultiManager::GetTargetDelayByIndex( Uint32 index ) const
 {
-	if(index >= m_nbTargets)
+	if(index >= m_targetDelaysArray.size())
 		return 0;
 
 	return m_targetDelaysArray[index];
@@ -192,9 +177,8 @@ Float CMultiManager::GetDelay( void )
 //=============================================
 void CMultiManager::AddTarget( const Char* pstrTargetName, Float delay )
 {
-	m_targetNamesArray[m_nbTargets] = gd_engfuncs.pfnAllocString(pstrTargetName);
-	m_targetDelaysArray[m_nbTargets] = delay;
-	m_nbTargets++;
+	m_targetNamesArray.push_back(gd_engfuncs.pfnAllocString(pstrTargetName));
+	m_targetDelaysArray.push_back(delay);
 }
 
 //=============================================
@@ -246,7 +230,7 @@ CMultiManager* CMultiManager::CloneManager( void )
 		return nullptr;
 	}
 
-	for(Uint32 i = 0; i < m_nbTargets; i++)
+	for(Uint32 i = 0; i < m_targetNamesArray.size(); i++)
 		pManager->AddTarget(gd_engfuncs.pfnGetString(m_targetNamesArray[i]), m_targetDelaysArray[i]);
 
 	return pManager;
@@ -259,13 +243,13 @@ CMultiManager* CMultiManager::CloneManager( void )
 void CMultiManager::TriggerThink( void )
 {
 	Double time = g_pGameVars->time - m_startTime;
-	while(m_currentIndex < m_nbTargets && m_targetDelaysArray[m_currentIndex] <= time)
+	while(m_currentIndex < m_targetNamesArray.size() && m_targetDelaysArray[m_currentIndex] <= time)
 	{
 		Util::FireTargets(gd_engfuncs.pfnGetString(m_targetNamesArray[m_currentIndex]), m_activator, this, USE_TOGGLE, 0);
 		m_currentIndex++;
 	}
 
-	if(m_currentIndex >= m_nbTargets)
+	if(m_currentIndex >= m_targetNamesArray.size())
 	{
 		SetThink(nullptr);
 

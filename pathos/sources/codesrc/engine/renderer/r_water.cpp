@@ -2079,7 +2079,7 @@ bool CWaterShader::DrawWater( bool skybox )
 				m_pShader->SetUniform3f(m_attribs.u_fogcolor, 0, 0, 0);
 
 			// Set ptr to lightstyles array
-			CArray<Float>* pLightStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
+			const CArray<Float>* pLightStyleValuesArray = gLightStyles.GetLightStyleValuesArray();
 			for(Uint32 j = 0; j < m_pCurrentWater->stylebatches.size(); j++)
 			{
 				cl_water_style_batches_t& stylebatches = m_pCurrentWater->stylebatches[j];

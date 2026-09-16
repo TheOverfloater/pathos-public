@@ -1011,3 +1011,66 @@ Merge PR # 55:
 
 2026 August 17th:
  - Fix HullPointContents not working due to using local mins/maxs for testing instead of absmin/absmax.
+
+2026 September 16th:
+ - Modify PBSP V2 BSP format to include mins/maxs for brushes.
+ - Add bicubic filtering support to skyboxes.
+ - Expand env_cable entity to support lighting and textures for the cables, as well as wind.
+ - Remove unused color parameter for legacy particle rocket explosion effect.
+ - Fix ammo counts not using singular/plural message strings properly.
+ - Fix brushmodel bounding box checks being invalid due to wrong expansion of mins/maxs.
+ - Fix Pathos BSP V2 format using Vector in file header data.
+ - Add BVH generation support to leaf brush lists to speed up collision testing.
+ - Add sending basin/absmax to client to fix collision related issues.
+ - Fix corpses incorrectly colliding with player on the client due to deadstate not being sent from server.
+ - Fix HullPointContents not using the right mins/maxs and causing NPCs to incorrectly collide with triggers.
+ - Force use of Hull 0 clipnodes(generated from visible nodes/leaves at map load) to speed up particle and tempent collisions.
+ - Fix bug in CEdictManager::FreeEdict not releasing child entities properly when parent was killed/released.
+ - Rename trace_shared.cpp and .h to trace_core.cpp and .h.
+ - Fix for normal not being rotated for entities with angles when applying decal.
+ - Fix for view model being incorrectly rendered into the static shadow map also when blitting is enabled.
+ - Up color multiplier on legacy particles for brighter particle effects.
+ - Fix alpha tested sprites not being loaded properly and lacking an alpha channel on transparent parts.
+ - Add debug code for rendering the collision mins/maxs of entities in a level.
+ - Implement triple buffering for particle rendering.
+ - Optimize model rendering by reducing the number of trace tests against env_elight entities that are static.
+ - Fix shadow bug with some alpha tested models not having alpha testing properly applied.
+ - Fix bug in animation event code causing events at the end of a sequence to not play at all.
+ - Fix bug that caused the game to fail with a shader error when model debug render functions were enabled.
+ - Prevent "Velocity too high on entity" spam by turning it into a debug console print.
+ - Fix bug in traceline code causing certain static solid entities to be skipped during trace tests.
+ - Fix bug in traceline code that caused startsolid flag to be not set properly when testing against entities.
+ - Remove unused FL_TRACE_EXTRASIZE trace flag.
+ - Add build number tracking based on earliest Pathos repo from 2016 January 27th.
+ - Fix Sys_SetPaused not checking server state properly for host checks.
+ - Fix issue with tracelines becoming empty if the trace test did not touch any empty leaves. Now if the test touches only solid leaves, the trace result is marked properly as allsolid/startsolid.
+ - Fix origin nudges on NPCs failing due to insensitive nudge tests causing them to end up in solids.
+ - Fix UpdateRoute causing an invalid path to be created due to incorrect starting position being used.
+ - Fix SimplifyRoute not resetting the route point index, causing the route points to become invalid.
+ - Fix edge cases causing NPCs to become stuck in the floor due to incorrect de-stucking code.
+ - Fix NPC not testing target reachability in reverse, causing a false positive result to be generated without a proper reachability test being conducted.
+ - Modify NPC door/link entity code not managing related doors properly.
+ - Add check for zhlt_noclip to brush entities to ensure they're marked as FL_POINTHULL_ONLY.
+ - Ensure solid entities with EF_NODRAW are still sent to the client for proper player prediction.
+ - Add "old school" explosion effect to game.
+ - Fix ladder exit position tests being unreliable and causing exit tests to fail in certain locations.
+ - Fix env_sprite not playing animations properly due to the last animation time not being set properly when set to animate and die afterwards.
+ - Add func_brushcopy entity for copying non-moving brushmodels.
+ - Fix collision issues on levels due to func_clipeconomy not having FL_POINTHULL_ONLY set on it.
+ - Add related door name field to func_door/func_door_rotating to help sync certain doors.
+ - Fix brush entities with a parent still being marked as EF_STATICENTITY.
+ - Fix for func_train_copy not inheriting FL_POINTHULL_ONLY from copy target and causing collision issues.
+ - Force point size hull on grenade entities.
+ - Improve multi_manager entity by getting rid of fixed-size arrays and using CArray instead.
+ - Fix node_viewer entity always failing due to owner not being set as player that spawned it.
+ - Fix trigger_push being broken and not working properly with "Only once" flag.
+ - Fix env_dlight and env_spotlight not working properly when rendered in a skybox.
+ - Fix several issues in swept AABB/bounding box collision tests causing invalid checks.
+ - Fix for air acceleration code not calculating wish speed properly due to reproduction issues when referencing HL player movement code.
+ - Fix player footstep code not getting material properly for object player is on.
+ - Fix crash in VBM renderer code when no VBO is rendered during a draw pass.
+ - Add WAV file name to be displayed in the flex script editor tab in model viewer.
+ - In model viewer, fix issue that, when rotating the view with the mouse and going outside the window bounds, caused the offsets to become invalid and the arc ball position being "lost".
+ - Fix broken scope effect in model viewer.
+ - Fix broken transparency when rendering in non-textured and wireframe modes.
+ - Add cable sprites.

@@ -288,7 +288,9 @@ const msurface_t* Mod_SurfaceAtPoint( const brushmodel_t* pmodel, const mnode_t*
 		{
 			if((ds - psurface->texturemins[0]) <= psurface->extents[0] &&
 				(dt - psurface->texturemins[1]) <= psurface->extents[1])
+			{
 				return psurface;
+			}
 		}
 	}
 
@@ -320,10 +322,10 @@ void Mod_FindTouchedLeafs( const brushmodel_t* pworld, CArray<Uint32>& leafnumsa
 	Int32 sides = Math::BoxOnPlaneSide(mins, maxs, pplane);
 
 	// Recurse down the sides
-	if(sides & 1)
+	if(sides & SIDE_FRONT)
 		Mod_FindTouchedLeafs(pworld, leafnumsarray, leafcount, mins, maxs, pnode->pchildren[0]);
 
-	if(sides & 2)
+	if(sides & SIDE_BACK)
 		Mod_FindTouchedLeafs(pworld, leafnumsarray, leafcount, mins, maxs, pnode->pchildren[1]);
 }
 

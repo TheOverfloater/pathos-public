@@ -187,7 +187,7 @@ void CLightStyles::Think( void )
 // @brief
 //
 //=============================================
-CArray<Float>* CLightStyles::GetLightStyleValuesArray( void )
+const CArray<Float>* CLightStyles::GetLightStyleValuesArray( void )
 {
 	return &m_lightStyleValuesArray;
 }

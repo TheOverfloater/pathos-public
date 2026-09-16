@@ -2596,10 +2596,10 @@ bool CAINodeGraph::GetNodeLinkEntities( Int32 srcNode, Int32 linkNodeIndex, link
 // @brief
 //
 //=============================================
-Int32 CAINodeGraph::GetNearestNode( const Vector& position, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity, Float minDistance, const CNodeIgnoreList* pIgnoreList )
+Int32 CAINodeGraph::GetNearestNode( const Vector& position, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity, Float minDistance, const CNodeIgnoreList* pIgnoreList, bool reverseCheck )
 {
 	Uint64 nodeTypes = pEntity ? Util::GetNodeTypeForNPC(pEntity) : AI_NODE_LAND;
-	return GetNearestNode(position, nodeTypes, pEntity, pTargetEntity, minDistance, pIgnoreList);
+	return GetNearestNode(position, nodeTypes, pEntity, pTargetEntity, minDistance, pIgnoreList, reverseCheck);
 }
 
 //=============================================
@@ -2638,7 +2638,7 @@ Int32 CAINodeGraph::GetNearestNode( const Vector& position )
 // @brief
 //
 //=============================================
-Int32 CAINodeGraph::GetNearestNode( const Vector& position, Uint64 nodeTypes, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity, Float minDistance, const CNodeIgnoreList* pIgnoreList )
+Int32 CAINodeGraph::GetNearestNode( const Vector& position, Uint64 nodeTypes, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity, Float minDistance, const CNodeIgnoreList* pIgnoreList, bool reverseCheck )
 {
 	if(!pEntity)
 	{
@@ -2652,11 +2652,13 @@ Int32 CAINodeGraph::GetNearestNode( const Vector& position, Uint64 nodeTypes, CB
 		return NO_POSITION;
 	}
 
+#ifndef DEBUG
 	Uint32 hash = (CACHE_SIZE-1) & GenHash((const byte*)&position, sizeof(Vector));
 
 	cache_entry_t& cache = m_cache[hash];
 	if(cache.position == position && cache.node != NO_POSITION && (!pIgnoreList || !pIgnoreList->IsNodeInList(cache.node)))
 		return cache.node;
+#endif
 
 	m_nearestNodeDistance = -1;
 	m_nearestNodeIndex = NO_POSITION;
@@ -2670,19 +2672,21 @@ Int32 CAINodeGraph::GetNearestNode( const Vector& position, Uint64 nodeTypes, CB
 		if(CheckNodeBBox(pnode, position, pEntity))
 			continue;
 
-		CheckNode(position, i, nodeTypes, pEntity, pTargetEntity, minDistance);
+		CheckNode(position, i, nodeTypes, pEntity, pTargetEntity, minDistance, reverseCheck);
 	}
 
 	if(m_nearestNodeDistance == -1)
 	{
 		if(minDistance != -1)
-			return GetNearestNode(position, nodeTypes, pEntity, pTargetEntity, -1, pIgnoreList);
+			return GetNearestNode(position, nodeTypes, pEntity, pTargetEntity, -1, pIgnoreList, reverseCheck);
 		else if(nodeTypes & AI_NODE_AHEAD)
-			return GetNearestNode(position, (nodeTypes & ~AI_NODE_AHEAD), pEntity, pTargetEntity, -1, pIgnoreList);
+			return GetNearestNode(position, (nodeTypes & ~AI_NODE_AHEAD), pEntity, pTargetEntity, -1, pIgnoreList, reverseCheck);
 	}
 
+#ifndef DEBUG
 	cache.position = position;
 	cache.node = m_nearestNodeIndex;
+#endif
 
 	return m_nearestNodeIndex;
 }
@@ -3123,7 +3127,7 @@ Float CAINodeGraph::GetPathLength( Int32 startNode, Int32 endNode, node_hull_typ
 // @brief
 //
 //=============================================
-void CAINodeGraph::CheckNode( const Vector& origin, Int32 nodeIndex, Uint64 nodeTypes, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity, Float minDistance )
+void CAINodeGraph::CheckNode( const Vector& destination, Int32 nodeIndex, Uint64 nodeTypes, CBaseEntity* pEntity, const CBaseEntity* pTargetEntity, Float minDistance, bool reverseCheck )
 {
 	node_t* pnode = m_pNodeHeader->getNode(nodeIndex);
 	if(!pnode)
@@ -3132,13 +3136,26 @@ void CAINodeGraph::CheckNode( const Vector& origin, Int32 nodeIndex, Uint64 node
 		return;
 	}
 
+	Vector startPosition;
+	Vector endPosition;
+	if(reverseCheck)
+	{
+		startPosition = pnode->origin;
+		endPosition = destination;
+	}
+	else
+	{
+		startPosition = destination;
+		endPosition = pnode->origin;
+	}
+
 	// If we only want nodes ahead, don't allow nodes behind us
 	if(nodeTypes & AI_NODE_AHEAD)
 	{
 		Vector forward;
 		Math::AngleVectors(pEntity->GetAngles(), &forward);
 
-		Vector direction = (origin - pnode->origin).Normalize();
+		Vector direction = (startPosition - endPosition).Normalize();
 		if(Math::DotProduct(forward, direction) < 0)
 			return;
 	}
@@ -3149,7 +3166,7 @@ void CAINodeGraph::CheckNode( const Vector& origin, Int32 nodeIndex, Uint64 node
 
 	// Check min/max distance if set
 	bool result = false;
-	Float distance = (origin-pnode->origin).Length();
+	Float distance = (startPosition-endPosition).Length();
 	if(distance > m_nearestNodeDistance && m_nearestNodeDistance != -1)
 		return;
 
@@ -3160,7 +3177,7 @@ void CAINodeGraph::CheckNode( const Vector& origin, Int32 nodeIndex, Uint64 node
 	// Factor in NPCs for path testing
 	if(pEntity && pEntity->IsNPC())
 	{
-		if(!(nodeTypes & AI_NODE_PRECISE_CHECK) && SDL_fabs(origin.z - pnode->origin.z) < 1.0f)
+		if(!(nodeTypes & AI_NODE_PRECISE_CHECK) && SDL_fabs(startPosition.z - endPosition.z) < 1.0f)
 		{
 			node_hull_types_t nodeHullType = Util::GetNodeHullForNPC(pEntity);
 
@@ -3184,8 +3201,8 @@ void CAINodeGraph::CheckNode( const Vector& origin, Int32 nodeIndex, Uint64 node
 				break;
 			}
 
-			Vector startOrigin = origin + offset;
-			Vector endOrigin = pnode->origin + offset;
+			Vector startOrigin = startPosition + offset;
+			Vector endOrigin = endPosition + offset;
 
 			trace_t tr;
 			Util::TraceHull(startOrigin, endOrigin, false, false, hulltype, pEntity->GetEdict(), tr);
@@ -3194,7 +3211,7 @@ void CAINodeGraph::CheckNode( const Vector& origin, Int32 nodeIndex, Uint64 node
 		}
 		else
 		{
-			localmove_t moveResult = pEntity->CheckLocalMove(origin, pnode->origin, pTargetEntity, nullptr, true, true);
+			localmove_t moveResult = pEntity->CheckLocalMove(startPosition, endPosition, pTargetEntity, nullptr, true, true);
 			if(moveResult > LOCAL_MOVE_RESULT_FAILURE)
 				result = true;
 		}
@@ -3204,7 +3221,7 @@ void CAINodeGraph::CheckNode( const Vector& origin, Int32 nodeIndex, Uint64 node
 		const edict_t* pedict = pEntity ? pEntity->GetEdict() : nullptr;
 
 		trace_t tr;
-		Util::TraceLine(origin, pnode->origin + NODE_PEEK_OFFSET, false, false, pedict, tr);
+		Util::TraceLine(startPosition, endPosition + NODE_PEEK_OFFSET, false, false, pedict, tr);
 		if(tr.noHit() || tr.hitentity != NO_ENTITY_INDEX && pTargetEntity && tr.hitentity == pTargetEntity->GetEntityIndex())
 			result = true;
 	}

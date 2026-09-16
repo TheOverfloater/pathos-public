@@ -48,7 +48,7 @@ public:
 
 	void SetLightStyle( const Char* pstrpattern, bool interpolate, Float framerate, Uint32 styleindex );
 	Int32 AddCustomLightStyle( const Char* pstrpattern, bool interpolate, Float framerate );
-	CArray<Float>* GetLightStyleValuesArray( void );
+	const CArray<Float>* GetLightStyleValuesArray( void );
 
 private:
 	// Array of custom lightstyles

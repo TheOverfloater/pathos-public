@@ -850,12 +850,15 @@
     1 : "Start Off"   : 0
   ]
 ]
-@PointClass base(Targetname) = env_cable : "Cable"
+@PointClass base(Targetname) nodelink(80 0 200 targetname targetname targetname target) = env_cable : "Cable"
 [
+	model(sprite) : "Sprite Name" : "sprites/cable/cable1.spr"
 	target(target_destination) : "Target"
 	falldepth(integer) : "Depth" : 200
 	spritewidth(integer) : "Width" : 5
 	segments(integer) : "Segments" : 30
+	windx(string) : "X Axis Wind" : "-1"
+	windy(string) : "Y Axis Wind" : "-1"
 ]
 @SolidClass base(Targetname) = env_cubemap_obb : "Cubemap Parallax Boundary" []
 

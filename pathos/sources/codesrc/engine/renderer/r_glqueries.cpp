@@ -14,7 +14,7 @@ All Rights Reserved.
 #include "r_main.h"
 #include "r_common.h"
 #include "trace.h"
-#include "trace_shared.h"
+#include "trace_core.h"
 #include "cl_pmove.h"
 #include "system.h"
 #include "com_math.h"

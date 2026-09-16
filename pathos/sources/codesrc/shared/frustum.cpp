@@ -139,7 +139,7 @@ bool CFrustum::CullBBox( const Vector& mins, const Vector& maxs ) const
 
 	for(Uint32 i = 0; i < NUM_FRUSTUM_PLANES; i++)
 	{
-		if(Math::BoxOnPlaneSide(mins, maxs, &m_frustumPlanes[i]) == 2)
+		if(Math::BoxOnPlaneSide(mins, maxs, &m_frustumPlanes[i]) == SIDE_BACK)
 			return true;
 	}
 

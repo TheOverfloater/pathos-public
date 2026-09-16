@@ -93,12 +93,12 @@ void SV_CheckVelocity( edict_t* pedict )
 		Float maxvelocity = g_psv_maxvelocity->GetValue();
 		if(pedict->state.velocity[i] > maxvelocity)
 		{
-			Con_Printf("Warning: Velocity %f too high on %s.\n", pedict->state.velocity[i], SV_GetString(pedict->fields.classname));
+			Con_DPrintf("Warning: Velocity %f too high on %s.\n", pedict->state.velocity[i], SV_GetString(pedict->fields.classname));
 			pedict->state.velocity[i] = maxvelocity;
 		}
 		else if(pedict->state.velocity[i] < -maxvelocity)
 		{
-			Con_Printf("Warning: Velocity %f too low on %s.\n", pedict->state.velocity[i], SV_GetString(pedict->fields.classname));
+			Con_DPrintf("Warning: Velocity %f too low on %s.\n", pedict->state.velocity[i], SV_GetString(pedict->fields.classname));
 			pedict->state.velocity[i] = -maxvelocity;
 		}
 	}
@@ -156,7 +156,7 @@ void SV_FlyMove( edict_t* pedict, Double time, Float bounce )
 		// See if we were successful
 		trace_t trace;
 		SV_Move(trace, pedict->state.origin, pedict->state.mins, pedict->state.maxs, move, moveflags, pedict, static_cast<hull_types_t>(pedict->state.forcehull));
-		if(trace.flags & FL_TR_ALLSOLID)
+		if(trace.allSolid() || trace.startSolid())
 		{
 			// We're trapped in a solid
 			pedict->state.velocity.Clear();
@@ -167,7 +167,7 @@ void SV_FlyMove( edict_t* pedict, Double time, Float bounce )
 		{
 			trace_t test;
 			SV_Move(test, trace.endpos, pedict->state.mins, pedict->state.maxs, trace.endpos, moveflags, pedict, static_cast<hull_types_t>(pedict->state.forcehull));
-			if(!(test.flags & FL_TR_ALLSOLID))
+			if(!trace.allSolid() && !trace.startSolid())
 			{
 				pedict->state.origin = trace.endpos;
 				origvelocity = pedict->state.velocity;
@@ -683,7 +683,7 @@ void SV_PushEntity( edict_t* pentity, const Vector& push, trace_t& trace )
 	
 	SV_Move(trace, pentity->state.origin, pentity->state.mins, pentity->state.maxs, end, moveFlags, pentity, static_cast<hull_types_t>(pentity->state.forcehull));
 
-	if(trace.fraction != 0 && !(trace.flags & FL_TR_ALLSOLID))
+	if(trace.fraction != 0 && !trace.allSolid() && !trace.startSolid())
 	{
 		Math::VectorCopy(trace.endpos, pentity->state.origin);
 		SV_LinkEdict(pentity, true);
@@ -1886,7 +1886,7 @@ void SV_Physics_Bounce( edict_t* pedict )
 	}
 
 	// If we started in a solid object, it means we're stuck
-	if(trace.flags & FL_TR_ALLSOLID)
+	if(trace.allSolid() || trace.startSolid())
 	{
 		pedict->state.avelocity.Clear();
 		pedict->state.velocity.Clear();

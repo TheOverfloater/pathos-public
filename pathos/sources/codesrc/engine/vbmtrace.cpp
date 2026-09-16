@@ -16,7 +16,7 @@ All Rights Reserved.
 #include "vbm_shared.h"
 #include "system.h"
 #include "trace.h"
-#include "trace_shared.h"
+#include "trace_core.h"
 
 //
 // Some of the code here was written while referencing Quake 1 and ReHLDS. I want to thank Id Software

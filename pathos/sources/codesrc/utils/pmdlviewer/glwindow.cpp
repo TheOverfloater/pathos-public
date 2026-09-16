@@ -283,7 +283,7 @@ Int32 CGLWindow::handleEvent( mxEvent *pEvent )
 			CControlPanel::GetInstance()->SetTimePosition(fractPosition, true);
 			return 1;
 		}
-		else
+		else if(pEvent->x > 0 && pEvent->x < GetWidth() && pEvent->y > 0 && pEvent->y < GetHeight())
 		{
 			if (pEvent->buttons & mxEvent::MouseLeftButton)
 			{

@@ -134,6 +134,7 @@ void CTriggerPush::CallTouch( CBaseEntity* pOther )
 
 		SetThink(&CBaseEntity::RemoveThink);
 		m_pState->nextthink = g_pGameVars->time + 0.1;
+		m_isActive = false;
 	}
 	else
 	{

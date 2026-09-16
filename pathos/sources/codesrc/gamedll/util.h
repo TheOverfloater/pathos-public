@@ -97,7 +97,7 @@ namespace Util
 	extern void CreateParticleExplosion1( const Vector& origin );
 	extern void CreateParticleExplosion2( const Vector& origin, Int32 colorstart, Int32 colorlength );
 	extern void CreateBlobExplosion( const Vector& origin );
-	extern void CreateRocketExplosion( const Vector& origin, Int32 color );
+	extern void CreateRocketExplosion( const Vector& origin );
 	extern void CreateParticleEffect( const Vector& origin, const Vector& velocity, Int32 color, Uint32 count );
 	extern void CreateLavaSplash( const Vector& origin );
 	extern void CreateTeleportSplash( const Vector& origin );

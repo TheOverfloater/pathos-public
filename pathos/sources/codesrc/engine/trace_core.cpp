@@ -7,6 +7,13 @@ All Rights Reserved.
 ===============================================
 */
 
+//
+// Core traceline functions, includes both legacy clipnode
+// versions and the latest brush based collisions. Brush based
+// collisions were written referencing Quake 2 code, but with
+// some major changes.
+//
+
 #include "includes.h"
 #include "entity_state.h"
 #include "brushmodel.h"
@@ -21,7 +28,7 @@ All Rights Reserved.
 #include "mcdtrace.h"
 #include "sv_world.h"
 #include "collision_shared.h"
-#include "trace_shared.h"
+#include "trace_core.h"
 
 // Hull mins for tracehull
 Vector HULL_MINS[MAX_MAP_HULLS] = {
@@ -54,6 +61,14 @@ static constexpr Uint32 LEAF_ARRAY_ALLOC_SIZE = 128;
 CArray<const mleaf_t*> g_leafArray(LEAF_ARRAY_ALLOC_SIZE);
 // Number of leafs in array
 Uint32 g_numLeafs = 0;
+
+// Brush pointer array alloc size
+static constexpr Uint32 BRUSH_ARRAY_ALLOC_SIZE = 128;
+// Leaf pointer array
+CArray<mbrush_t*> g_brushArray(BRUSH_ARRAY_ALLOC_SIZE);
+// Number of leafs in array
+Uint32 g_numBrushes = 0;
+
 
 // Hull epsilon value
 static const Float HULL_EPSILON = 0.03125;
@@ -712,7 +727,6 @@ void TR_ClipPointToBrush( const Vector& p1, const Vector& p2, trace_t& tr, const
 	}
 }
 
-
 //=============================================
 //
 //=============================================
@@ -792,11 +806,33 @@ bool TR_TestPointInBrush( const Vector& position, const brushmodel_t* pbrushmode
 //=============================================
 //
 //=============================================
-void TR_TraceBoxToLeaf( const Vector& p1, const Vector& p2, const Vector& mins, const Vector& maxs, trace_t& tr, const brushmodel_t* pbrushmodel, mleaf_t* pleaf, Int32 brushtypebits )
+void TR_TraceBoxToLeaf( const Vector& p1, const Vector& p2, const Vector& mins, const Vector& maxs, trace_t& tr, const brushmodel_t* pbrushmodel, const mleaf_t* pleaf, Int32 brushtypebits )
 {
-	for(Uint32 i = 0; i < pleaf->numleafbrushes; i++)
+	if(!pleaf->numleafbrushes)
+		return;
+
+	if(!pleaf->pleafbrushbvh)
 	{
-		mbrush_t* pbrush = pleaf->pfirstleafbrush[i];
+		g_numBrushes = 0;
+
+		for(Uint32 i = 0; i < pleaf->numleafbrushes; i++)
+		{
+			if(g_numBrushes == g_brushArray.size())
+				g_brushArray.resize(g_brushArray.size() + BRUSH_ARRAY_ALLOC_SIZE);
+
+			g_brushArray[i] = pleaf->pfirstleafbrush[i];
+			g_numBrushes++;
+		}
+	}
+	else
+	{
+		// Speed up these tests using BVHs
+		pleaf->pleafbrushbvh->GetAABBTraceBrushes(p1, p2, mins, maxs, g_brushArray, g_numBrushes, BRUSH_ARRAY_ALLOC_SIZE);
+	}
+
+	for(Uint32 i = 0; i < g_numBrushes; i++)
+	{
+		mbrush_t* pbrush = g_brushArray[i];
 
 		// Check that the content mask matches
 		if(!(brushtypebits & (1<<pbrush->type)))
@@ -819,11 +855,33 @@ void TR_TraceBoxToLeaf( const Vector& p1, const Vector& p2, const Vector& mins, 
 //=============================================
 //
 //=============================================
-void TR_TracePointToLeaf( const Vector& p1, const Vector& p2, trace_t& tr, const brushmodel_t* pbrushmodel, mleaf_t* pleaf, Int32 brushtypebits )
+void TR_TracePointToLeaf( const Vector& p1, const Vector& p2, trace_t& tr, const brushmodel_t* pbrushmodel, const mleaf_t* pleaf, Int32 brushtypebits )
 {
-	for(Uint32 i = 0; i < pleaf->numleafbrushes; i++)
+	if(!pleaf->numleafbrushes)
+		return;
+
+	if(!pleaf->pleafbrushbvh)
 	{
-		mbrush_t* pbrush = pleaf->pfirstleafbrush[i];
+		g_numBrushes = 0;
+
+		for(Uint32 i = 0; i < pleaf->numleafbrushes; i++)
+		{
+			if(g_numBrushes == g_brushArray.size())
+				g_brushArray.resize(g_brushArray.size() + BRUSH_ARRAY_ALLOC_SIZE);
+
+			g_brushArray[i] = pleaf->pfirstleafbrush[i];
+			g_numBrushes++;
+		}
+	}
+	else
+	{
+		// Speed up these tests using BVHs
+		pleaf->pleafbrushbvh->GetLineTraceBrushes(p1, p2, g_brushArray, g_numBrushes, BRUSH_ARRAY_ALLOC_SIZE);
+	}
+
+	for(Uint32 i = 0; i < g_numBrushes; i++)
+	{
+		mbrush_t* pbrush = g_brushArray[i];
 
 		// Check that the content mask matches
 		if(!(brushtypebits & (1<<pbrush->type)))
@@ -848,6 +906,10 @@ void TR_TracePointToLeaf( const Vector& p1, const Vector& p2, trace_t& tr, const
 //=============================================
 void TR_TestBoxInLeaf( const Vector& position, const Vector& mins, const Vector& maxs, trace_t& tr, const brushmodel_t* pbrushmodel, const mleaf_t* pleaf, Int32 brushtypebits )
 {
+	Vector absmin, absmax;
+	Math::VectorAdd(position, mins, absmin);
+	Math::VectorAdd(position, maxs, absmax);
+
 	for(Uint32 i = 0; i < pleaf->numleafbrushes; i++)
 	{
 		mbrush_t* pbrush = pleaf->pfirstleafbrush[i];
@@ -859,6 +921,13 @@ void TR_TestBoxInLeaf( const Vector& position, const Vector& mins, const Vector&
 		// See if we already checked this leaf
 		if(pbrush->checkcount == g_brushTraceCount)
 			continue;
+
+		// Check if we touch the bbox at all
+		if(Math::CheckMinsMaxs(absmin, absmax, pbrush->mins, pbrush->maxs))
+		{
+			pbrush->checkcount = g_brushTraceCount;
+			continue;
+		}
 
 		// See if it's inside the brush
 		if(TR_TestBoxInBrush(position, mins, maxs, pbrushmodel, pbrush, brushtypebits))
@@ -894,6 +963,13 @@ void TR_TestPointInLeaf( const Vector& position, trace_t& tr, const brushmodel_t
 		if(pbrush->checkcount == g_brushTraceCount)
 			continue;
 
+		// Check if we touche the bbox at all
+		if(!Math::PointInMinsMaxs(position, pbrush->mins, pbrush->maxs))
+		{
+			pbrush->checkcount = g_brushTraceCount;
+			continue;
+		}
+
 		// See if it's inside the brush
 		if(TR_TestPointInBrush(position, pbrushmodel, pbrush, brushtypebits))
 		{
@@ -914,7 +990,7 @@ void TR_TestPointInLeaf( const Vector& position, trace_t& tr, const brushmodel_t
 //=============================================
 //
 //=============================================
-void TR_RecursiveHullCheck_BrushBox( mnode_t* pnode, Double p1f, Double p2f, const Vector& p1, const Vector& p2, const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs, const Vector& traceextents, const brushmodel_t* pbrushmodel, Int32 brushtypebits, trace_t& trace )
+void TR_RecursiveHullCheck_BrushBox( mnode_t* pnode, Double p1f, Double p2f, const Vector& p1, const Vector& p2, const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs, const Vector& traceextents, const brushmodel_t* pbrushmodel, Int32 brushtypebits, trace_t& trace, CArray<const mleaf_t*>& listarray, Uint32& listsize )
 {
 	// Check if we already hit something closer/smaller
 	if(trace.fraction <= p1f)
@@ -923,8 +999,12 @@ void TR_RecursiveHullCheck_BrushBox( mnode_t* pnode, Double p1f, Double p2f, con
 	// If node contents is negative, we hit a leaf
 	if(pnode->contents < 0)
 	{
-		mleaf_t* pleaf = reinterpret_cast<mleaf_t*>(pnode);
-		TR_TraceBoxToLeaf(start, end, mins, maxs, trace, pbrushmodel, pleaf, brushtypebits);
+		if(listsize == listarray.size())
+			listarray.resize(listarray.size() + LEAF_ARRAY_ALLOC_SIZE);
+
+		const mleaf_t* pleaf = reinterpret_cast<const mleaf_t*>(pnode);
+		listarray[listsize] = pleaf;
+		listsize++;
 		return;
 	}
 
@@ -951,12 +1031,12 @@ void TR_RecursiveHullCheck_BrushBox( mnode_t* pnode, Double p1f, Double p2f, con
 	// See which sides we need to consider
 	if(t1 > offset && t2 > offset)
 	{
-		TR_RecursiveHullCheck_BrushBox(pnode->pchildren[0], p1f, p2f, p1, p2, start, end, mins, maxs, traceextents, pbrushmodel, brushtypebits, trace);
+		TR_RecursiveHullCheck_BrushBox(pnode->pchildren[0], p1f, p2f, p1, p2, start, end, mins, maxs, traceextents, pbrushmodel, brushtypebits, trace, listarray, listsize);
 		return;
 	}
 	else if(t1 < -offset && t2 < -offset)
 	{
-		TR_RecursiveHullCheck_BrushBox(pnode->pchildren[1], p1f, p2f, p1, p2, start, end, mins, maxs, traceextents, pbrushmodel, brushtypebits, trace);
+		TR_RecursiveHullCheck_BrushBox(pnode->pchildren[1], p1f, p2f, p1, p2, start, end, mins, maxs, traceextents, pbrushmodel, brushtypebits, trace, listarray, listsize);
 		return;
 	}
 
@@ -992,7 +1072,7 @@ void TR_RecursiveHullCheck_BrushBox( mnode_t* pnode, Double p1f, Double p2f, con
 	for (Uint32 i = 0; i < 3; i++)
 		mid[i] = p1[i] + frac1*(p2[i] - p1[i]);
 
-	TR_RecursiveHullCheck_BrushBox(pnode->pchildren[side], p1f, midf, p1, mid, start, end, mins, maxs, traceextents, pbrushmodel, brushtypebits, trace);
+	TR_RecursiveHullCheck_BrushBox(pnode->pchildren[side], p1f, midf, p1, mid, start, end, mins, maxs, traceextents, pbrushmodel, brushtypebits, trace, listarray, listsize);
 
 	// Go past the node
 	frac2 = clamp(frac2, 0, 1);
@@ -1001,13 +1081,13 @@ void TR_RecursiveHullCheck_BrushBox( mnode_t* pnode, Double p1f, Double p2f, con
 	for (Uint32 i = 0; i < 3; i++)
 		mid[i] = p1[i] + frac2*(p2[i] - p1[i]);
 
-	TR_RecursiveHullCheck_BrushBox(pnode->pchildren[side^1], midf, p2f, mid, p2, start, end, mins, maxs, traceextents, pbrushmodel, brushtypebits, trace);
+	TR_RecursiveHullCheck_BrushBox(pnode->pchildren[side^1], midf, p2f, mid, p2, start, end, mins, maxs, traceextents, pbrushmodel, brushtypebits, trace, listarray, listsize);
 }
 
 //=============================================
 //
 //=============================================
-void TR_RecursiveHullCheck_BrushPoint( mnode_t* pnode, Double p1f, Double p2f, const Vector& p1, const Vector& p2, const Vector& start, const Vector& end, const brushmodel_t* pbrushmodel, Int32 brushtypebits, trace_t& trace )
+void TR_RecursiveHullCheck_BrushPoint( mnode_t* pnode, Double p1f, Double p2f, const Vector& p1, const Vector& p2, const Vector& start, const Vector& end, const brushmodel_t* pbrushmodel, Int32 brushtypebits, trace_t& trace, CArray<const mleaf_t*>& listarray, Uint32& listsize )
 {
 	// Check if we already hit something closer/smaller
 	if(trace.fraction <= p1f)
@@ -1016,8 +1096,12 @@ void TR_RecursiveHullCheck_BrushPoint( mnode_t* pnode, Double p1f, Double p2f, c
 	// If node contents is negative, we hit a leaf
 	if(pnode->contents < 0)
 	{
-		mleaf_t* pleaf = reinterpret_cast<mleaf_t*>(pnode);
-		TR_TracePointToLeaf(start, end, trace, pbrushmodel, pleaf, brushtypebits);
+		if(listsize == listarray.size())
+			listarray.resize(listarray.size() + LEAF_ARRAY_ALLOC_SIZE);
+
+		const mleaf_t* pleaf = reinterpret_cast<const mleaf_t*>(pnode);
+		listarray[listsize] = pleaf;
+		listsize++;
 		return;
 	}
 
@@ -1040,12 +1124,12 @@ void TR_RecursiveHullCheck_BrushPoint( mnode_t* pnode, Double p1f, Double p2f, c
 	// See which sides we need to consider
 	if(t1 > 0 && t2 > 0)
 	{
-		TR_RecursiveHullCheck_BrushPoint(pnode->pchildren[0], p1f, p2f, p1, p2, start, end, pbrushmodel, brushtypebits, trace);
+		TR_RecursiveHullCheck_BrushPoint(pnode->pchildren[0], p1f, p2f, p1, p2, start, end, pbrushmodel, brushtypebits, trace, listarray, listsize);
 		return;
 	}
 	else if(t1 < 0 && t2 < 0)
 	{
-		TR_RecursiveHullCheck_BrushPoint(pnode->pchildren[1], p1f, p2f, p1, p2, start, end, pbrushmodel, brushtypebits, trace);
+		TR_RecursiveHullCheck_BrushPoint(pnode->pchildren[1], p1f, p2f, p1, p2, start, end, pbrushmodel, brushtypebits, trace, listarray, listsize);
 		return;
 	}
 
@@ -1081,7 +1165,7 @@ void TR_RecursiveHullCheck_BrushPoint( mnode_t* pnode, Double p1f, Double p2f, c
 	for (Uint32 i = 0; i < 3; i++)
 		mid[i] = p1[i] + frac1*(p2[i] - p1[i]);
 
-	TR_RecursiveHullCheck_BrushPoint(pnode->pchildren[side], p1f, midf, p1, mid, start, end, pbrushmodel, brushtypebits, trace);
+	TR_RecursiveHullCheck_BrushPoint(pnode->pchildren[side], p1f, midf, p1, mid, start, end, pbrushmodel, brushtypebits, trace, listarray, listsize);
 
 	// Go past the node
 	frac2 = clamp(frac2, 0, 1);
@@ -1090,7 +1174,7 @@ void TR_RecursiveHullCheck_BrushPoint( mnode_t* pnode, Double p1f, Double p2f, c
 	for (Uint32 i = 0; i < 3; i++)
 		mid[i] = p1[i] + frac2*(p2[i] - p1[i]);
 
-	TR_RecursiveHullCheck_BrushPoint(pnode->pchildren[side^1], midf, p2f, mid, p2, start, end, pbrushmodel, brushtypebits, trace);
+	TR_RecursiveHullCheck_BrushPoint(pnode->pchildren[side^1], midf, p2f, mid, p2, start, end, pbrushmodel, brushtypebits, trace, listarray, listsize);
 }
 
 //=============================================
@@ -1118,10 +1202,10 @@ void TR_BoxLeafNumsRecursive( const mnode_t* pstartnode, const Vector& mins, con
 			Int32 side = Math::BoxOnPlaneSide(mins, maxs, pplane);
 			switch(side)
 			{
-			case 1:
+			case SIDE_FRONT:
 				pnode = pnode->pchildren[0];
 				break;
-			case 2:
+			case SIDE_BACK:
 				pnode = pnode->pchildren[1];
 				break;
 			default:
@@ -1274,7 +1358,9 @@ Int32 TR_HullPointContents_Brush( const brushmodel_t* pbrushmodel, const Vector&
 //=============================================
 void TR_BrushBoxTrace( const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs, const mnode_t* pheadnode, const brushmodel_t* pbrushmodel, Int32 brushtypebits, trace_t& outtrace )
 {
-	// Initialize trace
+	// Initialize trace, in case of brush based
+	// collisions the opposite is true: We start
+	// in open, then ALLSOLID/STARTSOLID is set
 	outtrace.fraction = 1.0;
 	outtrace.flags &= ~FL_TR_ALLSOLID;
 	outtrace.flags |= FL_TR_INOPEN;
@@ -1282,6 +1368,7 @@ void TR_BrushBoxTrace( const Vector& start, const Vector& end, const Vector& min
 
 	// Increment trace counter
 	g_brushTraceCount++;
+	g_numLeafs = 0;
 
 	Vector extents;
 	bool ispointcheck = (mins.IsZero() && maxs.IsZero()) ? true : false;
@@ -1295,11 +1382,11 @@ void TR_BrushBoxTrace( const Vector& start, const Vector& end, const Vector& min
 
 	Vector delta;
 	Math::VectorSubtract(end, start, delta);
+
 	if(delta.IsZero())
 	{
 		if(ispointcheck)
 		{
-			g_numLeafs = 0;
 			const mleaf_t* pleaf = TR_PointLeaf(&pbrushmodel->pnodes[pbrushmodel->headnodeindex], start);
 			if(pleaf)
 			{
@@ -1319,36 +1406,92 @@ void TR_BrushBoxTrace( const Vector& start, const Vector& end, const Vector& min
 				c2[i] += 1;
 			}
 
-			g_numLeafs = 0;
 			TR_BoxLeafNumsRecursive(&pbrushmodel->pnodes[pbrushmodel->headnodeindex], c1, c2, g_leafArray, g_numLeafs, nullptr);
 		}
 
+		// Check if we are only touching solid leafs without brushes
+		bool onlySolidLeafs = true;
 		for(Uint32 i = 0; i < g_numLeafs; i++)
 		{
-			if(ispointcheck)
-				TR_TestPointInLeaf(start, outtrace, pbrushmodel, g_leafArray[i], brushtypebits);
-			else
-				TR_TestBoxInLeaf(start, mins, maxs, outtrace, pbrushmodel, g_leafArray[i], brushtypebits);
-
-			if(outtrace.allSolid())
+			const mleaf_t* pleaf = g_leafArray[i];
+			if(pleaf->contents != CONTENTS_SOLID)
+			{
+				onlySolidLeafs = false;
 				break;
+			}
+		}
+
+		if(onlySolidLeafs)
+		{
+			// If we only visited solid leafs, then we're fully in a solid
+			outtrace.flags |= (FL_TR_STARTSOLID|FL_TR_ALLSOLID);
+			outtrace.flags &= ~FL_TR_INOPEN;
+			outtrace.fraction = 0;
+		}
+		else
+		{
+			for(Uint32 i = 0; i < g_numLeafs; i++)
+			{
+				if(ispointcheck)
+					TR_TestPointInLeaf(start, outtrace, pbrushmodel, g_leafArray[i], brushtypebits);
+				else
+					TR_TestBoxInLeaf(start, mins, maxs, outtrace, pbrushmodel, g_leafArray[i], brushtypebits);
+
+				if(outtrace.allSolid())
+					break;
+			}
 		}
 
 		outtrace.endpos = start;
-
-		return;
 	}
-
-	Int32 headnode = pbrushmodel->headnodeindex;
-	if(ispointcheck)
-		TR_RecursiveHullCheck_BrushPoint(&pbrushmodel->pnodes[headnode], 0, 1, start, end, start, end, pbrushmodel, brushtypebits, outtrace);
 	else
-		TR_RecursiveHullCheck_BrushBox(&pbrushmodel->pnodes[headnode], 0, 1, start, end, start, end, mins, maxs, extents, pbrushmodel, brushtypebits, outtrace);
+	{
+		Int32 headnode = pbrushmodel->headnodeindex;
+		if(ispointcheck)
+			TR_RecursiveHullCheck_BrushPoint(&pbrushmodel->pnodes[headnode], 0, 1, start, end, start, end, pbrushmodel, brushtypebits, outtrace, g_leafArray, g_numLeafs);
+		else
+			TR_RecursiveHullCheck_BrushBox(&pbrushmodel->pnodes[headnode], 0, 1, start, end, start, end, mins, maxs, extents, pbrushmodel, brushtypebits, outtrace, g_leafArray, g_numLeafs);
 
-	if(outtrace.fraction == 1.0)
-		outtrace.endpos = end;
-	else
-		Math::VectorMA(start, outtrace.fraction, delta, outtrace.endpos);
+		// Check if we are only touching solid leafs without brushes
+		bool onlySolidLeafs = true;
+		for(Uint32 i = 0; i < g_numLeafs; i++)
+		{
+			const mleaf_t* pleaf = g_leafArray[i];
+			if(pleaf->contents != CONTENTS_SOLID)
+			{
+				onlySolidLeafs = false;
+				break;
+			}
+		}
+
+		if(onlySolidLeafs)
+		{
+			// If we only visited solid leafs, then we're fully in a solid
+			outtrace.flags |= (FL_TR_STARTSOLID|FL_TR_ALLSOLID);
+			outtrace.flags &= ~FL_TR_INOPEN;
+			outtrace.fraction = 0;
+		}
+		else
+		{
+			// Do collision test as normal
+			for(Uint32 i = 0; i < g_numLeafs; i++)
+			{
+				const mleaf_t* pleaf = g_leafArray[i];
+
+				if(ispointcheck)
+					TR_TracePointToLeaf(start, end, outtrace, pbrushmodel, pleaf, brushtypebits);
+				else
+					TR_TraceBoxToLeaf(start, end, mins, maxs, outtrace, pbrushmodel, pleaf, brushtypebits);
+			}
+		}
+
+		if(outtrace.fraction == 1.0)
+			outtrace.endpos = end;
+		else if(outtrace.fraction > 0)
+			Math::VectorMA(start, outtrace.fraction, delta, outtrace.endpos);
+		else
+			outtrace.endpos = start;
+	}
 }
 
 //=============================================
@@ -1364,7 +1507,7 @@ void TR_TraceAgainstEntity( const entity_state_t& entity, const cache_model_t* p
 	}
 
 	Vector lmins, lmaxs;
-	if(hulltype == HULL_POINT)
+	if(hulltype == HULL_POINT || hulltype == HULL_AUTO && mins.IsZero() && maxs.IsZero())
 	{
 		// We don't use mins/maxs in point traces
 		lmins.Clear();
@@ -1537,7 +1680,6 @@ void TR_TraceAgainstEntity( const entity_state_t& entity, const cache_model_t* p
 void TR_PlayerTraceSingleEntity( const entity_state_t& entity, entity_vbmhulldata_t* pvbmhulldata, const Vector& start, const Vector& end, hull_types_t hulltype, Int32 traceflags, const Vector& player_mins, const Vector& player_maxs, trace_t& outtrace )
 {
 	trace_t trace;
-
 	trace.endpos = end;
 	trace.flags = FL_TR_ALLSOLID;
 	trace.fraction = 1.0f;
@@ -1573,37 +1715,47 @@ void TR_PlayerTraceSingleEntity( const entity_state_t& entity, entity_vbmhulldat
 //=============================================
 bool TR_TracelineBBoxCheck( const entity_state_t& entity, const cache_model_t* pcachemodel, const Vector& start, const Vector& end, const Vector& mins, const Vector& maxs )
 {
-	// Calculate hull mins/maxs
-	Vector hullmins, hullmaxs;
+	// Because of how hull expansion works, we need to expand the hull of the rotated brush entity
+	// by the collision hull BEFORE we rotate those mins/maxs, otherwise the bounding box will
+	// not represent the actual expansion.
+
+	bool forcePointCheck = false;
+	Vector entitymins, entitymaxs;
 	if(pcachemodel->type == MOD_BRUSH && !entity.angles.IsZero())
 	{
-		for(Uint32 i = 0; i < 3; i++)
-		{
-			hullmins[i] = entity.origin[i] - pcachemodel->radius;
-			hullmaxs[i] = entity.origin[i] + pcachemodel->radius;
-		}
+		Math::VectorAdd(pcachemodel->mins, mins, entitymins);
+		Math::VectorAdd(pcachemodel->maxs, maxs, entitymaxs);
+
+		Vector rotatedmins, rotatedmaxs;
+		Math::RotateMinsMaxsByAngle(entitymins, entitymaxs, entity.angles, rotatedmins, rotatedmaxs);
+
+		Math::VectorSubtract(rotatedmins, Vector(1, 1, 1), rotatedmins);
+		Math::VectorAdd(rotatedmaxs, Vector(1, 1, 1), rotatedmaxs);
+
+		Math::VectorAdd(rotatedmins, entity.origin, entitymins);
+		Math::VectorAdd(rotatedmaxs, entity.origin, entitymaxs);
+
+		forcePointCheck = true;
 	}
 	else
 	{
-		Math::VectorAdd(entity.mins, entity.origin, hullmins);
-		Math::VectorAdd(entity.maxs, entity.origin, hullmaxs);
+		Math::VectorCopy(entity.absmin, entitymins);
+		Math::VectorCopy(entity.absmax, entitymaxs);
 	}
 
-	// Some very small mins/maxs need to be extended, otherwise the trace fails
-	for(Uint32 i = 0; i < 3; i++)
-	{
-		hullmins[i] -= 1;
-		hullmaxs[i] += 1;
-	}
-
-	if(mins.IsZero() && maxs.IsZero())
+	if(forcePointCheck || mins.IsZero() && maxs.IsZero())
 	{
 		// Point traces are simple
 		Vector direction;
 		Math::VectorSubtract(end, start, direction);
 		direction.Normalize();
 
-		return CollisionShared::IntersectBBoxPoint(start, end, hullmins, hullmaxs, direction);
+		// Cheap test
+		if(!CollisionShared::IntersectBBoxPoint(start, end, entitymins, entitymaxs, direction))
+			return false;
+
+		// More expensive test
+		return CollisionShared::LineIntersectsBounds(&start, &end, entitymins, entitymaxs);
 	}
 	else
 	{
@@ -1611,12 +1763,12 @@ bool TR_TracelineBBoxCheck( const entity_state_t& entity, const cache_model_t* p
 		if((start - end).Length() < ON_EPSILON)
 		{
 			// This is an intersection check, which is much simpler than the swept AABB check
-			return CollisionShared::IntersectBBoxAABB(start, hullmins, hullmaxs, extents);
+			return CollisionShared::IntersectBBoxAABB(start, entitymins, entitymaxs, extents);
 		}
 		else
 		{
-			// This is a swept-AABB test, a litle bit more complex
-			return CollisionShared::IntersectBBoxSweptAABB(start, end, hullmins, hullmaxs, extents);
+			// This one is a little bit more complex
+			return CollisionShared::IntersectBBoxSweptAABB(start, end, entitymins, entitymaxs, extents);
 		}
 	}
 }
@@ -1632,7 +1784,7 @@ collision_method_t TR_GetIdealCollisionMethod( const entity_state_t& entity, con
 		return CM_MCD_COLLISIONS;
 	else if(pmodel->type == MOD_VBM && ((flags & FL_TRACE_HITBOXES) || (pmodel->flags & STUDIO_MF_TRACE_HITBOX)) && !(entity.flags & FL_NO_HITBOX_TRACE))
 		return CM_VBM_HITBOX_HULLS;
-	else if(pmodel->flags & CACHE_FL_HAS_BRUSH_COLLISIONS)
+	else if((pmodel->flags & CACHE_FL_HAS_BRUSH_COLLISIONS) && !(flags & FL_TRACE_FORCE_CLIPNODES))
 		return CM_BRUSH_COLLISIONS;
 	else if(pmodel->type == MOD_BRUSH)
 		return CM_CLIPNODE_COLLISIONS;

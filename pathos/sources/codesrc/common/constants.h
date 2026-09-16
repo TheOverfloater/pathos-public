@@ -296,6 +296,15 @@ static constexpr Uint32 NULL_LIGHTSTYLE_INDEX = 255;
 // Macro for usermsg exports
 #define MSGFN extern "C" bool _declspec( dllexport )
 
+// Results from BoxOnPlaneSide
+enum box_planeside_t
+{
+	SIDE_NONE	= 0,
+	SIDE_FRONT	= (1<<0),
+	SIDE_BACK	= (1<<1),
+	SIDE_BOTH	= (SIDE_FRONT | SIDE_BACK)
+};
+
 // For legacy support
 enum entitysteptypes_t
 {

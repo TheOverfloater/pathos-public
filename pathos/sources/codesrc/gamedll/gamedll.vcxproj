@@ -270,6 +270,7 @@
     <ClCompile Include="envtracereffect.cpp" />
     <ClCompile Include="envvignette.cpp" />
     <ClCompile Include="funcbreakable.cpp" />
+    <ClCompile Include="funcbrushcopy.cpp" />
     <ClCompile Include="funcbutton.cpp" />
     <ClCompile Include="funcdoor.cpp" />
     <ClCompile Include="ehandle.cpp" />
@@ -551,6 +552,7 @@
     <ClInclude Include="envsyncanimation.h" />
     <ClInclude Include="envtracereffect.h" />
     <ClInclude Include="envvignette.h" />
+    <ClInclude Include="funcbrushcopy.h" />
     <ClInclude Include="funcparticleblocker.h" />
     <ClInclude Include="funcportalsurface.h" />
     <ClInclude Include="funcslippery.h" />

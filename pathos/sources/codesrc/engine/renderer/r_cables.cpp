@@ -19,6 +19,12 @@ All Rights Reserved.
 #include "file.h"
 #include "r_common.h"
 #include "cvar.h"
+#include "r_basicdraw.h"
+#include "modelcache.h"
+#include "sprite.h"
+#include "texturemanager.h"
+#include "r_lightstyles.h"
+#include "r_dlights.h"
 
 //
 // Thanks to SysOp for the original cable code I relied upon
@@ -30,9 +36,7 @@ CCableRenderer gCableRenderer;
 //====================================
 //
 //====================================
-CCableRenderer::CCableRenderer( void ):
-	m_pShader(nullptr),
-	m_pVBO(nullptr)
+CCableRenderer::CCableRenderer( void )
 {
 }
 
@@ -57,7 +61,6 @@ bool CCableRenderer::Init( void )
 //====================================
 void CCableRenderer::Shutdown( void )
 {
-	ClearGL();
 	ClearGame();
 }
 
@@ -66,61 +69,6 @@ void CCableRenderer::Shutdown( void )
 //====================================
 bool CCableRenderer::InitGL( void )
 {
-	if(!m_pShader)
-	{
-		Int32 shaderFlags = CGLSLShader::FL_GLSL_SHADER_NONE;
-		if(R_IsExtensionSupported("GL_ARB_get_program_binary"))
-			shaderFlags |= CGLSLShader::FL_GLSL_BINARY_SHADER_OPS;
-
-		m_pShader = new CGLSLShader(FL_GetInterface(), gGLExtF, "cable.bss", shaderFlags, VID_ShaderCompileCallback);
-		if(m_pShader->HasError())
-		{
-			Sys_ErrorPopup("%s - Failed to compile shader: %s.", __FUNCTION__, m_pShader->GetError());
-			return false;
-		}
-
-		m_attribs.a_color = m_pShader->InitAttribute("in_color", 4, GL_FLOAT, sizeof(cable_vertex_t), OFFSET(cable_vertex_t, color));
-		m_attribs.a_origin = m_pShader->InitAttribute("in_position", 4, GL_FLOAT, sizeof(cable_vertex_t), OFFSET(cable_vertex_t, origin));
-		m_attribs.a_texcoord = m_pShader->InitAttribute("in_texcoord", 2, GL_FLOAT, sizeof(cable_vertex_t), OFFSET(cable_vertex_t, texcoord));
-		m_attribs.a_width = m_pShader->InitAttribute("in_width", 1, GL_FLOAT, sizeof(cable_vertex_t), OFFSET(cable_vertex_t, width));
-		m_attribs.a_vpoint = m_pShader->InitAttribute("in_vpoint", 3, GL_FLOAT, sizeof(cable_vertex_t), OFFSET(cable_vertex_t, vpoint));
-
-		if(!R_CheckShaderVertexAttribute(m_attribs.a_color, "in_color", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderVertexAttribute(m_attribs.a_origin, "in_position", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderVertexAttribute(m_attribs.a_texcoord, "in_texcoord", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderVertexAttribute(m_attribs.a_width, "in_width", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderVertexAttribute(m_attribs.a_vpoint, "in_vpoint", m_pShader, Sys_ErrorPopup))
-			return false;
-
-		m_attribs.u_fogcolor = m_pShader->InitUniform("fogcolor", CGLSLShader::UNIFORM_NOSYNC);
-		m_attribs.u_fogparams = m_pShader->InitUniform("fogparams", CGLSLShader::UNIFORM_NOSYNC);
-		m_attribs.u_modelview = m_pShader->InitUniform("modelview", CGLSLShader::UNIFORM_NOSYNC);
-		m_attribs.u_projection = m_pShader->InitUniform("projection", CGLSLShader::UNIFORM_NOSYNC);
-
-		m_attribs.u_vorigin = m_pShader->InitUniform("vorigin", CGLSLShader::UNIFORM_NOSYNC);
-		m_attribs.u_start = m_pShader->InitUniform("start", CGLSLShader::UNIFORM_NOSYNC);
-
-		if(!R_CheckShaderUniform(m_attribs.u_fogcolor, "fogcolor", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_fogparams, "fogparams", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_modelview, "modelview", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_projection, "projection", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_vorigin, "vorigin", m_pShader, Sys_ErrorPopup)
-			|| !R_CheckShaderUniform(m_attribs.u_start, "start", m_pShader, Sys_ErrorPopup))
-			return false;
-
-		m_attribs.d_fog = m_pShader->GetDeterminatorIndex("fog");
-
-		if(!R_CheckShaderDeterminator(m_attribs.d_fog, "fog", m_pShader, Sys_ErrorPopup))
-			return false;
-	}
-
-	if(m_pVBO)
-	{
-		// Rebind us
-		m_pVBO->RebindGL();
-		m_pShader->SetVBO(m_pVBO);
-	}
-
 	return true;
 }
 
@@ -129,14 +77,6 @@ bool CCableRenderer::InitGL( void )
 //====================================
 void CCableRenderer::ClearGL( void )
 {
-	if(m_pShader)
-	{
-		delete m_pShader;
-		m_pShader = nullptr;
-	}
-
-	if(m_pVBO)
-		m_pVBO->ClearGL();
 }
 
 //====================================
@@ -144,15 +84,6 @@ void CCableRenderer::ClearGL( void )
 //====================================
 bool CCableRenderer::InitGame( void )
 {
-	if(!m_pVBO)
-	{
-		m_pVBO = new CVBO(gGLExtF, true, false);
-		m_pShader->SetVBO(m_pVBO);
-	}
-
-	for(Uint32 i = 0; i < m_cablesArray.size(); i++)
-		InitCableVBOData(m_cablesArray[i]);
-
 	return true;
 }
 
@@ -163,18 +94,6 @@ void CCableRenderer::ClearGame( void )
 {
 	if(!m_cablesArray.empty())
 		m_cablesArray.clear();
-
-	if(m_pShader)
-	{
-		m_pShader->SetVBO(nullptr);
-		m_pShader->ResetShader();
-	}
-
-	if(m_pVBO)
-	{
-		delete m_pVBO;
-		m_pVBO = nullptr;
-	}
 }
 
 //====================================
@@ -185,56 +104,187 @@ bool CCableRenderer::DrawCables( void )
 	if(m_cablesArray.empty())
 		return true;
 
-	if(!m_pShader->EnableShader())
+	CBasicDraw* pDraw = CBasicDraw::GetInstance();
+	if(!pDraw->Enable() || !pDraw->EnableTexture())
 	{
-		Sys_ErrorPopup("Shader error: %s.\n", m_pShader->GetError());
+		Sys_ErrorPopup("Shader error: %s.\n", pDraw->GetShaderError());
 		return false;
 	}
 
-	m_pShader->EnableAttribute(m_attribs.a_origin);
-	m_pShader->EnableAttribute(m_attribs.a_color);
-	m_pShader->EnableAttribute(m_attribs.a_texcoord);
-	m_pShader->EnableAttribute(m_attribs.a_width);
-	m_pShader->EnableAttribute(m_attribs.a_vpoint);
+	pDraw->SetProjection(rns.view.projection.GetMatrix());
+	pDraw->SetModelview(rns.view.modelview.GetMatrix());
 
 	if(rns.fog.settings.active)
 	{
-		m_pShader->SetDeterminator(m_attribs.d_fog, 1);
-		m_pShader->SetUniform3f(m_attribs.u_fogcolor, rns.fog.settings.color[0], rns.fog.settings.color[1], rns.fog.settings.color[2]);
-		m_pShader->SetUniform2f(m_attribs.u_fogparams, rns.fog.settings.end, 1.0f/(static_cast<Float>(rns.fog.settings.end)- static_cast<Float>(rns.fog.settings.start)));
-	}
-	else
-	{
-		m_pShader->SetDeterminator(m_attribs.d_fog, 0);
-	}
+		if(!pDraw->EnableFog())
+		{
+			Sys_ErrorPopup("Shader error: %s.\n", pDraw->GetShaderError());
+			pDraw->Disable();
+			return false;
+		}
 
-	m_pShader->SetUniformMatrix4fv(m_attribs.u_modelview, rns.view.modelview.GetMatrix());
-	m_pShader->SetUniformMatrix4fv(m_attribs.u_projection, rns.view.projection.GetMatrix());
-
-	m_pShader->SetUniform3f(m_attribs.u_vorigin, rns.view.v_origin[0], rns.view.v_origin[1], rns.view.v_origin[2]);
+		// We use black fog on tracers
+		pDraw->SetFogParams(rns.fog.settings.color, rns.fog.settings.start, rns.fog.settings.end);
+	}
 
 	glDisable(GL_CULL_FACE);
+	R_ValidateShader(pDraw);
+
+	// Set modelview-projection matrix
+	CMatrix modelViewProjectionMatrix;
+	modelViewProjectionMatrix.SetMatrix(rns.view.modelview.GetMatrix());
+	modelViewProjectionMatrix.MultMatrix(rns.view.projection.Transpose());
 
 	for(Uint32 i = 0; i < m_cablesArray.size(); i++)
 	{
-		cable_object_t *pcable = &m_cablesArray[i];
+		const cable_object_t& cable = m_cablesArray[i];
 
-		if(!Common::CheckVisibility(pcable->leafnums, pcable->numleafs, rns.pvisbuffer))
-			continue;
+		// Bind the sprite used
+		const msprite_t* psprite = cable.pmodel->getSprite();
+		const mspriteframe_t *frame = Sprite_GetFrame(psprite, 0, rns.time);
+		R_Bind2DTexture(GL_TEXTURE0, frame->ptexture->palloc->gl_index);
 
-		if(rns.view.frustum.CullBBox(pcable->vmins, pcable->vmaxs))
-			continue;
+		const Vector& cablestart = cable.start;
+		const Vector& cableend = cable.end;
 
-		m_pShader->SetUniform3f(m_attribs.u_start, pcable->start[0], pcable->start[1], pcable->start[2]);
+		// Draw the beam itself
+		Vector delta;
+		Math::VectorSubtract(cableend, cablestart, delta);
 
-		R_ValidateShader(m_pShader);
+		Float length = delta.Length() * 0.01;
+		if(length < 0.5)
+			length = 0.5;
 
-		m_pShader->DrawArrays(GL_TRIANGLES, pcable->start_vertex, pcable->num_vertexes);
+		Float div = 1.0f / (cable.numsegments - 1);
+		Float step = length*div;
+		Float tcy1 = 0;
+
+		Vector vbottom;
+		Math::VectorMA(cablestart, 0.5, delta, vbottom);
+		vbottom[2] -= cable.falldepth;
+
+		if(cable.windx)
+			vbottom.x += SDL_sin(rns.time * 1.25) * cable.windx;
+
+		if(cable.windy)
+			vbottom.y += SDL_sin(rns.time * 0.75) * cable.windy;
+
+		// Calculate start
+		Vector start, screenlast, screenstart;
+		R_WorldToScreenTransform(modelViewProjectionMatrix, cablestart, screenlast);
+		Vector prevpoint = cablestart;
+
+		// Calculate 1st point
+		Vector nextpoint = CalculatePoint(1, cable.numsegments, cablestart, screenlast, vbottom);
+		R_WorldToScreenTransform(modelViewProjectionMatrix, nextpoint, screenstart);
+
+		Vector tmp;
+		Math::VectorSubtract(screenstart, screenlast, tmp);
+		tmp[2] = 0.0; // discard z as we're in screen space
+
+		Vector normal;
+		Math::VectorNormalize(tmp);
+		Math::VectorScale(rns.view.v_up, tmp[0], normal);
+		Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
+
+		Vector coord1_1, coord1_2;
+		Math::VectorMA(cablestart, cable.width, normal, coord1_1);
+		Math::VectorMA(cablestart, -cable.width, normal, coord1_2);
+
+		// Calculate normal for lighting
+		Vector segmentdir;
+		Math::VectorSubtract(nextpoint, prevpoint, segmentdir);
+		segmentdir.Normalize();
+
+		Vector prevlightnormal;
+		Math::CrossProduct(segmentdir, normal, prevlightnormal);
+
+		// Draw as quads
+		pDraw->Begin(CBasicDraw::DRAW_QUADS);
+
+		Uint32 nbVertexes = 0;
+		for(Uint32 j = 1; j <= cable.numsegments; j++)
+		{
+			// Calculate current point
+			Vector vpoint = CalculatePoint(j, cable.numsegments, cablestart, cableend, vbottom);
+
+			R_WorldToScreenTransform(modelViewProjectionMatrix, vpoint, screenstart);
+			Math::VectorSubtract(screenstart, screenlast, tmp);
+
+			// We don't need Z in screen-space
+			tmp[2] = 0;
+			Math::VectorNormalize(tmp);
+
+			Math::VectorScale(rns.view.v_up, tmp[0], normal);
+			Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
+
+			// Calculate final coordinates
+			Vector coord2_1, coord2_2;
+			Math::VectorMA(vpoint, cable.width, normal, coord2_1);
+			Math::VectorMA(vpoint, -cable.width, normal, coord2_2);
+
+			Math::VectorSubtract(vpoint, prevpoint, segmentdir);
+			segmentdir.Normalize();
+
+			Vector lightnormal;
+			Math::CrossProduct(segmentdir, normal, lightnormal);
+			lightnormal.Normalize();
+
+			cable_lsample_t& sample1 = cable.pointsamples[j-1];
+			cable_lsample_t& sample2 = cable.pointsamples[j];
+
+			// Calculate texcoord
+			Float tcy2 = tcy1 + step;
+
+			// Draw as a quad
+			Vector lightcolor = CalculateLighting(cable, sample1, prevpoint, prevlightnormal);
+			pDraw->Color4f(lightcolor.x, lightcolor.y, lightcolor.z, 1.0);
+			pDraw->TexCoord2f(1, tcy1);
+			pDraw->Vertex3fv(coord1_1);
+
+			pDraw->TexCoord2f(0, tcy1);
+			pDraw->Vertex3fv(coord1_2);
+
+			lightcolor = CalculateLighting(cable, sample2, vpoint, lightnormal);
+			pDraw->Color4f(lightcolor.x, lightcolor.y, lightcolor.z, 1.0);
+			pDraw->TexCoord2f(0, tcy2);
+			pDraw->Vertex3fv(coord2_2);
+
+			pDraw->TexCoord2f(1, tcy2);
+			pDraw->Vertex3fv(coord2_1);
+
+			// See if we've filled the cache
+			nbVertexes += 4;
+			if((nbVertexes+4) >= CBasicDraw::BASICDRAW_VERTEX_CACHE_SIZE)
+			{
+				pDraw->End();
+				pDraw->Begin(CBasicDraw::DRAW_QUADS);
+				nbVertexes = 0;
+			}
+
+			screenlast = screenstart;
+			tcy1 = SDL_fmod(tcy2, 1.0);
+
+			coord1_1 = coord2_1;
+			coord1_2 = coord2_2;
+
+			prevlightnormal = lightnormal;
+			prevpoint = vpoint;
+		}
+
+		pDraw->End();
 	}
+
+	bool result = true;
+	if(rns.fog.settings.active)
+		result = pDraw->DisableFog();
+
+	pDraw->Disable();
 
 	glEnable(GL_CULL_FACE);
 
-	m_pShader->DisableShader();
+	// Clear any binds
+	R_ClearBinds();
 
 	return true;
 }
@@ -242,97 +292,170 @@ bool CCableRenderer::DrawCables( void )
 //====================================
 //
 //====================================
-void CCableRenderer::InitCableVBOData( cable_object_t& cable )
+void CCableRenderer::RefreshLighting( void )
 {
-	if(!cable.numsegments)
+	if(m_cablesArray.empty())
 		return;
 
-	Vector vbottom, vpoint;
-	Math::VectorMA(cable.start, 0.5, (cable.end-cable.start), vbottom);
-	vbottom[2] -= cable.falldepth;
-
-	cable_vertex_t pvertexes[4];
-	
-	// set first segment
-	Float f = 1.0f/ static_cast<Float>(cable.numsegments);
-
-	for(Uint32 i = 0; i < 3; i++)
-		vpoint[i] = cable.start[i]*((1-f)*(1-f))+vbottom[i]*((1-f)*f*2)+cable.end[i]*(f*f);
-
-	for(Uint32 i = 0; i < 3; i++)
-		pvertexes[0].origin[i] = cable.start[i];
-
-	Math::VectorCopy(cable.start, pvertexes[0].origin);
-	Math::VectorCopy(vpoint, pvertexes[0].vpoint);
-	pvertexes[0].width = -static_cast<Float>(cable.width);
-
-	Math::VectorCopy(cable.start, pvertexes[1].origin);
-	Math::VectorCopy(vpoint, pvertexes[1].vpoint);
-	pvertexes[1].width = static_cast<Float>(cable.width);
-	
-	Uint32 numverts = cable.numsegments*6;
-	cable_vertex_t *pverts = new cable_vertex_t[numverts];
-	Uint32 curvert = 0;
-
-	for(Int32 i = 1; i < (cable.numsegments+1); i++)
+	for(Uint32 i = 0; i < m_cablesArray.size(); i++)
 	{
-		f = static_cast<Float>(i)/static_cast<Float>(cable.numsegments);
-		for(Uint32 j = 0; j < 3; j++)
-			vpoint[j] = cable.start[j]*((1-f)*(1-f))+vbottom[j]*((1-f)*f*2)+cable.end[j]*(f*f);
+		const cable_object_t& cable = m_cablesArray[i];
 
-		// Set reference array
-		Math::VectorCopy(vpoint, pvertexes[2].origin);
-		Math::VectorCopy(vpoint, pvertexes[2].vpoint);
-		pvertexes[2].width = static_cast<Float>(cable.width);
+		Vector vbottom;
+		Math::VectorMA(cable.start, 0.5, (cable.end-cable.start), vbottom);
+		vbottom[2] -= cable.falldepth;
 
-		Math::VectorCopy(vpoint, pvertexes[3].origin);
-		Math::VectorCopy(vpoint, pvertexes[3].vpoint);
-		pvertexes[3].width = -static_cast<Float>(cable.width);
+		for(Uint32 j = 0; j <= cable.numsegments; j++)
+		{
+			Vector vpoint = CalculatePoint(j, cable.numsegments, cable.start, cable.end, vbottom);
 
-		memcpy(&pverts[curvert], &pvertexes[0], sizeof(cable_vertex_t)); curvert++;
-		memcpy(&pverts[curvert], &pvertexes[1], sizeof(cable_vertex_t)); curvert++;
-		memcpy(&pverts[curvert], &pvertexes[2], sizeof(cable_vertex_t)); curvert++;
-
-		memcpy(&pverts[curvert], &pvertexes[0], sizeof(cable_vertex_t)); curvert++;
-		memcpy(&pverts[curvert], &pvertexes[2], sizeof(cable_vertex_t)); curvert++;
-		memcpy(&pverts[curvert], &pvertexes[3], sizeof(cable_vertex_t)); curvert++;
-
-		memcpy(&pvertexes[0], &pvertexes[3], sizeof(cable_vertex_t));
-		memcpy(&pvertexes[1], &pvertexes[2], sizeof(cable_vertex_t));
+			cable_lsample_t& sample = cable.pointsamples[j];
+			R_GetLightingForPosition(vpoint, ZERO_VECTOR, sample.diffuselight, sample.ambientlight, sample.lightdirs, sample.styles);
+		}
 	}
-
-	cable.start_vertex = m_pVBO->GetVBOSize()/sizeof(cable_vertex_t);
-	cable.num_vertexes = numverts;
-
-	m_pVBO->Append(pverts, sizeof(cable_vertex_t)*numverts, nullptr, 0);
-	delete[] pverts;
 }
 
 //====================================
 //
 //====================================
-void CCableRenderer::AddCable( const Vector& start, const Vector& end, Uint32 depth, Uint32 width, Uint32 numsegments )
+Vector CCableRenderer::CalculateLighting( const cable_object_t& cable, const cable_lsample_t& sample, const Vector& position, const Vector& normal )
 {
+	// Calculate base lighting
+	const CArray<Float>* pstylesarray = gLightStyles.GetLightStyleValuesArray();
+
+	Vector outcolor;
+	for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
+	{
+		if(sample.styles[i] == NULL_LIGHTSTYLE_INDEX)
+			break;
+
+		Float stylestrength;
+		if(i == 0)
+			stylestrength = 1.0;
+		else
+			stylestrength = (*pstylesarray)[sample.styles[i]];
+
+		Float dp = -Math::DotProduct(sample.lightdirs[i], normal);
+		dp = clamp(dp, 0, 1);
+
+		Math::VectorAdd(outcolor, sample.ambientlight[i], outcolor);
+		Math::VectorMA(outcolor, dp*stylestrength, sample.diffuselight[i], outcolor);
+	}
+
+	// Add in dynamic lights
+	CLinkedList<cl_dlight_t*>& dlightlist = gDynamicLights.GetLightList();
+
+	dlightlist.begin();
+	while(!dlightlist.end())
+	{
+		cl_dlight_t* dl = dlightlist.get();
+		if(Math::CheckMinsMaxs(cable.vmins, cable.vmaxs, dl->mins, dl->maxs))
+		{
+			dlightlist.next();
+			continue;
+		}
+
+		if(dl->pfrustum)
+		{
+			if(dl->pfrustum->CullBBox(cable.vmins, cable.vmaxs))
+			{
+				dlightlist.next();
+				continue;
+			}
+		}
+
+		Float rad = dl->radius * dl->radius;
+
+		Vector dir;
+		Math::VectorSubtract(dl->origin, position, dir);
+
+		Float dist = Math::DotProduct(dir, dir);
+		Float attenuation = ((dist/rad)-1) * -1;
+		
+		attenuation = clamp(attenuation, 0, 1);
+		dir.Normalize();
+
+		Float dp = Math::DotProduct(dir, normal);
+		dp = clamp(dp, 0, 1);
+
+		if(dl->cone_size)
+		{
+			Vector spotforward;
+			Math::AngleVectors(dl->angles, &spotforward);
+
+			Float spotcos = cos((dl->cone_size*2)*0.3*(M_PI*2/360));
+			Float spotatten = -Math::DotProduct(spotforward, dir);
+	
+			spotatten = max(spotatten, spotcos);
+			Float spotfactor = (spotatten - spotcos)/(1.0 - spotcos);
+			attenuation *= spotfactor;
+		}
+
+		Math::VectorMA(outcolor, dp*attenuation, dl->color, outcolor);
+		dlightlist.next();
+	}
+
+	return outcolor;
+}
+
+//====================================
+//
+//====================================
+Vector CCableRenderer::CalculatePoint( Uint32 segment, Uint32 numsegments, const Vector& start, const Vector& end, const Vector& midpoint )
+{
+	// Calculate current point
+	Float f = static_cast<Float>(segment)/static_cast<Float>(numsegments);
+
+	Vector vpoint;
+	for(Uint32 k = 0; k < 3; k++)
+		vpoint[k] = start[k]*((1-f)*(1-f))+midpoint[k]*((1-f)*f*2)+end[k]*(f*f);
+
+	return vpoint;
+}
+
+//====================================
+//
+//====================================
+void CCableRenderer::AddCable( Int32 spritemodelindex, const Vector& start, const Vector& end, Uint32 depth, Uint32 width, Uint32 numsegments, Float windx, Float windy )
+{
+	const cache_model_t* pmodel = Cache_GetModel(spritemodelindex);
+	if(!pmodel)
+	{
+		Con_EPrintf("%s - Couldn't find sprite model with index %d.\n", __FUNCTION__, spritemodelindex);
+		return;
+	}
+
+	if(pmodel->type != MOD_SPRITE)
+	{
+		Con_EPrintf("%s - Model '%s' specified is not a sprite model.\n", __FUNCTION__, pmodel->name.c_str());
+		return;
+	}
+
 	cable_object_t newcable;
 	newcable.start = start;
 	newcable.end = end;
 	newcable.falldepth = depth;
 	newcable.width = width;
 	newcable.numsegments = numsegments;
+	newcable.windx = windx;
+	newcable.windy = windy;
+	newcable.pmodel = pmodel;
 
 	Vector vbottom;
 	Math::VectorMA(start, 0.5, (end-start), vbottom);
 	vbottom[2] -= depth;
 
+	// Resize samples
+	newcable.pointsamples.resize(numsegments+1);
+
 	Vector vmins = NULL_MINS;
 	Vector vmaxs = NULL_MAXS;
-	for(Uint32 i = 0; i < (numsegments+1); i++)
+	for(Uint32 i = 0; i <= numsegments; i++)
 	{
-		Float f = static_cast<Float>(i)/static_cast<Float>(numsegments);
+		Vector vpoint = CalculatePoint(i, numsegments, start, end, vbottom);
 
-		Vector vpoint;
-		for(Uint32 j = 0; j < 3; j++)
-			vpoint[j] = start[j]*((1-f)*(1-f))+vbottom[j]*((1-f)*f*2)+end[j]*(f*f);
+		cable_lsample_t& sample = newcable.pointsamples[i];
+		R_GetLightingForPosition(vpoint, ZERO_VECTOR, sample.diffuselight, sample.ambientlight, sample.lightdirs, sample.styles);
 
 		for(Uint32 j = 0; j < 3; j++)
 		{

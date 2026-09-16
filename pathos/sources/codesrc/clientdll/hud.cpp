@@ -3625,7 +3625,7 @@ void CHUDHistory::AddElement( Uint32 type, Uint32 id, Uint32 count )
 	CString description;
 	CString unitname;
 
-	if (!m_hud.GetItemDescriptionByWeaponId(weaponId, description, unitname, (count > 0) ? false : true))
+	if (!m_hud.GetItemDescriptionByWeaponId(weaponId, description, unitname, (count > 1) ? false : true))
 	{
 		cl_engfuncs.pfnCon_Printf("%s - Item '%s' has no $item definition set in '%s'.\n", __FUNCTION__, WEAPONMAPPINGS[weaponId].name, CGameHUD::HUD_DESCRIPTION_SCRIPT_PATH);
 		return;
@@ -3661,7 +3661,7 @@ void CHUDHistory::AddElement( Uint32 type, const Char* pstrname, Uint32 count )
 	CString description;
 	CString unitname;
 
-	if (!m_hud.GetItemDescriptionByName(pstrname, description, unitname, (count > 0) ? false : true))
+	if (!m_hud.GetItemDescriptionByName(pstrname, description, unitname, (count > 1) ? false : true))
 	{
 		cl_engfuncs.pfnCon_Printf("%s - Item '%s' has no $item definition set in '%s'.\n", __FUNCTION__, pstrname, CGameHUD::HUD_DESCRIPTION_SCRIPT_PATH);
 		return;

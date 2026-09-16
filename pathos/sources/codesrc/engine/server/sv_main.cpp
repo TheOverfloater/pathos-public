@@ -32,7 +32,7 @@ All Rights Reserved.
 #include "file.h"
 
 #include "vid.h"
-#include "trace_shared.h"
+#include "trace_core.h"
 #include "save_shared.h"
 #include "saverestore.h"
 #include "constants.h"

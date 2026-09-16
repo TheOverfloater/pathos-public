@@ -74,6 +74,8 @@ public:
 	virtual togglestate_t GetToggleState( void ) const override { return (togglestate_t)m_toggleState; }
 	virtual void SetToggleState( togglestate_t state, bool reverse ) override;
 	virtual usableobject_type_t GetUsableObjectType( void ) override;
+	virtual const Char* GetDoorIdentifier( void ) const override { return gd_engfuncs.pfnGetString(m_relatedDoorIdentifier); }
+	virtual void GetRelatedDoors( CArray<CBaseEntity*>& entitesArray ) const override;
 
 public:
 	virtual void SetSpawnProperties( void );
@@ -106,6 +108,7 @@ protected:
 
 	Vector m_activatorOrigin;
 	Double m_nextLockedSoundTime;
+	string_t m_relatedDoorIdentifier;
 
 	CArray<CEntityHandle> m_relatedDoorsArray;
 };

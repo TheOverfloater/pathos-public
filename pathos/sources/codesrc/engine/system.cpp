@@ -234,7 +234,7 @@ bool Sys_Init( CArray<CString>* argsArray )
 
 	// Close the line
 	Con_Printf(strPrint.c_str());
-	Con_Printf("Engine build date: %s.\n", __DATE__);
+	Con_Printf("Engine build date: %s %s(build %d).\n", __TIME__, __DATE__, Sys_GetBuildNumber());
 
 	// Mark initialized
 	ens.isinitialized = true;
@@ -365,7 +365,7 @@ void Sys_ErrorPopup ( const Char *fmt, ... )
 bool Sys_InitFloatTime( void )
 {
 	// Originally I used my own solution for tracking time, but that had
-	// some serious issues causing stutter. In the relied on referencing
+	// some serious issues causing stutter. I the relied on referencing
 	// Quake's Sys_FloatTime to write something better. Credit goes to Id
 	// Software for the original code I referenced.
 	LARGE_INTEGER performanceFrequency;
@@ -856,13 +856,12 @@ void Sys_PostThink( void )
 //=============================================
 void Sys_SetPaused( bool paused, bool print )
 {
-	if(svs.maxclients > 1 && svs.serverstate == SV_INACTIVE)
+	if(svs.maxclients > 1 && svs.serverstate != SV_INACTIVE)
 	{
 		Con_Printf("Only the host may pause the game.\n");
 		return;
 	}
-
-	if(ens.gamestate == GAME_INACTIVE)
+	else if(ens.gamestate == GAME_INACTIVE)
 	{
 		Con_Printf("Can't pause, game is not running.\n");
 		return;
@@ -1097,6 +1096,122 @@ void Sys_PollEvents( void )
 }
 
 //=============================================
+// @brief Return build number since 2016 January 27th
+//
+//=============================================
+Int64 Sys_GetBuildNumber( void )
+{
+	// Date of earliest Pathos build
+	SYSTEMTIME firstBuildTime = {};
+	firstBuildTime.wYear = 2016;
+	firstBuildTime.wMonth = 1;
+	firstBuildTime.wDay = 27;
+	firstBuildTime.wHour = 0;
+	firstBuildTime.wMinute = 0;
+	firstBuildTime.wSecond = 0;
+	firstBuildTime.wMilliseconds = 0;
+	firstBuildTime.wDayOfWeek = 0;
+
+	// Convert to FILETIME
+	FILETIME firstBuildFileTime;
+	if(!SystemTimeToFileTime(&firstBuildTime, &firstBuildFileTime))
+	{
+		Con_EPrintf("Failed to convert first build time to FILETIME, returned error code is '%d'\n", GetLastError());
+		return -1;
+	}
+
+	// Now to ULARGE_INTEGER
+	ULARGE_INTEGER ulFirstBuild;
+	ulFirstBuild.LowPart = firstBuildFileTime.dwLowDateTime;
+	ulFirstBuild.HighPart = firstBuildFileTime.dwHighDateTime;
+
+	CString buildDateStr(__DATE__);
+	buildDateStr.tolower();
+
+	// Get month
+	CString monthToken;
+	const Char* pstr = Common::Parse(buildDateStr.c_str(), monthToken);
+	if(!pstr)
+	{
+		Con_EPrintf("%s - Failed to get month, __DATE__ is of incorrect format.\n");
+		return -1;
+	}
+
+	// Get day of month
+	CString dayToken;
+	pstr = Common::Parse(pstr, dayToken);
+	if(!pstr)
+	{
+		Con_EPrintf("%s - Failed to get day, __DATE__ is of incorrect format.\n");
+		return -1;
+	}
+
+	// Get year
+	CString yearToken;
+	Common::Parse(pstr, yearToken);
+
+	Int32 monthNumber;
+	if(!qstrncmp(monthToken, "jan", 3))
+		monthNumber = 1;
+	else if(monthToken[0] == 'f')
+		monthNumber = 2;
+	else if(!qstrncmp(monthToken, "mar", 3))
+		monthNumber = 3;
+	else if(!qstrncmp(monthToken, "apr", 3))
+		monthNumber = 4;
+	else if(!qstrncmp(monthToken, "may", 3))
+		monthNumber = 5;
+	else if(!qstrncmp(monthToken, "jun", 3))
+		monthNumber = 6;
+	else if(!qstrncmp(monthToken, "jul", 3))
+		monthNumber = 7;
+	else if(!qstrncmp(monthToken, "aug", 3))
+		monthNumber = 8;
+	else if(!qstrncmp(monthToken, "sep", 3))
+		monthNumber = 9;
+	else if(monthToken[0] == 'o')
+		monthNumber = 10;
+	else if(monthToken[0] == 'n')
+		monthNumber = 11;
+	else if(monthToken[0] == 'd')
+		monthNumber = 12;
+	else
+	{
+		Con_EPrintf("%s - Failed to determine month number, __DATE__ is of incorrect format.\n");
+		return -1;
+	}
+
+	// Now build the date
+	SYSTEMTIME curBuildTime = {};
+	curBuildTime.wYear = SDL_atoi(yearToken.c_str());
+	curBuildTime.wMonth = monthNumber;
+	curBuildTime.wDay = SDL_atoi(dayToken.c_str());
+	curBuildTime.wHour = 0;
+	curBuildTime.wMinute = 0;
+	curBuildTime.wSecond = 0;
+	curBuildTime.wMilliseconds = 0;
+	curBuildTime.wDayOfWeek = 0;
+
+	// Convert both to FILETIME, then to ULARGE_INTEGER
+	FILETIME curBuildFileTime;
+	if(!SystemTimeToFileTime(&curBuildTime, &curBuildFileTime))
+	{
+		Con_EPrintf("Failed to convert build time to FILETIME, returned error code is '%d'\n", GetLastError());
+		return -1;
+	}
+
+	ULARGE_INTEGER ulCurBuild;
+	ulCurBuild.LowPart = curBuildFileTime.dwLowDateTime;
+	ulCurBuild.HighPart = curBuildFileTime.dwHighDateTime;
+
+	ULARGE_INTEGER diff;
+	diff.QuadPart = ulCurBuild.QuadPart - ulFirstBuild.QuadPart;
+
+	Int64 dayNb = diff.QuadPart / 864000000000;
+	return dayNb;
+}
+
+//=============================================
 // @brief Manages the main application loop
 //
 // @param argsArray Array of launch args
@@ -1106,7 +1221,6 @@ Int32 Sys_Main( CArray<CString>* argsArray )
 {
 	// Avoid launching multiple instances
 	HANDLE hMutex = CreateMutex(nullptr, FALSE, "PathosEngineInstanceMutex");
-
 	if(nullptr != hMutex)
 		GetLastError();
 

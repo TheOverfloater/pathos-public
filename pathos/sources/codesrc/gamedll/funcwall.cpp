@@ -42,7 +42,9 @@ bool CFuncWall::Spawn( void )
 
 	m_pState->movetype = MOVETYPE_PUSH;
 	m_pState->solid = SOLID_BSP;
-	if(m_pFields->targetname == NO_STRING_VALUE)
+
+	if(m_pFields->targetname == NO_STRING_VALUE
+		&& m_pFields->parent == NO_STRING_VALUE)
 		m_pState->effects |= EF_STATICENTITY;
 
 	if(m_pState->rendermode == RENDER_NORMAL

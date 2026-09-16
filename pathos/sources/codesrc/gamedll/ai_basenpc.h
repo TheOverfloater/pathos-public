@@ -1180,8 +1180,8 @@ protected:
 	// Next schedule to play after current schedule has ended for any reason
 	Int32						m_nextScheduleIndex;
 
-	// Own position navigability result
-	bool						m_ownPositionNavigability;
+	// Last position navigability result
+	bool						m_lastCheckedPositionNavigability;
 	// Last checked own position for navigability
 	Vector						m_lastCheckedNavigabilityPosition;
 

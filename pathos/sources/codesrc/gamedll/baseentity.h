@@ -314,6 +314,10 @@ public:
 	virtual void SetPairedButtonDelay( Float delayTime ) { STUBWARNING; };
 	// Tells an light_environment to set the cvar values
 	virtual bool SetLightEnvValues( daystage_t daystage ) { STUBWARNING; return false; };
+	// Get door shared identifier
+	virtual const Char* GetDoorIdentifier( void ) const { return ""; }
+	// Get related door entities from func_door/func_door_rotating
+	virtual void GetRelatedDoors( CArray<CBaseEntity*>& entitesArray ) const { STUBWARNING; }
 
 	// Tells if the entity is an envpos_portal entity
 	virtual bool IsEnvPosPortalEntity( void ) const { return false; }

@@ -1091,7 +1091,10 @@ bool PBSPV2_LoadLightGridData( const byte* pfile, brushmodel_t& model, const dpb
 	lightgriddata_t* pdestgrid = new lightgriddata_t();
 
 	pdestgrid->rootnodeindex = psrcgrid->rootnodeindex;
-	pdestgrid->gridmins = psrcgrid->grid_mins;
+
+	for(Uint32 i = 0; i < 3; i++)
+		pdestgrid->gridmins[i] = psrcgrid->grid_mins[i];
+
 	pdestgrid->rawsampledatasize = psrcgrid->rawsampledatasize;
 
 	for(Uint32 i = 0; i < 3; i++)
@@ -1267,7 +1270,20 @@ bool PBSPV2_LoadBrushes( const byte* pfile, brushmodel_t& model, const dpbspv2lu
 		poutbrush->contents = pinbrush->contents;
 		poutbrush->firstbrushside = pinbrush->firstside;
 		poutbrush->numbrushsides = pinbrush->numsides;
+		poutbrush->noclip = pinbrush->noclip ? true : false;
 
+		for(Uint32 j = 0; j < 3; j++)
+		{
+			poutbrush->mins[j] = pinbrush->mins[j];
+			poutbrush->maxs[j] = pinbrush->maxs[j];
+		}
+
+		// Calculate centroid
+		Vector tmp;
+		Math::VectorAdd(poutbrush->mins, poutbrush->maxs, tmp);
+		Math::VectorScale(tmp, 0.5, poutbrush->centroid);
+
+		// Set type
 		BSP_SetBrushType( model, poutbrush, i );
 	}
 

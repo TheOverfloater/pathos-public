@@ -651,7 +651,7 @@ private:
 	CArray<bsp_vertex_t> m_tempDecalVertsArray;
 
 	// Pointer to lightstyle values array
-	CArray<Float>* m_pLightStyleValuesArray;
+	const CArray<Float>* m_pLightStyleValuesArray;
 
 private:
 	CCVar* m_pCvarDetailTextures;

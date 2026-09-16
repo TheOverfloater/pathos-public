@@ -67,6 +67,7 @@ bool CGrenade::Spawn( void )
 
 	m_pState->movetype = MOVETYPE_BOUNCE;
 	m_pState->solid = SOLID_BBOX;
+	m_pState->forcehull = HULL_POINT;
 
 	gd_engfuncs.pfnSetMinsMaxs(m_pEdict, ZERO_VECTOR, ZERO_VECTOR);
 

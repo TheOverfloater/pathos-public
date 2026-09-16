@@ -39,6 +39,11 @@ All Rights Reserved.
 #include "filewriterthread.h"
 #include "cl_utils.h"
 
+// Version major number
+static const Uint32 GAME_MAJOR_VERSION = 0;
+// Version minor number
+static const Uint32 GAME_MINOR_VERSION = 6;
+
 // Port CVAR
 CCVar* g_pCVarPort = nullptr;
 
@@ -49,6 +54,18 @@ CCVar* g_pCVarPort = nullptr;
 void Cmd_Sys_Quit( void ) 
 { 
 	ens.exit = true; 
+}
+
+//=============================================
+// @brief Gives version string for game
+// 
+//=============================================
+void Cmd_Version( void )
+{
+	Con_Printf("Pathos Engine - Reckoning branch.\n");
+	Con_Printf("Build date: %s %s.\n", __TIME__, __DATE__);
+	Con_Printf("Build number: %d.\n", Sys_GetBuildNumber());
+	Con_Printf("Version: %d.%d - In development mid-term alpha.\n", GAME_MAJOR_VERSION, GAME_MINOR_VERSION);
 }
 
 //=============================================
@@ -668,6 +685,7 @@ void Sys_InitCommands( void )
 	gCommands.CreateCommand("god", Cmd_God, "Toggles godmode cheat", (CMD_FL_SERVERCOMMAND|CMD_FL_CL_RELEVANT|CMD_FL_CHEAT));
 	gCommands.CreateCommand("notarget", Cmd_Notarget, "Toggles notarget cheat", (CMD_FL_SERVERCOMMAND|CMD_FL_CL_RELEVANT|CMD_FL_CHEAT));
 	gCommands.CreateCommand("noclip", Cmd_Noclip, "Toggles noclip cheat", (CMD_FL_SERVERCOMMAND|CMD_FL_CL_RELEVANT|CMD_FL_CHEAT));
+	gCommands.CreateCommand("version", Cmd_Version, "Give detailed version and build information of engine");
 }
 
 //=============================================

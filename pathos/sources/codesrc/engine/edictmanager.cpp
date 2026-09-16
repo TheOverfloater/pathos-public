@@ -400,6 +400,7 @@ void CEdictManager::FreeEdict( edict_t* pedict, edict_removed_t freeMode )
 				continue;
 
 			FreeEdict(pchildedict, freeMode);
+			i--;
 		}
 	}
 

@@ -53,9 +53,12 @@ bool CFuncPortalSurface::Spawn( void )
 		m_pState->solid = SOLID_NOT;
 
 	m_pState->movetype = MOVETYPE_PUSH;
-	m_pState->effects |= EF_STATICENTITY;
 	m_pState->flags |= (FL_WORLDBRUSH|FL_INITIALIZE);
 	m_pState->rendertype = RT_PORTALSURFACE;
+
+	if(m_pFields->targetname == NO_STRING_VALUE
+		&& m_pFields->parent == NO_STRING_VALUE)
+		m_pState->effects |= EF_STATICENTITY;
 
 	if(m_pFields->target == NO_STRING_VALUE)
 	{

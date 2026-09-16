@@ -1113,7 +1113,7 @@ bool CDynamicLightManager::DrawProjectivePass( cl_dlight_t *dl, cl_entity_t** pv
 	}
 
 	// Draw any view objects for shadows
-	if(!dl->isStatic())
+	if(!dl->isStatic() && !drawstatics)
 	{
 		if(!cls.dllfuncs.pfnDrawViewObjectsForVSM(dl))
 			return false;

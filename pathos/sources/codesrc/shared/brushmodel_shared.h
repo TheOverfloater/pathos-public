@@ -13,6 +13,7 @@ All Rights Reserved.
 #include "bspv30file.h"
 #include "plane.h"
 #include "constants.h"
+#include "leafbrushbvh.h"
 
 // No lightmaps for this surface
 #define	TEXFLAG_SPECIAL		1
@@ -229,7 +230,8 @@ struct mbrush_t
 		firstbrushside(0),
 		numbrushsides(0),
 		type(BRUSHTYPE_NORMAL),
-		checkcount(0)
+		checkcount(0),
+		noclip(0)
 	{}
 
 	// Contents(ie water, lava, slime, etc)
@@ -242,6 +244,15 @@ struct mbrush_t
 	brushtype_t type;
 	// Check counter
 	Uint64 checkcount;
+
+	// Brush mins
+	Vector mins;
+	// Brush maxs
+	Vector maxs;
+	// Brush centroid(used by BVH)
+	Vector centroid;
+	// TRUE if brush was generated without bevel brushes
+	bool noclip;
 };
 
 struct mleaf_t
@@ -255,8 +266,15 @@ struct mleaf_t
 		pfirstmarksurface(nullptr),
 		nummarksurfaces(0),
 		pfirstleafbrush(nullptr),
-		numleafbrushes(0)
+		numleafbrushes(0),
+		pleafbrushbvh(nullptr)
 	{
+	}
+
+	~mleaf_t()
+	{
+		if(pleafbrushbvh)
+			delete pleafbrushbvh;
 	}
 
 	// Node contents
@@ -286,6 +304,9 @@ struct mleaf_t
 	mbrush_t** pfirstleafbrush;
 	// Number of leaf brushes
 	Uint32 numleafbrushes;
+
+	// Leaf brush BVH if present
+	class CLeafBrushBVH* pleafbrushbvh;
 };
 
 struct msurface_t

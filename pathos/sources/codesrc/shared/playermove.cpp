@@ -905,7 +905,7 @@ bool CPlayerMovement::CheckWater( void )
 	m_pPlayerState->watertype = CONTENTS_EMPTY;
 
 	Int32 contents = m_traceInterface.pfnPointContents(checkpos, nullptr, false);
-	if(contents <= CONTENTS_WATER && contents  >= CONTENTS_LAVA)
+	if(contents <= CONTENTS_WATER && contents >= CONTENTS_LAVA)
 	{
 		m_pPlayerState->watertype = contents;
 		m_pPlayerState->waterlevel = WATERLEVEL_LOW;
@@ -916,7 +916,7 @@ bool CPlayerMovement::CheckWater( void )
 
 		checkpos[2] = m_pPlayerState->origin[2] + heighthalf;
 		contents = m_traceInterface.pfnPointContents(checkpos, nullptr, false);
-		if(contents <= CONTENTS_WATER && contents  >= CONTENTS_LAVA)
+		if(contents <= CONTENTS_WATER && contents >= CONTENTS_LAVA)
 		{
 			m_pPlayerState->waterlevel = WATERLEVEL_MID;
 
@@ -924,7 +924,7 @@ bool CPlayerMovement::CheckWater( void )
 			checkpos[2] = m_pPlayerState->origin[2] + m_pPlayerState->view_offset[2];
 
 			contents = m_traceInterface.pfnPointContents(checkpos, nullptr, false);
-			if(contents <= CONTENTS_WATER && contents  >= CONTENTS_LAVA)
+			if(contents <= CONTENTS_WATER && contents >= CONTENTS_LAVA)
 				m_pPlayerState->waterlevel = WATERLEVEL_FULL;
 		}
 	}
@@ -1380,11 +1380,12 @@ void CPlayerMovement::AirAccelerate( const Vector& wishdir, Float wishspeed, Flo
 	if(m_pPlayerState->flags & FL_DEAD || m_pPlayerState->waterjumptime)
 		return;
 
-	if(wishspeed > AIR_ACCELERATE_MAX_SPEED)
-		wishspeed = AIR_ACCELERATE_MAX_SPEED;
+	Float _wishspeed = wishspeed;
+	if(_wishspeed > AIR_ACCELERATE_MAX_SPEED)
+		_wishspeed = AIR_ACCELERATE_MAX_SPEED;
 
 	Float currspeed = Math::DotProduct(m_pPlayerState->velocity, wishdir);
-	Float addspeed = wishspeed - currspeed;
+	Float addspeed = _wishspeed - currspeed;
 	if(addspeed <= 0)
 		return;
 
@@ -1462,14 +1463,6 @@ void CPlayerMovement::Move_Air( void )
 //=============================================
 void CPlayerMovement::DetermineTextureType( void )
 {
-	Vector sideOffset;
-	sideOffset = m_vRight * 16;
-	if(m_pPlayerState->stepleft)
-		Math::VectorScale(sideOffset, -1, sideOffset);
-
-	Vector start = m_pPlayerState->origin + sideOffset;
-	Vector end = start - Vector(0, 0, 64);
-
 	if(m_pPlayerState->movetype == MOVETYPE_FLY)
 	{
 		m_pTextureMaterial = &m_defaultMaterial;
@@ -1479,14 +1472,32 @@ void CPlayerMovement::DetermineTextureType( void )
 	// Clear this
 	m_pTextureMaterial = nullptr;
 
+	const Float sideDist = 16;
+	Vector sideOffset;
+	sideOffset = m_vRight * sideDist;
+	if(m_pPlayerState->stepleft)
+		Math::VectorScale(sideOffset, -1, sideOffset);
+
+	Float height = SDL_fabs(m_pPMInfo->player_mins[m_hullIndex][2]);
+	Vector start = m_pPlayerState->origin - Vector(0, 0, height) + Vector(0, 0, (sideDist + 2)) + sideOffset;
+	Vector end = start - Vector(0, 0, 64);
+
 	trace_t tr;
 	m_traceInterface.pfnPlayerTrace(start, end, FL_TRACE_NORMAL, HULL_POINT, NO_ENTITY_INDEX, tr);
 	if(tr.fraction == 1.0)
 	{
-		if(m_pPlayerState->groundent != NO_ENTITY_INDEX)
-			m_pTextureMaterial = &m_defaultMaterial;
-		
-		return;
+		// Try again without the side offsets
+		start = m_pPlayerState->origin - Vector(0, 0, height) + Vector(0, 0, 4);
+		end = start - Vector(0, 0, 64);
+
+		m_traceInterface.pfnPlayerTrace(start, end, FL_TRACE_NORMAL, HULL_POINT, NO_ENTITY_INDEX, tr);
+		if(tr.fraction == 1.0)
+		{
+			if(m_pPlayerState->groundent != NO_ENTITY_INDEX)
+				m_pTextureMaterial = &m_defaultMaterial;
+
+			return;
+		}
 	}
 
 	const entity_state_t* pstate = m_pmInterface.pfnGetEntityState(tr.hitentity);

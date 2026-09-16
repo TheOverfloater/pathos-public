@@ -18,10 +18,6 @@ All Rights Reserved.
 class CMultiManager : public CPointEntity
 {
 public:
-	// Maximum targets a multimanager can have
-	static const Uint32 MAX_MULTIMANAGER_TARGETS = 128;
-
-public:
 	enum
 	{
 		FL_MULTITHREAD = (1<<0)
@@ -62,9 +58,8 @@ public:
 	Double m_startTime;
 	Float m_delay;
 
-	string_t m_targetNamesArray[MAX_MULTIMANAGER_TARGETS];
-	Float m_targetDelaysArray[MAX_MULTIMANAGER_TARGETS];
-	Uint32 m_nbTargets;
+	CArray<string_t> m_targetNamesArray;
+	CArray<Float> m_targetDelaysArray;
 	Uint32 m_currentIndex;
 
 	CEntityHandle m_activator;

@@ -26,6 +26,9 @@ static constexpr Uint32 MAX_PARTICLE_POINT_LIGHTS	= 4;
 // Max lights for projective type
 static constexpr Uint32 MAX_PARTICLE_PROJ_LIGHTS	= 4;
 
+// Number of buffers
+static constexpr Uint32 NUM_PARTICLE_BUFFERS		= 3;
+
 enum particle_lightflags_t
 {
 	PARTICLE_LIGHTCHECK_NONE			= 0,
@@ -767,7 +770,9 @@ private:
 	// Pointer to GLSL shader
 	class CGLSLShader *m_pShader;
 	// Pointer to VBO
-	class CVBO *m_pVBO;
+	CArray<class CVBO*> m_pVBOArray;
+	// Current buffer index used
+	Uint32 m_currentBufferIndex;
 
 	// Shader attributes
 	particle_attribs m_attribs;

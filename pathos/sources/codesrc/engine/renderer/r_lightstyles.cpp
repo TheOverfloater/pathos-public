@@ -240,7 +240,7 @@ void CLightStyleManager::ApplyLightStyle( cl_dlight_t* dl, Vector& color )
 //====================================
 //
 //====================================
-CArray<Float>* CLightStyleManager::GetLightStyleValuesArray( void ) 
+const CArray<Float>* CLightStyleManager::GetLightStyleValuesArray( void ) 
 { 
 	return &m_lightStyleValues; 
 }

@@ -966,7 +966,8 @@ void CBaseNPC::StartTask( const ai_task_t* pTask )
 		{
 			if(m_targetEntity)
 			{
-				SetOrigin(m_targetEntity->GetOrigin());
+				Vector setOrigin = m_targetEntity->GetOrigin();
+				SetOrigin(setOrigin);
 				GroundEntityNudge(true); // This will call SetOrigin
 			}
 

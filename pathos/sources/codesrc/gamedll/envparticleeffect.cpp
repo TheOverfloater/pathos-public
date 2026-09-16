@@ -274,7 +274,7 @@ void CEnvParticleEffect::CreateEffect( void )
 		break;
 	case EFFECT_ROCKETEXPLOSION:
 		{
-			Util::CreateRocketExplosion(m_pState->origin, clamp(m_startColor, 0, 255));
+			Util::CreateRocketExplosion(m_pState->origin);
 		}
 		break;
 	case EFFECT_PARTICLEEFFECT:

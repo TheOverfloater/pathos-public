@@ -257,6 +257,7 @@
     <ClCompile Include="..\common\r_common.cpp" />
     <ClCompile Include="..\common\tga.cpp" />
     <ClCompile Include="..\shared\collision_shared.cpp" />
+    <ClCompile Include="..\shared\leafbrushbvh.cpp" />
     <ClCompile Include="..\shared\r_basicdraw.cpp" />
     <ClCompile Include="..\shared\sentencesfile.cpp" />
     <ClCompile Include="..\shared\stepsound.cpp" />
@@ -328,10 +329,10 @@
     <ClCompile Include="sv_move.cpp" />
     <ClCompile Include="sys_print.cpp" />
     <ClCompile Include="textschemas.cpp" />
+    <ClCompile Include="trace_core.cpp" />
     <ClCompile Include="usermsg.cpp" />
     <ClCompile Include="vbmtrace.cpp" />
     <ClCompile Include="saverestore.cpp" />
-    <ClCompile Include="trace_shared.cpp" />
     <ClCompile Include="renderer\r_bsp.cpp" />
     <ClCompile Include="renderer\r_menu.cpp" />
     <ClCompile Include="sys_cmd.cpp" />
@@ -416,6 +417,7 @@
     <ClInclude Include="..\common\wad3file.h" />
     <ClInclude Include="..\shared\beam_shared.h" />
     <ClInclude Include="..\shared\collision_shared.h" />
+    <ClInclude Include="..\shared\leafbrushbvh.h" />
     <ClInclude Include="..\shared\mcdformat.h" />
     <ClInclude Include="..\shared\r_basicdraw.h" />
     <ClInclude Include="..\shared\sentencesfile.h" />
@@ -497,7 +499,7 @@
     <ClInclude Include="usermsg.h" />
     <ClInclude Include="vbmtrace.h" />
     <ClInclude Include="saverestore.h" />
-    <ClInclude Include="trace_shared.h" />
+    <ClInclude Include="trace_core.h" />
     <ClInclude Include="renderer\r_bsp.h" />
     <ClInclude Include="renderer\r_menu.h" />
     <ClInclude Include="renderer\r_main.h" />

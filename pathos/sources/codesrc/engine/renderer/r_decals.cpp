@@ -19,7 +19,7 @@ All Rights Reserved.
 #include "enginestate.h"
 #include "cl_main.h"
 #include "r_main.h"
-#include "trace_shared.h"
+#include "trace_core.h"
 #include "cl_utils.h"
 #include "cl_pmove.h"
 #include "textures_shared.h"

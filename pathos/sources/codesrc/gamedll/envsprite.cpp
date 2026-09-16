@@ -319,6 +319,7 @@ void CEnvSprite::AnimateAndDie( Float framerate )
 	m_pState->framerate = framerate;
 	m_dieTime = g_pGameVars->time + (m_maxFrame / framerate);
 	m_pState->nextthink = g_pGameVars->time + 0.1;
+	m_lastAnimTime = g_pGameVars->time;
 }
 
 //=============================================
