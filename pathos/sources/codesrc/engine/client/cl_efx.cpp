@@ -214,9 +214,9 @@ void CL_CreateCableEntity( Int32 modelindex, const Vector& start, const Vector& 
 //====================================
 //
 //====================================
-bool CL_SetupEntityVertexLightVBO( cl_entity_t* pentity, Int32 vlightoffset, Uint32 vertexcount, byte* plightstyles )
+bool CL_SetupEntityVertexLightVBO( Int32 modelindex, cl_entity_t* pentity, Int32 vlightoffset, Uint32 vertexcount, byte* plightstyles )
 {
-	return gVBMRenderer.SetupEntityVertexLightVBO(pentity, vlightoffset, vertexcount, plightstyles);
+	return gVBMRenderer.SetupEntityVertexLightVBO(modelindex, pentity, vlightoffset, vertexcount, plightstyles);
 }
 
 //====================================
@@ -382,6 +382,7 @@ void CL_SetDayStage( daystage_t daystage )
 
 	// Release the lightmap data
 	BSP_ReleaseLightmapData(*ens.pworld);
+	BSP_ReleaseVertexLightData(*ens.pworld);
 
 	// Mark as having relevant data
 	rns.hasdaystagedata = true;

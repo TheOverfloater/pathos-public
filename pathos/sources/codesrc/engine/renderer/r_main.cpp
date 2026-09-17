@@ -693,6 +693,7 @@ bool R_InitGL( void )
 		BSP_ReserveWaterLighting();
 		BSP_SetSamplingLightData(*ens.pworld);
 		BSP_ReleaseLightmapData(*ens.pworld);
+		BSP_ReleaseVertexLightData(*ens.pworld);
 	}
 
 	// Create query objects
@@ -827,6 +828,7 @@ bool R_LoadResources( void )
 	{
 		BSP_ReserveWaterLighting();
 		BSP_ReleaseLightmapData(*ens.pworld);
+		BSP_ReleaseVertexLightData(*ens.pworld);
 	}
 
 	VID_DrawLoadingScreen("Renderer ready");
@@ -4150,6 +4152,13 @@ void R_SetLightmapTexture( Uint32 glindex, Uint32 width, Uint32 height, bool isv
 		break;
 	}
 
+}
+
+//====================================
+//
+//====================================
+void R_PostClientInit( void )
+{
 }
 
 //====================================

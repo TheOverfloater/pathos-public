@@ -102,6 +102,9 @@ static constexpr Float STEPTIME_SLOWMOVE = 720.0f;
 // Step time when sprinting
 static constexpr Float STEPTIME_SPRINT = 475.0f;
 
+// Epsilon value used for mins/maxs checks
+static const Float MINSMAXS_EPSILON = 0.5f;
+
 // Allocation size for leafnums
 static constexpr Int32 LEAFNUM_ALLOC_COUNT = 256;
 
@@ -242,11 +245,6 @@ const Char VIEW_ROLL_CVAR_NAME[] = "v_rollangle";
 const Char VIEW_BOB_CVAR_NAME[] = "v_viewbob";
 // Autoaim cvar name
 const Char AUTOAIM_CVAR_NAME[] = "sv_autoaim";
-
-// Minimum filter frames for mouse filtering
-static constexpr Uint32 MOUSE_FILTER_MIN_FRAMES = 2;
-// Maximum filter frames for mouse filtering
-static constexpr Uint32 MOUSE_FILTER_MAX_FRAMES = 8;
 
 // Null mins value
 static const Vector NULL_MINS(MAX_FLOAT_VALUE, MAX_FLOAT_VALUE, MAX_FLOAT_VALUE);

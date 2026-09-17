@@ -20,6 +20,7 @@ static constexpr Int32 MAX_PREV_ANIMSTATES = 4;
 struct cache_model_t;
 struct entity_extrainfo_t;
 struct entity_vbmhulldata_t;
+struct vlight_vbo_t;
 
 struct mouth_t
 {
@@ -86,6 +87,7 @@ struct cl_entity_t
 		visframe(0),
 		pextradata(nullptr),
 		pvbmhulldata(nullptr),
+		pvertexlightvbo(nullptr),
 		eventframe(0)
 	{
 	}
@@ -131,6 +133,8 @@ public:
 	entity_extrainfo_t* pextradata;
 	// Pointer to vbm hull data
 	entity_vbmhulldata_t* pvbmhulldata;
+	// Vertex lighting vbo
+	vlight_vbo_t* pvertexlightvbo;
 
 	// Last frame on which an event was played
 	Float eventframe;

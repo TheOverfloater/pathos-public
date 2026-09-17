@@ -515,6 +515,7 @@ extern bool R_DrawEntityMinsMaxs( void );
 
 extern bool R_Init( void );
 extern void R_Shutdown( void );
+extern void R_PostClientInit( void );
 
 extern bool R_InitGL( void );
 extern void R_ShutdownGL( void );

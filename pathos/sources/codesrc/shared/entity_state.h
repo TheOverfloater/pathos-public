@@ -186,7 +186,6 @@ struct entity_state_t
 		speed(0),
 		stamina(0),
 		modelindex(0),
-		vlight_vbo_index(NO_POSITION),
 		ltime(0),
 		nextthink(0),
 		movetype(MOVETYPE_NONE),
@@ -301,7 +300,6 @@ struct entity_state_t
 
 	Int32 modelindex;
 
-	Int32 vlight_vbo_index;
 	byte vlight_styles[MAX_ENTITY_STYLES];
 
 	Vector absmin;

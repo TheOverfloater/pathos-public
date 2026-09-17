@@ -363,14 +363,14 @@ struct dpbspv2lightgridlumpheader_t
         vectorscompressionlevel(0),
         vectorscompressiontype(0)
     {
-        for(Uint32 i = 0; i < 3; i++)
+		for(Uint32 i = 0; i < 3; i++)
 			grid_distance[i] = 0;
 
         for(Uint32 i = 0; i < 3; i++)
 			grid_size[i] = 0;
-			
+
         for(Uint32 i = 0; i < 3; i++)
-			grid_mins[i] = 0;			
+			grid_mins[i] = 0;
     }
 
     Int32 grid_distance[3];

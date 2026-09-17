@@ -62,7 +62,8 @@ enum svc_commands_t
 	svc_clcommand,
 	svc_precacheparticlescript,
 	svc_precachedecal,
-	svc_lightenvinfo
+	svc_lightenvinfo,
+	svc_postclientinit
 };
 
 //

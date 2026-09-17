@@ -30,6 +30,7 @@ All Rights Reserved.
 #include "beam_shared.h"
 #include "flex_shared.h"
 #include "tracer.h"
+#include "brushmodel_shared.h"
 
 #include "gameui_shared.h"
 #include "gameuimanager.h"
@@ -2754,4 +2755,38 @@ MSGFN MsgFunc_SetScreenOverlay(const Char* pstrName, const byte* pdata, Uint32 m
 	}
 	else
 		return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+MSGFN MsgFunc_SetupVertexLighting(const Char* pstrName, const byte* pdata, Uint32 msgsize)
+{
+	CMSGReader reader(pdata, msgsize);
+
+	Int32 modelindex = reader.ReadUint16();
+	Int32 entindex = reader.ReadInt32();
+	Int32 vlight_offset = reader.ReadInt32();
+	Int32 vlight_vertexcount = reader.ReadInt32();
+
+	byte styles[MAX_SURFACE_STYLES];
+	for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
+		styles[i] = reader.ReadByte();
+
+	if (reader.HasError())
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+		return false;
+	}
+
+	cl_entity_t* pentity = cl_engfuncs.pfnGetEntityByIndex(entindex);
+	if(!pentity)
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Invalid entity with index '%d' specified.\n", __FUNCTION__, entindex);
+		return true;
+	}
+
+	cl_efxapi.pfnSetupEntityVertexLightVBO(modelindex, pentity, vlight_offset, vlight_vertexcount, styles);
+	return true;
 }

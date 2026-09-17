@@ -32,6 +32,7 @@ public:
 	virtual ~CEnvModel( void );
 
 public:
+	virtual void DeclareSaveFields( void ) override;
 	virtual bool Spawn( void ) override;
 	virtual void Precache( void ) override;
 	virtual void InitEntity( void ) override;
@@ -40,10 +41,18 @@ public:
 	virtual void CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value ) override;
 	virtual Int32 GetEntityFlags( void ) override { return CAnimatingEntity::GetEntityFlags() & ~FL_ENTITY_TRANSITION; }
 	virtual bool CanEntityBeParented( void ) const override { return true; }
+	virtual bool ShouldOverrideKeyValue( const Char* pstrKeyValue ) override;
+    virtual void SendInitMessage( const CBaseEntity* pPlayer ) override;
+
+private:
+	void ReadLightStyles( const Char* pstrStyles );
 
 protected:
 	string_t m_sequence;
 	string_t m_lightOrigin;
+
+	Int32 m_vertexlightOffset;
+	Int32 m_vertexlightVertexCount;
 };
 
 #endif //ENVMODEL_H

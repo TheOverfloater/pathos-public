@@ -141,6 +141,7 @@ entity_data_desc_t g_edictStateFields[] =
 	DEFINE_DATA_FIELD( entity_state_t, vuser3, EFIELD_VECTOR ),
 	DEFINE_DATA_FIELD( entity_state_t, vuser4, EFIELD_VECTOR ),
 	DEFINE_DATA_FIELD( entity_state_t, children, EFIELD_CARRAY_ENTINDEX ),
+	DEFINE_DATA_FIELD_ARRAY( entity_state_t, vlight_styles, EFIELD_BYTE, MAX_SURFACE_STYLES )
 };
 
 entity_data_desc_t g_edictStringFields[] = 
@@ -1829,6 +1830,9 @@ bool AddPacketEntity( entity_state_t& state, entindex_t entindex, edict_t& entit
 	state.parentoffset	= entity.state.parentoffset;
 
 	state.lightorigin	= entity.state.lightorigin;
+
+	for(Uint32 i = 0; i < MAX_SURFACE_STYLES; i++)
+		state.vlight_styles[i] = entity.state.vlight_styles[i];
 
 	if(entity.state.flags & FL_CLIENT)
 	{

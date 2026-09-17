@@ -50,4 +50,5 @@ extern void CL_Msg_WriteBuffer( const byte* pdata, Uint32 size );
 extern void CL_Msg_WriteString( const Char* pstring );
 extern void CL_Msg_WriteEntindex( entindex_t entindex );
 extern void CL_Msg_WriteBitSet( const byte* pdataarray, Uint32 numbits, Uint32 numbytes );
+extern void CL_PostClientInit( void );
 #endif //CL_MSG_H

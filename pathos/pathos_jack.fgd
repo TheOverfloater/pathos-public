@@ -1181,6 +1181,7 @@
     4 : "No VIS checks" : 0
     8 : "Start Invisible" : 0
 	16 : "No shadows" : 0
+	32 : "No baked lighting" : 0
   ] 
   scale(Integer) : "Scale" : 1
 ]

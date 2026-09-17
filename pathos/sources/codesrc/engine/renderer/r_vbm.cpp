@@ -54,16 +54,12 @@ All Rights Reserved.
 const Uint32 CVBMRenderer::NUM_LIGHT_REDUCTIONS = 3;
 // Time it takes to interpolate lighting value changes
 const Float CVBMRenderer::LIGHTING_LERP_TIME = 0.35;
-
 // Max decals on a single model entity
 const Uint32 CVBMRenderer::MAX_VBM_ENTITY_DECALS = 16;
-
 // Minimum array size for vbm model vertexes
 const Uint32 CVBMRenderer::MIN_VBMDECAL_VERTEXES = 32768;
-
 // Eyeglint texture path
 const Char CVBMRenderer::EYEGLINT_TEXTURE_PATH[] = "general/eyeglint.tga";
-
 // Default lightmap sampling offset
 const Float CVBMRenderer::DEFAULT_LIGHTMAP_SAMPLE_OFFSET = 16;
 
@@ -2089,9 +2085,7 @@ void CVBMRenderer::UpdateLightValues ( void )
 void CVBMRenderer::SetupLighting ( Int32 flags )
 {
 	// Do not bother calculating lighting for vertex lit objects
-	if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION && 
-		m_pCurrentEntity->curstate.vlight_vbo_index >= 0 &&
-		m_pCurrentEntity->curstate.vlight_vbo_index < m_pVertexLightingVBOArray.size())
+	if(m_pCurrentEntity->pvertexlightvbo)
 		return;
 
 	// Rebuild the entity's light origin each frame
@@ -3308,7 +3302,7 @@ bool CVBMRenderer::SetupRenderer( void )
 		m_isMultiPass = true;
 
 	// If doing baked lighting, check for styles
-	if(!m_isMultiPass && m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION)
+	if(!m_isMultiPass && m_pCurrentEntity->pvertexlightvbo)
 	{
 		const CArray<Float>* pstylesarray = gLightStyles.GetLightStyleValuesArray();
 		for(Uint32 i = 1; i < MAX_ENTITY_STYLES; i++)
@@ -3379,10 +3373,9 @@ bool CVBMRenderer::SetupRenderer( void )
 	m_pShader->EnableAttribute(m_attribs.a_texcoord1);
 
 	// Bind VBO for baked vertex lighting if any
-	if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION
-		&& m_pVertexLightingVBOArray.size() > m_pCurrentEntity->curstate.vlight_vbo_index)
+	if(m_pCurrentEntity->pvertexlightvbo)
 	{
-		vlight_vbo_t* pvblightvbo = m_pVertexLightingVBOArray[m_pCurrentEntity->curstate.vlight_vbo_index];
+		vlight_vbo_t* pvblightvbo = m_pCurrentEntity->pvertexlightvbo;
 		m_pShader->SetVBO(pvblightvbo->pvbo, 1);
 
 		m_pShader->SetAttributePointer(m_attribs.a_vertexlight_vectors, OFFSET(vbm_vlight_glvertex_t, vertexlight0_vector), 1);
@@ -3505,7 +3498,7 @@ bool CVBMRenderer::RestoreRenderer( void )
 	m_pShader->DisableAttribute(m_attribs.a_flexcoord);
 	m_pShader->DisableAttribute(m_attribs.a_texcoord2);
 
-	if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION)
+	if(m_pCurrentEntity->pvertexlightvbo)
 	{
 		// Disable the attributes used by baked vertex lighting
 		m_pShader->EnableAttribute(m_attribs.a_vertexlight_vectors);
@@ -3750,7 +3743,7 @@ bool CVBMRenderer::DrawFirst( void )
 bool CVBMRenderer::DrawStyles( bool specularPass, bool transparentPass )
 {
 	// Only draw styles if we have a valid VBO index AND are in multipass mode
-	if(!m_isMultiPass || m_pCurrentEntity->curstate.vlight_vbo_index == NO_POSITION)
+	if(!m_isMultiPass || !m_pCurrentEntity->pvertexlightvbo)
 		return true;
 
 	// Check if we have any valid styles at all
@@ -4907,10 +4900,9 @@ bool CVBMRenderer::DrawFinal ( void )
 		Math::MatMult(pmatrix.Transpose(), m_renderLightVector, &vtransformed);
 
 		// Bind VBO for baked vertex lighting if any
-		if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION
-			&& m_pVertexLightingVBOArray.size() > m_pCurrentEntity->curstate.vlight_vbo_index)
+		if(m_pCurrentEntity->pvertexlightvbo)
 		{
-			vlight_vbo_t* pvblightvbo = m_pVertexLightingVBOArray[m_pCurrentEntity->curstate.vlight_vbo_index];
+			vlight_vbo_t* pvblightvbo = m_pCurrentEntity->pvertexlightvbo;
 			m_pShader->SetVBO(pvblightvbo->pvbo, 1);
 
 			m_pShader->SetAttributePointer(m_attribs.a_vertexlight_vectors, OFFSET(vbm_vlight_glvertex_t, vertexlight0_vector), 1);
@@ -5070,10 +5062,9 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 	SetShaderLightValues();
 
 	// Bind VBO for baked vertex lighting if any
-	if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION
-		&& m_pVertexLightingVBOArray.size() > m_pCurrentEntity->curstate.vlight_vbo_index)
+	if(m_pCurrentEntity->pvertexlightvbo)
 	{
-		vlight_vbo_t* pvblightvbo = m_pVertexLightingVBOArray[m_pCurrentEntity->curstate.vlight_vbo_index];
+		vlight_vbo_t* pvblightvbo = m_pCurrentEntity->pvertexlightvbo;
 		m_pShader->SetVBO(pvblightvbo->pvbo, 1);
 
 		m_pShader->SetAttributePointer(m_attribs.a_vertexlight_vectors, OFFSET(vbm_vlight_glvertex_t, vertexlight0_vector), 1);
@@ -5218,8 +5209,7 @@ bool CVBMRenderer::DrawFinalSpecular( bool transparentPass )
 	m_pShader->DisableSync(m_attribs.u_normalmatrix);
 
 	// Disable these attribs
-	if(m_pCurrentEntity->curstate.vlight_vbo_index != NO_POSITION
-		&& m_pVertexLightingVBOArray.size() > m_pCurrentEntity->curstate.vlight_vbo_index)
+	if(m_pCurrentEntity->pvertexlightvbo)
 	{
 		m_pShader->DisableAttribute(m_attribs.a_vertexlight_vectors);
 		m_pShader->DisableAttribute(m_attribs.a_vertexlight_ambient);
@@ -8617,10 +8607,10 @@ const Char* CVBMRenderer::GetShaderErrorString( void ) const
 //
 //
 //=============================================
-bool CVBMRenderer::SetupEntityVertexLightVBO( cl_entity_t* pentity, Int32 vlightoffset, Uint32 vertexcount, byte* plightstyles )
+bool CVBMRenderer::SetupEntityVertexLightVBO( Int32 modelindex, cl_entity_t* pentity, Int32 vlightoffset, Uint32 vertexcount, byte* plightstyles )
 {
 	// Ensure this model actually exists
-	cache_model_t* pmodel = gModelCache.GetModelByIndex(pentity->curstate.modelindex);
+	cache_model_t* pmodel = gModelCache.GetModelByIndex(modelindex);
 	if(!pmodel)
 	{
 		Con_Printf("%s - Failed to get model with index %d.\n", __FUNCTION__, m_pCurrentEntity->curstate.modelindex);
@@ -8657,7 +8647,7 @@ bool CVBMRenderer::SetupEntityVertexLightVBO( cl_entity_t* pentity, Int32 vlight
 		return false;
 	}
 
-	pentity->curstate.vlight_vbo_index = m_pVertexLightingVBOArray.size();
+	pentity->pvertexlightvbo = pnew;
 	m_pVertexLightingVBOArray.push_back(pnew);
 
 	return true;
@@ -8683,7 +8673,7 @@ bool CVBMRenderer::BuildVertexLightVBO( vlight_vbo_t* pvlightvbo )
 		|| !pworldbrushmodel->pvertexlightdata[VERTEX_LIGHTING_AMBIENT]
 		|| !pworldbrushmodel->pvertexlightdata[VERTEX_LIGHTING_DIFFUSE])
 	{
-		Con_Printf("%s - BSP has none, or incomplete vertex lighting data.\n", __FUNCTION__);
+ 		Con_Printf("%s - BSP has none, or incomplete vertex lighting data.\n", __FUNCTION__);
 		return false;
 	}
 

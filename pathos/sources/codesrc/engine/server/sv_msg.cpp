@@ -330,7 +330,8 @@ bool SV_WriteEntitiesToClient( sv_client_t* pclient )
 			|| curstate.renderfx != clstate.renderfx
 			|| curstate.numsegments != clstate.numsegments
 			|| curstate.rendercolor != clstate.rendercolor
-			|| curstate.lightorigin != clstate.lightorigin)
+			|| curstate.lightorigin != clstate.lightorigin
+			|| memcmp(curstate.vlight_styles, clstate.vlight_styles, sizeof(byte)*MAX_SURFACE_STYLES) != 0)
 			updateMask |= U_RENDERINFO;
 
 		if(curstate.health != clstate.health
@@ -533,6 +534,9 @@ bool SV_WriteEntitiesToClient( sv_client_t* pclient )
 
 			for(Uint32 j = 0; j < 3; j++)
 				svs.netinfo.pnet->WriteFloat(curstate.lightorigin[j]);
+
+			for(Uint32 j = 0; j < MAX_SURFACE_STYLES; j++)
+				svs.netinfo.pnet->WriteByte(curstate.vlight_styles[j]);
 		}
 
 		if(updateMask & U_BASICS4)

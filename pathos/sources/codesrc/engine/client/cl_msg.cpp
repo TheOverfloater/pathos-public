@@ -35,6 +35,7 @@ All Rights Reserved.
 #include "r_decals.h"
 #include "r_legacyparticles.h"
 #include "dlight.h"
+#include "r_main.h"
 
 //=============================================
 //
@@ -165,6 +166,11 @@ bool CL_ReadMessages( void )
 		case svc_precachedecal:
 			{
 				CL_ReadDecalPrecacheMessage();
+			}
+			break;
+		case svc_postclientinit:
+			{
+				CL_PostClientInit();
 			}
 			break;
 		case svc_bad:
@@ -797,6 +803,9 @@ bool CL_ReadPacketEntities( void )
 
 			for(Uint32 j = 0; j < 3; j++)
 				state.lightorigin[j] = reader.ReadFloat();
+
+			for(Uint32 j = 0; j < MAX_SURFACE_STYLES; j++)
+				state.vlight_styles[j] = reader.ReadByte();
 		}
 
 		if(updateMask & U_BASICS4)
@@ -1064,6 +1073,14 @@ void CL_ReadParticlePrecacheMessage( void )
 	}
 
 	gParticleEngine.PrecacheScript(type, pstrfilepath, false);
+}
+
+//=============================================
+//
+//=============================================
+void CL_PostClientInit( void )
+{
+	R_PostClientInit();
 }
 
 //=============================================

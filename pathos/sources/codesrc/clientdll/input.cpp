@@ -28,6 +28,12 @@ class Vector;
 
 // Default number of filter frames
 static const Char DEFAULT_NB_FILTER_FRAMES[] = "2";
+// Minimum filter frames for mouse filtering
+static constexpr Uint32 MOUSE_FILTER_MIN_FRAMES = 2;
+// Maximum filter frames for mouse filtering
+static constexpr Uint32 MOUSE_FILTER_MAX_FRAMES = 8;
+// Max value for pitch capping
+static constexpr Uint32 MOUSE_MAX_PITCH_CAP_VALUE = 89;
 
 // Mouse filter info structure
 m_filter_info_t g_mouseFilterInfo;
@@ -268,6 +274,20 @@ void CL_MouseFilterFramesCvarCallback( CCVar* pCVar )
 //=============================================
 //
 //=============================================
+void CL_ViewPitchUpDownCvarCallback( CCVar* pCVar )
+{
+	Float pitchCapValue = pCVar->GetValue();
+	if(pitchCapValue > MOUSE_MAX_PITCH_CAP_VALUE)
+	{
+		const char* pstrCvarName = pCVar->GetName();
+		cl_engfuncs.pfnCon_Printf("Invalid setting '%f' specified for cvar '%s'.\n", pitchCapValue, pstrCvarName);
+		cl_engfuncs.pfnSetCVarFloat(pstrCvarName, (Float)MOUSE_MAX_PITCH_CAP_VALUE);
+	}
+}
+
+//=============================================
+//
+//=============================================
 void CL_InitInput( void )
 {
 	// Create the input commands
@@ -315,8 +335,8 @@ void CL_InitInput( void )
 	g_pCvarReverseMouse = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, (FL_CV_CLIENT|FL_CV_SAVE), MOUSE_REVERSE_CVAR_NAME, "1", "Reverse mouse Y axis.");
 	g_pCvarMouseYaw = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "m_yaw", "1", "Mouse yaw turn speed.");
 	g_pCvarMousePitch = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "m_pitch", "1", "Mouse pitch turn speed.");
-	g_pCvarMousePitchUp = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "m_pitchup", "80", "Mouse pitch turn min limit.");
-	g_pCvarMousePitchDown = cl_engfuncs.pfnCreateCVar(CVAR_FLOAT, FL_CV_CLIENT, "m_pitchdown", "80", "Mouse pitch turn max limit.");
+	g_pCvarMousePitchUp = cl_engfuncs.pfnCreateCVarCallback(CVAR_FLOAT, FL_CV_CLIENT, "m_pitchup", "80", "Mouse pitch turn min limit.", CL_ViewPitchUpDownCvarCallback);
+	g_pCvarMousePitchDown = cl_engfuncs.pfnCreateCVarCallback(CVAR_FLOAT, FL_CV_CLIENT, "m_pitchdown", "80", "Mouse pitch turn max limit.", CL_ViewPitchUpDownCvarCallback);
 	g_pCvarDefaultFOV = cl_engfuncs.pfnGetCVarPointer(DEFAULT_FOV_CVAR_NAME);
 	g_pCvarReferenceFOV = cl_engfuncs.pfnGetCVarPointer(REFERENCE_FOV_CVAR_NAME);
 }

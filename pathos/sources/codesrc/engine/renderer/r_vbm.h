@@ -521,7 +521,7 @@ public:
 	void RotateVectorByBoneMatrix( cl_entity_t *pEntity, Int32 boneindex, Vector& vector, bool inverse );
 
 	// Sets up pre-baked vertex lighting for a model
-	bool SetupEntityVertexLightVBO( cl_entity_t* pentity, Int32 vlightoffset, Uint32 vertexcount, byte* plightstyles );
+	bool SetupEntityVertexLightVBO( Int32 modelindex, cl_entity_t* pentity, Int32 vlightoffset, Uint32 vertexcount, byte* plightstyles );
 	// Rebuilds vertex lighting VBOs
 	bool RebuildVertexLightingVBOs( void );
 

@@ -661,7 +661,7 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 		if(qstrcmp(pstudiocache->vertexhash, vlight_hash))
 		{
 			cl_engfuncs.pfnCon_Printf("[flags=onlyonce_game]%s - Vertex hash for model '%s' in BSP does not math with cache hash, model has been changed.\nBaked vertex lighting will be discarded for all entities using this model.\n", __FUNCTION__, pmodel->name.c_str());
-			newEntity.curstate.vlight_vbo_index = NO_POSITION;
+			newEntity.pvertexlightvbo = nullptr;
 		}
 		else
 		{
@@ -831,7 +831,7 @@ void CEntityManager::SetupModelVertexLighting( const entitydata_t& entity, cl_en
 	}
 
 	// Call engine to set up this information
-	if(!cl_efxapi.pfnSetupEntityVertexLightVBO(pcliententity, vlight_offset, vlight_vertexcount, pcliententity->curstate.vlight_styles))
+	if(!cl_efxapi.pfnSetupEntityVertexLightVBO(pmodel->cacheindex, pcliententity, vlight_offset, vlight_vertexcount, pcliententity->curstate.vlight_styles))
 	{
 		cl_engfuncs.pfnCon_Printf("%s - Failed to set up baked vertex lighting for entity with model '%s'.\n", __FUNCTION__, pmodel->name.c_str());
 		return;
