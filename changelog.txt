@@ -1074,3 +1074,9 @@ Merge PR # 55:
  - Fix broken scope effect in model viewer.
  - Fix broken transparency when rendering in non-textured and wireframe modes.
  - Add cable sprites.
+
+Changes as of 2026 September 17th:
+ - Add "No baked lighting" flag for env_model.
+ - Add support for server-side env_model to also make use of baked vertex lighting.
+ - Add capping to pitchdown/pitchup max value for up-down mouse look.
+ - Add epsilon to CheckMinsMaxs and PointInMinsMaxs to help resolve collision related issues due to edge cases on some doors in the test levels.
