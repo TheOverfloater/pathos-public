@@ -501,7 +501,7 @@ public:
 	virtual bool IsAlive( void ) const override { return (m_pState->deadstate == DEADSTATE_NONE && m_npcState != NPC_STATE_DEAD) ? true : false; };
 
 	// Nudges an NPC off the ground by a few units, then puts them on the floor
-	virtual void GroundEntityNudge( bool noExceptions = false ) override;
+	virtual bool GroundEntityNudge( bool noExceptions = false ) override;
 	
 	// Handles an animation event
 	virtual void HandleAnimationEvent( const mstudioevent_t* pevent ) override;

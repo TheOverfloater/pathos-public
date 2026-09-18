@@ -280,7 +280,7 @@ void CLeafBrushBVH::GetAABBTraceBrushes( const Vector& start, const Vector& end,
 	numOutBrushes = 0;
 
 	// Determine if we need an intersection test, or a swept test
-	bool intersectTest = ((start - end).Length() > 0) ? true : false;
+	bool intersectTest = ((start - end).Length() > 0) ? false : true;
 	// This actually needs to be the half-extents, not full extents
 	Vector extents = (clipHullMaxs - clipHullMins) * 0.5;
 

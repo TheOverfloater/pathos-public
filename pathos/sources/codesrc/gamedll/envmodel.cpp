@@ -23,7 +23,8 @@ CEnvModel::CEnvModel( edict_t* pedict ):
 	m_sequence(NO_STRING_VALUE),
 	m_lightOrigin(NO_STRING_VALUE),
 	m_vertexlightOffset(NO_POSITION),
-	m_vertexlightVertexCount(0)
+	m_vertexlightVertexCount(0),
+	m_vertexlightHash(NO_STRING_VALUE)
 {
 }
 
@@ -48,6 +49,7 @@ void CEnvModel::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvModel, m_lightOrigin, EFIELD_STRING));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvModel, m_vertexlightOffset, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvModel, m_vertexlightVertexCount, EFIELD_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CEnvModel, m_vertexlightHash, EFIELD_STRING));
 }
 
 //=============================================
@@ -144,6 +146,11 @@ bool CEnvModel::KeyValue( const keyvalue_t& kv )
 		ReadLightStyles(kv.value);
 		return true;
 	}
+	else if(!qstrcmp(kv.keyname, "vlight_hash"))
+	{
+		m_vertexlightHash = gd_engfuncs.pfnAllocString(kv.value);
+		return true;
+	}
 	else
 		return CAnimatingEntity::KeyValue(kv);
 }
@@ -230,6 +237,25 @@ void CEnvModel::SendInitMessage( const CBaseEntity* pPlayer )
 {
 	if(m_vertexlightOffset != NO_POSITION && m_vertexlightVertexCount > 0)
 	{
+		const cache_model_t* pmodel = gd_engfuncs.pfnGetModel(m_pState->modelindex);
+		if(!pmodel)
+		{
+			Util::EntityConPrintf(m_pEdict, "Couldn't get model with index '%d' for entity.\n", m_pState->modelindex);
+			m_vertexlightOffset = NO_POSITION;
+			m_vertexlightVertexCount = 0;
+			return;
+		}
+
+		const vbmcache_t* pvbmcache = pmodel->getVBMCache();
+		const Char* pstrLocalHash = gd_engfuncs.pfnGetString(m_vertexlightHash);
+		if(qstrcmp(pvbmcache->vertexhash, pstrLocalHash) != 0)
+		{
+			gd_engfuncs.pfnCon_Printf("[flags=onlyonce_game]%s - Vertex hash for model '%s' in BSP does not math with cache hash, model has been changed.\nBaked vertex lighting will be discarded for all entities using this model.\n", __FUNCTION__, pmodel->name.c_str());
+			m_vertexlightOffset = NO_POSITION;
+			m_vertexlightVertexCount = 0;
+			return;
+		}
+
 		if (pPlayer)
 			gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.setupvertexlighting, nullptr, pPlayer->GetEdict());
 		else

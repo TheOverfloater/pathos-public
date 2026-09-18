@@ -1951,14 +1951,7 @@ void CBaseNPC::StartNPC( void )
 	{
 		if(!HasSpawnFlag(FL_NPC_DONT_FALL))
 		{
-			// Raise the NPC off the floor, then drop him
-			Vector raisedOrigin = m_pState->origin;
-			raisedOrigin.z += 1.0f;
-			SetOrigin(raisedOrigin);
-
-			gd_engfuncs.pfnDropToFloor(m_pEdict);
-
-			if(!gd_engfuncs.pfnWalkMove(m_pEdict, 0, 0, WALKMOVE_NORMAL))
+			if(!GroundEntityNudge())
 			{
 				Util::EntityConPrintf(m_pEdict, "Entity stuck in brush geometry at %.2f %.2f %.2f.\n", m_pState->origin.x, m_pState->origin.y, m_pState->origin.z);
 
@@ -2573,14 +2566,14 @@ void CBaseNPC::OnGibSpawnCallback( CBaseEntity* pGib )
 // @brief
 //
 //=============================================
-void CBaseNPC::GroundEntityNudge( bool noExceptions )
+bool CBaseNPC::GroundEntityNudge( bool noExceptions )
 {
 	if(!noExceptions && m_pState->movetype != MOVETYPE_FLY)
 	{
 		if(!m_valuesParsed || m_npcState == NPC_STATE_SCRIPT 
 			|| HasSpawnFlag(FL_NPC_DONT_FALL) 
 			|| HasSpawnFlag(FL_NPC_WAIT_FOR_SCRIPT))
-			return;
+			return true;
 	}
 
 	Vector preNudgeOrigin = m_pState->origin;
@@ -2618,6 +2611,8 @@ void CBaseNPC::GroundEntityNudge( bool noExceptions )
 
 	if(!succeeded)
 		SetOrigin(preNudgeOrigin);
+
+	return succeeded;
 }
 
 //=============================================

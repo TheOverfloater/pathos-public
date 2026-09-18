@@ -291,7 +291,7 @@ public:
 	// Sets parent door for func_door entities
 	virtual void SetParentDoor( CFuncDoor* pParent ) { STUBWARNING; }
 	// Nudges this ground entity
-	virtual void GroundEntityNudge( bool noExceptions = false ) { STUBWARNING; }
+	virtual bool GroundEntityNudge( bool noExceptions = false ) { STUBWARNING; return false; }
 	// Called when a related entity is removed
 	virtual void ChildEntityRemoved( CBaseEntity* pEntity ) {}
 	// Sets a door to be forced to close

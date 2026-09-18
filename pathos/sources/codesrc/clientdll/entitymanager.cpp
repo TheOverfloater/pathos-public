@@ -649,8 +649,8 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 	}
 
 	// Retreive studio cache object
-	const vbmcache_t* pstudiocache = newEntity.pmodel->getVBMCache();
-	const studiohdr_t* pstudiohdr = pstudiocache->pstudiohdr;
+	const vbmcache_t* pvbmcache = newEntity.pmodel->getVBMCache();
+	const studiohdr_t* pstudiohdr = pvbmcache->pstudiohdr;
 
 	// Manage things for vertex baked stuff
 	pvalue = ValueForKey(entity, "vlight_hash");
@@ -658,7 +658,7 @@ void CEntityManager::Entity_EnvModel( const entitydata_t& entity, entindex_t& en
 	{
 		// Extract hash value
 		CString vlight_hash(pvalue);
-		if(qstrcmp(pstudiocache->vertexhash, vlight_hash))
+		if(qstrcmp(pvbmcache->vertexhash, vlight_hash) != 0)
 		{
 			cl_engfuncs.pfnCon_Printf("[flags=onlyonce_game]%s - Vertex hash for model '%s' in BSP does not math with cache hash, model has been changed.\nBaked vertex lighting will be discarded for all entities using this model.\n", __FUNCTION__, pmodel->name.c_str());
 			newEntity.pvertexlightvbo = nullptr;

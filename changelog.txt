@@ -1080,3 +1080,7 @@ Merge PR # 55:
  - Add support for server-side env_model to also make use of baked vertex lighting.
  - Add capping to pitchdown/pitchup max value for up-down mouse look.
  - Add epsilon to CheckMinsMaxs and PointInMinsMaxs to help resolve collision related issues due to edge cases on some doors in the test levels.
+ - Add missing sprite and sound for oldschool explosion effect.
+ - Add missing vertex light hash check for server-side env_model entities.
+ - Fix broken un-sticking nudge on spawn for NPCs.
+ - Fix bug in CLeafBrushBVH not determining box check type correctly, causing issues with player movement on stairs.

@@ -53,6 +53,7 @@ protected:
 
 	Int32 m_vertexlightOffset;
 	Int32 m_vertexlightVertexCount;
+	string_t m_vertexlightHash;
 };
 
 #endif //ENVMODEL_H
