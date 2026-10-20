@@ -146,6 +146,7 @@ struct usermsglist_t
 	Int32 screenoverlay;
 	Int32 customitempickup;
 	Int32 setupvertexlighting;
+	Int32 showcredits;
 }; 
 extern usermsglist_t g_usermsgs;
 

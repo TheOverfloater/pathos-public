@@ -1160,6 +1160,10 @@
     3 : "Play Everywhere"
   ]
 ]
+@PointClass base(Targetname) color(200 200 0) = env_credits : "Credits Display"
+[
+	scrollspeed(string) : "Scroll Speed" : "45"
+]
 @PointClass base(Angles, Targetname, ParentedEnt, RenderFields) size(-16 -16 0, 16 16 36) studio() = env_model : "Model" 
 [
   model(studio) : "Model"
