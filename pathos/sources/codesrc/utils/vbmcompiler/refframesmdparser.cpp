@@ -125,24 +125,6 @@ bool CReferenceFrameSMDParser::ProcessFile( const Char* pstrFilename )
 		}
 	}
 
-	// Link bone index map up
-	for(Uint32 i = 0; i < m_referenceFrameInfo.bones.size(); i++)
-	{
-		smdl::bone_t& bone = m_referenceFrameInfo.bones[i];
-		smdl::bone_node_t& node = m_referenceFrameInfo.nodes[i];
-
-		const smdl::boneinfo_t* pglobalbone = m_studioCompiler.GetBone(node.bonename.c_str());
-		if(!pglobalbone)
-		{
-			bone.globalindex = NO_POSITION;
-		}
-		else
-		{
-			bone.globalindex = pglobalbone->index;
-			m_referenceFrameInfo.bonemap_inverse[pglobalbone->index] = i;
-		}
-	}
-
 	// Next up, find global bone array bones in out list
 	bool result = true;
 	Uint32 nbGlobalBones = m_studioCompiler.GetNbBones();
@@ -162,6 +144,39 @@ bool CReferenceFrameSMDParser::ProcessFile( const Char* pstrFilename )
 		{
 			ErrorMsg("Couldn't find bone '%s' in '%s.smd' bone list.\n", pglobalbone->name.c_str(), pstrFilename);
 			result = false;
+		}
+	}
+
+	if(!result)
+		return false;
+
+	if(m_referenceFrameInfo.bonemap_inverse.size() != nbGlobalBones)
+		m_referenceFrameInfo.bonemap_inverse.resize(nbGlobalBones);
+
+	for(Uint32 i = 0; i < nbGlobalBones; i++)
+		m_referenceFrameInfo.bonemap_inverse[i] = NO_POSITION;
+
+	// Link bone index map up
+	for(Uint32 i = 0; i < m_referenceFrameInfo.bones.size(); i++)
+	{
+		smdl::bone_t& bone = m_referenceFrameInfo.bones[i];
+		smdl::bone_node_t& node = m_referenceFrameInfo.nodes[i];
+
+		const smdl::boneinfo_t* pglobalbone = m_studioCompiler.GetBone(node.bonename.c_str());
+		if(!pglobalbone)
+		{
+			bone.globalindex = NO_POSITION;
+		}
+		else if(pglobalbone->index >= m_referenceFrameInfo.bonemap_inverse.size())
+		{
+			ErrorMsg("Mismatch between reference_frame and global bone table. Is your reference_frame.smd up to date?\n");
+			Clear();
+			return false;
+		}
+		else
+		{
+			bone.globalindex = pglobalbone->index;
+			m_referenceFrameInfo.bonemap_inverse[pglobalbone->index] = i;
 		}
 	}
 

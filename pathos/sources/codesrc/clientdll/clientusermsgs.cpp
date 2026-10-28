@@ -27,6 +27,7 @@ All Rights Reserved.
 #include "messages.h"
 #include "tempentity.h"
 #include "screentext.h"
+#include "credits.h"
 #include "beam_shared.h"
 #include "flex_shared.h"
 #include "tracer.h"
@@ -769,6 +770,21 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 			cl_efxapi.pfnParticleExplosion2(origin, colorstart, colorlength);
 		}
 		break;
+	case TE_PARTICLEEXPLOSION3:
+		{
+			Vector origin;
+			for(Uint32 i = 0; i < 3; i++)
+				origin[i] = reader.ReadFloat();
+			
+			if(reader.HasError())
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+				return false;
+			}
+
+			cl_efxapi.pfnParticleExplosion3(origin);
+		}
+		break;
 	case TE_BLOBEXPLOSION:
 		{
 			Vector origin;
@@ -907,6 +923,10 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 			for(Uint32 i = 0; i < 3; i++)
 				origin[i] = reader.ReadFloat();
 
+			Vector direction;
+			for(Uint32 i = 0; i < 3; i++)
+				direction[i] = reader.ReadFloat();
+
 			Uint32 count = reader.ReadUint16();
 			
 			Vector color;
@@ -921,7 +941,7 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 			Float width = reader.ReadSmallFloat();
 			Float length = reader.ReadSmallFloat();
 
-			cl_efxapi.pfnCreateSparkStreak(origin, count, color, alpha, width, length, minLifetime, maxLifetime, minVelocity, maxVelocity);
+			cl_efxapi.pfnCreateSparkStreak(origin, direction, count, color, alpha, width, length, minLifetime, maxLifetime, minVelocity, maxVelocity);
 		}
 		break;
 	case TE_STREAKSPLASH:
@@ -946,8 +966,8 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 			Float maxLifetime = reader.ReadFloat();
 			Float minVelocity = reader.ReadFloat();
 			Float maxVelocity = reader.ReadFloat();
-			Float width = reader.ReadSmallFloat();
-			Float length = reader.ReadSmallFloat();
+			Float width = reader.ReadFloat();
+			Float length = reader.ReadFloat();
 
 			cl_efxapi.pfnCreateStreakSplash(origin, direction, color, alpha, width, length, count, speed, minLifetime, maxLifetime, minVelocity, maxVelocity);
 		}
@@ -1015,6 +1035,63 @@ MSGFN MsgFunc_CreateTempEntity( const Char* pstrName, const byte* pdata, Uint32 
 			Float length = reader.ReadSmallFloat();
 
 			cl_efxapi.pfnCreateTracerImplosion(destination, radius, count, life, color, alpha, width, length, reverse);
+		}
+		break;
+	case TE_FLICKERPARTICLES:
+		{
+			Vector origin;
+			for(Uint32 i = 0; i < 3; i++)
+				origin[i] = reader.ReadFloat();
+			
+			Vector direction;
+			for(Uint32 i = 0; i < 3; i++)
+				direction[i] = reader.ReadFloat();
+
+			if(reader.HasError())
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+				return false;
+			}
+
+			cl_efxapi.pfnCreateFlickerParticles(origin, direction);
+		}
+		break;
+	case TE_BULLETIMPACTPARTICLES:
+		{
+			Vector origin;
+			for(Uint32 i = 0; i < 3; i++)
+				origin[i] = reader.ReadFloat();
+			
+			Vector direction;
+			for(Uint32 i = 0; i < 3; i++)
+				direction[i] = reader.ReadFloat();
+
+			if(reader.HasError())
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+				return false;
+			}
+
+			cl_efxapi.pfnCreateBulletImpactParticles(origin, direction);
+		}
+		break;
+	case TE_PARTICLEBURST:
+		{
+			Vector origin;
+			for(Uint32 i = 0; i < 3; i++)
+				origin[i] = reader.ReadFloat();
+			
+			Int16 size = reader.ReadInt16();
+			Uint32 color = reader.ReadByte();
+			Float life = reader.ReadSmallFloat();
+
+			if(reader.HasError())
+			{
+				cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+				return false;
+			}
+
+			cl_efxapi.pfnCreateParticleBurst(origin, size, color, life);
 		}
 		break;
 	case TE_UNDEFINED:
@@ -2788,5 +2865,24 @@ MSGFN MsgFunc_SetupVertexLighting(const Char* pstrName, const byte* pdata, Uint3
 	}
 
 	cl_efxapi.pfnSetupEntityVertexLightVBO(modelindex, pentity, vlight_offset, vlight_vertexcount, styles);
+	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+MSGFN MsgFunc_ShowCredits(const Char* pstrName, const byte* pdata, Uint32 msgsize)
+{
+	CMSGReader reader(pdata, msgsize);
+	Float scrollSpeed = reader.ReadFloat();
+
+	if (reader.HasError())
+	{
+		cl_engfuncs.pfnCon_Printf("%s - Error reading message: %s.\n", __FUNCTION__, reader.GetError());
+		return false;
+	}
+
+	gCredits.StartCredits(scrollSpeed);
 	return true;
 }

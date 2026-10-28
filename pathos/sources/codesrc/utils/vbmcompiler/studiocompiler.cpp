@@ -461,6 +461,8 @@ void CStudioModelCompiler::WriteTextures( void )
 
 		Uint32 maxSize = sizeof(mstudiotexture_t::name);
 		qstrcpy_s(pdesttexture->name, psrctexture->name.c_str(), maxSize);
+		if(qstrlen(pdesttexture->name) < psrctexture->name.length())
+			WarningMsg("Studio texture name '%s' was truncated to '%s'!\n", psrctexture->name.c_str(), pdesttexture->name);
 
 		pdesttexture->flags = psrctexture->flags;
 		pdesttexture->height = psrctexture->height;
@@ -518,6 +520,9 @@ bool CStudioModelCompiler::WriteGeometryData( void )
 
 		Uint32 maxSize = sizeof(pdestbodypart->name);
 		qstrcpy_s(pdestbodypart->name, psrcbodypart->name.c_str(), maxSize);
+		if(qstrlen(pdestbodypart->name) < psrcbodypart->name.length())
+			WarningMsg("Studio body part name '%s' was truncated to '%s'!\n", psrcbodypart->name.c_str(), pdestbodypart->name);
+
 		pdestbodypart->base = psrcbodypart->base;
 		pdestbodypart->nummodels = psrcbodypart->psubmodels.size();
 		pdestbodypart->modelindex = (reinterpret_cast<byte*>(&pdestsubmodels[j]) - reinterpret_cast<byte*>(m_pStudioHeader));
@@ -536,6 +541,8 @@ bool CStudioModelCompiler::WriteGeometryData( void )
 
 		Uint32 maxSize = sizeof(pdestsubmodel->name);
 		qstrcpy_s(pdestsubmodel->name, psrcsubmodel->name.c_str(), maxSize);
+		if(qstrlen(pdestsubmodel->name) < psrcsubmodel->name.length())
+			WarningMsg("Studio submodel name '%s' was truncated to '%s'!\n", psrcsubmodel->name.c_str(), pdestsubmodel->name);
 
 		// If "blank" or the strip model data option is set, 
 		// just set the name and leave everything as zeroes
@@ -663,6 +670,8 @@ bool CStudioModelCompiler::WriteBoneData( void )
 
 		Uint32 nameMax = sizeof(pdestbone->name);
 		qstrcpy_s(pdestbone->name, psrcbone->name.c_str(), nameMax);
+		if(qstrlen(pdestbone->name) < psrcbone->name.length())
+			WarningMsg("Studio bone name '%s' was truncated to '%s'!\n", psrcbone->name.c_str(), pdestbone->name);
 
 		pdestbone->parent = psrcbone->parent_index;
 		pdestbone->flags = psrcbone->flags;
@@ -892,6 +901,8 @@ bool CStudioModelCompiler::WriteAnimationData( void )
 
 		Uint32 nameMax = sizeof(pdestsequence->label);
 		qstrcpy_s(pdestsequence->label, psrcsequence->name.c_str(), nameMax);
+		if(qstrlen(pdestsequence->label) < psrcsequence->name.length())
+			WarningMsg("Studio sequence name '%s' was truncated to '%s'!\n", psrcsequence->name.c_str(), pdestsequence->label);
 
 		pdestsequence->activity = psrcsequence->activity;
 		pdestsequence->actweight = psrcsequence->actweight;
@@ -940,6 +951,8 @@ bool CStudioModelCompiler::WriteAnimationData( void )
 
 				Uint32 optionMax = sizeof(pdestevent->options);
 				qstrcpy_s(pdestevent->options, srcevent.params.c_str(), optionMax);
+				if(qstrlen(pdestevent->options) < srcevent.params.length())
+					WarningMsg("Studio event option string '%s' was truncated to '%s'!\n", srcevent.params.c_str(), pdestevent->options);
 			}
 
 			eventCount += psrcsequence->events.size();
@@ -2072,7 +2085,7 @@ bool CStudioModelCompiler::AddSubmodelBonesToTable( smdl::submodel_t* psubmodel 
 
 		// Add required mappings
 		if(boneIndex >= psubmodel->boneimap.size())
-			psubmodel->boneimap.resize(psubmodel->boneimap.size() + 1);
+			psubmodel->boneimap.resize(boneIndex + 1);
 
 		psubmodel->boneimap[boneIndex] = i;
 		bone.globalindex = boneIndex;
@@ -4338,7 +4351,7 @@ smdl::sequence_t* CStudioModelCompiler::AddSequence( const Char* pstrSequenceNam
 	pNewSeq->scaleup = m_defaultScale;
 	pNewSeq->movementscale = m_defaultMovementScale;
 	pNewSeq->adjust = m_defaultAdjustVector;
-	pNewSeq->endframe = -1;
+	pNewSeq->endframe = NO_POSITION;
 
 	m_pSequencesArray.push_back(pNewSeq);
 	return pNewSeq;

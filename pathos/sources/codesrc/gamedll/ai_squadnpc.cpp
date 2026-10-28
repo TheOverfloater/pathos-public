@@ -1033,7 +1033,7 @@ bool CSquadNPC::CheckGrenadeToss( Double& nextGrenadeCheckTime, bool &tossGrenad
 	}
 
 	Vector tossVector;
-	if(!Util::CheckToss(this, GetGunPosition(), targetVector, 0.5, tossVector))
+	if(!Util::CheckToss(this, m_enemy, GetGunPosition(), targetVector, 0.5, tossVector))
 	{
 		nextGrenadeCheckTime = g_pGameVars->time + 1;
 		tossGrenade = false;

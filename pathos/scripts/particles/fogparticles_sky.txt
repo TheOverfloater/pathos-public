@@ -6,15 +6,15 @@ $particlescript
 	$fade_in_time 0.500000
 	$fade_out_delay 5.000000
 	$lifetime 6.000000
-	$flags random_direction
-	$primary_color 255 255 255
+	$flags random_direction reverse_farnear_fade
+	$primary_color 86 94 124
 	$scale 15.000000
 	$scale_variation 2.000000
 	$scale_damping -45.000000
 	$max_particles -1
 	$particle_frequency 55.000000
 	$gravity 0.050000
-	$rendermode alphablend
+	$rendermode additive
 	$alpha 0.100000
 	$alignment tiled
 	$texture clouds

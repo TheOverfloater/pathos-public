@@ -88,6 +88,7 @@ void InitClientUserMessages( void )
 	g_usermsgs.screenoverlay = gd_engfuncs.pfnRegisterUserMessage("SetScreenOverlay", -1);
 	g_usermsgs.customitempickup = gd_engfuncs.pfnRegisterUserMessage("CustomItemPickup", -1);
 	g_usermsgs.setupvertexlighting = gd_engfuncs.pfnRegisterUserMessage("SetupVertexLighting", -1);
+	g_usermsgs.showcredits = gd_engfuncs.pfnRegisterUserMessage("ShowCredits", -1);
 }
 
 //=============================================

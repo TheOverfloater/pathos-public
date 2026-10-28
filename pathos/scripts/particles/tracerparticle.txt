@@ -12,7 +12,7 @@ $particlescript
 	$scale_damping -2.000000
 	$max_particles -1
 	$particle_frequency 0.500000
-	$create angel.txt
+	$create_tracer angel.txt
 	$create_on_death puff.txt
 	$rendermode additive
 	$alpha 1.000000

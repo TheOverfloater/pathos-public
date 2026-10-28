@@ -56,6 +56,7 @@ CBeamRenderer gBeamRenderer;
 //====================================
 CBeamRenderer::CBeamRenderer( void ):
 	m_pCurrentBeam(nullptr),
+	m_pCurrentSpriteFrame(nullptr),
 	m_pFreeBeamHeader(nullptr),
 	m_pActiveBeamHeader(nullptr),
 	m_lastBeamIndex(0),
@@ -529,8 +530,11 @@ void CBeamRenderer::DrawBeamSegments( void )
 		length = 0.5;
 
 	Float div = 1.0f / (_numsegments - 1);
-	Float step = length*div;
 	Float tcy1 = SDL_fmod(m_pCurrentBeam->frequency*m_pCurrentBeam->speed, 1.0);
+
+	Float totalwidth = m_pCurrentBeam->width * 2;
+	Float ratio = static_cast<Float>(m_pCurrentSpriteFrame->height) / static_cast<Float>(m_pCurrentSpriteFrame->width);
+	Float unitstep = 1.0 / (totalwidth * ratio);
 
 	Float _scale;
 	if(m_pCurrentBeam->flags & FL_BEAM_SINENOISE)
@@ -557,14 +561,15 @@ void CBeamRenderer::DrawBeamSegments( void )
 	Math::VectorSubtract(screenstart, screenlast, tmp);
 	tmp[2] = 0.0; // discard z as we're in screen space
 
-	Vector normal;
+	Vector prevnormal;
 	Math::VectorNormalize(tmp);
-	Math::VectorScale(rns.view.v_up, tmp[0], normal);
-	Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
+	Math::VectorScale(rns.view.v_up, tmp[0], prevnormal);
+	Math::VectorMA(prevnormal, -tmp[1], rns.view.v_right, prevnormal);
 
 	Vector coord1_1, coord1_2;
-	Math::VectorMA(m_pCurrentBeam->source, m_pCurrentBeam->width, normal, coord1_1);
-	Math::VectorMA(m_pCurrentBeam->source, -m_pCurrentBeam->width, normal, coord1_2);
+	Vector prev = m_pCurrentBeam->source;
+	Math::VectorMA(m_pCurrentBeam->source, m_pCurrentBeam->width, prevnormal, coord1_1);
+	Math::VectorMA(m_pCurrentBeam->source, -m_pCurrentBeam->width, prevnormal, coord1_2);
 
 	// Resample the noise waveform
 	Int32 noisestep = static_cast<Int32>(static_cast<Float>(MAX_BEAM_SEGMENTS) * div * 65536.0f);
@@ -632,8 +637,16 @@ void CBeamRenderer::DrawBeamSegments( void )
 		tmp[2] = 0;
 		Math::VectorNormalize(tmp);
 
+		Vector normal;
 		Math::VectorScale(rns.view.v_up, tmp[0], normal);
 		Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
+
+		Float tcxoffset = 0;
+		if(Math::DotProduct(prevnormal, normal) < 0)
+		{
+			Math::VectorScale(normal, -1, normal);
+			tcxoffset = 1;
+		}
 
 		// Calculate final coordinates
 		Vector coord2_1, coord2_2;
@@ -641,32 +654,35 @@ void CBeamRenderer::DrawBeamSegments( void )
 		Math::VectorMA(start, -m_pCurrentBeam->width, normal, coord2_2);
 
 		// Calculate texcoord
-		Float tcy2 = tcy1 + step;
+		Float distance = (start - prev).Length();
+		Float tcy2 = tcy1 + unitstep * distance;
 
 		// Draw as a quad
 		m_pBasicDraw->Brightness1f(brightness1);
-		m_pBasicDraw->TexCoord2f(1, tcy1);
+		m_pBasicDraw->TexCoord2f((1-tcxoffset), tcy1);
 		m_pBasicDraw->Vertex3fv(coord1_1);
 
 		m_pBasicDraw->Brightness1f(brightness1);
-		m_pBasicDraw->TexCoord2f(0, tcy1);
+		m_pBasicDraw->TexCoord2f(tcxoffset, tcy1);
 		m_pBasicDraw->Vertex3fv(coord1_2);
 
 		m_pBasicDraw->Brightness1f(brightness2);
-		m_pBasicDraw->TexCoord2f(0, tcy2);
+		m_pBasicDraw->TexCoord2f(tcxoffset, tcy2);
 		m_pBasicDraw->Vertex3fv(coord2_2);
 
 		m_pBasicDraw->Brightness1f(brightness2);
-		m_pBasicDraw->TexCoord2f(1, tcy2);
+		m_pBasicDraw->TexCoord2f((1-tcxoffset), tcy2);
 		m_pBasicDraw->Vertex3fv(coord2_1);
 
 		screenlast = screenstart;
 		noiseindex += noisestep;
 		brightness1 = brightness2;
-		tcy1 = SDL_fmod(tcy2, 1.0);
+		tcy1 = tcy2;
 
 		coord1_1 = coord2_1;
 		coord1_2 = coord2_2;
+		prevnormal = normal;
+		prev = start;
 	}
 
 	m_pBasicDraw->End();
@@ -691,8 +707,11 @@ void CBeamRenderer::DrawBeamTesla( const Vector& src, const Vector& delta, Float
 		length = 0.5;
 
 	Float div = 1.0f / (_numsegments - 1);
-	Float step = length*div;
 	Float tcy1 = SDL_fmod(m_pCurrentBeam->frequency*m_pCurrentBeam->speed, 1.0);
+
+	Float totalwidth = m_pCurrentBeam->width * 2;
+	Float ratio = static_cast<Float>(m_pCurrentSpriteFrame->height) / static_cast<Float>(m_pCurrentSpriteFrame->width);
+	Float unitstep = 1.0 / (totalwidth * ratio);
 
 	Float _scale;
 	if(flags & FL_BEAM_SINENOISE)
@@ -719,14 +738,15 @@ void CBeamRenderer::DrawBeamTesla( const Vector& src, const Vector& delta, Float
 	Math::VectorSubtract(screenstart, screenlast, tmp);
 	tmp[2] = 0.0; // discard z as we're in screen space
 
-	Vector normal;
+	Vector prevnormal;
 	Math::VectorNormalize(tmp);
-	Math::VectorScale(rns.view.v_up, tmp[0], normal);
-	Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
+	Math::VectorScale(rns.view.v_up, tmp[0], prevnormal);
+	Math::VectorMA(prevnormal, -tmp[1], rns.view.v_right, prevnormal);
 
 	Vector coord1_1, coord1_2;
-	Math::VectorMA(src, width, normal, coord1_1);
-	Math::VectorMA(src, -width, normal, coord1_2);
+	Math::VectorMA(src, width, prevnormal, coord1_1);
+	Math::VectorMA(src, -width, prevnormal, coord1_2);
+	Vector prev = src;
 
 	// Resample the noise waveform
 	Int32 noisestep = static_cast<Int32>(static_cast<Float>(MAX_BEAM_SEGMENTS) * div * 65536.0f);
@@ -799,8 +819,16 @@ void CBeamRenderer::DrawBeamTesla( const Vector& src, const Vector& delta, Float
 		tmp[2] = 0;
 		Math::VectorNormalize(tmp);
 
+		Vector normal;
 		Math::VectorScale(rns.view.v_up, tmp[0], normal);
 		Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
+
+		Float tcxoffset = 0;
+		if(Math::DotProduct(prevnormal, normal) < 0)
+		{
+			Math::VectorScale(normal, -1, normal);
+			tcxoffset = 1;
+		}
 
 		// Calculate segment width
 		Float segmentwidth;
@@ -818,32 +846,35 @@ void CBeamRenderer::DrawBeamTesla( const Vector& src, const Vector& delta, Float
 		Math::VectorMA(start, -segmentwidth, normal, coord2_2);
 
 		// Calculate texcoord
-		Float tcy2 = tcy1 + step;
+		Float distance = (prev - src).Length();
+		Float tcy2 = tcy1 + distance * unitstep;
 
 		// Draw as a quad
 		m_pBasicDraw->Brightness1f(brightness1);
-		m_pBasicDraw->TexCoord2f(1, tcy1);
+		m_pBasicDraw->TexCoord2f((1-tcxoffset), tcy1);
 		m_pBasicDraw->Vertex3fv(coord1_1);
 
 		m_pBasicDraw->Brightness1f(brightness1);
-		m_pBasicDraw->TexCoord2f(0, tcy1);
+		m_pBasicDraw->TexCoord2f(tcxoffset, tcy1);
 		m_pBasicDraw->Vertex3fv(coord1_2);
 
 		m_pBasicDraw->Brightness1f(brightness2);
-		m_pBasicDraw->TexCoord2f(0, tcy2);
+		m_pBasicDraw->TexCoord2f(tcxoffset, tcy2);
 		m_pBasicDraw->Vertex3fv(coord2_2);
 
 		m_pBasicDraw->Brightness1f(brightness2);
-		m_pBasicDraw->TexCoord2f(1, tcy2);
+		m_pBasicDraw->TexCoord2f((1-tcxoffset), tcy2);
 		m_pBasicDraw->Vertex3fv(coord2_1);
 
 		screenlast = screenstart;
 		noiseindex += noisestep;
 		brightness1 = brightness2;
-		tcy1 = SDL_fmod(tcy2, 1.0);
 
 		coord1_1 = coord2_1;
 		coord1_2 = coord2_2;
+		prevnormal = normal;
+		tcy1 = tcy2;
+		prev = src;
 
 		if(i == static_cast<Uint32>(m_pCurrentBeam->numsegments * 0.5))
 		{
@@ -891,9 +922,12 @@ void CBeamRenderer::DrawBeamTorus( void )
 		length = 0.5;
 
 	Float div = 1.0f / (_numsegments - 1);
-	Float step = length*div;
 	Float last = SDL_fmod(m_pCurrentBeam->frequency*m_pCurrentBeam->speed, 1.0);
 	const Float _scale = m_pCurrentBeam->amplitude * length;
+
+	Float totalwidth = m_pCurrentBeam->width * 2;
+	Float ratio = static_cast<Float>(m_pCurrentSpriteFrame->height) / static_cast<Float>(m_pCurrentSpriteFrame->width);
+	Float unitstep = 1.0 / (totalwidth * ratio);
 
 	// Resample the noise waveform
 	Int32 noisestep = static_cast<Int32>(static_cast<Float>(MAX_BEAM_SEGMENTS) * div * 65536.0f);
@@ -903,7 +937,7 @@ void CBeamRenderer::DrawBeamTorus( void )
 
 	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
 
-	Float tc1y = 0;
+	Vector prev;
 	Vector screenlast, coord1_1, coord1_2;
 	for(Uint32 i = 0; i < (_numsegments + 1); i++)
 	{
@@ -938,8 +972,9 @@ void CBeamRenderer::DrawBeamTorus( void )
 			Math::VectorMA(start, m_pCurrentBeam->width, normal, coord2_1);
 			Math::VectorMA(start, -m_pCurrentBeam->width, normal, coord2_2);
 
-			last = last + step;
-			Float tc2y = last;
+			Float distance = (start - prev).Length();
+			Float tc1y = last;
+			last = last + distance * unitstep;
 
 			if(i > 1)
 			{
@@ -950,21 +985,21 @@ void CBeamRenderer::DrawBeamTorus( void )
 				m_pBasicDraw->TexCoord2f(0, tc1y);
 				m_pBasicDraw->Vertex3fv(coord1_2);
 
-				m_pBasicDraw->TexCoord2f(0, tc2y);
+				m_pBasicDraw->TexCoord2f(0, last);
 				m_pBasicDraw->Vertex3fv(coord2_2);
 
-				m_pBasicDraw->TexCoord2f(1, tc2y);
+				m_pBasicDraw->TexCoord2f(1, last);
 				m_pBasicDraw->Vertex3fv(coord2_1);
 			}
 
 			// For next segment draw
 			coord1_1 = coord2_1;
 			coord1_2 = coord2_2;
-			tc1y = tc2y;
+			tc1y = last;
+			prev = start;
 		}
 
 		screenlast = screenstart;
-		last = SDL_fmod(last, 1.0);
 		noiseindex += noisestep;
 	}
 
@@ -1059,14 +1094,16 @@ void CBeamRenderer::DrawBeamCylinder( void )
 		length = 0.5;
 
 	Float div = 1.0f / (_numsegments - 1);
-	Float step = length*div;
 	Float last = SDL_fmod(m_pCurrentBeam->frequency*m_pCurrentBeam->speed, 1.0);
+
+	Float totalwidth = m_pCurrentBeam->width * 2;
+	Float ratio = static_cast<Float>(m_pCurrentSpriteFrame->height) / static_cast<Float>(m_pCurrentSpriteFrame->width);
+	Float unitstep = 1.0 / (totalwidth * ratio);
 
 	R_ValidateShader(m_pBasicDraw);
 
 	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
 
-	Float tc1y = 0;
 	Vector coord1_1, coord1_2;
 	for(Uint32 i = 0; i < (_numsegments + 1); i++)
 	{
@@ -1086,7 +1123,9 @@ void CBeamRenderer::DrawBeamCylinder( void )
 		coord2_2[1] = c * m_pCurrentBeam->frequency * (m_pCurrentBeam->delta[2] + m_pCurrentBeam->width) + m_pCurrentBeam->source[1];
 		coord2_2[2] = m_pCurrentBeam->source[2] - m_pCurrentBeam->width;
 
-		Float tc2y = last;
+		Float tc1y = last;
+		Float distance = (coord2_1 - coord1_1).Length();
+		last = last + distance * unitstep;
 
 		if(i > 1)
 		{
@@ -1097,18 +1136,15 @@ void CBeamRenderer::DrawBeamCylinder( void )
 			m_pBasicDraw->TexCoord2f(0, tc1y);
 			m_pBasicDraw->Vertex3fv(coord1_2);
 
-			m_pBasicDraw->TexCoord2f(0, tc2y);
+			m_pBasicDraw->TexCoord2f(0, last);
 			m_pBasicDraw->Vertex3fv(coord2_2);
 
-			m_pBasicDraw->TexCoord2f(1, tc2y);
+			m_pBasicDraw->TexCoord2f(1, last);
 			m_pBasicDraw->Vertex3fv(coord2_1);
 		}
 
 		coord1_1 = coord2_1;
 		coord1_2 = coord2_2;
-		tc1y = tc2y;
-
-		last = SDL_fmod(last+step, 1.0);
 	}
 
 	m_pBasicDraw->End();
@@ -1133,13 +1169,13 @@ void CBeamRenderer::DrawBeamRing( void )
 		length = 0.5;
 
 	Float div = 1.0f / (_numsegments - 1);
-	Float step = length * div / 8.0f;
 	Float last = SDL_fmod(m_pCurrentBeam->frequency*m_pCurrentBeam->speed, 1.0);
 	Float scale = m_pCurrentBeam->amplitude * length / 8.0f;
 
-	Int32 noisestep = static_cast<Int32>(MAX_BEAM_SEGMENTS * div * 65536.0f) * 8;
-	Int32 noiseindex = 0;
-	
+	Float totalwidth = m_pCurrentBeam->width * 2;
+	Float ratio = static_cast<Float>(m_pCurrentSpriteFrame->height) / static_cast<Float>(m_pCurrentSpriteFrame->width);
+	Float unitstep = 1.0 / (totalwidth * ratio);
+
 	Vector _delta, center;
 	Math::VectorScale(m_pCurrentBeam->delta, 0.5, _delta);
 	Math::VectorAdd(m_pCurrentBeam->source, _delta, center);
@@ -1155,9 +1191,6 @@ void CBeamRenderer::DrawBeamRing( void )
 	Math::VectorAdd(center, last1, tmp);
 	Math::VectorSubtract(center, last1, screenstart);
 
-	if(!ens.pworld)
-		return;
-
 	if(CullBeam(m_pCurrentBeam, screenstart, tmp, false))
 		return;
 
@@ -1165,21 +1198,25 @@ void CBeamRenderer::DrawBeamRing( void )
 	yaxis[0] = xaxis[1];
 	yaxis[1] = -xaxis[0];
 	yaxis[2] = 0.0f;
-	Math::VectorNormalize(yaxis);
 
+	Math::VectorNormalize(yaxis);
 	Math::VectorScale(yaxis, radius, yaxis);
 
 	R_ValidateShader(m_pBasicDraw);
 
-	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
+	Float firsttc_y = 0;
+	Vector firstcoord_1, firstcoord_2;
 
-	Float tc1y = 0;
 	Vector screenlast;
 	Vector coord1_1, coord1_2;
-	for(Uint32 i = 0; i < _numsegments + 1; i++)
+	Vector prev;
+	Vector first;
+
+	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
+
+	for(Uint32 i = 0; i < _numsegments; i++)
 	{
 		Float frac = i * div;
-
 		Float x = SDL_sinf(frac*2*M_PI);
 		Float y = SDL_cosf(frac*2*M_PI);
 
@@ -1190,8 +1227,10 @@ void CBeamRenderer::DrawBeamRing( void )
 		// Apply noise if any
 		ApplySegmentNoise(start, m_pCurrentBeam->index, i, scale, _numsegments, rns.view.v_up, rns.view.v_right, m_pCurrentBeam->flags);
 
+		// Transform to screen space
 		R_WorldToScreenTransform(m_modelViewProjectionMatrix, start, screenstart);
 
+		// Skip zero segment, as we don't yet have screenlast properly filled
 		if(i > 0)
 		{
 			Math::VectorSubtract(screenstart, screenlast, tmp);
@@ -1205,11 +1244,25 @@ void CBeamRenderer::DrawBeamRing( void )
 			Vector coord2_1, coord2_2;
 			Math::VectorMA(start, m_pCurrentBeam->width, normal, coord2_1);
 			Math::VectorMA(start, -m_pCurrentBeam->width, normal, coord2_2);
-			last += step;
 
-			if(i > 1)
+			Float tc1y = last;
+			Float distance = (start - prev).Length();
+			last += (distance * unitstep);
+
+			// Second segment also needs to be skipped, as we don't yet
+			// have valid coords for the previous segment's coords
+			if(i == 1)
 			{
-				// Draw as a quad
+				// Mark first segment coords for perfect wrap-together
+				// at the end
+				firstcoord_1 = coord2_1;
+				firstcoord_2 = coord2_2;
+				firsttc_y = last;
+				first = start;
+			}
+			else
+			{
+				// Draw other segments
 				m_pBasicDraw->TexCoord2f(0, tc1y);
 				m_pBasicDraw->Vertex3fv(coord1_1);
 
@@ -1225,13 +1278,29 @@ void CBeamRenderer::DrawBeamRing( void )
 
 			coord1_1 = coord2_1;
 			coord1_2 = coord2_2;
-			tc1y = last;
 		}
 
 		screenlast = screenstart;
-		last = SDL_fmod(last, 1.0);
-		noiseindex += noisestep;
+		prev = start;
 	}
+
+	// Draw final piece, making sure it hooks up perfectly
+	// with the beginning
+	Float distance = (first - prev).Length();
+	Float uvwhole = SDL_floor(distance * unitstep);
+	Float finaltc1_y = uvwhole + (last - SDL_floor(last));
+
+	m_pBasicDraw->TexCoord2f(0, finaltc1_y);
+	m_pBasicDraw->Vertex3fv(coord1_1);
+
+	m_pBasicDraw->TexCoord2f(1, finaltc1_y);
+	m_pBasicDraw->Vertex3fv(coord1_2);
+
+	m_pBasicDraw->TexCoord2f(1, firsttc_y);
+	m_pBasicDraw->Vertex3fv(firstcoord_2);
+
+	m_pBasicDraw->TexCoord2f(0, firsttc_y);
+	m_pBasicDraw->Vertex3fv(firstcoord_1);
 
 	m_pBasicDraw->End();
 }
@@ -1269,10 +1338,10 @@ void CBeamRenderer::BindSprite( cache_model_t* pmodel, beam_t* pbeam )
 	// Get the sprite model
 	const msprite_t *pspritemodel = pmodel->getSprite();
 	// Bind the appropriate texture
-	const mspriteframe_t* pframe = Sprite_GetFrame(pspritemodel, pbeam->frame, rns.time);
+	m_pCurrentSpriteFrame = Sprite_GetFrame(pspritemodel, pbeam->frame, rns.time);
 
 	// Bind to GL
-	R_Bind2DTexture(GL_TEXTURE0_ARB, pframe->ptexture->palloc->gl_index);
+	R_Bind2DTexture(GL_TEXTURE0_ARB, m_pCurrentSpriteFrame->ptexture->palloc->gl_index);
 }
 
 //====================================
@@ -1291,7 +1360,6 @@ void CBeamRenderer::DrawBeam( beam_t* pbeam )
 	}
 
 	// Update frequency
-
 	m_pCurrentBeam->frequency += rns.frametime;
 
 	// Update start and/or end positions
@@ -1457,6 +1525,8 @@ void CBeamRenderer::DrawBeam( beam_t* pbeam )
 		glDisable(GL_BLEND);
 		glDepthMask(GL_TRUE);
 	}
+
+	m_pCurrentSpriteFrame = nullptr;
 }
 
 //====================================
@@ -1504,6 +1574,9 @@ void CBeamRenderer::DrawBeamFollow( void )
 	if(pnew)
 	{
 		pnew->position = m_pCurrentBeam->source;
+		if(pnext)
+			pnew->length = pnext->length + (pnext->position - pnew->position).Length();
+
 		m_pCurrentBeam->die = pnew->life = rns.time + m_pCurrentBeam->lifetime;
 		pnext = pnew;
 	}
@@ -1532,17 +1605,21 @@ void CBeamRenderer::DrawBeamFollow( void )
 	tmp[2] = 0;
 	Math::VectorNormalize(tmp);
 
-	Vector normal;
-	Math::VectorScale(rns.view.v_up, tmp[0], normal);
-	Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
+	Vector prevnormal;
+	Math::VectorScale(rns.view.v_up, tmp[0], prevnormal);
+	Math::VectorMA(prevnormal, -tmp[1], rns.view.v_right, prevnormal);
 
 	Vector coord1_1, coord1_2;
-	Math::VectorMA(delta, m_pCurrentBeam->width, normal, coord1_1);
-	Math::VectorMA(delta, -m_pCurrentBeam->width, normal, coord1_2);
+	Math::VectorMA(delta, m_pCurrentBeam->width, prevnormal, coord1_1);
+	Math::VectorMA(delta, -m_pCurrentBeam->width, prevnormal, coord1_2);
 
-	Float last = 0.0f;
-	Float step = 1.0f;
+	Float totalwidth = m_pCurrentBeam->width * 2;
+	Float ratio = static_cast<Float>(m_pCurrentSpriteFrame->height) / static_cast<Float>(m_pCurrentSpriteFrame->width);
+	Float unitstep = 1.0 / (totalwidth * ratio);
 
+	Float curlength = (m_pCurrentBeam->source - pnext->position).Length();
+
+	Float last = (pnext->length + curlength) * unitstep;
 	Float div = 1.0/m_pCurrentBeam->lifetime;
 	distance = (pnext->position-delta).Length();
 	Float fraction = distance / BEAM_POSITION_SEGMENT_DISTANCE;
@@ -1552,6 +1629,7 @@ void CBeamRenderer::DrawBeamFollow( void )
 
 	m_pBasicDraw->Begin(CBasicDraw::DRAW_QUADS);
 
+	Vector prev = m_pCurrentBeam->source;
 	while(pnext)
 	{
 		// Remember the coordinates for rendering
@@ -1563,14 +1641,22 @@ void CBeamRenderer::DrawBeamFollow( void )
 		tmp[2] = 0.0f;
 		Math::VectorNormalize(tmp);
 
+		Vector normal;
 		Math::VectorScale(rns.view.v_up, tmp[0], normal);
 		Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
+
+		Float tcxoffset = 0;
+		if(Math::DotProduct(prevnormal, normal) < 0)
+		{
+			Math::VectorScale(normal, -1, normal);
+			tcxoffset = 1;
+		}
 
 		Vector coord2_1, coord2_2;
 		Math::VectorMA(pnext->position, m_pCurrentBeam->width, normal, coord2_1);
 		Math::VectorMA(pnext->position, -m_pCurrentBeam->width, normal, coord2_2);
 
-		last += step;
+		last = pnext->length * unitstep;
 
 		if(pnext->pnext)
 			fraction = clamp(pnext->life - rns.time, 0, 2)*div;
@@ -1579,25 +1665,26 @@ void CBeamRenderer::DrawBeamFollow( void )
 
 		// Draw as a quad
 		m_pBasicDraw->Brightness1f(brightness1);
-		m_pBasicDraw->TexCoord2f(1, tc1y);
+		m_pBasicDraw->TexCoord2f((1-tcxoffset), tc1y);
 		m_pBasicDraw->Vertex3fv(coord1_1);
 
 		m_pBasicDraw->Brightness1f(brightness1);
-		m_pBasicDraw->TexCoord2f(0, tc1y);
+		m_pBasicDraw->TexCoord2f(tcxoffset, tc1y);
 		m_pBasicDraw->Vertex3fv(coord1_2);
 
 		m_pBasicDraw->Brightness1f(fraction);
-		m_pBasicDraw->TexCoord2f(0, last);
+		m_pBasicDraw->TexCoord2f(tcxoffset, last);
 		m_pBasicDraw->Vertex3fv(coord2_2);
 
 		m_pBasicDraw->Brightness1f(fraction);
-		m_pBasicDraw->TexCoord2f(1, last);
+		m_pBasicDraw->TexCoord2f((1-tcxoffset), last);
 		m_pBasicDraw->Vertex3fv(coord2_1);
 
 		screenlast = screenstart;
-		last = SDL_fmod(last, 1.0);
 		coord1_1 = coord2_1;
 		coord1_2 = coord2_2;
+		prevnormal = normal;
+		prev = pnext->position;
 
 		pnext = pnext->pnext;
 	}
@@ -1653,22 +1740,25 @@ void CBeamRenderer::DrawBeamVaporTrail( Float fadealpha )
 	tmp[2] = 0;
 	Math::VectorNormalize(tmp);
 
-	Vector normal;
-	Math::VectorScale(rns.view.v_up, tmp[0], normal);
-	Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
+	Vector prevnormal;
+	Math::VectorScale(rns.view.v_up, tmp[0], prevnormal);
+	Math::VectorMA(prevnormal, -tmp[1], rns.view.v_right, prevnormal);
 
 	Vector coord1_1, coord1_2;
-	Math::VectorMA(delta, m_pCurrentBeam->width, normal, coord1_1);
-	Math::VectorMA(delta, -m_pCurrentBeam->width, normal, coord1_2);
+	Math::VectorMA(delta, m_pCurrentBeam->width, prevnormal, coord1_1);
+	Math::VectorMA(delta, -m_pCurrentBeam->width, prevnormal, coord1_2);
 	Vector lastposition = delta;
 
-	Float last = 0.0f;
-	Float step = 1.0f;
+	Float totalwidth = m_pCurrentBeam->width * 2;
+	Float ratio = static_cast<Float>(m_pCurrentSpriteFrame->height) / static_cast<Float>(m_pCurrentSpriteFrame->width);
+	Float unitstep = 1.0 / (totalwidth * ratio);
 
+	Float last = 0.0f;
 	Float div = 1.0/m_pCurrentBeam->lifetime;
 	Float fraction = (m_pCurrentBeam->die - rns.time)*div;
 
 	// Create the segments
+	Vector prev = m_pCurrentBeam->source;
 	Uint32 segmentIndex = 0;
 	while(pnext)
 	{
@@ -1681,6 +1771,7 @@ void CBeamRenderer::DrawBeamVaporTrail( Float fadealpha )
 		tmp[2] = 0.0f;
 		Math::VectorNormalize(tmp);
 
+		Vector normal;
 		Math::VectorScale(rns.view.v_up, tmp[0], normal);
 		Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
 
@@ -1688,7 +1779,7 @@ void CBeamRenderer::DrawBeamVaporTrail( Float fadealpha )
 		Math::VectorMA(pnext->position, m_pCurrentBeam->width, normal, coord2_1);
 		Math::VectorMA(pnext->position, -m_pCurrentBeam->width, normal, coord2_2);
 
-		last += step;
+		last = pnext->length * unitstep;
 
 		if(pnext->pnext)
 			fraction = (m_pCurrentBeam->die - rns.time)*div;
@@ -1709,6 +1800,8 @@ void CBeamRenderer::DrawBeamVaporTrail( Float fadealpha )
 		screenlast = screenstart;
 		coord1_1 = coord2_1;
 		coord1_2 = coord2_2;
+		prevnormal = normal;
+		prev = pnext->position;
 
 		pnext = pnext->pnext;
 	}
@@ -2036,7 +2129,7 @@ bool CBeamRenderer::BeamSetup( beam_t* pbeam, const Vector& src, const Vector& e
 	pbeam->width = width;
 	pbeam->amplitude = amplitude;
 	pbeam->speed = speed;
-	pbeam->brightness = brightness;
+	pbeam->brightness = clamp(brightness, 0, 1);
 	pbeam->color1 = Vector(1, 1, 1);
 	pbeam->noisespeed = noisespeed;
 	if(!pbeam->noisespeed)
@@ -2204,6 +2297,7 @@ beam_t* CBeamRenderer::BeamVaporTrail( const Vector& src, const Vector& end, Int
 	{
 		beam_position_t* p = AllocBeamPosition(pbeam);
 		p->position = src * (1.0 - f) + end * f;
+		p->length = f * beamlength;
 
 		p->winddirection = Vector(Common::RandomFloat(-4, 5), Common::RandomFloat(-5, 5), Common::RandomFloat(-5, 5));
 		Math::VectorNormalize(p->winddirection);
@@ -2278,9 +2372,9 @@ void CBeamRenderer::SetBeamAttributes( beam_t* pbeam, Float r, Float g, Float b,
 {
 	pbeam->framerate = framerate;
 	pbeam->frame = static_cast<Float>(startframe);
-	pbeam->color1.x = r;
-	pbeam->color1.y = g;
-	pbeam->color1.z = b;
+	pbeam->color1.x = clamp(r, 0, 1);
+	pbeam->color1.y = clamp(g, 0, 1);
+	pbeam->color1.z = clamp(b, 0, 1);
 }
 
 //====================================

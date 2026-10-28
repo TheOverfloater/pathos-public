@@ -274,6 +274,10 @@ void CNPCMaker::ChildDeathNotice( CBaseEntity* pChild )
 
 	if(!m_fadeChildren)
 		pChild->SetOwner(nullptr);
+
+	// If set to clear targetname, remove it from child
+	if(HasSpawnFlag(FL_CLEAR_TARGETNAME))
+		pChild->SetTargetName("");
 }
 
 //=============================================

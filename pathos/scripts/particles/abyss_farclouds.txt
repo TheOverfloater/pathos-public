@@ -4,7 +4,7 @@ $particlescript
 	$system_size 256.000000
 	$fade_in_time 4.000000
 	$lifetime 30.000000
-	$flags random_direction
+	$flags random_direction reverse_farnear_fade
 	$primary_color 203 88 66
 	$scale 640.000000
 	$scale_variation 100.000000

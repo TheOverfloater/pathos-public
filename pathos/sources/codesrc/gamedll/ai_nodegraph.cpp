@@ -407,7 +407,8 @@ void CAINodeGraph::InitNodeGraph( void )
 	}
 
 	// Identify which nodes are water, land, etc
-	for(Uint32 i = 0; i < m_nodesArray.size(); i++)
+	Uint32 originalIndex = 0;
+	for(Uint32 i = 0; i < m_nodesArray.size(); i++, originalIndex++)
 	{
 		node_t* pNode = m_nodesArray[i];
 
@@ -498,7 +499,7 @@ void CAINodeGraph::InitNodeGraph( void )
 			Util::TraceHull(initialPosition, traceEndPosition, true, false, HULL_SMALL, nullptr, tr);
 
 			// Mark original index
-			pNode->origindex = i;
+			pNode->origindex = originalIndex;
 
 			if(!tr.noHit())
 			{
@@ -560,7 +561,7 @@ void CAINodeGraph::InitNodeGraph( void )
 
 				if(j != NUM_NODE_HULLS)
 				{
-					filestr << "Inconsistent un-sticking result for node " << i << " during post-unstuck testing. Node was removed.\n";
+					filestr << "Inconsistent un-sticking result for node " << pNode->origindex << " during post-unstuck testing. Node was removed.\n";
 					WriteToReportFile(filestr.c_str());
 					filestr.clear();
 
@@ -763,6 +764,11 @@ void CAINodeGraph::InitNodeGraph( void )
 
 	if(!m_pLogFile->Close())
 		gd_engfuncs.pfnCon_EPrintf("%s - Failed to close log file.\n", __FUNCTION__);
+
+	if(minutes > 0)
+		gd_engfuncs.pfnCon_Printf("Node graph generation took %d minutes and %d seconds.\n", minutes, seconds);
+	else
+		gd_engfuncs.pfnCon_Printf("Node graph generation took %d seconds.\n", seconds);
 
 	delete m_pLogFile;
 	m_pLogFile = nullptr;

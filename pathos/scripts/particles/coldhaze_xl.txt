@@ -8,13 +8,13 @@ $particlescript
 	$fade_out_delay 15.000000
 	$lifetime 20.000000
 	$lifetime_variation 5.000000
-	$flags random_direction
+	$flags random_direction reverse_farnear_fade
 	$primary_color 255 255 255
 	$scale 60.000000
 	$scale_variation 20.000000
 	$scale_damping -2.000000
 	$max_particles -1
-	$particle_frequency 100.000000
+	$particle_frequency 20.000000
 	$lighting use_intensity
 	$rendermode additive
 	$alpha 0.900000

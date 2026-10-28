@@ -15,6 +15,7 @@ All Rights Reserved.
 #include "system.h"
 #include "r_common.h"
 #include "r_lightstyles.h"
+#include "collision_shared.h"
 
 //
 // Notes: The light grid solution is a replica of the ericw-tools implementation,
@@ -252,6 +253,71 @@ byte* Mod_CompressVIS( const byte* pin, Uint32* psize, const brushmodel_t& model
 // @brief
 //
 //=============================================
+const Vector& Mod_GetSurfaceVertex( const brushmodel_t* pmodel, const msurface_t* psurface, Uint32 vertexindex )
+{
+	Int32 edgeIndex = pmodel->psurfedges[psurface->firstedge+vertexindex];
+	if(edgeIndex > 0)
+		return pmodel->pvertexes[pmodel->pedges[edgeIndex].vertexes[0]].origin;
+	else
+		return pmodel->pvertexes[pmodel->pedges[-edgeIndex].vertexes[1]].origin;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool Mod_PointInSurface( const brushmodel_t* pmodel, const msurface_t* psurface, const Vector& point )
+{
+	// Ensure that the point is on plane
+	Float distance;
+	plane_t* pplane = psurface->pplane;
+	switch(pplane->type)
+	{
+	case PLANE_X:
+		distance = point[0] - pplane->dist; break;
+	case PLANE_Y:
+		distance = point[1] - pplane->dist; break;
+	case PLANE_Z:
+		distance = point[2] - pplane->dist; break;
+	default:
+		distance = Math::DotProduct(point, pplane->normal) - pplane->dist;
+		break;
+	}
+
+	// If we're too far off the plane, then discard this
+	if(SDL_fabs(distance) > P_EQUAL_EPSILON)
+		return false;
+
+	// Note: I couldn't really find a good example of how one should
+	// check if a point is inside of a polygon, so instead I'm breaking
+	// up the polygon, which is a triangle fan, into it's individual
+	// triangles
+
+	// Test against first triangle
+	Vector vertexes[3];
+	for(Uint32 k = 0; k < 3; k++)
+		vertexes[k] = Mod_GetSurfaceVertex(pmodel, psurface, k);
+
+	if(CollisionShared::PointInTriangle(vertexes[0], vertexes[1], vertexes[2], point))
+		return true;
+
+	// Test against other parts of the fan/polygon
+	for(Uint32 k = 0, l = 3; k < (psurface->numedges-3); k++, l++)
+	{
+		vertexes[1] = vertexes[2];
+		vertexes[2] = Mod_GetSurfaceVertex(pmodel, psurface, l);
+
+		if(CollisionShared::PointInTriangle(vertexes[0], vertexes[1], vertexes[2], point))
+			return true;
+	}
+
+	return false;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
 const msurface_t* Mod_SurfaceAtPoint( const brushmodel_t* pmodel, const mnode_t* pnode, const Vector& start, const Vector& end )
 {
 	if(pnode->contents < 0)
@@ -289,7 +355,8 @@ const msurface_t* Mod_SurfaceAtPoint( const brushmodel_t* pmodel, const mnode_t*
 			if((ds - psurface->texturemins[0]) <= psurface->extents[0] &&
 				(dt - psurface->texturemins[1]) <= psurface->extents[1])
 			{
-				return psurface;
+				if(Mod_PointInSurface(pmodel, psurface, mid))
+					return psurface;
 			}
 		}
 	}
@@ -322,10 +389,10 @@ void Mod_FindTouchedLeafs( const brushmodel_t* pworld, CArray<Uint32>& leafnumsa
 	Int32 sides = Math::BoxOnPlaneSide(mins, maxs, pplane);
 
 	// Recurse down the sides
-	if(sides & SIDE_FRONT)
+	if(sides & BP_SIDE_FRONT)
 		Mod_FindTouchedLeafs(pworld, leafnumsarray, leafcount, mins, maxs, pnode->pchildren[0]);
 
-	if(sides & SIDE_BACK)
+	if(sides & BP_SIDE_BACK)
 		Mod_FindTouchedLeafs(pworld, leafnumsarray, leafcount, mins, maxs, pnode->pchildren[1]);
 }
 

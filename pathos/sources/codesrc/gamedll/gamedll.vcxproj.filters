@@ -957,6 +957,9 @@
     <ClCompile Include="funcbrushcopy.cpp">
       <Filter>Source Files\entities\func</Filter>
     </ClCompile>
+    <ClCompile Include="envcredits.cpp">
+      <Filter>Source Files\entities\env</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gamedll.h">
@@ -1804,6 +1807,9 @@
     </ClInclude>
     <ClInclude Include="funcbrushcopy.h">
       <Filter>Header Files\entities\func</Filter>
+    </ClInclude>
+    <ClInclude Include="envcredits.h">
+      <Filter>Header Files\entities\env</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

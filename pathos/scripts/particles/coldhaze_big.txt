@@ -8,7 +8,7 @@ $particlescript
 	$fade_out_delay 6.000000
 	$lifetime 10.000000
 	$lifetime_variation 2.000000
-	$flags random_direction
+	$flags random_direction reverse_farnear_fade
 	$primary_color 255 255 255
 	$scale 23.000000
 	$scale_variation 7.000000

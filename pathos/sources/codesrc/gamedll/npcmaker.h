@@ -34,11 +34,12 @@ public:
 public:
 	enum
 	{
-		FL_START_ON	= (1<<0),
-		FL_CYCLIC	= (1<<2),
-		FL_NPC_CLIP	= (1<<3),
-		FL_GAG		= (1<<4),
-		FL_IDLE		= (1<<5)
+		FL_START_ON			= (1<<0),
+		FL_CYCLIC			= (1<<2),
+		FL_NPC_CLIP			= (1<<3),
+		FL_GAG				= (1<<4),
+		FL_IDLE				= (1<<5),
+		FL_CLEAR_TARGETNAME	= (1<<6)
 	};
 public:
 	explicit CNPCMaker( edict_t* pedict );

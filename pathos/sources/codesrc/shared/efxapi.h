@@ -74,12 +74,13 @@ struct cl_efxapi_t
 	tempentity_t*			(*pfnTempSprite)( const Vector& origin, const Vector& velocity, Float scale, Uint32 modelindex, Int32 rendermode, Int32 renderfx, Float alpha, Float life, Int32 sound, Int32 flags );
 	tracer_t*				(*pfnCreateTracer)( const Vector& origin, const Vector& velocity, const Vector& color, Float alpha, Float width, Float length, Float life, tracer_type_t type );
 	void					(*pfnCreateTracerImplosion)( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, Float width, Float length, bool reverse );
-	void					(*pfnCreateSparkStreak)( const Vector& origin, Uint32 count, const Vector& color, Float alpha, Float width, Float length, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity );
+	void					(*pfnCreateSparkStreak)( const Vector& origin, const Vector& direction, Uint32 count, const Vector& color, Float alpha, Float width, Float length, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity );
 	void					(*pfnCreateStreakSplash)( const Vector& origin, const Vector& direction, const Vector& color, Float alpha, Float width, Float length, Uint32 count, Float speed, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity );
 
 	// Legacy particle effects
 	void					(*pfnParticleExplosion1)( const Vector& origin );
 	void					(*pfnParticleExplosion2)( const Vector& origin, Uint32 colorstart, Uint32 colorlength );
+	void					(*pfnParticleExplosion3)( const Vector& origin );
 	void					(*pfnBlobExplosion)( const Vector& origin );
 	void					(*pfnRocketExplosion)( const Vector& origin );
 	void					(*pfnParticleEffect)( const Vector& origin, const Vector& velocity, Uint32 color, Uint32 count );
@@ -89,6 +90,9 @@ struct cl_efxapi_t
 	void					(*pfnCreateLargeFunnel)( const Vector& origin, bool reverse );
 	void					(*pfnCreateBloodStream)( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
 	void					(*pfnCreateBloodParticles)( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
+	void					(*pfnCreateFlickerParticles)( const Vector& origin, const Vector& direction );
+	void					(*pfnCreateBulletImpactParticles)( const Vector& origin, const Vector& direction );
+	void					(*pfnCreateParticleBurst)( const Vector& position, Int32 size, Uint32 color, Float life );
 
 	// Beam effects
 	beam_t*					(*pfnBeamLightning)( const Vector& src, const Vector& end, Int32 modelindex, Float life, Float width, Float amplitude, Float brightness, Float speed, Float noisespeed, Int32 flags );

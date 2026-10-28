@@ -317,7 +317,7 @@ void CMPNetworking::Poll_Host( void )
 		{
 			// We haven't received messages from the client in a while, so mark him as having lost connection
 			client.cl_state = NETCL_LOST_CONNECTION;
-			m_lastReconnectAttemptTime = ens.time;
+			client.timeoutbegintime = ens.time;
 		}
 
 		// Handle any networking errors

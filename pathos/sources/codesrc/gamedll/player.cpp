@@ -2191,7 +2191,7 @@ void CPlayerEntity::UpdateFlashlight( void )
 			TurnFlashlightOff();
 			m_flashlightBattery = 0;
 
-			if(m_pActiveWeapon && m_pActiveWeapon->HasFlashlight() && (m_pState->effects & EF_DIMLIGHT))
+			if(m_pActiveWeapon && m_pActiveWeapon->HasAccessory(WPN_ACCESSORY_FLASHLIGHT) && (m_pState->effects & EF_DIMLIGHT))
 				m_pActiveWeapon->FlashlightToggle(true);
 		}
 	}
@@ -3922,12 +3922,12 @@ void CPlayerEntity::ManageFlashlight( void )
 	else if(m_pActiveWeapon 
 		&& !ShouldHolster())
 	{
-		if(!m_pActiveWeapon->HasFlashlight())
+		if(!m_pActiveWeapon->HasAccessory(WPN_ACCESSORY_FLASHLIGHT))
 		{
 			CPlayerWeapon* pWeapon = m_pWeaponsList;
 			while(pWeapon)
 			{
-				if(pWeapon->HasFlashlight())
+				if(pWeapon->HasAccessory(WPN_ACCESSORY_FLASHLIGHT))
 					break;
 
 				pWeapon = pWeapon->GetNextWeapon();

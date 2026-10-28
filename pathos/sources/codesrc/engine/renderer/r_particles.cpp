@@ -486,12 +486,29 @@ particle_system_t *CParticleEngine::CreateSystem( const Char *szPath, const Vect
 		psystem->maxparticles = pdefinition->maxparticles;
 
 		// Create a slave system to hold particles spawned
-		if(pdefinition->collision != collide_decal && !pdefinition->create.empty())
-			psystem->createsystem = CreateSystem(pdefinition->create.c_str(), psystem->origin, psystem->dir, iId, psystem, entity, entindex);
-
+		if(pdefinition->collision != collide_decal && !pdefinition->createarray.empty())
+		{
+			for(Uint32 i = 0; i < pdefinition->createarray.size(); i++)
+			{
+				const CString& scriptname = pdefinition->createarray[i];
+				particle_system_t* pchildsystem = CreateSystem(scriptname.c_str(), psystem->origin, psystem->dir, iId, psystem, entity, entindex);
+				psystem->pcreatesystems.push_back(pchildsystem);
+			}
+		}
 		// Create a slave system for water impact particles
-		if(!pdefinition->watercreate.empty())
-			psystem->watersystem = CreateSystem(pdefinition->watercreate.c_str(), psystem->origin, psystem->dir, iId, psystem, entity, entindex);
+		if(!pdefinition->watercreatearray.empty())
+		{
+			for(Uint32 i = 0; i < pdefinition->watercreatearray.size(); i++)
+			{
+				const CString& scriptname = pdefinition->watercreatearray[i];
+				particle_system_t* pchildsystem = CreateSystem(scriptname.c_str(), psystem->origin, psystem->dir, iId, psystem, entity, entindex);
+				psystem->pwatersystems.push_back(pchildsystem);
+			}
+		}
+
+		// Create a slave system for tracers
+		if(!pdefinition->tracercreate.empty())
+			psystem->ptracersystem = CreateSystem(pdefinition->tracercreate.c_str(), psystem->origin, psystem->dir, iId, psystem, entity, entindex);
 	}
 	else
 	{
@@ -557,6 +574,8 @@ bool CParticleEngine::ReadField( script_definition_t* pdefinition, const Char* p
 				pdefinition->flags |= SYSTEM_FL_GLOBS;
 			else if(!qstrcmp(token, "softoff"))
 				pdefinition->flags |= SYSTEM_FL_SOFTOFF;
+			else if(!qstrcmp(token, "reverse_farnear_fade"))
+				pdefinition->flags |= SYSTEM_FL_FARNEAR_FADE_REVERSE;			
 			else
 				Con_Printf("%s - Unrecognized flag '%s' for field '%s'.\n", __FUNCTION__, token, pstrField);
 		}
@@ -916,11 +935,13 @@ bool CParticleEngine::ReadField( script_definition_t* pdefinition, const Char* p
 		else if(!qstrcmp(pstrField, "$rotate_y_dampening_delay"))
 			pdefinition->rotydampdelay = SDL_atof(token);
 		else if(!qstrcmp(pstrField, "$create"))
-			pdefinition->create = token;
+			pdefinition->createarray.push_back(token);
 		else if(!qstrcmp(pstrField, "$create_on_death"))
-			pdefinition->deathcreate = token;
+			pdefinition->deathcreatearray.push_back(token);
 		else if(!qstrcmp(pstrField, "$create_on_water_impact"))
-			pdefinition->watercreate = token;
+			pdefinition->watercreatearray.push_back(token);
+		else if(!qstrcmp(pstrField, "$create_tracer"))
+			pdefinition->tracercreate = token;
 		else if(!qstrcmp(pstrField, "$wind_x_velocity"))
 			pdefinition->windx = SDL_atof(token);
 		else if(!qstrcmp(pstrField, "$wind_y_velocity"))
@@ -990,7 +1011,7 @@ bool CParticleEngine::ReadField( script_definition_t* pdefinition, const Char* p
 		}
 		else
 		{
-			Con_Printf("%s - Unrecognized field '%s' in '%s'\n", __FUNCTION__, pstrField, pstrField);
+			Con_Printf("%s - Unrecognized field '%s'\n", __FUNCTION__, pstrField);
 		}
 
 		return true;
@@ -1102,6 +1123,10 @@ bool CParticleEngine::LoadSystemScript( script_cache_t* pCache, const Char* pstr
 			continue;
 		}
 	}
+
+	// Cannot work without texture
+	if(!pCache->pdefinition->ptexture)
+		return false;
 
 	// Disable light checking on distortion particles
 	script_definition_t* pdefinition = pCache->pdefinition;
@@ -1315,28 +1340,48 @@ const script_cache_t *CParticleEngine::PrecacheScript( Int32 type, const Char *n
 			result = LoadSystemScript(pcache, pFile);
 
 			CArray<CString> loadList;
-			if(result && !pcache->pdefinition->create.empty()
+			if(result && !pcache->pdefinition->createarray.empty()
 				&& (pcache->pdefinition->collision == collide_new_system
 				|| pcache->pdefinition->tracerdist > 0))
 			{
-				result = (PrecacheScript(PART_SCRIPT_SYSTEM, pcache->pdefinition->create.c_str(), &loadList) != nullptr) ? true : false;
-				if(!result)
-					Con_Printf("%s - Failed to load collision create script '%s'.\n", __FUNCTION__, pcache->pdefinition->create.c_str());
+				for(Uint32 i = 0; i < pcache->pdefinition->createarray.size(); i++)
+				{
+					const CString& scriptname = pcache->pdefinition->createarray[i];
+					result = (PrecacheScript(PART_SCRIPT_SYSTEM, scriptname.c_str(), &loadList) != nullptr) ? true : false;
+					if(!result)
+						Con_Printf("%s - Failed to load collision create script '%s'.\n", __FUNCTION__, scriptname.c_str());
+				}
 			}
 
-			if(result && !pcache->pdefinition->watercreate.empty()
+			if(result && !pcache->pdefinition->watercreatearray.empty()
 				&& (pcache->pdefinition->collision_flags & COLLISION_FL_WATER))
 			{
-				result = (PrecacheScript(PART_SCRIPT_SYSTEM, pcache->pdefinition->watercreate.c_str(), &loadList) != nullptr) ? true : false;
-				if(!result)
-					Con_Printf("%s - Failed to load water collision create script '%s'.\n", __FUNCTION__, pcache->pdefinition->watercreate.c_str());
+				for(Uint32 i = 0; i < pcache->pdefinition->watercreatearray.size(); i++)
+				{
+					const CString& scriptname = pcache->pdefinition->createarray[i];
+					result = (PrecacheScript(PART_SCRIPT_SYSTEM, scriptname.c_str(), &loadList) != nullptr) ? true : false;
+					if(!result)
+						Con_Printf("%s - Failed to load water collision create script '%s'.\n", __FUNCTION__, scriptname.c_str());
+				}
 			}
 
-			if(result && !pcache->pdefinition->deathcreate.empty())
+			if(result && !pcache->pdefinition->deathcreatearray.empty())
 			{
-				result = (PrecacheScript(PART_SCRIPT_SYSTEM, pcache->pdefinition->deathcreate.c_str(), &loadList) != nullptr) ? true : false;
+				for(Uint32 i = 0; i < pcache->pdefinition->deathcreatearray.size(); i++)
+				{
+					const CString& scriptname = pcache->pdefinition->createarray[i];
+					result = (PrecacheScript(PART_SCRIPT_SYSTEM, scriptname.c_str(), &loadList) != nullptr) ? true : false;
+					if(!result)
+						Con_Printf("%s - Failed to load death create script '%s'.\n", __FUNCTION__, scriptname.c_str());
+				}
+			}
+
+			if(result && !pcache->pdefinition->tracercreate.empty())
+			{
+				const CString& scriptname = pcache->pdefinition->tracercreate;
+				result = (PrecacheScript(PART_SCRIPT_SYSTEM, scriptname.c_str(), &loadList) != nullptr) ? true : false;
 				if(!result)
-					Con_Printf("%s - Failed to load death create script '%s'.\n", __FUNCTION__, pcache->pdefinition->deathcreate.c_str());
+					Con_Printf("%s - Failed to load tracer create script '%s'.\n", __FUNCTION__, scriptname.c_str());
 			}
 		}
 		break;
@@ -1912,11 +1957,20 @@ void CParticleEngine::UpdateSystems( void )
 			}
 
 			// Unparent these and let the engine handle them
-			if(psystem->createsystem)
-				psystem->createsystem->parentsystem = nullptr;
+			if(!psystem->pcreatesystems.empty())
+			{
+				for(Uint32 i = 0; i < psystem->pcreatesystems.size(); i++)
+					psystem->pcreatesystems[i]->parentsystem = nullptr;
+			}
 
-			if(psystem->watersystem)
-				psystem->watersystem->parentsystem = nullptr;
+			if(!psystem->pwatersystems.empty())
+			{
+				for(Uint32 i = 0; i < psystem->pwatersystems.size(); i++)
+					psystem->pwatersystems[i]->parentsystem = nullptr;
+			}
+
+			if(psystem->ptracersystem)
+				psystem->ptracersystem->parententity = nullptr;
 
 			// Delete from memory
 			m_iNumFreedSystems++;
@@ -2022,7 +2076,7 @@ void CParticleEngine::UpdateSystems( void )
 		if(pdefinition->maxparticlevar)
 		{
 			// Calculate variation
-			Uint32 variedamount = inumspawn+abs((sin(rns.time*0.2)/M_PI)*pdefinition->maxparticlevar);
+			Uint32 variedamount = inumspawn+abs((sin(rns.time*0.1)/M_PI)*pdefinition->maxparticlevar);
 			if(pdefinition->shapetype == shape_playerplane)
 				variedamount *= m_pWeatherDensity->GetValue();
 
@@ -2084,11 +2138,20 @@ void CParticleEngine::UpdateSystems( void )
 		}
 
 		// Unparent these and let the engine handle them
-		if(psystem->createsystem)
-			psystem->createsystem->parentsystem = nullptr;
+		if(!psystem->pcreatesystems.empty())
+		{
+			for(Uint32 i = 0; i < psystem->pcreatesystems.size(); i++)
+				psystem->pcreatesystems[i]->parentsystem = nullptr;
+		}
 
-		if(psystem->watersystem)
-			psystem->watersystem->parentsystem = nullptr;
+		if(!psystem->pwatersystems.empty())
+		{
+			for(Uint32 i = 0; i < psystem->pwatersystems.size(); i++)
+				psystem->pwatersystems[i]->parentsystem = nullptr;
+		}
+
+		if(psystem->ptracersystem)
+			psystem->ptracersystem->parententity = nullptr;
 
 		// Delete from memory
 		m_iNumFreedSystems++;
@@ -2415,7 +2478,7 @@ bool CParticleEngine::CheckCollision( Vector& vecOrigin, Vector& vecVelocity, pa
 	{
 		CDecalList& decalList = gDecals.GetDecalList();
 
-		decalgroupentry_t *pentry = decalList.GetRandom(pdefinition->create.c_str());
+		decalgroupentry_t *pentry = decalList.GetRandom(pdefinition->createarray[0].c_str());
 		if(pentry)
 			gBSPRenderer.CreateDecal(tr.endpos, tr.plane.normal, pentry, FL_DECAL_NONE, psystem->pdefinition->decallife, psystem->pdefinition->decalfade, psystem->pdefinition->decalgrowthtime);
 
@@ -2423,37 +2486,35 @@ bool CParticleEngine::CheckCollision( Vector& vecOrigin, Vector& vecVelocity, pa
 	}
 	else if(pdefinition->collision == collide_new_system)
 	{
+		bool shouldSpawn;
 		if(pdefinition->spawnchance)
-		{
-			if(Common::RandomLong(1, pdefinition->spawnchance) == 1)
-			{
-				if(waterEntity != -1 && !pdefinition->watercreate.empty() && psystem->watersystem != nullptr)
-				{
-					for(Uint32 i = 0; i < psystem->watersystem->pdefinition->startparticles; i++)
-						CreateParticle(psystem->watersystem, tr.endpos, tr.plane.normal);
-				}
-
-				if(!tr.hasContents(CONTENTS_SKY) && !pdefinition->create.empty() && psystem->createsystem != nullptr)
-				{
-					for(Uint32 i = 0; i < psystem->createsystem->pdefinition->startparticles; i++)
-						CreateParticle(psystem->createsystem, tr.endpos, tr.plane.normal);
-				}
-			}
-		}
+			shouldSpawn = Common::RandomLong(1, pdefinition->spawnchance) == 1 ? true : false;
 		else
+			shouldSpawn = true;
+
+		if(shouldSpawn)
 		{
-			if(waterEntity != -1 && !pdefinition->watercreate.empty() && psystem->watersystem != nullptr)
+			if(waterEntity != -1 && !psystem->pwatersystems.empty())
 			{
-				for(Uint32 i = 0; i < psystem->watersystem->pdefinition->startparticles; i++)
-					CreateParticle(psystem->watersystem, tr.endpos, tr.plane.normal);
+				for(Uint32 i = 0; i < psystem->pwatersystems.size(); i++)
+				{
+					particle_system_t* pchildsystem = psystem->pwatersystems[i];
+					for(Uint32 j = 0; j < pchildsystem->pdefinition->startparticles; j++)
+						CreateParticle(pchildsystem, tr.endpos, tr.plane.normal);
+				}
 			}
 
-			if(!tr.hasContents(CONTENTS_SKY) && !pdefinition->create.empty() && psystem->createsystem != nullptr)
+			if(!tr.hasContents(CONTENTS_SKY) && !psystem->pcreatesystems.empty())
 			{
-				for(Uint32 i = 0; i < psystem->createsystem->pdefinition->startparticles; i++)
-					CreateParticle(psystem->createsystem, tr.endpos, tr.plane.normal);
+				for(Uint32 i = 0; i < psystem->pcreatesystems.size(); i++)
+				{
+					particle_system_t* pchildsystem = psystem->pcreatesystems[i];
+					for(Uint32 j = 0; j < pchildsystem->pdefinition->startparticles; j++)
+						CreateParticle(pchildsystem, tr.endpos, tr.plane.normal);
+				}
 			}
 		}
+
 		return false;
 	}
 
@@ -2527,12 +2588,13 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 	{
 		if(pparticle->life <= rns.time)
 		{
-			if(!pdefinition->deathcreate.empty() && !psystem->parentsystem)
+			if(!pdefinition->deathcreatearray.empty() && !psystem->parentsystem)
 			{
 				Vector direction = vvelocity;
 				Math::VectorNormalize(vvelocity);
 
-				CreateSystem(pdefinition->deathcreate.c_str(), vbaseorigin, direction, 0);
+				for(Uint32 i = 0; i < pdefinition->deathcreatearray.size(); i++)
+					CreateSystem(pdefinition->deathcreatearray[i].c_str(), vbaseorigin, direction, 0);
 			}
 
 			return false; // remove
@@ -2701,7 +2763,9 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 	if(pdefinition->fadedistfar && pdefinition->fadedistnear)
 	{
 		Float dist = (vbaseorigin - Vector(rns.view.params.v_origin)).Length();
-		Float alpha = 1.0-((pdefinition->fadedistfar - dist)/(pdefinition->fadedistfar-pdefinition->fadedistnear));
+		Float alpha = (pdefinition->fadedistfar - dist)/(pdefinition->fadedistfar-pdefinition->fadedistnear);
+		if(pdefinition->flags & SYSTEM_FL_FARNEAR_FADE_REVERSE)
+			alpha = 1.0-alpha;
 	
 		if( alpha < 0 ) alpha = 0;
 		if( alpha > 1 ) alpha = 1;
@@ -2737,7 +2801,7 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 	//
 	// Spawn tracer particles
 	//
-	if(pdefinition->tracerdist && psystem->createsystem)
+	if(pdefinition->tracerdist && psystem->ptracersystem)
 	{
 		Vector vdistance, vorigin;
 		Math::VectorSubtract(vbaseorigin, pparticle->lastspawn, vdistance);
@@ -2755,7 +2819,8 @@ bool CParticleEngine::UpdateParticle( cl_particle_t *pparticle )
 				Vector direction = pparticle->velocity;
 				direction.Normalize();
 
-				CreateParticle(psystem->createsystem, vorigin, direction);
+				// Assume system 0 is for tracers, if there's no tracer system set
+				CreateParticle(psystem->ptracersystem, vorigin, direction);
 			}
 
 			Math::VectorCopy(vbaseorigin, pparticle->lastspawn);
@@ -3751,13 +3816,20 @@ void CParticleEngine::ReleaseSystem( particle_system_t* psystem )
 		RemoveParticle(pfree);
 	}
 
-	// Unlink this
-	if(psystem->createsystem)
-		psystem->createsystem->parentsystem = nullptr;
+	if(!psystem->pcreatesystems.empty())
+	{
+		for(Uint32 i = 0; i < psystem->pcreatesystems.size(); i++)
+			psystem->pcreatesystems[i]->parentsystem = nullptr;
+	}
 
-	// Unlink this
-	if(psystem->watersystem)
-		psystem->watersystem->parentsystem = nullptr;
+	if(!psystem->pwatersystems.empty())
+	{
+		for(Uint32 i = 0; i < psystem->pwatersystems.size(); i++)
+			psystem->pwatersystems[i]->parentsystem = nullptr;
+	}
+
+	if(psystem->ptracersystem)
+		psystem->ptracersystem->parententity = nullptr;
 
 	m_particleSystemsList.remove(m_particleSystemsList.get_link());
 	m_iNumFreedSystems++;

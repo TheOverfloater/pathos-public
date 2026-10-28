@@ -207,6 +207,7 @@
     <ClCompile Include="animevents.cpp" />
     <ClCompile Include="clientdll.cpp" />
     <ClCompile Include="clshared.cpp" />
+    <ClCompile Include="credits.cpp" />
     <ClCompile Include="draw.cpp" />
     <ClCompile Include="gameuidocumentswindow.cpp" />
     <ClCompile Include="gameuikeypadwindow.cpp" />
@@ -290,6 +291,7 @@
     <ClInclude Include="animevents.h" />
     <ClInclude Include="clientdll.h" />
     <ClInclude Include="clshared.h" />
+    <ClInclude Include="credits.h" />
     <ClInclude Include="gameuidocumentswindow.h" />
     <ClInclude Include="gameuielements.h" />
     <ClInclude Include="draw.h" />

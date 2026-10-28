@@ -352,7 +352,7 @@ bool CTempEntityManager::UpdateTempEntity( tempentity_t* ptemp ) const
 	{
 		// Force clipnodes, as using hull 0 generated from visible nodes/leafs is much faster
 		// than doing the same with brush collisions
-		Int32 traceflags = (FL_TRACE_NORMAL|FL_TRACE_FORCE_CLIPNODES);
+		Int32 traceflags = (FL_TRACE_FORCE_CLIPNODES);
 		if(ptemp->flags & TE_FL_COLLIDEALL)
 			traceflags |= FL_TRACE_NORMAL;
 		else

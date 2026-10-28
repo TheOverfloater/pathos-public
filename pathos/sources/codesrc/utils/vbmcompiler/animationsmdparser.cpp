@@ -139,9 +139,9 @@ bool CAnimationSMDParser::ParseAnimation( void )
 	Float cosz = SDL_cos(m_zRotation);
 	Float sinz = SDL_sin(m_zRotation);
 
-	Int32 frameMin = -1;
-	Int32 frameMax = -1;
-	Int32 frameIndex = -1;
+	Int32 frameMin = NO_POSITION;
+	Int32 frameMax = NO_POSITION;
+	Int32 frameIndex = NO_POSITION;
 
 	const Char* pstrString = nullptr;
 	while(true)
@@ -170,7 +170,7 @@ bool CAnimationSMDParser::ParseAnimation( void )
 			}
 
 			// Resize arrays to match new frame count
-			if(frameIndex >= m_pAnimation->startframe && (m_pAnimation->endframe == -1 || frameIndex <= m_pAnimation->endframe))
+			if(frameIndex >= m_pAnimation->startframe && (m_pAnimation->endframe == NO_POSITION || frameIndex <= m_pAnimation->endframe))
 			{
 				if(m_pAnimation->pos_values.size() <= frameIndex)
 				{
@@ -232,7 +232,7 @@ bool CAnimationSMDParser::ParseAnimation( void )
 			}
 
 			// Only store it if it's in the cap
-			if(frameIndex >= m_pAnimation->startframe && (m_pAnimation->endframe == -1 || frameIndex <= m_pAnimation->endframe))
+			if(frameIndex >= m_pAnimation->startframe && (m_pAnimation->endframe == NO_POSITION || frameIndex <= m_pAnimation->endframe))
 			{
 				Vector& positionValue = (*m_pAnimation->pos_values[frameIndex])[nodeIndex];
 				if(node.parentindex == NO_POSITION)
@@ -254,10 +254,10 @@ bool CAnimationSMDParser::ParseAnimation( void )
 				}
 
 				// Mark cap values
-				if(frameMin == -1 || frameIndex < frameMin)
+				if(frameMin == NO_POSITION || frameIndex < frameMin)
 					frameMin = frameIndex;
 
-				if(frameMax == -1 || frameIndex > frameMax)
+				if(frameMax == NO_POSITION || frameIndex > frameMax)
 					frameMax = frameIndex;
 
 				if(node.ismirrored)
@@ -270,6 +270,12 @@ bool CAnimationSMDParser::ParseAnimation( void )
 				(*m_pAnimation->rot_values[frameIndex])[nodeIndex] = m_studioCompiler.ClipRotations(rotation);
 			}
 		}
+	}
+
+	if(frameMin == NO_POSITION || frameMax == NO_POSITION)
+	{
+		ErrorMsg("All animation frames are outside the animation range, which is from %d to %d.\n", m_pAnimation->startframe, m_pAnimation->endframe);
+		return false;
 	}
 
 	// Shift animation frames if needed

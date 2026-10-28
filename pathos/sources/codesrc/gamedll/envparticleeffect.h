@@ -42,6 +42,10 @@ public:
 		EFFECT_LARGEFUNNEL,
 		EFFECT_BLOODSTREAM,
 		EFFECT_BLOODPARTICLES,
+		EFFECT_PARTICLEEXPLOSION3,
+		EFFECT_FLICKERPARTICLES,
+		EFFECT_BULLETIMPACTPARTICLES,
+		EFFECT_PARTICLEBURST,
 
 		// MUST BE LAST
 		NB_EFFECT_TYPES
@@ -62,6 +66,8 @@ public:
 	virtual void CallUse( CBaseEntity* pActivator, CBaseEntity* pCaller, usemode_t useMode, Float value ) override;
 	// TRUE if entity can be parented by another
 	virtual bool CanEntityBeParented( void ) const override { return true; }
+	// TRUE if entity should override a specific field
+	virtual bool ShouldOverrideKeyValue( const Char* pstrKeyValue ) override;
 
 public:
 	// Repeat function
@@ -80,6 +86,10 @@ private:
 	Int32 m_particleCount;
 	// Rocket trail type
 	Int32 m_trailType;
+	// Size of particle burst
+	Uint32 m_size;
+	// Lifetime of particle burst
+	Float m_life;
 	// Min repeat delay
 	Float m_minRepeatDelay;
 	// Max repeat delay

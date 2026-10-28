@@ -955,13 +955,7 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 
 		for(Uint32 j = 0; j < psurf->numedges; j++)
 		{
-			Vector vertexpos;
-			Int32 e_index = ens.pworld->psurfedges[psurf->firstedge+j];
-			if(e_index > 0)
-				Math::VectorCopy(ens.pworld->pvertexes[ens.pworld->pedges[e_index].vertexes[0]].origin, vertexpos);
-			else
-				Math::VectorCopy(ens.pworld->pvertexes[ens.pworld->pedges[-e_index].vertexes[1]].origin, vertexpos);
-
+			const Vector &vertexpos = Mod_GetSurfaceVertex(ens.pworld, psurf, j);
 			if(vertexpos[2] > highestzvalue)
 				highestzvalue = vertexpos[2];
 		}
@@ -975,13 +969,7 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 		Uint32 j = 0;
 		for(; j < psurf->numedges; j++)
 		{
-			Vector vertexpos;
-			Int32 e_index = ens.pworld->psurfedges[psurf->firstedge+j];
-			if(e_index > 0)
-				Math::VectorCopy(ens.pworld->pvertexes[ens.pworld->pedges[e_index].vertexes[0]].origin, vertexpos);
-			else
-				Math::VectorCopy(ens.pworld->pvertexes[ens.pworld->pedges[-e_index].vertexes[1]].origin, vertexpos);
-
+			const Vector &vertexpos = Mod_GetSurfaceVertex(ens.pworld, psurf, j);
 			if(vertexpos[2] != highestzvalue)
 				break;
 		}
@@ -1070,15 +1058,9 @@ void CWaterShader::AddEntity( cl_entity_t *pentity )
 		water_vertex_t *pcurvert = pvertexes + vertexindex;
 		for(Uint32 j = 0; j < psurf->numedges; j++)
 		{
-			Vector vertex_origin;
-			Int32 e_index = ens.pworld->psurfedges[psurf->firstedge+j];
-			if(e_index > 0)
-				Math::VectorCopy(ens.pworld->pvertexes[ens.pworld->pedges[e_index].vertexes[0]].origin, vertex_origin);
-			else
-				Math::VectorCopy(ens.pworld->pvertexes[ens.pworld->pedges[-e_index].vertexes[1]].origin, vertex_origin);
-
+			const Vector &vertexpos = Mod_GetSurfaceVertex(ens.pworld, psurf, j);
 			for(Uint32 k = 0; k < 3; k++)
-				pcurvert->origin[k] = vertex_origin[k];
+				pcurvert->origin[k] = vertexpos[k];
 
 			pcurvert->origin[3] = 1.0;
 

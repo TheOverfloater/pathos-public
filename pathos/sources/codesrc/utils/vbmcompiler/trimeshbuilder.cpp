@@ -280,7 +280,7 @@ Uint32 CTriangleMeshBuilder::BuildTriangleMesh( byte*& poutdata )
 			continue;
 		}
 
-		Uint32 maxlength = -1;
+		Int32 maxlength = -1;
 		Int32 bestlength = 0;
 		Int32 besttype = 0;
 

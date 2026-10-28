@@ -34,22 +34,29 @@ public:
 	static const Uint32 PARTICLE_RAMP2[8];
 	// Ramp 3 values
 	static const Uint32 PARTICLE_RAMP3[8];
+	// Spark ramp values
+	static const Uint32 PARTICLE_SPARK_RAMP[9];
+
 	// Particle fade out time
 	static const Float PARTICLE_FADEOUT_TIME;
+	// Light check distance
+	static const Float PARTICLE_LIGHT_CHECK_DISTANCE;
 
 	enum particle_type_t
 	{
-		pt_undefined = 0,
-		pt_static,
-		pt_gravity,
-		pt_slowgravity,
-		pt_fire,
-		pt_explode1,
-		pt_explode2,
-		pt_blob1,
-		pt_blob2,
-		pt_vox_gravity,
-		pt_vox_slowgravity
+		PT_UNDEFINED = 0,
+		PT_STATIC,
+		PT_GRAVITY,
+		PT_SLOWGRAVITY,
+		PT_FIRE,
+		PT_EXPLODE1,
+		PT_EXPLODE2,
+		PT_BLOB1,
+		PT_BLOB2,
+		PT_VOX_GRAVITY,
+		PT_VOX_SLOWGRAVITY,
+		PT_FLICKER1,
+		PT_FLICKER2
 	};
 
 	struct particle_t
@@ -59,7 +66,10 @@ public:
 			ramp(0),
 			die(0),
 			spawntime(0),
-			type(pt_undefined),
+			type(PT_UNDEFINED),
+			lighting(false),
+			collisions(false),
+			bouncefactor(1.0),
 			pprev(nullptr),
 			pnext(nullptr)
 			{}
@@ -73,8 +83,21 @@ public:
 		Double spawntime;
 		particle_type_t type;
 
+		bool lighting;
+		Vector lastlightposition;
+		Vector lightcolor;
+
+		bool collisions;
+		Float bouncefactor;
+
 		particle_t* pprev;
 		particle_t* pnext;
+	};
+
+	enum legacymode_t
+	{
+		LPM_EXTENDED = 0,
+		LPM_FAITHFUL
 	};
 
 public:
@@ -106,6 +129,8 @@ public:
 	void CreateParticleExplosion1( const Vector& origin );
 	// Creates a particle explosion of type 2
 	void CreateParticleExplosion2( const Vector& origin, Uint32 colorstart, Uint32 colorlength );
+	// Creates a particle explosion of type 3
+	void CreateParticleExplosion3( const Vector& origin );
 	// Creates a blob explosion of type 1
 	void CreateBlobExplosion( const Vector& origin );
 	// Creates a particle effect based on the inputs
@@ -124,6 +149,12 @@ public:
 	void CreateBloodStream( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
 	// Creates blood particles
 	void CreateBloodParticles( const Vector& origin, const Vector& direction, Uint32 color, Float speed );
+	// Create flicker particles
+	void CreateFlickerParticles( const Vector& origin, const Vector& direction );
+	// Create bullet impact particles
+	void CreateBulletImpactParticles( const Vector& position, const Vector& direction );
+	// Create particle burst effect
+	void CreateParticleBurst( const Vector& position, Int32 size, Uint32 color, Float life );
 
 private:
 	// Allocates some particles
@@ -136,6 +167,9 @@ private:
 	particle_t* AllocParticle( void );
 	// Releases all particles
 	void ReleaseAllParticles( void );
+
+	// Get legacy particle mode used
+	legacymode_t GetLegacyMode( void );
 
 private:
 	// Particle texture
@@ -154,11 +188,17 @@ private:
 	// Number of sorted particles
 	Uint32 m_nbSortedParticles;
 
+	// Cvar controlling rendering
+	CCVar* m_pCvarDrawLegacyParticles;
+	// Cvar controlling legacy particle mode
+	CCVar* m_pCvarLegacyParticleMode;
 	// Gravity cvar ptr
 	CCVar* m_pCvarGravity;
 
 	// Color palette
 	color24_t* m_pColorPalette;
+	// Tracer count
+	Uint32 m_tracerCount;
 };
 extern CLegacyParticles gLegacyParticles;
 #endif //R_LEGACYPARTICLES_H

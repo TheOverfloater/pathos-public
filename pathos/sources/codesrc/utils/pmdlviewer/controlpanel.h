@@ -303,7 +303,7 @@ public:
 	// Copies a single file to the destination directory
 	bool CopyFile( const Char* pstrBaseName, const Char* pstrExtension );
 	// Compiles the selected QC file
-	void CompileQC( void );
+	Int32 CompileQC( void );
 	// Opens the editor for the selected QC file
 	void EditQC( void );
 	// Opens the editor for the selected QC's log file

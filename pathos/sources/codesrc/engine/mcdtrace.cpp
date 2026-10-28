@@ -420,7 +420,7 @@ bool CMCDTrace::SeparatingAxisAABBTriangleTest( const Vector& position, const Ve
 	plane.signbits = ptriangle->signbits;
 	plane.normal = ptriangle->normal;
 
-	if(Math::BoxOnPlaneSide(mins, maxs, &plane) != SIDE_BOTH)
+	if(Math::BoxOnPlaneSide(mins, maxs, &plane) != BP_SIDE_BOTH)
 		return false;
 	else
 		return true;

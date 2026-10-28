@@ -209,4 +209,28 @@ namespace CollisionShared
 
 		return true;
 	}
+
+	//=============================================
+	// @brief Test if point is inside triangle
+	//
+	//=============================================
+	bool PointInTriangle( const Vector& triv0, const Vector& triv1, const Vector& triv2, const Vector& point )
+	{
+		Vector a, b, c;
+		Math::VectorSubtract(triv0, point, a);
+		Math::VectorSubtract(triv1, point, b);
+		Math::VectorSubtract(triv2, point, c);
+
+		Vector u, v, w;
+		Math::CrossProduct(b, c, u);
+		Math::CrossProduct(c, a, v);
+		Math::CrossProduct(a, b, w);
+
+		if(Math::DotProduct(u, v) < 0.0f)
+			return false;
+		else if(Math::DotProduct(u, w) < 0.0f)
+			return false;
+		else
+			return true;
+	}
 };

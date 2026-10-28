@@ -208,144 +208,51 @@ bool CMaterialDefinitions::Init( const Char* pscriptfile )
 					}
 
 					// Read bullet penetration depth
-					pstr = Common::Parse(pstr, token);
-					if(!pstr || token.empty())
+					Float penetrationDepth = 0;
+					pstr = ReadFloat(pstr, penetrationDepth, 0);
+					if(!pstr)
 					{
-						m_errorString << "Unexpected EOF";
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!qstrcmp(token, "}"))
-					{
-						m_errorString << "Unexpected '}' token when reading bullet type " << bullettypename << " definition for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!Common::IsNumber(token))
-					{
-						m_errorString << "Penetration depth " << token << " for bullet type " << bullettypename << " and material " << newdef.materialname << " is not a number";
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					Float penetrationDepth = SDL_atof(token.c_str());
-					if(penetrationDepth < 0)
-					{
-						m_errorString << "Invalid penetration depth " << penetrationDepth << " specified for bullet type " << bullettypename << " and material " << newdef.materialname << " specified";
+						m_errorString << "Error encountered while reading penetration depth for bullet type " << bullettypename << " and material " << newdef.materialname << ".";
 						m_materialDefinitionsArray.clear();
 						return false;
 					}
 
 					// Read penetration max count
-					pstr = Common::Parse(pstr, token);
-					if(!pstr || token.empty())
+					Int32 maxPenetration = 0;
+					pstr = ReadInt32(pstr, maxPenetration, 0);
+					if(!pstr)
 					{
-						m_errorString << "Unexpected EOF while reading bullet type " << bullettypename << " for material " << newdef.materialname;
+						m_errorString << "Error encountered while reading max penetration count for bullet type " << bullettypename << " and material " << newdef.materialname << ".";
 						m_materialDefinitionsArray.clear();
 						return false;
 					}
-
-					if(!qstrcmp(token, "}"))
-					{
-						m_errorString << "Unexpected '}' token when reading bullet type " << bullettypename << " definition for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!Common::IsNumber(token))
-					{
-						m_errorString << "Penetration maximum " << token << " for bullet type " << bullettypename << " and material " << newdef.materialname << " is not a number";
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					Uint32 maxPenetration = SDL_atoi(token.c_str());
 
 					// Read penetration chance
-					pstr = Common::Parse(pstr, token);
-					if(!pstr || token.empty())
+					Int32 penetrationChance = 0;
+					pstr = ReadInt32(pstr, penetrationChance, 0);
+					if(!pstr)
 					{
-						m_errorString << "Unexpected EOF while reading bullet type " << bullettypename << " for material " << newdef.materialname;
+						m_errorString << "Error encountered while reading penetration chance for bullet type " << bullettypename << " and material " << newdef.materialname << ".";
 						m_materialDefinitionsArray.clear();
 						return false;
 					}
-
-					if(!qstrcmp(token, "}"))
-					{
-						m_errorString << "Unexpected '}' token when reading bullet type " << bullettypename << " definition for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!Common::IsNumber(token))
-					{
-						m_errorString << "Penetration chance " << token << " for bullet type " << bullettypename << " and material " << newdef.materialname << " is not a number";
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					Uint32 penetrationChance = SDL_atoi(token.c_str());
 
 					// Read penetration damage falloff
-					pstr = Common::Parse(pstr, token);
-					if(!pstr || token.empty())
+					Float penetrationDmgFalloff = 0;
+					pstr = ReadFloat(pstr, penetrationDmgFalloff, 0);
+					if(!pstr)
 					{
-						m_errorString << "Unexpected EOF while reading bullet type " << bullettypename << " for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!qstrcmp(token, "}"))
-					{
-						m_errorString << "Unexpected '}' token when reading bullet type " << bullettypename << " definition for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!Common::IsNumber(token))
-					{
-						m_errorString << "Penetration damage falloff " << token << " for bullet type " << bullettypename << " and material " << newdef.materialname << " is not a number";
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					Float penetrationDmgFalloff = SDL_atof(token.c_str());
-					if(penetrationDmgFalloff < 0)
-					{
-						m_errorString << "Invalid penetration damage falloff value " << penetrationDmgFalloff << " specified for bullet type " << bullettypename << " and material " << newdef.materialname << " specified";
+						m_errorString << "Error encountered while reading penetration chance for bullet type " << bullettypename << " and material " << newdef.materialname << ".";
 						m_materialDefinitionsArray.clear();
 						return false;
 					}
 
 					// Read penetration chance decrease
-					pstr = Common::Parse(pstr, token);
-					if(!pstr || token.empty())
+					Int32 penetrationChanceDecrease = 0;
+					pstr = ReadInt32(pstr, penetrationChanceDecrease, 0);
+					if(!pstr)
 					{
-						m_errorString << "Unexpected EOF while reading bullet type " << bullettypename << " for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!qstrcmp(token, "}"))
-					{
-						m_errorString << "Unexpected '}' token when reading bullet type " << bullettypename << " definition for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!Common::IsNumber(token))
-					{
-						m_errorString << "Penetration damage falloff " << token << " for bullet type " << bullettypename << " and material " << newdef.materialname << " is not a number";
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					Uint32 penetrationChanceDecrease = SDL_atoi(token.c_str());
-					if(penetrationChanceDecrease < 0)
-					{
-						m_errorString << "Invalid penetration chance decrease value " << penetrationDmgFalloff << " specified for bullet type " << bullettypename << " and material " << newdef.materialname << " specified";
+						m_errorString << "Error encountered while reading penetration chance reduction for bullet type " << bullettypename << " and material " << newdef.materialname << ".";
 						m_materialDefinitionsArray.clear();
 						return false;
 					}
@@ -419,156 +326,51 @@ bool CMaterialDefinitions::Init( const Char* pscriptfile )
 					}
 
 					// Read bullet ricochet max angle
-					pstr = Common::Parse(pstr, token);
-					if(!pstr || token.empty())
+					Float maxAngle = 0;
+					pstr = ReadFloat(pstr, maxAngle, 0);
+					if(!pstr)
 					{
-						m_errorString << "Unexpected EOF";
+						m_errorString << "Error encountered while reading ricochet max angle for bullet type " << bullettypename << " and material " << newdef.materialname << ".";
 						m_materialDefinitionsArray.clear();
 						return false;
 					}
 
-					if(!qstrcmp(token, "}"))
+					// Read bullet ricochet max angle variation
+					Float maxRicochetAngleVariation = 0;
+					pstr = ReadFloat(pstr, maxRicochetAngleVariation, 0);
+					if(!pstr)
 					{
-						m_errorString << "Unexpected '}' token when reading bullet type ricochet " << bullettypename << " definition for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!Common::IsNumber(token))
-					{
-						m_errorString << "Ricochet max angle " << token << " for bullet type " << bullettypename << " and material " << newdef.materialname << " is not a number";
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					Float maxAngle = SDL_atof(token.c_str());
-					if(maxAngle < 0)
-					{
-						m_errorString << "Invalid ricochet max angle " << maxAngle << " specified for bullet type " << bullettypename << " and material " << newdef.materialname << " specified";
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					// Read max ricochet angle variation
-					pstr = Common::Parse(pstr, token);
-					if(!pstr || token.empty())
-					{
-						m_errorString << "Unexpected EOF while reading bullet type ricochet " << bullettypename << " for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!qstrcmp(token, "}"))
-					{
-						m_errorString << "Unexpected '}' token when reading bullet type ricochet " << bullettypename << " definition for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!Common::IsNumber(token))
-					{
-						m_errorString << "Ricochet maximum angle variation  value" << token << " for bullet type " << bullettypename << " and material " << newdef.materialname << " is not a number";
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					Float maxRicochetAngleVariation = SDL_atof(token.c_str());
-					if(maxRicochetAngleVariation < 0)
-					{
-						m_errorString << "Invalid ricochet max angle variation value " << maxRicochetAngleVariation << " specified for bullet type " << bullettypename << " and material " << newdef.materialname << " specified";
+						m_errorString << "Error encountered while reading ricochet max angle variation for bullet type " << bullettypename << " and material " << newdef.materialname << ".";
 						m_materialDefinitionsArray.clear();
 						return false;
 					}
 
 					// Read ricochet chance
-					pstr = Common::Parse(pstr, token);
-					if(!pstr || token.empty())
+					Int32 ricochetChance = 0;
+					pstr = ReadInt32(pstr, ricochetChance, 0);
+					if(!pstr)
 					{
-						m_errorString << "Unexpected EOF while reading bullet type ricochet " << bullettypename << " for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!qstrcmp(token, "}"))
-					{
-						m_errorString << "Unexpected '}' token when reading bullet type ricochet " << bullettypename << " definition for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!Common::IsNumber(token))
-					{
-						m_errorString << "Ricochet chance value " << token << " for bullet type ricochet " << bullettypename << " and material " << newdef.materialname << " is not a number";
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					Uint32 ricochetChance = SDL_atoi(token.c_str());
-					if(ricochetChance < 0)
-					{
-						m_errorString << "Invalid ricochet chance value " << ricochetChance << " specified for bullet type " << bullettypename << " and material " << newdef.materialname << " specified";
+						m_errorString << "Error encountered while reading ricochet max chance for bullet type " << bullettypename << " and material " << newdef.materialname << ".";
 						m_materialDefinitionsArray.clear();
 						return false;
 					}
 
 					// Read max ricochet nb
-					pstr = Common::Parse(pstr, token);
-					if(!pstr || token.empty())
+					Int32 maxRicochetNb = 0;
+					pstr = ReadInt32(pstr, maxRicochetNb, 0);
+					if(!pstr)
 					{
-						m_errorString << "Unexpected EOF while reading bullet type ricochet " << bullettypename << " for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!qstrcmp(token, "}"))
-					{
-						m_errorString << "Unexpected '}' token when reading bullet type ricochet " << bullettypename << " definition for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!Common::IsNumber(token))
-					{
-						m_errorString << "Ricochet max nb value " << token << " for bullet type ricochet " << bullettypename << " and material " << newdef.materialname << " is not a number";
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					Uint32 maxRicochetNb = SDL_atoi(token.c_str());
-					if(maxRicochetNb < 0)
-					{
-						m_errorString << "Invalid ricochet max nb value " << maxRicochetNb << " specified for bullet type " << bullettypename << " and material " << newdef.materialname << " specified";
+						m_errorString << "Error encountered while reading ricochet max angle for bullet type " << bullettypename << " and material " << newdef.materialname << ".";
 						m_materialDefinitionsArray.clear();
 						return false;
 					}
 
 					// Read ricochet damage falloff
-					pstr = Common::Parse(pstr, token);
-					if(!pstr || token.empty())
+					Float ricochetDmgFalloff = 0;
+					pstr = ReadFloat(pstr, ricochetDmgFalloff, 0);
+					if(!pstr)
 					{
-						m_errorString << "Unexpected EOF while reading bullet type ricochet " << bullettypename << " for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!qstrcmp(token, "}"))
-					{
-						m_errorString << "Unexpected '}' token when reading bullet type ricochet " << bullettypename << " definition for material " << newdef.materialname;
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					if(!Common::IsNumber(token))
-					{
-						m_errorString << "Ricochet damage falloff value" << token << " for bullet type " << bullettypename << " and material " << newdef.materialname << " is not a number";
-						m_materialDefinitionsArray.clear();
-						return false;
-					}
-
-					Float ricochetDmgFalloff = SDL_atof(token.c_str());
-					if(ricochetDmgFalloff < 0)
-					{
-						m_errorString << "Invalid ricochet damage falloff value " << maxRicochetAngleVariation << " specified for bullet type " << bullettypename << " and material " << newdef.materialname << " specified";
+						m_errorString << "Error encountered while reading ricochet ricochet damage falloff for bullet type " << bullettypename << " and material " << newdef.materialname << ".";
 						m_materialDefinitionsArray.clear();
 						return false;
 					}
@@ -579,16 +381,136 @@ bool CMaterialDefinitions::Init( const Char* pscriptfile )
 					ricochetinfo_t& info = newdef.ricochetinfos[newindex];
 
 					info.bullettypeindex = BULLET_TYPE_MAP[j].type;
-					info.maxangle = sin( maxAngle * (M_PI / 180.0));
-					info.maxdeviation = sin( maxRicochetAngleVariation * (M_PI / 180.0));
+					info.maxangle = sin(maxAngle * (M_PI / 180.0));
+					info.maxdeviation = sin(maxRicochetAngleVariation * (M_PI / 180.0));
 					info.ricochetchance = ricochetChance;
 					info.maxricochets = maxRicochetNb;
 					info.ricochetdmgfalloff = ricochetDmgFalloff;
 				}
 			}
+			else if(!qstrcmp(token, "streaksplash"))
+			{
+				// Read color
+				Vector color;
+				for(Uint32 i = 0; i < 3; i++)
+				{
+					pstr = ReadFloat(pstr, color[i], 0);
+					if(!pstr)
+					{
+						m_errorString << "Error encountered while reading streak splash color value for material " << newdef.materialname << ".";
+						m_materialDefinitionsArray.clear();
+						return false;
+					}
+				}
+
+				// Read alpha value
+				Float alpha = 0;
+				pstr = ReadFloat(pstr, alpha, 0);
+				if(!pstr)
+				{
+					m_errorString << "Error encountered while reading streak splash alpha value for material " << newdef.materialname << ".";
+					m_materialDefinitionsArray.clear();
+					return false;
+				}
+
+				// Read width
+				Float width = 0;
+				pstr = ReadFloat(pstr, width, 0);
+				if(!pstr)
+				{
+					m_errorString << "Error encountered while reading streak splash width value for material " << newdef.materialname << ".";
+					m_materialDefinitionsArray.clear();
+					return false;
+				}
+
+				// Read length
+				Float length = 0;
+				pstr = ReadFloat(pstr, length, 0);
+				if(!pstr)
+				{
+					m_errorString << "Error encountered while reading streak splash length value for material " << newdef.materialname << ".";
+					m_materialDefinitionsArray.clear();
+					return false;
+				}
+
+				// Read count
+				Int32 count = 0;
+				pstr = ReadInt32(pstr, count, 0);
+				if(!pstr)
+				{
+					m_errorString << "Error encountered while reading streak splash count for material " << newdef.materialname << ".";
+					m_materialDefinitionsArray.clear();
+					return false;
+				}
+
+				// Read speed
+				Float speed = 0;
+				pstr = ReadFloat(pstr, speed, 0);
+				if(!pstr)
+				{
+					m_errorString << "Error encountered while reading streak splash speed value for material " << newdef.materialname << ".";
+					m_materialDefinitionsArray.clear();
+					return false;
+				}
+
+				// Read minimum lifetime
+				Float minLifetime = 0;
+				pstr = ReadFloat(pstr, minLifetime, 0);
+				if(!pstr)
+				{
+					m_errorString << "Error encountered while reading streak splash minimum life value for material " << newdef.materialname << ".";
+					m_materialDefinitionsArray.clear();
+					return false;
+				}
+
+				// Read maximum lifetime
+				Float maxLifetime = 0;
+				pstr = ReadFloat(pstr, maxLifetime, 0);
+				if(!pstr)
+				{
+					m_errorString << "Error encountered while reading streak splash maximum life value for material " << newdef.materialname << ".";
+					m_materialDefinitionsArray.clear();
+					return false;
+				}
+
+				// Read minimum velocity
+				Float minVelocity = 0;
+				pstr = ReadFloat(pstr, minVelocity, 0);
+				if(!pstr)
+				{
+					m_errorString << "Error encountered while reading streak splash minimum velocity value for material " << newdef.materialname << ".";
+					m_materialDefinitionsArray.clear();
+					return false;
+				}
+
+				// Read maximum velocity
+				Float maxVelocity = 0;
+				pstr = ReadFloat(pstr, maxVelocity, 0);
+				if(!pstr)
+				{
+					m_errorString << "Error encountered while reading streak splash maximum velocity value for material " << newdef.materialname << ".";
+					m_materialDefinitionsArray.clear();
+					return false;
+				}
+
+				// Set params in definition
+				streaksplashparams_t streaksplash;
+				streaksplash.color = color;
+				streaksplash.alpha = alpha;
+				streaksplash.width = width;
+				streaksplash.length = length;
+				streaksplash.count = count;
+				streaksplash.speed = speed;
+				streaksplash.minlife = minLifetime;
+				streaksplash.maxlife = maxLifetime;
+				streaksplash.minvelocity = minVelocity;
+				streaksplash.maxvelocity = maxVelocity;
+
+				newdef.streaksplashes.push_back(streaksplash);
+			}
 			else
 			{
-				// Read list of sounds
+				// Read field name
 				CString value;
 				pstr = Common::Parse(pstr, value);
 				if(!pstr || value.empty())
@@ -653,6 +575,94 @@ bool CMaterialDefinitions::Init( const Char* pscriptfile )
 	}
 
 	return true;
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+const Char* CMaterialDefinitions::ReadInt32( const Char* pstrString, Int32& outValue, Int32 minValue )
+{
+	// Read ricochet damage falloff
+	CString token;
+	const Char* pstr = Common::Parse(pstrString, token);
+	if(!pstr || token.empty())
+	{
+		m_errorString << "Unexpected EOF while reading material script.";
+		m_materialDefinitionsArray.clear();
+		return nullptr;
+	}
+
+	if(!qstrcmp(token, "}"))
+	{
+		m_errorString << "Unexpected '}' token when reading material script.";
+		m_materialDefinitionsArray.clear();
+		return nullptr;
+	}
+
+	if(!Common::IsNumber(token))
+	{
+		m_errorString << "Value read is not a number.";
+		m_materialDefinitionsArray.clear();
+		return nullptr;
+	}
+
+	Int32 readValue = SDL_atoi(token.c_str());
+	if(minValue != -1 && readValue < minValue)
+	{
+		m_errorString << "Value read is below minimum treshold " << minValue << ".";
+		m_materialDefinitionsArray.clear();
+		return nullptr;
+	}
+	else
+	{
+		outValue = readValue;
+		return pstr;
+	}
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+const Char* CMaterialDefinitions::ReadFloat( const Char* pstrString, Float& outValue, Float minValue )
+{
+	// Read ricochet damage falloff
+	CString token;
+	const Char* pstr = Common::Parse(pstrString, token);
+	if(!pstr || token.empty())
+	{
+		m_errorString << "Unexpected EOF while reading material script.";
+		m_materialDefinitionsArray.clear();
+		return nullptr;
+	}
+
+	if(!qstrcmp(token, "}"))
+	{
+		m_errorString << "Unexpected '}' token when reading material script.";
+		m_materialDefinitionsArray.clear();
+		return nullptr;
+	}
+
+	if(!Common::IsNumber(token))
+	{
+		m_errorString << "Value read is not a number.";
+		m_materialDefinitionsArray.clear();
+		return nullptr;
+	}
+
+	Float readValue = SDL_atof(token.c_str());
+	if(minValue != -1 && readValue < minValue)
+	{
+		m_errorString << "Value read is below minimum treshold " << minValue << ".";
+		m_materialDefinitionsArray.clear();
+		return nullptr;
+	}
+	else
+	{
+		outValue = readValue;
+		return pstr;
+	}
 }
 
 //=============================================

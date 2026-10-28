@@ -398,8 +398,10 @@ void CBasicDraw::Vertex3fv( const Float* pfv )
 	basic_vertex_t* pvertex = &m_vertexesArray[m_numVertexes];
 	m_numVertexes++;
 
-	for(Uint32 i = 0; i < 4; i++)
+	for(Uint32 i = 0; i < 3; i++)
 		pvertex->color[i] = m_vertexColor[i] * m_brightness;
+
+	pvertex->color[3] = m_vertexColor[3];
 
 	Math::VectorCopy(pfv, pvertex->origin);
 	pvertex->origin[3] = 1.0;

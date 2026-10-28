@@ -93,6 +93,7 @@ static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 	CL_CreateStreakSplash,			//pfnCreateStreakSplash	
 	CL_ParticleExplosion1,			//pfnParticleExplosion1
 	CL_ParticleExplosion2,			//pfnParticleExplosion2
+	CL_ParticleExplosion3,			//pfnParticleExplosion3
 	CL_BlobExplosion,				//pfnBlobExplosion
 	CL_RocketExplosion,				//pfnRocketExplosion
 	CL_ParticleEffect,				//pfnParticleEffect
@@ -102,6 +103,9 @@ static cl_efxapi_t EFXAPI_INTERFACE_FUNCS =
 	CL_CreateLargeFunnel,			//pfnCreateLargeFunnel
 	CL_CreateBloodStream,			//pfnCreateBloodStream
 	CL_CreateBloodParticles,		//pfnCreateBloodParticles
+	CL_CreateFlickerParticles,		//pfnCreateFlickerParticles
+	CL_CreateBulletImpactParticles,	//pfnCreateBulletImpactParticles
+	CL_CreateParticleBurst,			//pfnCreateParticleBurst
 	CL_BeamLightning,				//pfnBeamLightning	
 	CL_BeamCirclePoints,			//pfnBeamCirclePoints
 	CL_BeamEntityPoint,				//pfnBeamEntityPoint
@@ -662,6 +666,14 @@ void CL_ParticleExplosion2( const Vector& origin, Uint32 colorstart, Uint32 colo
 //====================================
 //
 //====================================
+void CL_ParticleExplosion3( const Vector& origin )
+{
+	gLegacyParticles.CreateParticleExplosion3(origin);
+}
+
+//====================================
+//
+//====================================
 void CL_BlobExplosion( const Vector& origin )
 {
 	gLegacyParticles.CreateBlobExplosion(origin);
@@ -710,9 +722,9 @@ void CL_RocketTrail( const Vector& start, const Vector& end, Uint32 type )
 //====================================
 //
 //====================================
-void CL_CreateSparkStreak( const Vector& origin, Uint32 count, const Vector& color, Float alpha, Float width, Float length, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity )
+void CL_CreateSparkStreak( const Vector& origin, const Vector& direction, Uint32 count, const Vector& color, Float alpha, Float width, Float length, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity )
 {
-	gTracers.CreateSparkStreak(origin, count, color, alpha, width, length, minLifetime, maxLifetime, minVelocity, maxVelocity);
+	gTracers.CreateSparkStreak(origin, direction, count, color, alpha, width, length, minLifetime, maxLifetime, minVelocity, maxVelocity);
 }
 
 //====================================
@@ -745,6 +757,33 @@ void CL_CreateBloodStream( const Vector& origin, const Vector& direction, Uint32
 void CL_CreateBloodParticles( const Vector& origin, const Vector& direction, Uint32 color, Float speed )
 {
 	gLegacyParticles.CreateBloodParticles(origin, direction, color, speed);
+}
+
+//====================================
+//
+//====================================
+void CL_CreateFlickerParticles( const Vector& origin, const Vector& direction )
+{
+	gLegacyParticles.CreateFlickerParticles(origin, direction);
+}
+
+//====================================
+//
+//====================================
+void CL_CreateBulletImpactParticles( const Vector& origin, const Vector& direction )
+{
+	// Create the spark streak
+	gTracers.CreateSparkStreak(origin, direction, 2, Vector(1.0, 0.65, 0.06), 1.0, 1, 1, 0.1, 0.5, -200, 200);
+	// Create the legacy particles
+	gLegacyParticles.CreateBulletImpactParticles(origin, direction);
+}
+
+//====================================
+//
+//====================================
+void CL_CreateParticleBurst( const Vector& position, Int32 size, Uint32 color, Float life )
+{
+	gLegacyParticles.CreateParticleBurst(position, size, color, life);
 }
 
 //====================================

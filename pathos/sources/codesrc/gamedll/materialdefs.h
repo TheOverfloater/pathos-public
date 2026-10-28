@@ -60,6 +60,32 @@ public:
 		Float ricochetdmgfalloff;
 	};
 
+	struct streaksplashparams_t
+	{
+		streaksplashparams_t():
+			alpha(0),
+			width(0),
+			length(0),
+			count(0),
+			speed(0),
+			minlife(0),
+			maxlife(0),
+			minvelocity(0),
+			maxvelocity(0)
+		{}
+
+		Vector color;
+		Float alpha;
+		Float width;
+		Float length;
+		Uint32 count;
+		Float speed;
+		Float minlife;
+		Float maxlife;
+		Float minvelocity;
+		Float maxvelocity;
+	};
+
 	struct materialdefinition_t
 	{
 		materialdefinition_t():
@@ -96,6 +122,7 @@ public:
 		CArray<CString> sounds;
 		CArray<penetration_t> penetrationinfos;
 		CArray<ricochetinfo_t> ricochetinfos;
+		CArray<streaksplashparams_t> streaksplashes;
 	};
 
 public:
@@ -117,6 +144,11 @@ public:
 	Uint32 GetNbDefinitions( void ) const;
 	// Returns an effect definition
 	const materialdefinition_t* GetDefinition( Uint32 index ) const;
+
+	// Read integer field
+	const Char* ReadInt32( const Char* pstrString, Int32& outValue, Int32 minValue = -1 );
+	// Read float field
+	const Char* ReadFloat( const Char* pstrString, Float& outValue, Float minValue = -1 );
 
 private:
 	// Array of impact effects for materials

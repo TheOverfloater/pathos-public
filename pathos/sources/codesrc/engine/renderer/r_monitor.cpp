@@ -372,12 +372,7 @@ void CMonitorManager::AllocNewMonitor( cl_entity_t* pentity )
 
 		for(Uint32 i = 0; i < psurf->numedges; i++)
 		{
-			Vector vertexpos;
-			Int32 e_index = ens.pworld->psurfedges[psurf->firstedge+i];
-			if(e_index > 0)
-				Math::VectorCopy(ens.pworld->pvertexes[ens.pworld->pedges[e_index].vertexes[0]].origin, vertexpos);
-			else
-				Math::VectorCopy(ens.pworld->pvertexes[ens.pworld->pedges[-e_index].vertexes[1]].origin, vertexpos);
+			const Vector& vertexpos = Mod_GetSurfaceVertex(ens.pworld, psurf, i);
 
 			for(Uint32 j = 0; j < 3; j++)
 			{
@@ -437,12 +432,7 @@ void CMonitorManager::AllocNewMonitor( cl_entity_t* pentity )
 		Uint32 srcvertindex = 0;
 		for(Uint32 j = 0; j < 3; j++, dstvertindex++, srcvertindex++)
 		{
-			Vector vertexpos;
-			Int32 e_index = ens.pworld->psurfedges[psurf->firstedge+srcvertindex];
-			if(e_index > 0)
-				Math::VectorCopy(ens.pworld->pvertexes[ens.pworld->pedges[e_index].vertexes[0]].origin, vertexpos);
-			else
-				Math::VectorCopy(ens.pworld->pvertexes[ens.pworld->pedges[-e_index].vertexes[1]].origin, vertexpos);
+			const Vector& vertexpos = Mod_GetSurfaceVertex(ens.pworld, psurf, srcvertindex);
 
 			// Set texcoords
 			Float scoord = Math::DotProduct(vertexpos, ptexinfo->vecs[0])+ptexinfo->vecs[0][3];
@@ -465,12 +455,7 @@ void CMonitorManager::AllocNewMonitor( cl_entity_t* pentity )
 
 		for(Uint32 j = 0; j < (psurf->numedges-3); j++, srcvertindex++)
 		{
-			Vector vertexpos;
-			Int32 e_index = ens.pworld->psurfedges[psurf->firstedge+srcvertindex];
-			if(e_index > 0)
-				Math::VectorCopy(ens.pworld->pvertexes[ens.pworld->pedges[e_index].vertexes[0]].origin, vertexpos);
-			else
-				Math::VectorCopy(ens.pworld->pvertexes[ens.pworld->pedges[-e_index].vertexes[1]].origin, vertexpos);
+			const Vector& vertexpos = Mod_GetSurfaceVertex(ens.pworld, psurf, srcvertindex);
 
 			Math::VectorCopy(vertexes[2], vertexes[1]);
 			texcoords[1][0] = texcoords[2][0];

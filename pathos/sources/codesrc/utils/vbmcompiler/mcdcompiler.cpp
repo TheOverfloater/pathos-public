@@ -253,7 +253,9 @@ bool CMCDCompiler::CreateMCDFile( void )
 
 	Uint32 maxSize = sizeof(mcdheader_t::name);
 	qstrcpy_s(m_pMCDHeader->name, g_options.outputname.c_str(), maxSize);
-
+	if(qstrlen(m_pMCDHeader->name) < g_options.outputname.length())
+		WarningMsg("MCD header name '%s' was truncated to '%s'!\n", g_options.outputname.c_str(), m_pMCDHeader->name);
+	
 	// Save submodels
 	Int32 submodeloffset = m_pFileBuffer->getdatasize();
 	m_pFileBuffer->append(nullptr, m_pSubmodelsArray.size()*sizeof(mcdsubmodel_t));
@@ -275,6 +277,8 @@ bool CMCDCompiler::CreateMCDFile( void )
 
 		maxSize = sizeof(mcdbodypart_t::name);
 		qstrcpy_s(pdestbodypart->name, psrcbodypart->name.c_str(), maxSize);
+		if(qstrlen(pdestbodypart->name) < psrcbodypart->name.length())
+			WarningMsg("MCD body part name '%s' was truncated to '%s'!\n", psrcbodypart->name.c_str(), pdestbodypart->name);
 
 		pdestbodypart->base = psrcbodypart->base;
 		pdestbodypart->numsubmodels = psrcbodypart->psubmodels.size();
@@ -295,6 +299,9 @@ bool CMCDCompiler::CreateMCDFile( void )
 
 		Uint32 maxSize = sizeof(mcdsubmodel_t::name);
 		qstrcpy_s(pdestsubmodel->name, m_pSubModel->name.c_str(), maxSize);
+		if(qstrlen(pdestsubmodel->name) < m_pSubModel->name.length())
+			WarningMsg("MCD submodel name '%s' was truncated to '%s'!\n", m_pSubModel->name.c_str(), pdestsubmodel->name);
+
 		pdestsubmodel->collisiontypesoffset = m_pFileBuffer->getdatasize();
 		pdestsubmodel->numcollisiontypes = NB_MCD_COLLISION_TYPES;
 		pdestsubmodel->mins = m_pSubModel->mins;
@@ -465,6 +472,8 @@ bool CMCDCompiler::CreateMCDFile( void )
 	{
 		Uint32 maxSize = sizeof(mcdtexture_t::name);
 		qstrcpy_s(ptextures[i].name, m_texturesArray[i].c_str(), maxSize);
+		if(qstrlen(ptextures[i].name) < m_texturesArray[i].length())
+			WarningMsg("MCD texture name '%s' was truncated to '%s'!\n", m_texturesArray[i].c_str(), ptextures[i].name);
 	}
 
 	// Save bone data
@@ -480,6 +489,9 @@ bool CMCDCompiler::CreateMCDFile( void )
 
 		Uint32 maxSize = sizeof(mcdbone_t::name);
 		qstrcpy_s(pdestbone->name, srcbone.name.c_str(), maxSize);
+		if(qstrlen(pdestbone->name) < srcbone.name.length())
+			WarningMsg("MCD bone name '%s' was truncated to '%s'!\n", srcbone.name.c_str(), pdestbone->name);
+
 		pdestbone->parentindex = srcbone.parentindex;
 		pdestbone->position = srcbone.position;
 		pdestbone->rotation = srcbone.rotation;

@@ -244,6 +244,7 @@
     <ClCompile Include="envblackhole.cpp" />
     <ClCompile Include="envblackandwhite.cpp" />
     <ClCompile Include="envchromatic.cpp" />
+    <ClCompile Include="envcredits.cpp" />
     <ClCompile Include="envcubemapobb.cpp" />
     <ClCompile Include="envdlighttrain.cpp" />
     <ClCompile Include="envearthquake.cpp" />
@@ -532,6 +533,7 @@
     <ClInclude Include="envblackhole.h" />
     <ClInclude Include="envblackandwhite.h" />
     <ClInclude Include="envchromatic.h" />
+    <ClInclude Include="envcredits.h" />
     <ClInclude Include="envdlighttrain.h" />
     <ClInclude Include="envearthquake.h" />
     <ClInclude Include="envelighttrain.h" />

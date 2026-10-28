@@ -291,7 +291,7 @@ void CEntityManager::Entity_EnvCable( const entitydata_t& entity )
 	{
 		windx = SDL_atof(pValue);
 		if(windx == -1)
-			windx = 0;
+			windx = Common::RandomFloat(4, 16);
 	}
 	else
 	{
@@ -306,7 +306,7 @@ void CEntityManager::Entity_EnvCable( const entitydata_t& entity )
 	{
 		windy = SDL_atof(pValue);
 		if(windy == -1)
-			windy = 0;
+			windy = Common::RandomFloat(4, 8);
 	}
 	else
 	{

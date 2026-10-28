@@ -1363,7 +1363,7 @@ bool CBasicVBMRenderer::DrawAttachments( void )
 
 		Vector worldOrigin;
 		for(Uint32 j = 0; j < 3; j++)
-			worldOrigin[j] = m_boneTransform[i].matrix[j][3];
+			worldOrigin[j] = m_boneTransform[pattachment->bone].matrix[j][3];
 
 		Vector attachmentOrigin;
 		Math::VectorTransform(pattachment->org, m_boneTransform[pattachment->bone].matrix, attachmentOrigin);

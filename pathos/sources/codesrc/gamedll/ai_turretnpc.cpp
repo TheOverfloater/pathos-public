@@ -784,6 +784,8 @@ void CTurretNPC::InitializeThink( void )
 		SetThink(&CTurretNPC::AutoSearchThink);
 		m_pState->nextthink = g_pGameVars->time + 0.1;
 	}
+
+	InitializeTurret();
 }
 
 //=============================================

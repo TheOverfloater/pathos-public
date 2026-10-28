@@ -55,7 +55,7 @@ bool CItemGlockSilencer::AddToPlayer( CBaseEntity* pPlayer )
 	CPlayerWeapon* pWeapon = pPlayer->GetWeaponList();
 	while(pWeapon)
 	{
-		if(pWeapon->GetId() == WEAPON_GLOCK && !pWeapon->HasSilencer())
+		if(pWeapon->GetId() == WEAPON_GLOCK && !pWeapon->HasAccessory(WPN_ACCESSORY_SILENCER))
 		{
 			// Play sound
 			Util::EmitEntitySound(pPlayer, "items/pickup_weapon.wav", SND_CHAN_VOICE);
@@ -66,7 +66,7 @@ bool CItemGlockSilencer::AddToPlayer( CBaseEntity* pPlayer )
 			gd_engfuncs.pfnUserMessageEnd();
 
 			// Set the flag to true
-			pWeapon->SetHasSilencer(true);
+			pWeapon->SetHasAccessory(WPN_ACCESSORY_SILENCER, true);
 			return true;
 		}
 

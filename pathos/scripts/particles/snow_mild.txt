@@ -9,10 +9,10 @@ $particlescript
 	$scale 0.600000
 	$scale_variation 0.400000
 	$max_particles -1
-	$particle_frequency 2000.000000
+	$particle_frequency 800.000000
 	$lighting use_intensity
 	$collision create_system
-	$gravity 0.050000
+	$gravity 0.015000
 	$create snow_ground.txt
 	$rendermode additive
 	$alpha 0.600000
@@ -20,8 +20,9 @@ $particlescript
 	$texture snowflake
 	$render_flags overbright
 	$min_light_value 0.400000
-	$wind_velocity_variance 110.000000
+	$wind_x_velocity 20.000000
+	$wind_y_velocity 15.000000
+	$wind_velocity_variance 15.000000
 	$wind_type sine
-	$wind_sine_variance_speed_multiplier 1.000000
-	$wind_sine_variance 0.300000
+	$wind_sine_variance_speed_multiplier 0.200000
 }

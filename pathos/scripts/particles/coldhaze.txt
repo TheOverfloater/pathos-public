@@ -1,6 +1,7 @@
 $particlescript
 {
 	$shape box
+	$flags reverse_farnear_fade
 	$system_size 16.000000
 	$fade_in_time 0.500000
 	$fade_out_delay 2.000000

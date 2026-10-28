@@ -1081,9 +1081,9 @@ namespace Math
 
 		Uint32 sides = 0;
 		if(dist1 >= pplane->dist)
-			sides = SIDE_FRONT;
+			sides = BP_SIDE_FRONT;
 		if(dist2 < pplane->dist)
-			sides |= SIDE_BACK;
+			sides |= BP_SIDE_BACK;
 
 		return sides;
 	}

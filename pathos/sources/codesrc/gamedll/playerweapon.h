@@ -53,6 +53,15 @@ struct ammoinfo_t
 	Uint32 id;
 };
 
+enum wpn_accessory_t
+{
+	WPN_ACCESSORY_SILENCER = 0,
+	WPN_ACCESSORY_FLASHLIGHT,
+
+	// MUST BE LAST
+	NB_WPN_ACCESSORIES
+};
+
 //=============================================
 //
 //=============================================
@@ -132,14 +141,10 @@ public:
 	virtual bool CanDeploy( void );
 	// Manages deployment of the entity
 	virtual bool Deploy( void ) = 0;
-	// Tells if the gun has a silencer
-	virtual bool HasSilencer( void ) { return false; }
-	// Sets whether the gun has a silencer
-	virtual void SetHasSilencer( bool hasSilencer ) { }
-	// Tells if the gun has a flashlight
-	virtual bool HasFlashlight( void ) { return false; }
-	// Sets whether the gun has a flashlight
-	virtual void SetHasFlashlight( bool hasFlashlight ) { }
+	// Tells if the gun has an accessory
+	virtual bool HasAccessory( wpn_accessory_t accessory ) { return false; }
+	// Sets whether the gun has an accessory
+	virtual void SetHasAccessory( wpn_accessory_t accessory, bool hasAccessory ) { }
 	// Tells if the weapon can holster
 	virtual bool CanHolster( void ) { return true; }
 	// Retires the weapon
@@ -150,6 +155,10 @@ public:
 	virtual void FlagDrop( void ) { m_dropWeapon = true; }
 	// Returns weapon's next think time
 	virtual Double GetWeaponNextThinkTime( void ) const { return m_nextThinkTime; }
+	// Tries to add accessories from pWeapon
+	virtual void AddAccessories( CPlayerWeapon* pWeapon ) override { };
+
+public:
 	// Tells if the entity is a weapon
 	virtual bool IsWeapon( void ) const override { return true; }
 	// Set default ammo value

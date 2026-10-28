@@ -1202,10 +1202,10 @@ void TR_BoxLeafNumsRecursive( const mnode_t* pstartnode, const Vector& mins, con
 			Int32 side = Math::BoxOnPlaneSide(mins, maxs, pplane);
 			switch(side)
 			{
-			case SIDE_FRONT:
+			case BP_SIDE_FRONT:
 				pnode = pnode->pchildren[0];
 				break;
-			case SIDE_BACK:
+			case BP_SIDE_BACK:
 				pnode = pnode->pchildren[1];
 				break;
 			default:

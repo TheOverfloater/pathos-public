@@ -5,7 +5,7 @@ $particlescript
 	$playerplane_max_height 700.000000
 	$fade_in_time 0.500000
 	$lifetime -1.000000
-	$flags random_direction
+	$flags random_direction reverse_farnear_fade
 	$primary_color 10 10 10
 	$scale 70.000000
 	$scale_variation 10.000000
@@ -15,7 +15,7 @@ $particlescript
 	$particles_on_spawn 20
 	$collision stuck
 	$gravity 0.010000
-	$rendermode alphablend
+	$rendermode additive
 	$alpha 0.100000
 	$alignment tiled
 	$texture clouds

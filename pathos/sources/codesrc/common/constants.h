@@ -205,6 +205,8 @@ static const Char MUZZLE_PARTICLE_SMOKE[] = "engine_muzzle_smoke.txt";
 
 // Debris sound file path
 static const Char DEBRIS_SOUND_BASE_DIR[] = "debris";
+// Blank submodel name
+static const Char BLANK_SUBMODEL_NAME[] = "blank";
 
 // Default FOV cvar name
 const Char DEFAULT_FOV_CVAR_NAME[] = "default_fov";
@@ -297,10 +299,10 @@ static constexpr Uint32 NULL_LIGHTSTYLE_INDEX = 255;
 // Results from BoxOnPlaneSide
 enum box_planeside_t
 {
-	SIDE_NONE	= 0,
-	SIDE_FRONT	= (1<<0),
-	SIDE_BACK	= (1<<1),
-	SIDE_BOTH	= (SIDE_FRONT | SIDE_BACK)
+	BP_SIDE_NONE	= 0,
+	BP_SIDE_FRONT	= (1<<0),
+	BP_SIDE_BACK	= (1<<1),
+	BP_SIDE_BOTH	= (BP_SIDE_FRONT | BP_SIDE_BACK)
 };
 
 // For legacy support
@@ -855,6 +857,7 @@ enum tempentitytypes_t
 	TE_TEMPSPRITE,
 	TE_PARTICLEEXPLOSION1,
 	TE_PARTICLEEXPLOSION2,
+	TE_PARTICLEEXPLOSION3,
 	TE_BLOBEXPLOSION,
 	TE_ROCKETEXPLOSION,
 	TE_PARTICLEEFFECT,
@@ -867,7 +870,10 @@ enum tempentitytypes_t
 	TE_LARGEFUNNEL,
 	TE_BLOODSTREAM,
 	TE_BLOODPARTICLES,
-	TE_TRACERIMPLOSION
+	TE_TRACERIMPLOSION,
+	TE_FLICKERPARTICLES,
+	TE_BULLETIMPACTPARTICLES,
+	TE_PARTICLEBURST
 };
 
 enum trailtype_t

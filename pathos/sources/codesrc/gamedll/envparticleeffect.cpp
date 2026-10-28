@@ -28,6 +28,8 @@ CEnvParticleEffect::CEnvParticleEffect( edict_t* pedict ):
 	m_endColor(0),
 	m_particleCount(0),
 	m_trailType(0),
+	m_size(0),
+	m_life(0),
 	m_minRepeatDelay(0),
 	m_maxRepeatDelay(0),
 	m_isActive(false)
@@ -138,6 +140,8 @@ void CEnvParticleEffect::DeclareSaveFields( void )
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_endColor, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_particleCount, EFIELD_INT32));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_trailType, EFIELD_INT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_size, EFIELD_UINT32));
+	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_life, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_minRepeatDelay, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_maxRepeatDelay, EFIELD_FLOAT));
 	DeclareSaveField(DEFINE_DATA_FIELD(CEnvParticleEffect, m_isActive, EFIELD_BOOLEAN));
@@ -184,8 +188,31 @@ bool CEnvParticleEffect::KeyValue( const keyvalue_t& kv )
 		m_maxRepeatDelay = SDL_atof(kv.value);
 		return true;
 	}
+	else if(!qstrcmp(kv.keyname, "size"))
+	{
+		m_size = SDL_atoi(kv.value);
+		return true;
+	}
+	else if(!qstrcmp(kv.keyname, "life"))
+	{
+		m_life = SDL_atof(kv.value);
+		return true;
+	}
 	else 
 		return CPointEntity::KeyValue(kv);
+}
+
+//=============================================
+// @brief
+//
+//=============================================
+bool CEnvParticleEffect::ShouldOverrideKeyValue( const Char* pstrKeyValue )
+{
+	// We need special handling for "size"
+	if(!qstrcmp(pstrKeyValue, "size"))
+		return true;
+	else
+		return false;
 }
 
 //=============================================
@@ -334,6 +361,30 @@ void CEnvParticleEffect::CreateEffect( void )
 
 			Util::CreateBloodParticles(m_pState->origin, forward, clamp(m_startColor, 0, 255), m_pState->speed);
 		}
+		break;
+	case EFFECT_PARTICLEEXPLOSION3:
+		{
+			Util::CreateParticleExplosion3(m_pState->origin);
+		};
+		break;
+	case EFFECT_FLICKERPARTICLES:
+		{
+			Vector forward;
+			Math::AngleVectors(m_pState->angles, &forward);
+			Util::CreateFlickerParticles(m_pState->origin, forward);
+		};
+		break;
+	case EFFECT_BULLETIMPACTPARTICLES:
+		{
+			Vector forward;
+			Math::AngleVectors(m_pState->angles, &forward);
+			Util::CreateBulletImpactParticles(m_pState->origin, forward);
+		};
+		break;
+	case EFFECT_PARTICLEBURST:
+		{
+			Util::CreateParticleBurst(m_pState->origin, m_size, m_startColor, m_life);
+		};
 		break;
 	}
 }

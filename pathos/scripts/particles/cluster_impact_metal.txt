@@ -1,6 +1,5 @@
 $clusterscript
 {
 	$script impact_metal_core.txt
-	$script impact_metal_sparks.txt
 	$script impact_metal_cloud.txt
 }

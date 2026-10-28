@@ -57,23 +57,25 @@ const Uint32 CWeaponGlock::WEAPON_MAX_CLIP = 17;
 // Weapon cone id
 const Uint32 CWeaponGlock::WEAPON_CONE_ID = 1;
 
-// w_ model groups
-const Uint32 CWeaponGlock::WGLOCK_SL_GROUP_INDEX = 1;
-const Uint32 CWeaponGlock::WGLOCK_SL_OFF = 0;
-const Uint32 CWeaponGlock::WGLOCK_SL_ON = 1;
+// Bodygroup name for flashlight on world model
+const Char CWeaponGlock::WORLDMODEL_FLASHLIGHT_GRP_NAME[] = "flashlight";
+// Submodel name for flashlight on world model
+const Char CWeaponGlock::WORLDMODEL_FLASHLIGHT_SUBMODEL_NAME[] = "glock_flashlight_reference";
 
-const Uint32 CWeaponGlock::WGLOCK_FL_GROUP_INDEX = 2;
-const Uint32 CWeaponGlock::WGLOCK_FL_OFF = 0;
-const Uint32 CWeaponGlock::WGLOCK_FL_ON = 1;
+// Bodygroup name for silencer on world model
+const Char CWeaponGlock::WORLDMODEL_SILENCER_GRP_NAME[] = "silencer";
+// Submodel name for silencer on world model
+const Char CWeaponGlock::WORLDMODEL_SILENCER_SUBMODEL_NAME[] = "glock_silencer_reference";
 
-// v_ model groups
-const Uint32 CWeaponGlock::VGLOCK_SL_GROUP_INDEX = 2;
-const Uint32 CWeaponGlock::VGLOCK_SL_OFF = 0;
-const Uint32 CWeaponGlock::VGLOCK_SL_ON = 1;
+// Bodygroup name for flashlight on view model
+const Char CWeaponGlock::VIEWMODEL_FLASHLIGHT_GRP_NAME[] = "flashlight";
+// Submodel name for flashlight on view model
+const Char CWeaponGlock::VIEWMODEL_FLASHLIGHT_SUBMODEL_NAME[] = "glock_flashlight_reference";
 
-const Uint32 CWeaponGlock::VGLOCK_FL_GROUP_INDEX = 1;
-const Uint32 CWeaponGlock::VGLOCK_FL_OFF = 0;
-const Uint32 CWeaponGlock::VGLOCK_FL_ON = 1;
+// Bodygroup name for silencer on view model
+const Char CWeaponGlock::VIEWMODEL_SILENCER_GRP_NAME[] = "silencer";
+// Submodel name for silencer on view model
+const Char CWeaponGlock::VIEWMODEL_SILENCER_SUBMODEL_NAME[] = "glock_silencer_reference";
 
 // Recoil degrade speed
 const Float CWeaponGlock::WEAPON_RECOIL_DEGRADE = 0.8;
@@ -120,11 +122,9 @@ void CWeaponGlock::SetSpawnProperties( void )
 {
 	SetBodyGroup(WMODEL_BODY_BASE, WMODEL_GLOCK);
 
-	// Set silencer submodel
-	SetBodyGroup(WGLOCK_SL_GROUP_INDEX, m_isSilenced ? WGLOCK_SL_ON : WGLOCK_SL_OFF);
-
-	// Set flashlight submodel
-	SetBodyGroup(WGLOCK_FL_GROUP_INDEX, m_isFlashlightEquipped ? WGLOCK_FL_ON : WGLOCK_FL_OFF);
+	// Set bodyparts
+	SetBodyPart(BODYPART_SILENCER, true, m_isSilenced);
+	SetBodyPart(BODYPART_FLASHLIGHT, true, m_isFlashlightEquipped);
 
 	m_defaultAmmo = WEAPON_DEFAULT_GIVE;
 	m_weaponId = WEAPON_GLOCK;
@@ -230,8 +230,9 @@ bool CWeaponGlock::Deploy( void )
 	if(!SetModel(WEAPON_VIEWMODEL, false))
 		return false;
 
-	SetViewModelBodyGroup(VGLOCK_FL_GROUP_INDEX, m_isFlashlightEquipped ? VGLOCK_FL_ON : VGLOCK_FL_OFF);
-	SetViewModelBodyGroup(VGLOCK_SL_GROUP_INDEX, m_isSilenced ? VGLOCK_SL_ON : VGLOCK_SL_OFF);
+	// Set bodyparts
+	SetBodyPart(BODYPART_SILENCER, false, m_isSilenced);
+	SetBodyPart(BODYPART_FLASHLIGHT, false, m_isFlashlightEquipped);
 
 	// Call to play animation
 	return DefaultDeploy(WEAPON_VIEWMODEL, m_sequenceNames[animationIndex]);
@@ -482,7 +483,8 @@ void CWeaponGlock::PostThink( void )
 {
 	if(m_silencerTime && m_silencerTime <= g_pGameVars->time)
 	{
-		SetViewModelBodyGroup(VGLOCK_SL_GROUP_INDEX, m_isSilenced ? VGLOCK_SL_ON : VGLOCK_SL_OFF);
+		SetBodyPart(BODYPART_SILENCER, false, m_isSilenced);
+
 		m_silencerTime = 0;
 
 		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.viewmodel, nullptr, m_pPlayer->GetEdict());
@@ -496,7 +498,7 @@ void CWeaponGlock::PostThink( void )
 		Uint32 animationIndex = (m_clip == 0) ? GLOCK_ADD_FLASHLIGHT_EMPTY : GLOCK_ADD_FLASHLIGHT;
 		m_isFlashlightEquipped = true;
 
-		SetViewModelBodyGroup(VGLOCK_FL_GROUP_INDEX, VGLOCK_FL_ON);
+		SetBodyPart(BODYPART_FLASHLIGHT, false, true);
 		SetWeaponAnimation(m_sequenceNames[animationIndex], NO_BODY_VALUE, NO_SKIN_VALUE, false);
 
 		m_reloadDisabledTime = m_nextAttackTime = g_pGameVars->time + GetSequenceTime(m_sequenceNames[animationIndex]);
@@ -557,7 +559,7 @@ bool CWeaponGlock::CanResetAttackTime( void )
 //=============================================
 bool CWeaponGlock::AddDuplicate( CPlayerWeapon* poriginal )
 {
-	if(m_hasSilencer && !poriginal->HasSilencer())
+	if(m_hasSilencer && !poriginal->HasAccessory(WPN_ACCESSORY_SILENCER))
 	{
 		CBaseEntity* pOriginalPlayer = poriginal->GetPlayer();
 		if(pOriginalPlayer)
@@ -569,10 +571,10 @@ bool CWeaponGlock::AddDuplicate( CPlayerWeapon* poriginal )
 			Util::EmitEntitySound(pOriginalPlayer, "items/pickup_weapon.wav", SND_CHAN_VOICE);
 		}
 
-		poriginal->SetHasSilencer(true);
+		poriginal->SetHasAccessory(WPN_ACCESSORY_SILENCER, true);
 	}
 
-	if(m_hasFlashlight && !poriginal->HasFlashlight())
+	if(m_hasFlashlight && !poriginal->HasAccessory(WPN_ACCESSORY_FLASHLIGHT))
 	{
 		CBaseEntity* pOriginalPlayer = poriginal->GetPlayer();
 		if(pOriginalPlayer)
@@ -584,7 +586,7 @@ bool CWeaponGlock::AddDuplicate( CPlayerWeapon* poriginal )
 			Util::EmitEntitySound(pOriginalPlayer, "items/pickup_weapon.wav", SND_CHAN_VOICE);
 		}
 
-		poriginal->SetHasFlashlight(true);
+		poriginal->SetHasAccessory(WPN_ACCESSORY_FLASHLIGHT, true);
 	}
 
 	return CPlayerWeapon::AddDuplicate(poriginal);
@@ -594,36 +596,34 @@ bool CWeaponGlock::AddDuplicate( CPlayerWeapon* poriginal )
 // @brief
 //
 //=============================================
-bool CWeaponGlock::HasSilencer( void )
+bool CWeaponGlock::HasAccessory( wpn_accessory_t accessory )
 {
-	return m_hasSilencer;
+	switch(accessory)
+	{
+	case WPN_ACCESSORY_SILENCER:
+		return m_hasSilencer;
+	case WPN_ACCESSORY_FLASHLIGHT:
+		return m_hasFlashlight;
+	default:
+		return false;
+	}
 }
 
 //=============================================
 // @brief
 //
 //=============================================
-void CWeaponGlock::SetHasSilencer( bool hasSilencer )
+void CWeaponGlock::SetHasAccessory( wpn_accessory_t accessory, bool hasAccessory )
 {
-	m_hasSilencer = hasSilencer;
-}
-
-//=============================================
-// @brief
-//
-//=============================================
-bool CWeaponGlock::HasFlashlight( void )
-{
-	return m_hasFlashlight;
-}
-
-//=============================================
-// @brief
-//
-//=============================================
-void CWeaponGlock::SetHasFlashlight( bool hasFlashlight )
-{
-	m_hasFlashlight = hasFlashlight;
+	switch(accessory)
+	{
+	case WPN_ACCESSORY_SILENCER:
+		m_hasSilencer = hasAccessory;
+		break;
+	case WPN_ACCESSORY_FLASHLIGHT:
+		m_hasFlashlight = hasAccessory;
+		break;
+	}
 }
 
 //=============================================
@@ -632,10 +632,10 @@ void CWeaponGlock::SetHasFlashlight( bool hasFlashlight )
 //=============================================
 void CWeaponGlock::AddAccessories( CPlayerWeapon* pWeapon )
 {
-	if(pWeapon->HasSilencer() && !HasSilencer())
+	if(pWeapon->HasAccessory(WPN_ACCESSORY_SILENCER) && !HasAccessory(WPN_ACCESSORY_SILENCER))
 	{
-		pWeapon->SetHasSilencer(false);
-		pWeapon->SetBodyGroup(WGLOCK_SL_GROUP_INDEX, m_isSilenced ? WGLOCK_SL_ON : WGLOCK_SL_OFF);
+		pWeapon->SetHasAccessory(WPN_ACCESSORY_SILENCER, false);
+		SetBodyPart(BODYPART_SILENCER, false, m_isSilenced);
 		m_hasSilencer = true;
 
 		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.huditempickup, nullptr, m_pPlayer->GetEdict());
@@ -645,10 +645,10 @@ void CWeaponGlock::AddAccessories( CPlayerWeapon* pWeapon )
 		Util::EmitEntitySound(m_pPlayer, "items/pickup_weapon.wav", SND_CHAN_VOICE);
 	}
 
-	if(pWeapon->HasFlashlight() && !HasFlashlight())
+	if(pWeapon->HasAccessory(WPN_ACCESSORY_FLASHLIGHT) && !HasAccessory(WPN_ACCESSORY_FLASHLIGHT))
 	{
-		pWeapon->SetHasFlashlight(false);
-		pWeapon->SetBodyGroup(WGLOCK_FL_GROUP_INDEX, m_isSilenced ? WGLOCK_FL_ON : WGLOCK_FL_OFF);
+		pWeapon->SetHasAccessory(WPN_ACCESSORY_FLASHLIGHT, false);
+		SetBodyPart(BODYPART_FLASHLIGHT, false, true);
 		m_hasFlashlight = true;
 
 		gd_engfuncs.pfnUserMessageBegin(MSG_ONE, g_usermsgs.huditempickup, nullptr, m_pPlayer->GetEdict());
@@ -656,5 +656,61 @@ void CWeaponGlock::AddAccessories( CPlayerWeapon* pWeapon )
 		gd_engfuncs.pfnUserMessageEnd();
 
 		Util::EmitEntitySound(m_pPlayer, "items/pickup_weapon.wav", SND_CHAN_VOICE);
+	}
+}
+//=============================================
+// @brief
+//
+//=============================================
+void CWeaponGlock::SetBodyPart( weapon_bodypart_t bodypart, bool isworldmodel, bool isenabled )
+{
+	switch(bodypart)
+	{
+		default:
+		case BODYPART_SILENCER:
+		{
+			// Get silencer submodel data
+			Int32 silencerGroupIndex = GetBodyGroupIndexByName(isworldmodel ? WORLDMODEL_SILENCER_GRP_NAME : VIEWMODEL_SILENCER_GRP_NAME);
+			Int32 silencerSubmodelIndex = NO_POSITION;
+			Int32 noSilencerSubmodelIndex = NO_POSITION;
+
+			if(silencerGroupIndex != NO_POSITION)
+			{
+				silencerSubmodelIndex = GetSubmodelIndexByName(silencerGroupIndex, isworldmodel ? WORLDMODEL_SILENCER_SUBMODEL_NAME : VIEWMODEL_SILENCER_SUBMODEL_NAME);
+				noSilencerSubmodelIndex = GetSubmodelIndexByName(silencerGroupIndex, BLANK_SUBMODEL_NAME);
+			}
+
+			if(silencerGroupIndex != NO_POSITION && silencerSubmodelIndex != NO_POSITION && noSilencerSubmodelIndex != NO_POSITION)
+			{
+				if(isworldmodel)
+					SetBodyGroup(silencerGroupIndex, isenabled ? silencerSubmodelIndex : noSilencerSubmodelIndex);
+				else
+					SetViewModelBodyGroup(silencerGroupIndex, isenabled ? silencerSubmodelIndex : noSilencerSubmodelIndex);
+			}
+		}
+		break;
+		case BODYPART_FLASHLIGHT:
+		{
+			// Get flashlight submodel data
+			Int32 flashlightGroupIndex = GetBodyGroupIndexByName(isworldmodel ? WORLDMODEL_FLASHLIGHT_GRP_NAME : VIEWMODEL_FLASHLIGHT_GRP_NAME);
+			Int32 flashlightSubmodelIndex = NO_POSITION;
+			Int32 noFlashlightSubmodelIndex = NO_POSITION;
+
+			if(flashlightGroupIndex != NO_POSITION)
+			{
+				flashlightSubmodelIndex = GetSubmodelIndexByName(flashlightGroupIndex, isworldmodel ? WORLDMODEL_FLASHLIGHT_SUBMODEL_NAME : VIEWMODEL_FLASHLIGHT_SUBMODEL_NAME);
+				noFlashlightSubmodelIndex = GetSubmodelIndexByName(flashlightGroupIndex, BLANK_SUBMODEL_NAME);
+			}
+
+			// Set flashlight submodel
+			if(flashlightGroupIndex != NO_POSITION && noFlashlightSubmodelIndex != NO_POSITION && flashlightSubmodelIndex != NO_POSITION)
+			{
+				if(isworldmodel)
+					SetBodyGroup(flashlightGroupIndex, isenabled ? flashlightSubmodelIndex : noFlashlightSubmodelIndex);
+				else
+					SetViewModelBodyGroup(flashlightGroupIndex, isenabled ? flashlightSubmodelIndex : noFlashlightSubmodelIndex);
+			}
+		}
+		break;
 	}
 }

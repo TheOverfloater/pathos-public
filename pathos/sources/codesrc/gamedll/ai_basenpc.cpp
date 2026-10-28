@@ -1983,6 +1983,7 @@ void CBaseNPC::StartNPC( void )
 			else
 				m_movementActivity = ACT_WALK;
 
+			m_movementGoal = MOVE_GOAL_PATH_CORNER;
 			if(!RefreshRoute())
 				Util::EntityConPrintf(m_pEdict, "Couldn't refresh route to reach target '%s'.\n", pstrTarget);
 
@@ -4078,7 +4079,7 @@ bool CBaseNPC::RefreshRoute( void )
 				CBaseEntity* pPath = m_goalEntity;
 
 				Uint32 numpoints = 0;
-				while(true)
+				while(pPath)
 				{
 					route_point_t& pt = m_routePointsArray[numpoints];
 					numpoints++;
@@ -4086,6 +4087,8 @@ bool CBaseNPC::RefreshRoute( void )
 					pt.type = MF_TO_PATH_CORNER;
 					pt.position = pPath->GetOrigin();
 					pt.nodeindex = NO_POSITION;
+
+					pPath = pPath->GetNextTarget();
 				}
 			}
 

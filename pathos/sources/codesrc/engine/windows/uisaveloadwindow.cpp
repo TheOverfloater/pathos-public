@@ -787,6 +787,10 @@ void CUISaveLoadWindow::DeleteSave( const Char* pstrSavePath )
 		return;
 	}
 
+	// Avoid crash if menu is pointing at this save
+	if(m_saveFilesArray.size() == 1)
+		gMenu.ResetMenuBackground();
+
 	// Force a re-check
 	m_bRecheckSaves = true;
 }

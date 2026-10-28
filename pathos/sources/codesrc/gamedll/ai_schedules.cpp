@@ -2485,6 +2485,46 @@ bool CBaseNPC::IsScheduleValid( void )
 				conditionName << "AI_COND_RESERVED4";
 			}
 
+			if(bitsPresentOfMask.test(AI_COND_NOT_ONGROUND))
+			{
+				if(!first)
+					conditionName << ", ";
+				else
+					first = false;
+
+				conditionName << "AI_COND_NOT_ONGROUND";
+			}
+
+			if(bitsPresentOfMask.test(AI_COND_CAN_SPECIAL_ATTACK1))
+			{
+				if(!first)
+					conditionName << ", ";
+				else
+					first = false;
+
+				conditionName << "AI_COND_CAN_SPECIAL_ATTACK1";
+			}
+
+			if(bitsPresentOfMask.test(AI_COND_CAN_SPECIAL_ATTACK2))
+			{
+				if(!first)
+					conditionName << ", ";
+				else
+					first = false;
+
+				conditionName << "AI_COND_CAN_SPECIAL_ATTACK2";
+			}
+
+			if(bitsPresentOfMask.test(AI_COND_SEE_HOSTILE_NPC))
+			{
+				if(!first)
+					conditionName << ", ";
+				else
+					first = false;
+
+				conditionName << "AI_COND_SEE_HOSTILE_NPC";
+			}
+
 			if(conditionName.empty())
 				conditionName = "Unknown condition";
 
@@ -2974,6 +3014,46 @@ bool CBaseNPC::IsScheduleValid( void )
 				first = false;
 
 			conditionName << "AI_COND_RESERVED4";
+		}
+
+		if(missingBitsOfMask.test(AI_COND_NOT_ONGROUND))
+		{
+			if(!first)
+				conditionName << ", ";
+			else
+				first = false;
+
+			conditionName << "AI_COND_NOT_ONGROUND";
+		}
+
+		if(missingBitsOfMask.test(AI_COND_CAN_SPECIAL_ATTACK1))
+		{
+			if(!first)
+				conditionName << ", ";
+			else
+				first = false;
+
+			conditionName << "AI_COND_CAN_SPECIAL_ATTACK1";
+		}
+
+		if(missingBitsOfMask.test(AI_COND_CAN_SPECIAL_ATTACK2))
+		{
+			if(!first)
+				conditionName << ", ";
+			else
+				first = false;
+
+			conditionName << "AI_COND_CAN_SPECIAL_ATTACK2";
+		}
+
+		if(missingBitsOfMask.test(AI_COND_SEE_HOSTILE_NPC))
+		{
+			if(!first)
+				conditionName << ", ";
+			else
+				first = false;
+
+			conditionName << "AI_COND_SEE_HOSTILE_NPC";
 		}
 
 		if(conditionName.empty())

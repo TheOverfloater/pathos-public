@@ -22,8 +22,8 @@ static const Char NPC_TRG42_FIRING_SOUND[] = "weapons/trg42_fire.wav";
 static const Char NPC_SIG552_FIRING_SOUND[] = "weapons/sig552_fire1.wav";
 // M249 firing sound
 static const Char NPC_M249_FIRING_SOUND[] = "weapons/m249_fire1.wav";
-// Shotgun firing sound
-static const Char NPC_SHOTGUN_FIRING_SOUND[] = "weapons/spas12_fire_single.wav";
+// SPAS12 firing sound
+static const Char NPC_SPAS12_FIRING_SOUND[] = "weapons/spas12_fire_single.wav";
 // UZI firing sound
 static const Char NPC_UZI_FIRING_SOUND[] = "weapons/uzi_fire.wav";
 // Jericho firing sound

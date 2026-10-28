@@ -159,6 +159,8 @@ public:
 private:
 	// Currently rendered beam
 	beam_t* m_pCurrentBeam;
+	// Current sprite model used
+	const struct mspriteframe_t* m_pCurrentSpriteFrame;
 
 	// Free particles list header
 	beam_t* m_pFreeBeamHeader;

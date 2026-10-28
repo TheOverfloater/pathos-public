@@ -53,7 +53,7 @@ public:
 	// Creates an implosion effect
 	void CreateImplosionEffect( const Vector& destination, Float radius, Uint32 count, Float life, const Vector& color, Float alpha, Float width, Float length, bool reverse );
 	// Creates a spark streak effect
-	void CreateSparkStreak( const Vector& origin, Uint32 count, const Vector& color, Float alpha, Float width, Float length, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity );
+	void CreateSparkStreak( const Vector& origin, const Vector& direction, Uint32 count, const Vector& color, Float alpha, Float width, Float length, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity );
 	// Creates a streak splash effect
 	void CreateStreakSplash( const Vector& origin, const Vector& direction, const Vector& color, Float alpha, Float width, Float length, Uint32 count, Float speed, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity );
 

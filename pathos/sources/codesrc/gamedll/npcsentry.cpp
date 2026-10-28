@@ -69,7 +69,7 @@ bool CNPCSentry::Spawn( void )
 	m_deployHeight = NPC_DEPLOYED_HEIGHT;
 	m_minPitch = NPC_MIN_PITCH_VALUE;
 
-	Vector mins(-NPC_X_SIZE, -NPC_Y_SIZE, -m_retractHeight);
+	Vector mins(-NPC_X_SIZE, -NPC_Y_SIZE, 0);
 	Vector maxs(NPC_X_SIZE, NPC_Y_SIZE, m_retractHeight);
 	gd_engfuncs.pfnSetMinsMaxs(m_pEdict, mins, maxs);
 

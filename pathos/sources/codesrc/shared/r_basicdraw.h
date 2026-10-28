@@ -129,6 +129,8 @@ public:
 	// Sets the color multiplier value
 	void SetColorMultiplier( Float multiplier );
 
+	// Return the cache size
+	Uint32 GetCacheSize( void ) const { return m_vertexesArray.size(); }
 	// Returns the shader's error message
 	const Char* GetShaderError( void ) const;
 	// Tells if the shader has an error

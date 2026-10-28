@@ -479,6 +479,11 @@ void FormatKeyValue( const Char* pstrKeyValueName, Char* pstrValue, Uint32 maxLe
 			// Rename "func_monsterclip" to "func_npcclip"
 			qstrcpy(pstrValue, "func_npcclip");
 		}
+		else if(!qstrcmp(pstrValue, "ambient_fmodstream"))
+		{
+			// Rename "ambient_fmodstream" to "ambient_oggstream"
+			qstrcpy(pstrValue, "ambient_oggstream");
+		}
 	}
 }
 

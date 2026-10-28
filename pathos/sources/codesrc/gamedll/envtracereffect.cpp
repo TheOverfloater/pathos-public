@@ -366,7 +366,8 @@ void CEnvTracerEffect::CreateEffect( void )
 		break;
 	case EFFECT_SPARKSTREAK:
 		{
-			Util::CreateSparkStreak(m_pState->origin, m_tracerCount, m_pState->rendercolor, m_pState->renderamt, m_tracerWidth, m_tracerLength, m_minLifetime, m_maxLifetime, m_minVelocity, m_maxVelocity);
+			Vector forward = GetDirection(nullptr);
+			Util::CreateSparkStreak(m_pState->origin, forward, m_tracerCount, m_pState->rendercolor, m_pState->renderamt, m_tracerWidth, m_tracerLength, m_minLifetime, m_maxLifetime, m_minVelocity, m_maxVelocity);
 		}
 		break;
 	case EFFECT_STREAKSPLASH:

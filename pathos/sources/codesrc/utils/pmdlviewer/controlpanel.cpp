@@ -1220,13 +1220,28 @@ int CControlPanel::handleEvent( mxEvent *pEvent )
 		break;
 	case IDC_COMPILER_COMPILE_BUTTON:
 		{
-			CompileQC();
+			Int32 returnCode = CompileQC();
+			if(returnCode != 0)
+			{
+				CString errorMsg;
+				errorMsg << "Compiler failed with an error code of " << returnCode;
+				mxMessageBox(this, errorMsg.c_str(), CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+			}
 		}
 		break;
 	case IDC_COMPILER_COMPILE_AND_COPY:
 		{
-			CompileQC();
-			CopyFiles();
+			Int32 returnCode = CompileQC();
+			if(returnCode != 0)
+			{
+				CString errorMsg;
+				errorMsg << "Compiler failed with an error code of " << returnCode;
+				mxMessageBox(this, errorMsg.c_str(), CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
+			}
+			else
+			{
+				CopyFiles();
+			}
 		}
 		break;
 	case IDC_COMPILER_VIEW_LOG_BUTTON:
@@ -2554,13 +2569,13 @@ void CControlPanel::ViewLog( void )
 // @brief Compiles a QC file
 //
 //=============================================
-void CControlPanel::CompileQC( void )
+Int32 CControlPanel::CompileQC( void )
 {
 	const Char *pstrCompilerPath = gConfig.GetOptionValue(COptionsWindow::OW_COMPILER_PATH);
 	if(!pstrCompilerPath)
 	{
 		mxMessageBox(this, "Compiler not specified.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
-		return;
+		return -1;
 	}
 
 	// Get the QC we want to compile
@@ -2568,7 +2583,7 @@ void CControlPanel::CompileQC( void )
 	if(qcIndex < 0 || qcIndex >= MAX_COMPILER_HISTORY || qcIndex >= m_qcFileHistoryArray.size())
 	{
 		mxMessageBox(this, "QC index was invalid.", CMDLViewer::VIEWER_APP_TITLE, MX_MB_OK | MX_MB_ERROR);
-		return;
+		return -1;
 	}
 
 	// Retrieve the QC path
@@ -2601,7 +2616,8 @@ void CControlPanel::CompileQC( void )
 
 	// Add final arg, the QC path
 	cmd << " \"" << qcPath << "\"";
-	system(cmd.c_str());
+	Int32 code = system(cmd.c_str());
+	return code;
 }
 
 //=============================================

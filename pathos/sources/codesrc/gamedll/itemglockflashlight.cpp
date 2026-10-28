@@ -55,7 +55,7 @@ bool CItemGlockFlashlight::AddToPlayer( CBaseEntity* pPlayer )
 	CPlayerWeapon* pWeapon = pPlayer->GetWeaponList();
 	while(pWeapon)
 	{
-		if(pWeapon->GetId() == WEAPON_GLOCK && !pWeapon->HasFlashlight())
+		if(pWeapon->GetId() == WEAPON_GLOCK && !pWeapon->HasAccessory(WPN_ACCESSORY_FLASHLIGHT))
 		{
 			// Play sound
 			Util::EmitEntitySound(pPlayer, "items/pickup_weapon.wav", SND_CHAN_VOICE);
@@ -66,7 +66,7 @@ bool CItemGlockFlashlight::AddToPlayer( CBaseEntity* pPlayer )
 			gd_engfuncs.pfnUserMessageEnd();
 
 			// Set the flag to true
-			pWeapon->SetHasFlashlight(true);
+			pWeapon->SetHasAccessory(WPN_ACCESSORY_FLASHLIGHT, true);
 			return true;
 		}
 

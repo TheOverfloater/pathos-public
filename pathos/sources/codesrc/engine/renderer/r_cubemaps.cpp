@@ -537,6 +537,10 @@ void CCubemapManager::BuildEntityList( cl_entity_t** pRenderEntities, Uint32 *pN
 			&& strcmp(pkeyvalue, "env_model"))
 			continue;
 
+		// If parented, do not bother
+		if(ValueForKey(pEntities[i], "parent") != nullptr)
+			continue;
+
 		// Grab model
 		pkeyvalue = ValueForKey(pEntities[i], "model");
 		if (!pkeyvalue)

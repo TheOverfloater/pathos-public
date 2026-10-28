@@ -537,7 +537,7 @@ Int32 VBM_GetSubmodelIndexByName( const cache_model_t* pmodel, Int32 bodyGroupIn
 	{
 		const vbmsubmodel_t* psubmodel = pbodypart->getSubmodel(pvbmheader, i);
 		if(!qstrcmp(psubmodel->name, submodelName)
-			|| !qstrcmp(pstrSubmodelName, "blank") && !qstrlen(psubmodel->name))
+			|| !qstrcicmp(pstrSubmodelName, "blank") && !qstrlen(psubmodel->name))
 			return i;
 	}
 

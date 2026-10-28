@@ -1223,6 +1223,19 @@ namespace Util
 			if(!pdefinition->particlescript.empty())
 				Util::CreateParticles(pdefinition->particlescript.c_str(), tr.endpos, tr.plane.normal, pdefinition->scripttype); 
 
+			// Create tracer effect
+			if(!pdefinition->streaksplashes.empty())
+			{
+				for(Uint32 i = 0; i < pdefinition->streaksplashes.size(); i++)
+				{
+					const CMaterialDefinitions::streaksplashparams_t params = pdefinition->streaksplashes[i];
+					if(params.count <= 0)
+						continue;
+
+					Util::CreateStreakSplash(tr.endpos, tr.plane.normal, params.color, params.alpha, params.width, params.length, params.count, params.speed, params.minlife, params.maxlife, params.minvelocity, params.maxvelocity);
+				}
+			}
+
 			// Make a water splash
 			if(gd_tracefuncs.pfnPointContents(tr.endpos, nullptr, false) == CONTENTS_WATER)
 			{
@@ -1596,6 +1609,18 @@ namespace Util
 	//=============================================
 	//
 	//=============================================
+	void CreateParticleExplosion3( const Vector& origin )
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
+			gd_engfuncs.pfnMsgWriteByte(TE_PARTICLEEXPLOSION3);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	//=============================================
+	//
+	//=============================================
 	void CreateBlobExplosion( const Vector& origin )
 	{
 		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
@@ -1675,12 +1700,14 @@ namespace Util
 	//=============================================
 	//
 	//=============================================
-	void CreateSparkStreak( const Vector& origin, Uint32 count, const Vector& color, Float alpha, Float width, Float length, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity )
+	void CreateSparkStreak( const Vector& origin, const Vector& direction, Uint32 count, const Vector& color, Float alpha, Float width, Float length, Float minLifetime, Float maxLifetime, Float minVelocity, Float maxVelocity )
 	{
 		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
 			gd_engfuncs.pfnMsgWriteByte(TE_SPARKSTREAK);
 			for(Uint32 i = 0; i < 3; i++)
 				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(direction[i]);
 			gd_engfuncs.pfnMsgWriteUint16(count);
 			for(Uint32 i = 0; i < 3; i++)
 				gd_engfuncs.pfnMsgWriteByte(color[i]);
@@ -1714,8 +1741,8 @@ namespace Util
 			gd_engfuncs.pfnMsgWriteFloat(maxLifetime);
 			gd_engfuncs.pfnMsgWriteFloat(minVelocity);
 			gd_engfuncs.pfnMsgWriteFloat(maxVelocity);
-			gd_engfuncs.pfnMsgWriteSmallFloat(width);
-			gd_engfuncs.pfnMsgWriteSmallFloat(length);
+			gd_engfuncs.pfnMsgWriteFloat(width);
+			gd_engfuncs.pfnMsgWriteFloat(length);
 		gd_engfuncs.pfnUserMessageEnd();
 	}
 
@@ -1761,6 +1788,49 @@ namespace Util
 				gd_engfuncs.pfnMsgWriteFloat(direction[i]);
 			gd_engfuncs.pfnMsgWriteByte(color);
 			gd_engfuncs.pfnMsgWriteFloat(speed);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	//=============================================
+	//
+	//=============================================
+	void CreateFlickerParticles( const Vector& origin, const Vector& direction )
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
+			gd_engfuncs.pfnMsgWriteByte(TE_FLICKERPARTICLES);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(direction[i]);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	//=============================================
+	//
+	//=============================================
+	void CreateBulletImpactParticles( const Vector& origin, const Vector& direction )
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
+			gd_engfuncs.pfnMsgWriteByte(TE_BULLETIMPACTPARTICLES);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(direction[i]);
+		gd_engfuncs.pfnUserMessageEnd();
+	}
+
+	//=============================================
+	//
+	//=============================================
+	void CreateParticleBurst( const Vector& origin, Int32 size, Uint32 color, Float life )
+	{
+		gd_engfuncs.pfnUserMessageBegin(MSG_ALL, g_usermsgs.createtempentity, nullptr, nullptr);
+			gd_engfuncs.pfnMsgWriteByte(TE_PARTICLEBURST);
+			for(Uint32 i = 0; i < 3; i++)
+				gd_engfuncs.pfnMsgWriteFloat(origin[i]);
+			gd_engfuncs.pfnMsgWriteInt16(size);
+			gd_engfuncs.pfnMsgWriteByte(color);
+			gd_engfuncs.pfnMsgWriteSmallFloat(life);
 		gd_engfuncs.pfnUserMessageEnd();
 	}
 
@@ -2627,7 +2697,7 @@ namespace Util
 	// @brief
 	//
 	//=============================================
-	bool CheckToss( CBaseEntity* pEntity, const Vector& spot1, const Vector& spot2, Float gravityAdjust, Vector& outVelocity )
+	bool CheckToss( CBaseEntity* pEntity, CBaseEntity* pTarget, const Vector& spot1, const Vector& spot2, Float gravityAdjust, Vector& outVelocity )
 	{
 		if(spot2.z - spot1.z > 500)
 			return false;
@@ -2669,12 +2739,12 @@ namespace Util
 
 		tr = trace_t();
 		Util::TraceLine(spot1, apex, false, false, pEntity->GetEdict(), tr);
-		if(!tr.noHit())
+		if(!tr.noHit() && tr.hitentity != pTarget->GetEntityIndex())
 			return false;
 
 		tr = trace_t();
 		Util::TraceLine(_spot2, apex, true, false, pEntity->GetEdict(), tr);
-		if(!tr.noHit())
+		if(!tr.noHit() && tr.hitentity != pTarget->GetEntityIndex())
 			return false;
 
 		outVelocity = grenadeVelocity;
@@ -2685,7 +2755,7 @@ namespace Util
 	// @brief
 	//
 	//=============================================
-	bool CheckThrow( CBaseEntity* pEntity, const Vector& spot1, const Vector& spot2, Float speed, Float gravityAdjust, Vector& outVelocity )
+	bool CheckThrow( CBaseEntity* pEntity, CBaseEntity* pTarget, const Vector& spot1, const Vector& spot2, Float speed, Float gravityAdjust, Vector& outVelocity )
 	{
 		Vector throwVelocity = (spot2 - spot1);
 		Float time = throwVelocity.Length()/speed;
@@ -2699,11 +2769,11 @@ namespace Util
 
 		trace_t tr;
 		Util::TraceLine(spot1, apex, false, false, pEntity->GetEdict(), tr);
-		if(!tr.noHit())
+		if(!tr.noHit() && tr.hitentity != pTarget->GetEntityIndex())
 			return false;
 
 		Util::TraceLine(spot2, apex, false, false, pEntity->GetEdict(), tr);
-		if(!tr.noHit())
+		if(!tr.noHit() && tr.hitentity != pTarget->GetEntityIndex())
 			return false;
 
 		outVelocity = throwVelocity;

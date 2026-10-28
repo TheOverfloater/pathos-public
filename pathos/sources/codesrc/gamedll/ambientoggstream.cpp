@@ -12,7 +12,6 @@ All Rights Reserved.
 #include "ambientoggstream.h"
 
 // Link the entity to it's class
-LINK_ENTITY_TO_CLASS(ambient_fmodstream, CAmbientOggStream);
 LINK_ENTITY_TO_CLASS(ambient_oggstream, CAmbientOggStream);
 
 //=============================================

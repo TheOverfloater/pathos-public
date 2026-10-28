@@ -68,6 +68,7 @@ struct beam_position_t
 	beam_position_t():
 		life(0),
 		acceleration(0),
+		length(0),
 		pnext(nullptr),
 		pprev(nullptr)
 		{
@@ -78,6 +79,7 @@ struct beam_position_t
 	Float life;
 	Float acceleration;
 	Vector winddirection;
+	Float length;
 
 	beam_position_t* pnext;
 	beam_position_t* pprev;

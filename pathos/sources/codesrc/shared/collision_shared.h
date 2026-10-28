@@ -22,5 +22,7 @@ namespace CollisionShared
 	bool IntersectBBoxAABB( const Vector& center, const Vector& boxmins, const Vector& boxmaxs, const Vector& extents );
 	// Test if an AABB traceline intersects a bounding box
 	bool IntersectBBoxSweptAABB( const Vector& start, const Vector& end, const Vector& boxmins, const Vector& boxmaxs, const Vector& extents );
+	// Test if point is inside triangle
+	bool PointInTriangle( const Vector& triv0, const Vector& triv1, const Vector& triv2, const Vector& point );
 };
 #endif COLLISION_SHARED_H

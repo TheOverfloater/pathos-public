@@ -480,7 +480,7 @@ void CNPCCloneSoldier::Precache( void )
 
 	gd_engfuncs.pfnPrecacheSound(NPC_SIG552_FIRING_SOUND);
 	gd_engfuncs.pfnPrecacheSound(NPC_M249_FIRING_SOUND);
-	gd_engfuncs.pfnPrecacheSound(NPC_SHOTGUN_FIRING_SOUND);
+	gd_engfuncs.pfnPrecacheSound(NPC_SPAS12_FIRING_SOUND);
 	gd_engfuncs.pfnPrecacheSound(NPC_TRG42_FIRING_SOUND);
 	gd_engfuncs.pfnPrecacheSound(NPC_HIT_MISS_SOUND);
 
@@ -597,7 +597,7 @@ void CNPCCloneSoldier::HandleAnimationEvent( const mstudioevent_t* pevent )
 			}
 			else if(m_pState->weapons & NPC_WEAPON_SHOTGUN)
 			{
-				pstrSound = NPC_SHOTGUN_FIRING_SOUND;
+				pstrSound = NPC_SPAS12_FIRING_SOUND;
 				numShots = GetSkillCVarValue(g_skillcvars.skillReplicaPellets);
 			}
 			else if(m_pState->weapons & NPC_WEAPON_M249)

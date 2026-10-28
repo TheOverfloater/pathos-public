@@ -68,26 +68,35 @@ public:
 	// Flashlight item name
 	static const Char FLASHLIGHT_ENTITY_NAME[];
 
-	// w_ model groups
-	static const Uint32 WGLOCK_SL_GROUP_INDEX;
-	static const Uint32 WGLOCK_SL_OFF;
-	static const Uint32 WGLOCK_SL_ON;
-		
-	static const Uint32 WGLOCK_FL_GROUP_INDEX;
-	static const Uint32 WGLOCK_FL_OFF;
-	static const Uint32 WGLOCK_FL_ON;
+	// Bodygroup name for flashlight on world model
+	static const Char WORLDMODEL_FLASHLIGHT_GRP_NAME[];
+	// Submodel name for flashlight on world model
+	static const Char WORLDMODEL_FLASHLIGHT_SUBMODEL_NAME[];
 
-	// v_ model groups
-	static const Uint32 VGLOCK_SL_GROUP_INDEX;
-	static const Uint32 VGLOCK_SL_OFF;
-	static const Uint32 VGLOCK_SL_ON;
+	// Bodygroup name for silencer on world model
+	static const Char WORLDMODEL_SILENCER_GRP_NAME[];
+	// Submodel name for silencer on world model
+	static const Char WORLDMODEL_SILENCER_SUBMODEL_NAME[];
 
-	static const Uint32 VGLOCK_FL_GROUP_INDEX;
-	static const Uint32 VGLOCK_FL_OFF;
-	static const Uint32 VGLOCK_FL_ON;
+	// Bodygroup name for flashlight on view model
+	static const Char VIEWMODEL_FLASHLIGHT_GRP_NAME[];
+	// Submodel name for flashlight on view model
+	static const Char VIEWMODEL_FLASHLIGHT_SUBMODEL_NAME[];
+
+	// Bodygroup name for silencer on view model
+	static const Char VIEWMODEL_SILENCER_GRP_NAME[];
+	// Submodel name for silencer on view model
+	static const Char VIEWMODEL_SILENCER_SUBMODEL_NAME[];
 
 	// Recoil degrade speed
 	static const Float WEAPON_RECOIL_DEGRADE;
+
+	// Enum for bodyparts to set
+	enum weapon_bodypart_t
+	{
+		BODYPART_SILENCER = 0,
+		BODYPART_FLASHLIGHT
+	};
 
 public:
 	explicit CWeaponGlock( edict_t* pedict );
@@ -117,13 +126,14 @@ public:
 
 	virtual Float GetRecoilDegradeFactor( void ) override;
 
-	virtual bool HasSilencer( void ) override;
-	virtual void SetHasSilencer( bool hasSilencer ) override;
-	virtual bool HasFlashlight( void ) override;
-	virtual void SetHasFlashlight( bool hasFlashlight ) override;
+	virtual bool HasAccessory( wpn_accessory_t accessory ) override;
+	virtual void SetHasAccessory( wpn_accessory_t accessory, bool hasAccessory ) override;
 	virtual bool CanResetAttackTime( void ) override;
 	virtual bool AddDuplicate( CPlayerWeapon* poriginal ) override;
 	virtual void AddAccessories( CPlayerWeapon* pWeapon ) override;
+
+private:
+	void SetBodyPart( weapon_bodypart_t bodypart, bool isworldmodel, bool isenabled );
 
 private:
 	bool m_hasSilencer;

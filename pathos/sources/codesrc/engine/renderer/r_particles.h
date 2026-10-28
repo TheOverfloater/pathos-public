@@ -96,10 +96,11 @@ enum prt_windtype_e
 
 enum system_flags_t
 {
-	SYSTEM_FL_NONE			= 0,
-	SYSTEM_FL_RANDOM_DIR	= (1<<0),
-	SYSTEM_FL_GLOBS			= (1<<1),
-	SYSTEM_FL_SOFTOFF		= (1<<2)
+	SYSTEM_FL_NONE					= 0,
+	SYSTEM_FL_RANDOM_DIR			= (1<<0),
+	SYSTEM_FL_GLOBS					= (1<<1),
+	SYSTEM_FL_SOFTOFF				= (1<<2),
+	SYSTEM_FL_FARNEAR_FADE_REVERSE	= (1<<3)
 };
 
 enum collision_flags_t
@@ -283,9 +284,10 @@ struct script_definition_t
 	Int16 framesizey;
 	Int16 framerate;
 
-	CString create;
-	CString deathcreate;
-	CString watercreate;
+	CString tracercreate;
+	CArray<CString> createarray;
+	CArray<CString> deathcreatearray;
+	CArray<CString> watercreatearray;
 
 	Float decallife;
 	Float decalfade;
@@ -355,8 +357,7 @@ struct particle_system_t
 		particlefreq(0),
 		attachflags(PARTICLE_ATTACH_NONE),
 		numspawns(0),
-		createsystem(nullptr),
-		watersystem(nullptr),
+		ptracersystem(nullptr),
 		parentsystem(nullptr),
 		ptexture(nullptr),
 		pparticleheader(nullptr),
@@ -397,8 +398,9 @@ struct particle_system_t
 
 	Uint64 numspawns;
 
-	particle_system_t *createsystem;
-	particle_system_t *watersystem;
+	CArray<particle_system_t*> pcreatesystems;
+	CArray<particle_system_t*> pwatersystems;
+	particle_system_t* ptracersystem;
 	particle_system_t *parentsystem;
 
 	en_texture_t *ptexture;

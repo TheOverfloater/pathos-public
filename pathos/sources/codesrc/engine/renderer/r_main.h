@@ -594,12 +594,16 @@ extern void Cmd_EFX_Bubbles( void );
 
 extern void Cmd_EFX_ParticleExplosion1( void );
 extern void Cmd_EFX_ParticleExplosion2( void );
+extern void Cmd_EFX_ParticleExplosion3( void );
 extern void Cmd_EFX_BlobExplosion( void );
 extern void Cmd_EFX_CreateRocketExplosion( void );
 extern void Cmd_EFX_CreateParticleEffect( void );
 extern void Cmd_EFX_CreateLavaSplash( void );
 extern void Cmd_EFX_CreateTeleportSplash( void );
 extern void Cmd_EFX_CreateRocketTrail( void );
+extern void Cmd_EFX_CreateFlickerParticles( void );
+extern void Cmd_EFX_CreateBulletImpactParticles( void );
+extern void Cmd_EFX_CreateParticleBurst( void );
 
 extern void Cmd_EFX_BeamSetStart( void );
 extern void Cmd_EFX_BeamSetEnd( void );

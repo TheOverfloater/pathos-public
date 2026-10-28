@@ -1086,3 +1086,41 @@ Merge PR # 55:
  - Add missing vertex light hash check for server-side env_model entities.
  - Fix broken un-sticking nudge on spawn for NPCs.
  - Fix bug in CLeafBrushBVH not determining box check type correctly, causing issues with player movement on stairs.
+
+2026 October 28th:
+ - Fix Pathos's binaries being compiled in DEBUG mode.
+ - Add rubber and grass footstep and material types.
+ - Fix credits.cpp and .h not being set in the client.dll project files.
+ - Add Half-Life flicker, bullet impact and particle burst legacy particle effects.
+ - Modify cable default/auto wind speed to be -1.
+ - Fix MOD_SurfaceAtPoint precision issues by adding point in triangle testing.
+ - Fix issue in net_mp.cpp not setting the proper client time tracker variable.
+ - Modify beam effects to calculate texture coordinates on the y axis based on length.
+ - Fix crash that occurs when loading maps without lighting having been calculated.
+ - Modify render classes that check the basic draw cache size to check actual size of cache.
+ - Fix env_cubemap entities not checking whether visible entities are parented or not when generating cubemaps.
+ - Add optional "extended mode" to legacy particles, adding lighting and collision detection.
+ - Modify particle engine code to allow for multiple child systems for spawning particles upon impact/death.
+ - Modify crash that occurs when a particle system fails to load it's texture.
+ - Allow particle far/near fade distance calculations to be inverse by a flag.
+ - Fix issue with vertex lighting being discarded when the OpenGL window is destroyed and recreated.
+ - Fix crash when the last save is deleted in the save/load window.
+ - Fix NPCs not following targeted path_corners due to a bug in the AI code.
+ - Fix node graph system not setting the original node index correctly, having not accounted for deletion of nodes.
+ - Add node graph build duration console message print.
+ - Add missing AI condition flags for verbose AI state console prints.
+ - Fix Util::CheckToss and Util::CheckThrow not accounting for hitting target enemy, causing the test to fail.
+ - Fix npc_sentry being stuck in air due to wrong mins/maxs set.
+ - Modify certain tracer/legacy particle effects to use a direction vector for velocity calculations.
+ - Modify weapon code to use generic accessory interface instead of specific interface functions for each attachment.
+ - Modify material impact system to use generalized code.
+ - Allow material system to specify the use of tracer streak splashes.
+ - Add feature to npcmaker to allow it to clear the targetnames of dead children.
+ - Fix bug in model viewer with certain model parts not drawing in rare cases.
+ - Modify Glock to use submodel/bodypart names for setting submodels instead of indexes.
+ - Fix brightness modifier also being applied to color alpha in CBasicDraw::Vertex3fv.
+ - Fix model viewer not taking the error code returned by the VBM Compiler into account before copying files.
+ - Fix attachment drawing error in model viewer.
+ - Modify VBM Compiler to warn about all cases where a submodel, body part, bone name, etc were truncated.
+ - Fix issue with reference_frame.smd parser crashing and not checking against the global bone table properly.
+ - Add missing "flashlight_purewhite.tga" texture.

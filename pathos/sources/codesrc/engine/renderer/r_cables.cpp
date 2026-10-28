@@ -155,13 +155,12 @@ bool CCableRenderer::DrawCables( void )
 		if(length < 0.5)
 			length = 0.5;
 
-		Float div = 1.0f / (cable.numsegments - 1);
-		Float step = length*div;
 		Float tcy1 = 0;
 
-		Vector vbottom;
+		Vector vbottom, vbottombase;
 		Math::VectorMA(cablestart, 0.5, delta, vbottom);
 		vbottom[2] -= cable.falldepth;
+		vbottombase = vbottom;
 
 		if(cable.windx)
 			vbottom.x += SDL_sin(rns.time * 1.25) * cable.windx;
@@ -173,6 +172,7 @@ bool CCableRenderer::DrawCables( void )
 		Vector start, screenlast, screenstart;
 		R_WorldToScreenTransform(modelViewProjectionMatrix, cablestart, screenlast);
 		Vector prevpoint = cablestart;
+		Vector prevpointbase = prevpoint;
 
 		// Calculate 1st point
 		Vector nextpoint = CalculatePoint(1, cable.numsegments, cablestart, screenlast, vbottom);
@@ -182,14 +182,14 @@ bool CCableRenderer::DrawCables( void )
 		Math::VectorSubtract(screenstart, screenlast, tmp);
 		tmp[2] = 0.0; // discard z as we're in screen space
 
-		Vector normal;
+		Vector prevnormal;
 		Math::VectorNormalize(tmp);
-		Math::VectorScale(rns.view.v_up, tmp[0], normal);
-		Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
+		Math::VectorScale(rns.view.v_up, tmp[0], prevnormal);
+		Math::VectorMA(prevnormal, -tmp[1], rns.view.v_right, prevnormal);
 
 		Vector coord1_1, coord1_2;
-		Math::VectorMA(cablestart, cable.width, normal, coord1_1);
-		Math::VectorMA(cablestart, -cable.width, normal, coord1_2);
+		Math::VectorMA(cablestart, cable.width, prevnormal, coord1_1);
+		Math::VectorMA(cablestart, -cable.width, prevnormal, coord1_2);
 
 		// Calculate normal for lighting
 		Vector segmentdir;
@@ -197,7 +197,11 @@ bool CCableRenderer::DrawCables( void )
 		segmentdir.Normalize();
 
 		Vector prevlightnormal;
-		Math::CrossProduct(segmentdir, normal, prevlightnormal);
+		Math::CrossProduct(segmentdir, prevnormal, prevlightnormal);
+
+		Float totalwidth = cable.width * 2;
+		Float ratio = static_cast<Float>(frame->height) / static_cast<Float>(frame->width);
+		Float unitstep = 1.0 / (totalwidth * ratio);
 
 		// Draw as quads
 		pDraw->Begin(CBasicDraw::DRAW_QUADS);
@@ -207,6 +211,7 @@ bool CCableRenderer::DrawCables( void )
 		{
 			// Calculate current point
 			Vector vpoint = CalculatePoint(j, cable.numsegments, cablestart, cableend, vbottom);
+			Vector vpointbase = CalculatePoint(j, cable.numsegments, cablestart, cableend, vbottombase);
 
 			R_WorldToScreenTransform(modelViewProjectionMatrix, vpoint, screenstart);
 			Math::VectorSubtract(screenstart, screenlast, tmp);
@@ -215,13 +220,22 @@ bool CCableRenderer::DrawCables( void )
 			tmp[2] = 0;
 			Math::VectorNormalize(tmp);
 
+			Vector normal;
 			Math::VectorScale(rns.view.v_up, tmp[0], normal);
 			Math::VectorMA(normal, -tmp[1], rns.view.v_right, normal);
 
+			Float tcxoffset = 0;
+			Vector surfnormal = normal;
+			if(Math::DotProduct(prevnormal, normal) < 0)
+			{
+				Math::VectorScale(surfnormal, -1, surfnormal);
+				tcxoffset = 1;
+			}
+
 			// Calculate final coordinates
 			Vector coord2_1, coord2_2;
-			Math::VectorMA(vpoint, cable.width, normal, coord2_1);
-			Math::VectorMA(vpoint, -cable.width, normal, coord2_2);
+			Math::VectorMA(vpoint, cable.width, surfnormal, coord2_1);
+			Math::VectorMA(vpoint, -cable.width, surfnormal, coord2_2);
 
 			Math::VectorSubtract(vpoint, prevpoint, segmentdir);
 			segmentdir.Normalize();
@@ -234,28 +248,29 @@ bool CCableRenderer::DrawCables( void )
 			cable_lsample_t& sample2 = cable.pointsamples[j];
 
 			// Calculate texcoord
-			Float tcy2 = tcy1 + step;
+			Float distance = (vpointbase - prevpointbase).Length();
+			Float tcy2 = tcy1 + unitstep * distance;
 
 			// Draw as a quad
 			Vector lightcolor = CalculateLighting(cable, sample1, prevpoint, prevlightnormal);
 			pDraw->Color4f(lightcolor.x, lightcolor.y, lightcolor.z, 1.0);
-			pDraw->TexCoord2f(1, tcy1);
+			pDraw->TexCoord2f((1-tcxoffset), tcy1);
 			pDraw->Vertex3fv(coord1_1);
 
-			pDraw->TexCoord2f(0, tcy1);
+			pDraw->TexCoord2f(tcxoffset, tcy1);
 			pDraw->Vertex3fv(coord1_2);
 
 			lightcolor = CalculateLighting(cable, sample2, vpoint, lightnormal);
 			pDraw->Color4f(lightcolor.x, lightcolor.y, lightcolor.z, 1.0);
-			pDraw->TexCoord2f(0, tcy2);
+			pDraw->TexCoord2f(tcxoffset, tcy2);
 			pDraw->Vertex3fv(coord2_2);
 
-			pDraw->TexCoord2f(1, tcy2);
+			pDraw->TexCoord2f((1-tcxoffset), tcy2);
 			pDraw->Vertex3fv(coord2_1);
 
 			// See if we've filled the cache
 			nbVertexes += 4;
-			if((nbVertexes+4) >= CBasicDraw::BASICDRAW_VERTEX_CACHE_SIZE)
+			if((nbVertexes+4) >= pDraw->GetCacheSize())
 			{
 				pDraw->End();
 				pDraw->Begin(CBasicDraw::DRAW_QUADS);
@@ -263,13 +278,15 @@ bool CCableRenderer::DrawCables( void )
 			}
 
 			screenlast = screenstart;
-			tcy1 = SDL_fmod(tcy2, 1.0);
+			tcy1 = tcy2;
 
 			coord1_1 = coord2_1;
 			coord1_2 = coord2_2;
 
 			prevlightnormal = lightnormal;
+			prevnormal = surfnormal;
 			prevpoint = vpoint;
+			prevpointbase = vpointbase;
 		}
 
 		pDraw->End();

@@ -341,6 +341,8 @@ bool CVBMCompiler::FinalizeCurrentSubmodel( void )
 {
 	Uint32 maxSize = sizeof(vbmsubmodel_t::name);
 	qstrcpy_s(m_pDestinationSubmodel->name, m_pSourceSubmodel->name.c_str(), maxSize);
+	if(qstrlen(m_pDestinationSubmodel->name) < m_pSourceSubmodel->name.length())
+		WarningMsg("VBM submodel name '%s' was truncated to '%s'!\n", m_pSourceSubmodel->name.c_str(), m_pDestinationSubmodel->name);
 
 	Uint32 dataSize = m_pConversionGroupsArray.size() * sizeof(vbmmesh_t);
 	m_pDestinationSubmodel->meshoffset = m_pFileBuffer->getdatasize();
@@ -462,7 +464,7 @@ void CVBMCompiler::ProcessMesh( smdl::mesh_t* psrcmesh, vbmtexture_t* ptexture )
 	for(Int32 i = 0; i < numbones; i++)
 	{
 		const smdl::boneinfo_t* pbone = m_studioCompiler.GetBone(i);
-		if(pbone->parent_index != -1)
+		if(pbone->parent_index != NO_POSITION)
 			continue;
 
 		RecursiveAddBoneTriangles(i, pbone);
@@ -839,6 +841,8 @@ void CVBMCompiler::WriteBoneData( void )
 
 		Uint32 maxSize = sizeof(vbmboneinfo_t::name);
 		qstrcpy_s(pdestbone->name, psrcbone->name.c_str(), maxSize);
+		if(qstrlen(pdestbone->name) < psrcbone->name.length())
+			WarningMsg("VBM bone name '%s' was truncated to '%s'!\n", psrcbone->name.c_str(), pdestbone->name);
 
 		pdestbone->parentindex = psrcbone->parent_index;
 		Int32 pose_index = m_referenceFrame.bonemap_inverse[i];
@@ -883,6 +887,8 @@ void CVBMCompiler::WriteFlexControllers( void )
 
 		Uint32 maxSize = sizeof(vbmflexcontroller_t::name);
 		qstrcpy_s(pdestcontroller->name, srccontroller.name.c_str(), maxSize);
+		if(qstrlen(pdestcontroller->name) < srccontroller.name.length())
+			WarningMsg("VBM flex controller name '%s' was truncated to '%s'!\n", srccontroller.name.c_str(), pdestcontroller->name);
 
 		pdestcontroller->interpmode = srccontroller.type;
 		pdestcontroller->minvalue = srccontroller.minvalue;
@@ -998,7 +1004,7 @@ void CVBMCompiler::WriteFlexData( void )
 		for(Uint32 j = 0; j < vertexCount; j++)
 		{
 			for(Uint32 k = 0; k < MAX_VBM_FLEXES; k++)
-				pflexvertinfo[j].vertinfoindexes[k] = -1;
+				pflexvertinfo[j].vertinfoindexes[k] = NO_POSITION;
 		}
 
 		// Set the vertex data
@@ -1142,6 +1148,8 @@ bool CVBMCompiler::CreateVBMFile( void )
 
 	Uint32 maxSize = sizeof(vbmheader_t::name);
 	qstrcpy_s(m_pVBMHeader->name, g_options.outputname.c_str(), maxSize);
+	if(qstrlen(m_pVBMHeader->name) < g_options.outputname.length())
+		WarningMsg("VBM header name '%s' was truncated to '%s'!\n", g_options.outputname.c_str(), m_pVBMHeader->name);
 
 	// Set up texture info array first, we'll need it
 	Uint32 nbTextures = m_studioCompiler.GetNbTextures();
@@ -1161,6 +1169,8 @@ bool CVBMCompiler::CreateVBMFile( void )
 
 		maxSize = sizeof(vbmtexture_t::name);
 		qstrcpy_s(pdesttexture->name, psrctexture->name.c_str(), maxSize);
+		if(qstrlen(pdesttexture->name) < psrctexture->name.length())
+			WarningMsg("VBM texture name '%s' was truncated to '%s'!\n", psrctexture->name.c_str(), pdesttexture->name);
 
 		pdesttexture->flags = psrctexture->flags;
 		pdesttexture->width = psrctexture->width;
@@ -1196,6 +1206,8 @@ bool CVBMCompiler::CreateVBMFile( void )
 
 		maxSize = sizeof(vbmbodypart_t::name);
 		qstrcpy_s(pdestbodypart->name, psrcbodypart->name.c_str(), maxSize);
+		if(qstrlen(pdestbodypart->name) < psrcbodypart->name.length())
+			WarningMsg("VBM body part name '%s' was truncated to '%s'!\n", psrcbodypart->name.c_str(), pdestbodypart->name);
 
 		pdestbodypart->base = psrcbodypart->base;
 		pdestbodypart->numsubmodels = psrcbodypart->psubmodels.size();

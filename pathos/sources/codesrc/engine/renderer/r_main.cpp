@@ -266,12 +266,16 @@ bool R_Init( void )
 
 	gCommands.CreateCommand("efx_particleexplosion1", Cmd_EFX_ParticleExplosion1, "Creates a legacy explosion particle effect");
 	gCommands.CreateCommand("efx_particleexplosion2", Cmd_EFX_ParticleExplosion2, "Creates a legacy explosion particle effect");
+	gCommands.CreateCommand("efx_particleexplosion3", Cmd_EFX_ParticleExplosion3, "Creates a legacy explosion particle effect");
 	gCommands.CreateCommand("efx_blobexplosion", Cmd_EFX_BlobExplosion, "Creates a legacy blob explosion particle effect");
 	gCommands.CreateCommand("efx_rocketexplosion", Cmd_EFX_CreateRocketExplosion, "Creates a legacy rocket explosion particle effect");
 	gCommands.CreateCommand("efx_particleeffect", Cmd_EFX_CreateParticleEffect, "Creates a legacy particle effect");
 	gCommands.CreateCommand("efx_lavasplash", Cmd_EFX_CreateLavaSplash, "Creates a legacy lava splash particle effect");
 	gCommands.CreateCommand("efx_teleportsplash", Cmd_EFX_CreateTeleportSplash, "Creates a legacy teleport particle effect");
 	gCommands.CreateCommand("efx_rockettrail", Cmd_EFX_CreateRocketTrail, "Creates a legacy rocket trail particle effect");
+	gCommands.CreateCommand("efx_flickerparticles", Cmd_EFX_CreateFlickerParticles, "Creates a legacy flicker particle effect");
+	gCommands.CreateCommand("efx_bulletimpactparticles", Cmd_EFX_CreateBulletImpactParticles, "Creates a legacy bullet impact particle effect");
+	gCommands.CreateCommand("efx_particleburst", Cmd_EFX_CreateParticleBurst, "Creates a legacy particle burst effect");
 
 	gCommands.CreateCommand("efx_beamsetstart", Cmd_EFX_BeamSetStart, "Sets beam start entity and/or position");
 	gCommands.CreateCommand("efx_beamsetend", Cmd_EFX_BeamSetEnd, "Sets beam start entity and/or position");
@@ -4690,6 +4694,29 @@ void Cmd_EFX_ParticleExplosion2( void )
 //====================================
 //
 //====================================
+void Cmd_EFX_ParticleExplosion3( void )
+{
+	if(!CL_IsGameActive())
+	{
+		Con_Printf("%s - No active game.\n", __FUNCTION__);
+		return;
+	}
+
+	Vector vend, vforward;
+	Math::AngleVectors(rns.view.v_angles, &vforward, nullptr, nullptr);
+	Math::VectorMA(rns.view.v_origin, 1024, vforward, vend);
+
+	trace_t tr;
+	CL_PlayerTrace(rns.view.v_origin, vend, FL_TRACE_NORMAL, HULL_POINT, NO_ENTITY_INDEX, tr);
+	if(tr.flags & (FL_TR_STARTSOLID|FL_TR_ALLSOLID) || tr.fraction == 1.0)
+		return;
+
+	gLegacyParticles.CreateParticleExplosion3(tr.endpos+tr.plane.normal*4);
+}
+
+//====================================
+//
+//====================================
 void Cmd_EFX_BlobExplosion( void )
 {
 	if(!CL_IsGameActive())
@@ -4825,6 +4852,75 @@ void Cmd_EFX_CreateRocketTrail( void )
 		return;
 
 	gLegacyParticles.CreateRocketTrail(tr.endpos + tr.plane.normal*4, tr.endpos + tr.plane.normal* 64, Common::RandomLong(0, 6));
+}
+
+//====================================
+//
+//====================================
+void Cmd_EFX_CreateFlickerParticles( void )
+{
+	if(!CL_IsGameActive())
+	{
+		Con_Printf("%s - No active game.\n", __FUNCTION__);
+		return;
+	}
+
+	Vector vend, vforward;
+	Math::AngleVectors(rns.view.v_angles, &vforward, nullptr, nullptr);
+	Math::VectorMA(rns.view.v_origin, 1024, vforward, vend);
+
+	trace_t tr;
+	CL_PlayerTrace(rns.view.v_origin, vend, FL_TRACE_NORMAL, HULL_POINT, NO_ENTITY_INDEX, tr);
+	if(tr.flags & (FL_TR_STARTSOLID|FL_TR_ALLSOLID) || tr.fraction == 1.0)
+		return;
+
+	gLegacyParticles.CreateFlickerParticles(tr.endpos+tr.plane.normal*4, tr.plane.normal);
+}
+
+//====================================
+//
+//====================================
+void Cmd_EFX_CreateBulletImpactParticles( void )
+{
+	if(!CL_IsGameActive())
+	{
+		Con_Printf("%s - No active game.\n", __FUNCTION__);
+		return;
+	}
+
+	Vector vend, vforward;
+	Math::AngleVectors(rns.view.v_angles, &vforward, nullptr, nullptr);
+	Math::VectorMA(rns.view.v_origin, 1024, vforward, vend);
+
+	trace_t tr;
+	CL_PlayerTrace(rns.view.v_origin, vend, FL_TRACE_NORMAL, HULL_POINT, NO_ENTITY_INDEX, tr);
+	if(tr.flags & (FL_TR_STARTSOLID|FL_TR_ALLSOLID) || tr.fraction == 1.0)
+		return;
+
+	CL_CreateBulletImpactParticles(tr.endpos+tr.plane.normal*4, tr.plane.normal);
+}
+
+//====================================
+//
+//====================================
+void Cmd_EFX_CreateParticleBurst( void )
+{
+	if(!CL_IsGameActive())
+	{
+		Con_Printf("%s - No active game.\n", __FUNCTION__);
+		return;
+	}
+
+	Vector vend, vforward;
+	Math::AngleVectors(rns.view.v_angles, &vforward, nullptr, nullptr);
+	Math::VectorMA(rns.view.v_origin, 1024, vforward, vend);
+
+	trace_t tr;
+	CL_PlayerTrace(rns.view.v_origin, vend, FL_TRACE_NORMAL, HULL_POINT, NO_ENTITY_INDEX, tr);
+	if(tr.flags & (FL_TR_STARTSOLID|FL_TR_ALLSOLID) || tr.fraction == 1.0)
+		return;
+
+	gLegacyParticles.CreateParticleBurst(tr.endpos+tr.plane.normal*4, 512, 128, 60);
 }
 
 //====================================
@@ -5496,15 +5592,8 @@ void Cmd_BSPToSMD_Textures( void )
 			bsp_vertex_t* pverts = new bsp_vertex_t[psurf->numedges];
 			for(Uint32 k = 0; k < psurf->numedges; k++)
 			{
-				int e_index = pmodel->psurfedges[psurf->firstedge+k];
-				if(e_index > 0)
-				{
-					Math::VectorCopy(pmodel->pvertexes[pmodel->pedges[e_index].vertexes[0]].origin, pverts[k].origin);
-				}
-				else
-				{
-					Math::VectorCopy(pmodel->pvertexes[pmodel->pedges[-e_index].vertexes[1]].origin, pverts[k].origin);
-				}
+				const Vector& vertexorigin = Mod_GetSurfaceVertex(ens.pworld, psurf, k);
+				Math::VectorCopy(vertexorigin, pverts[k].origin);
 
 				mtexinfo_t *ptexinfo = psurf->ptexinfo;
 				pverts[k].texcoord[0] = Math::DotProduct(&pverts[k].origin[0], ptexinfo->vecs[0]) + ptexinfo->vecs[0][3];
@@ -5661,15 +5750,8 @@ void Cmd_BSPToSMD_Lightmap( void )
 			bsp_vertex_t* pverts = new bsp_vertex_t[psurf->numedges];
 			for(Uint32 k = 0; k < psurf->numedges; k++)
 			{
-				int e_index = pmodel->psurfedges[psurf->firstedge+k];
-				if(e_index > 0)
-				{
-					Math::VectorCopy(pmodel->pvertexes[pmodel->pedges[e_index].vertexes[0]].origin, pverts[k].origin);
-				}
-				else
-				{
-					Math::VectorCopy(pmodel->pvertexes[pmodel->pedges[-e_index].vertexes[1]].origin, pverts[k].origin);
-				}
+				const Vector& vertexorigin = Mod_GetSurfaceVertex(ens.pworld, psurf, k);
+				Math::VectorCopy(vertexorigin, pverts[k].origin);
 
 				// Set lightmap coords
 				mtexinfo_t *ptexinfo = psurf->ptexinfo;

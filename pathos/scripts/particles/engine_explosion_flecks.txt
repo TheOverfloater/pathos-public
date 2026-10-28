@@ -17,7 +17,7 @@ $particlescript
 	$collision bounce
 	$gravity 1.400000
 	$impact_velocity_dampening 0.600000
-	$create engine_explosion_cloud.txt
+	$create_tracer engine_explosion_cloud.txt
 	$rendermode alphablend
 	$alpha 1.000000
 	$alignment tiled

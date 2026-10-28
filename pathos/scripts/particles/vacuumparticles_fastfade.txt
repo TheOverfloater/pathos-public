@@ -8,7 +8,7 @@ $particlescript
 	$fade_in_time 0.200000
 	$fade_out_delay 2.000000
 	$lifetime 3.000000
-	$flags softoff
+	$flags softoff reverse_farnear_fade
 	$primary_color 255 255 255
 	$scale 65.000000
 	$scale_variation 10.000000

@@ -193,3 +193,27 @@
 		"player/pl_wood4.wav"
 	}
 }
+"grass"
+{
+	right {
+		"player/pl_grass1.wav"
+		"player/pl_grass1.wav"
+	}
+	left
+	{
+		"player/pl_grass2.wav"
+		"player/pl_grass4.wav"
+	}
+}
+"rubber"
+{
+	right {
+		"player/pl_rubber1.wav"
+		"player/pl_rubber1.wav"
+	}
+	left
+	{
+		"player/pl_rubber2.wav"
+		"player/pl_rubber4.wav"
+	}
+}

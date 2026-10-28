@@ -177,6 +177,12 @@
     <ClCompile Include="..\shared\uischema.cpp">
       <Filter>Source Files\shared</Filter>
     </ClCompile>
+    <ClCompile Include="credits.cpp">
+      <Filter>Source Files\rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="gameuiinventorywindow.cpp">
+      <Filter>Source Files\gameui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="clientdll.h">
@@ -424,6 +430,9 @@
     </ClInclude>
     <ClInclude Include="..\shared\weapons_shared.h">
       <Filter>Header Files\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="credits.h">
+      <Filter>Header Files\rendering</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -26,7 +26,7 @@ $particlescript
 	$rotate_z_speed 40.000000
 	$rotate_z_variation 5.000000
 	$render_flags nocull
-	$create engine_gib_tracers.txt
+	$create_tracer engine_gib_tracers.txt
 	$tracer_distance 6.000000
 	$impact_velocity_dampening 0.600000
 }

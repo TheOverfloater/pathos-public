@@ -17,7 +17,6 @@ $particlescript
 	$lighting mix_primary_color
 	$collision die
 	$gravity 0.200000
-	$create blood_core
 	$rendermode alphablend
 	$alpha 0.800000
 	$texture blood
@@ -27,6 +26,6 @@ $particlescript
 	$decal_lifetime 30
 	$decal_fade_time 2
 	$decal_growth_time 1
-	$create engine_blood_tracers.txt
+	$create_tracer engine_blood_tracers.txt
 	$tracer_distance 1.000000
 }

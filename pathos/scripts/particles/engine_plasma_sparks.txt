@@ -16,7 +16,7 @@ $particlescript
 	$collision bounce
 	$gravity 0.300000
 	$impact_velocity_dampening 0.600000
-	$create engine_plasma_trails.txt
+	$create_tracer engine_plasma_trails.txt
 	$rendermode additive
 	$alpha 1.000000
 	$alignment tiled
