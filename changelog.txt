@@ -1124,3 +1124,4 @@ Merge PR # 55:
  - Modify VBM Compiler to warn about all cases where a submodel, body part, bone name, etc were truncated.
  - Fix issue with reference_frame.smd parser crashing and not checking against the global bone table properly.
  - Add missing "flashlight_purewhite.tga" texture.
+ - Modify env_credits to fade text in and out near the top/bottom borders during scrolling.
