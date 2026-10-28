@@ -254,8 +254,7 @@ bool CCredits::Draw( void )
 	Double currentLineY = m_currentY;
 	for (Uint32 i = 0; i < m_creditsLines.size(); i++)
 	{
-		creditline_t& line = m_creditsLines[i];
-
+		const creditline_t& line = m_creditsLines[i];
 		if (currentLineY + static_cast<Double>(line.height) >= 0 && currentLineY <= static_cast<Double>(m_screenHeight))
 		{
 			if (!line.text.empty())
